@@ -8,13 +8,20 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
@@ -100,12 +107,12 @@ fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
     val context = LocalContext.current
     val packageManager = context.packageManager
 
-    val numVisibleIcons = 35
+    val numVisibleIcons = 40
     val numTopIcons = 11
     val numSideIcons = (numVisibleIcons - numTopIcons) / 2
 
-    val smallIconSize = 32.dp
-    val largeIconSize = 48.dp
+    val smallIconSize = 38.dp
+    val largeIconSize = 60.dp
 
     val totalIcons = apps.size
     val scrollIndex = (scrollOffset / 20f).roundToInt()
@@ -118,17 +125,25 @@ fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
                 val isCenter = i == numSideIcons + numTopIcons / 2
                 val iconSize = if (isCenter) largeIconSize else smallIconSize
 
-                Image(
-                    painter = rememberDrawablePainter(drawable = apps[appIndex].icon),
-                    contentDescription = apps[appIndex].label.toString(),
+                Box(
                     modifier = Modifier
                         .size(iconSize)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        //.border(2.dp, Color.Black, CircleShape)
                         .clickable {
                             val launchIntent =
                                 packageManager.getLaunchIntentForPackage(apps[appIndex].resolveInfo.activityInfo.packageName)
                             context.startActivity(launchIntent)
-                        }
-                )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = rememberDrawablePainter(drawable = apps[appIndex].icon),
+                        contentDescription = apps[appIndex].label.toString(),
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
             }
         }
     ) { measurables, constraints ->
@@ -149,7 +164,7 @@ fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
                 val (x, y) = if (i < numSideIcons) {
                     // Left side
                     val xPos = sidePadding
-                    val yPos = height - topPadding - i * verticalSpacing
+                    val yPos = arcRadius + verticalSpacing + height - topPadding - i * verticalSpacing
                     Pair(xPos, yPos)
                 } else if (i < numSideIcons + numTopIcons) {
                     // Top arc
@@ -162,7 +177,7 @@ fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
                     // Right side
                     val sideIndex = i - numSideIcons - numTopIcons
                     val xPos = width - sidePadding
-                    val yPos = topPadding + sideIndex * verticalSpacing
+                    val yPos = arcRadius +  verticalSpacing + topPadding + sideIndex * verticalSpacing
                     Pair(xPos, yPos)
                 }
 
