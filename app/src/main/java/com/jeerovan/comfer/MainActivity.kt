@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,12 +42,15 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlin.math.PI
+import kotlin.math.absoluteValue
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
@@ -73,6 +77,7 @@ fun LauncherScreen() {
     val packageManager = context.packageManager
     var scrollOffset by remember { mutableFloatStateOf(0f) }
 
+    val speed = remember { mutableFloatStateOf(110f) }
     val apps by produceState<List<AppInfo>>(initialValue = emptyList()) {
         val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
         val allApps = packageManager.queryIntentActivities(intent, 0)
@@ -97,7 +102,7 @@ fun LauncherScreen() {
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-
+        Text(text=scrollOffset.toString(), textAlign = TextAlign.Center, modifier = Modifier.padding(5.dp))
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -105,7 +110,19 @@ fun LauncherScreen() {
                     detectDragGestures { change, dragAmount ->
                         change.consume()
                         if (change.position.y > size.height / 2) {
-                            scrollOffset += dragAmount.x
+                            val yNorm = (change.position.y - size.height / 2) / (size.height / 2)
+                            val multiplier = 2.0f - 1.5f * yNorm.coerceIn(0f, 1f)
+                            scrollOffset += dragAmount.x * multiplier
+                            speed.floatValue = scrollOffset
+                            if (apps.isNotEmpty()) {
+                                val totalScrollWidth = apps.size * 20f
+                                if (totalScrollWidth > 0) {
+                                    scrollOffset = scrollOffset.rem(totalScrollWidth)
+                                    if (scrollOffset < 0) {
+                                        scrollOffset += totalScrollWidth
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -219,4 +236,10 @@ fun AppIcon(app: AppInfo, x: Float, y: Float, isCenter: Boolean, smallIconSize: 
 
 private fun Float.toDp(): Dp {
     return (this / Resources.getSystem().displayMetrics.density).dp
+}
+
+@Preview
+@Composable
+private fun PreviewScreen() {
+    LauncherScreen()
 }
