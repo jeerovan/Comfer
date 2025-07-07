@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -165,14 +166,16 @@ fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
                 Pair(xPos, yPos)
             }
 
-            AppIcon(
-                app = apps[appIndex],
-                x = x,
-                y = y,
-                isCenter = isCenter,
-                smallIconSize = smallIconSize,
-                largeIconSize = largeIconSize
-            )
+            key(apps[appIndex].resolveInfo.activityInfo.packageName) {
+                AppIcon(
+                    app = apps[appIndex],
+                    x = x,
+                    y = y,
+                    isCenter = isCenter,
+                    smallIconSize = smallIconSize,
+                    largeIconSize = largeIconSize
+                )
+            }
         }
     }
 }
@@ -184,10 +187,14 @@ fun AppIcon(app: AppInfo, x: Float, y: Float, isCenter: Boolean, smallIconSize: 
 
     val animatedSize by animateDpAsState(
         targetValue = if (isCenter) largeIconSize else smallIconSize,
-        animationSpec = tween(300)
+        //animationSpec = tween(150)
     )
-    val animatedX by animateDpAsState(targetValue = x.toDp(), animationSpec = tween(300))
-    val animatedY by animateDpAsState(targetValue = y.toDp(), animationSpec = tween(300))
+    val animatedX by animateDpAsState(targetValue = x.toDp(),
+        //animationSpec = tween(150)
+    )
+    val animatedY by animateDpAsState(targetValue = y.toDp(),
+        //animationSpec = tween(150)
+    )
 
     Box(
         modifier = Modifier
