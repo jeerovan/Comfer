@@ -76,8 +76,6 @@ fun LauncherScreen() {
     val context = LocalContext.current
     val packageManager = context.packageManager
     var scrollOffset by remember { mutableFloatStateOf(0f) }
-
-    val speed = remember { mutableFloatStateOf(110f) }
     val apps by produceState<List<AppInfo>>(initialValue = emptyList()) {
         val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
         val allApps = packageManager.queryIntentActivities(intent, 0)
@@ -102,7 +100,6 @@ fun LauncherScreen() {
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        Text(text=scrollOffset.toString(), textAlign = TextAlign.Center, modifier = Modifier.padding(5.dp))
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -111,9 +108,10 @@ fun LauncherScreen() {
                         change.consume()
                         if (change.position.y > size.height / 2) {
                             val yNorm = (change.position.y - size.height / 2) / (size.height / 2)
-                            val multiplier = 2.0f - 1.5f * yNorm.coerceIn(0f, 1f)
-                            scrollOffset += dragAmount.x * multiplier
-                            speed.floatValue = scrollOffset
+                            val multiplier = 1.6f - 1.5f * yNorm.coerceIn(0f, 1f)
+                            val increment = dragAmount.x * multiplier
+                            scrollOffset += increment.coerceIn(-10.0f,10.0f)
+                            Log.d("ScrollOffset",increment.toString())
                             if (apps.isNotEmpty()) {
                                 val totalScrollWidth = apps.size * 20f
                                 if (totalScrollWidth > 0) {
@@ -145,7 +143,7 @@ fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
 
     val totalIcons = apps.size
     val scrollIndex = (scrollOffset / 20f).roundToInt()
-    val startIndex = (scrollIndex - numVisibleIcons / 2 + totalIcons) % totalIcons
+    val startIndex = ((scrollIndex - numVisibleIcons / 2) % totalIcons + totalIcons) % totalIcons
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
 
