@@ -9,12 +9,16 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationEndReason
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,26 +33,24 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.cos
@@ -75,7 +77,7 @@ class MainActivity : ComponentActivity() {
 fun LauncherScreen() {
     val context = LocalContext.current
     val packageManager = context.packageManager
-    var scrollOffset by remember { mutableFloatStateOf(0f) }
+    val scrollAnimatable = remember { Animatable(0f) }
     val apps by produceState<List<AppInfo>>(initialValue = emptyList()) {
         val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
         val allApps = packageManager.queryIntentActivities(intent, 0)
@@ -87,6 +89,10 @@ fun LauncherScreen() {
             )
         }
     }
+
+    val scope = rememberCoroutineScope()
+    val velocityTracker = remember { VelocityTracker() }
+    var lastYPosition by remember { mutableFloatStateOf(0f) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -104,29 +110,84 @@ fun LauncherScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) {
-                    detectDragGestures { change, dragAmount ->
-                        change.consume()
-                        if (change.position.y > size.height / 2) {
-                            val yNorm = (change.position.y - size.height / 2) / (size.height / 2)
-                            val multiplier = 1.6f - 1.5f * yNorm.coerceIn(0f, 1f)
-                            val increment = dragAmount.x * multiplier
-                            scrollOffset += increment.coerceIn(-10.0f,10.0f)
-                            Log.d("ScrollOffset",increment.toString())
-                            if (apps.isNotEmpty()) {
-                                val totalScrollWidth = apps.size * 20f
-                                if (totalScrollWidth > 0) {
-                                    scrollOffset = scrollOffset.rem(totalScrollWidth)
-                                    if (scrollOffset < 0) {
-                                        scrollOffset += totalScrollWidth
+                    detectTapGestures (
+                        onPress = {
+                            scope.launch {
+                                scrollAnimatable.stop()
+                            }
+                        }
+                    )
+                }
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = {
+                            velocityTracker.resetTracking()
+                            scope.launch {
+                                scrollAnimatable.stop()
+                            }
+                        },
+                        onDrag = { change, dragAmount ->
+                            velocityTracker.addPosition(change.uptimeMillis, change.position)
+                            lastYPosition = change.position.y
+                            change.consume()
+                            if (change.position.y > size.height / 2) {
+                                val yNorm =
+                                    (change.position.y - size.height / 2) / (size.height / 2)
+                                val multiplier = 1.6f - 1.5f * yNorm.coerceIn(0f, 1f)
+                                val increment = dragAmount.x * multiplier
+
+                                scope.launch {
+                                    val currentValue = scrollAnimatable.value
+                                    var newValue =
+                                        currentValue + increment.coerceIn(-10.0f, 10.0f)
+                                    if (apps.isNotEmpty()) {
+                                        val totalScrollWidth = apps.size * 20f
+                                        if (totalScrollWidth > 0) {
+                                            newValue = newValue.rem(totalScrollWidth)
+                                            if (newValue < 0) {
+                                                newValue += totalScrollWidth
+                                            }
+                                        }
+                                    }
+                                    scrollAnimatable.snapTo(newValue)
+                                }
+                            }
+                        },
+                        onDragEnd = {
+                            val velocity = velocityTracker.calculateVelocity()
+                            val yNorm = (lastYPosition - size.height / 2) / (size.height / 2)
+                            val speedMultiplier =
+                                (1.6f - 1.5f * yNorm.coerceIn(0f, 1f)).coerceAtLeast(0.1f)
+
+                            scope.launch {
+                                val initialVelocity = velocity.x * speedMultiplier
+                                Log.d("velocity",initialVelocity.toString())
+                                val result = scrollAnimatable.animateDecay(
+                                    initialVelocity.coerceIn(-800.0f,800.0f),
+                                    exponentialDecay()
+                                )
+
+                                if (result.endReason == AnimationEndReason.Finished && apps.isNotEmpty()) {
+                                    val totalScrollWidth = apps.size * 20f
+                                    if (totalScrollWidth > 0) {
+                                        var wrappedValue =
+                                            scrollAnimatable.value.rem(totalScrollWidth)
+                                        if (wrappedValue < 0) {
+                                            wrappedValue += totalScrollWidth
+                                        }
+                                        scrollAnimatable.snapTo(wrappedValue)
                                     }
                                 }
                             }
+                        },
+                        onDragCancel = {
+                            velocityTracker.resetTracking()
                         }
-                    }
+                    )
                 }
         ) {
             if (apps.isNotEmpty()) {
-                UshapedAppList(apps = apps, scrollOffset = -scrollOffset)
+                UshapedAppList(apps = apps, scrollOffset = -scrollAnimatable.value)
             }
         }
     }
@@ -134,7 +195,7 @@ fun LauncherScreen() {
 
 @Composable
 fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
-    val numVisibleIcons = 40
+    val numVisibleIcons = 43
     val numTopIcons = 11
     val numSideIcons = (numVisibleIcons - numTopIcons) / 2
 
