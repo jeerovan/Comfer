@@ -5,15 +5,16 @@ import android.content.pm.ResolveInfo
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationEndReason
+import androidx.compose.animation.core.AnimationVector
+import androidx.compose.animation.core.DecayAnimationSpec
+import androidx.compose.animation.core.TwoWayConverter
+import androidx.compose.animation.core.VectorizedDecayAnimationSpec
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.exponentialDecay
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -55,6 +55,7 @@ import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.cos
 import kotlin.math.roundToInt
+import kotlin.math.sign
 import kotlin.math.sin
 
 data class AppInfo(
@@ -161,10 +162,9 @@ fun LauncherScreen() {
 
                             scope.launch {
                                 val initialVelocity = velocity.x * speedMultiplier
-                                Log.d("velocity",initialVelocity.toString())
                                 val result = scrollAnimatable.animateDecay(
-                                    initialVelocity.coerceIn(-800.0f,800.0f),
-                                    exponentialDecay()
+                                    initialVelocity.coerceIn(-700.0f,700.0f),
+                                    linearDecay()
                                 )
 
                                 if (result.endReason == AnimationEndReason.Finished && apps.isNotEmpty()) {
@@ -188,6 +188,66 @@ fun LauncherScreen() {
         ) {
             if (apps.isNotEmpty()) {
                 UshapedAppList(apps = apps, scrollOffset = -scrollAnimatable.value)
+            }
+        }
+    }
+}
+
+private fun linearDecay(deceleration: Float = 700f): DecayAnimationSpec<Float> {
+    return object : DecayAnimationSpec<Float> {
+        override fun <V : AnimationVector> vectorize(
+            typeConverter: TwoWayConverter<Float, V>
+        ): VectorizedDecayAnimationSpec<V> {
+            return object : VectorizedDecayAnimationSpec<V> {
+                override val absVelocityThreshold: Float = 0.1f
+
+                override fun getDurationNanos(initialValue: V, initialVelocity: V): Long {
+                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
+                    if (initialVelocityF.absoluteValue < absVelocityThreshold) {
+                        return 0L
+                    }
+                    return (initialVelocityF.absoluteValue / deceleration * 1_000_000_000f).toLong()
+                }
+
+                override fun getTargetValue(initialValue: V, initialVelocity: V): V {
+                    val durationSecs = getDurationNanos(initialValue, initialVelocity) / 1_000_000_000f
+                    val initialValueF = typeConverter.convertFromVector(initialValue)
+                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
+                    val targetValueF = initialValueF + 0.5f * initialVelocityF * durationSecs
+                    return typeConverter.convertToVector(targetValueF)
+                }
+
+                override fun getValueFromNanos(
+                    playTimeNanos: Long,
+                    initialValue: V,
+                    initialVelocity: V
+                ): V {
+                    val durationNanos = getDurationNanos(initialValue, initialVelocity)
+                    if (playTimeNanos >= durationNanos) {
+                        return getTargetValue(initialValue, initialVelocity)
+                    }
+                    val playTimeSecs = playTimeNanos / 1_000_000_000f
+                    val initialValueF = typeConverter.convertFromVector(initialValue)
+                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
+                    val valueF = initialValueF + initialVelocityF * playTimeSecs - 0.5f * deceleration * playTimeSecs * playTimeSecs * sign(initialVelocityF)
+                    return typeConverter.convertToVector(valueF)
+                }
+
+                override fun getVelocityFromNanos(
+                    playTimeNanos: Long,
+                    initialValue: V,
+                    initialVelocity: V
+                ): V {
+                    val durationNanos = getDurationNanos(initialValue, initialVelocity)
+                    if (playTimeNanos >= durationNanos) {
+                        return typeConverter.convertToVector(0f)
+                    }
+                    val playTimeSecs = playTimeNanos / 1_000_000_000f
+                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
+                    val newVelocityF = initialVelocityF - deceleration * playTimeSecs * sign(initialVelocityF)
+                    val finalVelocity = if (sign(newVelocityF) == sign(initialVelocityF)) newVelocityF else 0f
+                    return typeConverter.convertToVector(finalVelocity)
+                }
             }
         }
     }
@@ -302,3 +362,4 @@ private fun Float.toDp(): Dp {
 private fun PreviewScreen() {
     LauncherScreen()
 }
+
