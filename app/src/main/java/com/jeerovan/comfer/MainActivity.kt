@@ -18,6 +18,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -196,12 +197,11 @@ fun LauncherScreen() {
                                         }
                                     }
                                     scrollAnimatable.snapTo(newValue)
-                                 }
+                                }
                             }
                         },
                         onDragEnd = {
                             val velocity = velocityTracker.calculateVelocity()
-
                             scope.launch {
                                 val initialVelocity = velocity.x * 0.3f
                                 val result = scrollAnimatable.animateDecay(
@@ -276,33 +276,34 @@ fun UshapedAppList(
         val height = with(density) { maxHeight.value.dp.toPx() }
         val sidePadding = with(density) { 32.dp.toPx() }
         val topPadding = with(density) { 68.dp.toPx() }
-        val smallIcon = with(density){smallIconSize.toPx()}
-        val largeIcon = with(density){largeIconSize.toPx()}
+        val smallIcon = with(density) { smallIconSize.toPx() }
+        val largeIcon = with(density) { largeIconSize.toPx() }
         val verticalSpacing = (height - topPadding * 2) / (numSideIcons - 1)
         val arcRadius = (width - sidePadding * 2) / 2
         val angularSpacing = PI / (numTopIcons - 1)
 
-        fun getPositionForSlot(slot: Int,center:Int): Pair<Float, Float> {
+        fun getPositionForSlot(slot: Int, center: Int): Pair<Float, Float> {
             return if (slot < numSideIcons) {
                 // Left side
-                val xPos = sidePadding - smallIcon/2
-                val yPos = arcRadius + verticalSpacing + height - topPadding - slot * verticalSpacing
+                val xPos = sidePadding - smallIcon / 2
+                val yPos =
+                    arcRadius + verticalSpacing + height - topPadding - slot * verticalSpacing
                 Pair(xPos, yPos)
             } else if (slot < numSideIcons + numTopIcons) {
                 // Top arc
                 val arcIndex = slot - numSideIcons
                 val angle = PI - arcIndex * angularSpacing
-                var xPos = width / 2  - smallIcon/2 + arcRadius * cos(angle).toFloat()
-                var yPos =  topPadding + arcRadius * (1 - sin(angle)).toFloat()
-                if(slot == center){
-                    xPos = xPos + smallIcon/2 - largeIcon/2
-                    yPos -= largeIcon/2
+                var xPos = width / 2 - smallIcon / 2 + arcRadius * cos(angle).toFloat()
+                var yPos = topPadding + arcRadius * (1 - sin(angle)).toFloat()
+                if (slot == center) {
+                    xPos = xPos + smallIcon / 2 - largeIcon / 2
+                    yPos -= largeIcon / 2
                 }
                 Pair(xPos, yPos)
             } else {
                 // Right side
                 val sideIndex = slot - numSideIcons - numTopIcons
-                val xPos = width - smallIcon/2 - sidePadding
+                val xPos = width - smallIcon / 2 - sidePadding
                 val yPos = arcRadius + verticalSpacing + topPadding + sideIndex * verticalSpacing
                 Pair(xPos, yPos)
             }
@@ -313,8 +314,8 @@ fun UshapedAppList(
         for (i in 0 until numVisibleIcons) {
             val appIndex = (startIndex + i + totalIcons) % totalIcons
 
-            val posCurrent = getPositionForSlot(i,centerSlot)
-            val posPrev = getPositionForSlot(i - 1,centerSlot)
+            val posCurrent = getPositionForSlot(i, centerSlot)
+            val posPrev = getPositionForSlot(i - 1, centerSlot)
 
             val x = lerp(posCurrent.first, posPrev.first, scrollFraction)
             val y = lerp(posCurrent.second, posPrev.second, scrollFraction)
@@ -322,7 +323,7 @@ fun UshapedAppList(
             val sizeCurrent = if (i == centerSlot) largeIconSize else smallIconSize
             val sizePrev = if ((i - 1) == centerSlot) largeIconSize else smallIconSize
             val size = lerp(sizeCurrent.value, sizePrev.value, scrollFraction).dp
-            if(size > 55.dp){
+            if (size > 55.dp) {
                 updateCenterIndex(appIndex)
                 val sizePx = with(density) { size.toPx() }
                 updateCenterIconGeom(x, y, sizePx)
@@ -340,14 +341,20 @@ fun UshapedAppList(
 }
 
 @Composable
-fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp) {
-
+fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp, clickable: Boolean = false) {
+    val context = LocalContext.current
+    val packageManager = context.packageManager
     Box(
         modifier = Modifier
             .offset(x = x, y = y)
             .size(size)
             .clip(CircleShape)
-            .background(Color.White),
+            .background(Color.White)
+            .clickable {
+                val launchIntent =
+                    packageManager.getLaunchIntentForPackage(app.resolveInfo.activityInfo.packageName)
+                if (clickable) context.startActivity(launchIntent)
+            },
         contentAlignment = Alignment.Center
     ) {
         Image(
