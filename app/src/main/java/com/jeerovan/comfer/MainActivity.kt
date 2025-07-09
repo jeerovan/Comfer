@@ -1,5 +1,6 @@
 package com.jeerovan.comfer
 
+import android.app.ActivityOptions
 import android.content.Intent
 import android.content.pm.ResolveInfo
 import android.content.res.Resources
@@ -46,6 +47,7 @@ import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
@@ -78,6 +80,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun LauncherScreen() {
     val context = LocalContext.current
+    val view = LocalView.current
     val packageManager = context.packageManager
     val scrollAnimatable = remember { Animatable(0f) }
 
@@ -97,6 +100,9 @@ fun LauncherScreen() {
     val velocityTracker = remember { VelocityTracker() }
     var lastYPosition by remember { mutableFloatStateOf(0f) }
     var centerAppIndex by remember { mutableIntStateOf(0) }
+    var centerIconX by remember { mutableFloatStateOf(0f) }
+    var centerIconY by remember { mutableFloatStateOf(0f) }
+    var centerIconSize by remember { mutableFloatStateOf(0f) }
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = rememberAsyncImagePainter(
@@ -121,11 +127,19 @@ fun LauncherScreen() {
                             }
                         },
                         onDoubleTap = {
-                            Log.d("CenterApp",centerAppIndex.absoluteValue.toString())
                             val app = apps[centerAppIndex.absoluteValue]
                             val launchIntent =
                                 packageManager.getLaunchIntentForPackage(app.resolveInfo.activityInfo.packageName)
-                            context.startActivity(launchIntent)
+                            if (launchIntent != null) {
+                                val opts = ActivityOptions.makeScaleUpAnimation(
+                                    view,
+                                    centerIconX.toInt(),
+                                    centerIconY.toInt(),
+                                    centerIconSize.toInt(),
+                                    centerIconSize.toInt()
+                                )
+                                context.startActivity(launchIntent, opts.toBundle())
+                            }
                         }
                     )
                 }
@@ -158,7 +172,7 @@ fun LauncherScreen() {
                                         }
                                     }
                                     scrollAnimatable.snapTo(newValue)
-                                }
+                                 }
                             }
                         },
                         onDragEnd = {
@@ -191,7 +205,15 @@ fun LauncherScreen() {
                 }
         ) {
             if (apps.isNotEmpty()) {
-                UshapedAppList(apps = apps, updateCenterIndex = { centerAppIndex = it }, scrollOffset = -scrollAnimatable.value)
+                UshapedAppList(
+                    apps = apps,
+                    updateCenterIndex = { centerAppIndex = it },
+                    scrollOffset = -scrollAnimatable.value,
+                    updateCenterIconGeom = { x, y, size ->
+                        centerIconX = x
+                        centerIconY = y
+                        centerIconSize = size
+                    })
             }
         }
     }
@@ -202,7 +224,12 @@ private fun lerp(start: Float, stop: Float, fraction: Float): Float {
 }
 
 @Composable
-fun UshapedAppList(apps: List<AppInfo>,updateCenterIndex: (Int) -> Unit, scrollOffset: Float) {
+fun UshapedAppList(
+    apps: List<AppInfo>,
+    updateCenterIndex: (Int) -> Unit,
+    scrollOffset: Float,
+    updateCenterIconGeom: (x: Float, y: Float, size: Float) -> Unit
+) {
     val numVisibleIcons = 42
     val numTopIcons = 11
     val numSideIcons = (numVisibleIcons - numTopIcons) / 2
@@ -273,6 +300,8 @@ fun UshapedAppList(apps: List<AppInfo>,updateCenterIndex: (Int) -> Unit, scrollO
             val size = lerp(sizeCurrent.value, sizePrev.value, scrollFraction).dp
             if(size > 55.dp){
                 updateCenterIndex(appIndex)
+                val sizePx = with(density) { size.toPx() }
+                updateCenterIconGeom(x, y, sizePx)
             }
             key(apps[appIndex].resolveInfo.activityInfo.packageName) {
                 AppIcon(
