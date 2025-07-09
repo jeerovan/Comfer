@@ -198,8 +198,8 @@ fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
     val numTopIcons = 11
     val numSideIcons = (numVisibleIcons - numTopIcons) / 2
 
-    val smallIconSize = 38.dp
-    val largeIconSize = 64.dp
+    val smallIconSize = 42.dp
+    val largeIconSize = 68.dp
 
     val totalIcons = apps.size
     val smoothScrollIndex = scrollOffset / 20f
@@ -215,7 +215,7 @@ fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
         val width = with(density) { maxWidth.value.dp.toPx() }
         val height = with(density) { maxHeight.value.dp.toPx() }
         val sidePadding = with(density) { 32.dp.toPx() }
-        val topPadding = with(density) { 64.dp.toPx() }
+        val topPadding = with(density) { 68.dp.toPx() }
         val smallIcon = with(density){smallIconSize.toPx()}
         val largeIcon = with(density){largeIconSize.toPx()}
         val verticalSpacing = (height - topPadding * 2) / (numSideIcons - 1)
@@ -304,65 +304,5 @@ fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp) {
 
 private fun Float.toDp(): Dp {
     return (this / Resources.getSystem().displayMetrics.density).dp
-}
-
-private fun linearDecay(deceleration: Float = 700f): DecayAnimationSpec<Float> {
-    return object : DecayAnimationSpec<Float> {
-        override fun <V : AnimationVector> vectorize(
-            typeConverter: TwoWayConverter<Float, V>
-        ): VectorizedDecayAnimationSpec<V> {
-            return object : VectorizedDecayAnimationSpec<V> {
-                override val absVelocityThreshold: Float = 0.1f
-
-                override fun getDurationNanos(initialValue: V, initialVelocity: V): Long {
-                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
-                    if (initialVelocityF.absoluteValue < absVelocityThreshold) {
-                        return 0L
-                    }
-                    return (initialVelocityF.absoluteValue / deceleration * 1_000_000_000f).toLong()
-                }
-
-                override fun getTargetValue(initialValue: V, initialVelocity: V): V {
-                    val durationSecs = getDurationNanos(initialValue, initialVelocity) / 1_000_000_000f
-                    val initialValueF = typeConverter.convertFromVector(initialValue)
-                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
-                    val targetValueF = initialValueF + 0.5f * initialVelocityF * durationSecs
-                    return typeConverter.convertToVector(targetValueF)
-                }
-
-                override fun getValueFromNanos(
-                    playTimeNanos: Long,
-                    initialValue: V,
-                    initialVelocity: V
-                ): V {
-                    val durationNanos = getDurationNanos(initialValue, initialVelocity)
-                    if (playTimeNanos >= durationNanos) {
-                        return getTargetValue(initialValue, initialVelocity)
-                    }
-                    val playTimeSecs = playTimeNanos / 1_000_000_000f
-                    val initialValueF = typeConverter.convertFromVector(initialValue)
-                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
-                    val valueF = initialValueF + initialVelocityF * playTimeSecs - 0.5f * deceleration * playTimeSecs * playTimeSecs * sign(initialVelocityF)
-                    return typeConverter.convertToVector(valueF)
-                }
-
-                override fun getVelocityFromNanos(
-                    playTimeNanos: Long,
-                    initialValue: V,
-                    initialVelocity: V
-                ): V {
-                    val durationNanos = getDurationNanos(initialValue, initialVelocity)
-                    if (playTimeNanos >= durationNanos) {
-                        return typeConverter.convertToVector(0f)
-                    }
-                    val playTimeSecs = playTimeNanos / 1_000_000_000f
-                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
-                    val newVelocityF = initialVelocityF - deceleration * playTimeSecs * sign(initialVelocityF)
-                    val finalVelocity = if (sign(newVelocityF) == sign(initialVelocityF)) newVelocityF else 0f
-                    return typeConverter.convertToVector(finalVelocity)
-                }
-            }
-        }
-    }
 }
 
