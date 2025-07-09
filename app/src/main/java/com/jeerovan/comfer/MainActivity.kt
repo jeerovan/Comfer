@@ -11,8 +11,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationEndReason
-import androidx.compose.animation.core.EaseInOutSine
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.exponentialDecay
+import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -52,7 +54,6 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.absoluteValue
@@ -60,7 +61,6 @@ import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.roundToInt
 import kotlin.math.sin
-import kotlin.random.Random
 
 data class AppInfo(
     val resolveInfo: ResolveInfo,
@@ -108,29 +108,20 @@ fun LauncherScreen() {
         val maxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
         val maxHeightPx = with(LocalDensity.current) { maxHeight.toPx() }
 
-        val xOffset = remember { Animatable(0f) }
-        val yOffset = remember { Animatable(0f) }
+        val angle = remember { Animatable(0f) }
 
         LaunchedEffect(Unit) {
-            while (true) {
-                val targetX = (Random.nextFloat() * 2 - 1) * maxWidthPx * 0.08f
-                val targetY = (Random.nextFloat() * 2 - 1) * maxHeightPx * 0.08f
-
-                launch {
-                    xOffset.animateTo(
-                        targetValue = targetX,
-                        animationSpec = tween(durationMillis = 15000, easing = EaseInOutSine)
-                    )
-                }
-                launch {
-                    yOffset.animateTo(
-                        targetValue = targetY,
-                        animationSpec = tween(durationMillis = 15000, easing = EaseInOutSine)
-                    )
-                }
-                delay(15000)
-            }
+            angle.animateTo(
+                targetValue = (2 * PI).toFloat(),
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 250000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart
+                )
+            )
         }
+
+        val xOffset = cos(angle.value) * maxWidthPx * 0.08f
+        val yOffset = sin(angle.value) * maxHeightPx * 0.08f
 
         Image(
             painter = rememberAsyncImagePainter(
@@ -143,7 +134,7 @@ fun LauncherScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .scale(1.2f)
-                .offset { IntOffset(xOffset.value.roundToInt(), yOffset.value.roundToInt()) },
+                .offset { IntOffset(xOffset.roundToInt(), yOffset.roundToInt()) },
             contentScale = ContentScale.Crop
         )
 
