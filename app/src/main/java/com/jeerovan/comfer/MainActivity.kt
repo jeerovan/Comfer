@@ -5,6 +5,7 @@ import android.content.pm.ResolveInfo
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -31,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -94,7 +96,7 @@ fun LauncherScreen() {
     val scope = rememberCoroutineScope()
     val velocityTracker = remember { VelocityTracker() }
     var lastYPosition by remember { mutableFloatStateOf(0f) }
-
+    var centerAppIndex by remember { mutableIntStateOf(0) }
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = rememberAsyncImagePainter(
@@ -112,11 +114,19 @@ fun LauncherScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) {
-                    detectTapGestures (
+                    detectTapGestures(
                         onPress = {
                             scope.launch {
                                 scrollAnimatable.stop()
                             }
+                        },
+                        onDoubleTap = {
+                            Log.d("CenterApp",centerAppIndex.absoluteValue.toString())
+                            val app = apps[centerAppIndex.absoluteValue]
+                            Log.d("CenterApp",app.label.toString())
+                            /*val launchIntent =
+                                packageManager.getLaunchIntentForPackage(app.resolveInfo.activityInfo.packageName)
+                            context.startActivity(launchIntent)*/
                         }
                     )
                 }
@@ -182,7 +192,7 @@ fun LauncherScreen() {
                 }
         ) {
             if (apps.isNotEmpty()) {
-                UshapedAppList(apps = apps, scrollOffset = -scrollAnimatable.value)
+                UshapedAppList(apps = apps, updateCenterIndex = { centerAppIndex = it }, scrollOffset = -scrollAnimatable.value)
             }
         }
     }
@@ -193,7 +203,7 @@ private fun lerp(start: Float, stop: Float, fraction: Float): Float {
 }
 
 @Composable
-fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
+fun UshapedAppList(apps: List<AppInfo>,updateCenterIndex: (Int) -> Unit, scrollOffset: Float) {
     val numVisibleIcons = 42
     val numTopIcons = 11
     val numSideIcons = (numVisibleIcons - numTopIcons) / 2
@@ -233,7 +243,6 @@ fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
                 val arcIndex = slot - numSideIcons
                 val angle = PI - arcIndex * angularSpacing
                 var xPos = width / 2  - smallIcon/2 + arcRadius * cos(angle).toFloat()
-
                 var yPos =  topPadding + arcRadius * (1 - sin(angle)).toFloat()
                 if(slot == center){
                     xPos = xPos + smallIcon/2 - largeIcon/2
@@ -263,7 +272,9 @@ fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
             val sizeCurrent = if (i == centerSlot) largeIconSize else smallIconSize
             val sizePrev = if ((i - 1) == centerSlot) largeIconSize else smallIconSize
             val size = lerp(sizeCurrent.value, sizePrev.value, scrollFraction).dp
-
+            if(size > 55.dp){
+                updateCenterIndex(appIndex)
+            }
             key(apps[appIndex].resolveInfo.activityInfo.packageName) {
                 AppIcon(
                     app = apps[appIndex],
