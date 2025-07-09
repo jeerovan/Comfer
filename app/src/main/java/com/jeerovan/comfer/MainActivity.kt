@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
@@ -49,7 +50,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -59,7 +59,6 @@ import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.cos
 import kotlin.math.floor
-import kotlin.math.roundToInt
 import kotlin.math.sin
 
 data class AppInfo(
@@ -114,7 +113,7 @@ fun LauncherScreen() {
             angle.animateTo(
                 targetValue = (2 * PI).toFloat(),
                 animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 250000, easing = LinearEasing),
+                    animation = tween(durationMillis = 200000, easing = LinearEasing),
                     repeatMode = RepeatMode.Restart
                 )
             )
@@ -134,7 +133,10 @@ fun LauncherScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .scale(1.2f)
-                .offset { IntOffset(xOffset.roundToInt(), yOffset.roundToInt()) },
+                .graphicsLayer {
+                    translationX = xOffset
+                    translationY = yOffset
+                },
             contentScale = ContentScale.Crop
         )
 
