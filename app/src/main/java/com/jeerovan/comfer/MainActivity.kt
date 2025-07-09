@@ -8,18 +8,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationEndReason
-import androidx.compose.animation.core.AnimationVector
-import androidx.compose.animation.core.DecayAnimationSpec
-import androidx.compose.animation.core.TwoWayConverter
-import androidx.compose.animation.core.VectorizedDecayAnimationSpec
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,29 +25,23 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
-import kotlinx.coroutines.launch
 import kotlin.math.PI
-import kotlin.math.absoluteValue
 import kotlin.math.cos
-import kotlin.math.roundToInt
-import kotlin.math.sign
+import kotlin.math.floor
 import kotlin.math.sin
 
 data class AppInfo(
@@ -78,7 +64,8 @@ class MainActivity : ComponentActivity() {
 fun LauncherScreen() {
     val context = LocalContext.current
     val packageManager = context.packageManager
-    val scrollAnimatable = remember { Animatable(0f) }
+    var scrollOffset by remember { mutableFloatStateOf(0f) }
+
     val apps by produceState<List<AppInfo>>(initialValue = emptyList()) {
         val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
         val allApps = packageManager.queryIntentActivities(intent, 0)
@@ -90,10 +77,6 @@ fun LauncherScreen() {
             )
         }
     }
-
-    val scope = rememberCoroutineScope()
-    val velocityTracker = remember { VelocityTracker() }
-    var lastYPosition by remember { mutableFloatStateOf(0f) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -107,209 +90,108 @@ fun LauncherScreen() {
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) {
-                    detectTapGestures (
-                        onPress = {
-                            scope.launch {
-                                scrollAnimatable.stop()
-                            }
+                    detectDragGestures { change, dragAmount ->
+                        change.consume()
+                        if (change.position.y > size.height / 2) {
+                            scrollOffset += dragAmount.x/4
                         }
-                    )
-                }
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragStart = {
-                            velocityTracker.resetTracking()
-                            scope.launch {
-                                scrollAnimatable.stop()
-                            }
-                        },
-                        onDrag = { change, dragAmount ->
-                            velocityTracker.addPosition(change.uptimeMillis, change.position)
-                            lastYPosition = change.position.y
-                            change.consume()
-                            if (change.position.y > size.height / 2) {
-                                val yNorm =
-                                    (change.position.y - size.height / 2) / (size.height / 2)
-                                val multiplier = 1.6f - 1.5f * yNorm.coerceIn(0f, 1f)
-                                val increment = dragAmount.x * multiplier
-
-                                scope.launch {
-                                    val currentValue = scrollAnimatable.value
-                                    var newValue =
-                                        currentValue + increment.coerceIn(-10.0f, 10.0f)
-                                    if (apps.isNotEmpty()) {
-                                        val totalScrollWidth = apps.size * 20f
-                                        if (totalScrollWidth > 0) {
-                                            newValue = newValue.rem(totalScrollWidth)
-                                            if (newValue < 0) {
-                                                newValue += totalScrollWidth
-                                            }
-                                        }
-                                    }
-                                    scrollAnimatable.snapTo(newValue)
-                                }
-                            }
-                        },
-                        onDragEnd = {
-                            val velocity = velocityTracker.calculateVelocity()
-                            val yNorm = (lastYPosition - size.height / 2) / (size.height / 2)
-                            val speedMultiplier =
-                                (1.6f - 1.5f * yNorm.coerceIn(0f, 1f)).coerceAtLeast(0.1f)
-
-                            scope.launch {
-                                val initialVelocity = velocity.x * speedMultiplier
-                                val result = scrollAnimatable.animateDecay(
-                                    initialVelocity.coerceIn(-700.0f,700.0f),
-                                    linearDecay()
-                                )
-
-                                if (result.endReason == AnimationEndReason.Finished && apps.isNotEmpty()) {
-                                    val totalScrollWidth = apps.size * 20f
-                                    if (totalScrollWidth > 0) {
-                                        var wrappedValue =
-                                            scrollAnimatable.value.rem(totalScrollWidth)
-                                        if (wrappedValue < 0) {
-                                            wrappedValue += totalScrollWidth
-                                        }
-                                        scrollAnimatable.snapTo(wrappedValue)
-                                    }
-                                }
-                            }
-                        },
-                        onDragCancel = {
-                            velocityTracker.resetTracking()
-                        }
-                    )
+                    }
                 }
         ) {
             if (apps.isNotEmpty()) {
-                UshapedAppList(apps = apps, scrollOffset = -scrollAnimatable.value)
+                UshapedAppList(apps = apps, scrollOffset = -scrollOffset)
             }
         }
     }
 }
 
-private fun linearDecay(deceleration: Float = 700f): DecayAnimationSpec<Float> {
-    return object : DecayAnimationSpec<Float> {
-        override fun <V : AnimationVector> vectorize(
-            typeConverter: TwoWayConverter<Float, V>
-        ): VectorizedDecayAnimationSpec<V> {
-            return object : VectorizedDecayAnimationSpec<V> {
-                override val absVelocityThreshold: Float = 0.1f
-
-                override fun getDurationNanos(initialValue: V, initialVelocity: V): Long {
-                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
-                    if (initialVelocityF.absoluteValue < absVelocityThreshold) {
-                        return 0L
-                    }
-                    return (initialVelocityF.absoluteValue / deceleration * 1_000_000_000f).toLong()
-                }
-
-                override fun getTargetValue(initialValue: V, initialVelocity: V): V {
-                    val durationSecs = getDurationNanos(initialValue, initialVelocity) / 1_000_000_000f
-                    val initialValueF = typeConverter.convertFromVector(initialValue)
-                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
-                    val targetValueF = initialValueF + 0.5f * initialVelocityF * durationSecs
-                    return typeConverter.convertToVector(targetValueF)
-                }
-
-                override fun getValueFromNanos(
-                    playTimeNanos: Long,
-                    initialValue: V,
-                    initialVelocity: V
-                ): V {
-                    val durationNanos = getDurationNanos(initialValue, initialVelocity)
-                    if (playTimeNanos >= durationNanos) {
-                        return getTargetValue(initialValue, initialVelocity)
-                    }
-                    val playTimeSecs = playTimeNanos / 1_000_000_000f
-                    val initialValueF = typeConverter.convertFromVector(initialValue)
-                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
-                    val valueF = initialValueF + initialVelocityF * playTimeSecs - 0.5f * deceleration * playTimeSecs * playTimeSecs * sign(initialVelocityF)
-                    return typeConverter.convertToVector(valueF)
-                }
-
-                override fun getVelocityFromNanos(
-                    playTimeNanos: Long,
-                    initialValue: V,
-                    initialVelocity: V
-                ): V {
-                    val durationNanos = getDurationNanos(initialValue, initialVelocity)
-                    if (playTimeNanos >= durationNanos) {
-                        return typeConverter.convertToVector(0f)
-                    }
-                    val playTimeSecs = playTimeNanos / 1_000_000_000f
-                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
-                    val newVelocityF = initialVelocityF - deceleration * playTimeSecs * sign(initialVelocityF)
-                    val finalVelocity = if (sign(newVelocityF) == sign(initialVelocityF)) newVelocityF else 0f
-                    return typeConverter.convertToVector(finalVelocity)
-                }
-            }
-        }
-    }
+private fun lerp(start: Float, stop: Float, fraction: Float): Float {
+    return start + (stop - start) * fraction
 }
 
 @Composable
 fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
-    val numVisibleIcons = 43
+    val numVisibleIcons = 40
     val numTopIcons = 11
     val numSideIcons = (numVisibleIcons - numTopIcons) / 2
 
     val smallIconSize = 38.dp
-    val largeIconSize = 60.dp
+    val largeIconSize = 64.dp
 
     val totalIcons = apps.size
-    val scrollIndex = (scrollOffset / 20f).roundToInt()
-    val startIndex = ((scrollIndex - numVisibleIcons / 2) % totalIcons + totalIcons) % totalIcons
+    val smoothScrollIndex = scrollOffset / 20f
+    val baseScrollIndex = floor(smoothScrollIndex)
+    val scrollFraction = smoothScrollIndex - baseScrollIndex
+
+    val intScrollIndex = baseScrollIndex.toInt()
+    val startIndex = (intScrollIndex - numVisibleIcons / 2 + totalIcons) % totalIcons
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
 
         val density = LocalDensity.current
-        val width =  with(density){maxWidth.value.dp.toPx()}
-        val height = with(density){maxHeight.value.dp.toPx()}
-        val sidePadding = with(density) { 32.dp.toPx()}
+        val width = with(density) { maxWidth.value.dp.toPx() }
+        val height = with(density) { maxHeight.value.dp.toPx() }
+        val sidePadding = with(density) { 32.dp.toPx() }
         val topPadding = with(density) { 64.dp.toPx() }
-
+        val smallIcon = with(density){smallIconSize.toPx()}
+        val largeIcon = with(density){largeIconSize.toPx()}
         val verticalSpacing = (height - topPadding * 2) / (numSideIcons - 1)
         val arcRadius = (width - sidePadding * 2) / 2
         val angularSpacing = PI / (numTopIcons - 1)
 
-        for (i in 0 until numVisibleIcons) {
-            val appIndex = (startIndex + i) % totalIcons
-            val isCenter = i == numSideIcons + numTopIcons / 2
-
-            val (x, y) = if (i < numSideIcons) {
+        fun getPositionForSlot(slot: Int,center:Int): Pair<Float, Float> {
+            return if (slot < numSideIcons) {
                 // Left side
-                val xPos = sidePadding
-                val yPos = arcRadius + verticalSpacing + height - topPadding - i * verticalSpacing
+                val xPos = sidePadding - smallIcon/2
+                val yPos = arcRadius + verticalSpacing + height - topPadding - slot * verticalSpacing
                 Pair(xPos, yPos)
-            } else if (i < numSideIcons + numTopIcons) {
+            } else if (slot < numSideIcons + numTopIcons) {
                 // Top arc
-                val arcIndex = i - numSideIcons
+                val arcIndex = slot - numSideIcons
                 val angle = PI - arcIndex * angularSpacing
-                val xPos = width / 2 + arcRadius * cos(angle).toFloat()
-                val yPos = topPadding + arcRadius * (1 - sin(angle)).toFloat()
+                var xPos = width / 2  - smallIcon/2 + arcRadius * cos(angle).toFloat()
+
+                var yPos =  topPadding + arcRadius * (1 - sin(angle)).toFloat()
+                if(slot == center){
+                    xPos = xPos + smallIcon/2 - largeIcon/2
+                    yPos -= largeIcon/2
+                }
                 Pair(xPos, yPos)
             } else {
                 // Right side
-                val sideIndex = i - numSideIcons - numTopIcons
-                val xPos = width - sidePadding
+                val sideIndex = slot - numSideIcons - numTopIcons
+                val xPos = width - smallIcon/2 - sidePadding
                 val yPos = arcRadius + verticalSpacing + topPadding + sideIndex * verticalSpacing
                 Pair(xPos, yPos)
             }
+        }
+
+        val centerSlot = numSideIcons + numTopIcons / 2
+
+        for (i in 0 until numVisibleIcons) {
+            val appIndex = (startIndex + i + totalIcons) % totalIcons
+
+            val posCurrent = getPositionForSlot(i,centerSlot)
+            val posPrev = getPositionForSlot(i - 1,centerSlot)
+
+            val x = lerp(posCurrent.first, posPrev.first, scrollFraction)
+            val y = lerp(posCurrent.second, posPrev.second, scrollFraction)
+
+            val sizeCurrent = if (i == centerSlot) largeIconSize else smallIconSize
+            val sizePrev = if ((i - 1) == centerSlot) largeIconSize else smallIconSize
+            val size = lerp(sizeCurrent.value, sizePrev.value, scrollFraction).dp
 
             key(apps[appIndex].resolveInfo.activityInfo.packageName) {
                 AppIcon(
                     app = apps[appIndex],
-                    x = x,
-                    y = y,
-                    isCenter = isCenter,
-                    smallIconSize = smallIconSize,
-                    largeIconSize = largeIconSize
+                    x = x.toDp(),
+                    y = y.toDp(),
+                    size = size
                 )
             }
         }
@@ -317,25 +199,14 @@ fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
 }
 
 @Composable
-fun AppIcon(app: AppInfo, x: Float, y: Float, isCenter: Boolean, smallIconSize: Dp, largeIconSize: Dp) {
+fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp) {
     val context = LocalContext.current
     val packageManager = context.packageManager
 
-    val animatedSize by animateDpAsState(
-        targetValue = if (isCenter) largeIconSize else smallIconSize,
-        //animationSpec = tween(150)
-    )
-    val animatedX by animateDpAsState(targetValue = x.toDp(),
-        //animationSpec = tween(150)
-    )
-    val animatedY by animateDpAsState(targetValue = y.toDp(),
-        //animationSpec = tween(150)
-    )
-
     Box(
         modifier = Modifier
-            .offset(x = animatedX - animatedSize / 2, y = animatedY - animatedSize / 2)
-            .size(animatedSize)
+            .offset(x = x, y = y)
+            .size(size)
             .clip(CircleShape)
             .background(Color.White)
             .clickable {
@@ -355,11 +226,5 @@ fun AppIcon(app: AppInfo, x: Float, y: Float, isCenter: Boolean, smallIconSize: 
 
 private fun Float.toDp(): Dp {
     return (this / Resources.getSystem().displayMetrics.density).dp
-}
-
-@Preview
-@Composable
-private fun PreviewScreen() {
-    LauncherScreen()
 }
 
