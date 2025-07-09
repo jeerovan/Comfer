@@ -8,10 +8,18 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationEndReason
+import androidx.compose.animation.core.AnimationVector
+import androidx.compose.animation.core.DecayAnimationSpec
+import androidx.compose.animation.core.TwoWayConverter
+import androidx.compose.animation.core.VectorizedDecayAnimationSpec
+import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,12 +33,14 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -39,9 +49,12 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import kotlinx.coroutines.launch
 import kotlin.math.PI
+import kotlin.math.absoluteValue
 import kotlin.math.cos
 import kotlin.math.floor
+import kotlin.math.sign
 import kotlin.math.sin
 
 data class AppInfo(
@@ -64,7 +77,7 @@ class MainActivity : ComponentActivity() {
 fun LauncherScreen() {
     val context = LocalContext.current
     val packageManager = context.packageManager
-    var scrollOffset by remember { mutableFloatStateOf(0f) }
+    val scrollAnimatable = remember { Animatable(0f) }
 
     val apps by produceState<List<AppInfo>>(initialValue = emptyList()) {
         val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
@@ -78,11 +91,15 @@ fun LauncherScreen() {
         }
     }
 
+    val scope = rememberCoroutineScope()
+    val velocityTracker = remember { VelocityTracker() }
+    var lastYPosition by remember { mutableFloatStateOf(0f) }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = rememberAsyncImagePainter(
                 ImageRequest.Builder(LocalContext.current)
-                    .data("https://images.unsplash.com/photo-1611656993299-9f9d73232b9c?w=2000&q=99")
+                    .data("https://images.unsplash.com/photo-1637532766937-0504f310bd6e?w=2000&q=99")
                     .crossfade(true)
                     .build()
             ),
@@ -95,16 +112,77 @@ fun LauncherScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) {
-                    detectDragGestures { change, dragAmount ->
-                        change.consume()
-                        if (change.position.y > size.height / 2) {
-                            scrollOffset += dragAmount.x/4
+                    detectTapGestures (
+                        onPress = {
+                            scope.launch {
+                                scrollAnimatable.stop()
+                            }
                         }
-                    }
+                    )
+                }
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = {
+                            velocityTracker.resetTracking()
+                            scope.launch {
+                                scrollAnimatable.stop()
+                            }
+                        },
+                        onDrag = { change, dragAmount ->
+                            velocityTracker.addPosition(change.uptimeMillis, change.position)
+                            lastYPosition = change.position.y
+                            change.consume()
+                            if (change.position.y > size.height / 2) {
+                                val increment = dragAmount.x * 0.3f
+
+                                scope.launch {
+                                    val currentValue = scrollAnimatable.value
+                                    var newValue =
+                                        currentValue + increment
+                                    if (apps.isNotEmpty()) {
+                                        val totalScrollWidth = apps.size * 20f
+                                        if (totalScrollWidth > 0) {
+                                            newValue = newValue.rem(totalScrollWidth)
+                                            if (newValue < 0) {
+                                                newValue += totalScrollWidth
+                                            }
+                                        }
+                                    }
+                                    scrollAnimatable.snapTo(newValue)
+                                }
+                            }
+                        },
+                        onDragEnd = {
+                            val velocity = velocityTracker.calculateVelocity()
+
+                            scope.launch {
+                                val initialVelocity = velocity.x * 0.3f
+                                val result = scrollAnimatable.animateDecay(
+                                    initialVelocity,
+                                    exponentialDecay()
+                                )
+
+                                if (result.endReason == AnimationEndReason.Finished && apps.isNotEmpty()) {
+                                    val totalScrollWidth = apps.size * 20f
+                                    if (totalScrollWidth > 0) {
+                                        var wrappedValue =
+                                            scrollAnimatable.value.rem(totalScrollWidth)
+                                        if (wrappedValue < 0) {
+                                            wrappedValue += totalScrollWidth
+                                        }
+                                        scrollAnimatable.snapTo(wrappedValue)
+                                    }
+                                }
+                            }
+                        },
+                        onDragCancel = {
+                            velocityTracker.resetTracking()
+                        }
+                    )
                 }
         ) {
             if (apps.isNotEmpty()) {
-                UshapedAppList(apps = apps, scrollOffset = -scrollOffset)
+                UshapedAppList(apps = apps, scrollOffset = -scrollAnimatable.value)
             }
         }
     }
@@ -116,7 +194,7 @@ private fun lerp(start: Float, stop: Float, fraction: Float): Float {
 
 @Composable
 fun UshapedAppList(apps: List<AppInfo>, scrollOffset: Float) {
-    val numVisibleIcons = 40
+    val numVisibleIcons = 42
     val numTopIcons = 11
     val numSideIcons = (numVisibleIcons - numTopIcons) / 2
 
@@ -226,5 +304,65 @@ fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp) {
 
 private fun Float.toDp(): Dp {
     return (this / Resources.getSystem().displayMetrics.density).dp
+}
+
+private fun linearDecay(deceleration: Float = 700f): DecayAnimationSpec<Float> {
+    return object : DecayAnimationSpec<Float> {
+        override fun <V : AnimationVector> vectorize(
+            typeConverter: TwoWayConverter<Float, V>
+        ): VectorizedDecayAnimationSpec<V> {
+            return object : VectorizedDecayAnimationSpec<V> {
+                override val absVelocityThreshold: Float = 0.1f
+
+                override fun getDurationNanos(initialValue: V, initialVelocity: V): Long {
+                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
+                    if (initialVelocityF.absoluteValue < absVelocityThreshold) {
+                        return 0L
+                    }
+                    return (initialVelocityF.absoluteValue / deceleration * 1_000_000_000f).toLong()
+                }
+
+                override fun getTargetValue(initialValue: V, initialVelocity: V): V {
+                    val durationSecs = getDurationNanos(initialValue, initialVelocity) / 1_000_000_000f
+                    val initialValueF = typeConverter.convertFromVector(initialValue)
+                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
+                    val targetValueF = initialValueF + 0.5f * initialVelocityF * durationSecs
+                    return typeConverter.convertToVector(targetValueF)
+                }
+
+                override fun getValueFromNanos(
+                    playTimeNanos: Long,
+                    initialValue: V,
+                    initialVelocity: V
+                ): V {
+                    val durationNanos = getDurationNanos(initialValue, initialVelocity)
+                    if (playTimeNanos >= durationNanos) {
+                        return getTargetValue(initialValue, initialVelocity)
+                    }
+                    val playTimeSecs = playTimeNanos / 1_000_000_000f
+                    val initialValueF = typeConverter.convertFromVector(initialValue)
+                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
+                    val valueF = initialValueF + initialVelocityF * playTimeSecs - 0.5f * deceleration * playTimeSecs * playTimeSecs * sign(initialVelocityF)
+                    return typeConverter.convertToVector(valueF)
+                }
+
+                override fun getVelocityFromNanos(
+                    playTimeNanos: Long,
+                    initialValue: V,
+                    initialVelocity: V
+                ): V {
+                    val durationNanos = getDurationNanos(initialValue, initialVelocity)
+                    if (playTimeNanos >= durationNanos) {
+                        return typeConverter.convertToVector(0f)
+                    }
+                    val playTimeSecs = playTimeNanos / 1_000_000_000f
+                    val initialVelocityF = typeConverter.convertFromVector(initialVelocity)
+                    val newVelocityF = initialVelocityF - deceleration * playTimeSecs * sign(initialVelocityF)
+                    val finalVelocity = if (sign(newVelocityF) == sign(initialVelocityF)) newVelocityF else 0f
+                    return typeConverter.convertToVector(finalVelocity)
+                }
+            }
+        }
+    }
 }
 
