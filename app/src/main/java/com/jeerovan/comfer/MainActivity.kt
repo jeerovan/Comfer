@@ -9,6 +9,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationEndReason
 import androidx.compose.animation.core.LinearEasing
@@ -245,10 +250,20 @@ fun LauncherScreen() {
         )
 
         // Quick-list layer
-        if(!isAppListVisible)QuickListOverlay(apps = apps, onSwipeUp = { isAppListVisible = true })
+        AnimatedVisibility(
+            visible = !isAppListVisible,
+            enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
+        ) {
+            QuickListOverlay(apps = apps, onSwipeUp = { isAppListVisible = true })
+        }
 
         // app list - second layer
-        if (isAppListVisible) {
+        AnimatedVisibility(
+            visible = isAppListVisible,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
