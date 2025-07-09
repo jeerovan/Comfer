@@ -6,20 +6,16 @@ import android.content.pm.ResolveInfo
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationEndReason
-import androidx.compose.animation.core.AnimationVector
-import androidx.compose.animation.core.DecayAnimationSpec
-import androidx.compose.animation.core.TwoWayConverter
-import androidx.compose.animation.core.VectorizedDecayAnimationSpec
+import androidx.compose.animation.core.EaseInOutSine
 import androidx.compose.animation.core.exponentialDecay
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -30,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
@@ -41,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
@@ -49,17 +47,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.cos
 import kotlin.math.floor
-import kotlin.math.sign
+import kotlin.math.roundToInt
 import kotlin.math.sin
+import kotlin.random.Random
 
 data class AppInfo(
     val resolveInfo: ResolveInfo,
@@ -103,7 +104,34 @@ fun LauncherScreen() {
     var centerIconX by remember { mutableFloatStateOf(0f) }
     var centerIconY by remember { mutableFloatStateOf(0f) }
     var centerIconSize by remember { mutableFloatStateOf(0f) }
-    Box(modifier = Modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val maxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
+        val maxHeightPx = with(LocalDensity.current) { maxHeight.toPx() }
+
+        val xOffset = remember { Animatable(0f) }
+        val yOffset = remember { Animatable(0f) }
+
+        LaunchedEffect(Unit) {
+            while (true) {
+                val targetX = (Random.nextFloat() * 2 - 1) * maxWidthPx * 0.08f
+                val targetY = (Random.nextFloat() * 2 - 1) * maxHeightPx * 0.08f
+
+                launch {
+                    xOffset.animateTo(
+                        targetValue = targetX,
+                        animationSpec = tween(durationMillis = 15000, easing = EaseInOutSine)
+                    )
+                }
+                launch {
+                    yOffset.animateTo(
+                        targetValue = targetY,
+                        animationSpec = tween(durationMillis = 15000, easing = EaseInOutSine)
+                    )
+                }
+                delay(15000)
+            }
+        }
+
         Image(
             painter = rememberAsyncImagePainter(
                 ImageRequest.Builder(LocalContext.current)
@@ -112,7 +140,10 @@ fun LauncherScreen() {
                     .build()
             ),
             contentDescription = "Background",
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .scale(1.2f)
+                .offset { IntOffset(xOffset.value.roundToInt(), yOffset.value.roundToInt()) },
             contentScale = ContentScale.Crop
         )
 
