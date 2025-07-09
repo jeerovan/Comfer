@@ -123,10 +123,9 @@ fun LauncherScreen() {
                         onDoubleTap = {
                             Log.d("CenterApp",centerAppIndex.absoluteValue.toString())
                             val app = apps[centerAppIndex.absoluteValue]
-                            Log.d("CenterApp",app.label.toString())
-                            /*val launchIntent =
+                            val launchIntent =
                                 packageManager.getLaunchIntentForPackage(app.resolveInfo.activityInfo.packageName)
-                            context.startActivity(launchIntent)*/
+                            context.startActivity(launchIntent)
                         }
                     )
                 }
@@ -289,20 +288,13 @@ fun UshapedAppList(apps: List<AppInfo>,updateCenterIndex: (Int) -> Unit, scrollO
 
 @Composable
 fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp) {
-    val context = LocalContext.current
-    val packageManager = context.packageManager
 
     Box(
         modifier = Modifier
             .offset(x = x, y = y)
             .size(size)
             .clip(CircleShape)
-            .background(Color.White)
-            .clickable {
-                val launchIntent =
-                    packageManager.getLaunchIntentForPackage(app.resolveInfo.activityInfo.packageName)
-                context.startActivity(launchIntent)
-            },
+            .background(Color.White),
         contentAlignment = Alignment.Center
     ) {
         Image(
