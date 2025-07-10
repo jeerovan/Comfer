@@ -83,7 +83,8 @@ import kotlin.math.sin
 data class AppInfo(
     val resolveInfo: ResolveInfo,
     val icon: Drawable,
-    val label: CharSequence
+    val label: CharSequence,
+    val packageName: String
 )
 
 class MainActivity : ComponentActivity() {
@@ -154,8 +155,7 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                 modifier = Modifier.padding(bottom = 64.dp),
                 horizontalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                val quickApps = apps.take(4)
-                quickApps.forEach { app ->
+                apps.forEach { app ->
                     val packageManager = context.packageManager
                     Box(
                         modifier = Modifier
@@ -164,17 +164,18 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                             .background(Color.White)
                             .clickable {
                                 val launchIntent =
-                                    packageManager.getLaunchIntentForPackage(app.resolveInfo.activityInfo.packageName)
+                                    packageManager.getLaunchIntentForPackage(app.packageName)
                                 context.startActivity(launchIntent)
                             },
                         contentAlignment = Alignment.Center
                     ) {
-                    Image(
-                        painter = rememberDrawablePainter(drawable = app.icon),
-                        contentDescription = app.label.toString(),
-                        modifier = Modifier
-                            .padding(4.dp)
-                    )}
+                        Image(
+                            painter = rememberDrawablePainter(drawable = app.icon),
+                            contentDescription = app.label.toString(),
+                            modifier = Modifier
+                                .padding(4.dp)
+                        )
+                    }
                 }
             }
         }
@@ -182,7 +183,7 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
 }
 
 @Composable
-fun AppListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit){
+fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
     val packageManager = context.packageManager
@@ -208,18 +209,20 @@ fun AppListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit){
                         }
                     },
                     onDoubleTap = {
-                        val app = apps[centerAppIndex.absoluteValue]
-                        val launchIntent =
-                            packageManager.getLaunchIntentForPackage(app.resolveInfo.activityInfo.packageName)
-                        if (launchIntent != null) {
-                            val opts = ActivityOptions.makeScaleUpAnimation(
-                                view,
-                                centerIconX.toInt(),
-                                centerIconY.toInt(),
-                                centerIconSize.toInt(),
-                                centerIconSize.toInt()
-                            )
-                            context.startActivity(launchIntent, opts.toBundle())
+                        if (apps.isNotEmpty()) {
+                            val app = apps[centerAppIndex.absoluteValue]
+                            val launchIntent =
+                                packageManager.getLaunchIntentForPackage(app.packageName)
+                            if (launchIntent != null) {
+                                val opts = ActivityOptions.makeScaleUpAnimation(
+                                    view,
+                                    centerIconX.toInt(),
+                                    centerIconY.toInt(),
+                                    centerIconSize.toInt(),
+                                    centerIconSize.toInt()
+                                )
+                                context.startActivity(launchIntent, opts.toBundle())
+                            }
                         }
                     }
                 )
@@ -275,12 +278,14 @@ fun AppListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit){
                                     }
                                 }
                             }
+
                             DragAxis.VERTICAL -> {
                                 verticalDragAmount += dragAmount.y
                                 if (verticalDragAmount > 80f) {
                                     onSwipeDown()
                                 }
                             }
+
                             null -> { /* Wait for axis detection */
                             }
                         }
@@ -334,40 +339,59 @@ private enum class DragAxis { HORIZONTAL, VERTICAL }
 @Composable
 fun LauncherScreen() {
     val context = LocalContext.current
-    val packageManager = context.packageManager
     var isAppListVisible by remember { mutableStateOf(false) }
 
-    val apps by produceState<List<AppInfo>>(initialValue = emptyList(), context.packageManager) {
-        var packageNames = AppInfoManager.getAppPackageNames(context)
+    val allApps by produceState<List<AppInfo>>(initialValue = emptyList(), context) {
+        val packageManager = context.packageManager
+        var packageNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.ALL_APPS_LIST_NAME)
 
         if (packageNames == null) { // First time launch or cache cleared
             val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
-            val allApps = packageManager.queryIntentActivities(intent, 0)
-            packageNames = allApps.map { it.activityInfo.packageName }.toSet()
-            AppInfoManager.saveAppPackageNames(context, packageNames)
-            value = allApps.map {
-                AppInfo(
-                    resolveInfo = it,
-                    icon = it.loadIcon(packageManager),
-                    label = it.loadLabel(packageManager)
-                )
-            }
-        } else {
-            value = packageNames.mapNotNull { packageName ->
-                packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
-                    packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
-                        AppInfo(
-                            resolveInfo = resolveInfo,
-                            icon = resolveInfo.loadIcon(packageManager),
-                            label = resolveInfo.loadLabel(packageManager)
-                        )
-                    }
+            val allResolveInfos = packageManager.queryIntentActivities(intent, 0)
+            packageNames = allResolveInfos.map { it.activityInfo.packageName }.toSet()
+            AppInfoManager.saveAppPackageNames(context, AppInfoManager.ALL_APPS_LIST_NAME, packageNames)
+            // By default, quick and primary lists are empty
+            AppInfoManager.saveAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME, emptySet())
+            AppInfoManager.saveAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME, packageNames) // Default primary to all
+        }
+
+        value = packageNames.mapNotNull { packageName ->
+            packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
+                packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
+                    AppInfo(
+                        resolveInfo = resolveInfo,
+                        icon = resolveInfo.loadIcon(packageManager),
+                        label = resolveInfo.loadLabel(packageManager),
+                        packageName = packageName
+                    )
                 }
-            }.sortedWith(compareBy { it.label.toString().lowercase(Locale.getDefault()) })
+            }
+        }.sortedWith(compareBy { it.label.toString().lowercase(Locale.getDefault()) })
+    }
+
+    val quickApps by produceState<List<AppInfo>>(initialValue = emptyList(), allApps) {
+        val packageManager = context.packageManager
+        val packageNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME) ?: emptySet()
+        value = packageNames.mapNotNull { packageName ->
+            allApps.find { it.packageName == packageName }
         }
     }
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    val primaryApps by produceState<List<AppInfo>>(initialValue = emptyList(), allApps) {
+        val packageManager = context.packageManager
+        val packageNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME) ?: emptySet()
+        value = packageNames.mapNotNull { packageName ->
+            allApps.find { it.packageName == packageName }
+        }
+    }
+
+    BoxWithConstraints(modifier = Modifier
+        .fillMaxSize()
+        .pointerInput(Unit) {
+            detectTapGestures(onLongPress = {
+                context.startActivity(Intent(context, ManageLayersActivity::class.java))
+            })
+        }) {
         val maxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
         val maxHeightPx = with(LocalDensity.current) { maxHeight.toPx() }
 
@@ -388,7 +412,8 @@ fun LauncherScreen() {
         // Background - first layer
         Image(
             painter = rememberAsyncImagePainter(
-                ImageRequest.Builder(LocalContext.current)
+                ImageRequest
+                    .Builder(LocalContext.current)
                     .data("https://images.unsplash.com/photo-1637532766937-0504f310bd6e?w=2000&q=99")
                     .crossfade(true)
                     .build()
@@ -410,7 +435,7 @@ fun LauncherScreen() {
             enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
         ) {
-            QuickListOverlay(apps = apps, onSwipeUp = { isAppListVisible = true })
+            QuickListOverlay(apps = quickApps, onSwipeUp = { isAppListVisible = true })
         }
 
         // app list - second layer
@@ -419,7 +444,7 @@ fun LauncherScreen() {
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
         ) {
-            AppListOverlay(apps = apps, onSwipeDown = {isAppListVisible = false})
+            AppListOverlay(apps = primaryApps, onSwipeDown = { isAppListVisible = false })
         }
     }
 }
@@ -509,7 +534,7 @@ fun UshapedAppList(
                 val sizePx = with(density) { size.toPx() }
                 updateCenterIconGeom(x, y, sizePx)
             }
-            key(apps[appIndex].resolveInfo.activityInfo.packageName) {
+            key(apps[appIndex].packageName) {
                 AppIcon(
                     app = apps[appIndex],
                     x = x.toDp(),
@@ -533,7 +558,7 @@ fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp, clickable: Boolean = false) {
             .background(Color.White)
             .clickable {
                 val launchIntent =
-                    packageManager.getLaunchIntentForPackage(app.resolveInfo.activityInfo.packageName)
+                    packageManager.getLaunchIntentForPackage(app.packageName)
                 if (clickable) context.startActivity(launchIntent)
             },
         contentAlignment = Alignment.Center
