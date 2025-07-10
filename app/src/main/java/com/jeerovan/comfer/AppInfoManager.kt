@@ -20,7 +20,7 @@ object AppInfoManager {
     }
 
     fun saveAppPackageNames(context: Context, listName: String, packageNames: Set<String>) {
-        getSharedPreferences(context).edit().putStringSet(listName, packageNames).apply()
+        getSharedPreferences(context).edit { putStringSet(listName, packageNames) }
     }
 
     fun addAppToLayer(context: Context, listName: String, packageName: String) {

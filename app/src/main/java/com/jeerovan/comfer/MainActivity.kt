@@ -350,9 +350,12 @@ fun LauncherScreen() {
             val allResolveInfos = packageManager.queryIntentActivities(intent, 0)
             packageNames = allResolveInfos.map { it.activityInfo.packageName }.toSet()
             AppInfoManager.saveAppPackageNames(context, AppInfoManager.ALL_APPS_LIST_NAME, packageNames)
-            // By default, quick and primary lists are empty
-            AppInfoManager.saveAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME, emptySet())
-            AppInfoManager.saveAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME, packageNames) // Default primary to all
+            val quickAppList:Set<String> = filterStandardApps(packageNames)
+            AppInfoManager.saveAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME, quickAppList)
+            val primaryAppList:Set<String> = packageNames.filter { packageName ->
+                !quickAppList.contains(packageName)
+            }.toSet()
+            AppInfoManager.saveAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME, primaryAppList) // Default primary to all
         }
 
         value = packageNames.mapNotNull { packageName ->
@@ -366,11 +369,10 @@ fun LauncherScreen() {
                     )
                 }
             }
-        }.sortedWith(compareBy { it.label.toString().lowercase(Locale.getDefault()) })
+        }
     }
 
     val quickApps by produceState<List<AppInfo>>(initialValue = emptyList(), allApps) {
-        val packageManager = context.packageManager
         val packageNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME) ?: emptySet()
         value = packageNames.mapNotNull { packageName ->
             allApps.find { it.packageName == packageName }
@@ -378,7 +380,6 @@ fun LauncherScreen() {
     }
 
     val primaryApps by produceState<List<AppInfo>>(initialValue = emptyList(), allApps) {
-        val packageManager = context.packageManager
         val packageNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME) ?: emptySet()
         value = packageNames.mapNotNull { packageName ->
             allApps.find { it.packageName == packageName }
@@ -573,5 +574,44 @@ fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp, clickable: Boolean = false) {
 
 private fun Float.toDp(): Dp {
     return (this / Resources.getSystem().displayMetrics.density).dp
+}
+
+fun filterStandardApps(allPackageNames: Set<String>): Set<String> {
+    val standardAppPackageNames = setOf(
+        // Telephony/Dialer
+        "com.android.dialer",
+        "com.android.phone",
+        "com.android.server.telecom",
+        "com.android.providers.telephony",
+        "com.google.android.dialer",
+        "com.google.android.apps.messaging",
+        "com.samsung.android.dialer",
+        "com.samsung.android.contacts",
+        "com.samsung.android.app.telephonyui",
+        "com.miui.dialer",
+        "com.android.contacts", // Xiaomi
+        "com.android.mms",      // Xiaomi
+
+        // Camera
+        "com.android.camera",
+        "com.android.camera2",
+        "com.google.android.camera",
+        "com.sec.android.app.camera",
+        "com.samsung.android.camera.internal",
+        "com.miui.camera",
+
+        // Gallery
+        "com.android.gallery3d",
+        "com.android.gallery",
+        "com.google.android.apps.photos",
+        "com.sec.android.gallery3d",
+        "com.samsung.android.gallery",
+        "com.miui.gallery"
+        // Add more as you discover them
+    )
+
+    return allPackageNames.filter { packageName ->
+        standardAppPackageNames.contains(packageName)
+    }.toSet()
 }
 
