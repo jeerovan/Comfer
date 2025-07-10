@@ -58,11 +58,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -146,13 +148,6 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(250.dp)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onLongPress = {
-                            context.startActivity(Intent(context, ManageLayersActivity::class.java))
-                        }
-                    )
-                }
                 .pointerInput(Unit) {
                     detectDragGestures { change, dragAmount ->
                         if (dragAmount.y < -40) { // Swipe up
@@ -414,12 +409,14 @@ fun LauncherScreen() {
             allApps.find { it.packageName == packageName }
         }
     }
-
+    val haptic = LocalHapticFeedback.current
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
-                detectTapGestures(onLongPress = {
+                detectTapGestures(
+                    onLongPress = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     context.startActivity(Intent(context, ManageLayersActivity::class.java))
                 })
             }) {
@@ -609,6 +606,7 @@ fun UshapedAppList(
 fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp, clickable: Boolean = false) {
     val context = LocalContext.current
     val packageManager = context.packageManager
+    val haptic = LocalHapticFeedback.current
     Box(
         modifier = Modifier
             .offset(x = x, y = y)
@@ -623,6 +621,7 @@ fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp, clickable: Boolean = false) {
                         context.startActivity(launchIntent)
                     },
                     onLongPress = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                         intent.data = "package:${app.packageName}".toUri()
                         context.startActivity(intent)
