@@ -6,15 +6,10 @@ import android.content.pm.ResolveInfo
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationEndReason
 import androidx.compose.animation.core.LinearEasing
@@ -22,6 +17,10 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -144,8 +143,8 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(250.dp)
-                .pointerInput(Unit){
-                    detectTapGestures (
+                .pointerInput(Unit) {
+                    detectTapGestures(
                         onLongPress = {
                             context.startActivity(Intent(context, ManageLayersActivity::class.java))
                         }
@@ -353,19 +352,32 @@ fun LauncherScreen() {
 
     val allApps by produceState<List<AppInfo>>(initialValue = emptyList(), context) {
         val packageManager = context.packageManager
-        var packageNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.ALL_APPS_LIST_NAME)
+        var packageNames =
+            AppInfoManager.getAppPackageNames(context, AppInfoManager.ALL_APPS_LIST_NAME)
 
         if (packageNames == null) { // First time launch or cache cleared
             val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
             val allResolveInfos = packageManager.queryIntentActivities(intent, 0)
             packageNames = allResolveInfos.map { it.activityInfo.packageName }.toSet()
-            AppInfoManager.saveAppPackageNames(context, AppInfoManager.ALL_APPS_LIST_NAME, packageNames)
-            val quickAppList:Set<String> = filterStandardApps(packageNames)
-            AppInfoManager.saveAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME, quickAppList)
-            val primaryAppList:Set<String> = packageNames.filter { packageName ->
+            AppInfoManager.saveAppPackageNames(
+                context,
+                AppInfoManager.ALL_APPS_LIST_NAME,
+                packageNames
+            )
+            val quickAppList: Set<String> = filterStandardApps(packageNames)
+            AppInfoManager.saveAppPackageNames(
+                context,
+                AppInfoManager.QUICK_APPS_LIST_NAME,
+                quickAppList
+            )
+            val primaryAppList: Set<String> = packageNames.filter { packageName ->
                 !quickAppList.contains(packageName)
             }.toSet()
-            AppInfoManager.saveAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME, primaryAppList) // Default primary to all
+            AppInfoManager.saveAppPackageNames(
+                context,
+                AppInfoManager.PRIMARY_APPS_LIST_NAME,
+                primaryAppList
+            ) // Default primary to all
         }
 
         value = packageNames.mapNotNull { packageName ->
@@ -383,26 +395,31 @@ fun LauncherScreen() {
     }
 
     val quickApps by produceState<List<AppInfo>>(initialValue = emptyList(), allApps) {
-        val packageNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME) ?: emptySet()
+        val packageNames =
+            AppInfoManager.getAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME)
+                ?: emptySet()
         value = packageNames.mapNotNull { packageName ->
             allApps.find { it.packageName == packageName }
         }
     }
 
     val primaryApps by produceState<List<AppInfo>>(initialValue = emptyList(), allApps) {
-        val packageNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME) ?: emptySet()
+        val packageNames =
+            AppInfoManager.getAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME)
+                ?: emptySet()
         value = packageNames.mapNotNull { packageName ->
             allApps.find { it.packageName == packageName }
         }
     }
 
-    BoxWithConstraints(modifier = Modifier
-        .fillMaxSize()
-        .pointerInput(Unit) {
-            detectTapGestures(onLongPress = {
-                context.startActivity(Intent(context, ManageLayersActivity::class.java))
-            })
-        }) {
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onLongPress = {
+                    context.startActivity(Intent(context, ManageLayersActivity::class.java))
+                })
+            }) {
         val maxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
         val maxHeightPx = with(LocalDensity.current) { maxHeight.toPx() }
 
@@ -489,22 +506,23 @@ fun UshapedAppList(
         val topPaddingPx = with(density) { topPadding.toPx() }
         val smallIconPx = with(density) { smallIconSize.toPx() }
         val largeIconPx = with(density) { largeIconSize.toPx() }
-        val minimumGapPx = with(density) {minimumGap.toPx()}
+        val minimumGapPx = with(density) { minimumGap.toPx() }
 
-        val arcRadius = width/2f - sidePaddingPx - smallIconPx/2f
-        val numTopIcons = 2 * floor(PI/(4*asin((smallIconPx/2+minimumGapPx/2)/(arcRadius-smallIconPx/2)))).toInt() +1
-        Log.d("numTopIcons",numTopIcons.toString())
+        val arcRadius = width / 2f - sidePaddingPx - smallIconPx / 2f
+        val numTopIcons =
+            2 * floor(PI / (4 * asin((smallIconPx / 2 + minimumGapPx / 2) / (arcRadius - smallIconPx / 2)))).toInt() + 1
+
         val arcCenterY = topPaddingPx + arcRadius
 
-        val verticalSpacingPx = 2*(2*(arcRadius-smallIconPx/2)*sin(PI/(2*(numTopIcons-1))).toFloat() - smallIconPx).absoluteValue
+        val verticalSpacingPx =
+            2 * (2 * (arcRadius - smallIconPx / 2) * sin(PI / (2 * (numTopIcons - 1))).toFloat() - smallIconPx).absoluteValue
         // Calculate the actual angular spacing based on the final number of top icons
         val angularSpacingRad = PI / (numTopIcons - 1)
-        Log.d("Spacing",verticalSpacingPx.toString())
 
-        val sideColumnY = arcCenterY + smallIconPx/2
+        val sideColumnY = arcCenterY + smallIconPx / 2
         val availableHeight = height - sideColumnY
         val iconWithSpace = smallIconPx + verticalSpacingPx
-        val numSideIcons = ceil(availableHeight/iconWithSpace).toInt()
+        val numSideIcons = ceil(availableHeight / iconWithSpace).toInt()
 
         if (numSideIcons <= 0 || numTopIcons <= 1) {
             // Not enough space to draw a meaningful shape
@@ -524,9 +542,11 @@ fun UshapedAppList(
                 slot < numSideIcons -> {
                     // Left side (bottom to top)
                     val xPos = sidePaddingPx
-                    val yPos = sideColumnY + (numSideIcons-1)*iconWithSpace - (slot-1) * verticalSpacingPx - slot * smallIconPx
+                    val yPos =
+                        sideColumnY + (numSideIcons - 1) * iconWithSpace - (slot - 1) * verticalSpacingPx - slot * smallIconPx
                     Pair(xPos, yPos)
                 }
+
                 slot < numSideIcons + numTopIcons -> {
                     // Top arc
                     val arcIndex = slot - numSideIcons
@@ -539,11 +559,13 @@ fun UshapedAppList(
                     }
                     Pair(xPos, yPos)
                 }
+
                 else -> {
                     // Right side (bottom to top)
                     val sideIndex = slot - numSideIcons - numTopIcons
                     val xPos = width - sidePaddingPx - smallIconPx
-                    val yPos = sideColumnY + verticalSpacingPx + sideIndex * verticalSpacingPx + sideIndex * smallIconPx
+                    val yPos =
+                        sideColumnY + verticalSpacingPx + sideIndex * verticalSpacingPx + sideIndex * smallIconPx
                     Pair(xPos, yPos)
                 }
             }
