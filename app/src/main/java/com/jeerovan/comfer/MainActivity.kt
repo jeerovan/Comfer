@@ -337,15 +337,33 @@ fun LauncherScreen() {
     val packageManager = context.packageManager
     var isAppListVisible by remember { mutableStateOf(false) }
 
-    val apps by produceState<List<AppInfo>>(initialValue = emptyList()) {
-        val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
-        val allApps = packageManager.queryIntentActivities(intent, 0)
-        value = allApps.map {
-            AppInfo(
-                resolveInfo = it,
-                icon = it.loadIcon(packageManager),
-                label = it.loadLabel(packageManager)
-            )
+    val apps by produceState<List<AppInfo>>(initialValue = emptyList(), context.packageManager) {
+        var packageNames = AppInfoManager.getAppPackageNames(context)
+
+        if (packageNames == null) { // First time launch or cache cleared
+            val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
+            val allApps = packageManager.queryIntentActivities(intent, 0)
+            packageNames = allApps.map { it.activityInfo.packageName }.toSet()
+            AppInfoManager.saveAppPackageNames(context, packageNames)
+            value = allApps.map {
+                AppInfo(
+                    resolveInfo = it,
+                    icon = it.loadIcon(packageManager),
+                    label = it.loadLabel(packageManager)
+                )
+            }
+        } else {
+            value = packageNames.mapNotNull { packageName ->
+                packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
+                    packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
+                        AppInfo(
+                            resolveInfo = resolveInfo,
+                            icon = resolveInfo.loadIcon(packageManager),
+                            label = resolveInfo.loadLabel(packageManager)
+                        )
+                    }
+                }
+            }.sortedWith(compareBy { it.label.toString().lowercase(Locale.getDefault()) })
         }
     }
 
