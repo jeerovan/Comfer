@@ -5,7 +5,9 @@ import android.content.Intent
 import android.content.pm.ResolveInfo
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -81,6 +83,7 @@ import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.sin
+import androidx.core.net.toUri
 
 data class AppInfo(
     val resolveInfo: ResolveInfo,
@@ -612,10 +615,19 @@ fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp, clickable: Boolean = false) {
             .size(size)
             .clip(CircleShape)
             .background(Color.White)
-            .clickable {
-                val launchIntent =
-                    packageManager.getLaunchIntentForPackage(app.packageName)
-                if (clickable) context.startActivity(launchIntent)
+            .pointerInput(Unit){
+                detectTapGestures (
+                    onTap = {
+                        val launchIntent =
+                            packageManager.getLaunchIntentForPackage(app.packageName)
+                        context.startActivity(launchIntent)
+                    },
+                    onLongPress = {
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        intent.data = "package:${app.packageName}".toUri()
+                        context.startActivity(intent)
+                    }
+                )
             },
         contentAlignment = Alignment.Center
     ) {
