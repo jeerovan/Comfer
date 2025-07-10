@@ -181,14 +181,160 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
     }
 }
 
+@Composable
+fun AppListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit){
+    val context = LocalContext.current
+    val view = LocalView.current
+    val packageManager = context.packageManager
+    val scope = rememberCoroutineScope()
+
+    val scrollAnimatable = remember { Animatable(0f) }
+    val velocityTracker = remember { VelocityTracker() }
+    var lastYPosition by remember { mutableFloatStateOf(0f) }
+    var centerAppIndex by remember { mutableIntStateOf(0) }
+    var centerIconX by remember { mutableFloatStateOf(0f) }
+    var centerIconY by remember { mutableFloatStateOf(0f) }
+    var centerIconSize by remember { mutableFloatStateOf(0f) }
+    var dragAxis by remember { mutableStateOf<DragAxis?>(null) }
+    var verticalDragAmount by remember { mutableFloatStateOf(0f) }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        scope.launch {
+                            scrollAnimatable.stop()
+                        }
+                    },
+                    onDoubleTap = {
+                        val app = apps[centerAppIndex.absoluteValue]
+                        val launchIntent =
+                            packageManager.getLaunchIntentForPackage(app.resolveInfo.activityInfo.packageName)
+                        if (launchIntent != null) {
+                            val opts = ActivityOptions.makeScaleUpAnimation(
+                                view,
+                                centerIconX.toInt(),
+                                centerIconY.toInt(),
+                                centerIconSize.toInt(),
+                                centerIconSize.toInt()
+                            )
+                            context.startActivity(launchIntent, opts.toBundle())
+                        }
+                    }
+                )
+            }
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = {
+                        dragAxis = null
+                        verticalDragAmount = 0f
+                        velocityTracker.resetTracking()
+                        scope.launch {
+                            scrollAnimatable.stop()
+                        }
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        if (dragAxis == null) {
+                            if (dragAmount.x.absoluteValue > 4f || dragAmount.y.absoluteValue > 4f) {
+                                dragAxis =
+                                    if (dragAmount.x.absoluteValue > dragAmount.y.absoluteValue) {
+                                        DragAxis.HORIZONTAL
+                                    } else {
+                                        DragAxis.VERTICAL
+                                    }
+                            }
+                        }
+
+                        when (dragAxis) {
+                            DragAxis.HORIZONTAL -> {
+                                velocityTracker.addPosition(
+                                    change.uptimeMillis,
+                                    change.position
+                                )
+                                lastYPosition = change.position.y
+                                if (change.position.y > size.height / 2) {
+                                    val increment = dragAmount.x * 0.3f
+
+                                    scope.launch {
+                                        val currentValue = scrollAnimatable.value
+                                        var newValue =
+                                            currentValue + increment
+                                        if (apps.isNotEmpty()) {
+                                            val totalScrollWidth = apps.size * 20f
+                                            if (totalScrollWidth > 0) {
+                                                newValue =
+                                                    newValue.rem(totalScrollWidth)
+                                                if (newValue < 0) {
+                                                    newValue += totalScrollWidth
+                                                }
+                                            }
+                                        }
+                                        scrollAnimatable.snapTo(newValue)
+                                    }
+                                }
+                            }
+                            DragAxis.VERTICAL -> {
+                                verticalDragAmount += dragAmount.y
+                                if (verticalDragAmount > 80f) {
+                                    onSwipeDown()
+                                }
+                            }
+                            null -> { /* Wait for axis detection */
+                            }
+                        }
+                    },
+                    onDragEnd = {
+                        if (dragAxis == DragAxis.HORIZONTAL) {
+                            val velocity = velocityTracker.calculateVelocity()
+                            scope.launch {
+                                val initialVelocity = velocity.x * 0.3f
+                                val result = scrollAnimatable.animateDecay(
+                                    initialVelocity,
+                                    exponentialDecay()
+                                )
+
+                                if (result.endReason == AnimationEndReason.Finished && apps.isNotEmpty()) {
+                                    val totalScrollWidth = apps.size * 20f
+                                    if (totalScrollWidth > 0) {
+                                        var wrappedValue =
+                                            scrollAnimatable.value.rem(totalScrollWidth)
+                                        if (wrappedValue < 0) {
+                                            wrappedValue += totalScrollWidth
+                                        }
+                                        scrollAnimatable.snapTo(wrappedValue)
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    onDragCancel = {
+                        velocityTracker.resetTracking()
+                    }
+                )
+            }
+    ) {
+        if (apps.isNotEmpty()) {
+            UshapedAppList(
+                apps = apps,
+                updateCenterIndex = { centerAppIndex = it },
+                scrollOffset = -scrollAnimatable.value,
+                updateCenterIconGeom = { x, y, size ->
+                    centerIconX = x
+                    centerIconY = y
+                    centerIconSize = size
+                })
+        }
+    }
+}
+
 private enum class DragAxis { HORIZONTAL, VERTICAL }
 
 @Composable
 fun LauncherScreen() {
     val context = LocalContext.current
-    val view = LocalView.current
     val packageManager = context.packageManager
-    val scrollAnimatable = remember { Animatable(0f) }
     var isAppListVisible by remember { mutableStateOf(false) }
 
     val apps by produceState<List<AppInfo>>(initialValue = emptyList()) {
@@ -203,15 +349,6 @@ fun LauncherScreen() {
         }
     }
 
-    val scope = rememberCoroutineScope()
-    val velocityTracker = remember { VelocityTracker() }
-    var lastYPosition by remember { mutableFloatStateOf(0f) }
-    var centerAppIndex by remember { mutableIntStateOf(0) }
-    var centerIconX by remember { mutableFloatStateOf(0f) }
-    var centerIconY by remember { mutableFloatStateOf(0f) }
-    var centerIconSize by remember { mutableFloatStateOf(0f) }
-    var dragAxis by remember { mutableStateOf<DragAxis?>(null) }
-    var verticalDragAmount by remember { mutableFloatStateOf(0f) }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val maxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
         val maxHeightPx = with(LocalDensity.current) { maxHeight.toPx() }
@@ -264,136 +401,7 @@ fun LauncherScreen() {
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onPress = {
-                                scope.launch {
-                                    scrollAnimatable.stop()
-                                }
-                            },
-                            onDoubleTap = {
-                                val app = apps[centerAppIndex.absoluteValue]
-                                val launchIntent =
-                                    packageManager.getLaunchIntentForPackage(app.resolveInfo.activityInfo.packageName)
-                                if (launchIntent != null) {
-                                    val opts = ActivityOptions.makeScaleUpAnimation(
-                                        view,
-                                        centerIconX.toInt(),
-                                        centerIconY.toInt(),
-                                        centerIconSize.toInt(),
-                                        centerIconSize.toInt()
-                                    )
-                                    context.startActivity(launchIntent, opts.toBundle())
-                                }
-                            }
-                        )
-                    }
-                    .pointerInput(Unit) {
-                        detectDragGestures(
-                            onDragStart = {
-                                dragAxis = null
-                                verticalDragAmount = 0f
-                                velocityTracker.resetTracking()
-                                scope.launch {
-                                    scrollAnimatable.stop()
-                                }
-                            },
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                if (dragAxis == null) {
-                                    if (dragAmount.x.absoluteValue > 4f || dragAmount.y.absoluteValue > 4f) {
-                                        dragAxis =
-                                            if (dragAmount.x.absoluteValue > dragAmount.y.absoluteValue) {
-                                                DragAxis.HORIZONTAL
-                                            } else {
-                                                DragAxis.VERTICAL
-                                            }
-                                    }
-                                }
-
-                                when (dragAxis) {
-                                    DragAxis.HORIZONTAL -> {
-                                        velocityTracker.addPosition(
-                                            change.uptimeMillis,
-                                            change.position
-                                        )
-                                        lastYPosition = change.position.y
-                                        if (change.position.y > size.height / 2) {
-                                            val increment = dragAmount.x * 0.3f
-
-                                            scope.launch {
-                                                val currentValue = scrollAnimatable.value
-                                                var newValue =
-                                                    currentValue + increment
-                                                if (apps.isNotEmpty()) {
-                                                    val totalScrollWidth = apps.size * 20f
-                                                    if (totalScrollWidth > 0) {
-                                                        newValue =
-                                                            newValue.rem(totalScrollWidth)
-                                                        if (newValue < 0) {
-                                                            newValue += totalScrollWidth
-                                                        }
-                                                    }
-                                                }
-                                                scrollAnimatable.snapTo(newValue)
-                                            }
-                                        }
-                                    }
-                                    DragAxis.VERTICAL -> {
-                                        verticalDragAmount += dragAmount.y
-                                        if (verticalDragAmount > 80f) {
-                                            isAppListVisible = false
-                                        }
-                                    }
-                                    null -> { /* Wait for axis detection */
-                                    }
-                                }
-                            },
-                            onDragEnd = {
-                                if (dragAxis == DragAxis.HORIZONTAL) {
-                                    val velocity = velocityTracker.calculateVelocity()
-                                    scope.launch {
-                                        val initialVelocity = velocity.x * 0.3f
-                                        val result = scrollAnimatable.animateDecay(
-                                            initialVelocity,
-                                            exponentialDecay()
-                                        )
-
-                                        if (result.endReason == AnimationEndReason.Finished && apps.isNotEmpty()) {
-                                            val totalScrollWidth = apps.size * 20f
-                                            if (totalScrollWidth > 0) {
-                                                var wrappedValue =
-                                                    scrollAnimatable.value.rem(totalScrollWidth)
-                                                if (wrappedValue < 0) {
-                                                    wrappedValue += totalScrollWidth
-                                                }
-                                                scrollAnimatable.snapTo(wrappedValue)
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            onDragCancel = {
-                                velocityTracker.resetTracking()
-                            }
-                        )
-                    }
-            ) {
-                if (apps.isNotEmpty()) {
-                    UshapedAppList(
-                        apps = apps,
-                        updateCenterIndex = { centerAppIndex = it },
-                        scrollOffset = -scrollAnimatable.value,
-                        updateCenterIconGeom = { x, y, size ->
-                            centerIconX = x
-                            centerIconY = y
-                            centerIconSize = size
-                        })
-                }
-            }
+            AppListOverlay(apps = apps, onSwipeDown = {isAppListVisible = false})
         }
     }
 }
