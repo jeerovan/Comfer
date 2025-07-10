@@ -141,6 +141,13 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(250.dp)
+                .pointerInput(Unit){
+                    detectTapGestures (
+                        onLongPress = {
+                            context.startActivity(Intent(context, ManageLayersActivity::class.java))
+                        }
+                    )
+                }
                 .pointerInput(Unit) {
                     detectDragGestures { change, dragAmount ->
                         if (dragAmount.y < -40) { // Swipe up
