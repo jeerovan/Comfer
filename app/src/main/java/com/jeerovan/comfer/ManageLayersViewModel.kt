@@ -44,20 +44,20 @@ class ManageLayersViewModel(application: Application) : AndroidViewModel(applica
         refreshAppLists()
     }
 
-    fun refreshAppLists() {
+    private fun refreshAppLists() {
         viewModelScope.launch {
             val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
             val allInstalledApps = packageManager.queryIntentActivities(intent, 0)
                 .mapNotNull { mapPackageNameToAppInfo(packageManager, it.activityInfo.packageName) }
 
             val quickAppNames = AppInfoManager.getAppPackageNames(getApplication(), AppInfoManager.QUICK_APPS_LIST_NAME) ?: emptySet()
-            val quickApps = quickAppNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }.sortedBy { it.label.toString() }
+            val quickApps = quickAppNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
 
             val primaryAppNames = AppInfoManager.getAppPackageNames(getApplication(), AppInfoManager.PRIMARY_APPS_LIST_NAME) ?: emptySet()
-            val primaryApps = primaryAppNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }.sortedBy { it.label.toString() }
+            val primaryApps = primaryAppNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
 
             val quickAndPrimaryPackages = quickApps.map { it.packageName }.toSet() + primaryApps.map { it.packageName }.toSet()
-            val restApps = allInstalledApps.filter { it.packageName !in quickAndPrimaryPackages }.sortedBy { it.label.toString() }
+            val restApps = allInstalledApps.filter { it.packageName !in quickAndPrimaryPackages }
 
             _uiState.update {
                 it.copy(

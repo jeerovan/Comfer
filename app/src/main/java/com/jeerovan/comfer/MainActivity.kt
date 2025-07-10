@@ -585,7 +585,7 @@ fun UshapedAppList(
             val sizeCurrent = if (i == centerSlot) largeIconSize else smallIconSize
             val sizePrev = if ((i - 1) == centerSlot) largeIconSize else smallIconSize
             val size = lerp(sizeCurrent.value, sizePrev.value, scrollFraction).dp
-            if (size > 55.dp) {
+            if (size > largeIconSize - 10.dp) {
                 updateCenterIndex(appIndex)
                 val sizePx = with(density) { size.toPx() }
                 updateCenterIconGeom(x + sizePx / 2, y + sizePx / 2, sizePx)
