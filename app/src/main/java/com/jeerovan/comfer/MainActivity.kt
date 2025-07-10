@@ -222,7 +222,7 @@ fun LauncherScreen() {
             angle.animateTo(
                 targetValue = (2 * PI).toFloat(),
                 animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 200000, easing = LinearEasing),
+                    animation = tween(durationMillis = 100000, easing = LinearEasing),
                     repeatMode = RepeatMode.Restart
                 )
             )
