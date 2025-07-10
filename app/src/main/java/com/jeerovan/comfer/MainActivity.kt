@@ -61,6 +61,7 @@ import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -468,58 +469,84 @@ fun UshapedAppList(
     scrollOffset: Float,
     updateCenterIconGeom: (x: Float, y: Float, size: Float) -> Unit
 ) {
-    val numVisibleIcons = 42
-    val numTopIcons = 11
-    val numSideIcons = (numVisibleIcons - numTopIcons) / 2
+    val sidePadding = 32.dp
+    val verticalSpacing = 24.dp
+    val angularSpacingDp = 64.dp // This is the arc length between icons
+    val topPadding = 68.dp
 
     val smallIconSize = 42.dp
     val largeIconSize = 68.dp
 
     val totalIcons = apps.size
-    val smoothScrollIndex = scrollOffset / 20f
-    val baseScrollIndex = floor(smoothScrollIndex)
-    val scrollFraction = smoothScrollIndex - baseScrollIndex
-
-    val intScrollIndex = baseScrollIndex.toInt()
-    val startIndex = (intScrollIndex - numVisibleIcons / 2 + totalIcons) % totalIcons
+    if (totalIcons == 0) return
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-
         val density = LocalDensity.current
-        val width = with(density) { maxWidth.value.dp.toPx() }
-        val height = with(density) { maxHeight.value.dp.toPx() }
-        val sidePadding = with(density) { 32.dp.toPx() }
-        val topPadding = with(density) { 68.dp.toPx() }
-        val smallIcon = with(density) { smallIconSize.toPx() }
-        val largeIcon = with(density) { largeIconSize.toPx() }
-        val verticalSpacing = (height - topPadding * 2) / (numSideIcons - 1)
-        val arcRadius = (width - sidePadding * 2) / 2
-        val angularSpacing = PI / (numTopIcons - 1)
+        val width = with(density) { maxWidth.toPx() }
+        val height = with(density) { maxHeight.toPx() }
+
+        val sidePaddingPx = with(density) { sidePadding.toPx() }
+        val verticalSpacingPx = with(density) { verticalSpacing.toPx() }
+        val angularSpacingPx = with(density) { angularSpacingDp.toPx() }
+        val topPaddingPx = with(density) { topPadding.toPx() }
+        val smallIconPx = with(density) { smallIconSize.toPx() }
+        val largeIconPx = with(density) { largeIconSize.toPx() }
+
+        val arcRadius = (width - sidePaddingPx * 2) / 2
+        val arcCenterY = topPaddingPx + arcRadius
+
+        val sideColumnHeight = height - arcCenterY - topPaddingPx // Using topPadding also for bottom
+        val numSideIcons = if (sideColumnHeight > 0) {
+            floor((sideColumnHeight + verticalSpacingPx) / (smallIconPx + verticalSpacingPx)).toInt()
+        } else 0
+
+        val numTopIcons = if (arcRadius > 0 && angularSpacingPx > 0) {
+            val anglePerIcon = angularSpacingPx / arcRadius
+            (floor(PI / anglePerIcon) + 1).toInt()
+        } else 1 // Default to 1 to avoid division by zero if arcRadius is tiny
+
+        if (numSideIcons <= 0 || numTopIcons <= 1) {
+            // Not enough space to draw a meaningful shape
+            return@BoxWithConstraints
+        }
+
+        val numVisibleIcons = numSideIcons * 2 + numTopIcons + 1
+
+        val smoothScrollIndex = scrollOffset / 20f
+        val baseScrollIndex = floor(smoothScrollIndex)
+        val scrollFraction = smoothScrollIndex - baseScrollIndex
+        val intScrollIndex = baseScrollIndex.toInt()
+        val startIndex = (intScrollIndex - numVisibleIcons / 2 + totalIcons) % totalIcons
+
+        val angularSpacingRad = PI / (numTopIcons - 1)
 
         fun getPositionForSlot(slot: Int, center: Int): Pair<Float, Float> {
-            return if (slot < numSideIcons) {
-                // Left side
-                val xPos = sidePadding - smallIcon / 2
-                val yPos =
-                    arcRadius + verticalSpacing + height - topPadding - slot * verticalSpacing
-                Pair(xPos, yPos)
-            } else if (slot < numSideIcons + numTopIcons) {
-                // Top arc
-                val arcIndex = slot - numSideIcons
-                val angle = PI - arcIndex * angularSpacing
-                var xPos = width / 2 - smallIcon / 2 + arcRadius * cos(angle).toFloat()
-                var yPos = topPadding + arcRadius * (1 - sin(angle)).toFloat()
-                if (slot == center) {
-                    xPos = xPos + smallIcon / 2 - largeIcon / 2
-                    yPos -= largeIcon / 2
+            return when {
+                slot < numSideIcons -> {
+                    // Left side (bottom to top)
+                    val xPos = sidePaddingPx - smallIconPx / 2
+                    val yPos = height - topPaddingPx/2 - smallIconPx - (slot * (smallIconPx + verticalSpacingPx))
+                    Pair(xPos, yPos)
                 }
-                Pair(xPos, yPos)
-            } else {
-                // Right side
-                val sideIndex = slot - numSideIcons - numTopIcons
-                val xPos = width - smallIcon / 2 - sidePadding
-                val yPos = arcRadius + verticalSpacing + topPadding + sideIndex * verticalSpacing
-                Pair(xPos, yPos)
+                slot < numSideIcons + numTopIcons -> {
+                    // Top arc
+                    val arcIndex = slot - numSideIcons
+                    val angle = PI - arcIndex * angularSpacingRad
+                    var xPos = width / 2 - smallIconPx / 2 + arcRadius * cos(angle).toFloat()
+                    var yPos = arcCenterY - arcRadius * sin(angle).toFloat() - smallIconPx / 2
+                    if (slot == center) {
+                        xPos = xPos + smallIconPx / 2 - largeIconPx / 2
+                        yPos = yPos + smallIconPx / 2 - largeIconPx / 2
+                    }
+                    Pair(xPos, yPos)
+                }
+                else -> {
+                    // Right side (bottom to top)
+                    val sideIndex = slot - numSideIcons - numTopIcons
+                    val xPos = width - sidePaddingPx - smallIconPx / 2
+                    val yPos = arcCenterY + topPaddingPx/2 + smallIconPx/2 + (sideIndex * (smallIconPx + verticalSpacingPx))
+                    Pair(xPos, yPos)
+                }
             }
         }
 
@@ -540,7 +567,7 @@ fun UshapedAppList(
             if (size > 55.dp) {
                 updateCenterIndex(appIndex)
                 val sizePx = with(density) { size.toPx() }
-                updateCenterIconGeom(x, y, sizePx)
+                updateCenterIconGeom(x + sizePx / 2, y + sizePx / 2, sizePx)
             }
             key(apps[appIndex].packageName) {
                 AppIcon(
