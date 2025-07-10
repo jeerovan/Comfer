@@ -1,17 +1,21 @@
 package com.jeerovan.comfer
 
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,131 +23,117 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+private const val REST_LIST_NAME = "Rest"
+
 class ManageLayersActivity : ComponentActivity() {
+    private val viewModel: ManageLayersViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            ManageLayersScreen()
+            MaterialTheme {
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    ManageLayersScreen(viewModel)
+                }
+            }
         }
     }
 }
 
-data class DraggableApp(
-    val appInfo: AppInfo,
-    val listName: String
-)
-
 @Composable
-fun ManageLayersScreen() {
-    val context = LocalContext.current
-    val packageManager = context.packageManager
+fun ManageLayersScreen(viewModel: ManageLayersViewModel) {
+    val uiState by viewModel.uiState.collectAsState()
+    val dndState = uiState.dragAndDropState
 
-    var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
-    var quickApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
-    var primaryApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
-
-    LaunchedEffect(Unit) {
-        val allAppNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.ALL_APPS_LIST_NAME) ?: emptySet()
-        allApps = allAppNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
-
-        val quickAppNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME) ?: emptySet()
-        quickApps = quickAppNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
-
-        val primaryAppNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME) ?: emptySet()
-        primaryApps = primaryAppNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
-    }
-
-    var draggedApp by remember { mutableStateOf<DraggableApp?>(null) }
-    var dragOffset by remember { mutableStateOf(Offset.Zero) }
-    var dropTarget by remember { mutableStateOf<String?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+    val quickListState = rememberLazyListState()
+    val primaryListState = rememberLazyListState()
+    val restListState = rememberLazyListState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            AppListColumn(
-                title = "Quick Apps",
-                apps = quickApps,
-                listName = AppInfoManager.QUICK_APPS_LIST_NAME,
-                onDragStart = { app, offset ->
-                    draggedApp = DraggableApp(app, AppInfoManager.QUICK_APPS_LIST_NAME)
-                    dragOffset = offset
-                },
-                onDropTargetChanged = { isOver, listName ->
-                    dropTarget = if (isOver) listName else null
-                }
+            val density = LocalDensity.current
+            val columns = mapOf(
+                AppInfoManager.QUICK_APPS_LIST_NAME to uiState.quickApps,
+                AppInfoManager.PRIMARY_APPS_LIST_NAME to uiState.primaryApps,
+                REST_LIST_NAME to uiState.restApps
             )
-            AppListColumn(
-                title = "Primary Apps",
-                apps = primaryApps,
-                listName = AppInfoManager.PRIMARY_APPS_LIST_NAME,
-                onDragStart = { app, offset ->
-                    draggedApp = DraggableApp(app, AppInfoManager.PRIMARY_APPS_LIST_NAME)
-                    dragOffset = offset
-                },
-                onDropTargetChanged = { isOver, listName ->
-                    dropTarget = if (isOver) listName else null
-                }
+            val listStates = mapOf(
+                AppInfoManager.QUICK_APPS_LIST_NAME to quickListState,
+                AppInfoManager.PRIMARY_APPS_LIST_NAME to primaryListState,
+                REST_LIST_NAME to restListState
             )
-            AppListColumn(
-                title = "All Apps",
-                apps = allApps,
-                listName = AppInfoManager.ALL_APPS_LIST_NAME,
-                onDragStart = { app, offset ->
-                    draggedApp = DraggableApp(app, AppInfoManager.ALL_APPS_LIST_NAME)
-                    dragOffset = offset
-                },
-                onDropTargetChanged = { isOver, listName ->
-                    dropTarget = if (isOver) listName else null
-                }
+            val titles = mapOf(
+                AppInfoManager.QUICK_APPS_LIST_NAME to "Quick",
+                AppInfoManager.PRIMARY_APPS_LIST_NAME to "Primary",
+                REST_LIST_NAME to "Rest"
             )
+
+            for ((listName, apps) in columns) {
+                AppListColumn(
+                    title = titles[listName]!!,
+                    apps = apps,
+                    listState = listStates[listName]!!,
+                    isDropTarget = dndState.dropTarget == listName,
+                    modifier = Modifier
+                        .weight(1f)
+                        .onGloballyPositioned { viewModel.updateColumnBounds(listName, it.boundsInRoot()) },
+                    onDragStart = { app, position -> viewModel.onDragStart(app, listName, position) },
+                    onDrag = { change, amount ->
+                        change.consume()
+                        viewModel.onDrag(amount)
+
+                        val scrollState = listStates[dndState.dropTarget]
+                        val bounds = when (dndState.dropTarget) {
+                            AppInfoManager.QUICK_APPS_LIST_NAME -> dndState.quickColumnBounds
+                            AppInfoManager.PRIMARY_APPS_LIST_NAME -> dndState.primaryColumnBounds
+                            REST_LIST_NAME -> dndState.restColumnBounds
+                            else -> null
+                        }
+
+                        if (scrollState != null && bounds != null) {
+                            coroutineScope.launch {
+                                val scrollThreshold = with(density) { 60.dp.toPx() }
+                                if (dndState.dragPosition.y < bounds.top + scrollThreshold && scrollState.canScrollBackward) {
+                                    scrollState.scrollBy(-30f)
+                                } else if (dndState.dragPosition.y > bounds.bottom - scrollThreshold && scrollState.canScrollForward) {
+                                    scrollState.scrollBy(30f)
+                                }
+                            }
+                        }
+                    },
+                    onDragEnd = { viewModel.onDragEnd() }
+                )
+            }
         }
 
-        draggedApp?.let { app ->
-            Image(
-                painter = rememberDrawablePainter(drawable = app.appInfo.icon),
-                contentDescription = app.appInfo.label.toString(),
+        if (dndState.draggedApp != null) {
+            AppCard(
+                app = dndState.draggedApp,
                 modifier = Modifier
-                    .offset { IntOffset(dragOffset.x.roundToInt(), dragOffset.y.roundToInt()) }
-                    .size(48.dp)
                     .zIndex(1f)
-                    .pointerInput(Unit) {
-                        detectDragGestures(
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                dragOffset += dragAmount
-                            },
-                            onDragEnd = {
-                                dropTarget?.let { targetListName ->
-                                    if (targetListName != app.listName) {
-                                        // Move app
-                                        AppInfoManager.removeAppFromLayer(context, app.listName, app.appInfo.packageName)
-                                        AppInfoManager.addAppToLayer(context, targetListName, app.appInfo.packageName)
-
-                                        // Refresh lists
-                                        val quickAppNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME) ?: emptySet()
-                                        quickApps = quickAppNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
-
-                                        val primaryAppNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME) ?: emptySet()
-                                        primaryApps = primaryAppNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
-                                    }
-                                }
-                                draggedApp = null
-                            }
-                        )
-                    }
+                    .offset { IntOffset(dndState.dragPosition.x.roundToInt(), dndState.dragPosition.y.roundToInt()) }
+                    .shadow(8.dp, RoundedCornerShape(12.dp))
             )
         }
     }
@@ -153,29 +143,48 @@ fun ManageLayersScreen() {
 fun AppListColumn(
     title: String,
     apps: List<AppInfo>,
-    listName: String,
+    listState: LazyListState,
+    isDropTarget: Boolean,
+    modifier: Modifier = Modifier,
     onDragStart: (AppInfo, Offset) -> Unit,
-    onDropTargetChanged: (Boolean, String) -> Unit
+    onDrag: (androidx.compose.ui.input.pointer.PointerInputChange, Offset) -> Unit,
+    onDragEnd: () -> Unit
 ) {
+    val backgroundColor = if (isDropTarget) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxHeight()
-            .width(120.dp)
-            .padding(8.dp)
-            .onGloballyPositioned { layoutCoordinates ->
-                onDropTargetChanged(false, listName) // Reset when not dragging over
-            },
+            .clip(RoundedCornerShape(12.dp))
+            .background(backgroundColor)
+            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = title, style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(16.dp)
+        )
         LazyColumn(
+            state = listState,
             modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            contentPadding = PaddingValues(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(apps, key = { it.packageName }) { app ->
-                AppIconDraggable(
+                var itemPosition by remember { mutableStateOf(Offset.Zero) }
+                AppCard(
                     app = app,
-                    onDragStart = { offset -> onDragStart(app, offset) }
+                    modifier = Modifier
+                        .onGloballyPositioned { itemPosition = it.positionInRoot() }
+                        .pointerInput(app) {
+                            detectDragGesturesAfterLongPress(
+                                onDragStart = { offset -> onDragStart(app, itemPosition + offset) },
+                                onDrag = onDrag,
+                                onDragEnd = onDragEnd,
+                                onDragCancel = onDragEnd
+                            )
+                        }
                 )
             }
         }
@@ -183,42 +192,26 @@ fun AppListColumn(
 }
 
 @Composable
-fun AppIconDraggable(app: AppInfo, onDragStart: (Offset) -> Unit) {
-    Box(
-        modifier = Modifier
-            .padding(8.dp)
-            .size(48.dp)
-            .clip(CircleShape)
-            .background(Color.White)
-            .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragStart = { offset -> onDragStart(offset) },
-                    onDrag = { change, _ -> change.consume() }
-                )
-            },
-        contentAlignment = Alignment.Center
+fun AppCard(app: AppInfo, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             painter = rememberDrawablePainter(drawable = app.icon),
-            contentDescription = app.label.toString(),
-            modifier = Modifier.padding(4.dp)
+            contentDescription = null,
+            modifier = Modifier.size(40.dp)
         )
-    }
-}
-
-private fun mapPackageNameToAppInfo(packageManager: PackageManager, packageName: String): AppInfo? {
-    return try {
-        packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
-            packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
-                AppInfo(
-                    resolveInfo = resolveInfo,
-                    icon = resolveInfo.loadIcon(packageManager),
-                    label = resolveInfo.loadLabel(packageManager),
-                    packageName = packageName
-                )
-            }
-        }
-    } catch (e: Exception) {
-        null
+        Spacer(Modifier.width(12.dp))
+        Text(
+            text = app.label.toString(),
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
