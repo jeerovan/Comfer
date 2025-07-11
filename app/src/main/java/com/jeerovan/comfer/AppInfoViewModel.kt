@@ -138,12 +138,16 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         packageManager: PackageManager,
         packageName: String
     ): AppInfo? {
+        val cachedIcon = AppIconCache.getIcon(packageName)
         return try {
             packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
                 packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
+                    val icon = cachedIcon ?: resolveInfo.loadIcon(packageManager).also {
+                        AppIconCache.cacheIcon(packageName, it)
+                    }
                     AppInfo(
                         resolveInfo = resolveInfo,
-                        icon = resolveInfo.loadIcon(packageManager),
+                        icon = icon,
                         label = resolveInfo.loadLabel(packageManager),
                         packageName = packageName
                     )

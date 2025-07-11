@@ -68,6 +68,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
@@ -104,6 +105,7 @@ import kotlin.math.floor
 import kotlin.math.sin
 
 
+data class BatteryState(val level: Int, val isCharging: Boolean)
 
 class MainActivity : ComponentActivity() {
     private val viewModel: AppInfoViewModel by viewModels()
@@ -123,9 +125,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun rememberBatteryState(): State<Int> {
+fun rememberBatteryState(): State<BatteryState> {
     val context = LocalContext.current
-    val batteryLevel = remember { mutableIntStateOf(-1) }
+    val batteryState = remember { mutableStateOf(BatteryState(-1, false)) }
 
     DisposableEffect(context) {
         val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
@@ -133,11 +135,17 @@ fun rememberBatteryState(): State<Int> {
             override fun onReceive(context: Context?, intent: Intent?) {
                 val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
                 val scale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
-                batteryLevel.intValue = if (level != -1 && scale != -1) {
+                val batteryLevel = if (level != -1 && scale != -1) {
                     (level * 100 / scale.toFloat()).toInt()
                 } else {
                     -1
                 }
+
+                val status: Int = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+                val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                        status == BatteryManager.BATTERY_STATUS_FULL
+
+                batteryState.value = BatteryState(batteryLevel, isCharging)
             }
         }
         context.registerReceiver(receiver, filter)
@@ -145,13 +153,16 @@ fun rememberBatteryState(): State<Int> {
             context.unregisterReceiver(receiver)
         }
     }
-    return batteryLevel
+    return batteryState
 }
 
 
 @Composable
 fun BatteryStatus() {
-    val batteryLevel by rememberBatteryState()
+    val batteryState by rememberBatteryState()
+    val batteryLevel = batteryState.level
+    val isCharging = batteryState.isCharging
+
     val isLow = batteryLevel < 10
     val color = if (isLow) Color.Red else Color.White
 
@@ -187,6 +198,21 @@ fun BatteryStatus() {
                         size = Size(levelWidth, size.height - strokeWidth * 3),
                         cornerRadius = CornerRadius(1.dp.toPx())
                     )
+                }
+
+                if (isCharging) {
+                    val path = androidx.compose.ui.graphics.Path().apply {
+                        val w = size.width
+                        val h = size.height
+                        moveTo(w * 0.7f, h * 0.15f)
+                        lineTo(w * 0.4f, h * 0.6f)
+                        lineTo(w * 0.55f, h * 0.6f)
+                        lineTo(w * 0.3f, h * 0.85f)
+                        lineTo(w * 0.6f, h * 0.4f)
+                        lineTo(w * 0.45f, h * 0.4f)
+                        close()
+                    }
+                    drawPath(path, color = Color.White)
                 }
             }
         }
