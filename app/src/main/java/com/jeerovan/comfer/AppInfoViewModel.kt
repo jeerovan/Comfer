@@ -72,7 +72,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    private fun loadAppLists() {
+    fun loadAppLists() {
         viewModelScope.launch {
             var packageNames = AppInfoManager.getAppPackageNames(
                 getApplication(),

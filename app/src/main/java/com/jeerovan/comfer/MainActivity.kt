@@ -99,6 +99,11 @@ class MainActivity : ComponentActivity() {
             LauncherScreen(viewModel)
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadAppLists()
+    }
 }
 
 @Composable
