@@ -41,6 +41,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -65,11 +66,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
@@ -85,7 +90,6 @@ import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.sin
-import androidx.core.net.toUri
 
 
 
@@ -370,14 +374,35 @@ fun LauncherScreen(viewModel:AppInfoViewModel) {
 
         val angle = remember { Animatable(0f) }
 
-        LaunchedEffect(Unit) {
-            angle.animateTo(
-                targetValue = (2 * PI).toFloat(),
-                animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 100000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Restart
+        val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+        var isScreenVisible by remember { mutableStateOf(true) }
+
+        DisposableEffect(lifecycleOwner) {
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    isScreenVisible = true
+                } else if (event == Lifecycle.Event.ON_PAUSE) {
+                    isScreenVisible = false
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
+            }
+        }
+
+        LaunchedEffect(isScreenVisible) {
+            if (isScreenVisible) {
+                angle.animateTo(
+                    targetValue = (2 * PI).toFloat(),
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(durationMillis = 100000, easing = LinearEasing),
+                        repeatMode = RepeatMode.Restart
+                    )
                 )
-            )
+            } else {
+                angle.stop()
+            }
         }
 
         val xOffset = cos(angle.value) * maxWidthPx * 0.08f
