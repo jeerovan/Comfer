@@ -10,40 +10,23 @@ object AppInfoManager {
     const val ALL_APPS_LIST_NAME = "all_apps"
     const val QUICK_APPS_LIST_NAME = "quick"
     const val PRIMARY_APPS_LIST_NAME = "primary"
+    private const val DELIMITER = "‚��‚"
 
 
     private fun getSharedPreferences(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
-    fun getAppPackageNames(context: Context, listName: String): Set<String>? {
-        return getSharedPreferences(context).getStringSet(listName, null)
+    fun getAppPackageNames(context: Context, listName: String): List<String>? {
+        val prefs = getSharedPreferences(context)
+        return prefs.getString(listName, null)?.split(DELIMITER)?.filter { it.isNotEmpty() }
     }
 
-    fun saveAppPackageNames(context: Context, listName: String, packageNames: Set<String>) {
-        Log.d("Saving Packages:", "$listName:$packageNames")
-        // Crucial: Create a new HashSet from the input set
-        // This ensures SharedPreferences sees a new object reference
-        val newSetToSave = HashSet(packageNames)
-
+    fun saveAppPackageNames(context: Context, listName: String, packageNames: Collection<String>) {
         getSharedPreferences(context).edit {
-            putStringSet(listName, newSetToSave)
-            // Use apply() for asynchronous saving (recommended for UI thread)
-            // or commit() for synchronous saving (blocks, but guarantees write success/failure)
-            // For most cases, apply() is preferred.
+            val stringToSave = packageNames.joinToString(DELIMITER)
+            putString(listName, stringToSave)
             commit()
         }
-    }
-
-    fun addAppToLayer(context: Context, listName: String, packageName: String) {
-        val packageNames = getAppPackageNames(context, listName)?.toMutableSet() ?: mutableSetOf()
-        packageNames.add(packageName)
-        saveAppPackageNames(context, listName, packageNames)
-    }
-
-    fun removeAppFromLayer(context: Context, listName: String, packageName: String) {
-        val packageNames = getAppPackageNames(context, listName)?.toMutableSet() ?: return
-        packageNames.remove(packageName)
-        saveAppPackageNames(context, listName, packageNames)
     }
 }

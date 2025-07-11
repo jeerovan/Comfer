@@ -20,11 +20,11 @@ class AppInstallReceiver : BroadcastReceiver() {
             Intent.ACTION_PACKAGE_REMOVED -> {
                 allApps.remove(packageName)
                 // Also remove from other lists
-                val quickApps = AppInfoManager.getAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME)?.toMutableSet()
+                val quickApps = AppInfoManager.getAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME)?.toMutableList()
                 quickApps?.remove(packageName)
                 quickApps?.let { AppInfoManager.saveAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME, it) }
 
-                val primaryApps = AppInfoManager.getAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME)?.toMutableSet()
+                val primaryApps = AppInfoManager.getAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME)?.toMutableList()
                 primaryApps?.remove(packageName)
                 primaryApps?.let { AppInfoManager.saveAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME, it) }
             }
