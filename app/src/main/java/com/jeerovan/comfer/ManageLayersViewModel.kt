@@ -3,8 +3,6 @@ package com.jeerovan.comfer
 import android.app.Application
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
-import android.graphics.drawable.Drawable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.lifecycle.AndroidViewModel
@@ -46,6 +44,34 @@ class ManageLayersViewModel(application: Application) : AndroidViewModel(applica
         refreshAppLists()
     }
 
+    fun moveAppInList(listName: String, fromIndex: Int, toIndex: Int) {
+        viewModelScope.launch {
+            val currentList = when (listName) {
+                AppInfoManager.QUICK_APPS_LIST_NAME -> _uiState.value.quickApps
+                AppInfoManager.PRIMARY_APPS_LIST_NAME -> _uiState.value.primaryApps
+                REST_LIST_NAME -> _uiState.value.restApps
+                else -> return@launch
+            }.toMutableList()
+
+            val app = currentList.removeAt(fromIndex)
+            currentList.add(toIndex, app)
+
+            when (listName) {
+                AppInfoManager.QUICK_APPS_LIST_NAME -> {
+                    AppInfoManager.saveAppPackageNames(getApplication(), listName, currentList.map { it.packageName }.toSet())
+                    _uiState.update { it.copy(quickApps = currentList) }
+                }
+                AppInfoManager.PRIMARY_APPS_LIST_NAME -> {
+                    AppInfoManager.saveAppPackageNames(getApplication(), listName, currentList.map { it.packageName }.toSet())
+                    _uiState.update { it.copy(primaryApps = currentList) }
+                }
+                REST_LIST_NAME -> {
+                    _uiState.update { it.copy(restApps = currentList) }
+                }
+            }
+        }
+    }
+
     private fun refreshAppLists() {
         viewModelScope.launch {
             val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
@@ -67,97 +93,6 @@ class ManageLayersViewModel(application: Application) : AndroidViewModel(applica
                     primaryApps = primaryApps,
                     restApps = restApps
                 )
-            }
-        }
-    }
-
-    fun onDragStart(app: AppInfo, sourceList: String, position: Offset) {
-        _uiState.update {
-            it.copy(
-                dragAndDropState = it.dragAndDropState.copy(
-                    draggedApp = app,
-                    sourceList = sourceList,
-                    dragPosition = position
-                )
-            )
-        }
-    }
-
-    fun onDrag(dragAmount: Offset) {
-        val currentDragPosition = _uiState.value.dragAndDropState.dragPosition + dragAmount
-        val newDropTarget = when {
-            _uiState.value.dragAndDropState.quickColumnBounds?.contains(currentDragPosition) == true -> AppInfoManager.QUICK_APPS_LIST_NAME
-            _uiState.value.dragAndDropState.primaryColumnBounds?.contains(currentDragPosition) == true -> AppInfoManager.PRIMARY_APPS_LIST_NAME
-            _uiState.value.dragAndDropState.restColumnBounds?.contains(currentDragPosition) == true -> REST_LIST_NAME
-            else -> null
-        }
-        _uiState.update {
-            it.copy(
-                dragAndDropState = it.dragAndDropState.copy(
-                    dragPosition = currentDragPosition,
-                    dropTarget = newDropTarget
-                )
-            )
-        }
-    }
-
-    fun onDragEnd(dropIndex: Int) {
-        val dndState = _uiState.value.dragAndDropState
-        if (dndState.draggedApp != null && dndState.sourceList != null && dndState.dropTarget != null) {
-            val appToMove = dndState.draggedApp
-            val from = dndState.sourceList
-            val to = dndState.dropTarget
-
-            if (from == to) {
-                // Reorder within the same list
-                val currentList = when (from) {
-                    AppInfoManager.QUICK_APPS_LIST_NAME -> _uiState.value.quickApps
-                    AppInfoManager.PRIMARY_APPS_LIST_NAME -> _uiState.value.primaryApps
-                    else -> _uiState.value.restApps
-                }.toMutableList()
-
-                val fromIndex = currentList.indexOf(appToMove)
-                if (fromIndex != -1) {
-                    currentList.removeAt(fromIndex)
-                    val newIndex = if (dropIndex > fromIndex) dropIndex - 1 else dropIndex
-                    currentList.add(newIndex.coerceIn(0, currentList.size), appToMove)
-
-                    when (from) {
-                        AppInfoManager.QUICK_APPS_LIST_NAME -> {
-                            AppInfoManager.saveAppPackageNames(getApplication(), from, currentList.map { it.packageName }.toSet())
-                            _uiState.update { it.copy(quickApps = currentList) }
-                        }
-                        AppInfoManager.PRIMARY_APPS_LIST_NAME -> {
-                            AppInfoManager.saveAppPackageNames(getApplication(), from, currentList.map { it.packageName }.toSet())
-                            _uiState.update { it.copy(primaryApps = currentList) }
-                        }
-                        REST_LIST_NAME -> {
-                            _uiState.update { it.copy(restApps = currentList) }
-                        }
-                    }
-                }
-            } else {
-                // Move to a different list
-                if (from == AppInfoManager.QUICK_APPS_LIST_NAME || from == AppInfoManager.PRIMARY_APPS_LIST_NAME) {
-                    AppInfoManager.removeAppFromLayer(getApplication(), from, appToMove.packageName)
-                }
-                if (to == AppInfoManager.QUICK_APPS_LIST_NAME || to == AppInfoManager.PRIMARY_APPS_LIST_NAME) {
-                    AppInfoManager.addAppToLayer(getApplication(), to, appToMove.packageName)
-                }
-                refreshAppLists()
-            }
-        }
-        _uiState.update { it.copy(dragAndDropState = DragAndDropState()) } // Reset
-    }
-
-    fun updateColumnBounds(listName: String, bounds: Rect) {
-        _uiState.update {
-            val dndState = it.dragAndDropState
-            when (listName) {
-                AppInfoManager.QUICK_APPS_LIST_NAME -> it.copy(dragAndDropState = dndState.copy(quickColumnBounds = bounds))
-                AppInfoManager.PRIMARY_APPS_LIST_NAME -> it.copy(dragAndDropState = dndState.copy(primaryColumnBounds = bounds))
-                REST_LIST_NAME -> it.copy(dragAndDropState = dndState.copy(restColumnBounds = bounds))
-                else -> it
             }
         }
     }

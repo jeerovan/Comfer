@@ -101,6 +101,8 @@ fun ManageLayersScreen(viewModel: ManageLayersViewModel) {
                     listState = listStates[listName]!!,
                     modifier = Modifier
                         .weight(1f),
+                    listName = listName,
+                    viewModel = viewModel
                 )
             }
         }
@@ -113,14 +115,12 @@ fun AppListColumn(
     apps: List<AppInfo>,
     listState: LazyListState,
     modifier: Modifier = Modifier,
+    listName: String,
+    viewModel: ManageLayersViewModel
 ) {
-    var list by remember { mutableStateOf(apps) }
     val hapticFeedback = LocalHapticFeedback.current
     val reorderableLazyListState = rememberReorderableLazyListState(listState) { from, to ->
-        list = list.toMutableList().apply {
-            add(to.index, removeAt(from.index))
-        }
-
+        viewModel.moveAppInList(listName, from.index, to.index)
         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
     }
 
@@ -144,12 +144,15 @@ fun AppListColumn(
             contentPadding = PaddingValues(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(apps.size, key = { apps[it].packageName }) {
-                ReorderableItem(reorderableLazyListState, key = apps[it].packageName) { isDragging ->
+            items(apps.size, key = { index -> apps[index].packageName }) { index ->
+                ReorderableItem(reorderableLazyListState, key = apps[index].packageName) { isDragging ->
                     val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
 
-                    Surface(shadowElevation = elevation) {
-                        AppCard(app=apps[it])
+                    Surface(
+                        modifier = Modifier.longPressDraggableHandle(),
+                        shadowElevation = elevation
+                    ) {
+                        AppCard(app=apps[index],modifier = modifier)
                     }
                 }
             }
@@ -158,9 +161,10 @@ fun AppListColumn(
 }
 
 @Composable
-fun AppCard(app: AppInfo, modifier: Modifier = Modifier) {
+fun AppCard(app: AppInfo, modifier: Modifier) {
     Row(
         modifier = modifier
+
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surface)
