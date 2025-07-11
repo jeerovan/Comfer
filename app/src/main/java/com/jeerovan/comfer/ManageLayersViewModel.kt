@@ -3,6 +3,8 @@ package com.jeerovan.comfer
 import android.app.Application
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.graphics.drawable.Drawable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.lifecycle.AndroidViewModel
@@ -99,20 +101,51 @@ class ManageLayersViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    fun onDragEnd() {
+    fun onDragEnd(dropIndex: Int) {
         val dndState = _uiState.value.dragAndDropState
-        if (dndState.draggedApp != null && dndState.sourceList != null && dndState.dropTarget != null && dndState.sourceList != dndState.dropTarget) {
+        if (dndState.draggedApp != null && dndState.sourceList != null && dndState.dropTarget != null) {
             val appToMove = dndState.draggedApp
             val from = dndState.sourceList
             val to = dndState.dropTarget
 
-            if (from == AppInfoManager.QUICK_APPS_LIST_NAME || from == AppInfoManager.PRIMARY_APPS_LIST_NAME) {
-                AppInfoManager.removeAppFromLayer(getApplication(), from, appToMove.packageName)
+            if (from == to) {
+                // Reorder within the same list
+                val currentList = when (from) {
+                    AppInfoManager.QUICK_APPS_LIST_NAME -> _uiState.value.quickApps
+                    AppInfoManager.PRIMARY_APPS_LIST_NAME -> _uiState.value.primaryApps
+                    else -> _uiState.value.restApps
+                }.toMutableList()
+
+                val fromIndex = currentList.indexOf(appToMove)
+                if (fromIndex != -1) {
+                    currentList.removeAt(fromIndex)
+                    val newIndex = if (dropIndex > fromIndex) dropIndex - 1 else dropIndex
+                    currentList.add(newIndex.coerceIn(0, currentList.size), appToMove)
+
+                    when (from) {
+                        AppInfoManager.QUICK_APPS_LIST_NAME -> {
+                            AppInfoManager.saveAppPackageNames(getApplication(), from, currentList.map { it.packageName }.toSet())
+                            _uiState.update { it.copy(quickApps = currentList) }
+                        }
+                        AppInfoManager.PRIMARY_APPS_LIST_NAME -> {
+                            AppInfoManager.saveAppPackageNames(getApplication(), from, currentList.map { it.packageName }.toSet())
+                            _uiState.update { it.copy(primaryApps = currentList) }
+                        }
+                        REST_LIST_NAME -> {
+                            _uiState.update { it.copy(restApps = currentList) }
+                        }
+                    }
+                }
+            } else {
+                // Move to a different list
+                if (from == AppInfoManager.QUICK_APPS_LIST_NAME || from == AppInfoManager.PRIMARY_APPS_LIST_NAME) {
+                    AppInfoManager.removeAppFromLayer(getApplication(), from, appToMove.packageName)
+                }
+                if (to == AppInfoManager.QUICK_APPS_LIST_NAME || to == AppInfoManager.PRIMARY_APPS_LIST_NAME) {
+                    AppInfoManager.addAppToLayer(getApplication(), to, appToMove.packageName)
+                }
+                refreshAppLists()
             }
-            if (to == AppInfoManager.QUICK_APPS_LIST_NAME || to == AppInfoManager.PRIMARY_APPS_LIST_NAME) {
-                AppInfoManager.addAppToLayer(getApplication(), to, appToMove.packageName)
-            }
-            refreshAppLists()
         }
         _uiState.update { it.copy(dragAndDropState = DragAndDropState()) } // Reset
     }
