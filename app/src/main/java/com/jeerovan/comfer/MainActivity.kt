@@ -1,9 +1,14 @@
 package com.jeerovan.comfer
 
 import android.app.ActivityOptions
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Resources
+import android.os.BatteryManager
 import android.os.Bundle
+import android.provider.AlarmClock
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -22,6 +27,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,6 +49,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -57,7 +64,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -111,6 +123,84 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+fun rememberBatteryState(): State<Int> {
+    val context = LocalContext.current
+    val batteryLevel = remember { mutableIntStateOf(-1) }
+
+    DisposableEffect(context) {
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+                val scale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+                batteryLevel.intValue = if (level != -1 && scale != -1) {
+                    (level * 100 / scale.toFloat()).toInt()
+                } else {
+                    -1
+                }
+            }
+        }
+        context.registerReceiver(receiver, filter)
+        onDispose {
+            context.unregisterReceiver(receiver)
+        }
+    }
+    return batteryLevel
+}
+
+
+@Composable
+fun BatteryStatus() {
+    val batteryLevel by rememberBatteryState()
+    val isLow = batteryLevel < 10
+    val color = if (isLow) Color.Red else Color.White
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(24.dp, 12.dp)
+                .padding(end = 4.dp)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val strokeWidth = 2.dp.toPx()
+                // Battery body
+                drawRoundRect(
+                    color = Color.White,
+                    size = Size(size.width - strokeWidth, size.height),
+                    style = Stroke(width = strokeWidth),
+                    cornerRadius = CornerRadius(2.dp.toPx())
+                )
+                // Battery terminal
+                drawRoundRect(
+                    color = Color.White,
+                    topLeft = Offset(size.width - strokeWidth, size.height / 4),
+                    size = Size(strokeWidth, size.height / 2),
+                    style = Fill
+                )
+
+                if (batteryLevel > 0) {
+                    // Battery level
+                    val levelWidth = (size.width - strokeWidth * 3) * (batteryLevel / 100f)
+                    drawRoundRect(
+                        color = color,
+                        topLeft = Offset(strokeWidth * 1.5f, strokeWidth * 1.5f),
+                        size = Size(levelWidth, size.height - strokeWidth * 3),
+                        cornerRadius = CornerRadius(1.dp.toPx())
+                    )
+                }
+            }
+        }
+        if (batteryLevel > 0) {
+            Text(
+                text = "$batteryLevel%",
+                color = color,
+                fontSize = 16.sp,
+            )
+        }
+    }
+}
+
+@Composable
 fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
     val context = LocalContext.current
 
@@ -118,7 +208,13 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = 100.dp),
+                .padding(top = 100.dp)
+                .clickable {
+                    val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    }
+                },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             var time by remember { mutableStateOf("") }
@@ -142,11 +238,15 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                 fontSize = 60.sp,
                 fontWeight = FontWeight.Light
             )
-            Text(
-                text = date,
-                color = Color.White,
-                fontSize = 20.sp,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = date,
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                BatteryStatus()
+            }
         }
 
         Box(
