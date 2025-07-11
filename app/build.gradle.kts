@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation("io.coil-kt:coil-compose:2.5.0")
     implementation("com.google.accompanist:accompanist-drawablepainter:0.32.0")
+    implementation("sh.calvin.reorderable:reorderable:2.5.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
