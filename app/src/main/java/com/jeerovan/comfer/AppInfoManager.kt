@@ -2,6 +2,7 @@ package com.jeerovan.comfer
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.core.content.edit
 
 object AppInfoManager {
@@ -20,7 +21,18 @@ object AppInfoManager {
     }
 
     fun saveAppPackageNames(context: Context, listName: String, packageNames: Set<String>) {
-        getSharedPreferences(context).edit { putStringSet(listName, packageNames) }
+        Log.d("Saving Packages:", "$listName:$packageNames")
+        // Crucial: Create a new HashSet from the input set
+        // This ensures SharedPreferences sees a new object reference
+        val newSetToSave = HashSet(packageNames)
+
+        getSharedPreferences(context).edit {
+            putStringSet(listName, newSetToSave)
+            // Use apply() for asynchronous saving (recommended for UI thread)
+            // or commit() for synchronous saving (blocks, but guarantees write success/failure)
+            // For most cases, apply() is preferred.
+            commit()
+        }
     }
 
     fun addAppToLayer(context: Context, listName: String, packageName: String) {

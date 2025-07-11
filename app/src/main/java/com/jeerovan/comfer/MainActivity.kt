@@ -2,15 +2,14 @@ package com.jeerovan.comfer
 
 import android.app.ActivityOptions
 import android.content.Intent
-import android.content.pm.ResolveInfo
 import android.content.res.Resources
-import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationEndReason
@@ -43,6 +42,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
@@ -87,19 +87,16 @@ import kotlin.math.floor
 import kotlin.math.sin
 import androidx.core.net.toUri
 
-data class AppInfo(
-    val resolveInfo: ResolveInfo,
-    val icon: Drawable,
-    val label: CharSequence,
-    val packageName: String
-)
+
 
 class MainActivity : ComponentActivity() {
+    private val viewModel: AppInfoViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LauncherScreen()
+            LauncherScreen(viewModel)
         }
     }
 }
@@ -344,71 +341,14 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
 private enum class DragAxis { HORIZONTAL, VERTICAL }
 
 @Composable
-fun LauncherScreen() {
+fun LauncherScreen(viewModel:AppInfoViewModel) {
     val context = LocalContext.current
     var isAppListVisible by remember { mutableStateOf(false) }
 
-    val allApps by produceState<List<AppInfo>>(initialValue = emptyList(), context) {
-        val packageManager = context.packageManager
-        var packageNames =
-            AppInfoManager.getAppPackageNames(context, AppInfoManager.ALL_APPS_LIST_NAME)
+    val appInfoUiState by viewModel.uiState.collectAsState()
+    val quickApps = appInfoUiState.quickApps
+    val primaryApps = appInfoUiState.primaryApps
 
-        if (packageNames == null) { // First time launch or cache cleared
-            val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
-            val allResolveInfos = packageManager.queryIntentActivities(intent, 0)
-            packageNames = allResolveInfos.map { it.activityInfo.packageName }.toSet()
-            AppInfoManager.saveAppPackageNames(
-                context,
-                AppInfoManager.ALL_APPS_LIST_NAME,
-                packageNames
-            )
-            val quickAppList: Set<String> = filterStandardApps(packageNames)
-            AppInfoManager.saveAppPackageNames(
-                context,
-                AppInfoManager.QUICK_APPS_LIST_NAME,
-                quickAppList
-            )
-            val primaryAppList: Set<String> = packageNames.filter { packageName ->
-                !quickAppList.contains(packageName)
-            }.toSet()
-            AppInfoManager.saveAppPackageNames(
-                context,
-                AppInfoManager.PRIMARY_APPS_LIST_NAME,
-                primaryAppList
-            ) // Default primary to all
-        }
-
-        value = packageNames.mapNotNull { packageName ->
-            packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
-                packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
-                    AppInfo(
-                        resolveInfo = resolveInfo,
-                        icon = resolveInfo.loadIcon(packageManager),
-                        label = resolveInfo.loadLabel(packageManager),
-                        packageName = packageName
-                    )
-                }
-            }
-        }
-    }
-
-    val quickApps by produceState<List<AppInfo>>(initialValue = emptyList(), allApps) {
-        val packageNames =
-            AppInfoManager.getAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME)
-                ?: emptySet()
-        value = packageNames.mapNotNull { packageName ->
-            allApps.find { it.packageName == packageName }
-        }
-    }
-
-    val primaryApps by produceState<List<AppInfo>>(initialValue = emptyList(), allApps) {
-        val packageNames =
-            AppInfoManager.getAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME)
-                ?: emptySet()
-        value = packageNames.mapNotNull { packageName ->
-            allApps.find { it.packageName == packageName }
-        }
-    }
     val haptic = LocalHapticFeedback.current
     BoxWithConstraints(
         modifier = Modifier
@@ -603,7 +543,7 @@ fun UshapedAppList(
 }
 
 @Composable
-fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp, clickable: Boolean = false) {
+fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp) {
     val context = LocalContext.current
     val packageManager = context.packageManager
     val haptic = LocalHapticFeedback.current
@@ -640,44 +580,5 @@ fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp, clickable: Boolean = false) {
 
 private fun Float.toDp(): Dp {
     return (this / Resources.getSystem().displayMetrics.density).dp
-}
-
-fun filterStandardApps(allPackageNames: Set<String>): Set<String> {
-    val standardAppPackageNames = setOf(
-        // Telephony/Dialer
-        "com.android.dialer",
-        "com.android.phone",
-        "com.android.server.telecom",
-        "com.android.providers.telephony",
-        "com.google.android.dialer",
-        "com.google.android.apps.messaging",
-        "com.samsung.android.dialer",
-        "com.samsung.android.contacts",
-        "com.samsung.android.app.telephonyui",
-        "com.miui.dialer",
-        "com.android.contacts", // Xiaomi
-        "com.android.mms",      // Xiaomi
-
-        // Camera
-        "com.android.camera",
-        "com.android.camera2",
-        "com.google.android.camera",
-        "com.sec.android.app.camera",
-        "com.samsung.android.camera.internal",
-        "com.miui.camera",
-
-        // Gallery
-        "com.android.gallery3d",
-        "com.android.gallery",
-        "com.google.android.apps.photos",
-        "com.sec.android.gallery3d",
-        "com.samsung.android.gallery",
-        "com.miui.gallery"
-        // Add more as you discover them
-    )
-
-    return allPackageNames.filter { packageName ->
-        standardAppPackageNames.contains(packageName)
-    }.toSet()
 }
 
