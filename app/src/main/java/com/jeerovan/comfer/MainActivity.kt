@@ -492,7 +492,7 @@ fun LauncherScreen(viewModel:AppInfoViewModel) {
                 detectTapGestures(
                     onLongPress = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    context.startActivity(Intent(context, ManageAppListActivity::class.java))
+                    context.startActivity(Intent(context, ManageLayersActivity::class.java))
                 })
             }) {
         val maxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
