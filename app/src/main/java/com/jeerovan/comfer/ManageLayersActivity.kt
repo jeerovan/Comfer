@@ -147,7 +147,7 @@ fun AppListColumn(
         LazyColumn(
             state = listState,
             modifier = Modifier
-                .fillMaxSize(),
+                .width(76.dp).fillMaxHeight(),
             contentPadding = PaddingValues(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -159,8 +159,10 @@ fun AppListColumn(
                     val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
 
                     Surface(
+                        shape = CircleShape,
                         modifier = Modifier.longPressDraggableHandle(),
-                        shadowElevation = elevation
+                        shadowElevation = elevation,
+
                     ) {
                         AppCard(app = apps[index], modifier = modifier)
                     }
@@ -176,7 +178,7 @@ fun AppCard(app: AppInfo, modifier: Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surface)
+            .background(Color.White)
             .padding(10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
@@ -184,7 +186,7 @@ fun AppCard(app: AppInfo, modifier: Modifier) {
         Image(
             painter = rememberDrawablePainter(drawable = app.icon),
             contentDescription = app.label.toString(),
-            modifier = Modifier.size(40.dp)
+            modifier = Modifier.size(40.dp),
         )
     }
 }
