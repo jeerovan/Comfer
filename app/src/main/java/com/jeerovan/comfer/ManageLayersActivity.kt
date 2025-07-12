@@ -123,7 +123,7 @@ fun AppListColumn(
     val hapticFeedback = LocalHapticFeedback.current
     val reorderableLazyListState = rememberReorderableLazyListState(listState) { from, to ->
         Log.d("Move", "From:" + from.index.toString() + "To:" + to.index.toString())
-        viewModel.moveAppInList(listName, from.index, to.index)
+        viewModel.moveApp(listName, from.index, listName,to.index)
         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
     }
 

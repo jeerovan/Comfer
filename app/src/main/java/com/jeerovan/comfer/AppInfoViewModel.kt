@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.graphics.drawable.Drawable
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,36 +40,56 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         loadAppLists()
     }
 
-    fun moveAppInList(listName: String, fromIndex: Int, toIndex: Int) {
+    fun moveApp(fromListName: String, fromIndex: Int, toListName: String, toIndex: Int) {
         viewModelScope.launch {
-            val currentList = when (listName) {
-                AppInfoManager.QUICK_APPS_LIST_NAME -> _uiState.value.quickApps
-                AppInfoManager.PRIMARY_APPS_LIST_NAME -> _uiState.value.primaryApps
-                REST_LIST_NAME -> _uiState.value.restApps
-                else -> return@launch
-            }.toMutableList()
+            if (fromListName == toListName) {
+                val list = getListByName(fromListName).toMutableList()
+                if (fromIndex !in list.indices) return@launch
 
-            val app = currentList.removeAt(fromIndex)
-            currentList.add(toIndex, app)
-            val packageNames = currentList.map { it.packageName }
+                val targetIndex = if (toIndex == -1) list.size else toIndex
+                if (targetIndex < 0 || targetIndex > list.size) return@launch
 
-            when (listName) {
-                AppInfoManager.QUICK_APPS_LIST_NAME -> {
-                    AppInfoManager.saveAppPackageNames(getApplication(), listName, packageNames)
-                    _uiState.update { it.copy(quickApps = currentList) }
-                }
+                val item = list.removeAt(fromIndex)
+                val adjustedToIndex = if (fromIndex < targetIndex) targetIndex - 1 else targetIndex
+                list.add(adjustedToIndex, item)
+                updateStateWithNewList(fromListName, list)
+            } else {
+                val fromList = getListByName(fromListName).toMutableList()
+                val toList = getListByName(toListName).toMutableList()
+                if (fromIndex !in fromList.indices) return@launch
 
-                AppInfoManager.PRIMARY_APPS_LIST_NAME -> {
-                    AppInfoManager.saveAppPackageNames(getApplication(), listName, packageNames)
-                    _uiState.update { it.copy(primaryApps = currentList) }
-                }
+                val item = fromList.removeAt(fromIndex)
+                val targetIndex = if (toIndex < 0 || toIndex > toList.size) toList.size else toIndex
+                toList.add(targetIndex, item)
 
-                REST_LIST_NAME -> {
-                    _uiState.update { it.copy(restApps = currentList) }
-                }
+                updateStateWithNewList(fromListName, fromList)
+                updateStateWithNewList(toListName, toList)
             }
         }
     }
+
+    private fun getListByName(listName: String): List<AppInfo> {
+        return when (listName) {
+            AppInfoManager.QUICK_APPS_LIST_NAME -> _uiState.value.quickApps
+            AppInfoManager.PRIMARY_APPS_LIST_NAME -> _uiState.value.primaryApps
+            REST_LIST_NAME -> _uiState.value.restApps
+            else -> emptyList()
+        }
+    }
+
+    private fun updateStateWithNewList(listName: String, newList: List<AppInfo>) {
+        val packageNames = newList.map { it.packageName }
+        if (listName != REST_LIST_NAME) {
+            AppInfoManager.saveAppPackageNames(getApplication(), listName, packageNames)
+        }
+
+        when (listName) {
+            AppInfoManager.QUICK_APPS_LIST_NAME -> _uiState.update { it.copy(quickApps = newList) }
+            AppInfoManager.PRIMARY_APPS_LIST_NAME -> _uiState.update { it.copy(primaryApps = newList) }
+            REST_LIST_NAME -> _uiState.update { it.copy(restApps = newList) }
+        }
+    }
+
 
     fun loadAppLists() {
         viewModelScope.launch {
@@ -158,6 +177,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 }
+
 fun filterStandardApps(allPackageNames: Set<String>): Set<String> {
     val standardAppPackageNames = setOf(
         // Telephony/Dialer
