@@ -81,6 +81,7 @@ private class DragDropState(
         draggedItem = item
         sourceListName = listName
         sourceIndex = index
+
     }
 
     fun onDrag(offset: Offset) {
@@ -297,12 +298,15 @@ fun AppListColumnView(
                     index = index
                 ) { isDragging, _ ->
                     val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
-                    Surface(
-                        shape = CircleShape,
-                        modifier = Modifier.graphicsLayer { alpha = if (isDragging) 0f else 1f },
-                        shadowElevation = elevation,
-                    ) {
-                        AppCardView(app = app, modifier = Modifier)
+                    if(isDragging){
+                        DropPlaceholder()
+                    } else {
+                        Surface(
+                            modifier = Modifier,
+                            shadowElevation = elevation,
+                        ) {
+                            AppCardView(app = app, modifier = Modifier)
+                        }
                     }
                 }
             }
@@ -323,10 +327,8 @@ fun DropPlaceholder() {
             .fillMaxWidth()
             .height(60.dp)
             .padding(vertical = 4.dp)
-            .background(
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                CircleShape
-            )
+            .clip(CircleShape)
+            .background(Color.Gray)
     )
 }
 
@@ -375,7 +377,7 @@ fun DraggableItem(
 fun AppCardView(app: AppInfo, modifier: Modifier) {
     Row(
         modifier = modifier
-            .fillMaxWidth()
+            .width(60.dp)
             .clip(CircleShape)
             .background(Color.White)
             .padding(10.dp),
