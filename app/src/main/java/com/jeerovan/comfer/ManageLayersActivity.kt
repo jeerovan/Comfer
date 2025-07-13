@@ -9,6 +9,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,9 +31,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
-import androidx.compose.material.icons.outlined.KeyboardArrowLeft
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -41,15 +39,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.DefaultTintColor
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import sh.calvin.reorderable.ReorderableItem
@@ -89,6 +88,27 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
         )
     }
 
+    var selectedList by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedIndices by rememberSaveable(selectedList) { mutableStateOf(emptySet<Int>()) }
+
+    val onItemSelect = { listName: String, index: Int ->
+        if (selectedList != listName) {
+            selectedList = listName
+            selectedIndices = setOf(index)
+        } else {
+            selectedIndices = if (selectedIndices.contains(index)) {
+                selectedIndices - index
+            } else {
+                selectedIndices + index
+            }
+        }
+    }
+
+    val clearSelection = {
+        selectedList = null
+        selectedIndices = emptySet()
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
@@ -103,31 +123,52 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 modifier = Modifier
                     .weight(1f),
                 listName = AppInfoManager.QUICK_APPS_LIST_NAME,
-                viewModel = viewModel
+                viewModel = viewModel,
+                selectedList = selectedList,
+                selectedIndices = selectedIndices,
+                onItemSelect = onItemSelect
             )
             Column (modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
                 Row {
-                    // Button with a left arrow icon and an onClick lambda function
+                    // Button to move apps from primary list to quick list
                     OutlinedButton(shape = CircleShape,
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
-                        onClick = { /* Your "back" logic here */ }) {
+                        onClick = {
+                            viewModel.moveAppsToList(
+                                AppInfoManager.PRIMARY_APPS_LIST_NAME,
+                                AppInfoManager.QUICK_APPS_LIST_NAME,
+                                selectedIndices.toList().sortedDescending()
+                            )
+                            clearSelection()
+                        },
+                        enabled = selectedList == AppInfoManager.PRIMARY_APPS_LIST_NAME && selectedIndices.isNotEmpty()
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Previous",
+                            contentDescription = "Move to Quick",
                         )
                     }
                 }
                 Spacer(Modifier.height(20.dp))
                 Row {
-                    // Button with a right arrow icon and an onClick lambda function
+                    // Button to move apps from quick list to primary list
                     OutlinedButton(shape = CircleShape,
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
-                        onClick = { /* Your "forward" logic here */ }) {
+                        onClick = {
+                            viewModel.moveAppsToList(
+                                AppInfoManager.QUICK_APPS_LIST_NAME,
+                                AppInfoManager.PRIMARY_APPS_LIST_NAME,
+                                selectedIndices.toList().sortedDescending()
+                            )
+                            clearSelection()
+                        },
+                        enabled = selectedList == AppInfoManager.QUICK_APPS_LIST_NAME && selectedIndices.isNotEmpty()
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "Next"
+                            contentDescription = "Move to Primary"
                         )
                     }
                 }
@@ -139,31 +180,52 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 modifier = Modifier
                     .weight(1f),
                 listName = AppInfoManager.PRIMARY_APPS_LIST_NAME,
-                viewModel = viewModel
+                viewModel = viewModel,
+                selectedList = selectedList,
+                selectedIndices = selectedIndices,
+                onItemSelect = onItemSelect
             )
             Column (modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
                 Row {
-                    // Button with a left arrow icon and an onClick lambda function
+                    // Button to move apps from ghost list to primary list
                     OutlinedButton(shape = CircleShape,
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
-                        onClick = { /* Your "back" logic here */ }) {
+                        onClick = {
+                            viewModel.moveAppsToList(
+                                REST_LIST_NAME,
+                                AppInfoManager.PRIMARY_APPS_LIST_NAME,
+                                selectedIndices.toList().sortedDescending()
+                            )
+                            clearSelection()
+                        },
+                        enabled = selectedList == REST_LIST_NAME && selectedIndices.isNotEmpty()
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Previous",
+                            contentDescription = "Move to Primary",
                         )
                     }
                 }
                 Spacer(Modifier.height(20.dp))
                 Row {
-                    // Button with a right arrow icon and an onClick lambda function
+                    // Button to move apps from primary list to ghost list
                     OutlinedButton(shape = CircleShape,
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
-                        onClick = { /* Your "forward" logic here */ }) {
+                        onClick = {
+                            viewModel.moveAppsToList(
+                                AppInfoManager.PRIMARY_APPS_LIST_NAME,
+                                REST_LIST_NAME,
+                                selectedIndices.toList().sortedDescending()
+                            )
+                            clearSelection()
+                        },
+                        enabled = selectedList == AppInfoManager.PRIMARY_APPS_LIST_NAME && selectedIndices.isNotEmpty()
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "Next"
+                            contentDescription = "Move to Ghost"
                         )
                     }
                 }
@@ -175,7 +237,10 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 modifier = Modifier
                     .weight(1f),
                 listName = REST_LIST_NAME,
-                viewModel = viewModel
+                viewModel = viewModel,
+                selectedList = selectedList,
+                selectedIndices = selectedIndices,
+                onItemSelect = onItemSelect
             )
         }
     }
@@ -188,11 +253,13 @@ fun AppListColumn(
     listState: LazyListState,
     modifier: Modifier = Modifier,
     listName: String,
-    viewModel: AppInfoViewModel
+    viewModel: AppInfoViewModel,
+    selectedList: String?,
+    selectedIndices: Set<Int>,
+    onItemSelect: (String, Int) -> Unit
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val reorderableLazyListState = rememberReorderableLazyListState(listState) { from, to ->
-        Log.d("Move", "From:" + from.index.toString() + "To:" + to.index.toString())
         viewModel.moveAppInList(listName, from.index,to.index)
         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
     }
@@ -226,15 +293,18 @@ fun AppListColumn(
                     reorderableLazyListState,
                     key = apps[index].packageName
                 ) { isDragging ->
-                    val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
+                    val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp, label = "")
+                    val isSelected = selectedList == listName && selectedIndices.contains(index)
 
                     Surface(
                         shape = CircleShape,
-                        modifier = Modifier.longPressDraggableHandle(),
+                        modifier = Modifier
+                            .longPressDraggableHandle()
+                            .clickable { onItemSelect(listName, index) },
                         shadowElevation = elevation,
 
                     ) {
-                        AppCard(app = apps[index], modifier = modifier)
+                        AppCard(app = apps[index], modifier = modifier, isSelected = isSelected)
                     }
                 }
             }
@@ -243,12 +313,18 @@ fun AppListColumn(
 }
 
 @Composable
-fun AppCard(app: AppInfo, modifier: Modifier) {
+fun AppCard(app: AppInfo, modifier: Modifier, isSelected: Boolean) {
+    val borderModifier = if (isSelected) {
+        Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+    } else {
+        Modifier
+    }
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(CircleShape)
             .background(Color.White)
+            .then(borderModifier)
             .padding(10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center

@@ -153,6 +153,66 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             null
         }
     }
+
+    fun moveAppsToList(fromListName: String, toListName: String, appIndexes: List<Int>) {
+        viewModelScope.launch {
+            val currentState = _uiState.value
+
+            val fromList = when (fromListName) {
+                AppInfoManager.QUICK_APPS_LIST_NAME -> currentState.quickApps
+                AppInfoManager.PRIMARY_APPS_LIST_NAME -> currentState.primaryApps
+                REST_LIST_NAME -> currentState.restApps
+                else -> return@launch
+            }
+
+            val appsToMove = appIndexes.map { fromList[it] }
+            val appsToMovePackageNames = appsToMove.map { it.packageName }.toSet()
+
+            var newQuickApps = currentState.quickApps
+            var newPrimaryApps = currentState.primaryApps
+
+            // Remove from source list
+            when (fromListName) {
+                AppInfoManager.QUICK_APPS_LIST_NAME ->
+                    newQuickApps = newQuickApps.filter { it.packageName !in appsToMovePackageNames }
+                AppInfoManager.PRIMARY_APPS_LIST_NAME ->
+                    newPrimaryApps = newPrimaryApps.filter { it.packageName !in appsToMovePackageNames }
+                REST_LIST_NAME -> {
+                    // No change to quick/primary lists when removing from rest.
+                    // The apps will be added to a target list below.
+                }
+            }
+
+            // Add to destination list
+            when (toListName) {
+                AppInfoManager.QUICK_APPS_LIST_NAME ->
+                    newQuickApps = newQuickApps + appsToMove
+                AppInfoManager.PRIMARY_APPS_LIST_NAME ->
+                    newPrimaryApps = newPrimaryApps + appsToMove
+                REST_LIST_NAME -> {
+                    // Moving to REST_LIST_NAME means removing from a persisted list.
+                    // This is already handled in the "Remove from source list" block.
+                }
+            }
+
+            // Save the updated persisted lists
+            AppInfoManager.saveAppPackageNames(getApplication(), AppInfoManager.QUICK_APPS_LIST_NAME, newQuickApps.map { it.packageName })
+            AppInfoManager.saveAppPackageNames(getApplication(), AppInfoManager.PRIMARY_APPS_LIST_NAME, newPrimaryApps.map { it.packageName })
+
+            // Recalculate restApps
+            val allApps = currentState.quickApps + currentState.primaryApps + currentState.restApps
+            val quickAndPrimaryPackages = newQuickApps.map { it.packageName }.toSet() + newPrimaryApps.map { it.packageName }.toSet()
+            val newRestApps = allApps.filter { it.packageName !in quickAndPrimaryPackages }.distinctBy { it.packageName }
+
+            _uiState.update {
+                it.copy(
+                    quickApps = newQuickApps,
+                    primaryApps = newPrimaryApps,
+                    restApps = newRestApps
+                )
+            }
+        }
+    }
 }
 fun filterStandardApps(allPackageNames: Set<String>): Set<String> {
     val standardAppPackageNames = setOf(
