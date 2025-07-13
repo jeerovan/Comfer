@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,7 +27,15 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
+import androidx.compose.material.icons.outlined.KeyboardArrowLeft
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.DefaultTintColor
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
@@ -86,27 +96,87 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            val columns = mapOf(
-                AppInfoManager.QUICK_APPS_LIST_NAME to uiState.quickApps,
-                AppInfoManager.PRIMARY_APPS_LIST_NAME to uiState.primaryApps,
-                REST_LIST_NAME to uiState.restApps
+            AppListColumn(
+                title = "Quick",
+                apps = uiState.quickApps,
+                listState = listStates[AppInfoManager.QUICK_APPS_LIST_NAME]!!,
+                modifier = Modifier
+                    .weight(1f),
+                listName = AppInfoManager.QUICK_APPS_LIST_NAME,
+                viewModel = viewModel
             )
-            val titles = mapOf(
-                AppInfoManager.QUICK_APPS_LIST_NAME to "Quick",
-                AppInfoManager.PRIMARY_APPS_LIST_NAME to "Primary",
-                REST_LIST_NAME to "Rest"
-            )
-            for ((listName, apps) in columns) {
-                AppListColumn(
-                    title = titles[listName]!!,
-                    apps = apps,
-                    listState = listStates[listName]!!,
-                    modifier = Modifier
-                        .weight(1f),
-                    listName = listName,
-                    viewModel = viewModel
-                )
+            Column (modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
+                Row {
+                    // Button with a left arrow icon and an onClick lambda function
+                    OutlinedButton(shape = CircleShape,
+                        modifier = Modifier.size(40.dp),
+                        contentPadding = PaddingValues(0.dp),
+                        onClick = { /* Your "back" logic here */ }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Previous",
+                        )
+                    }
+                }
+                Spacer(Modifier.height(20.dp))
+                Row {
+                    // Button with a right arrow icon and an onClick lambda function
+                    OutlinedButton(shape = CircleShape,
+                        modifier = Modifier.size(40.dp),
+                        contentPadding = PaddingValues(0.dp),
+                        onClick = { /* Your "forward" logic here */ }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = "Next"
+                        )
+                    }
+                }
             }
+            AppListColumn(
+                title = "Primary",
+                apps = uiState.primaryApps,
+                listState = listStates[AppInfoManager.PRIMARY_APPS_LIST_NAME]!!,
+                modifier = Modifier
+                    .weight(1f),
+                listName = AppInfoManager.PRIMARY_APPS_LIST_NAME,
+                viewModel = viewModel
+            )
+            Column (modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
+                Row {
+                    // Button with a left arrow icon and an onClick lambda function
+                    OutlinedButton(shape = CircleShape,
+                        modifier = Modifier.size(40.dp),
+                        contentPadding = PaddingValues(0.dp),
+                        onClick = { /* Your "back" logic here */ }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Previous",
+                        )
+                    }
+                }
+                Spacer(Modifier.height(20.dp))
+                Row {
+                    // Button with a right arrow icon and an onClick lambda function
+                    OutlinedButton(shape = CircleShape,
+                        modifier = Modifier.size(40.dp),
+                        contentPadding = PaddingValues(0.dp),
+                        onClick = { /* Your "forward" logic here */ }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = "Next"
+                        )
+                    }
+                }
+            }
+            AppListColumn(
+                title = "Ghost",
+                apps = uiState.restApps,
+                listState = listStates[REST_LIST_NAME]!!,
+                modifier = Modifier
+                    .weight(1f),
+                listName = REST_LIST_NAME,
+                viewModel = viewModel
+            )
         }
     }
 }
