@@ -61,6 +61,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -96,6 +97,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -535,13 +537,16 @@ fun LauncherScreen(viewModel:AppInfoViewModel) {
 
         LaunchedEffect(isScreenVisible) {
             if (isScreenVisible) {
-                angle.animateTo(
-                    targetValue = (2 * PI).toFloat(),
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(durationMillis = 100000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Restart
-                    )
-                )
+                var lastFrameTime = withFrameNanos { it }
+                while (isActive) {
+                    val frameTime = withFrameNanos { it }
+                    val deltaTimeNanos = frameTime - lastFrameTime
+                    val deltaTimeSeconds = deltaTimeNanos / 1_000_000_000f
+                    val angleDelta = deltaTimeSeconds * (2f * PI.toFloat() / 100f)
+                    val newAngle = (angle.value + angleDelta) % (2f * PI.toFloat())
+                    angle.snapTo(newAngle)
+                    lastFrameTime = frameTime
+                }
             }
         }
 
