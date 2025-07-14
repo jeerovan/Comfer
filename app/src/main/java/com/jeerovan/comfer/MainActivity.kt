@@ -10,6 +10,7 @@ import android.os.BatteryManager
 import android.os.Bundle
 import android.provider.AlarmClock
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
@@ -18,7 +19,11 @@ import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationEndReason
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.exponentialDecay
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -52,24 +57,31 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -79,8 +91,13 @@ import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -477,7 +494,7 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
 private enum class DragAxis { HORIZONTAL, VERTICAL }
 
 @Composable
-fun LauncherScreen(viewModel: AppInfoViewModel) {
+fun LauncherScreen(viewModel:AppInfoViewModel) {
     val context = LocalContext.current
     var isAppListVisible by remember { mutableStateOf(false) }
 
@@ -486,16 +503,74 @@ fun LauncherScreen(viewModel: AppInfoViewModel) {
     val primaryApps = appInfoUiState.primaryApps
 
     val haptic = LocalHapticFeedback.current
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        context.startActivity(Intent(context, ManageLayersActivity::class.java))
-                    })
+                    context.startActivity(Intent(context, ManageLayersActivity::class.java))
+                })
             }) {
+        val maxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
+        val maxHeightPx = with(LocalDensity.current) { maxHeight.toPx() }
+
+        val angle = remember { Animatable(0f) }
+
+        val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+        var isScreenVisible by remember { mutableStateOf(true) }
+
+        DisposableEffect(lifecycleOwner) {
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    isScreenVisible = true
+                } else if (event == Lifecycle.Event.ON_PAUSE) {
+                    isScreenVisible = false
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
+            }
+        }
+
+        LaunchedEffect(isScreenVisible) {
+            if (isScreenVisible) {
+                var lastFrameTime = withFrameNanos { it }
+                while (isActive) {
+                    val frameTime = withFrameNanos { it }
+                    val deltaTimeNanos = frameTime - lastFrameTime
+                    val deltaTimeSeconds = deltaTimeNanos / 1_000_000_000f
+                    val angleDelta = deltaTimeSeconds * (2f * PI.toFloat() / 100f)
+                    val newAngle = (angle.value + angleDelta) % (2f * PI.toFloat())
+                    angle.snapTo(newAngle)
+                    lastFrameTime = frameTime
+                }
+            }
+        }
+
+        val xOffset = cos(angle.value) * maxWidthPx * 0.08f
+        val yOffset = sin(angle.value) * maxHeightPx * 0.08f
+        // Background - first layer
+        Image(
+            painter = rememberAsyncImagePainter(
+                ImageRequest
+                    .Builder(LocalContext.current)
+                    .data("https://images.unsplash.com/photo-1637532766937-0504f310bd6e?w=2000&q=99")
+                    .crossfade(true)
+                    .build()
+            ),
+            contentDescription = "Background",
+            modifier = Modifier
+                .fillMaxSize()
+                .scale(1.2f)
+                .graphicsLayer {
+                    translationX = xOffset
+                    translationY = yOffset
+                },
+            contentScale = ContentScale.Crop
+        )
 
         // Quick-list layer
         AnimatedVisibility(
@@ -653,8 +728,8 @@ fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp) {
             .size(size)
             .clip(CircleShape)
             .background(Color.White)
-            .pointerInput(Unit) {
-                detectTapGestures(
+            .pointerInput(Unit){
+                detectTapGestures (
                     onTap = {
                         val launchIntent =
                             packageManager.getLaunchIntentForPackage(app.packageName)
