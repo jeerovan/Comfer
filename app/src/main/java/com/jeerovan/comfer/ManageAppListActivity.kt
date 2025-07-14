@@ -8,8 +8,8 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -125,7 +125,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
+                .padding(start = 8.dp, top = 8.dp, end = 8.dp, bottom = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             AppListColumn(
@@ -140,10 +140,11 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 selectedIndices = selectedIndices,
                 onItemSelect = onItemSelect
             )
-            Column (modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
+            Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
                 Row {
                     // Button to move apps from primary list to quick list
-                    OutlinedButton(shape = CircleShape,
+                    OutlinedButton(
+                        shape = CircleShape,
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
                         onClick = {
@@ -171,7 +172,8 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 Spacer(Modifier.height(20.dp))
                 Row {
                     // Button to move apps from quick list to primary list
-                    OutlinedButton(shape = CircleShape,
+                    OutlinedButton(
+                        shape = CircleShape,
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
                         onClick = {
@@ -203,10 +205,11 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 selectedIndices = selectedIndices,
                 onItemSelect = onItemSelect
             )
-            Column (modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
+            Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
                 Row {
                     // Button to move apps from ghost list to primary list
-                    OutlinedButton(shape = CircleShape,
+                    OutlinedButton(
+                        shape = CircleShape,
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
                         onClick = {
@@ -228,7 +231,8 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 Spacer(Modifier.height(20.dp))
                 Row {
                     // Button to move apps from primary list to ghost list
-                    OutlinedButton(shape = CircleShape,
+                    OutlinedButton(
+                        shape = CircleShape,
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
                         onClick = {
@@ -282,7 +286,7 @@ fun AppListColumn(
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val reorderableLazyListState = rememberReorderableLazyListState(listState) { from, to ->
-        viewModel.moveAppInList(listName, from.index,to.index)
+        viewModel.moveAppInList(listName, from.index, to.index)
         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
     }
 
