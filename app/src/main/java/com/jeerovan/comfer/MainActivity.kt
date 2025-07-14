@@ -1,11 +1,13 @@
 package com.jeerovan.comfer
 
 import android.app.ActivityOptions
+import android.app.WallpaperManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Resources
+import android.graphics.BitmapFactory
 import android.os.BatteryManager
 import android.os.Bundle
 import android.provider.AlarmClock
@@ -539,6 +541,11 @@ fun LauncherScreen(viewModel: AppInfoViewModel) {
                         stream.close()
                         BgImageManager.setBackgroundImagePath(context, file.absolutePath)
                         backgroundImageUri = file.absolutePath
+
+                        // Set system wallpaper
+                        val wallpaperManager = WallpaperManager.getInstance(context)
+                        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                        wallpaperManager.setBitmap(bitmap)
                     }
                 }
             }
