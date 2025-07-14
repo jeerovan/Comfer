@@ -129,7 +129,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             AppListColumn(
-                title = "Quick",
+                title = "⚡",
                 apps = uiState.quickApps,
                 listState = listStates[AppInfoManager.QUICK_APPS_LIST_NAME]!!,
                 modifier = Modifier
@@ -192,7 +192,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 }
             }
             AppListColumn(
-                title = "Primary",
+                title = "⭐",
                 apps = uiState.primaryApps,
                 listState = listStates[AppInfoManager.PRIMARY_APPS_LIST_NAME]!!,
                 modifier = Modifier
@@ -249,7 +249,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 }
             }
             AppListColumn(
-                title = "Ghost",
+                title = "👻",
                 apps = uiState.restApps,
                 listState = listStates[REST_LIST_NAME]!!,
                 modifier = Modifier
