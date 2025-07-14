@@ -535,8 +535,6 @@ fun LauncherScreen(viewModel:AppInfoViewModel) {
                         repeatMode = RepeatMode.Restart
                     )
                 )
-            } else {
-                angle.stop()
             }
         }
 
