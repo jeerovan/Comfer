@@ -37,9 +37,6 @@
         <activity
             android:name=".ManageAppListActivity"
             android:exported="false" />
-        <activity
-            android:name=".ManageAppListActivity"
-            android:exported="false" />
         <receiver
             android:name=".AppInstallReceiver"
             android:exported="true">

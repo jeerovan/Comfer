@@ -9,6 +9,7 @@ import android.content.IntentFilter
 import android.content.res.Resources
 import android.graphics.BitmapFactory
 import android.os.BatteryManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.AlarmClock
 import android.provider.Settings
@@ -469,10 +470,10 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
                                 }
                             }
                         }
-                    },
+                    }/*,
                     onDragCancel = {
                         velocityTracker.resetTracking()
-                    }
+                    }*/
                 )
             }
     ) {
@@ -545,7 +546,11 @@ fun LauncherScreen(viewModel: AppInfoViewModel) {
                         // Set system wallpaper
                         val wallpaperManager = WallpaperManager.getInstance(context)
                         val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                        wallpaperManager.setBitmap(bitmap)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            wallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_SYSTEM)
+                        } else {
+                            wallpaperManager.setBitmap(bitmap)
+                        }
                     }
                 }
             }
