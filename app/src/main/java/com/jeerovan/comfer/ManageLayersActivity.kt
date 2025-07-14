@@ -35,6 +35,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +44,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -52,10 +55,12 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 private const val REST_LIST_NAME = "Rest"
+private const val MAX_QUICK_APPS = 5
 
 class ManageLayersActivity : ComponentActivity() {
     private val viewModel: AppInfoViewModel by viewModels()
@@ -110,6 +115,9 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
         selectedIndices = emptySet()
     }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     Box(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
@@ -136,12 +144,18 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
                         onClick = {
-                            viewModel.moveAppsToList(
-                                AppInfoManager.PRIMARY_APPS_LIST_NAME,
-                                AppInfoManager.QUICK_APPS_LIST_NAME,
-                                selectedIndices.toList().sortedDescending()
-                            )
-                            clearSelection()
+                            if (uiState.quickApps.size + selectedIndices.size > MAX_QUICK_APPS) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Maximum 5 apps only")
+                                }
+                            } else {
+                                viewModel.moveAppsToList(
+                                    AppInfoManager.PRIMARY_APPS_LIST_NAME,
+                                    AppInfoManager.QUICK_APPS_LIST_NAME,
+                                    selectedIndices.toList().sortedDescending()
+                                )
+                                clearSelection()
+                            }
                         },
                         enabled = selectedList == AppInfoManager.PRIMARY_APPS_LIST_NAME && selectedIndices.isNotEmpty()
                     ) {
@@ -244,6 +258,10 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 onItemSelect = onItemSelect
             )
         }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
@@ -285,7 +303,8 @@ fun AppListColumn(
         LazyColumn(
             state = listState,
             modifier = Modifier
-                .width(76.dp).fillMaxHeight(),
+                .width(76.dp)
+                .fillMaxHeight(),
             contentPadding = PaddingValues(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -307,7 +326,7 @@ fun AppListColumn(
                             ) { onItemSelect(listName, index) },
                         shadowElevation = elevation,
 
-                    ) {
+                        ) {
                         AppCard(app = apps[index], isSelected = isSelected)
                     }
                 }
