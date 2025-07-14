@@ -10,6 +10,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -300,11 +301,14 @@ fun AppListColumn(
                         shape = CircleShape,
                         modifier = Modifier
                             .longPressDraggableHandle()
-                            .clickable { onItemSelect(listName, index) },
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { onItemSelect(listName, index) },
                         shadowElevation = elevation,
 
                     ) {
-                        AppCard(app = apps[index], modifier = modifier, isSelected = isSelected)
+                        AppCard(app = apps[index], isSelected = isSelected)
                     }
                 }
             }
@@ -313,14 +317,14 @@ fun AppListColumn(
 }
 
 @Composable
-fun AppCard(app: AppInfo, modifier: Modifier, isSelected: Boolean) {
+fun AppCard(app: AppInfo, isSelected: Boolean) {
     val borderModifier = if (isSelected) {
         Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
     } else {
         Modifier
     }
     Row(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .clip(CircleShape)
             .background(Color.White)
