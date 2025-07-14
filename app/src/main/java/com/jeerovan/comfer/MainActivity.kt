@@ -101,6 +101,11 @@ import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.sin
+import java.io.File
+import java.io.FileOutputStream
+import coil.Coil
+import coil.request.ImageResult
+import androidx.core.content.edit
 
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
@@ -485,16 +490,61 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
 
 private enum class DragAxis { HORIZONTAL, VERTICAL }
 
+object BgImageManager {
+    private const val PREF_BACKGROUND_IMAGE = "background_image"
+    private const val PREFS_NAME = "com.jeerovan.comfer.BgImagePrefs"
+    fun getBackgroundImagePath(context: Context): String? {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getString(PREF_BACKGROUND_IMAGE, null)
+    }
+
+    fun setBackgroundImagePath(context: Context, path: String) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit {
+            putString(PREF_BACKGROUND_IMAGE, path)
+            apply()
+        }
+    }
+}
+
 @Composable
-fun LauncherScreen(viewModel:AppInfoViewModel) {
+fun LauncherScreen(viewModel: AppInfoViewModel) {
     val context = LocalContext.current
     var isAppListVisible by remember { mutableStateOf(false) }
+    var backgroundImageUri by remember { mutableStateOf<String?>(null) }
 
     val appInfoUiState by viewModel.uiState.collectAsState()
     val quickApps = appInfoUiState.quickApps
     val primaryApps = appInfoUiState.primaryApps
 
     val haptic = LocalHapticFeedback.current
+
+    LaunchedEffect(Unit) {
+        val cachedImagePath = BgImageManager.getBackgroundImagePath(context)
+        if (cachedImagePath != null && File(cachedImagePath).exists()) {
+            backgroundImageUri = cachedImagePath
+        } else {
+            launch {
+                val imageUrl = "https://images.unsplash.com/photo-1637532766937-0504f310bd6e?w=2000&q=99"
+                val request = ImageRequest.Builder(context)
+                    .data(imageUrl)
+                    .build()
+                val result = (Coil.imageLoader(context) as coil.ImageLoader).execute(request)
+                if (result is ImageResult) {
+                    val drawable = result.drawable
+                    if (drawable != null) {
+                        val file = File(context.cacheDir, "background.jpg")
+                        val stream = FileOutputStream(file)
+                        drawable.toBitmap().compress(android.graphics.Bitmap.CompressFormat.JPEG, 100, stream)
+                        stream.close()
+                        BgImageManager.setBackgroundImagePath(context, file.absolutePath)
+                        backgroundImageUri = file.absolutePath
+                    }
+                }
+            }
+        }
+    }
+
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -502,8 +552,8 @@ fun LauncherScreen(viewModel:AppInfoViewModel) {
                 detectTapGestures(
                     onLongPress = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    context.startActivity(Intent(context, ManageAppListActivity::class.java))
-                })
+                        context.startActivity(Intent(context, ManageAppListActivity::class.java))
+                    })
             }) {
         val maxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
         val maxHeightPx = with(LocalDensity.current) { maxHeight.toPx() }
@@ -544,25 +594,27 @@ fun LauncherScreen(viewModel:AppInfoViewModel) {
 
         val xOffset = cos(angle.value) * maxWidthPx * 0.08f
         val yOffset = sin(angle.value) * maxHeightPx * 0.08f
-        // Background - first layer
-        Image(
-            painter = rememberAsyncImagePainter(
-                ImageRequest
-                    .Builder(LocalContext.current)
-                    .data("https://images.unsplash.com/photo-1637532766937-0504f310bd6e?w=2000&q=99")
-                    .crossfade(true)
-                    .build()
-            ),
-            contentDescription = "Background",
-            modifier = Modifier
-                .fillMaxSize()
-                .scale(1.2f)
-                .graphicsLayer {
-                    translationX = xOffset
-                    translationY = yOffset
-                },
-            contentScale = ContentScale.Crop
-        )
+
+        if (backgroundImageUri != null) {
+            Image(
+                painter = rememberAsyncImagePainter(
+                    ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(backgroundImageUri)
+                        .crossfade(true)
+                        .build()
+                ),
+                contentDescription = "Background",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .scale(1.2f)
+                    .graphicsLayer {
+                        translationX = xOffset
+                        translationY = yOffset
+                    },
+                contentScale = ContentScale.Crop
+            )
+        }
 
         // Quick-list layer
         AnimatedVisibility(
