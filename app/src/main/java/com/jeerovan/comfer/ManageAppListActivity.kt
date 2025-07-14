@@ -1,13 +1,11 @@
 package com.jeerovan.comfer
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -64,7 +62,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 private const val REST_LIST_NAME = "Rest"
 private const val MAX_QUICK_APPS = 5
 
-class ManageLayersActivity : ComponentActivity() {
+class ManageAppListActivity : ComponentActivity() {
     private val viewModel: AppInfoViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
