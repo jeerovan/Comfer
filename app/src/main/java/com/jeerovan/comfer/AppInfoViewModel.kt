@@ -88,7 +88,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     AppInfoManager.ALL_APPS_LIST_NAME,
                     packageNames
                 )
-                val quickAppList: List<String> = filterStandardApps(packageNames).toList()
+                val quickAppListAll: List<String> = filterStandardApps(packageNames).toList()
+                val quickAppList = quickAppListAll.take(5)
                 AppInfoManager.saveAppPackageNames(
                     getApplication(),
                     AppInfoManager.QUICK_APPS_LIST_NAME,
