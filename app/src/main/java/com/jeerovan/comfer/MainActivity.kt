@@ -108,7 +108,6 @@ import java.io.File
 import java.io.FileOutputStream
 import coil.Coil
 import coil.request.ImageResult
-import androidx.core.content.edit
 
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
@@ -504,22 +503,7 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
 
 private enum class DragAxis { HORIZONTAL, VERTICAL }
 
-object BgImageManager {
-    private const val PREF_BACKGROUND_IMAGE = "background_image"
-    private const val PREFS_NAME = "com.jeerovan.comfer.BgImagePrefs"
-    fun getBackgroundImagePath(context: Context): String? {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getString(PREF_BACKGROUND_IMAGE, null)
-    }
 
-    fun setBackgroundImagePath(context: Context, path: String) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit {
-            putString(PREF_BACKGROUND_IMAGE, path)
-            apply()
-        }
-    }
-}
 
 @Composable
 fun LauncherScreen(viewModel: AppInfoViewModel) {
@@ -534,7 +518,7 @@ fun LauncherScreen(viewModel: AppInfoViewModel) {
     val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(Unit) {
-        val cachedImagePath = BgImageManager.getBackgroundImagePath(context)
+        val cachedImagePath = PreferenceManager.getBackgroundImagePath(context)
         if (cachedImagePath != null && File(cachedImagePath).exists()) {
             backgroundImageUri = cachedImagePath
         } else {
@@ -551,7 +535,7 @@ fun LauncherScreen(viewModel: AppInfoViewModel) {
                         val stream = FileOutputStream(file)
                         drawable.toBitmap().compress(android.graphics.Bitmap.CompressFormat.JPEG, 100, stream)
                         stream.close()
-                        BgImageManager.setBackgroundImagePath(context, file.absolutePath)
+                        PreferenceManager.setBackgroundImagePath(context, file.absolutePath)
                         backgroundImageUri = file.absolutePath
 
                         // Set system wallpaper
