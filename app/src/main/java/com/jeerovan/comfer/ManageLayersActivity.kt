@@ -90,7 +90,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
     }
 
     var selectedList by rememberSaveable { mutableStateOf<String?>(null) }
-    var selectedIndices by rememberSaveable(selectedList) { mutableStateOf(emptySet<Int>()) }
+    var selectedIndices by rememberSaveable { mutableStateOf(emptySet<Int>()) }
 
     val onItemSelect = { listName: String, index: Int ->
         if (selectedList != listName) {
