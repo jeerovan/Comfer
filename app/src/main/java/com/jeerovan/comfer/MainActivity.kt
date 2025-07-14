@@ -12,6 +12,7 @@ import android.provider.AlarmClock
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -116,11 +117,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // Do nothing because this is a launcher screen
+            }
+        })
 
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+        windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
 
         setContent {
             LauncherScreen(viewModel)
@@ -221,7 +228,7 @@ fun BatteryStatus() {
                         lineTo(w * 0.45f, h * 0.4f)
                         close()
                     }
-                    drawPath(path, color = Color.White)
+                    drawPath(path, color = Color.Red)
                 }
             }
         }
