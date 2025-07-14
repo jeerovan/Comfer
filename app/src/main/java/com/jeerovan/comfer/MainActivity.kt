@@ -247,7 +247,7 @@ fun BatteryStatus() {
 @Composable
 fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
     val context = LocalContext.current
-
+    val haptic = LocalHapticFeedback.current
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -319,11 +319,22 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                             .size(48.dp)
                             .clip(CircleShape)
                             .background(Color.White)
-                            .clickable {
-                                val launchIntent =
-                                    packageManager.getLaunchIntentForPackage(app.packageName)
-                                context.startActivity(launchIntent)
-                            },
+                            .pointerInput(Unit){
+                            detectTapGestures (
+                                onTap = {
+                                    val launchIntent =
+                                        packageManager.getLaunchIntentForPackage(app.packageName)
+                                    context.startActivity(launchIntent)
+                                },
+                                onLongPress = {
+                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                    val intent =
+                                        android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                    intent.data = "package:${app.packageName}".toUri()
+                                    context.startActivity(intent)
+                                }
+                            )
+                        },
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
