@@ -30,6 +30,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -75,6 +76,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -267,7 +269,8 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = 100.dp)
+                //.border(1.dp,color = Color.Red)
+                .padding(top=40.dp,start=20.dp,end=20.dp, bottom = 40.dp)
                 .clickable {
                     val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
                     if (intent.resolveActivity(context.packageManager) != null) {
@@ -311,8 +314,9 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
+                //.border(1.dp,color=Color.Green)
                 .fillMaxWidth()
-                .height(250.dp)
+                .height(LocalConfiguration.current.screenHeightDp.dp/2 - 40.dp)
                 .pointerInput(Unit) {
                     val packageManager = context.packageManager
                     var totalDragOffset = Offset.Zero
