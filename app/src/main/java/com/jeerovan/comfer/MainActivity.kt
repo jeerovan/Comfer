@@ -1,5 +1,6 @@
 package com.jeerovan.comfer
 
+import android.annotation.SuppressLint
 import android.app.ActivityOptions
 import android.app.WallpaperManager
 import android.content.BroadcastReceiver
@@ -347,7 +348,15 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                             } else {
                                 if (y.absoluteValue > swipeThreshold) {
                                     if (y > 0) {
-                                        TODO("Swipe Down")
+                                        try {
+                                            @SuppressLint("WrongConstant")
+                                            val statusBarService = context.getSystemService("statusbar")
+                                            val statusBarManager = Class.forName("android.app.StatusBarManager")
+                                            val method = statusBarManager.getMethod("expandNotificationsPanel")
+                                            method.invoke(statusBarService)
+                                        } catch (e: Exception) {
+                                            e.printStackTrace()
+                                        }
                                     } else {
                                         onSwipeUp()
                                     }
