@@ -50,4 +50,13 @@ object PreferenceManager {
             putString("${swipeDirection}_swipe_app",appPackage)
         }
     }
+
+    fun getBoolean(context: Context,key:String):Boolean{
+        return getPrefs(context).getBoolean(key,false)
+    }
+    fun setBoolean(context: Context,key:String,state:Boolean) {
+        getPrefs(context).edit {
+            putBoolean(key,state)
+        }
+    }
 }

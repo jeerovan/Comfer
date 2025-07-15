@@ -147,6 +147,18 @@ class MainActivity : ComponentActivity() {
         setContent {
             LauncherScreen(viewModel)
         }
+
+        com.jeerovan.comfer.utils.GuideUtil.showGuide(
+            activity = this,
+            keyword = "main_screen",
+            title = "Welcome to Comfer Launcher!",
+            steps = listOf(
+                "Swipe up to see your full app list.",
+                "Swipe down from the app list to return here.",
+                "Swipe left or right on the bottom half of the screen for custom shortcuts.",
+                "Long press the screen to open settings."
+            )
+        )
     }
 
     override fun onResume() {
@@ -257,7 +269,6 @@ fun BatteryStatus() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
     val context = LocalContext.current
