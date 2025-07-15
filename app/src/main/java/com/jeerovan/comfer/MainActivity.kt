@@ -27,6 +27,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -46,7 +47,16 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -83,6 +93,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -91,12 +102,13 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import coil.Coil
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import coil.request.ImageResult
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -107,10 +119,9 @@ import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.sin
-import java.io.File
-import java.io.FileOutputStream
-import coil.Coil
-import coil.request.ImageResult
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
@@ -246,17 +257,36 @@ fun BatteryStatus() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     var iconSize by remember { mutableStateOf(48.dp) }
+    var isDefault by remember { mutableStateOf(false) }
+
+    fun isDefaultLauncher(): Boolean {
+        val intent = Intent(Intent.ACTION_MAIN)
+        intent.addCategory(Intent.CATEGORY_HOME)
+        val resolveInfo = context.packageManager.resolveActivity(intent, 0)
+        return resolveInfo?.activityInfo?.packageName == context.packageName
+    }
+
+    fun openDefaultLauncherSettings() {
+        val intent = Intent(Settings.ACTION_HOME_SETTINGS)
+        context.startActivity(intent)
+    }
+
+    LaunchedEffect(Unit) {
+        isDefault = isDefaultLauncher()
+    }
 
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 iconSize = PreferenceManager.getIconSize(context).dp
+                isDefault = isDefaultLauncher()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -316,7 +346,7 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                 .align(Alignment.BottomCenter)
                 //.border(1.dp,color=Color.Green)
                 .fillMaxWidth()
-                .height(LocalConfiguration.current.screenHeightDp.dp/2 - 40.dp)
+                .height(LocalConfiguration.current.screenHeightDp.dp / 2 - 40.dp)
                 .pointerInput(Unit) {
                     val packageManager = context.packageManager
                     var totalDragOffset = Offset.Zero
@@ -334,17 +364,23 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                             if (x.absoluteValue > y.absoluteValue) {
                                 if (x.absoluteValue > swipeThreshold) {
                                     if (x > 0) {
-                                        val swipeRightPackage = PreferenceManager.getSwipeApp(context,"right")
-                                        if(swipeRightPackage != null){
+                                        val swipeRightPackage =
+                                            PreferenceManager.getSwipeApp(context, "right")
+                                        if (swipeRightPackage != null) {
                                             val launchIntent =
-                                                packageManager.getLaunchIntentForPackage(swipeRightPackage)
+                                                packageManager.getLaunchIntentForPackage(
+                                                    swipeRightPackage
+                                                )
                                             context.startActivity(launchIntent)
                                         }
                                     } else {
-                                        val swipeLeftPackage = PreferenceManager.getSwipeApp(context,"left")
-                                        if(swipeLeftPackage != null){
+                                        val swipeLeftPackage =
+                                            PreferenceManager.getSwipeApp(context, "left")
+                                        if (swipeLeftPackage != null) {
                                             val launchIntent =
-                                                packageManager.getLaunchIntentForPackage(swipeLeftPackage)
+                                                packageManager.getLaunchIntentForPackage(
+                                                    swipeLeftPackage
+                                                )
                                             context.startActivity(launchIntent)
                                         }
                                     }
@@ -354,9 +390,12 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                                     if (y > 0) {
                                         try {
                                             @SuppressLint("WrongConstant")
-                                            val statusBarService = context.getSystemService("statusbar")
-                                            val statusBarManager = Class.forName("android.app.StatusBarManager")
-                                            val method = statusBarManager.getMethod("expandNotificationsPanel")
+                                            val statusBarService =
+                                                context.getSystemService("statusbar")
+                                            val statusBarManager =
+                                                Class.forName("android.app.StatusBarManager")
+                                            val method =
+                                                statusBarManager.getMethod("expandNotificationsPanel")
                                             method.invoke(statusBarService)
                                         } catch (e: Exception) {
                                             e.printStackTrace()
@@ -371,41 +410,58 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                 },
             contentAlignment = Alignment.BottomCenter
         ) {
-            Row(
-                modifier = Modifier.padding(bottom = 64.dp),
-                horizontalArrangement = Arrangement.spacedBy(24.dp)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(bottom = 64.dp)
             ) {
-                apps.forEach { app ->
-                    val packageManager = context.packageManager
-                    Box(
-                        modifier = Modifier
-                            .size(iconSize)
-                            .clip(CircleShape)
-                            .background(Color.White)
-                            .pointerInput(Unit){
-                            detectTapGestures (
-                                onTap = {
-                                    val launchIntent =
-                                        packageManager.getLaunchIntentForPackage(app.packageName)
-                                    context.startActivity(launchIntent)
-                                },
-                                onLongPress = {
-                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                    val intent =
-                                        android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                                    intent.data = "package:${app.packageName}".toUri()
-                                    context.startActivity(intent)
-                                }
-                            )
-                        },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = rememberDrawablePainter(drawable = app.icon),
-                            contentDescription = app.label.toString(),
-                            modifier = Modifier
-                                .padding(4.dp)
+                if (!isDefault) {
+                    OutlinedButton (onClick = { openDefaultLauncherSettings()},
+                        border = null,
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = Color.Black.copy(alpha = 0.5f) // Text color
                         )
+                    ) {
+                        Text("Set as default launcher",
+                            fontSize = 18.sp,
+                            color = Color.White)
+                    }
+                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    apps.forEach { app ->
+                        val packageManager = context.packageManager
+                        Box(
+                            modifier = Modifier
+                                .size(iconSize)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onTap = {
+                                            val launchIntent =
+                                                packageManager.getLaunchIntentForPackage(app.packageName)
+                                            context.startActivity(launchIntent)
+                                        },
+                                        onLongPress = {
+                                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                            val intent =
+                                                android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                            intent.data = "package:${app.packageName}".toUri()
+                                            context.startActivity(intent)
+                                        }
+                                    )
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = rememberDrawablePainter(drawable = app.icon),
+                                contentDescription = app.label.toString(),
+                                modifier = Modifier
+                                    .padding(4.dp)
+                            )
+                        }
                     }
                 }
             }
