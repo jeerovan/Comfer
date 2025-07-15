@@ -313,12 +313,48 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                 .fillMaxWidth()
                 .height(250.dp)
                 .pointerInput(Unit) {
-                    detectDragGestures { change, dragAmount ->
-                        if (dragAmount.y < -40) { // Swipe up
-                            onSwipeUp()
+                    val packageManager = context.packageManager
+                    var totalDragOffset = Offset.Zero
+                    detectDragGestures(
+                        onDragStart = {
+                            totalDragOffset = Offset.Zero
+                        },
+                        onDrag = { change, dragAmount ->
                             change.consume()
+                            totalDragOffset += dragAmount
+                        },
+                        onDragEnd = {
+                            val swipeThreshold = 50f
+                            val (x, y) = totalDragOffset
+                            if (x.absoluteValue > y.absoluteValue) {
+                                if (x.absoluteValue > swipeThreshold) {
+                                    if (x > 0) {
+                                        val swipeRightPackage = PreferenceManager.getSwipeApp(context,"right")
+                                        if(swipeRightPackage != null){
+                                            val launchIntent =
+                                                packageManager.getLaunchIntentForPackage(swipeRightPackage)
+                                            context.startActivity(launchIntent)
+                                        }
+                                    } else {
+                                        val swipeLeftPackage = PreferenceManager.getSwipeApp(context,"left")
+                                        if(swipeLeftPackage != null){
+                                            val launchIntent =
+                                                packageManager.getLaunchIntentForPackage(swipeLeftPackage)
+                                            context.startActivity(launchIntent)
+                                        }
+                                    }
+                                }
+                            } else {
+                                if (y.absoluteValue > swipeThreshold) {
+                                    if (y > 0) {
+                                        TODO("Swipe Down")
+                                    } else {
+                                        onSwipeUp()
+                                    }
+                                }
+                            }
                         }
-                    }
+                    )
                 },
             contentAlignment = Alignment.BottomCenter
         ) {
