@@ -40,6 +40,9 @@
         <activity
             android:name=".SettingsActivity"
             android:exported="false" />
+        <activity
+            android:name=".AppSelectionActivity"
+            android:exported="false" />
         <receiver
             android:name=".AppInstallReceiver"
             android:exported="true">

@@ -29,6 +29,27 @@ data class AppInfo(
     val packageName: String
 )
 
+fun mapPackageNameToAppInfo(
+    packageManager: PackageManager,
+    packageName: String?
+): AppInfo? {
+    if (packageName == null) return null
+    return try {
+        packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
+            packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
+                AppInfo(
+                    resolveInfo = resolveInfo,
+                    icon = resolveInfo.loadIcon(packageManager),
+                    label = resolveInfo.loadLabel(packageManager),
+                    packageName = packageName
+                )
+            }
+        }
+    } catch (e: Exception) {
+        null
+    }
+}
+
 class AppInfoViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(AppInfoUiState())
@@ -132,26 +153,6 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     restApps = restApps
                 )
             }
-        }
-    }
-
-    private fun mapPackageNameToAppInfo(
-        packageManager: PackageManager,
-        packageName: String
-    ): AppInfo? {
-        return try {
-            packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
-                packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
-                    AppInfo(
-                        resolveInfo = resolveInfo,
-                        icon = resolveInfo.loadIcon(packageManager),
-                        label = resolveInfo.loadLabel(packageManager),
-                        packageName = packageName
-                    )
-                }
-            }
-        } catch (e: Exception) {
-            null
         }
     }
 

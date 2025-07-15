@@ -40,4 +40,14 @@ object PreferenceManager {
             putString(PREF_BACKGROUND_IMAGE, path)
         }
     }
+
+    fun getSwipeApp(context:Context,swipeDirection:String):String?{
+        return getPrefs(context).getString("${swipeDirection}_swipe_app",null)
+    }
+
+    fun setSwipeApp(context:Context,swipeDirection:String,appPackage:String){
+        getPrefs(context).edit {
+            putString("${swipeDirection}_swipe_app",appPackage)
+        }
+    }
 }

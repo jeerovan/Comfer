@@ -19,7 +19,6 @@ class AppInstallReceiver : BroadcastReceiver() {
             }
             Intent.ACTION_PACKAGE_REMOVED -> {
                 allApps.remove(packageName)
-                AppIconCache.invalidateCache(packageName)
                 // Also remove from other lists
                 val quickApps = AppInfoManager.getAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME)?.toMutableList()
                 quickApps?.remove(packageName)

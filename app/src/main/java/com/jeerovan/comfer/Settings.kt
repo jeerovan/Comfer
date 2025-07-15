@@ -2,12 +2,13 @@ package com.jeerovan.comfer
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,14 +26,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.Divider
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,21 +36,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
-import androidx.core.net.toUri
 
 class SettingsActivity : ComponentActivity() {
-    private val viewModel: SettingsViewModel by viewModels()
+    private val settingsViewModel: SettingsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,7 +60,7 @@ class SettingsActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    SettingsScreen(viewModel)
+                    SettingsScreen(settingsViewModel)
                 }
             }
         }
@@ -75,9 +68,14 @@ class SettingsActivity : ComponentActivity() {
 }
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel) {
-    val uiState by viewModel.uiState.collectAsState()
+fun SettingsScreen(settingsViewModel: SettingsViewModel) {
+    val settingsState by settingsViewModel.uiState.collectAsState()
     val context = LocalContext.current
+
+    val packageManager = context.packageManager
+
+    val leftSwipeApp = mapPackageNameToAppInfo(packageManager,settingsState.leftSwipeApp)
+    val rightSwipeApp = mapPackageNameToAppInfo(packageManager,settingsState.rightSwipeApp)
 
     Scaffold(
     ) { paddingValues ->
@@ -90,40 +88,64 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             item {
                 SettingRow(
                     title = "Wallpaper motion",
-                    onClick = { viewModel.setWallpaperMotion(!uiState.wallpaperMotionEnabled) }
+                    onClick = { settingsViewModel.setWallpaperMotion(!settingsState.wallpaperMotionEnabled) }
                 ) {
                     Switch(
-                        checked = uiState.wallpaperMotionEnabled,
-                        onCheckedChange = { viewModel.setWallpaperMotion(it) }
+                        checked = settingsState.wallpaperMotionEnabled,
+                        onCheckedChange = { settingsViewModel.setWallpaperMotion(it) }
                     )
                 }
             }
             item {
                 SettingRow(title = "Icon size") {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { viewModel.changeIconSize(increase = false) }) {
+                        IconButton(onClick = { settingsViewModel.changeIconSize(increase = false) }) {
                             Icon(painter = painterResource(R.drawable.outline_remove_24), contentDescription = "Decrease icon size")
                         }
                         Box(
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .border(2.dp, Color.Gray, CircleShape)
-                                .size(uiState.iconSize.dp)
+                                .size(settingsState.iconSize.dp)
                         )
-                        IconButton(onClick = { viewModel.changeIconSize(increase = true) }) {
+                        IconButton(onClick = { settingsViewModel.changeIconSize(increase = true) }) {
                             Icon(Icons.Filled.Add, contentDescription = "Increase icon size")
                         }
                     }
                 }
             }
             item {
-                SettingRow(title = "Left swipe", onClick = { /*TODO*/ }) {
-                    Text("Select")
+                SettingRow(title = "Left swipe", onClick = {
+                    val intent = Intent(context, AppSelectionActivity::class.java)
+                    intent.putExtra("swipe_direction", "left")
+                    context.startActivity(intent)
+                }) {
+                    if(leftSwipeApp == null){
+                        Text("Select")
+                    } else {
+                        Image(
+                            painter = rememberDrawablePainter(drawable = leftSwipeApp.icon),
+                            contentDescription = leftSwipeApp.label.toString(),
+                            modifier = Modifier.padding(4.dp).size(45.dp)
+                        )
+                    }
                 }
             }
             item {
-                SettingRow(title = "Right swipe", onClick = { /*TODO*/ }) {
-                    Text("Select")
+                SettingRow(title = "Right swipe", onClick = {
+                    val intent = Intent(context, AppSelectionActivity::class.java)
+                    intent.putExtra("swipe_direction", "right")
+                    context.startActivity(intent)
+                }) {
+                    if(rightSwipeApp == null){
+                        Text("Select")
+                    } else {
+                        Image(
+                            painter = rememberDrawablePainter(drawable = rightSwipeApp.icon),
+                            contentDescription = rightSwipeApp.label.toString(),
+                            modifier = Modifier.padding(4.dp).size(45.dp)
+                        )
+                    }
                 }
             }
             item {

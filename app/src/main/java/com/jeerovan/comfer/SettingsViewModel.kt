@@ -10,7 +10,9 @@ import kotlinx.coroutines.launch
 
 data class SettingsUiState(
     val wallpaperMotionEnabled: Boolean = true,
-    val iconSize: Int = 48
+    val iconSize: Int = 48,
+    val leftSwipeApp:String? = null,
+    val rightSwipeApp:String? = null
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -26,11 +28,27 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val iconSize = PreferenceManager.getIconSize(getApplication())
+            val leftSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"left")
+            val rightSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"right")
             _uiState.update {
                 it.copy(
                     wallpaperMotionEnabled = wallpaperMotion,
-                    iconSize = iconSize
+                    iconSize = iconSize,
+                    leftSwipeApp = leftSwipeApp,
+                    rightSwipeApp = rightSwipeApp
                 )
+            }
+        }
+    }
+
+    fun setSwipeApp(swipeDirection:String, appName: String){
+        viewModelScope.launch {
+            PreferenceManager.setSwipeApp(getApplication(),swipeDirection,appName)
+            if( swipeDirection == "left"){
+                _uiState.update { it.copy( leftSwipeApp =  appName) }
+            }
+            if( swipeDirection == "right"){
+                _uiState.update { it.copy( rightSwipeApp =  appName) }
             }
         }
     }
