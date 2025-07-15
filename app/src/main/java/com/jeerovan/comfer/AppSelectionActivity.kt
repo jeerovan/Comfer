@@ -1,6 +1,7 @@
 package com.jeerovan.comfer
 
 import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -34,7 +35,6 @@ import com.jeerovan.comfer.ui.theme.ComferTheme
 class AppSelectionActivity : ComponentActivity() {
 
     private val appInfoViewModel: AppInfoViewModel by viewModels()
-    private val settingsViewModel: SettingsViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val swipeDirection = intent.getStringExtra("swipe_direction") ?: "left"
@@ -45,7 +45,6 @@ class AppSelectionActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     AppSelectionScreen(appInfoViewModel = appInfoViewModel,
-                        preferenceViewModel=settingsViewModel,
                         swipeDirection = swipeDirection)
                 }
             }
@@ -55,7 +54,7 @@ class AppSelectionActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, preferenceViewModel: SettingsViewModel, swipeDirection: String) {
+fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, swipeDirection: String) {
     val appListState by appInfoViewModel.uiState.collectAsState()
     val context = LocalContext.current
     val allApps = (appListState.quickApps + appListState.primaryApps + appListState.restApps).sortedBy { it.label.toString() }
@@ -71,8 +70,13 @@ fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, preferenceViewModel: 
         ) {
             items(allApps) { app ->
                 AppIcon(app = app) {
-                    preferenceViewModel.setSwipeApp(swipeDirection,app.packageName)
-                    (context as? Activity)?.finish()
+                    (context as? Activity)?.let { activity ->
+                        val resultIntent = Intent()
+                        resultIntent.putExtra("swipe_direction", swipeDirection)
+                        resultIntent.putExtra("package_name", app.packageName)
+                        activity.setResult(Activity.RESULT_OK, resultIntent)
+                        activity.finish()
+                    }
                 }
             }
         }

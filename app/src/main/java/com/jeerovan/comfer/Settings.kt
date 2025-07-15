@@ -1,12 +1,15 @@
 package com.jeerovan.comfer
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -72,6 +75,20 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val settingsState by settingsViewModel.uiState.collectAsState()
     val context = LocalContext.current
 
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.let {
+                val direction = it.getStringExtra("swipe_direction")
+                val packageName = it.getStringExtra("package_name")
+                if (direction != null && packageName != null) {
+                    settingsViewModel.setSwipeApp(direction, packageName)
+                }
+            }
+        }
+    }
+
     val packageManager = context.packageManager
 
     val leftSwipeApp = mapPackageNameToAppInfo(packageManager,settingsState.leftSwipeApp)
@@ -118,7 +135,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 SettingRow(title = "Left swipe", onClick = {
                     val intent = Intent(context, AppSelectionActivity::class.java)
                     intent.putExtra("swipe_direction", "left")
-                    context.startActivity(intent)
+                    launcher.launch(intent)
                 }) {
                     if(leftSwipeApp == null){
                         Text("Select")
@@ -135,7 +152,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 SettingRow(title = "Right swipe", onClick = {
                     val intent = Intent(context, AppSelectionActivity::class.java)
                     intent.putExtra("swipe_direction", "right")
-                    context.startActivity(intent)
+                    launcher.launch(intent)
                 }) {
                     if(rightSwipeApp == null){
                         Text("Select")
