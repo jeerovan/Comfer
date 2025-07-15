@@ -3,7 +3,6 @@ package com.jeerovan.comfer
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -12,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -35,12 +36,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -91,8 +91,8 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
 
     val packageManager = context.packageManager
 
-    val leftSwipeApp = mapPackageNameToAppInfo(packageManager,settingsState.leftSwipeApp)
-    val rightSwipeApp = mapPackageNameToAppInfo(packageManager,settingsState.rightSwipeApp)
+    val leftSwipeApp = mapPackageNameToAppInfo(packageManager, settingsState.leftSwipeApp)
+    val rightSwipeApp = mapPackageNameToAppInfo(packageManager, settingsState.rightSwipeApp)
 
     Scaffold(
     ) { paddingValues ->
@@ -117,7 +117,10 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 SettingRow(title = "Icon size") {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = { settingsViewModel.changeIconSize(increase = false) }) {
-                            Icon(painter = painterResource(R.drawable.outline_remove_24), contentDescription = "Decrease icon size")
+                            Icon(
+                                painter = painterResource(R.drawable.outline_remove_24),
+                                contentDescription = "Decrease icon size"
+                            )
                         }
                         Box(
                             modifier = Modifier
@@ -137,14 +140,22 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     intent.putExtra("swipe_direction", "left")
                     launcher.launch(intent)
                 }) {
-                    if(leftSwipeApp == null){
+                    if (leftSwipeApp == null) {
                         Text("Select")
                     } else {
-                        Image(
-                            painter = rememberDrawablePainter(drawable = leftSwipeApp.icon),
-                            contentDescription = leftSwipeApp.label.toString(),
-                            modifier = Modifier.padding(4.dp).size(45.dp)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(45.dp)
+                                .clip(CircleShape)
+                                .background(Color.White),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = rememberDrawablePainter(drawable = leftSwipeApp.icon),
+                                contentDescription = leftSwipeApp.label.toString(),
+                                modifier = Modifier.padding(4.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -154,14 +165,22 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     intent.putExtra("swipe_direction", "right")
                     launcher.launch(intent)
                 }) {
-                    if(rightSwipeApp == null){
+                    if (rightSwipeApp == null) {
                         Text("Select")
                     } else {
-                        Image(
-                            painter = rememberDrawablePainter(drawable = rightSwipeApp.icon),
-                            contentDescription = rightSwipeApp.label.toString(),
-                            modifier = Modifier.padding(4.dp).size(45.dp)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(45.dp)
+                                .clip(CircleShape)
+                                .background(Color.White),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = rememberDrawablePainter(drawable = rightSwipeApp.icon),
+                                contentDescription = rightSwipeApp.label.toString(),
+                                modifier = Modifier.padding(4.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -172,7 +191,10 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         context.startActivity(Intent(context, ManageAppListActivity::class.java))
                     }
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Manage app list")
+                    Icon(
+                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = "Manage app list"
+                    )
                 }
             }
             /*item {
