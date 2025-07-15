@@ -247,6 +247,21 @@ fun BatteryStatus() {
 fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
+    var iconSize by remember { mutableStateOf(48.dp) }
+
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                iconSize = PreferenceManager.getIconSize(context).dp
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -315,7 +330,7 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                     val packageManager = context.packageManager
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(iconSize)
                             .clip(CircleShape)
                             .background(Color.White)
                             .pointerInput(Unit){
@@ -355,6 +370,20 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
     val view = LocalView.current
     val packageManager = context.packageManager
     val scope = rememberCoroutineScope()
+    var iconSize by remember { mutableStateOf(48.dp) }
+
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                iconSize = PreferenceManager.getIconSize(context).dp
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     val scrollAnimatable = remember { Animatable(0f) }
     val velocityTracker = remember { VelocityTracker() }
@@ -443,7 +472,7 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
                                         }
                                         scrollAnimatable.snapTo(newValue)
                                     }
-                                }
+                                 }
                             }
 
                             DragAxis.VERTICAL -> {
@@ -492,6 +521,7 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
                 apps = apps,
                 updateCenterIndex = { centerAppIndex = it },
                 scrollOffset = -scrollAnimatable.value,
+                iconSize = iconSize,
                 updateCenterIconGeom = { x, y, size ->
                     centerIconX = x
                     centerIconY = y
@@ -510,6 +540,7 @@ fun LauncherScreen(viewModel: AppInfoViewModel) {
     val context = LocalContext.current
     var isAppListVisible by remember { mutableStateOf(false) }
     var backgroundImageUri by remember { mutableStateOf<String?>(null) }
+    var wallpaperMotionEnabled by remember { mutableStateOf(true) }
 
     val appInfoUiState by viewModel.uiState.collectAsState()
     val quickApps = appInfoUiState.quickApps
@@ -518,6 +549,7 @@ fun LauncherScreen(viewModel: AppInfoViewModel) {
     val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(Unit) {
+        wallpaperMotionEnabled = PreferenceManager.getWallpaperMotion(context)
         val cachedImagePath = PreferenceManager.getBackgroundImagePath(context)
         if (cachedImagePath != null && File(cachedImagePath).exists()) {
             backgroundImageUri = cachedImagePath
@@ -559,7 +591,7 @@ fun LauncherScreen(viewModel: AppInfoViewModel) {
                 detectTapGestures(
                     onLongPress = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        context.startActivity(Intent(context, ManageAppListActivity::class.java))
+                        context.startActivity(Intent(context, SettingsActivity::class.java))
                     })
             }) {
         val maxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
@@ -574,6 +606,8 @@ fun LauncherScreen(viewModel: AppInfoViewModel) {
             val observer = LifecycleEventObserver { _, event ->
                 if (event == Lifecycle.Event.ON_RESUME) {
                     isScreenVisible = true
+                    // Reload the setting when the app resumes
+                    wallpaperMotionEnabled = PreferenceManager.getWallpaperMotion(context)
                 } else if (event == Lifecycle.Event.ON_PAUSE) {
                     isScreenVisible = false
                 }
@@ -584,8 +618,8 @@ fun LauncherScreen(viewModel: AppInfoViewModel) {
             }
         }
 
-        LaunchedEffect(isScreenVisible) {
-            if (isScreenVisible) {
+        LaunchedEffect(isScreenVisible, wallpaperMotionEnabled) {
+            if (isScreenVisible && wallpaperMotionEnabled) {
                 var lastFrameTime = withFrameNanos { it }
                 while (isActive) {
                     val frameTime = withFrameNanos { it }
@@ -596,7 +630,9 @@ fun LauncherScreen(viewModel: AppInfoViewModel) {
                     angle.snapTo(newAngle)
                     lastFrameTime = frameTime
                 }
-            }
+            } /*else {
+                angle.snapTo(0f)
+            }*/
         }
 
         val xOffset = cos(angle.value) * maxWidthPx * 0.08f
@@ -652,11 +688,12 @@ fun UshapedAppList(
     apps: List<AppInfo>,
     updateCenterIndex: (Int) -> Unit,
     scrollOffset: Float,
+    iconSize: Dp,
     updateCenterIconGeom: (x: Float, y: Float, size: Float) -> Unit
 ) {
     val sidePadding = 18.dp
     val topPadding = 70.dp
-    val smallIconSize = 45.dp
+    val smallIconSize = iconSize
     val largeIconSize = smallIconSize + 30.dp
     val minimumGap = 6.dp
 

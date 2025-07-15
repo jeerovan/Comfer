@@ -6,23 +6,38 @@ import androidx.core.content.edit
 object PreferenceManager {
     private const val PREF_BACKGROUND_IMAGE = "background_image"
     private const val PREFS_NAME = "com.jeerovan.comfer.Prefs"
+    private const val KEY_WALLPAPER_MOTION = "wallpaper_motion"
+    private const val KEY_ICON_SIZE = "icon_size"
 
-    private fun getString(context: Context,string:String): String? {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getString(string, null)
-    }
-    private fun putString(context: Context,key:String,value:String) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit {
-            putString(key, value)
-            apply()
+    private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    fun setWallpaperMotion(context: Context, enabled: Boolean) {
+        getPrefs(context).edit {
+            putBoolean(KEY_WALLPAPER_MOTION, enabled)
         }
     }
+
+    fun getWallpaperMotion(context: Context, default: Boolean = true): Boolean {
+        return getPrefs(context).getBoolean(KEY_WALLPAPER_MOTION, default)
+    }
+
+    fun setIconSize(context: Context, size: Int) {
+        getPrefs(context).edit {
+            putInt(KEY_ICON_SIZE, size)
+        }
+    }
+
+    fun getIconSize(context: Context, default: Int = 48): Int {
+        return getPrefs(context).getInt(KEY_ICON_SIZE, default)
+    }
+
     fun getBackgroundImagePath(context: Context): String? {
-        return getString(context,PREF_BACKGROUND_IMAGE)
+        return getPrefs(context).getString(PREF_BACKGROUND_IMAGE, null)
     }
 
     fun setBackgroundImagePath(context: Context, path: String) {
-        putString(context,PREF_BACKGROUND_IMAGE,path)
+        getPrefs(context).edit {
+            putString(PREF_BACKGROUND_IMAGE, path)
+        }
     }
 }
