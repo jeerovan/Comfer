@@ -3,11 +3,13 @@ package com.jeerovan.comfer
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 
 class AppInstallReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        //Log.i("AppInstallReceiver","Triggered")
         val packageName = intent.data?.schemeSpecificPart ?: return
-
+        //Log.i("AppInstallReceiver",packageName)
         val allApps = AppInfoManager.getAppPackageNames(context, AppInfoManager.ALL_APPS_LIST_NAME)?.toMutableSet() ?: mutableSetOf()
 
         when (intent.action) {

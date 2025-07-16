@@ -186,7 +186,7 @@ fun BatteryStatus(theme:String) {
     val isCharging = batteryState.isCharging
     val themeColor = if (theme == "light") Color.White else Color.Black
     val isLow = batteryLevel < 10
-    val color = if (isLow) Color.Red else themeColor
+    val batteryLevelColor = if (isLow) Color.Red else themeColor
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
@@ -198,14 +198,14 @@ fun BatteryStatus(theme:String) {
                 val strokeWidth = 2.dp.toPx()
                 // Battery body
                 drawRoundRect(
-                    color = color,
+                    color = themeColor,
                     size = Size(size.width - strokeWidth, size.height),
                     style = Stroke(width = strokeWidth),
                     cornerRadius = CornerRadius(2.dp.toPx())
                 )
                 // Battery terminal
                 drawRoundRect(
-                    color = color,
+                    color = themeColor,
                     topLeft = Offset(size.width - strokeWidth, size.height / 4),
                     size = Size(strokeWidth, size.height / 2),
                     style = Fill
@@ -215,7 +215,7 @@ fun BatteryStatus(theme:String) {
                     // Battery level
                     val levelWidth = (size.width - strokeWidth * 3) * (batteryLevel / 100f)
                     drawRoundRect(
-                        color = color,
+                        color = batteryLevelColor,
                         topLeft = Offset(strokeWidth * 1.5f, strokeWidth * 1.5f),
                         size = Size(levelWidth, size.height - strokeWidth * 3),
                         cornerRadius = CornerRadius(1.dp.toPx())
@@ -241,7 +241,7 @@ fun BatteryStatus(theme:String) {
         if (batteryLevel > 0) {
             Text(
                 text = "$batteryLevel%",
-                color = color,
+                color = themeColor,
                 fontSize = 16.sp,
             )
         }

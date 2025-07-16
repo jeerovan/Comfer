@@ -26,7 +26,6 @@ object AppInfoManager {
         getSharedPreferences(context).edit {
             val stringToSave = packageNames.joinToString(DELIMITER)
             putString(listName, stringToSave)
-            commit()
         }
     }
 }
