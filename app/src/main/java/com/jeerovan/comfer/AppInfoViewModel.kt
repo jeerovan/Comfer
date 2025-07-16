@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.graphics.drawable.Drawable
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -99,20 +98,56 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
     fun loadAppLists() {
         viewModelScope.launch {
-
             val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
             val allResolveInfos = packageManager.queryIntentActivities(intent, 0)
             val packageNames = allResolveInfos.map { it.activityInfo.packageName }.toSet()
 
-            AppInfoManager.saveAppPackageNames(
+            var quickPackageNames = AppInfoManager.getAppPackageNames(
                 getApplication(),
-                AppInfoManager.ALL_APPS_LIST_NAME,
-                packageNames
-            )
-            val primaryPackageNames = AppInfoManager.getAppPackageNames(
+                AppInfoManager.QUICK_APPS_LIST_NAME
+            )?.toSet() ?: emptySet()
+            var primaryPackageNames = AppInfoManager.getAppPackageNames(
                 getApplication(),
                 AppInfoManager.PRIMARY_APPS_LIST_NAME
             )?.toSet() ?: emptySet()
+            val allPackageNames = AppInfoManager.getAppPackageNames(
+                getApplication(),
+                AppInfoManager.ALL_APPS_LIST_NAME
+            )?.toSet() ?: emptySet()
+
+            if(allPackageNames.isNotEmpty()) { // for newly added/removed apps
+                val addedPackages = packageNames.filter { it !in allPackageNames }
+                if(addedPackages.isNotEmpty()){
+                    val quickCanHave = 5 - quickPackageNames.size
+                    quickPackageNames = quickPackageNames + addedPackages.take(quickCanHave)
+                    AppInfoManager.saveAppPackageNames(
+                        getApplication(),
+                        AppInfoManager.QUICK_APPS_LIST_NAME,
+                        quickPackageNames
+                    )
+                    primaryPackageNames = primaryPackageNames + addedPackages.drop(quickCanHave)
+                    AppInfoManager.saveAppPackageNames(
+                        getApplication(),
+                        AppInfoManager.PRIMARY_APPS_LIST_NAME,
+                        primaryPackageNames
+                    )
+                }
+                val removedPackages = allPackageNames.filter {it !in packageNames}
+                if(removedPackages.isNotEmpty()) {
+                    quickPackageNames = quickPackageNames - removedPackages.toSet()
+                    AppInfoManager.saveAppPackageNames(
+                        getApplication(),
+                        AppInfoManager.QUICK_APPS_LIST_NAME,
+                        quickPackageNames
+                    )
+                    primaryPackageNames = primaryPackageNames - removedPackages.toSet()
+                    AppInfoManager.saveAppPackageNames(
+                        getApplication(),
+                        AppInfoManager.PRIMARY_APPS_LIST_NAME,
+                        primaryPackageNames
+                    )
+                }
+            }
 
             if (primaryPackageNames.isEmpty()) { // First time launch or cache cleared
                 val quickAppListAll: List<String> = filterStandardApps(packageNames).toList()
@@ -131,21 +166,18 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     primaryAppList
                 )
             }
+            AppInfoManager.saveAppPackageNames(
+                getApplication(),
+                AppInfoManager.ALL_APPS_LIST_NAME,
+                packageNames
+            )
 
             val allApps = packageNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
 
-            val quickAppNames = AppInfoManager.getAppPackageNames(
-                getApplication(),
-                AppInfoManager.QUICK_APPS_LIST_NAME
-            ) ?: emptyList()
-            val quickApps = quickAppNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
+            val quickApps = quickPackageNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
 
-            val primaryAppNames = AppInfoManager.getAppPackageNames(
-                getApplication(),
-                AppInfoManager.PRIMARY_APPS_LIST_NAME
-            ) ?: emptyList()
             val primaryApps =
-                primaryAppNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
+                primaryPackageNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
 
             val quickAndPrimaryPackages =
                 quickApps.map { it.packageName }.toSet() + primaryApps.map { it.packageName }
