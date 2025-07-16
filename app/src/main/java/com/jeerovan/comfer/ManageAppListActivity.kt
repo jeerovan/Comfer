@@ -39,6 +39,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,10 +52,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
+import com.jeerovan.comfer.utils.GuideUtil.GuideDialog
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -83,7 +87,7 @@ class ManageAppListActivity : ComponentActivity() {
 @Composable
 fun ManageLayersScreen(viewModel: AppInfoViewModel) {
     val uiState by viewModel.uiState.collectAsState()
-
+    val context = LocalContext.current
     val quickListState = rememberLazyListState()
     val primaryListState = rememberLazyListState()
     val restListState = rememberLazyListState()
@@ -120,6 +124,28 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    var guideShown by remember { mutableStateOf(true) }
+    val guideKeyword = "app_list_guide_1"
+    var canShowGuide by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        guideShown = PreferenceManager.getBoolean(context,guideKeyword)
+        delay(1000)
+        canShowGuide = true
+    }
+    fun onGuideDismiss(){
+        PreferenceManager.setBoolean(context,guideKeyword,true)
+        guideShown = true
+    }
+    if(!guideShown && canShowGuide) GuideDialog(
+        onDismiss = {onGuideDismiss()},
+        title = "Navigation",
+        steps = listOf(
+            "Tap to select and move.",
+            "Long press to drag & re-order."
+        )
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         Row(

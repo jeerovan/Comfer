@@ -27,11 +27,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -47,16 +45,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -93,7 +84,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -107,6 +97,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.request.ImageResult
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import com.jeerovan.comfer.utils.GuideUtil.GuideDialog
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -147,18 +138,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             LauncherScreen(viewModel)
         }
-
-        com.jeerovan.comfer.utils.GuideUtil.showGuide(
-            activity = this,
-            keyword = "main_screen",
-            title = "Welcome to Comfer Launcher!",
-            steps = listOf(
-                "Swipe up to see your full app list.",
-                "Swipe down from the app list to return here.",
-                "Swipe left or right on the bottom half of the screen for custom shortcuts.",
-                "Long press the screen to open settings."
-            )
-        )
     }
 
     override fun onResume() {
@@ -201,13 +180,13 @@ fun rememberBatteryState(): State<BatteryState> {
 
 
 @Composable
-fun BatteryStatus() {
+fun BatteryStatus(theme:String) {
     val batteryState by rememberBatteryState()
     val batteryLevel = batteryState.level
     val isCharging = batteryState.isCharging
-
+    val themeColor = if (theme == "light") Color.White else Color.Black
     val isLow = batteryLevel < 10
-    val color = if (isLow) Color.Red else Color.White
+    val color = if (isLow) Color.Red else themeColor
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
@@ -219,14 +198,14 @@ fun BatteryStatus() {
                 val strokeWidth = 2.dp.toPx()
                 // Battery body
                 drawRoundRect(
-                    color = Color.White,
+                    color = color,
                     size = Size(size.width - strokeWidth, size.height),
                     style = Stroke(width = strokeWidth),
                     cornerRadius = CornerRadius(2.dp.toPx())
                 )
                 // Battery terminal
                 drawRoundRect(
-                    color = Color.White,
+                    color = color,
                     topLeft = Offset(size.width - strokeWidth, size.height / 4),
                     size = Size(strokeWidth, size.height / 2),
                     style = Fill
@@ -275,6 +254,9 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
     val haptic = LocalHapticFeedback.current
     var iconSize by remember { mutableStateOf(48.dp) }
     var isDefault by remember { mutableStateOf(false) }
+    var guideShown by remember { mutableStateOf(true) }
+    val guideKeyword = "quick_guide_1"
+    var canShowGuide by remember { mutableStateOf(false) }
 
     fun isDefaultLauncher(): Boolean {
         val intent = Intent(Intent.ACTION_MAIN)
@@ -290,6 +272,9 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
 
     LaunchedEffect(Unit) {
         isDefault = isDefaultLauncher()
+        guideShown = PreferenceManager.getBoolean(context,guideKeyword)
+        delay(1000)
+        canShowGuide = true
     }
 
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
@@ -297,6 +282,7 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 iconSize = PreferenceManager.getIconSize(context).dp
+                guideShown = PreferenceManager.getBoolean(context,guideKeyword)
                 isDefault = isDefaultLauncher()
             }
         }
@@ -305,6 +291,21 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
+
+    fun onGuideDismiss(){
+        PreferenceManager.setBoolean(context,guideKeyword,true)
+        guideShown = true
+    }
+
+    if(!guideShown && canShowGuide)GuideDialog(
+        onDismiss = {onGuideDismiss()},
+        title = "Navigation",
+        steps = listOf(
+            "Swipe up to see app list.",
+            "Swipe down to check notifications.",
+            "Long press the screen to open settings."
+        )
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -348,7 +349,7 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                     fontSize = 20.sp,
                     modifier = Modifier.padding(end = 8.dp)
                 )
-                BatteryStatus()
+                BatteryStatus("light")
             }
         }
 
@@ -487,12 +488,23 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
     val packageManager = context.packageManager
     val scope = rememberCoroutineScope()
     var iconSize by remember { mutableStateOf(48.dp) }
+    var guideShown by remember { mutableStateOf(true) }
+    val guideKeyword = "primary_guide_1"
+    var canShowGuide by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        guideShown = PreferenceManager.getBoolean(context,guideKeyword)
+        delay(1000)
+        canShowGuide = true
+    }
 
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 iconSize = PreferenceManager.getIconSize(context).dp
+                guideShown = PreferenceManager.getBoolean(context,guideKeyword)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -500,6 +512,21 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
+
+    fun onGuideDismiss(){
+        PreferenceManager.setBoolean(context,guideKeyword,true)
+        guideShown = true
+    }
+
+    if(!guideShown && canShowGuide)GuideDialog(
+        onDismiss = {onGuideDismiss()},
+        title = "Navigation",
+        steps = listOf(
+            "Double tap to open app in the middle.",
+            "Swipe down to go back.",
+            "Swipe left/right to scroll."
+        )
+    )
 
     val scrollAnimatable = remember { Animatable(0f) }
     val velocityTracker = remember { VelocityTracker() }
@@ -648,8 +675,6 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
 }
 
 private enum class DragAxis { HORIZONTAL, VERTICAL }
-
-
 
 @Composable
 fun LauncherScreen(viewModel: AppInfoViewModel) {
