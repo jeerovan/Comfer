@@ -97,6 +97,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.request.ImageResult
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.GuideUtil.GuideDialog
 import java.io.File
 import java.io.FileOutputStream
@@ -136,7 +137,7 @@ class MainActivity : ComponentActivity() {
         windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
 
         setContent {
-            LauncherScreen(viewModel)
+            ComferTheme { LauncherScreen(viewModel) }
         }
     }
 

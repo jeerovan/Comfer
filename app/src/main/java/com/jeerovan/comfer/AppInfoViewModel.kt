@@ -99,20 +99,22 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
     fun loadAppLists() {
         viewModelScope.launch {
-            var packageNames = AppInfoManager.getAppPackageNames(
+
+            val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
+            val allResolveInfos = packageManager.queryIntentActivities(intent, 0)
+            val packageNames = allResolveInfos.map { it.activityInfo.packageName }.toSet()
+
+            AppInfoManager.saveAppPackageNames(
                 getApplication(),
-                AppInfoManager.ALL_APPS_LIST_NAME
+                AppInfoManager.ALL_APPS_LIST_NAME,
+                packageNames
+            )
+            val primaryPackageNames = AppInfoManager.getAppPackageNames(
+                getApplication(),
+                AppInfoManager.PRIMARY_APPS_LIST_NAME
             )?.toSet() ?: emptySet()
 
-            if (packageNames.isEmpty()) { // First time launch or cache cleared
-                val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
-                val allResolveInfos = packageManager.queryIntentActivities(intent, 0)
-                packageNames = allResolveInfos.map { it.activityInfo.packageName }.toSet()
-                AppInfoManager.saveAppPackageNames(
-                    getApplication(),
-                    AppInfoManager.ALL_APPS_LIST_NAME,
-                    packageNames
-                )
+            if (primaryPackageNames.isEmpty()) { // First time launch or cache cleared
                 val quickAppListAll: List<String> = filterStandardApps(packageNames).toList()
                 val quickAppList = quickAppListAll.take(5)
                 AppInfoManager.saveAppPackageNames(
@@ -127,7 +129,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     getApplication(),
                     AppInfoManager.PRIMARY_APPS_LIST_NAME,
                     primaryAppList
-                ) // Default primary to all
+                )
             }
 
             val allApps = packageNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
