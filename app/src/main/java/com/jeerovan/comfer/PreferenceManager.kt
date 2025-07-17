@@ -8,6 +8,7 @@ object PreferenceManager {
     private const val PREFS_NAME = "com.jeerovan.comfer.Prefs"
     private const val KEY_WALLPAPER_MOTION = "wallpaper_motion"
     private const val KEY_ICON_SIZE = "icon_size"
+    private const val KEY_IMAGE_URL = "image_url"
 
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -57,6 +58,16 @@ object PreferenceManager {
     fun setBoolean(context: Context,key:String,state:Boolean) {
         getPrefs(context).edit {
             putBoolean(key,state)
+        }
+    }
+
+    fun getImageUrl(context: Context): String? {
+        return getPrefs(context).getString(KEY_IMAGE_URL, null)
+    }
+
+    fun setImageUrl(context: Context, url: String) {
+        getPrefs(context).edit {
+            putString(KEY_IMAGE_URL, url)
         }
     }
 }
