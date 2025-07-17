@@ -125,7 +125,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                         AppInfoManager.QUICK_APPS_LIST_NAME,
                         quickPackageNames
                     )
-                    primaryPackageNames = primaryPackageNames + addedPackages.drop(quickCanHave)
+                    primaryPackageNames = addedPackages.drop(quickCanHave).toSet() + primaryPackageNames
                     AppInfoManager.saveAppPackageNames(
                         getApplication(),
                         AppInfoManager.PRIMARY_APPS_LIST_NAME,
