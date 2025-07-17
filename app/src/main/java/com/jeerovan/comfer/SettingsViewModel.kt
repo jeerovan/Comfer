@@ -24,7 +24,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         loadSettings()
     }
 
-    private fun loadSettings() {
+    fun loadSettings() {
         viewModelScope.launch {
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val iconSize = PreferenceManager.getIconSize(getApplication())

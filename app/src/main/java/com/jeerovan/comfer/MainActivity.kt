@@ -119,7 +119,8 @@ import kotlinx.coroutines.launch
 data class BatteryState(val level: Int, val isCharging: Boolean)
 
 class MainActivity : ComponentActivity() {
-    private val viewModel: AppInfoViewModel by viewModels()
+    private val appInfoViewModel: AppInfoViewModel by viewModels()
+    private val settingInfoViewModel:SettingsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -137,13 +138,14 @@ class MainActivity : ComponentActivity() {
         windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
 
         setContent {
-            ComferTheme { LauncherScreen(viewModel) }
+            ComferTheme { LauncherScreen(appInfoViewModel,settingInfoViewModel) }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        viewModel.loadAppLists()
+        appInfoViewModel.loadAppLists()
+        settingInfoViewModel.loadSettings()
     }
 }
 
@@ -678,26 +680,28 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
 private enum class DragAxis { HORIZONTAL, VERTICAL }
 
 @Composable
-fun LauncherScreen(viewModel: AppInfoViewModel) {
+fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: SettingsViewModel) {
     val context = LocalContext.current
     var isAppListVisible by remember { mutableStateOf(false) }
     var backgroundImageUri by remember { mutableStateOf<String?>(null) }
-    var wallpaperMotionEnabled by remember { mutableStateOf(true) }
 
-    val appInfoUiState by viewModel.uiState.collectAsState()
+    val appInfoUiState by appInfoViewModel.uiState.collectAsState()
+    val settingInfoUiState by settingsViewModel.uiState.collectAsState()
+
     val quickApps = appInfoUiState.quickApps
     val primaryApps = appInfoUiState.primaryApps
+
+    val wallpaperMotionEnabled = settingInfoUiState.wallpaperMotionEnabled
 
     val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(Unit) {
-        wallpaperMotionEnabled = PreferenceManager.getWallpaperMotion(context)
         val cachedImagePath = PreferenceManager.getBackgroundImagePath(context)
         if (cachedImagePath != null && File(cachedImagePath).exists()) {
             backgroundImageUri = cachedImagePath
         } else {
             launch {
-                val imageUrl = "https://images.unsplash.com/photo-1637532766937-0504f310bd6e?w=2000&q=99"
+                val imageUrl = "https://images.unsplash.com/photo-1682268342887-26a7aa47be7f?w=2000&q=99"
                 val request = ImageRequest.Builder(context)
                     .data(imageUrl)
                     .build()
@@ -748,8 +752,6 @@ fun LauncherScreen(viewModel: AppInfoViewModel) {
             val observer = LifecycleEventObserver { _, event ->
                 if (event == Lifecycle.Event.ON_RESUME) {
                     isScreenVisible = true
-                    // Reload the setting when the app resumes
-                    wallpaperMotionEnabled = PreferenceManager.getWallpaperMotion(context)
                 } else if (event == Lifecycle.Event.ON_PAUSE) {
                     isScreenVisible = false
                 }
@@ -772,9 +774,7 @@ fun LauncherScreen(viewModel: AppInfoViewModel) {
                     angle.snapTo(newAngle)
                     lastFrameTime = frameTime
                 }
-            } /*else {
-                angle.snapTo(0f)
-            }*/
+            }
         }
 
         val xOffset = cos(angle.value) * maxWidthPx * 0.08f
