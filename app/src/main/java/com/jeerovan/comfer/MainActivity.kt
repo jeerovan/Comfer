@@ -98,6 +98,7 @@ import coil.request.ImageRequest
 import coil.request.ImageResult
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
+import com.jeerovan.comfer.utils.CommonUtil.stringToColor
 import com.jeerovan.comfer.utils.GuideUtil.GuideDialog
 import java.io.File
 import java.io.FileOutputStream
@@ -183,11 +184,10 @@ fun rememberBatteryState(): State<BatteryState> {
 
 
 @Composable
-fun BatteryStatus(theme:String) {
+fun BatteryStatus(themeColor: Color) {
     val batteryState by rememberBatteryState()
     val batteryLevel = batteryState.level
     val isCharging = batteryState.isCharging
-    val themeColor = if (theme == "light") Color.White else Color.Black
     val isLow = batteryLevel < 10
     val batteryLevelColor = if (isLow) Color.Red else themeColor
 
@@ -252,7 +252,7 @@ fun BatteryStatus(theme:String) {
 }
 
 @Composable
-fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
+fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () -> Unit) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     var iconSize by remember { mutableStateOf(48.dp) }
@@ -276,7 +276,7 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
     LaunchedEffect(Unit) {
         isDefault = isDefaultLauncher()
         guideShown = PreferenceManager.getBoolean(context,guideKeyword)
-        delay(1000)
+        delay(500)
         canShowGuide = true
     }
 
@@ -338,21 +338,23 @@ fun QuickListOverlay(apps: List<AppInfo>, onSwipeUp: () -> Unit) {
                     delay(1000)
                 }
             }
-
+            val textColor = imageData?.color?.let { colorName ->
+                stringToColor(colorName)
+            } ?: Color.White
             Text(
                 text = time,
-                color = Color.White,
+                color = textColor,
                 fontSize = 60.sp,
                 fontWeight = FontWeight.Light
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = date,
-                    color = Color.White,
+                    color = textColor,
                     fontSize = 20.sp,
                     modifier = Modifier.padding(end = 8.dp)
                 )
-                BatteryStatus("light")
+                BatteryStatus(textColor)
             }
         }
 
@@ -693,15 +695,57 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
 
     val wallpaperMotionEnabled = settingInfoUiState.wallpaperMotionEnabled
 
+    var imageData:ImageData? by remember { mutableStateOf(null) }
+
     val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(Unit) {
+        imageData = PreferenceManager.getImageData(context)
         val cachedImagePath = PreferenceManager.getBackgroundImagePath(context)
         if (cachedImagePath != null && File(cachedImagePath).exists()) {
             backgroundImageUri = cachedImagePath
+            if(PreferenceManager.newImageAvailable(context)) {
+                val tempImageData: ImageData? = PreferenceManager.getTempImageData(context)
+                if (tempImageData != null) {
+                    val imageUrl = tempImageData.imageUrl
+                    launch {
+                        val request = ImageRequest.Builder(context)
+                            .data(imageUrl)
+                            .build()
+                        val result = (Coil.imageLoader(context) as coil.ImageLoader).execute(request)
+                        if (result is ImageResult) {
+                            val drawable = result.drawable
+                            if (drawable != null) {
+                                val file = File(context.cacheDir, "background.jpg")
+                                val stream = FileOutputStream(file)
+                                drawable.toBitmap()
+                                    .compress(android.graphics.Bitmap.CompressFormat.JPEG, 100, stream)
+                                stream.close()
+                                PreferenceManager.setBackgroundImagePath(context, file.absolutePath)
+                                backgroundImageUri = file.absolutePath
+                                PreferenceManager.setImageDownloaded(context)
+                                imageData = PreferenceManager.getImageData(context)
+                                // Set system wallpaper
+                                val wallpaperManager = WallpaperManager.getInstance(context)
+                                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                    wallpaperManager.setBitmap(
+                                        bitmap,
+                                        null,
+                                        true,
+                                        WallpaperManager.FLAG_SYSTEM
+                                    )
+                                } else {
+                                    wallpaperManager.setBitmap(bitmap)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         } else {
             launch {
-                val imageUrl = "https://images.unsplash.com/photo-1682268342887-26a7aa47be7f?w=2000&q=99"
+                val imageUrl = "https://images.unsplash.com/photo-1592195241273-5c30d3935d8c?w=2000&q=99"
                 val request = ImageRequest.Builder(context)
                     .data(imageUrl)
                     .build()
@@ -807,7 +851,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
             enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
         ) {
-            QuickListOverlay(apps = quickApps, onSwipeUp = { isAppListVisible = true })
+            QuickListOverlay(apps = quickApps, imageData = imageData, onSwipeUp = { isAppListVisible = true })
         }
 
         // app list - second layer

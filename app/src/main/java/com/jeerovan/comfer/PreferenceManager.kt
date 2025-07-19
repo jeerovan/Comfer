@@ -2,6 +2,9 @@ package com.jeerovan.comfer
 
 import android.content.Context
 import androidx.core.content.edit
+import com.jeerovan.comfer.utils.CommonUtil
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 object PreferenceManager {
     private const val PREF_BACKGROUND_IMAGE = "background_image"
@@ -9,8 +12,20 @@ object PreferenceManager {
     private const val KEY_WALLPAPER_MOTION = "wallpaper_motion"
     private const val KEY_ICON_SIZE = "icon_size"
     private const val KEY_IMAGE_URL = "image_url"
+    private const val DUMMY_NAME = "dummy_name"
+    private const val USER_NAME = "user_name"
+    private const val KEY_IMAGE_DATA = "image_data"
+    private const  val KEY_TEMP_IMAGE_DATA = "temp_image_data"
+    private const val IMAGE_AVAILABLE = "image_available"
 
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    fun onFirstOpen(context: Context){
+        val dummyName = CommonUtil.randomCode("comfer",6)
+        getPrefs(context).edit {
+            putString(DUMMY_NAME, dummyName)
+        }
+    }
 
     fun setWallpaperMotion(context: Context, enabled: Boolean) {
         getPrefs(context).edit {
@@ -68,6 +83,68 @@ object PreferenceManager {
     fun setImageUrl(context: Context, url: String) {
         getPrefs(context).edit {
             putString(KEY_IMAGE_URL, url)
+        }
+    }
+
+    fun setUsername(context: Context,name:String){
+        getPrefs(context).edit {
+            putString(USER_NAME, name)
+        }
+    }
+
+    fun getUsername(context: Context):String? {
+        val prefs = getPrefs(context)
+        return prefs.getString(USER_NAME,prefs.getString(DUMMY_NAME,""))
+    }
+
+    fun saveImageData(context: Context, imageData: ImageData) {
+        val previousImageData:ImageData? = getImageData(context);
+        if (previousImageData != null){
+            if(previousImageData.id == imageData.id){
+                // must be saved/overwritten for changes other than image url
+                val jsonString = Json.encodeToString(imageData)
+                getPrefs(context).edit {
+                    putString(KEY_IMAGE_DATA, jsonString)
+                }
+            } else {
+                val jsonString = Json.encodeToString(imageData)
+                getPrefs(context).edit {
+                    putString(KEY_TEMP_IMAGE_DATA, jsonString)
+                    putBoolean(IMAGE_AVAILABLE,true)
+                }
+            }
+        } else {
+            // must be saved/overwritten for changes other than image url
+            val jsonString = Json.encodeToString(imageData)
+            getPrefs(context).edit {
+                putString(KEY_TEMP_IMAGE_DATA, jsonString)
+                putBoolean(IMAGE_AVAILABLE,true)
+            }
+        }
+    }
+
+    fun getImageData(context: Context): ImageData? {
+        val prefs = getPrefs(context)
+        val jsonString = prefs
+            .getString(KEY_IMAGE_DATA, null)
+        return jsonString?.let { Json.decodeFromString(it) }
+    }
+    fun getTempImageData(context: Context): ImageData? {
+        val prefs = getPrefs(context)
+        val jsonString = prefs
+            .getString(KEY_TEMP_IMAGE_DATA, null)
+        return jsonString?.let { Json.decodeFromString(it) }
+    }
+
+    fun newImageAvailable(context: Context):Boolean{
+        return getPrefs(context).getBoolean(IMAGE_AVAILABLE,false)
+    }
+    fun setImageDownloaded(context: Context){
+        val tempImageData:ImageData? = getTempImageData(context)
+        val jsonString = Json.encodeToString(tempImageData)
+        getPrefs(context).edit {
+            putBoolean(IMAGE_AVAILABLE,false)
+            putString(KEY_IMAGE_DATA, jsonString)
         }
     }
 }

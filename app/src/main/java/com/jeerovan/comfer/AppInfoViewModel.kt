@@ -150,6 +150,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             }
 
             if (primaryPackageNames.isEmpty()) { // First time launch or cache cleared
+                PreferenceManager.onFirstOpen(getApplication())
                 val quickAppListAll: List<String> = filterStandardApps(packageNames).toList()
                 val quickAppList = quickAppListAll.take(5)
                 AppInfoManager.saveAppPackageNames(

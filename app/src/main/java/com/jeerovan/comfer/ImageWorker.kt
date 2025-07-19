@@ -15,7 +15,16 @@ import kotlinx.serialization.json.Json
 import java.util.*
 
 @Serializable
-data class ImageResponse(val imageUrl: String)
+data class ImageData(
+    val id:Int,
+    val imageUrl: String,
+    val theme: String,
+    val color: String,
+    val position: String,
+    val paddingTop: Int,
+    val paddingStart: Int,
+    val paddingEnd: Int,
+    val paddingBottom: Int)
 
 class ImageWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
@@ -23,9 +32,8 @@ class ImageWorker(appContext: Context, workerParams: WorkerParameters) :
     override suspend fun doWork(): Result {
         return try {
             val calendar = Calendar.getInstance()
-            val date = calendar.get(Calendar.DAY_OF_MONTH)
             val hour = calendar.get(Calendar.HOUR_OF_DAY)
-
+            val name = PreferenceManager.getUsername(applicationContext)
             val client = HttpClient(CIO) {
                 install(ContentNegotiation) {
                     json(Json {
@@ -33,13 +41,12 @@ class ImageWorker(appContext: Context, workerParams: WorkerParameters) :
                     })
                 }
             }
-
-            val response: ImageResponse = client.get("https://example.com/image") {
-                parameter("date", date)
+            val response: ImageData = client.get("https://jeerovan.com/api") {
+                parameter("name",name)
                 parameter("hour", hour)
             }.body()
 
-            PreferenceManager.setImageUrl(applicationContext, response.imageUrl)
+            PreferenceManager.saveImageData(applicationContext, response)
             client.close()
             Log.d("ImageWorker", "Successfully fetched and saved image URL: ${response.imageUrl}")
             Result.success()
