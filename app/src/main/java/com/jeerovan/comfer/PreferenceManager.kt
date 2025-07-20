@@ -1,10 +1,13 @@
 package com.jeerovan.comfer
 
 import android.content.Context
+import android.util.Log
 import androidx.core.content.edit
 import com.jeerovan.comfer.utils.CommonUtil
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.util.Calendar
+import kotlin.math.min
 
 object PreferenceManager {
     private const val PREF_BACKGROUND_IMAGE = "background_image"
@@ -148,11 +151,20 @@ object PreferenceManager {
         }
     }
 
-    fun getHour(context: Context):Number{
+    fun getHour(context: Context):Int{
+        val calendar = Calendar.getInstance()
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val prefs = getPrefs(context)
         val existingHour = prefs.getInt("now_hour",0)
-        val hour = if(existingHour == 0 || existingHour == 7) { 6 } else { 7}
-        prefs.edit { putInt("now_hour",hour) }
-        return hour
+        return if(existingHour != hour) {
+            hour
+        } else {
+            0
+        }
+    }
+    fun setHour(context: Context,hour:Int){
+        getPrefs(context).edit {
+            putInt("now_hour",hour)
+        }
     }
 }

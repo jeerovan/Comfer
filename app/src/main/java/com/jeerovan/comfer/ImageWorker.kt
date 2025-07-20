@@ -30,30 +30,30 @@ class ImageWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
-        return try {
-            //val calendar = Calendar.getInstance()
-            //val hour = calendar.get(Calendar.HOUR_OF_DAY)
-            val hour = PreferenceManager.getHour(applicationContext)
-            val name = PreferenceManager.getUsername(applicationContext)
-            val client = HttpClient(OkHttp) {
-                install(ContentNegotiation) {
-                    json(Json {
-                        ignoreUnknownKeys = true
-                    })
+        val hour = PreferenceManager.getHour(applicationContext)
+        if (hour > 0) {
+            return try {
+                val name = PreferenceManager.getUsername(applicationContext)
+                val client = HttpClient(OkHttp) {
+                    install(ContentNegotiation) {
+                        json(Json {
+                            ignoreUnknownKeys = true
+                        })
+                    }
                 }
+                val response: ImageData = client.get("https://comfer.jeerovan.com/api") {
+                    parameter("name", name)
+                    parameter("hour", hour)
+                }.body()
+                PreferenceManager.saveImageData(applicationContext, response)
+                PreferenceManager.setHour(applicationContext,hour)
+                client.close()
+                Result.success()
+            } catch (e: Exception) {
+                Log.e("ImageWorker", "Error fetching image", e)
+                Result.failure()
             }
-            val response: ImageData = client.get("https://comfer.jeerovan.com/api") {
-                parameter("name",name)
-                parameter("hour", hour)
-            }.body()
-            Log.d("ImageWorker",response.toString())
-            PreferenceManager.saveImageData(applicationContext, response)
-            client.close()
-            Log.d("ImageWorker", "Successfully fetched and saved image URL: ${response.imageUrl}")
-            Result.success()
-        } catch (e: Exception) {
-            Log.e("ImageWorker", "Error fetching image", e)
-            Result.failure()
         }
+        else { return Result.success()}
     }
 }

@@ -67,10 +67,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return _uiState.value.downloading
     }
 
-    suspend fun fetchImageData(applicationContext: Context){
+    suspend fun fetchImageData(applicationContext: Context,hour:Int){
         try {
-            val calendar = Calendar.getInstance()
-            val hour = calendar.get(Calendar.HOUR_OF_DAY)
             val name = PreferenceManager.getUsername(applicationContext)
             val client = HttpClient(OkHttp) {
                 install(ContentNegotiation) {
@@ -80,28 +78,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
             val response: ImageData = client.get("https://comfer.jeerovan.com/api") {
-                parameter("name",name)
+                parameter("name", name)
                 parameter("hour", hour)
             }.body()
-            Log.d("ImageWorker",response.toString())
+            Log.d("ImageWorker", response.toString())
             PreferenceManager.saveImageData(applicationContext, response)
             client.close()
-            Log.d("ImageWorker", "Successfully fetched and saved image URL: ${response.imageUrl}")
-
+            PreferenceManager.setHour(applicationContext,hour)
         } catch (e: Exception) {
             Log.e("ImageWorker", "Error fetching image", e)
-
         }
     }
     fun fetchImage(){
         Log.i("MainViewModel","Fetch Image")
         viewModelScope.launch {
-            if(!isDownloading()) {
+            val applicationContext: Application = getApplication()
+            val hour = PreferenceManager.getHour(applicationContext)
+            if(!isDownloading() && hour > 0) {
                 setDownloading(true)
-                val applicationContext: Application = getApplication()
                 // first fetch imageData
-                fetchImageData(applicationContext)
-
+                fetchImageData(applicationContext,hour)
                 delay(500)
                 if (PreferenceManager.newImageAvailable(applicationContext)) {
                     Log.i("MainViewModel", "Downloading New Image")
@@ -116,7 +112,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         if (result is ImageResult) {
                             val drawable = result.drawable
                             if (drawable != null) {
-                                val file = File(applicationContext.filesDir, "background.jpg")
+                                val oldFilePath:String? = PreferenceManager.getBackgroundImagePath(applicationContext)
+                                if(oldFilePath != null) {
+                                    val oldFile = File(oldFilePath)
+                                    oldFile.delete()
+                                }
+                                val filename = "comfer_${tempImageData.id}.jpg"
+                                val file = File(applicationContext.filesDir, filename)
                                 val stream = FileOutputStream(file)
                                 drawable.toBitmap()
                                     .compress(
