@@ -8,7 +8,7 @@ class ComferApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        setupImageWorker()
+        //setupImageWorker()
     }
 
     private fun setupImageWorker() {
@@ -16,7 +16,7 @@ class ComferApp : Application() {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val periodicWorkRequest = PeriodicWorkRequestBuilder<ImageWorker>(1, TimeUnit.HOURS)
+        val periodicWorkRequest = PeriodicWorkRequestBuilder<ImageWorker>(6, TimeUnit.MINUTES)
             .setConstraints(constraints)
             .build()
 

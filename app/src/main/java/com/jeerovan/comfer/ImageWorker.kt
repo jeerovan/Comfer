@@ -6,7 +6,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
@@ -31,21 +31,22 @@ class ImageWorker(appContext: Context, workerParams: WorkerParameters) :
 
     override suspend fun doWork(): Result {
         return try {
-            val calendar = Calendar.getInstance()
-            val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            //val calendar = Calendar.getInstance()
+            //val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            val hour = PreferenceManager.getHour(applicationContext)
             val name = PreferenceManager.getUsername(applicationContext)
-            val client = HttpClient(CIO) {
+            val client = HttpClient(OkHttp) {
                 install(ContentNegotiation) {
                     json(Json {
                         ignoreUnknownKeys = true
                     })
                 }
             }
-            val response: ImageData = client.get("https://jeerovan.com/api") {
+            val response: ImageData = client.get("https://comfer.jeerovan.com/api") {
                 parameter("name",name)
                 parameter("hour", hour)
             }.body()
-
+            Log.d("ImageWorker",response.toString())
             PreferenceManager.saveImageData(applicationContext, response)
             client.close()
             Log.d("ImageWorker", "Successfully fetched and saved image URL: ${response.imageUrl}")

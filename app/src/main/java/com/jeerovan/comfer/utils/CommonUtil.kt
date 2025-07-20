@@ -3,6 +3,7 @@ package com.jeerovan.comfer.utils
 import android.app.WallpaperManager
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Paint.Align
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.core.animateFloatAsState
@@ -42,7 +43,7 @@ object CommonUtil {
             .lowercase()
     }
     fun stringToColor(colorString: String): Color {
-        return when (colorString.lowercase()) {
+        return when (colorString) {
             "White" -> Color.White
             "Black" -> Color.Black
             "Red" -> Color.Red
@@ -56,6 +57,17 @@ object CommonUtil {
             "LightGray" -> Color.LightGray
             // Add more colors as needed
             else -> Color.Unspecified // A default or error case
+        }
+    }
+    fun alignmentFromString(alignmentString:String):Alignment {
+        return when (alignmentString) {
+            "Center" -> Alignment.Center
+            "TopStart" -> Alignment.TopStart
+            "TopCenter" -> Alignment.TopCenter
+            "TopEnd" -> Alignment.TopEnd
+            "CenterStart" -> Alignment.CenterStart
+            "CenterEnd" -> Alignment.CenterEnd
+            else -> Alignment.TopCenter
         }
     }
 }

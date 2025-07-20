@@ -147,4 +147,12 @@ object PreferenceManager {
             putString(KEY_IMAGE_DATA, jsonString)
         }
     }
+
+    fun getHour(context: Context):Number{
+        val prefs = getPrefs(context)
+        val existingHour = prefs.getInt("now_hour",0)
+        val hour = if(existingHour == 0 || existingHour == 7) { 6 } else { 7}
+        prefs.edit { putInt("now_hour",hour) }
+        return hour
+    }
 }

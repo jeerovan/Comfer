@@ -2,18 +2,16 @@ package com.jeerovan.comfer
 
 import android.annotation.SuppressLint
 import android.app.ActivityOptions
-import android.app.WallpaperManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Resources
-import android.graphics.BitmapFactory
 import android.os.BatteryManager
-import android.os.Build
 import android.os.Bundle
 import android.provider.AlarmClock
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
@@ -35,7 +33,6 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -92,16 +89,14 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import coil.Coil
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import coil.request.ImageResult
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
+import com.jeerovan.comfer.utils.CommonUtil.alignmentFromString
 import com.jeerovan.comfer.utils.CommonUtil.stringToColor
 import com.jeerovan.comfer.utils.GuideUtil.GuideDialog
 import java.io.File
-import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -123,6 +118,8 @@ class MainActivity : ComponentActivity() {
     private val appInfoViewModel: AppInfoViewModel by viewModels()
     private val settingInfoViewModel:SettingsViewModel by viewModels()
 
+    private val mainViewModel: MainViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -139,14 +136,16 @@ class MainActivity : ComponentActivity() {
         windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
 
         setContent {
-            ComferTheme { LauncherScreen(appInfoViewModel,settingInfoViewModel) }
+            ComferTheme { LauncherScreen(appInfoViewModel,settingInfoViewModel,mainViewModel) }
         }
     }
 
     override fun onResume() {
         super.onResume()
+        Log.i("MainActivity","Resumed")
         appInfoViewModel.loadAppLists()
         settingInfoViewModel.loadSettings()
+        mainViewModel.fetchImage()
     }
 }
 
@@ -277,7 +276,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () ->
         isDefault = isDefaultLauncher()
         guideShown = PreferenceManager.getBoolean(context,guideKeyword)
         delay(500)
-        canShowGuide = true
+        //canShowGuide = true
     }
 
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
@@ -309,11 +308,13 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () ->
             "Long press the screen to open settings."
         )
     )
-
+    val dateTimeAlignment = imageData?.position?.let { position ->
+        alignmentFromString(position)
+    } ?: Alignment.TopCenter
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .align(Alignment.TopCenter)
+                .align(dateTimeAlignment)
                 //.border(1.dp,color = Color.Red)
                 .padding(top=40.dp,start=20.dp,end=20.dp, bottom = 40.dp)
                 .clickable {
@@ -682,99 +683,30 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
 private enum class DragAxis { HORIZONTAL, VERTICAL }
 
 @Composable
-fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: SettingsViewModel) {
+fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: SettingsViewModel,mainViewModel: MainViewModel) {
     val context = LocalContext.current
     var isAppListVisible by remember { mutableStateOf(false) }
-    var backgroundImageUri by remember { mutableStateOf<String?>(null) }
+    var backgroundImage by remember { mutableStateOf<String?>(null) }
 
     val appInfoUiState by appInfoViewModel.uiState.collectAsState()
     val settingInfoUiState by settingsViewModel.uiState.collectAsState()
+    val mainUiState by mainViewModel.uiState.collectAsState()
 
     val quickApps = appInfoUiState.quickApps
     val primaryApps = appInfoUiState.primaryApps
 
     val wallpaperMotionEnabled = settingInfoUiState.wallpaperMotionEnabled
 
-    var imageData:ImageData? by remember { mutableStateOf(null) }
+    val imageData = mainUiState.imageData
+    val cachedImagePath = mainUiState.imagePath
 
     val haptic = LocalHapticFeedback.current
 
-    LaunchedEffect(Unit) {
-        imageData = PreferenceManager.getImageData(context)
-        val cachedImagePath = PreferenceManager.getBackgroundImagePath(context)
-        if (cachedImagePath != null && File(cachedImagePath).exists()) {
-            backgroundImageUri = cachedImagePath
-            if(PreferenceManager.newImageAvailable(context)) {
-                val tempImageData: ImageData? = PreferenceManager.getTempImageData(context)
-                if (tempImageData != null) {
-                    val imageUrl = tempImageData.imageUrl
-                    launch {
-                        val request = ImageRequest.Builder(context)
-                            .data(imageUrl)
-                            .build()
-                        val result = (Coil.imageLoader(context) as coil.ImageLoader).execute(request)
-                        if (result is ImageResult) {
-                            val drawable = result.drawable
-                            if (drawable != null) {
-                                val file = File(context.cacheDir, "background.jpg")
-                                val stream = FileOutputStream(file)
-                                drawable.toBitmap()
-                                    .compress(android.graphics.Bitmap.CompressFormat.JPEG, 100, stream)
-                                stream.close()
-                                PreferenceManager.setBackgroundImagePath(context, file.absolutePath)
-                                backgroundImageUri = file.absolutePath
-                                PreferenceManager.setImageDownloaded(context)
-                                imageData = PreferenceManager.getImageData(context)
-                                // Set system wallpaper
-                                val wallpaperManager = WallpaperManager.getInstance(context)
-                                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                    wallpaperManager.setBitmap(
-                                        bitmap,
-                                        null,
-                                        true,
-                                        WallpaperManager.FLAG_SYSTEM
-                                    )
-                                } else {
-                                    wallpaperManager.setBitmap(bitmap)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            launch {
-                val imageUrl = "https://images.unsplash.com/photo-1592195241273-5c30d3935d8c?w=2000&q=99"
-                val request = ImageRequest.Builder(context)
-                    .data(imageUrl)
-                    .build()
-                val result = (Coil.imageLoader(context) as coil.ImageLoader).execute(request)
-                if (result is ImageResult) {
-                    val drawable = result.drawable
-                    if (drawable != null) {
-                        val file = File(context.cacheDir, "background.jpg")
-                        val stream = FileOutputStream(file)
-                        drawable.toBitmap().compress(android.graphics.Bitmap.CompressFormat.JPEG, 100, stream)
-                        stream.close()
-                        PreferenceManager.setBackgroundImagePath(context, file.absolutePath)
-                        backgroundImageUri = file.absolutePath
-
-                        // Set system wallpaper
-                        val wallpaperManager = WallpaperManager.getInstance(context)
-                        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                            wallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_SYSTEM)
-                        } else {
-                            wallpaperManager.setBitmap(bitmap)
-                        }
-                    }
-                }
-            }
-        }
+    if (cachedImagePath != null && File(cachedImagePath).exists()) {
+        backgroundImage = cachedImagePath
     }
 
-    BoxWithConstraints(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
@@ -784,8 +716,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
                         context.startActivity(Intent(context, SettingsActivity::class.java))
                     })
             }) {
-        val maxWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
-        val maxHeightPx = with(LocalDensity.current) { maxHeight.toPx() }
+        val maxWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+        val maxHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
         val angle = remember { Animatable(0f) }
 
@@ -824,12 +756,12 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
         val xOffset = cos(angle.value) * maxWidthPx * 0.08f
         val yOffset = sin(angle.value) * maxHeightPx * 0.08f
 
-        if (backgroundImageUri != null) {
+        if (backgroundImage != null && wallpaperMotionEnabled) {
             Image(
                 painter = rememberAsyncImagePainter(
                     ImageRequest
                         .Builder(LocalContext.current)
-                        .data(backgroundImageUri)
+                        .data(backgroundImage)
                         .crossfade(true)
                         .build()
                 ),
@@ -886,10 +818,10 @@ fun UshapedAppList(
     val totalIcons = apps.size
     if (totalIcons == 0) return
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
-        val width = with(density) { maxWidth.toPx() }
-        val height = with(density) { maxHeight.toPx() }
+        val width = with(density) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+        val height = with(density) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
         val sidePaddingPx = with(density) { sidePadding.toPx() }
         val topPaddingPx = with(density) { topPadding.toPx() }
@@ -915,7 +847,7 @@ fun UshapedAppList(
 
         if (numSideIcons <= 0 || numTopIcons <= 1) {
             // Not enough space to draw a meaningful shape
-            return@BoxWithConstraints
+            return@Box
         }
 
         val numVisibleIcons = numSideIcons * 2 + numTopIcons + 1
