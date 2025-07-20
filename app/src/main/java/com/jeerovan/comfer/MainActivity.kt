@@ -277,7 +277,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () ->
         isDefault = isDefaultLauncher()
         guideShown = PreferenceManager.getBoolean(context,guideKeyword)
         delay(500)
-        //canShowGuide = true
+        canShowGuide = true
     }
 
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
@@ -304,9 +304,11 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () ->
         onDismiss = {onGuideDismiss()},
         title = "Navigation",
         steps = listOf(
-            "Swipe up to see app list.",
-            "Swipe down to check notifications.",
-            "Long press the screen to open settings."
+            "Swipe up to see apps.",
+            "Swipe down to see notifications.",
+            "Long press the screen to open settings.",
+            "Tap on Date-Time to show alarms.",
+            "Long press on Date-Time to open Calendar"
         )
     )
     val dateTimeAlignment = imageData?.position?.let { position ->
@@ -549,7 +551,9 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
         steps = listOf(
             "Double tap to open app in the middle.",
             "Swipe down to go back.",
-            "Swipe left/right to scroll."
+            "Swipe left/right to scroll.",
+            "Tap on icon to open app.",
+            "Long press on icon to open app info"
         )
     )
 

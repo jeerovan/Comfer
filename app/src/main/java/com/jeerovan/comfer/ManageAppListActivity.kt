@@ -143,7 +143,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
         title = "Navigation",
         steps = listOf(
             "Tap to select and move.",
-            "Long press to drag & re-order."
+            "Long press and drag to re-order."
         )
     )
 
