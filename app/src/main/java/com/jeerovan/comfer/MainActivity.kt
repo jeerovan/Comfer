@@ -10,6 +10,7 @@ import android.content.res.Resources
 import android.os.BatteryManager
 import android.os.Bundle
 import android.provider.AlarmClock
+import android.provider.CalendarContract
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -317,11 +318,29 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () ->
                 .align(dateTimeAlignment)
                 //.border(1.dp,color = Color.Red)
                 .padding(top=40.dp,start=20.dp,end=20.dp, bottom = 40.dp)
-                .clickable {
-                    val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(intent)
-                    }
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            // Open Alarms
+                            val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
+                            if (intent.resolveActivity(context.packageManager) != null) {
+                                context.startActivity(intent)
+                            }
+                        },
+                        onLongPress = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            // Open Calendar
+                            val calendarIntent = Intent(
+                                Intent.ACTION_VIEW,
+                                CalendarContract.CONTENT_URI.buildUpon()
+                                    .appendPath("time")
+                                    .build()
+                            )
+                            if (calendarIntent.resolveActivity(context.packageManager) != null) {
+                                context.startActivity(calendarIntent)
+                            }
+                        }
+                    )
                 },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
