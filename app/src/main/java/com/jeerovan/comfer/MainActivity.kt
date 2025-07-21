@@ -90,6 +90,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.lifecycleScope
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
@@ -144,9 +145,11 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         Log.i("MainActivity","Resumed")
-        appInfoViewModel.loadAppLists()
-        settingInfoViewModel.loadSettings()
-        mainViewModel.fetchImage()
+        lifecycleScope.launch {
+            appInfoViewModel.loadAppLists()
+            settingInfoViewModel.loadSettings()
+            mainViewModel.fetchImage()
+        }
     }
 }
 
