@@ -98,92 +98,104 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
     fun loadAppLists() {
         viewModelScope.launch {
+            // 1. Get all currently installed launchable apps
             val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
-            val allResolveInfos = packageManager.queryIntentActivities(intent, 0)
-            val packageNames = allResolveInfos.map { it.activityInfo.packageName }.toSet()
+            val allCurrentResolveInfos = packageManager.queryIntentActivities(intent, 0)
+            val allCurrentPackageNames = allCurrentResolveInfos.map { it.activityInfo.packageName }.toSet()
 
-            var quickPackageNames = AppInfoManager.getAppPackageNames(
+            // 2. Load previously saved app lists, preserving order
+            val savedQuickPackageNames = AppInfoManager.getAppPackageNames(
                 getApplication(),
                 AppInfoManager.QUICK_APPS_LIST_NAME
-            )?.toSet() ?: emptySet()
-            var primaryPackageNames = AppInfoManager.getAppPackageNames(
+            ) ?: emptyList()
+            val savedPrimaryPackageNames = AppInfoManager.getAppPackageNames(
                 getApplication(),
                 AppInfoManager.PRIMARY_APPS_LIST_NAME
-            )?.toSet() ?: emptySet()
-            val allPackageNames = AppInfoManager.getAppPackageNames(
+            ) ?: emptyList()
+            val savedAllPackageNames = AppInfoManager.getAppPackageNames(
                 getApplication(),
                 AppInfoManager.ALL_APPS_LIST_NAME
             )?.toSet() ?: emptySet()
 
-            if(allPackageNames.isNotEmpty()) { // for newly added/removed apps
-                val addedPackages = packageNames.filter { it !in allPackageNames }
-                if(addedPackages.isNotEmpty()){
-                    val quickCanHave = 5 - quickPackageNames.size
-                    quickPackageNames = quickPackageNames + addedPackages.take(quickCanHave)
-                    AppInfoManager.saveAppPackageNames(
-                        getApplication(),
-                        AppInfoManager.QUICK_APPS_LIST_NAME,
-                        quickPackageNames
-                    )
-                    primaryPackageNames = addedPackages.drop(quickCanHave).toSet() + primaryPackageNames
-                    AppInfoManager.saveAppPackageNames(
-                        getApplication(),
-                        AppInfoManager.PRIMARY_APPS_LIST_NAME,
-                        primaryPackageNames
-                    )
+            val isFirstLaunch = savedAllPackageNames.isEmpty()
+
+            val finalQuickPackageNames: List<String>
+            val finalPrimaryPackageNames: List<String>
+
+            if (isFirstLaunch) {
+                // 3a. First launch: Populate lists with standard and other apps
+                PreferenceManager.onFirstOpen(getApplication())
+                val standardApps = filterStandardApps(allCurrentPackageNames).toList()
+                finalQuickPackageNames = standardApps.take(5)
+                finalPrimaryPackageNames = allCurrentPackageNames.filter { it !in finalQuickPackageNames }
+            } else {
+                // 3b. Subsequent launch: Update lists based on installed/uninstalled apps
+                val addedPackages = allCurrentPackageNames - savedAllPackageNames
+                val removedPackages = savedAllPackageNames - allCurrentPackageNames
+
+                // Remove uninstalled apps, preserving order
+                var currentQuickPackages = savedQuickPackageNames.filter { it !in removedPackages }
+                var currentPrimaryPackages = savedPrimaryPackageNames.filter { it !in removedPackages }
+
+                // Add newly installed apps, preserving order. New apps are added to the end.
+                if (addedPackages.isNotEmpty()) {
+                    val quickAppsCapacity = 5
+                    val quickAppsSpace = quickAppsCapacity - currentQuickPackages.size
+                    if (quickAppsSpace > 0) {
+                        currentQuickPackages = currentQuickPackages + addedPackages.take(quickAppsSpace)
+                    }
+                    currentPrimaryPackages = currentPrimaryPackages + addedPackages.drop(quickAppsSpace)
                 }
-                val removedPackages = allPackageNames.filter {it !in packageNames}
-                if(removedPackages.isNotEmpty()) {
-                    quickPackageNames = quickPackageNames - removedPackages.toSet()
-                    AppInfoManager.saveAppPackageNames(
-                        getApplication(),
-                        AppInfoManager.QUICK_APPS_LIST_NAME,
-                        quickPackageNames
-                    )
-                    primaryPackageNames = primaryPackageNames - removedPackages.toSet()
-                    AppInfoManager.saveAppPackageNames(
-                        getApplication(),
-                        AppInfoManager.PRIMARY_APPS_LIST_NAME,
-                        primaryPackageNames
-                    )
-                }
+
+                finalQuickPackageNames = currentQuickPackages
+                finalPrimaryPackageNames = currentPrimaryPackages
             }
 
-            if (primaryPackageNames.isEmpty()) { // First time launch or cache cleared
-                PreferenceManager.onFirstOpen(getApplication())
-                val quickAppListAll: List<String> = filterStandardApps(packageNames).toList()
-                val quickAppList = quickAppListAll.take(5)
-                AppInfoManager.saveAppPackageNames(
-                    getApplication(),
-                    AppInfoManager.QUICK_APPS_LIST_NAME,
-                    quickAppList
-                )
-                val primaryAppList: List<String> = packageNames.filter { packageName ->
-                    !quickAppList.contains(packageName)
-                }.toList()
-                AppInfoManager.saveAppPackageNames(
-                    getApplication(),
-                    AppInfoManager.PRIMARY_APPS_LIST_NAME,
-                    primaryAppList
-                )
-            }
+            // 4. Save the updated lists for the next launch
+            AppInfoManager.saveAppPackageNames(
+                getApplication(),
+                AppInfoManager.QUICK_APPS_LIST_NAME,
+                finalQuickPackageNames
+            )
+            AppInfoManager.saveAppPackageNames(
+                getApplication(),
+                AppInfoManager.PRIMARY_APPS_LIST_NAME,
+                finalPrimaryPackageNames
+            )
             AppInfoManager.saveAppPackageNames(
                 getApplication(),
                 AppInfoManager.ALL_APPS_LIST_NAME,
-                packageNames
+                allCurrentPackageNames.toList() // Order doesn't matter for this one
             )
 
-            val allApps = packageNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
+            // 5. Efficiently create AppInfo objects and update UI state
+            val resolveInfoMap = allCurrentResolveInfos.associateBy { it.activityInfo.packageName }
 
-            val quickApps = quickPackageNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
+            fun createAppInfo(packageName: String): AppInfo? {
+                val resolveInfo = resolveInfoMap[packageName] ?: return null
+                return try {
+                    val cachedIcon = AppIconCache.getIcon(packageName)
+                    val icon = cachedIcon ?: resolveInfo.loadIcon(packageManager).also {
+                        AppIconCache.cacheIcon(packageName, it)
+                    }
+                    AppInfo(
+                        resolveInfo = resolveInfo,
+                        icon = icon,
+                        label = resolveInfo.loadLabel(packageManager),
+                        packageName = packageName
+                    )
+                } catch (e: Exception) {
+                    // Could fail if app is being uninstalled, etc.
+                    null
+                }
+            }
 
-            val primaryApps =
-                primaryPackageNames.mapNotNull { mapPackageNameToAppInfo(packageManager, it) }
+            val quickApps = finalQuickPackageNames.mapNotNull { createAppInfo(it) }
+            val primaryApps = finalPrimaryPackageNames.mapNotNull { createAppInfo(it) }
 
-            val quickAndPrimaryPackages =
-                quickApps.map { it.packageName }.toSet() + primaryApps.map { it.packageName }
-                    .toSet()
-            val restApps = allApps.filter { it.packageName !in quickAndPrimaryPackages }
+            val quickAndPrimaryPackages = finalQuickPackageNames.toSet() + finalPrimaryPackageNames.toSet()
+            val restPackages = allCurrentPackageNames - quickAndPrimaryPackages
+            val restApps = restPackages.mapNotNull { createAppInfo(it) }.sortedBy { it.label.toString() }
 
             _uiState.update {
                 it.copy(
