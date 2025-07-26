@@ -12,32 +12,38 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,8 +53,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 
@@ -70,6 +76,7 @@ class SettingsActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val settingsState by settingsViewModel.uiState.collectAsState()
@@ -95,166 +102,199 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val rightSwipeApp = mapPackageNameToAppInfo(packageManager, settingsState.rightSwipeApp)
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Settings") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            )
+        }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
         ) {
+            item { SectionHeader("Appearance") }
             item {
-                SettingRow(
-                    title = "Wallpaper motion",
-                    onClick = { settingsViewModel.setWallpaperMotion(!settingsState.wallpaperMotionEnabled) }
-                ) {
-                    Switch(
-                        checked = settingsState.wallpaperMotionEnabled,
-                        onCheckedChange = { settingsViewModel.setWallpaperMotion(it) }
-                    )
-                }
-            }
-            item {
-                SettingRow(title = "Icon size") {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { settingsViewModel.changeIconSize(increase = false) }) {
-                            Icon(
-                                painter = painterResource(R.drawable.outline_remove_24),
-                                contentDescription = "Decrease icon size"
-                            )
-                        }
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .border(2.dp, Color.Gray, CircleShape)
-                                .size(settingsState.iconSize.dp)
+                ListItem(
+                    headlineContent = { Text("Wallpaper Motion") },
+                    supportingContent = { Text("Make your screen alive") },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.outline_motion_mode_24),
+                            contentDescription = "Wallpaper Motion"
                         )
-                        IconButton(onClick = { settingsViewModel.changeIconSize(increase = true) }) {
-                            Icon(Icons.Filled.Add, contentDescription = "Increase icon size")
-                        }
-                    }
-                }
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settingsState.wallpaperMotionEnabled,
+                            onCheckedChange = { settingsViewModel.setWallpaperMotion(it) }
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.setWallpaperMotion(!settingsState.wallpaperMotionEnabled) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
             }
+            item { HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                thickness = DividerDefaults.Thickness,
+                color = DividerDefaults.color
+            ) }
             item {
-                SettingRow(title = "Left swipe", onClick = {
-                    val intent = Intent(context, AppSelectionActivity::class.java)
-                    intent.putExtra("swipe_direction", "left")
-                    launcher.launch(intent)
-                }) {
-                    if (leftSwipeApp == null) {
-                        Text("Select")
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .size(45.dp)
-                                .clip(CircleShape)
-                                .background(Color.White),
-                            contentAlignment = Alignment.Center
-                        ) {
+                ListItem(
+                    headlineContent = { Text("Icon Size") },
+                    supportingContent = { Text("${settingsState.iconSize} dp") },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.outline_photo_size_select_small_24),
+                            contentDescription = "Icon Size"
+                        )
+                    },
+                    trailingContent = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = { settingsViewModel.changeIconSize(increase = false) }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.outline_remove_24),
+                                    contentDescription = "Decrease icon size"
+                                )
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(settingsState.iconSize.dp / 2) // Adjust preview size
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.onSurface)
+                                )
+                            }
+                            IconButton(onClick = { settingsViewModel.changeIconSize(increase = true) }) {
+                                Icon(Icons.Default.Add, contentDescription = "Increase icon size")
+                            }
+                        }
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
+
+            item { SectionHeader("Gestures") }
+            item {
+                val intent = Intent(context, AppSelectionActivity::class.java).apply {
+                    putExtra("swipe_direction", "left")
+                }
+                ListItem(
+                    headlineContent = { Text("Left Swipe Action") },
+                    supportingContent = { Text(leftSwipeApp?.label?.toString() ?: "Not set") },
+                    leadingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = "Left Swipe"
+                        )
+                    },
+                    trailingContent = {
+                        if (leftSwipeApp != null) {
                             Image(
                                 painter = rememberDrawablePainter(drawable = leftSwipeApp.icon),
                                 contentDescription = leftSwipeApp.label.toString(),
-                                modifier = Modifier.padding(4.dp)
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                            )
+                        } else {
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = "Select App"
                             )
                         }
-                    }
-                }
+                    },
+                    modifier = Modifier.clickable { launcher.launch(intent) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
             }
+            item { Divider(modifier = Modifier.padding(horizontal = 16.dp)) }
             item {
-                SettingRow(title = "Right swipe", onClick = {
-                    val intent = Intent(context, AppSelectionActivity::class.java)
-                    intent.putExtra("swipe_direction", "right")
-                    launcher.launch(intent)
-                }) {
-                    if (rightSwipeApp == null) {
-                        Text("Select")
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .size(45.dp)
-                                .clip(CircleShape)
-                                .background(Color.White),
-                            contentAlignment = Alignment.Center
-                        ) {
+                val intent = Intent(context, AppSelectionActivity::class.java).apply {
+                    putExtra("swipe_direction", "right")
+                }
+                ListItem(
+                    headlineContent = { Text("Right Swipe Action") },
+                    supportingContent = { Text(rightSwipeApp?.label?.toString() ?: "Not set") },
+                    leadingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Default.ArrowForward,
+                            contentDescription = "Right Swipe"
+                        )
+                    },
+                    trailingContent = {
+                        if (rightSwipeApp != null) {
                             Image(
                                 painter = rememberDrawablePainter(drawable = rightSwipeApp.icon),
                                 contentDescription = rightSwipeApp.label.toString(),
-                                modifier = Modifier.padding(4.dp)
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                            )
+                        } else {
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = "Select App"
                             )
                         }
-                    }
-                }
+                    },
+                    modifier = Modifier.clickable { launcher.launch(intent) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
             }
+
+            item { SectionHeader("Customization") }
             item {
-                SettingRow(
-                    title = "Manage app lists",
-                    onClick = {
-                        context.startActivity(Intent(context, ManageAppListActivity::class.java))
-                    }
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = "Manage app list"
-                    )
-                }
-            }
-            /*item {
-                SettingRow(
-                    title = "Feedback",
-                    onClick = {
-                        val intent = Intent(
-                            Intent.ACTION_VIEW,
-                            "market://details?id=${context.packageName}".toUri()
+                ListItem(
+                    headlineContent = { Text("Manage App Lists") },
+                    supportingContent = { Text("Organize your apps into custom lists") },
+                    leadingContent = { Icon(Icons.Default.List, contentDescription = "Manage App Lists") },
+                    trailingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "Go"
                         )
-                        context.startActivity(intent)
-                    }
+                    },
+                    modifier = Modifier.clickable {
+                        context.startActivity(Intent(context, ManageAppListActivity::class.java))
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
+
+            item { SectionHeader("About") }
             item {
-                SettingRow(
-                    title = "Share",
-                    onClick = {
-                        val sendIntent: Intent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(
-                                Intent.EXTRA_TEXT,
-                                "Check out this awesome launcher: https://play.google.com/store/apps/details?id=${context.packageName}"
-                            )
-                            type = "text/plain"
-                        }
-                        val shareIntent = Intent.createChooser(sendIntent, null)
-                        context.startActivity(shareIntent)
-                    }
+                ListItem(
+                    headlineContent = { Text("Version") },
+                    supportingContent = { Text(getAppVersion(context) ?: "N/A") },
+                    leadingContent = { Icon(Icons.Default.Info, contentDescription = "Version") },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
-            }*/
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        "Version: ${getAppVersion(context)}",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
             }
         }
     }
 }
 
 @Composable
-fun SettingRow(title: String, onClick: (() -> Unit)? = null, content: @Composable () -> Unit = {}) {
-    Row(
+fun SectionHeader(title: String) {
+    Text(
+        text = title.uppercase(),
+        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+        color = MaterialTheme.colorScheme.primary,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = onClick != null) { onClick?.invoke() }
-            .padding(vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = title, fontSize = 18.sp)
-        content()
-    }
+            .padding(horizontal = 16.dp, vertical = 8.dp,)
+    )
 }
 
 fun getAppVersion(context: Context): String? {

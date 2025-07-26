@@ -516,7 +516,7 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
 
     LaunchedEffect(Unit) {
         guideShown = PreferenceManager.getBoolean(context,guideKeyword)
-        delay(1000)
+        delay(500)
         canShowGuide = true
     }
 

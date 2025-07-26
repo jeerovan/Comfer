@@ -131,7 +131,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
 
     LaunchedEffect(Unit) {
         guideShown = PreferenceManager.getBoolean(context,guideKeyword)
-        delay(1000)
+        delay(500)
         canShowGuide = true
     }
     fun onGuideDismiss(){
