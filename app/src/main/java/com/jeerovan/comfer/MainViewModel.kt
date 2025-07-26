@@ -1,33 +1,17 @@
 package com.jeerovan.comfer
 
 import android.app.Application
-import android.app.WallpaperManager
-import android.content.Context
-import android.graphics.BitmapFactory
-import android.os.Build
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.ListenableWorker
-import coil.Coil
-import coil.request.ImageRequest
-import coil.request.ImageResult
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.get
-import io.ktor.client.request.parameter
-import io.ktor.serialization.kotlinx.json.json
+import com.jeerovan.comfer.utils.CommonUtil.downloadImage
+import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
+import com.jeerovan.comfer.utils.CommonUtil.setWallpaperSuspend
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
-import java.io.File
-import java.io.FileOutputStream
-import java.util.Calendar
 
 data class MainUiState (
     val imageData: ImageData? = null,
@@ -46,12 +30,34 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val applicationContext:Application = getApplication()
             val imageData = PreferenceManager.getImageData(applicationContext)
-            val backgroundImage = PreferenceManager.getBackgroundImagePath(applicationContext)
-            _uiState.update {
-                it.copy(
-                    imageData = imageData,
-                    imagePath = backgroundImage
-                )
+            if(imageData == null){
+                if(!isDownloading()) {
+                    setDownloading(true)
+                    fetchImageData(applicationContext)
+                    delay(500)
+                    downloadImage(applicationContext)
+                    delay(500)
+                    // update uiState
+                    val imageData = PreferenceManager.getImageData(applicationContext)
+                    val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
+                    _uiState.update {
+                        it.copy(
+                            imageData = imageData,
+                            imagePath = filePath
+                        )
+                    }
+                    setDownloading(false)
+                }
+            } else {
+                val backgroundImage = PreferenceManager.getBackgroundImagePath(applicationContext)
+                if(_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImage) {
+                    _uiState.update {
+                        it.copy(
+                            imageData = imageData,
+                            imagePath = backgroundImage
+                        )
+                    }
+                }
             }
         }
     }
@@ -67,99 +73,4 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return _uiState.value.downloading
     }
 
-    suspend fun fetchImageData(applicationContext: Context,hour:Int){
-        try {
-            val name = PreferenceManager.getUsername(applicationContext)
-            val client = HttpClient(OkHttp) {
-                install(ContentNegotiation) {
-                    json(Json {
-                        ignoreUnknownKeys = true
-                    })
-                }
-            }
-            val response: ImageData = client.get("https://comfer.jeerovan.com/api") {
-                parameter("name", name)
-                parameter("hour", hour)
-            }.body()
-            Log.d("ImageWorker", response.toString())
-            PreferenceManager.saveImageData(applicationContext, response)
-            client.close()
-            PreferenceManager.setHour(applicationContext,hour)
-        } catch (e: Exception) {
-            Log.e("ImageWorker", "Error fetching image", e)
-        }
-    }
-    fun fetchImage(){
-        Log.i("MainViewModel","Fetch Image")
-        viewModelScope.launch {
-            val applicationContext: Application = getApplication()
-            val hour = PreferenceManager.getHour(applicationContext)
-            if(!isDownloading() && hour > 0) {
-                setDownloading(true)
-                // first fetch imageData
-                fetchImageData(applicationContext,hour)
-                delay(500)
-                if (PreferenceManager.newImageAvailable(applicationContext)) {
-                    Log.i("MainViewModel", "Downloading New Image")
-                    val tempImageData: ImageData? =
-                        PreferenceManager.getTempImageData(applicationContext)
-                    if (tempImageData != null) {
-                        val imageUrl = tempImageData.imageUrl
-                        val request = ImageRequest.Builder(applicationContext)
-                            .data(imageUrl)
-                            .build()
-                        val result = Coil.imageLoader(applicationContext).execute(request)
-                        if (result is ImageResult) {
-                            val drawable = result.drawable
-                            if (drawable != null) {
-                                val oldFilePath:String? = PreferenceManager.getBackgroundImagePath(applicationContext)
-                                if(oldFilePath != null) {
-                                    val oldFile = File(oldFilePath)
-                                    oldFile.delete()
-                                }
-                                val filename = "comfer_${tempImageData.id}.jpg"
-                                val file = File(applicationContext.filesDir, filename)
-                                val stream = FileOutputStream(file)
-                                drawable.toBitmap()
-                                    .compress(
-                                        android.graphics.Bitmap.CompressFormat.JPEG,
-                                        100,
-                                        stream
-                                    )
-                                stream.close()
-                                PreferenceManager.setBackgroundImagePath(
-                                    applicationContext,
-                                    file.absolutePath
-                                )
-                                PreferenceManager.setImageDownloaded(applicationContext)
-                                // Set system wallpaper
-                                val wallpaperManager =
-                                    WallpaperManager.getInstance(applicationContext)
-                                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                                    wallpaperManager.setBitmap(
-                                        bitmap,
-                                        null,
-                                        true,
-                                        WallpaperManager.FLAG_SYSTEM
-                                    )
-                                } else {
-                                    wallpaperManager.setBitmap(bitmap)
-                                }
-                                // update uistate
-                                val imageData = PreferenceManager.getImageData(applicationContext)
-                                _uiState.update {
-                                    it.copy(
-                                        imageData = imageData,
-                                        imagePath = file.absolutePath
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-                setDownloading(false)
-            }
-        }
-    }
 }

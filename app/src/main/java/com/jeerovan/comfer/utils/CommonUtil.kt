@@ -2,30 +2,28 @@ package com.jeerovan.comfer.utils
 
 import android.app.WallpaperManager
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Paint.Align
-import android.view.ViewGroup
-import androidx.activity.ComponentActivity
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import android.content.Intent
+import android.graphics.BitmapFactory
+import android.os.Build
+import android.util.Log
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import com.jeerovan.comfer.R
-import kotlinx.coroutines.delay
+import coil.Coil
+import coil.request.ImageRequest
+import coil.request.ImageResult
+import com.jeerovan.comfer.ImageData
+import com.jeerovan.comfer.PreferenceManager
+import com.jeerovan.comfer.toBitmap
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
+import java.io.File
+import java.io.FileOutputStream
 import java.security.MessageDigest
 
 object CommonUtil {
@@ -68,6 +66,98 @@ object CommonUtil {
             "CenterStart" -> Alignment.CenterStart
             "CenterEnd" -> Alignment.CenterEnd
             else -> Alignment.TopCenter
+        }
+    }
+
+    fun isDefaultLauncher(context: Context): Boolean {
+        val intent = Intent(Intent.ACTION_MAIN)
+        intent.addCategory(Intent.CATEGORY_HOME)
+        val resolveInfo = context.packageManager.resolveActivity(intent, 0)
+        return resolveInfo?.activityInfo?.packageName == context.packageName
+    }
+    suspend fun fetchImageData(applicationContext: Context){
+        val hour = PreferenceManager.getHour(applicationContext)
+        if (hour > 0) {
+            try {
+                val name = PreferenceManager.getUsername(applicationContext)
+                val client = HttpClient(OkHttp) {
+                    install(ContentNegotiation) {
+                        json(Json {
+                            ignoreUnknownKeys = true
+                        })
+                    }
+                }
+                val response: ImageData = client.get("https://comfer.jeerovan.com/api") {
+                    parameter("name", name)
+                    parameter("hour", hour)
+                }.body()
+                Log.d("ImageWorker", response.toString())
+                PreferenceManager.saveImageData(applicationContext, response)
+                client.close()
+                PreferenceManager.setHour(applicationContext, hour)
+            } catch (e: Exception) {
+                Log.e("FetchImageData", "Error fetching image", e)
+            }
+        }
+    }
+    suspend fun setWallpaperSuspend(applicationContext: Context){
+        if(isDefaultLauncher(applicationContext)){
+            setWallpaper(applicationContext)
+        }
+    }
+    fun setWallpaper(applicationContext: Context){
+        val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
+        val wallpaperManager =
+            WallpaperManager.getInstance(applicationContext)
+        val bitmap = BitmapFactory.decodeFile(filePath)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            wallpaperManager.setBitmap(
+                bitmap,
+                null,
+                true,
+                WallpaperManager.FLAG_SYSTEM
+            )
+        } else {
+            wallpaperManager.setBitmap(bitmap)
+        }
+    }
+    suspend fun downloadImage(applicationContext: Context){
+        if (PreferenceManager.newImageAvailable(applicationContext)) {
+            Log.i("MainViewModel", "Downloading New Image")
+            val tempImageData: ImageData? =
+                PreferenceManager.getTempImageData(applicationContext)
+            if (tempImageData != null) {
+                val imageUrl = tempImageData.imageUrl
+                val request = ImageRequest.Builder(applicationContext)
+                    .data(imageUrl)
+                    .build()
+                val result = Coil.imageLoader(applicationContext).execute(request)
+                if (result is ImageResult) {
+                    val drawable = result.drawable
+                    if (drawable != null) {
+                        val oldFilePath:String? = PreferenceManager.getBackgroundImagePath(applicationContext)
+                        if(oldFilePath != null) {
+                            val oldFile = File(oldFilePath)
+                            oldFile.delete()
+                        }
+                        val filename = "comfer_${tempImageData.id}.jpg"
+                        val file = File(applicationContext.filesDir, filename)
+                        val stream = FileOutputStream(file)
+                        drawable.toBitmap()
+                            .compress(
+                                android.graphics.Bitmap.CompressFormat.JPEG,
+                                100,
+                                stream
+                            )
+                        stream.close()
+                        PreferenceManager.setBackgroundImagePath(
+                            applicationContext,
+                            file.absolutePath
+                        )
+                        PreferenceManager.setImageDownloaded(applicationContext)
+                    }
+                }
+            }
         }
     }
 }

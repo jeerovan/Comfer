@@ -29,7 +29,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -96,6 +95,9 @@ import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.alignmentFromString
+import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
+import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
+import com.jeerovan.comfer.utils.CommonUtil.setWallpaperSuspend
 import com.jeerovan.comfer.utils.CommonUtil.stringToColor
 import com.jeerovan.comfer.utils.GuideUtil.GuideDialog
 import java.io.File
@@ -119,7 +121,6 @@ data class BatteryState(val level: Int, val isCharging: Boolean)
 class MainActivity : ComponentActivity() {
     private val appInfoViewModel: AppInfoViewModel by viewModels()
     private val settingInfoViewModel:SettingsViewModel by viewModels()
-
     private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -148,7 +149,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             appInfoViewModel.loadAppLists()
             settingInfoViewModel.loadSettings()
-            mainViewModel.fetchImage()
+            mainViewModel.loadImageData()
         }
     }
 }
@@ -264,20 +265,13 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () ->
     val guideKeyword = "quick_guide_1"
     var canShowGuide by remember { mutableStateOf(false) }
 
-    fun isDefaultLauncher(): Boolean {
-        val intent = Intent(Intent.ACTION_MAIN)
-        intent.addCategory(Intent.CATEGORY_HOME)
-        val resolveInfo = context.packageManager.resolveActivity(intent, 0)
-        return resolveInfo?.activityInfo?.packageName == context.packageName
-    }
-
     fun openDefaultLauncherSettings() {
         val intent = Intent(Settings.ACTION_HOME_SETTINGS)
         context.startActivity(intent)
     }
 
     LaunchedEffect(Unit) {
-        isDefault = isDefaultLauncher()
+        isDefault = isDefaultLauncher(context)
         guideShown = PreferenceManager.getBoolean(context,guideKeyword)
         delay(500)
         canShowGuide = true
@@ -289,7 +283,11 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 iconSize = PreferenceManager.getIconSize(context).dp
                 guideShown = PreferenceManager.getBoolean(context,guideKeyword)
-                isDefault = isDefaultLauncher()
+                val isNowDefault = isDefaultLauncher(context)
+                if(isNowDefault && !isDefault){
+                    setWallpaper(context)
+                }
+                isDefault = isNowDefault
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
