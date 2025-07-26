@@ -24,7 +24,9 @@ object PreferenceManager {
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun onFirstOpen(context: Context){
-        val dummyName = CommonUtil.randomCode("comfer",6)
+        val milliseconds = System.currentTimeMillis()
+        val millisecondsString = milliseconds.toString()
+        val dummyName = CommonUtil.randomCode(millisecondsString,8)
         getPrefs(context).edit {
             putString(DUMMY_NAME, dummyName)
         }
