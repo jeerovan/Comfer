@@ -100,25 +100,22 @@ object CommonUtil {
             }
         }
     }
-    suspend fun setWallpaperSuspend(applicationContext: Context){
-        if(isDefaultLauncher(applicationContext)){
-            setWallpaper(applicationContext)
-        }
-    }
     fun setWallpaper(applicationContext: Context){
-        val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
-        val wallpaperManager =
-            WallpaperManager.getInstance(applicationContext)
-        val bitmap = BitmapFactory.decodeFile(filePath)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            wallpaperManager.setBitmap(
-                bitmap,
-                null,
-                true,
-                WallpaperManager.FLAG_SYSTEM
-            )
-        } else {
-            wallpaperManager.setBitmap(bitmap)
+        if(isDefaultLauncher(applicationContext)){
+            val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
+            val wallpaperManager =
+                WallpaperManager.getInstance(applicationContext)
+            val bitmap = BitmapFactory.decodeFile(filePath)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                wallpaperManager.setBitmap(
+                    bitmap,
+                    null,
+                    true,
+                    WallpaperManager.FLAG_SYSTEM
+                )
+            } else {
+                wallpaperManager.setBitmap(bitmap)
+            }
         }
     }
     suspend fun downloadImage(applicationContext: Context){
@@ -155,6 +152,7 @@ object CommonUtil {
                             file.absolutePath
                         )
                         PreferenceManager.setImageDownloaded(applicationContext)
+                        setWallpaper(applicationContext)
                     }
                 }
             }

@@ -96,8 +96,6 @@ import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.alignmentFromString
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
-import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
-import com.jeerovan.comfer.utils.CommonUtil.setWallpaperSuspend
 import com.jeerovan.comfer.utils.CommonUtil.stringToColor
 import com.jeerovan.comfer.utils.GuideUtil.GuideDialog
 import java.io.File
@@ -283,11 +281,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 iconSize = PreferenceManager.getIconSize(context).dp
                 guideShown = PreferenceManager.getBoolean(context,guideKeyword)
-                val isNowDefault = isDefaultLauncher(context)
-                if(isNowDefault && !isDefault){
-                    setWallpaper(context)
-                }
-                isDefault = isNowDefault
+                isDefault = isDefaultLauncher(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

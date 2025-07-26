@@ -6,7 +6,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.jeerovan.comfer.utils.CommonUtil.downloadImage
 import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
-import com.jeerovan.comfer.utils.CommonUtil.setWallpaperSuspend
+import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
+import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +17,8 @@ import kotlinx.coroutines.launch
 data class MainUiState (
     val imageData: ImageData? = null,
     val imagePath:String? = null,
-    val downloading:Boolean = false
+    val downloading:Boolean = false,
+    val isDefaultLauncher: Boolean = false
 )
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(MainUiState())
@@ -30,6 +32,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val applicationContext:Application = getApplication()
             val imageData = PreferenceManager.getImageData(applicationContext)
+            val isDefaultLauncher = isDefaultLauncher(applicationContext)
             if(imageData == null){
                 if(!isDownloading()) {
                     setDownloading(true)
@@ -43,18 +46,23 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     _uiState.update {
                         it.copy(
                             imageData = imageData,
-                            imagePath = filePath
+                            imagePath = filePath,
+                            isDefaultLauncher=isDefaultLauncher
                         )
                     }
                     setDownloading(false)
                 }
             } else {
                 val backgroundImage = PreferenceManager.getBackgroundImagePath(applicationContext)
+                if(!_uiState.value.isDefaultLauncher && isDefaultLauncher){
+                    setWallpaper(applicationContext)
+                }
                 if(_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImage) {
                     _uiState.update {
                         it.copy(
                             imageData = imageData,
-                            imagePath = backgroundImage
+                            imagePath = backgroundImage,
+                            isDefaultLauncher=isDefaultLauncher
                         )
                     }
                 }
