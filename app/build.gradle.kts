@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.accompanist.drawablepainter)
     implementation(libs.reorderable)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.palette.ktx)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)

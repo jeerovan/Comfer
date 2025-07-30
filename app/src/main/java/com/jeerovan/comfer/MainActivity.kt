@@ -471,7 +471,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () ->
                             modifier = Modifier
                                 .size(iconSize)
                                 .clip(CircleShape)
-                                .background(Color.White)
+                                .background(app.color)
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onTap = {
@@ -574,7 +574,7 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
                     },
                     onDoubleTap = {
                         if (apps.isNotEmpty()) {
-                            val app = apps[centerAppIndex.absoluteValue]
+                            val app = apps[centerAppIndex]
                             val launchIntent =
                                 packageManager.getLaunchIntentForPackage(app.packageName)
                             if (launchIntent != null) {
@@ -971,7 +971,7 @@ fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp) {
             .offset(x = x, y = y)
             .size(size)
             .clip(CircleShape)
-            .background(Color.White)
+            .background(app.color)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {

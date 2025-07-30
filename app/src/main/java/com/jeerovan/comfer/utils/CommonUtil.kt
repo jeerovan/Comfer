@@ -3,10 +3,13 @@ package com.jeerovan.comfer.utils
 import android.app.WallpaperManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.Log
 import androidx.compose.ui.Alignment
+import android.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import coil.Coil
 import coil.request.ImageRequest
@@ -25,6 +28,7 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
+import androidx.core.graphics.createBitmap
 
 object CommonUtil {
 
@@ -162,5 +166,13 @@ object CommonUtil {
                 }
             }
         }
+    }
+    fun Drawable.toBitmapSafely(width: Int = intrinsicWidth, height: Int = intrinsicHeight): Bitmap? {
+        if (width <= 0 || height <= 0) return null
+        val bitmap = createBitmap(width, height)
+        val canvas = Canvas(bitmap)
+        setBounds(0, 0, canvas.width, canvas.height)
+        draw(canvas)
+        return bitmap
     }
 }
