@@ -13,6 +13,8 @@ object PreferenceManager {
     private const val PREF_BACKGROUND_IMAGE = "background_image"
     private const val PREFS_NAME = "com.jeerovan.comfer.Prefs"
     private const val KEY_WALLPAPER_MOTION = "wallpaper_motion"
+
+    private const val WALLPAPER_ON_LOCK_SCREEN = "wallpaper_on_lock_screen"
     private const val KEY_ICON_SIZE = "icon_size"
     private const val KEY_IMAGE_URL = "image_url"
     private const val DUMMY_NAME = "dummy_name"
@@ -40,6 +42,15 @@ object PreferenceManager {
 
     fun getWallpaperMotion(context: Context, default: Boolean = true): Boolean {
         return getPrefs(context).getBoolean(KEY_WALLPAPER_MOTION, default)
+    }
+
+    fun getWallpaperOnLockScreen(context: Context,default: Boolean = false): Boolean {
+        return getPrefs(context).getBoolean(WALLPAPER_ON_LOCK_SCREEN, default)
+    }
+    fun setWallpaperOnLockScreen(context: Context,enabled: Boolean) {
+        getPrefs(context).edit {
+            putBoolean(WALLPAPER_ON_LOCK_SCREEN, enabled)
+        }
     }
 
     fun setIconSize(context: Context, size: Int) {

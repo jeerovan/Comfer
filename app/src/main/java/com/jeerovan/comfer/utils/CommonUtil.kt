@@ -103,15 +103,20 @@ object CommonUtil {
     fun setWallpaper(applicationContext: Context){
         if(isDefaultLauncher(applicationContext)){
             val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
+            val setWallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(applicationContext)
             val wallpaperManager =
                 WallpaperManager.getInstance(applicationContext)
             val bitmap = BitmapFactory.decodeFile(filePath)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                var flag = WallpaperManager.FLAG_SYSTEM
+                if(setWallpaperOnLockScreen){
+                    flag = WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
+                }
                 wallpaperManager.setBitmap(
                     bitmap,
                     null,
                     true,
-                    WallpaperManager.FLAG_SYSTEM
+                    flag
                 )
             } else {
                 wallpaperManager.setBitmap(bitmap)

@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 
 data class SettingsUiState(
     val wallpaperMotionEnabled: Boolean = true,
+    val wallpaperOnLockScreen: Boolean = false,
     val iconSize: Int = 48,
     val leftSwipeApp:String? = null,
     val rightSwipeApp:String? = null
@@ -27,12 +28,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun loadSettings() {
         viewModelScope.launch {
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
+            val wallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(getApplication())
             val iconSize = PreferenceManager.getIconSize(getApplication())
             val leftSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"left")
             val rightSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"right")
             _uiState.update {
                 it.copy(
                     wallpaperMotionEnabled = wallpaperMotion,
+                    wallpaperOnLockScreen = wallpaperOnLockScreen,
                     iconSize = iconSize,
                     leftSwipeApp = leftSwipeApp,
                     rightSwipeApp = rightSwipeApp
@@ -57,6 +60,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             PreferenceManager.setWallpaperMotion(getApplication(), enabled)
             _uiState.update { it.copy(wallpaperMotionEnabled = enabled) }
+        }
+    }
+
+    fun setWallpaperOnLockScreen(enabled: Boolean) {
+        viewModelScope.launch {
+            PreferenceManager.setWallpaperOnLockScreen(getApplication(), enabled)
+            _uiState.update { it.copy(wallpaperOnLockScreen = enabled) }
         }
     }
 

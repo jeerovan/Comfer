@@ -28,7 +28,6 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,6 +56,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
+import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 
 class SettingsActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
@@ -137,6 +137,28 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     modifier = Modifier.clickable { settingsViewModel.setWallpaperMotion(!settingsState.wallpaperMotionEnabled) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
+            }
+            if(isDefaultLauncher(context)){
+                item {
+                    ListItem(
+                        headlineContent = { Text("Lock Screen Wallpaper") },
+                        supportingContent = { Text("Set wallpaper on lock screen also") },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.outline_mobile_lock_portrait_24),
+                                contentDescription = "Wallpaper on lock screen"
+                            )
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = settingsState.wallpaperOnLockScreen,
+                                onCheckedChange = { settingsViewModel.setWallpaperOnLockScreen(it) }
+                            )
+                        },
+                        modifier = Modifier.clickable { settingsViewModel.setWallpaperOnLockScreen(!settingsState.wallpaperOnLockScreen) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
             }
             item { HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 16.dp),
