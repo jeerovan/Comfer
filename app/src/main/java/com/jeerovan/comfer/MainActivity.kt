@@ -42,6 +42,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -314,7 +315,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () ->
             modifier = Modifier
                 .align(dateTimeAlignment)
                 //.border(1.dp,color = Color.Red)
-                .padding(top=40.dp,start=20.dp,end=20.dp, bottom = 40.dp)
+                .padding(top = 40.dp, start = 20.dp, end = 20.dp, bottom = 40.dp)
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onTap = {
@@ -639,7 +640,7 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
                                         }
                                         scrollAnimatable.snapTo(newValue)
                                     }
-                                 }
+                                }
                             }
 
                             DragAxis.VERTICAL -> {
@@ -693,7 +694,26 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
                     centerIconX = x
                     centerIconY = y
                     centerIconSize = size
-                })
+                }
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth() // Takes up the full screen width
+                    .padding(top = 130.dp),
+                horizontalArrangement = Arrangement.Center // Centers the content within the Row
+            ) {
+                Text(
+                    text = apps[centerAppIndex].label.toString(),
+                    modifier = Modifier
+                        .background(
+                            color = Color.Black.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(16.dp) // Makes the background have rounded corners
+                        )
+                        .padding(horizontal = 16.dp, vertical = 8.dp), // Adds space inside the background
+                    fontSize = 18.sp,
+                    color = Color.White
+                )
+            }
         }
     }
 }
@@ -952,8 +972,8 @@ fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp) {
             .size(size)
             .clip(CircleShape)
             .background(Color.White)
-            .pointerInput(Unit){
-                detectTapGestures (
+            .pointerInput(Unit) {
+                detectTapGestures(
                     onTap = {
                         val launchIntent =
                             packageManager.getLaunchIntentForPackage(app.packageName)
