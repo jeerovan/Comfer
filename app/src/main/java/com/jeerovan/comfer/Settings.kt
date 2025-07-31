@@ -160,11 +160,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     )
                 }
             }
-            item { HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                thickness = DividerDefaults.Thickness,
-                color = DividerDefaults.color
-            ) }
+
             item {
                 ListItem(
                     headlineContent = { Text("Icon Size") },
@@ -240,7 +236,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item { Divider(modifier = Modifier.padding(horizontal = 16.dp)) }
+
             item {
                 val intent = Intent(context, AppSelectionActivity::class.java).apply {
                     putExtra("swipe_direction", "right")
@@ -274,7 +270,24 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-
+            item {
+                ListItem(
+                    headlineContent = { Text("Navigation/Gestures") },
+                    supportingContent = { Text("Gestures on multiple screens") },
+                    leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
+                        contentDescription = "Manage App Lists") },
+                    trailingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "Go"
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        context.startActivity(Intent(context, GuideActivity::class.java))
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
             item { SectionHeader("Customization") }
             item {
                 ListItem(
