@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.palette.graphics.Palette
+import com.jeerovan.comfer.utils.CommonUtil.extractDominantColorByFrequency
 import com.jeerovan.comfer.utils.CommonUtil.toBitmapSafely
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -188,28 +188,13 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     var colourInt: Int? = AppIconCache.getColor(packageName)
                     if (colourInt == null){
                         val bitmap = icon.toBitmapSafely(
-                            // It's good practice to render the drawable to a reasonable size for Palette
-                            // e.g., 64dp to pixels or higher for better color detection.
-                            // Assuming `size` is Dp, convert it to pixels here for bitmap creation.
-                            width = 64,
-                            height = 64
+                            width = 32,
+                            height = 32
                         )
-                        bitmap?.let { it ->
-                            Palette.from(it).generate { palette ->
-                                // Try to get a vibrant, muted, or dominant color.
-                                // Prioritize based on what looks best for your design.
-                                val extractedColor = palette?.run {
-                                    getVibrantColor(Color.White.toArgb()) // Example: try vibrant
-                                        .takeIf { it != Color.White.toArgb() } // If it's not the default fallback
-                                        ?: getMutedColor(Color.White.toArgb()) // Then try muted
-                                            .takeIf { it != Color.White.toArgb() }
-                                        ?: getDominantColor(Color.White.toArgb()) // Finally, try dominant
-                                }
-                                extractedColor?.let { colorInt ->
-                                    colourInt = colorInt
-                                    AppIconCache.cacheColor(packageName,colorInt)
-                                }
-                            }
+                        if(bitmap != null) {
+                            colourInt =
+                                extractDominantColorByFrequency(bitmap, Color.White.toArgb())
+                            AppIconCache.cacheColor(packageName,colourInt)
                         }
                     }
                     val color = if(colourInt == null) { Color.White } else {Color(colourInt)}

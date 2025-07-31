@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.compose.ui.Alignment
 import android.graphics.Canvas
 import androidx.compose.ui.graphics.Color
+import androidx.core.graphics.ColorUtils
 import coil.Coil
 import coil.request.ImageRequest
 import coil.request.ImageResult
@@ -174,5 +175,32 @@ object CommonUtil {
         setBounds(0, 0, canvas.width, canvas.height)
         draw(canvas)
         return bitmap
+    }
+
+    fun extractDominantColorByFrequency(bitmap: Bitmap, defaultColor: Int): Int {
+        // A map to store the frequency of each color.
+        val colorCounts = mutableMapOf<Int, Int>()
+
+        // For efficiency, get all pixels at once.
+        val pixels = IntArray(bitmap.width * bitmap.height)
+        bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+
+        for (pixelColor in pixels) {
+            // We only consider opaque pixels for the background color.
+            // You can adjust the alpha threshold if needed (255 is fully opaque).
+            if (android.graphics.Color.alpha(pixelColor) >= 255) {
+                // Merge similar colors to get a more representative result.
+                // This is a simple form of quantization.
+                val representativeColor = ColorUtils.setAlphaComponent(pixelColor, 255)
+
+                val count = colorCounts[representativeColor] ?: 0
+                colorCounts[representativeColor] = count + 1
+            }
+        }
+
+        // Find the color with the highest count.
+        val dominantColor = colorCounts.maxByOrNull { it.value }?.key
+
+        return dominantColor ?: defaultColor
     }
 }
