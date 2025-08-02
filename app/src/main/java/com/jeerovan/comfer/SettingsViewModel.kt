@@ -74,9 +74,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val currentSize = _uiState.value.iconSize
             val newSize = if (increase) {
-                (currentSize + 4).coerceAtMost(64) // Max size 64
+                (currentSize + 4).coerceAtMost(56) // Max size 56
             } else {
-                (currentSize - 4).coerceAtLeast(32) // Min size 32
+                (currentSize - 4).coerceAtLeast(36) // Min size 36
             }
             if (newSize != currentSize) {
                 PreferenceManager.setIconSize(getApplication(), newSize)

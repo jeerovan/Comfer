@@ -497,7 +497,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () ->
                                 painter = rememberDrawablePainter(drawable = app.icon),
                                 contentDescription = app.label.toString(),
                                 modifier = Modifier
-                                    .padding(4.dp)
+                                    .padding(2.dp)
                             )
                         }
                     }
@@ -1006,7 +1006,7 @@ fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp) {
         Image(
             painter = rememberDrawablePainter(drawable = app.icon),
             contentDescription = app.label.toString(),
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier.padding(2.dp)
         )
     }
 }
