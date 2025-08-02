@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.jeerovan.comfer.utils.CommonUtil.extractDominantColorByFrequency
+import com.jeerovan.comfer.utils.CommonUtil.findOutermostColor
 import com.jeerovan.comfer.utils.CommonUtil.toBitmapSafely
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -193,7 +194,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                         )
                         if(bitmap != null) {
                             colourInt =
-                                extractDominantColorByFrequency(bitmap, Color.White.toArgb())
+                                findOutermostColor(bitmap, Color.White.toArgb())
                             AppIconCache.cacheColor(packageName,colourInt)
                         }
                     }

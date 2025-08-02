@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import android.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.alpha
 import coil.Coil
 import coil.request.ImageRequest
 import coil.request.ImageResult
@@ -180,11 +181,9 @@ object CommonUtil {
     fun extractDominantColorByFrequency(bitmap: Bitmap, defaultColor: Int): Int {
         // A map to store the frequency of each color.
         val colorCounts = mutableMapOf<Int, Int>()
-
         // For efficiency, get all pixels at once.
         val pixels = IntArray(bitmap.width * bitmap.height)
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-
         for (pixelColor in pixels) {
             // We only consider opaque pixels for the background color.
             // You can adjust the alpha threshold if needed (255 is fully opaque).
@@ -197,10 +196,30 @@ object CommonUtil {
                 colorCounts[representativeColor] = count + 1
             }
         }
-
         // Find the color with the highest count.
         val dominantColor = colorCounts.maxByOrNull { it.value }?.key
-
         return dominantColor ?: defaultColor
+    }
+    fun findOutermostColor(bitmap: Bitmap, defaultColor: Int): Int {
+        val width = bitmap.width
+        val height = bitmap.height
+
+        // Iterate through each pixel, row by row (y), then column by column (x)
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                // Get the color of the pixel at the current coordinate
+                val pixelColor = bitmap.getPixel(x, y)
+
+                // Check the alpha component of the color.
+                // A value greater than 0 means it is not fully transparent.
+                if (pixelColor.alpha == 255) {
+                    // Found the first non-transparent pixel, return its color immediately.
+                    return pixelColor
+                }
+            }
+        }
+
+        // If the loop completes, all pixels were transparent. Return the default color.
+        return defaultColor
     }
 }
