@@ -189,8 +189,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     var colourInt: Int? = AppIconCache.getColor(packageName)
                     if (colourInt == null){
                         val bitmap = icon.toBitmapSafely(
-                            width = 32,
-                            height = 32
+                            width = 16,
+                            height = 16
                         )
                         if(bitmap != null) {
                             colourInt =
