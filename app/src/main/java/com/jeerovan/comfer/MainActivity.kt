@@ -18,14 +18,17 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationEndReason
 import androidx.compose.animation.core.exponentialDecay
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -702,17 +705,28 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
                     .padding(top = 130.dp),
                 horizontalArrangement = Arrangement.Center // Centers the content within the Row
             ) {
-                Text(
-                    text = apps[centerAppIndex].label.toString(),
-                    modifier = Modifier
-                        .background(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            shape = RoundedCornerShape(16.dp) // Makes the background have rounded corners
-                        )
-                        .padding(horizontal = 16.dp, vertical = 8.dp), // Adds space inside the background
-                    fontSize = 18.sp,
-                    color = Color.White
-                )
+                AnimatedContent(
+                    targetState = centerAppIndex,
+                    transitionSpec = {
+                        // Defines the animation: fade in new content while fading out old content
+                        fadeIn(animationSpec = tween(200, 100)) togetherWith
+                                fadeOut(animationSpec = tween(100))
+                    },
+                    label = "AppNameAnimation"
+                ) { targetIndex ->
+                    // The content lambda provides the updated index
+                    Text(
+                        text = apps[targetIndex].label.toString(),
+                        modifier = Modifier
+                            .background(
+                                color = Color.Black.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        fontSize = 18.sp,
+                        color = Color.White
+                    )
+                }
             }
         }
     }
