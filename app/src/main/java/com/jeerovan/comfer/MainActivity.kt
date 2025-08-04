@@ -1,5 +1,6 @@
 package com.jeerovan.comfer
 
+import android.accessibilityservice.AccessibilityService
 import android.annotation.SuppressLint
 import android.app.ActivityOptions
 import android.content.BroadcastReceiver
@@ -116,7 +117,8 @@ import kotlin.math.sin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-
+import android.text.TextUtils
+import androidx.compose.foundation.border
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
 
@@ -305,6 +307,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () ->
         steps = listOf(
             "Swipe up to see apps.",
             "Swipe down to see notifications.",
+            "Double tap screen to open recents.",
             "Long press the screen to open settings.",
             "Tap on Date-Time to show alarms.",
             "Long press on Date-Time to open Calendar"
@@ -766,7 +769,15 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
                     onLongPress = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         context.startActivity(Intent(context, SettingsActivity::class.java))
-                    })
+                    },
+                    onDoubleTap = {
+                        if (isAccessibilityServiceEnabled(context, RecentsAccessibilityService::class.java)) {
+                            showRecentApps()
+                        } else {
+                            requestAccessibilityPermission(context)
+                        }
+                    }
+                )
             }) {
         val maxWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
         val maxHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
@@ -1013,5 +1024,41 @@ fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp) {
 
 private fun Float.toDp(): Dp {
     return (this / Resources.getSystem().displayMetrics.density).dp
+}
+fun showRecentApps() {
+    RecentsAccessibilityService.instance?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
+}
+fun isAccessibilityServiceEnabled(context: Context, serviceClass: Class<*>): Boolean {
+    val service = "${context.packageName}/${serviceClass.canonicalName}"
+    try {
+        val accessibilityEnabled = Settings.Secure.getInt(
+            context.applicationContext.contentResolver,
+            Settings.Secure.ACCESSIBILITY_ENABLED
+        )
+        if (accessibilityEnabled == 1) {
+            val settingValue = Settings.Secure.getString(
+                context.applicationContext.contentResolver,
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+            )
+            if (settingValue != null) {
+                val mStringColonSplitter = TextUtils.SimpleStringSplitter(':')
+                mStringColonSplitter.setString(settingValue)
+                while (mStringColonSplitter.hasNext()) {
+                    val accessibilityService = mStringColonSplitter.next()
+                    if (accessibilityService.equals(service, ignoreCase = true)) {
+                        return true
+                    }
+                }
+            }
+        }
+    } catch (e: Settings.SettingNotFoundException) {
+        // Handle exception
+    }
+    return false
+}
+
+fun requestAccessibilityPermission(context: Context) {
+    val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+    context.startActivity(intent)
 }
 

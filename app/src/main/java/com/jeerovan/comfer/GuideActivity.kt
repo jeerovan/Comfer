@@ -85,6 +85,9 @@ fun UserGuideScreen() {
                 GuideStepItem(text = "Swipe down to see system notifications.")
             }
             item {
+                GuideStepItem(text = "Double tap screen to open recents.")
+            }
+            item {
                 GuideStepItem(text = "Long-press to open settings.")
             }
             item {
