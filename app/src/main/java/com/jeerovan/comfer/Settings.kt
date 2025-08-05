@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
+import androidx.core.net.toUri
 
 class SettingsActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
@@ -201,6 +204,26 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
+            item {
+                ListItem(
+                    headlineContent = { Text("Enhanced Icons") },
+                    supportingContent = { Text("Better appearance on older devices") },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.outline_blur_circular_24),
+                            contentDescription = "Icon Appearance"
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settingsState.enhancedIcons,
+                            onCheckedChange = { settingsViewModel.setEnhancedIcons(it) }
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.setEnhancedIcons(!settingsState.enhancedIcons) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
 
             item { SectionHeader("Gestures") }
             item {
@@ -307,7 +330,51 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
             }
 
-            item { SectionHeader("About") }
+            item { SectionHeader("App") }
+            item {
+                val context = LocalContext.current
+                val packageName = context.packageName
+
+                ListItem(
+                    headlineContent = { Text("Feedback") },
+                    leadingContent = { Icon(painter = painterResource(R.drawable.outline_star_rate_24), contentDescription = "Rate Icon") },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    modifier = Modifier.clickable {
+                        try {
+                            // Try to open the Play Store app directly
+                            val playStoreIntent = Intent(Intent.ACTION_VIEW,
+                                "market://details?id=$packageName".toUri())
+                            context.startActivity(playStoreIntent)
+                        } catch (e: Exception) {
+                            // If Play Store is not installed, open in a web browser
+                            val webIntent = Intent(Intent.ACTION_VIEW,
+                                "https://play.google.com/store/apps/details?id=$packageName".toUri())
+                            context.startActivity(webIntent)
+                        }
+                    }
+                )
+            }
+            item {
+                val context = LocalContext.current
+                val packageName = context.packageName
+                ListItem(
+                    headlineContent = { Text("Share App") },
+                    leadingContent = { Icon(Icons.Default.Share, contentDescription = "Share Icon") },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    modifier = Modifier.clickable {
+                        // Create a share intent
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(
+                                Intent.EXTRA_TEXT,
+                                "Try the new interesting launcher: https://play.google.com/store/apps/details?id=$packageName"
+                            )
+                        }
+                        // Use a chooser to show the Android share sheet
+                        context.startActivity(Intent.createChooser(shareIntent, "Share via"))
+                    }
+                )
+            }
             item {
                 ListItem(
                     headlineContent = { Text("Version") },
@@ -328,7 +395,7 @@ fun SectionHeader(title: String) {
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp,)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     )
 }
 

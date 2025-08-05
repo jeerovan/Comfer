@@ -260,7 +260,7 @@ fun BatteryStatus(themeColor: Color) {
 }
 
 @Composable
-fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () -> Unit) {
+fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?,enhancedIcons: Boolean, onSwipeUp: () -> Unit) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     var iconSize by remember { mutableStateOf(48.dp) }
@@ -477,7 +477,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () ->
                             modifier = Modifier
                                 .size(iconSize)
                                 .clip(CircleShape)
-                                .background(app.color)
+                                .background(if (enhancedIcons) app.color else Color.White)
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onTap = {
@@ -511,7 +511,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?, onSwipeUp: () ->
 }
 
 @Composable
-fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
+fun AppListOverlay(apps: List<AppInfo>,enhancedIcons : Boolean, onSwipeDown: () -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
     val packageManager = context.packageManager
@@ -696,6 +696,7 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
                 updateCenterIndex = { centerAppIndex = it },
                 scrollOffset = -scrollAnimatable.value,
                 iconSize = iconSize,
+                enhancedIcons = enhancedIcons,
                 updateCenterIconGeom = { x, y, size ->
                     centerIconX = x
                     centerIconY = y
@@ -846,7 +847,10 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
             enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
         ) {
-            QuickListOverlay(apps = quickApps, imageData = imageData, onSwipeUp = { isAppListVisible = true })
+            QuickListOverlay(apps = quickApps,
+                imageData = imageData,
+                enhancedIcons = settingInfoUiState.enhancedIcons,
+                onSwipeUp = { isAppListVisible = true })
         }
 
         // app list - second layer
@@ -855,7 +859,9 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
         ) {
-            AppListOverlay(apps = primaryApps, onSwipeDown = { isAppListVisible = false })
+            AppListOverlay(apps = primaryApps,
+                enhancedIcons = settingInfoUiState.enhancedIcons,
+                onSwipeDown = { isAppListVisible = false })
         }
     }
 }
@@ -870,6 +876,7 @@ fun UshapedAppList(
     updateCenterIndex: (Int) -> Unit,
     scrollOffset: Float,
     iconSize: Dp,
+    enhancedIcons: Boolean,
     updateCenterIconGeom: (x: Float, y: Float, size: Float) -> Unit
 ) {
     val sidePadding = 18.dp
@@ -977,6 +984,7 @@ fun UshapedAppList(
             key(apps[appIndex].packageName) {
                 AppIcon(
                     app = apps[appIndex],
+                    enhancedIcons = enhancedIcons,
                     x = x.toDp(),
                     y = y.toDp(),
                     size = size
@@ -987,7 +995,7 @@ fun UshapedAppList(
 }
 
 @Composable
-fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp) {
+fun AppIcon(app: AppInfo,enhancedIcons: Boolean, x: Dp, y: Dp, size: Dp) {
     val context = LocalContext.current
     val packageManager = context.packageManager
     val haptic = LocalHapticFeedback.current
@@ -996,7 +1004,7 @@ fun AppIcon(app: AppInfo, x: Dp, y: Dp, size: Dp) {
             .offset(x = x, y = y)
             .size(size)
             .clip(CircleShape)
-            .background(app.color)
+            .background(if (enhancedIcons) app.color else Color.White)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {

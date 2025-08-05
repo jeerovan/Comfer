@@ -3,6 +3,8 @@ package com.jeerovan.comfer
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.impl.utils.PREFERENCE_FILE_KEY
+import io.ktor.http.cio.encodeChunked
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -11,6 +13,7 @@ import kotlinx.coroutines.launch
 data class SettingsUiState(
     val wallpaperMotionEnabled: Boolean = true,
     val wallpaperOnLockScreen: Boolean = false,
+    val enhancedIcons : Boolean = true,
     val iconSize: Int = 48,
     val leftSwipeApp:String? = null,
     val rightSwipeApp:String? = null
@@ -30,6 +33,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val wallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(getApplication())
             val iconSize = PreferenceManager.getIconSize(getApplication())
+            val enhancedIcons = PreferenceManager.getEnhancedIcons(getApplication(),true)
             val leftSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"left")
             val rightSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"right")
             _uiState.update {
@@ -38,7 +42,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     wallpaperOnLockScreen = wallpaperOnLockScreen,
                     iconSize = iconSize,
                     leftSwipeApp = leftSwipeApp,
-                    rightSwipeApp = rightSwipeApp
+                    rightSwipeApp = rightSwipeApp,
+                    enhancedIcons = enhancedIcons
                 )
             }
         }
@@ -67,6 +72,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             PreferenceManager.setWallpaperOnLockScreen(getApplication(), enabled)
             _uiState.update { it.copy(wallpaperOnLockScreen = enabled) }
+        }
+    }
+
+    fun setEnhancedIcons(enabled: Boolean){
+        viewModelScope.launch {
+            PreferenceManager.setEnhancedIcons(getApplication(),enabled)
+            _uiState.update { it.copy(enhancedIcons = enabled) }
         }
     }
 

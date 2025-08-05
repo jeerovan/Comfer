@@ -23,6 +23,8 @@ object PreferenceManager {
     private const  val KEY_TEMP_IMAGE_DATA = "temp_image_data"
     private const val IMAGE_AVAILABLE = "image_available"
 
+    private const val ENHANCED_ICONS = "enhanced_icons"
+
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun onFirstOpen(context: Context){
@@ -53,6 +55,15 @@ object PreferenceManager {
         }
     }
 
+    fun setEnhancedIcons(context: Context, enabled: Boolean) {
+        getPrefs(context).edit {
+            putBoolean(ENHANCED_ICONS,enabled)
+        }
+    }
+
+    fun getEnhancedIcons(context: Context,default: Boolean): Boolean {
+        return getPrefs(context).getBoolean(ENHANCED_ICONS,default)
+    }
     fun setIconSize(context: Context, size: Int) {
         getPrefs(context).edit {
             putInt(KEY_ICON_SIZE, size)
