@@ -128,6 +128,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.vector.ImageVector
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.ui.text.style.TextAlign
+
 data class BatteryState(val level: Int, val isCharging: Boolean)
 
 class MainActivity : ComponentActivity() {
@@ -780,6 +784,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
     val context = LocalContext.current
     var isAppListVisible by remember { mutableStateOf(false) }
     var backgroundImage by remember { mutableStateOf<String?>(null) }
+    var showDisclosure by remember { mutableStateOf(false) }
 
     val appInfoUiState by appInfoViewModel.uiState.collectAsState()
     val settingInfoUiState by settingsViewModel.uiState.collectAsState()
@@ -799,6 +804,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
         backgroundImage = cachedImagePath
     }
 
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -812,7 +819,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
                         if (isAccessibilityServiceEnabled(context, RecentsAccessibilityService::class.java)) {
                             showRecentApps()
                         } else {
-                            requestAccessibilityPermission(context)
+                            showDisclosure = true
+                            //requestAccessibilityPermission(context)
                         }
                     }
                 )
@@ -899,6 +907,19 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
             AppListOverlay(apps = primaryApps,
                 enhancedIcons = settingInfoUiState.enhancedIcons,
                 onSwipeDown = { isAppListVisible = false })
+        }
+        if (showDisclosure) {
+            AccessibilityPermissionDisclosureScreen(
+                onContinue = {
+                    // The user consented. Now we can send them to the settings.
+                    showDisclosure = false
+                    requestAccessibilityPermission(context)
+                },
+                onCancel = {
+                    // The user declined. Just hide the dialog.
+                    showDisclosure = false
+                }
+            )
         }
     }
 }
@@ -1147,7 +1168,69 @@ fun FeedbackDialog(
     )
 }
 
-
+@Composable
+fun AccessibilityPermissionDisclosureScreen(
+    onContinue: () -> Unit,
+    onCancel: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Permission Required",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "To enable the 'Recent Apps' shortcut, this launcher needs you to activate its Accessibility Service.",
+                textAlign = TextAlign.Center,
+                fontSize = 16.sp
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "What this service does:",
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = "• Triggers the system's 'Recent Apps' screen.",
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "This service does NOT:",
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = "• Collect any personal data.\n• Monitor your actions or text you type.\n• Read your screen content.",
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            Row {
+                Button(onClick = onContinue) {
+                    Text("Continue")
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                OutlinedButton(onClick = onCancel) {
+                    Text("Cancel")
+                }
+            }
+        }
+    }
+}
 fun requestAccessibilityPermission(context: Context) {
     val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
     context.startActivity(intent)

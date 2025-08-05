@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Comfer</string>
+    <string name="accessibility_service_description">This service is required to open the system\'s \'Recent Apps\' screen. Our launcher uses this permission solely to provide a shortcut to this feature and does not monitor your actions or collect any personal data.</string>
 </resources>
