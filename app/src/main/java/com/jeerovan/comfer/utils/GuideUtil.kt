@@ -24,38 +24,6 @@ import kotlinx.coroutines.delay
 
 object GuideUtil {
 
-    fun showGuide(
-        activity: ComponentActivity,
-        keyword: String,
-        title: String,
-        steps: List<String>
-    ) {
-        val prefKey = "guide_shown_$keyword"
-        val dialogShown = com.jeerovan.comfer.PreferenceManager.getBoolean(activity,prefKey)
-
-        /*if (dialogShown) {
-            return
-        }*/
-
-        val composeView = ComposeView(activity)
-        val rootView = activity.findViewById<ViewGroup>(android.R.id.content)
-
-        composeView.setContent {
-            com.jeerovan.comfer.ui.theme.ComferTheme {
-                GuideDialog(
-                    title = title,
-                    steps = steps,
-                    onDismiss = {
-                        com.jeerovan.comfer.PreferenceManager.setBoolean(activity, prefKey, true)
-                        rootView.removeView(composeView)
-                    }
-                )
-            }
-        }
-
-        rootView.addView(composeView)
-    }
-
     @Composable
     fun GuideDialog(
         title: String,

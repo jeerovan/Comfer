@@ -25,6 +25,8 @@ object PreferenceManager {
 
     private const val ENHANCED_ICONS = "enhanced_icons"
 
+    private const val FEEDBACK_DIALOG = "feedback_dialog"
+
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun onFirstOpen(context: Context){
@@ -189,6 +191,15 @@ object PreferenceManager {
     fun setHour(context: Context,hour:Int){
         getPrefs(context).edit {
             putInt("now_hour",hour)
+        }
+    }
+
+    fun getFeedbackDialogShown(context: Context):Boolean {
+        return getPrefs(context).getBoolean(FEEDBACK_DIALOG,false)
+    }
+    fun setFeedbackDialogShown(context: Context){
+        getPrefs(context).edit {
+            putBoolean(FEEDBACK_DIALOG,true)
         }
     }
 }

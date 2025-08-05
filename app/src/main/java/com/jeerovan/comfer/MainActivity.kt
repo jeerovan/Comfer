@@ -118,7 +118,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import android.text.TextUtils
-import androidx.compose.foundation.border
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.graphics.vector.ImageVector
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
 
@@ -266,6 +274,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?,enhancedIcons: Bo
     var iconSize by remember { mutableStateOf(48.dp) }
     var isDefault by remember { mutableStateOf(false) }
     var guideShown by remember { mutableStateOf(true) }
+    var feedbackShown by remember { mutableStateOf(true)}
     val guideKeyword = "quick_guide_1"
     var canShowGuide by remember { mutableStateOf(false) }
 
@@ -277,6 +286,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?,enhancedIcons: Bo
     LaunchedEffect(Unit) {
         isDefault = isDefaultLauncher(context)
         guideShown = PreferenceManager.getBoolean(context,guideKeyword)
+        feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
         delay(500)
         canShowGuide = true
     }
@@ -287,6 +297,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?,enhancedIcons: Bo
             if (event == Lifecycle.Event.ON_RESUME) {
                 iconSize = PreferenceManager.getIconSize(context).dp
                 guideShown = PreferenceManager.getBoolean(context,guideKeyword)
+                feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
                 isDefault = isDefaultLauncher(context)
             }
         }
@@ -313,6 +324,32 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?,enhancedIcons: Bo
             "Long press on Date-Time to open Calendar"
         )
     )
+
+    fun onFeedbackDismiss(){
+        feedbackShown = true
+        PreferenceManager.setFeedbackDialogShown(context)
+    }
+    fun onFeedbackRateIt(){
+        val packageName = context.packageName
+        feedbackShown = true
+        PreferenceManager.setFeedbackDialogShown(context)
+        try {
+            // Try to open the Play Store app directly
+            val playStoreIntent = Intent(Intent.ACTION_VIEW,
+                "market://details?id=$packageName".toUri())
+            context.startActivity(playStoreIntent)
+        } catch (e: Exception) {
+            // If Play Store is not installed, open in a web browser
+            val webIntent = Intent(Intent.ACTION_VIEW,
+                "https://play.google.com/store/apps/details?id=$packageName".toUri())
+            context.startActivity(webIntent)
+        }
+    }
+    if (guideShown && canShowGuide && !feedbackShown && isDefault)FeedbackDialog(
+        {onFeedbackDismiss()},
+        {onFeedbackRateIt()}
+    )
+
     val dateTimeAlignment = imageData?.position?.let { position ->
         alignmentFromString(position)
     } ?: Alignment.TopCenter
@@ -1064,6 +1101,52 @@ fun isAccessibilityServiceEnabled(context: Context, serviceClass: Class<*>): Boo
     }
     return false
 }
+
+
+@Composable
+fun FeedbackDialog(
+    onDismissRequest: () -> Unit,
+    onConfirmation: () -> Unit,
+    dialogTitle: String = "Enjoying Comfer?",
+    dialogText: String = "This app will never have ads.",
+    icon: ImageVector = Icons.Outlined.Star
+) {
+    AlertDialog(
+        icon = {
+            Icon(icon, contentDescription = "Dialog Icon")
+        },
+        title = {
+            Text(text = dialogTitle, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        },
+        text = {
+            Text(text = dialogText, style = MaterialTheme.typography.bodyMedium)
+        },
+        onDismissRequest = {
+            onDismissRequest()
+        },
+        confirmButton = {
+            // The primary action button, styled to stand out
+            Button(
+                onClick = {
+                    onConfirmation()
+                }
+            ) {
+                Text("Rate It")
+            }
+        },
+        dismissButton = {
+            // The secondary action button, with less emphasis
+            TextButton(
+                onClick = {
+                    onDismissRequest()
+                }
+            ) {
+                Text("Later")
+            }
+        }
+    )
+}
+
 
 fun requestAccessibilityPermission(context: Context) {
     val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
