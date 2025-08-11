@@ -31,6 +31,13 @@ import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
 import androidx.core.graphics.createBitmap
+import com.jeerovan.comfer.LoggerManager
+import com.jeerovan.comfer.R
+import okhttp3.ConnectionSpec
+
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
 
 object CommonUtil {
 
@@ -82,11 +89,31 @@ object CommonUtil {
         return resolveInfo?.activityInfo?.packageName == context.packageName
     }
     suspend fun fetchImageData(applicationContext: Context){
+        val logger = LoggerManager(applicationContext)
         val hour = PreferenceManager.getHour(applicationContext)
         if (hour > 0) {
             try {
                 val name = PreferenceManager.getUsername(applicationContext)
+                val (sslSocketFactory, trustManager) = SSLHelper.createSslSocketFactory(
+                    applicationContext,
+                    R.raw.cacert // Use the name of your certificate file
+                )
+
+                // 2. Define connection specs, including one for compatibility with older devices
+                val connectionSpecs = listOf(
+                    ConnectionSpec.MODERN_TLS,
+                    ConnectionSpec.COMPATIBLE_TLS
+                )
                 val client = HttpClient(OkHttp) {
+                    engine {
+                        config {
+                            // Attach the custom SSLSocketFactory
+                            sslSocketFactory(sslSocketFactory, trustManager)
+
+                            // Set the compatible connection specifications
+                            connectionSpecs(connectionSpecs)
+                        }
+                    }
                     install(ContentNegotiation) {
                         json(Json {
                             ignoreUnknownKeys = true
@@ -97,12 +124,12 @@ object CommonUtil {
                     parameter("name", name)
                     parameter("hour", hour)
                 }.body()
-                Log.d("ImageWorker", response.toString())
+                logger.setLog("FetchImageData", response.toString())
                 PreferenceManager.saveImageData(applicationContext, response)
                 client.close()
                 PreferenceManager.setHour(applicationContext, hour)
             } catch (e: Exception) {
-                Log.e("FetchImageData", "Error fetching image", e)
+                logger.setLog("FetchImageData",  e.toString())
             }
         }
     }
@@ -130,8 +157,9 @@ object CommonUtil {
         }
     }
     suspend fun downloadImage(applicationContext: Context){
+        val logger = LoggerManager(applicationContext)
         if (PreferenceManager.newImageAvailable(applicationContext)) {
-            Log.i("MainViewModel", "Downloading New Image")
+            logger.setLog("DownloadImage", "Downloading New Image")
             val tempImageData: ImageData? =
                 PreferenceManager.getTempImageData(applicationContext)
             if (tempImageData != null) {
@@ -177,29 +205,6 @@ object CommonUtil {
         draw(canvas)
         return bitmap
     }
-
-    fun extractDominantColorByFrequency(bitmap: Bitmap, defaultColor: Int): Int {
-        // A map to store the frequency of each color.
-        val colorCounts = mutableMapOf<Int, Int>()
-        // For efficiency, get all pixels at once.
-        val pixels = IntArray(bitmap.width * bitmap.height)
-        bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-        for (pixelColor in pixels) {
-            // We only consider opaque pixels for the background color.
-            // You can adjust the alpha threshold if needed (255 is fully opaque).
-            if (android.graphics.Color.alpha(pixelColor) >= 255) {
-                // Merge similar colors to get a more representative result.
-                // This is a simple form of quantization.
-                val representativeColor = ColorUtils.setAlphaComponent(pixelColor, 255)
-
-                val count = colorCounts[representativeColor] ?: 0
-                colorCounts[representativeColor] = count + 1
-            }
-        }
-        // Find the color with the highest count.
-        val dominantColor = colorCounts.maxByOrNull { it.value }?.key
-        return dominantColor ?: defaultColor
-    }
     fun findOutermostColor(bitmap: Bitmap, defaultColor: Int): Int {
         val width = bitmap.width
         val height = bitmap.height
@@ -222,4 +227,10 @@ object CommonUtil {
         // If the loop completes, all pixels were transparent. Return the default color.
         return defaultColor
     }
+}
+
+object InsecureTrustManager : X509TrustManager {
+    override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+    override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+    override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
 }

@@ -24,13 +24,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState = _uiState.asStateFlow()
 
-    init {
-        loadImageData()
-    }
+//    init {
+//        loadImageData()
+//    }
     fun loadImageData(){
-        Log.i("MainViewModel","Loading")
         viewModelScope.launch {
             val applicationContext:Application = getApplication()
+            val logger = LoggerManager(applicationContext)
+            logger.setLog("MainViewModel","Loading")
             val imageData = PreferenceManager.getImageData(applicationContext)
             val isDefaultLauncher = isDefaultLauncher(applicationContext)
             if(imageData == null){

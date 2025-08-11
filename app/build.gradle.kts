@@ -13,8 +13,8 @@ android {
         applicationId = "com.jeerovan.comfer"
         minSdk = 21
         targetSdk = 36
-        versionCode = 4
-        versionName = "4.0"
+        versionCode = 5
+        versionName = "5.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material)
     implementation(libs.coil.compose)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.accompanist.drawablepainter)

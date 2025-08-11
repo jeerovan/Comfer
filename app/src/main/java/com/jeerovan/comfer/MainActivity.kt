@@ -161,7 +161,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        Log.i("MainActivity","Resumed")
+        val logger = LoggerManager(this)
+        logger.setLog("MainActivity","Resumed")
         lifecycleScope.launch {
             appInfoViewModel.loadAppLists()
             settingInfoViewModel.loadSettings()

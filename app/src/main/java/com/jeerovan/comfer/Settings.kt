@@ -375,6 +375,23 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     }
                 )
             }
+            if(saveLogs)item {
+                ListItem(
+                    headlineContent = { Text("Logs") },
+                    supportingContent = { Text("App logs") },
+                    leadingContent = { Icon(Icons.Default.List, contentDescription = "App logs") },
+                    trailingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "View"
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        context.startActivity(Intent(context, LogsActivity::class.java))
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
             item {
                 ListItem(
                     headlineContent = { Text("Version") },

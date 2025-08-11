@@ -47,6 +47,9 @@
         <activity
             android:name=".GuideActivity"
             android:exported="false" />
+        <activity
+            android:name=".LogsActivity"
+            android:exported="false" />
         <service
             android:name=".RecentsAccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
