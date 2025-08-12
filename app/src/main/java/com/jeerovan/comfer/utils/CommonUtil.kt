@@ -133,6 +133,9 @@ object CommonUtil {
             }
         }
     }
+    fun canSetLockScreenWallpaper(): Boolean {
+        return android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N
+    }
     fun setWallpaper(applicationContext: Context){
         if(isDefaultLauncher(applicationContext)){
             val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)

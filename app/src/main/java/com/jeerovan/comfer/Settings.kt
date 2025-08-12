@@ -60,6 +60,7 @@ import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import androidx.core.net.toUri
+import com.jeerovan.comfer.utils.CommonUtil.canSetLockScreenWallpaper
 
 class SettingsActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
@@ -141,7 +142,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            if(isDefaultLauncher(context)){
+            if(isDefaultLauncher(context) && canSetLockScreenWallpaper()){
                 item {
                     ListItem(
                         headlineContent = { Text("Lock Screen Wallpaper") },

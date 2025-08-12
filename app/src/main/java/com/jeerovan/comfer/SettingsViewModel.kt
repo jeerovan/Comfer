@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.impl.utils.PREFERENCE_FILE_KEY
+import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
 import io.ktor.http.cio.encodeChunked
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -71,6 +72,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setWallpaperOnLockScreen(enabled: Boolean) {
         viewModelScope.launch {
             PreferenceManager.setWallpaperOnLockScreen(getApplication(), enabled)
+            if(enabled){
+                setWallpaper(getApplication())
+            }
             _uiState.update { it.copy(wallpaperOnLockScreen = enabled) }
         }
     }
