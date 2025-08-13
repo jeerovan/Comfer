@@ -131,6 +131,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.ui.text.style.TextAlign
+import coil.compose.AsyncImage
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
 
@@ -161,11 +162,19 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        val logger = LoggerManager(this)
+        val logger = LoggerManager(applicationContext)
         logger.setLog("MainActivity","Resumed")
         lifecycleScope.launch {
             appInfoViewModel.loadAppLists()
             settingInfoViewModel.loadSettings()
+        }
+    }
+
+    override fun onPause(){
+        super.onPause()
+        val logger = LoggerManager(applicationContext)
+        logger.setLog("MainActivity","Paused")
+        lifecycleScope.launch {
             mainViewModel.loadImageData()
         }
     }
@@ -867,14 +876,13 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
         val yOffset = sin(angle.value) * maxHeightPx * 0.08f
 
         if (backgroundImage != null && wallpaperMotionEnabled) {
-            Image(
-                painter = rememberAsyncImagePainter(
+            AsyncImage(
+                model =
                     ImageRequest
                         .Builder(LocalContext.current)
                         .data(backgroundImage)
                         .crossfade(true)
-                        .build()
-                ),
+                        .build(),
                 contentDescription = "Background",
                 modifier = Modifier
                     .fillMaxSize()
