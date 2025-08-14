@@ -6,10 +6,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.impl.utils.PREFERENCE_FILE_KEY
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
 import io.ktor.http.cio.encodeChunked
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class SettingsUiState(
     val wallpaperMotionEnabled: Boolean = true,
@@ -72,10 +74,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setWallpaperOnLockScreen(enabled: Boolean) {
         viewModelScope.launch {
             PreferenceManager.setWallpaperOnLockScreen(getApplication(), enabled)
-            if(enabled){
-                setWallpaper(getApplication())
-            }
             _uiState.update { it.copy(wallpaperOnLockScreen = enabled) }
+            if(enabled){
+                withContext(Dispatchers.IO){
+                    setWallpaper(getApplication())
+                }
+            }
         }
     }
 

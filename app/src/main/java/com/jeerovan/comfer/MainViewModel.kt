@@ -19,8 +19,7 @@ import kotlinx.coroutines.withContext
 data class MainUiState (
     val imageData: ImageData? = null,
     val imagePath:String? = null,
-    val downloading:Boolean = false,
-    val isDefaultLauncher: Boolean = false
+    val downloading:Boolean = false
 )
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(MainUiState())
@@ -35,7 +34,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val logger = LoggerManager(applicationContext)
             logger.setLog("MainViewModel","Loading")
             val imageData = PreferenceManager.getImageData(applicationContext)
-            val isDefaultLauncher = isDefaultLauncher(applicationContext)
             if(imageData == null){
                 if(!isDownloading()) {
                     setDownloading(true)
@@ -54,8 +52,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     _uiState.update {
                         it.copy(
                             imageData = imageData,
-                            imagePath = filePath,
-                            isDefaultLauncher=isDefaultLauncher
+                            imagePath = filePath
                         )
                     }
                     setDownloading(false)
@@ -66,15 +63,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     _uiState.update {
                         it.copy(
                             imageData = imageData,
-                            imagePath = backgroundImage,
-                            isDefaultLauncher=isDefaultLauncher
+                            imagePath = backgroundImage
                         )
                     }
                 }
             }
         }
     }
-
+    fun loadData(){
+        viewModelScope.launch {
+            val context:Application = getApplication()
+            val motionEnabled = PreferenceManager.getWallpaperMotion(context)
+            if(!motionEnabled) {
+                val imageData = PreferenceManager.getImageData(context)
+                _uiState.update {
+                    it.copy(
+                        imageData = imageData,
+                    )
+                }
+            }
+        }
+    }
     private fun setDownloading(downloading: Boolean){
         _uiState.update {
             it.copy(
