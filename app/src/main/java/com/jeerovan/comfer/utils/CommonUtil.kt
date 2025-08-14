@@ -194,7 +194,6 @@ object CommonUtil {
                             file.absolutePath
                         )
                         PreferenceManager.setImageDownloaded(applicationContext)
-                        setWallpaper(applicationContext)
                     }
                 }
             }

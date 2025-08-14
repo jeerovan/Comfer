@@ -182,6 +182,11 @@ object PreferenceManager {
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val prefs = getPrefs(context)
         val existingHour = prefs.getInt("now_hour",0)
+//        return if(existingHour == 23){
+//            1
+//        } else {
+//            existingHour + 1
+//        }
         return if(existingHour != hour) {
             hour
         } else {

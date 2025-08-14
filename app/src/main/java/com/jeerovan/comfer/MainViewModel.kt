@@ -60,26 +60,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } else {
                 val backgroundImage = PreferenceManager.getBackgroundImagePath(applicationContext)
                 if(_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImage) {
+                    withContext(Dispatchers.IO){
+                        setWallpaper(applicationContext)
+                    }
                     _uiState.update {
                         it.copy(
                             imageData = imageData,
                             imagePath = backgroundImage
                         )
                     }
-                }
-            }
-        }
-    }
-    fun loadData(){
-        viewModelScope.launch {
-            val context:Application = getApplication()
-            val motionEnabled = PreferenceManager.getWallpaperMotion(context)
-            if(!motionEnabled) {
-                val imageData = PreferenceManager.getImageData(context)
-                _uiState.update {
-                    it.copy(
-                        imageData = imageData,
-                    )
                 }
             }
         }

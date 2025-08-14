@@ -167,7 +167,6 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             appInfoViewModel.loadAppLists()
             settingInfoViewModel.loadSettings()
-            mainViewModel.loadData()
         }
     }
 
@@ -176,7 +175,7 @@ class MainActivity : ComponentActivity() {
         val logger = LoggerManager(applicationContext)
         logger.setLog("MainActivity","Paused")
         lifecycleScope.launch {
-            delay(2000) // Delay, does not stop main thread
+            //delay(1000) // Delay, does not stop main thread
             mainViewModel.loadImageData()
         }
     }
