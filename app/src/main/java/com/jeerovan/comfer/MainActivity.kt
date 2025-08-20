@@ -864,7 +864,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
                     val frameTime = withFrameNanos { it }
                     val deltaTimeNanos = frameTime - lastFrameTime
                     val deltaTimeSeconds = deltaTimeNanos / 1_000_000_000f
-                    val angleDelta = deltaTimeSeconds * (2f * PI.toFloat() / 80f)
+                    val angleDelta = deltaTimeSeconds * (2f * PI.toFloat() / 60f)
                     val newAngle = (angle.value + angleDelta) % (2f * PI.toFloat())
                     angle.snapTo(newAngle)
                     lastFrameTime = frameTime
