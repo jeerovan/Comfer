@@ -325,6 +325,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?,enhancedIcons: Bo
     fun onGuideDismiss(){
         PreferenceManager.setBoolean(context,guideKeyword,true)
         guideShown = true
+        context.startActivity(Intent(context, SettingsActivity::class.java))
     }
 
     if(!guideShown && canShowGuide)GuideDialog(
