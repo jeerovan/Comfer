@@ -744,6 +744,12 @@ fun AppListOverlay(apps: List<AppInfo>,enhancedIcons : Boolean, onSwipeDown: () 
             }
     ) {
         if (apps.isNotEmpty()) {
+            LaunchedEffect(apps) {
+                // If the current index is now out of bounds, clamp it to the last valid index
+                if (centerAppIndex >= apps.size) {
+                    centerAppIndex = apps.lastIndex.coerceAtLeast(0)
+                }
+            }
             UshapedAppList(
                 apps = apps,
                 updateCenterIndex = { centerAppIndex = it },
@@ -772,17 +778,19 @@ fun AppListOverlay(apps: List<AppInfo>,enhancedIcons : Boolean, onSwipeDown: () 
                     label = "AppNameAnimation"
                 ) { targetIndex ->
                     // The content lambda provides the updated index
-                    Text(
-                        text = apps[targetIndex].label.toString(),
-                        modifier = Modifier
-                            .background(
-                                color = Color.Black.copy(alpha = 0.5f),
-                                shape = RoundedCornerShape(16.dp)
-                            )
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        fontSize = 18.sp,
-                        color = Color.White
-                    )
+                    if(targetIndex in apps.indices) {
+                        Text(
+                            text = apps[targetIndex].label.toString(),
+                            modifier = Modifier
+                                .background(
+                                    color = Color.Black.copy(alpha = 0.5f),
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            fontSize = 18.sp,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }
