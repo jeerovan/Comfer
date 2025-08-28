@@ -26,8 +26,8 @@ data class AppInfoUiState(
 )
 
 data class AppInfo(
-    val resolveInfo: ResolveInfo,
-    val icon: Drawable,
+    val resolveInfo: ResolveInfo?,
+    val icon: Drawable?,
     val color: Color,
     val label: CharSequence,
     val packageName: String
@@ -133,7 +133,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 // 3a. First launch: Populate lists with standard and other apps
                 PreferenceManager.onFirstOpen(getApplication())
                 val standardApps = filterStandardApps(allCurrentPackageNames).toList()
-                finalQuickPackageNames = standardApps.take(5)
+                finalQuickPackageNames = standardApps.take(4)
                 finalPrimaryPackageNames = allCurrentPackageNames.filter { it !in finalQuickPackageNames }
             } else {
                 // 3b. Subsequent launch: Update lists based on installed/uninstalled apps
@@ -146,12 +146,18 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
                 // Add newly installed apps, preserving order. New apps are added to the end.
                 if (addedPackages.isNotEmpty()) {
-                    val quickAppsCapacity = 5
+                    val quickAppsCapacity = 4
                     val quickAppsSpace = quickAppsCapacity - currentQuickPackages.size
                     if (quickAppsSpace > 0) {
                         currentQuickPackages = currentQuickPackages + addedPackages.take(quickAppsSpace)
                     }
                     currentPrimaryPackages = currentPrimaryPackages + addedPackages.drop(quickAppsSpace)
+                }
+                // If quick apps has 5, move last one to primary
+                if (currentQuickPackages.size == 5){
+                    val lastPackage = currentQuickPackages.drop(4)
+                    currentQuickPackages = currentQuickPackages.take(4)
+                    currentPrimaryPackages = lastPackage + currentPrimaryPackages
                 }
 
                 finalQuickPackageNames = currentQuickPackages
@@ -216,7 +222,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
             val quickAndPrimaryPackages = finalQuickPackageNames.toSet() + finalPrimaryPackageNames.toSet()
             val restPackages = allCurrentPackageNames - quickAndPrimaryPackages
-            val restApps = restPackages.mapNotNull { createAppInfo(it) }.sortedBy { it.label.toString() }
+            val restApps = restPackages.mapNotNull { createAppInfo(it) }
 
             _uiState.update {
                 it.copy(

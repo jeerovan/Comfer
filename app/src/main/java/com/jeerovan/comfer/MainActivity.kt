@@ -130,7 +130,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.core.content.res.ResourcesCompat
 import coil.compose.AsyncImage
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
@@ -524,7 +526,28 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?,enhancedIcons: Bo
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
-                    apps.forEach { app ->
+                    val appsSize = apps.size
+                    var searchPosition = 2
+                    if (appsSize < 3){
+                        if(appsSize == 2){
+                            searchPosition = 1
+                        } else {
+                            searchPosition = appsSize * 1
+                        }
+                    }
+                    val searchIcon = ResourcesCompat.getDrawable(
+                        context.resources,
+                        R.drawable.outline_search_24,
+                        null // or context.theme if needed for themed drawables
+                    )
+                    val searchApp = AppInfo(resolveInfo = null,
+                        icon = searchIcon,
+                        color = Color.White.copy(alpha = 0.7f),
+                        label = "Search",
+                        packageName = "search")
+                    val appsList = apps.toMutableList()
+                    appsList.add(searchPosition,searchApp)
+                    appsList.forEach { app ->
                         val packageManager = context.packageManager
                         Box(
                             modifier = Modifier
