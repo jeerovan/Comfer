@@ -527,13 +527,11 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?,enhancedIcons: Bo
                     horizontalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     val appsSize = apps.size
-                    var searchPosition = 2
-                    if (appsSize < 3){
-                        if(appsSize == 2){
-                            searchPosition = 1
-                        } else {
-                            searchPosition = appsSize * 1
-                        }
+                    val searchPosition = when (apps.size) {
+                        0 -> 0 // Insert at the start if empty
+                        1 -> 1 // Insert at the end if one item
+                        2 -> 1 // Insert in the middle if two items
+                        else -> 2 // Otherwise, insert at index 2
                     }
                     val searchIcon = ResourcesCompat.getDrawable(
                         context.resources,
