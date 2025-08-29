@@ -140,6 +140,7 @@ import androidx.core.content.res.ResourcesCompat
 import coil.compose.AsyncImage
 import kotlin.math.min
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.derivedStateOf
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
 
@@ -606,6 +607,11 @@ fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: (
     val haptic = LocalHapticFeedback.current
     var iconSize by remember { mutableStateOf(48.dp) }
     var inputText by remember { mutableStateOf("") }
+    val filteredApps by remember(inputText, apps) {
+        derivedStateOf {
+            searchApps(inputText, apps)
+        }
+    }
 
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -688,13 +694,13 @@ fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: (
                 )
 
                 LazyRow(
+                    Modifier.height(iconSize + 20.dp),
                     // Add some padding around the content
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     // Add spacing between the items
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    //val appsList = apps.take(5)
-                    items(apps) { app ->
+                    items(filteredApps) { app ->
                         val packageManager = context.packageManager
                         Box(
                             modifier = Modifier
@@ -1564,6 +1570,14 @@ fun CircularKeyboard(
                 modifier = Modifier.align(Alignment.Center)
             )
         }
+    }
+}
+fun searchApps(text: String, appList: List<AppInfo>): List<AppInfo> {
+    if (text.isBlank()) {
+        return appList // Return the full list if search text is empty
+    }
+    return appList.filter { app ->
+        app.label.contains(text, ignoreCase = true)
     }
 }
 
