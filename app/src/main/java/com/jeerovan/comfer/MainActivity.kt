@@ -843,6 +843,14 @@ fun AppListOverlay(apps: List<AppInfo>,enhancedIcons : Boolean, onSwipeDown: () 
             view.playSoundEffect(SoundEffectConstants.CLICK)
         }
     }
+
+    LaunchedEffect(apps) {
+        // If the current index is now out of bounds, clamp it to the last valid index
+        if (centerAppIndex >= apps.size) {
+            centerAppIndex = apps.lastIndex.coerceAtLeast(0)
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -855,18 +863,20 @@ fun AppListOverlay(apps: List<AppInfo>,enhancedIcons : Boolean, onSwipeDown: () 
                     },
                     onDoubleTap = {
                         if (apps.isNotEmpty()) {
-                            val app = apps[centerAppIndex]
-                            val launchIntent =
-                                packageManager.getLaunchIntentForPackage(app.packageName)
-                            if (launchIntent != null) {
-                                val opts = ActivityOptions.makeScaleUpAnimation(
-                                    view,
-                                    centerIconX.toInt(),
-                                    centerIconY.toInt(),
-                                    centerIconSize.toInt(),
-                                    centerIconSize.toInt()
-                                )
-                                context.startActivity(launchIntent, opts.toBundle())
+                            if(centerAppIndex < apps.size) {
+                                val app = apps[centerAppIndex]
+                                val launchIntent =
+                                    packageManager.getLaunchIntentForPackage(app.packageName)
+                                if (launchIntent != null) {
+                                    val opts = ActivityOptions.makeScaleUpAnimation(
+                                        view,
+                                        centerIconX.toInt(),
+                                        centerIconY.toInt(),
+                                        centerIconSize.toInt(),
+                                        centerIconSize.toInt()
+                                    )
+                                    context.startActivity(launchIntent, opts.toBundle())
+                                }
                             }
                         }
                     }
@@ -966,12 +976,6 @@ fun AppListOverlay(apps: List<AppInfo>,enhancedIcons : Boolean, onSwipeDown: () 
             }
     ) {
         if (apps.isNotEmpty()) {
-            LaunchedEffect(apps) {
-                // If the current index is now out of bounds, clamp it to the last valid index
-                if (centerAppIndex >= apps.size) {
-                    centerAppIndex = apps.lastIndex.coerceAtLeast(0)
-                }
-            }
             UshapedAppList(
                 apps = apps,
                 updateCenterIndex = { updateCenterAppIndex(it) },
@@ -1000,7 +1004,7 @@ fun AppListOverlay(apps: List<AppInfo>,enhancedIcons : Boolean, onSwipeDown: () 
                     label = "AppNameAnimation"
                 ) { targetIndex ->
                     // The content lambda provides the updated index
-                    if(targetIndex in apps.indices) {
+                    if(targetIndex < apps.size) {
                         Text(
                             text = apps[targetIndex].label.toString(),
                             modifier = Modifier
