@@ -120,6 +120,20 @@ fun UserGuideScreen() {
                 GuideStepItem(text = "Long press on icon to open app info.")
             }
 
+            // Search app list
+            item {
+                GuideSectionHeader(title = "Search app list")
+            }
+            item {
+                GuideStepItem(text = "Swipe down to go back.")
+            }
+            item {
+                GuideStepItem(text = "Tap icon to open app.")
+            }
+            item {
+                GuideStepItem(text = "Scroll list to view all results.")
+            }
+
             // Manage app list
             item {
                 GuideSectionHeader(title = "Manage app list")

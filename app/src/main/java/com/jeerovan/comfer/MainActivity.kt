@@ -141,6 +141,7 @@ import coil.compose.AsyncImage
 import kotlin.math.min
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.derivedStateOf
+import kotlinx.coroutines.processNextEventInCurrentThread
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
 
@@ -298,6 +299,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                      onSwipeUp: () -> Unit,
                      onShowSearch:() -> Unit) {
     val context = LocalContext.current
+    val view = LocalView.current
     val haptic = LocalHapticFeedback.current
     var iconSize by remember { mutableStateOf(48.dp) }
     var isDefault by remember { mutableStateOf(false) }
@@ -391,6 +393,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onTap = {
+                            view.playSoundEffect(SoundEffectConstants.CLICK)
                             // Open Alarms
                             val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
                             if (intent.resolveActivity(context.packageManager) != null) {
@@ -474,21 +477,19 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                         val swipeRightPackage =
                                             PreferenceManager.getSwipeApp(context, "right")
                                         if (swipeRightPackage != null) {
-                                            val launchIntent =
-                                                packageManager.getLaunchIntentForPackage(
-                                                    swipeRightPackage
-                                                )
-                                            context.startActivity(launchIntent)
+                                            val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(swipeRightPackage)
+                                            if (launchIntent != null) {
+                                                context.startActivity(launchIntent)
+                                            }
                                         }
                                     } else {
                                         val swipeLeftPackage =
                                             PreferenceManager.getSwipeApp(context, "left")
                                         if (swipeLeftPackage != null) {
-                                            val launchIntent =
-                                                packageManager.getLaunchIntentForPackage(
-                                                    swipeLeftPackage
-                                                )
-                                            context.startActivity(launchIntent)
+                                            val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(swipeLeftPackage)
+                                            if (launchIntent != null) {
+                                                context.startActivity(launchIntent)
+                                            }
                                         }
                                     }
                                 }
@@ -551,7 +552,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     )
                     val searchApp = AppInfo(resolveInfo = null,
                         icon = searchIcon,
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = Color.White,
                         label = "Search",
                         packageName = "search")
                     val appsList = apps.toMutableList()
@@ -566,12 +567,14 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onTap = {
+                                            view.playSoundEffect(SoundEffectConstants.CLICK)
                                             if (app.packageName == "search"){
                                                 onShowSearch()
                                             } else {
-                                                val launchIntent =
-                                                packageManager.getLaunchIntentForPackage(app.packageName)
-                                            context.startActivity(launchIntent)
+                                                val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(app.packageName)
+                                                if (launchIntent != null) {
+                                                    context.startActivity(launchIntent)
+                                                }
                                             }
                                         },
                                         onLongPress = {
@@ -604,6 +607,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
 @Composable
 fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: () -> Unit) {
     val context = LocalContext.current
+    val view = LocalView.current
     val haptic = LocalHapticFeedback.current
     var iconSize by remember { mutableStateOf(48.dp) }
     var inputText by remember { mutableStateOf("") }
@@ -616,7 +620,17 @@ fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: (
         }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(filteredApps) {
+        if (filteredApps.size == 1) {
+            val singleApp = filteredApps.first()
+            // Launch the app
+            val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(singleApp.packageName)
+            if (launchIntent != null) {
+                context.startActivity(launchIntent)
+                // Optional: Clear the input text after launching
+                inputText = ""
+            }
+        }
         guideShown = PreferenceManager.getBoolean(context,guideKeyword)
         delay(500)
         canShowGuide = true
@@ -696,8 +710,8 @@ fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: (
                 ) {
                     Text(
                         text = inputText.ifEmpty { "Type app name" },
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 24.sp,
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 20.sp,
                         textAlign = TextAlign.Center, // Ensure placeholder text is centered
                         modifier = Modifier.padding(horizontal = 16.dp) // Inner padding for the text
                     )
@@ -723,7 +737,6 @@ fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: (
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(filteredApps) { app ->
-                        val packageManager = context.packageManager
                         Box(
                             modifier = Modifier
                                 .size(iconSize)
@@ -732,9 +745,11 @@ fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: (
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onTap = {
-                                            val launchIntent =
-                                                packageManager.getLaunchIntentForPackage(app.packageName)
-                                            context.startActivity(launchIntent)
+                                            view.playSoundEffect(SoundEffectConstants.CLICK)
+                                            val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(app.packageName)
+                                            if (launchIntent != null) {
+                                                context.startActivity(launchIntent)
+                                            }
                                         },
                                         onLongPress = {
                                             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
@@ -814,11 +829,20 @@ fun AppListOverlay(apps: List<AppInfo>,enhancedIcons : Boolean, onSwipeDown: () 
     val velocityTracker = remember { VelocityTracker() }
     var lastYPosition by remember { mutableFloatStateOf(0f) }
     var centerAppIndex by remember { mutableIntStateOf(0) }
+    var lastCenterAppIndex by remember { mutableIntStateOf(0) }
     var centerIconX by remember { mutableFloatStateOf(0f) }
     var centerIconY by remember { mutableFloatStateOf(0f) }
     var centerIconSize by remember { mutableFloatStateOf(0f) }
     var dragAxis by remember { mutableStateOf<DragAxis?>(null) }
     var verticalDragAmount by remember { mutableFloatStateOf(0f) }
+
+    fun updateCenterAppIndex(index:Int){
+        centerAppIndex = index
+        if(centerAppIndex != lastCenterAppIndex) {
+            lastCenterAppIndex = centerAppIndex
+            view.playSoundEffect(SoundEffectConstants.CLICK)
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -950,7 +974,7 @@ fun AppListOverlay(apps: List<AppInfo>,enhancedIcons : Boolean, onSwipeDown: () 
             }
             UshapedAppList(
                 apps = apps,
-                updateCenterIndex = { centerAppIndex = it },
+                updateCenterIndex = { updateCenterAppIndex(it) },
                 scrollOffset = -scrollAnimatable.value,
                 iconSize = iconSize,
                 enhancedIcons = enhancedIcons,
@@ -1282,6 +1306,7 @@ fun UshapedAppList(
 @Composable
 fun AppIcon(app: AppInfo,enhancedIcons: Boolean, x: Dp, y: Dp, size: Dp) {
     val context = LocalContext.current
+    val view = LocalView.current
     val packageManager = context.packageManager
     val haptic = LocalHapticFeedback.current
     Box(
@@ -1293,9 +1318,11 @@ fun AppIcon(app: AppInfo,enhancedIcons: Boolean, x: Dp, y: Dp, size: Dp) {
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        val launchIntent =
-                            packageManager.getLaunchIntentForPackage(app.packageName)
-                        context.startActivity(launchIntent)
+                        view.playSoundEffect(SoundEffectConstants.CLICK)
+                        val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(app.packageName)
+                        if (launchIntent != null) {
+                            context.startActivity(launchIntent)
+                        }
                     },
                     onLongPress = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -1527,16 +1554,16 @@ fun CircularKeyboard(
 
     Box (
         modifier = Modifier
+            //.border(width = 1.dp,color = Color.Blue)
             .wrapContentSize(Alignment.Center),
         contentAlignment = Alignment.Center
     ) {
-        //val maxWidth = this.maxWidth.value
-        //val maxHeight = this.maxHeight.value
+
         val maxWidth = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp }
         val maxHeight = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp }
         // FIX: Explicitly use the 'this' scope to resolve the warning.
         val maxDiameter = min(maxWidth, maxHeight)
-        val keyboardDiameter = (maxDiameter * 0.8f).dp
+        val keyboardDiameter = (maxDiameter * 0.7f).dp
 
         Box(
             modifier = Modifier.size(keyboardDiameter),
