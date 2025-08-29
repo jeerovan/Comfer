@@ -186,9 +186,11 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
             fun createAppInfo(packageName: String): AppInfo? {
                 val resolveInfo = resolveInfoMap[packageName] ?: return null
+                val defaultIcon = packageManager.defaultActivityIcon
                 return try {
                     val cachedIcon = AppIconCache.getIcon(packageName)
-                    val icon = cachedIcon ?: resolveInfo.loadIcon(packageManager).also {
+                    val savedIcon = if (cachedIcon === defaultIcon) null else cachedIcon
+                    val icon = savedIcon ?: resolveInfo.loadIcon(packageManager).also {
                         AppIconCache.cacheIcon(packageName, it)
                     }
                     var colourInt: Int? = AppIconCache.getColor(packageName)

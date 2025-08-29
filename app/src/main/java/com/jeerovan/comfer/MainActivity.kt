@@ -607,10 +607,19 @@ fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: (
     val haptic = LocalHapticFeedback.current
     var iconSize by remember { mutableStateOf(48.dp) }
     var inputText by remember { mutableStateOf("") }
+    var guideShown by remember { mutableStateOf(true) }
+    val guideKeyword = "search_guide_1"
+    var canShowGuide by remember { mutableStateOf(false) }
     val filteredApps by remember(inputText, apps) {
         derivedStateOf {
             searchApps(inputText, apps)
         }
+    }
+
+    LaunchedEffect(Unit) {
+        guideShown = PreferenceManager.getBoolean(context,guideKeyword)
+        delay(500)
+        canShowGuide = true
     }
 
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
@@ -618,6 +627,7 @@ fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: (
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 iconSize = PreferenceManager.getIconSize(context).dp
+                guideShown = PreferenceManager.getBoolean(context,guideKeyword)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -625,6 +635,20 @@ fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: (
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
+    fun onGuideDismiss(){
+        PreferenceManager.setBoolean(context,guideKeyword,true)
+        guideShown = true
+    }
+
+    if(!guideShown && canShowGuide)GuideDialog(
+        onDismiss = {onGuideDismiss()},
+        title = "Navigation",
+        steps = listOf(
+            "Swipe down to go back.",
+            "Tap icon to open app.",
+            "Scroll list to view all result."
+        )
+    )
 
     Box(
         modifier = Modifier
