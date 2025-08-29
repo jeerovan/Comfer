@@ -13,7 +13,6 @@ import android.os.Bundle
 import android.provider.AlarmClock
 import android.provider.CalendarContract
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
@@ -64,7 +63,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -95,7 +93,6 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
-import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
@@ -118,6 +115,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import android.text.TextUtils
+import android.view.SoundEffectConstants
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -129,11 +131,15 @@ import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.vector.ImageVector
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextAlign
 import androidx.core.content.res.ResourcesCompat
 import coil.compose.AsyncImage
+import kotlin.math.min
+import androidx.compose.foundation.lazy.items
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
 
@@ -285,7 +291,11 @@ fun BatteryStatus(themeColor: Color) {
 }
 
 @Composable
-fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?,enhancedIcons: Boolean, onSwipeUp: () -> Unit) {
+fun QuickListOverlay(apps: List<AppInfo>,
+                     imageData: ImageData?,
+                     enhancedIcons: Boolean,
+                     onSwipeUp: () -> Unit,
+                     onShowSearch:() -> Unit) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     var iconSize by remember { mutableStateOf(48.dp) }
@@ -511,6 +521,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?,enhancedIcons: Bo
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.padding(bottom = 64.dp)
             ) {
+
                 if (!isDefault) {
                     OutlinedButton (onClick = { openDefaultLauncherSettings()},
                         border = null,
@@ -526,7 +537,6 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?,enhancedIcons: Bo
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
-                    val appsSize = apps.size
                     val searchPosition = when (apps.size) {
                         0 -> 0 // Insert at the start if empty
                         1 -> 1 // Insert at the end if one item
@@ -546,6 +556,145 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?,enhancedIcons: Bo
                     val appsList = apps.toMutableList()
                     appsList.add(searchPosition,searchApp)
                     appsList.forEach { app ->
+                        val packageManager = context.packageManager
+                        Box(
+                            modifier = Modifier
+                                .size(iconSize)
+                                .clip(CircleShape)
+                                .background(if (enhancedIcons) app.color else Color.White)
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onTap = {
+                                            if (app.packageName == "search"){
+                                                onShowSearch()
+                                            } else {
+                                                val launchIntent =
+                                                packageManager.getLaunchIntentForPackage(app.packageName)
+                                            context.startActivity(launchIntent)
+                                            }
+                                        },
+                                        onLongPress = {
+                                            if(app.packageName != "search") {
+                                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                val intent =
+                                                    android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                                intent.data = "package:${app.packageName}".toUri()
+                                                context.startActivity(intent)
+                                            }
+                                        }
+                                    )
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = rememberDrawablePainter(drawable = app.icon),
+                                contentDescription = app.label.toString(),
+                                modifier = Modifier
+                                    .padding(2.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: () -> Unit) {
+    val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    var iconSize by remember { mutableStateOf(48.dp) }
+    var inputText by remember { mutableStateOf("") }
+
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                iconSize = PreferenceManager.getIconSize(context).dp
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .border(1.dp,color=Color.Blue)
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                val packageManager = context.packageManager
+                var totalDragOffset = Offset.Zero
+                detectDragGestures(
+                    onDragStart = {
+                        totalDragOffset = Offset.Zero
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        totalDragOffset += dragAmount
+                    },
+                    onDragEnd = {
+                        val swipeThreshold = 50f
+                        val (x, y) = totalDragOffset
+                        if (y.absoluteValue > x.absoluteValue) {
+                            if (y.absoluteValue > swipeThreshold) {
+                                if (y > 0) {
+                                    onSwipeDown()
+                                }
+                            }
+                        }
+                    }
+                )
+            },
+        contentAlignment = Alignment.BottomCenter
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(bottom = 64.dp)
+            ) {
+                val maxWidth = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp }
+                val textBoxPadding = (maxWidth/5).dp
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = textBoxPadding) // Keep horizontal padding for screen margins
+                        .height(40.dp)
+                        .clip(RoundedCornerShape(16.dp)) // Clip the content to the rounded shape
+                        .background(Color.Black.copy(alpha = 0.5f)), // Black background for the box
+                    contentAlignment = Alignment.Center // Center the Text inside the Box
+                ) {
+                    Text(
+                        text = inputText.ifEmpty { "Type app name" },
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 24.sp,
+                        textAlign = TextAlign.Center, // Ensure placeholder text is centered
+                        modifier = Modifier.padding(horizontal = 16.dp) // Inner padding for the text
+                    )
+                }
+
+                // Circular Keyboard
+                CircularKeyboard(
+                    onChar = { char ->
+                        inputText += char
+                    },
+                    onBackspace = {
+                        if (inputText.isNotEmpty()) {
+                            inputText = inputText.dropLast(1)
+                        }
+                    }
+                )
+
+                LazyRow(
+                    // Add some padding around the content
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    // Add spacing between the items
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    //val appsList = apps.take(5)
+                    items(apps) { app ->
                         val packageManager = context.packageManager
                         Box(
                             modifier = Modifier
@@ -581,7 +730,7 @@ fun QuickListOverlay(apps: List<AppInfo>,imageData: ImageData?,enhancedIcons: Bo
                 }
             }
         }
-    }
+
 }
 
 @Composable
@@ -824,6 +973,7 @@ private enum class DragAxis { HORIZONTAL, VERTICAL }
 fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: SettingsViewModel,mainViewModel: MainViewModel) {
     val context = LocalContext.current
     var isAppListVisible by remember { mutableStateOf(false) }
+    var isSearchListVisible by remember { mutableStateOf(false) }
     var backgroundImage by remember { mutableStateOf<String?>(null) }
     var showDisclosure by remember { mutableStateOf(false) }
 
@@ -844,8 +994,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
     if (cachedImagePath != null && File(cachedImagePath).exists()) {
         backgroundImage = cachedImagePath
     }
-
-
 
     Box(
         modifier = Modifier
@@ -927,14 +1075,15 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
 
         // Quick-list layer
         AnimatedVisibility(
-            visible = !isAppListVisible,
+            visible = !isAppListVisible && !isSearchListVisible,
             enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
         ) {
             QuickListOverlay(apps = quickApps,
                 imageData = imageData,
                 enhancedIcons = settingInfoUiState.enhancedIcons,
-                onSwipeUp = { isAppListVisible = true })
+                onSwipeUp = { isAppListVisible = true },
+                onShowSearch = { isSearchListVisible = true})
         }
 
         // app list - second layer
@@ -946,6 +1095,17 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
             AppListOverlay(apps = primaryApps,
                 enhancedIcons = settingInfoUiState.enhancedIcons,
                 onSwipeDown = { isAppListVisible = false })
+        }
+
+        // search list
+        AnimatedVisibility(
+            visible = isSearchListVisible,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+        ) {
+            SearchListOverlay (apps = primaryApps,
+                enhancedIcons = settingInfoUiState.enhancedIcons,
+                onSwipeDown = { isSearchListVisible = false })
         }
         if (showDisclosure) {
             AccessibilityPermissionDisclosureScreen(
@@ -1274,4 +1434,137 @@ fun requestAccessibilityPermission(context: Context) {
     val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
     context.startActivity(intent)
 }
+
+@Composable
+fun CircularButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    char: Char? = null,
+    size: Dp
+) {
+    // 1. InteractionSource to track press state
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    // 2. Animate scale based on press state for visual feedback
+    val scale by animateFloatAsState(targetValue = if (isPressed) 1.5f else 1f)
+
+    // 3. Get the current view to trigger the sound effect
+    val view = LocalView.current
+
+    Button(
+        onClick = {
+            // Play default tap sound
+            view.playSoundEffect(SoundEffectConstants.CLICK)
+            // Execute the original onClick action
+            onClick()
+        },
+        modifier = modifier
+            .size(size)
+            .graphicsLayer { // Apply the scaling animation
+                scaleX = scale
+                scaleY = scale
+            },
+        shape = CircleShape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Black.copy(alpha = 0.5f)
+        ),
+        // Pass the interactionSource to the button
+        interactionSource = interactionSource,
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        if (char != null) {
+            Text(
+                text = char.toString(),
+                color = Color.White.copy(alpha = 0.8f),
+                fontSize = (size.value / 2.0).sp
+            )
+        } else {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Backspace",
+                tint = Color.White.copy(alpha = 0.8f),
+                modifier = Modifier.size(size * 0.5f)
+            )
+        }
+    }
+}
+@Composable
+fun CircularKeyboard(
+    onChar: (Char) -> Unit,
+    onBackspace: () -> Unit
+) {
+    val alphabet = ('a'..'z').toList()
+    val layer1Chars = alphabet.subList(0, 10)
+    val layer2Chars = alphabet.subList(10, 26)
+
+    Box (
+        modifier = Modifier
+            .wrapContentSize(Alignment.Center),
+        contentAlignment = Alignment.Center
+    ) {
+        //val maxWidth = this.maxWidth.value
+        //val maxHeight = this.maxHeight.value
+        val maxWidth = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp }
+        val maxHeight = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp }
+        // FIX: Explicitly use the 'this' scope to resolve the warning.
+        val maxDiameter = min(maxWidth, maxHeight)
+        val keyboardDiameter = (maxDiameter * 0.8f).dp
+
+        Box(
+            modifier = Modifier.size(keyboardDiameter),
+            contentAlignment = Alignment.Center
+        ) {
+            // Define sizes relative to the available space for responsiveness
+            val buttonSize = (keyboardDiameter / 7)
+            val centerButtonSize = buttonSize * 1.3f
+
+            // Define layer radii
+            val radiusLayer2 = centerButtonSize * 0.9f + buttonSize + buttonSize / 2
+            val radiusLayer1 = centerButtonSize * 0.9f + buttonSize / 2
+
+            // Layer 2 (Outer Ring - 16 characters)
+            val angleStep2 = 2 * Math.PI / layer2Chars.size
+            layer2Chars.forEachIndexed { index, char ->
+                val angle = angleStep2 * index - (Math.PI / 2) // Start from top
+                val x = (radiusLayer2.value * cos(angle)).dp
+                val y = (radiusLayer2.value * sin(angle)).dp
+
+                CircularButton(
+                    onClick = { onChar(char) },
+                    char = char,
+                    size = buttonSize,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .offset(x = x, y = y)
+                )
+            }
+
+            // Layer 1 (Inner Ring - 10 characters)
+            val angleStep1 = 2 * Math.PI / layer1Chars.size
+            layer1Chars.forEachIndexed { index, char ->
+                val angle = angleStep1 * index - (Math.PI / 2) // Start from top
+                val x = (radiusLayer1.value * cos(angle)).dp
+                val y = (radiusLayer1.value * sin(angle)).dp
+
+                CircularButton(
+                    onClick = { onChar(char) },
+                    char = char,
+                    size = buttonSize,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .offset(x = x, y = y)
+                )
+            }
+
+            // Center Backspace Button
+            CircularButton(
+                onClick = onBackspace,
+                size = centerButtonSize,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+    }
+}
+
 
