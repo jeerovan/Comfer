@@ -628,10 +628,8 @@ fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: (
 
     Box(
         modifier = Modifier
-            .border(1.dp,color=Color.Blue)
             .fillMaxSize()
             .pointerInput(Unit) {
-                val packageManager = context.packageManager
                 var totalDragOffset = Offset.Zero
                 detectDragGestures(
                     onDragStart = {
@@ -1453,7 +1451,7 @@ fun CircularButton(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     // 2. Animate scale based on press state for visual feedback
-    val scale by animateFloatAsState(targetValue = if (isPressed) 1.5f else 1f)
+    val scale by animateFloatAsState(targetValue = if (isPressed) 1.2f else 1f)
 
     // 3. Get the current view to trigger the sound effect
     val view = LocalView.current
@@ -1500,9 +1498,8 @@ fun CircularKeyboard(
     onChar: (Char) -> Unit,
     onBackspace: () -> Unit
 ) {
-    val alphabet = ('a'..'z').toList()
-    val layer1Chars = alphabet.subList(0, 10)
-    val layer2Chars = alphabet.subList(10, 26)
+    val layer1Chars = charArrayOf('g','h','j','k','m','n','z','s','d','f').toList()
+    val layer2Chars = charArrayOf('t','y','u','i','o','p','l','b','v','c','x','a','q','w','e','r').toList()
 
     Box (
         modifier = Modifier
