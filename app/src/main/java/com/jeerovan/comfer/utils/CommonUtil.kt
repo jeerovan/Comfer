@@ -36,11 +36,11 @@ import com.jeerovan.comfer.R
 import okhttp3.ConnectionSpec
 
 import java.security.cert.X509Certificate
+import java.util.Calendar
 import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
 object CommonUtil {
-
     fun randomCode(input: String, length: Int = 6): String {
         // Create SHA-256 hash
         val digest = MessageDigest.getInstance("SHA-256")
@@ -89,6 +89,8 @@ object CommonUtil {
         return resolveInfo?.activityInfo?.packageName == context.packageName
     }
     suspend fun fetchImageData(applicationContext: Context){
+        val previousWallpaperApplied = PreferenceManager.getWallpaperApplied(applicationContext)
+        if(!previousWallpaperApplied) return;
         val logger = LoggerManager(applicationContext)
         val hour = PreferenceManager.getHour(applicationContext)
         if (hour > 0) {
@@ -143,19 +145,21 @@ object CommonUtil {
             val wallpaperManager =
                 WallpaperManager.getInstance(applicationContext)
             val bitmap = BitmapFactory.decodeFile(filePath)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                var flag = WallpaperManager.FLAG_SYSTEM
-                if(setWallpaperOnLockScreen){
-                    flag = WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
+            if(bitmap != null){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    var flag = WallpaperManager.FLAG_SYSTEM
+                    if(setWallpaperOnLockScreen){
+                        flag = WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
+                    }
+                    wallpaperManager.setBitmap(
+                        bitmap,
+                        null,
+                        true,
+                        flag
+                    )
+                } else {
+                    wallpaperManager.setBitmap(bitmap)
                 }
-                wallpaperManager.setBitmap(
-                    bitmap,
-                    null,
-                    true,
-                    flag
-                )
-            } else {
-                wallpaperManager.setBitmap(bitmap)
             }
         }
     }
@@ -194,6 +198,7 @@ object CommonUtil {
                             file.absolutePath
                         )
                         PreferenceManager.setImageDownloaded(applicationContext)
+                        PreferenceManager.setWallpaperApplied(applicationContext,false)
                     }
                 }
             }
@@ -231,8 +236,3 @@ object CommonUtil {
     }
 }
 
-object InsecureTrustManager : X509TrustManager {
-    override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-    override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-    override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-}

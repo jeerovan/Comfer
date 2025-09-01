@@ -1,6 +1,6 @@
 [versions]
 accompanistDrawablepainter = "0.37.3"
-agp = "8.12.1"
+agp = "8.12.2"
 billingKtx = "8.0.0"
 coilCompose = "2.7.0"
 kotlin = "2.2.0"

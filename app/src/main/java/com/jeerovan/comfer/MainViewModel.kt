@@ -1,12 +1,10 @@
 package com.jeerovan.comfer
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.jeerovan.comfer.utils.CommonUtil.downloadImage
 import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
-import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -49,17 +47,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     // update uiState
                     val imageData = PreferenceManager.getImageData(applicationContext)
                     val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
+                    // this is a first time fetch, do not set wallpaper on home screen as the app is not set default home app now
                     _uiState.update {
                         it.copy(
                             imageData = imageData,
                             imagePath = filePath
                         )
                     }
+                    PreferenceManager.setWallpaperApplied(applicationContext,true)
                     setDownloading(false)
                 }
             } else {
                 val backgroundImage = PreferenceManager.getBackgroundImagePath(applicationContext)
                 if(_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImage) {
+                    PreferenceManager.setWallpaperApplied(applicationContext,true)
                     withContext(Dispatchers.IO){
                         setWallpaper(applicationContext)
                     }

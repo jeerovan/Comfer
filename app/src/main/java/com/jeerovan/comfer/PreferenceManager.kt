@@ -1,13 +1,10 @@
 package com.jeerovan.comfer
 
 import android.content.Context
-import android.util.Log
 import androidx.core.content.edit
 import com.jeerovan.comfer.utils.CommonUtil
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.Calendar
-import kotlin.math.min
 
 object PreferenceManager {
     private const val PREF_BACKGROUND_IMAGE = "background_image"
@@ -26,6 +23,8 @@ object PreferenceManager {
     private const val ENHANCED_ICONS = "enhanced_icons"
 
     private const val FEEDBACK_DIALOG = "feedback_dialog"
+
+    private const val WALLPAPER_SET = "wallpaper_set"
 
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -205,6 +204,15 @@ object PreferenceManager {
     fun setFeedbackDialogShown(context: Context){
         getPrefs(context).edit {
             putBoolean(FEEDBACK_DIALOG,true)
+        }
+    }
+
+    fun getWallpaperApplied(context: Context):Boolean {
+        return getPrefs(context).getBoolean(WALLPAPER_SET,true)
+    }
+    fun setWallpaperApplied(context: Context,applied : Boolean){
+        getPrefs(context).edit {
+            putBoolean(WALLPAPER_SET,applied)
         }
     }
 }
