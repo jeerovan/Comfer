@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -48,6 +49,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,11 +60,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toFile
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import androidx.core.net.toUri
 import com.jeerovan.comfer.utils.CommonUtil.canSetLockScreenWallpaper
+import com.jeerovan.comfer.utils.CommonUtil.copyUriToInternalStorage
+import kotlinx.io.IOException
+import java.io.File
+import java.util.concurrent.TimeUnit
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 class SettingsActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
@@ -395,6 +407,29 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             item {
                 ListItem(
+                    headlineContent = { Text("Date-Time color") },
+                    supportingContent = { Text("Set to white") },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.outline_motion_mode_24),
+                            contentDescription = "Wallpaper Motion"
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settingsState.dateTimeColor == "White",
+                            onCheckedChange = { settingsViewModel.changeDateTimeColor(it) }
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.changeDateTimeColor(settingsState.dateTimeColor != "White") },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
+            item{
+                ImagePickerSettingItem(title = "Set wallpaper")
+            }
+            item {
+                ListItem(
                     headlineContent = { Text("Version") },
                     supportingContent = { Text(getAppVersion(context) ?: "N/A") },
                     leadingContent = { Icon(Icons.Default.Info, contentDescription = "Version") },
@@ -424,4 +459,84 @@ fun getAppVersion(context: Context): String? {
     } catch (e: PackageManager.NameNotFoundException) {
         "N/A"
     }
+}
+
+@OptIn(ExperimentalTime::class)
+@Composable
+fun ImagePickerSettingItem(
+    title: String,
+    modifier: Modifier = Modifier
+) {
+    // State to hold the FILE PATH of the selected image in internal storage.
+    var savedImagePath by remember { mutableStateOf<String?>(null) }
+    val isChecked = savedImagePath != null
+
+    val context = LocalContext.current
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri: Uri? ->
+            if (uri != null) {
+                // --- THIS IS THE NEW LOGIC ---
+                try {
+                    // 1. Define the destination file
+                    val currentUtcSeconds = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
+                    val filename = "comfer_${currentUtcSeconds}.jpg"
+                    val destinationFile = File(context.filesDir, filename)
+
+                    // 2. Copy the file
+                    copyUriToInternalStorage(context, uri, destinationFile)
+
+                    // 3. Save the path to the new file in our state
+                    savedImagePath = destinationFile.absolutePath
+                    Log.d("ImagePicker", "Successfully copied image to ${destinationFile.absolutePath}")
+                    PreferenceManager.setBackgroundImagePath(
+                        context,
+                        destinationFile.absolutePath
+                    )
+                } catch (e: IOException) {
+                    Log.e("ImagePicker", "Failed to copy image", e)
+                    // If copy fails, ensure the switch remains off
+                    savedImagePath = null
+                }
+            } else {
+                // User canceled the selection, do nothing or ensure state is null
+                savedImagePath = null
+            }
+        }
+    )
+
+    val toggleAction = {
+        if (!isChecked) {
+            galleryLauncher.launch("image/*")
+        } else {
+            // If the switch is on, delete the file and clear the state
+            savedImagePath?.let { path ->
+                val fileToDelete = File(path)
+                if (fileToDelete.exists()) {
+                    fileToDelete.delete()
+                }
+                savedImagePath = null
+            }
+        }
+    }
+
+    // 3. The ListItem composable for the UI.
+    ListItem(
+        modifier = modifier.clickable { toggleAction() },
+        headlineContent = { Text(title) },
+        supportingContent = { },
+        leadingContent = {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "$title Icon"
+            )
+        },
+        trailingContent = {
+            Switch(
+                checked = isChecked,
+                onCheckedChange = { toggleAction() }
+            )
+        }
+    )
 }

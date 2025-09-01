@@ -10,6 +10,7 @@ import android.os.Build
 import android.util.Log
 import androidx.compose.ui.Alignment
 import android.graphics.Canvas
+import android.net.Uri
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.alpha
@@ -34,6 +35,7 @@ import androidx.core.graphics.createBitmap
 import com.jeerovan.comfer.LoggerManager
 import com.jeerovan.comfer.R
 import okhttp3.ConnectionSpec
+import java.io.IOException
 
 import java.security.cert.X509Certificate
 import java.util.Calendar
@@ -179,10 +181,6 @@ object CommonUtil {
                     val drawable = result.drawable
                     if (drawable != null) {
                         val oldFilePath:String? = PreferenceManager.getBackgroundImagePath(applicationContext)
-                        if(oldFilePath != null) {
-                            val oldFile = File(oldFilePath)
-                            oldFile.delete()
-                        }
                         val filename = "comfer_${tempImageData.id}.jpg"
                         val file = File(applicationContext.filesDir, filename)
                         val stream = FileOutputStream(file)
@@ -199,6 +197,11 @@ object CommonUtil {
                         )
                         PreferenceManager.setImageDownloaded(applicationContext)
                         PreferenceManager.setWallpaperApplied(applicationContext,false)
+                        // delete old file
+                        if(oldFilePath != null) {
+                            val oldFile = File(oldFilePath)
+                            oldFile.delete()
+                        }
                     }
                 }
             }
@@ -233,6 +236,16 @@ object CommonUtil {
 
         // If the loop completes, all pixels were transparent. Return the default color.
         return defaultColor
+    }
+
+    @Throws(IOException::class)
+    fun copyUriToInternalStorage(context: Context, uri: Uri, destinationFile: File) {
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            FileOutputStream(destinationFile).use { outputStream ->
+                // Copy the bytes from the input stream to the output stream
+                inputStream.copyTo(outputStream)
+            }
+        } ?: throw IOException("Unable to open input stream from URI: $uri")
     }
 }
 

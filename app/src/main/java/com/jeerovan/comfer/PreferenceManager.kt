@@ -215,4 +215,14 @@ object PreferenceManager {
             putBoolean(WALLPAPER_SET,applied)
         }
     }
+
+    fun updateImageData(context: Context, white: Boolean){
+        val imageData:ImageData? = getImageData(context)
+        imageData?.position = "TopCenter"
+        imageData?.color = if (white) "White" else "Black"
+        val jsonString = Json.encodeToString(imageData)
+        getPrefs(context).edit {
+            putString(KEY_IMAGE_DATA, jsonString)
+        }
+    }
 }

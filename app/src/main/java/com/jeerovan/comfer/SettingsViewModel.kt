@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.impl.utils.PREFERENCE_FILE_KEY
+import com.google.android.datatransport.runtime.time.TimeModule_UptimeClockFactory
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
 import io.ktor.http.cio.encodeChunked
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +20,8 @@ data class SettingsUiState(
     val enhancedIcons : Boolean = true,
     val iconSize: Int = 48,
     val leftSwipeApp:String? = null,
-    val rightSwipeApp:String? = null
+    val rightSwipeApp:String? = null,
+    val dateTimeColor:String? = null
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -39,6 +41,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val enhancedIcons = PreferenceManager.getEnhancedIcons(getApplication(),true)
             val leftSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"left")
             val rightSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"right")
+            val imageData = PreferenceManager.getImageData(getApplication())
+            val dateTimeColor = imageData?.color
             _uiState.update {
                 it.copy(
                     wallpaperMotionEnabled = wallpaperMotion,
@@ -46,7 +50,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     iconSize = iconSize,
                     leftSwipeApp = leftSwipeApp,
                     rightSwipeApp = rightSwipeApp,
-                    enhancedIcons = enhancedIcons
+                    enhancedIcons = enhancedIcons,
+                    dateTimeColor = dateTimeColor
                 )
             }
         }
@@ -102,6 +107,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 PreferenceManager.setIconSize(getApplication(), newSize)
                 _uiState.update { it.copy(iconSize = newSize) }
             }
+        }
+    }
+
+    fun changeDateTimeColor(white:Boolean){
+        viewModelScope.launch {
+            PreferenceManager.updateImageData(getApplication(),white)
+            val newColor = if (white) "White" else "Black"
+            _uiState.update { it.copy(dateTimeColor = newColor) }
         }
     }
 }
