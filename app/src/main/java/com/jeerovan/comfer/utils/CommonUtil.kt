@@ -1,5 +1,6 @@
 package com.jeerovan.comfer.utils
 
+import FlowerShape
 import android.app.WallpaperManager
 import android.content.Context
 import android.content.Intent
@@ -11,7 +12,13 @@ import android.util.Log
 import androidx.compose.ui.Alignment
 import android.graphics.Canvas
 import android.net.Uri
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.alpha
 import coil.Coil
@@ -246,6 +253,47 @@ object CommonUtil {
                 inputStream.copyTo(outputStream)
             }
         } ?: throw IOException("Unable to open input stream from URI: $uri")
+    }
+
+    fun getShapeFromString(iconShape:String?="circle"): Shape{
+        return when (iconShape) {
+            "cloud" -> {
+                FlowerShape(angle = 45.0f)
+            }
+            "squircle" -> {
+                RoundedCornerShape(0.0f)
+            }
+            "cutcorner" -> {
+                CutCornerShape(0.dp)
+            }
+            "flower" -> {
+                FlowerShape(petalCount = 7)
+            }
+            "circle" -> {
+                CircleShape
+            }
+            else -> {
+                CircleShape
+            }
+        }
+    }
+    fun getShapeFromShape(shape:Shape, size: Dp):Shape{
+        var iconShape = shape;
+        when (shape) {
+            CircleShape -> {
+                iconShape  = shape
+            }
+            is RoundedCornerShape -> {
+                val cornerRadius = size * 0.425f
+                iconShape = RoundedCornerShape(cornerRadius)
+            }
+
+            is CutCornerShape -> {
+                val cornerCut = size * 0.225f
+                iconShape = CutCornerShape(cornerCut)
+            }
+        }
+        return iconShape
     }
 }
 

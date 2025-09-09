@@ -140,7 +140,14 @@ import androidx.core.content.res.ResourcesCompat
 import coil.compose.AsyncImage
 import kotlin.math.min
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.drawable.toDrawable
+import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import kotlinx.coroutines.processNextEventInCurrentThread
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
@@ -295,13 +302,13 @@ fun BatteryStatus(themeColor: Color) {
 @Composable
 fun QuickListOverlay(apps: List<AppInfo>,
                      imageData: ImageData?,
-                     enhancedIcons: Boolean,
                      onSwipeUp: () -> Unit,
                      onShowSearch:() -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
     var iconSize by remember { mutableStateOf(48.dp) }
+    var iconShape: Shape by remember { mutableStateOf(CircleShape)}
     var isDefault by remember { mutableStateOf(false) }
     var guideShown by remember { mutableStateOf(true) }
     var feedbackShown by remember { mutableStateOf(true)}
@@ -315,7 +322,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
 
     LaunchedEffect(Unit) {
         isDefault = isDefaultLauncher(context)
-        guideShown = PreferenceManager.getBoolean(context,guideKeyword)
+        guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
         feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
         delay(500)
         canShowGuide = true
@@ -326,7 +333,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 iconSize = PreferenceManager.getIconSize(context).dp
-                guideShown = PreferenceManager.getBoolean(context,guideKeyword)
+                iconShape = PreferenceManager.getIconShape(context)
+                guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
                 feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
                 isDefault = isDefaultLauncher(context)
             }
@@ -550,9 +558,10 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         R.drawable.outline_search_24,
                         null // or context.theme if needed for themed drawables
                     )
-                    val searchApp = AppInfo(resolveInfo = null,
-                        icon = searchIcon,
-                        color = Color.White,
+                    val searchApp = AppInfo(
+                        background = Color.White.toArgb().toDrawable(),
+                        foreground = searchIcon,
+                        scale = 0.8f,
                         label = "Search",
                         packageName = "search")
                     val appsList = apps.toMutableList()
@@ -562,8 +571,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         Box(
                             modifier = Modifier
                                 .size(iconSize)
-                                .clip(CircleShape)
-                                .background(if (enhancedIcons) app.color else Color.White)
+                                .clip(getShapeFromShape(iconShape,iconSize))
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onTap = {
@@ -590,12 +598,25 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Image(
-                                painter = rememberDrawablePainter(drawable = app.icon),
-                                contentDescription = app.label.toString(),
-                                modifier = Modifier
-                                    .padding(2.dp)
-                            )
+                            // Background Layer
+                            if (app.background != null) {
+                                Image(
+                                    painter = rememberDrawablePainter(drawable = app.background),
+                                    contentDescription = "${app.label} background",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.FillBounds
+                                )
+                            }
+
+                            // Foreground Layer
+                            if (app.foreground != null) {
+                                Image(
+                                    painter = rememberDrawablePainter(drawable = app.foreground),
+                                    contentDescription = app.label.toString(),
+                                    modifier = Modifier.fillMaxSize().scale(app.scale), // Let it fill the clipped Box
+                                    contentScale = ContentScale.FillBounds
+                                )
+                            }
                         }
                     }
                 }
@@ -605,11 +626,12 @@ fun QuickListOverlay(apps: List<AppInfo>,
 }
 
 @Composable
-fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: () -> Unit) {
+fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
     var iconSize by remember { mutableStateOf(48.dp) }
+    var iconShape: Shape by remember { mutableStateOf(CircleShape) }
     var inputText by remember { mutableStateOf("") }
     var guideShown by remember { mutableStateOf(true) }
     val guideKeyword = "search_guide_1"
@@ -631,7 +653,7 @@ fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: (
                 inputText = ""
             }
         }
-        guideShown = PreferenceManager.getBoolean(context,guideKeyword)
+        guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
         delay(500)
         canShowGuide = true
     }
@@ -641,7 +663,8 @@ fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: (
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 iconSize = PreferenceManager.getIconSize(context).dp
-                guideShown = PreferenceManager.getBoolean(context,guideKeyword)
+                iconShape = PreferenceManager.getIconShape(context)
+                guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -740,8 +763,7 @@ fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: (
                         Box(
                             modifier = Modifier
                                 .size(iconSize)
-                                .clip(CircleShape)
-                                .background(if (enhancedIcons) app.color else Color.White)
+                                .clip(getShapeFromShape(iconShape, iconSize))
                                 .pointerInput(Unit) {
                                     detectTapGestures(
                                         onTap = {
@@ -762,33 +784,46 @@ fun SearchListOverlay(apps: List<AppInfo>,enhancedIcons: Boolean, onSwipeDown: (
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Image(
-                                painter = rememberDrawablePainter(drawable = app.icon),
-                                contentDescription = app.label.toString(),
-                                modifier = Modifier
-                                    .padding(2.dp)
-                            )
+                            // Background Layer
+                            if (app.background != null) {
+                                Image(
+                                    painter = rememberDrawablePainter(drawable = app.background),
+                                    contentDescription = "${app.label} background",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.FillBounds
+                                )
+                            }
+
+                            // Foreground Layer
+                            if (app.foreground != null) {
+                                Image(
+                                    painter = rememberDrawablePainter(drawable = app.foreground),
+                                    contentDescription = app.label.toString(),
+                                    modifier = Modifier.fillMaxSize().scale(app.scale), // Let it fill the clipped Box
+                                    contentScale = ContentScale.FillBounds
+                                )
+                            }
                         }
                     }
                 }
             }
         }
-
 }
 
 @Composable
-fun AppListOverlay(apps: List<AppInfo>,enhancedIcons : Boolean, onSwipeDown: () -> Unit) {
+fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
     val packageManager = context.packageManager
     val scope = rememberCoroutineScope()
     var iconSize by remember { mutableStateOf(48.dp) }
+    var iconShape: Shape by remember { mutableStateOf(CircleShape) }
     var guideShown by remember { mutableStateOf(true) }
     val guideKeyword = "primary_guide_1"
     var canShowGuide by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        guideShown = PreferenceManager.getBoolean(context,guideKeyword)
+        guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
         delay(500)
         canShowGuide = true
     }
@@ -799,7 +834,8 @@ fun AppListOverlay(apps: List<AppInfo>,enhancedIcons : Boolean, onSwipeDown: () 
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 iconSize = PreferenceManager.getIconSize(context).dp
-                guideShown = PreferenceManager.getBoolean(context,guideKeyword)
+                iconShape = PreferenceManager.getIconShape(context)
+                guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -981,7 +1017,7 @@ fun AppListOverlay(apps: List<AppInfo>,enhancedIcons : Boolean, onSwipeDown: () 
                 updateCenterIndex = { updateCenterAppIndex(it) },
                 scrollOffset = -scrollAnimatable.value,
                 iconSize = iconSize,
-                enhancedIcons = enhancedIcons,
+                iconShape = iconShape,
                 updateCenterIconGeom = { x, y, size ->
                     centerIconX = x
                     centerIconY = y
@@ -1137,7 +1173,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
         ) {
             QuickListOverlay(apps = quickApps,
                 imageData = imageData,
-                enhancedIcons = settingInfoUiState.enhancedIcons,
                 onSwipeUp = { isAppListVisible = true },
                 onShowSearch = { isSearchListVisible = true})
         }
@@ -1149,7 +1184,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
         ) {
             AppListOverlay(apps = primaryApps,
-                enhancedIcons = settingInfoUiState.enhancedIcons,
                 onSwipeDown = { isAppListVisible = false })
         }
 
@@ -1160,7 +1194,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
         ) {
             SearchListOverlay (apps = primaryApps,
-                enhancedIcons = settingInfoUiState.enhancedIcons,
                 onSwipeDown = { isSearchListVisible = false })
         }
         if (showDisclosure) {
@@ -1189,7 +1222,7 @@ fun UshapedAppList(
     updateCenterIndex: (Int) -> Unit,
     scrollOffset: Float,
     iconSize: Dp,
-    enhancedIcons: Boolean,
+    iconShape: Shape,
     updateCenterIconGeom: (x: Float, y: Float, size: Float) -> Unit
 ) {
     val sidePadding = 18.dp
@@ -1297,7 +1330,7 @@ fun UshapedAppList(
             key(apps[appIndex].packageName) {
                 AppIcon(
                     app = apps[appIndex],
-                    enhancedIcons = enhancedIcons,
+                    shape = iconShape,
                     x = x.toDp(),
                     y = y.toDp(),
                     size = size
@@ -1308,17 +1341,16 @@ fun UshapedAppList(
 }
 
 @Composable
-fun AppIcon(app: AppInfo,enhancedIcons: Boolean, x: Dp, y: Dp, size: Dp) {
+fun AppIcon(app: AppInfo,shape: Shape, x: Dp, y: Dp, size: Dp) {
     val context = LocalContext.current
     val view = LocalView.current
-    val packageManager = context.packageManager
     val haptic = LocalHapticFeedback.current
+    val iconShape = getShapeFromShape(shape,size)
     Box(
         modifier = Modifier
             .offset(x = x, y = y)
             .size(size)
-            .clip(CircleShape)
-            .background(if (enhancedIcons) app.color else Color.White)
+            .clip(iconShape)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
@@ -1338,11 +1370,25 @@ fun AppIcon(app: AppInfo,enhancedIcons: Boolean, x: Dp, y: Dp, size: Dp) {
             },
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = rememberDrawablePainter(drawable = app.icon),
-            contentDescription = app.label.toString(),
-            modifier = Modifier.padding(2.dp)
-        )
+        // Background Layer
+        if (app.background != null) {
+            Image(
+                painter = rememberDrawablePainter(drawable = app.background),
+                contentDescription = "${app.label} background",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+        }
+
+        // Foreground Layer
+        if (app.foreground != null) {
+            Image(
+                painter = rememberDrawablePainter(drawable = app.foreground),
+                contentDescription = app.label.toString(),
+                modifier = Modifier.fillMaxSize().scale(app.scale),
+                contentScale = ContentScale.FillBounds
+            )
+        }
     }
 }
 

@@ -1,9 +1,11 @@
 package com.jeerovan.comfer
 
+import FlowerShape
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import androidx.compose.ui.graphics.Shape
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -14,14 +16,21 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,10 +40,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -44,6 +51,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -55,24 +63,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toFile
+import androidx.compose.ui.window.DialogProperties
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import androidx.core.net.toUri
 import com.jeerovan.comfer.utils.CommonUtil.canSetLockScreenWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.copyUriToInternalStorage
+import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import kotlinx.io.IOException
 import java.io.File
 import java.util.concurrent.TimeUnit
-import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 class SettingsActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
@@ -117,6 +127,9 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val leftSwipeApp = mapPackageNameToAppInfo(packageManager, settingsState.leftSwipeApp)
     val rightSwipeApp = mapPackageNameToAppInfo(packageManager, settingsState.rightSwipeApp)
 
+    val iconShape = settingsState.iconShape
+    val iconSize = settingsState.iconSize - 10
+    val iconShapeString = settingsState.iconShapeString
     Scaffold(
         topBar = {
             TopAppBar(
@@ -218,23 +231,10 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
             }
             item {
-                ListItem(
-                    headlineContent = { Text("Enhanced Icons") },
-                    supportingContent = { Text("Better appearance on older devices") },
-                    leadingContent = {
-                        Icon(
-                            painter = painterResource(R.drawable.outline_blur_circular_24),
-                            contentDescription = "Icon Appearance"
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settingsState.enhancedIcons,
-                            onCheckedChange = { settingsViewModel.setEnhancedIcons(it) }
-                        )
-                    },
-                    modifier = Modifier.clickable { settingsViewModel.setEnhancedIcons(!settingsState.enhancedIcons) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                IconShapeSettingItem(currentShape = iconShapeString, onShapeChange = {
+                    newShape ->
+                    settingsViewModel.setIconShape(newShape)
+                }
                 )
             }
 
@@ -254,13 +254,32 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     },
                     trailingContent = {
                         if (leftSwipeApp != null) {
-                            Image(
-                                painter = rememberDrawablePainter(drawable = leftSwipeApp.icon),
-                                contentDescription = leftSwipeApp.label.toString(),
+                            Box(
                                 modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape)
-                            )
+                                    .size(iconSize.dp)
+                                    .clip(getShapeFromShape(iconShape,iconSize.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                // Background Layer
+                                if (leftSwipeApp.background != null) {
+                                    Image(
+                                        painter = rememberDrawablePainter(drawable = leftSwipeApp.background),
+                                        contentDescription = "${leftSwipeApp.label} background",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.FillBounds
+                                    )
+                                }
+
+                                // Foreground Layer
+                                if (leftSwipeApp.foreground != null) {
+                                    Image(
+                                        painter = rememberDrawablePainter(drawable = leftSwipeApp.foreground),
+                                        contentDescription = leftSwipeApp.label.toString(),
+                                        modifier = Modifier.fillMaxSize().scale(leftSwipeApp.scale), // Let it fill the clipped Box
+                                        contentScale = ContentScale.FillBounds
+                                    )
+                                }
+                            }
                         } else {
                             Icon(
                                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -288,13 +307,32 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     },
                     trailingContent = {
                         if (rightSwipeApp != null) {
-                            Image(
-                                painter = rememberDrawablePainter(drawable = rightSwipeApp.icon),
-                                contentDescription = rightSwipeApp.label.toString(),
+                            Box(
                                 modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape)
-                            )
+                                    .size(iconSize.dp)
+                                    .clip(getShapeFromShape(iconShape,iconSize.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                // Background Layer
+                                if (rightSwipeApp.background != null) {
+                                    Image(
+                                        painter = rememberDrawablePainter(drawable = rightSwipeApp.background),
+                                        contentDescription = "${rightSwipeApp.label} background",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.FillBounds
+                                    )
+                                }
+
+                                // Foreground Layer
+                                if (rightSwipeApp.foreground != null) {
+                                    Image(
+                                        painter = rememberDrawablePainter(drawable = rightSwipeApp.foreground),
+                                        contentDescription = rightSwipeApp.label.toString(),
+                                        modifier = Modifier.fillMaxSize().scale(rightSwipeApp.scale), // Let it fill the clipped Box
+                                        contentScale = ContentScale.FillBounds
+                                    )
+                                }
+                            }
                         } else {
                             Icon(
                                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -439,7 +477,49 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         }
     }
 }
+@Composable
+fun IconShapeSettingItem(
+    currentShape: String? = "circle",
+    onShapeChange: (String) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
 
+    val shapeMap: Map<String, Shape> = mapOf(
+        "circle" to CircleShape,
+        "cloud" to FlowerShape(angle = 45.0f),
+        "squircle" to RoundedCornerShape(0.0f),
+        "flower" to FlowerShape(petalCount = 7),
+        "cutcorner" to CutCornerShape(0.dp)
+    )
+
+    ListItem(
+        modifier = Modifier.clickable { showDialog = true },
+        headlineContent = { Text("Icon Shape") },
+        supportingContent = { Text("Customize the icon shape") },
+        leadingContent = {
+            Icon(
+                painter = painterResource(R.drawable.outline_blur_circular_24),
+                contentDescription = "Icon Appearance"
+            )
+        },
+        trailingContent = {
+            // Preview of the currently selected shape
+            shapeMap[currentShape]?.let {
+                ShapePreview(shape = it)
+            }
+        }
+    )
+
+    if (showDialog) {
+        ShapeSelectionDialog(
+            onDismissRequest = { showDialog = false },
+            onShapeSelected = { shapeName ->
+                onShapeChange(shapeName)
+                showDialog = false
+            }
+        )
+    }
+}
 @Composable
 fun SectionHeader(title: String) {
     Text(
@@ -460,7 +540,103 @@ fun getAppVersion(context: Context): String? {
         "N/A"
     }
 }
+@Composable
+fun ShapeSelectionDialog(
+    onDismissRequest: () -> Unit,
+    onShapeSelected: (String) -> Unit
+) {
+    val shapesRowOne = mapOf(
+        "circle" to CircleShape,
+        "cloud" to FlowerShape(angle = 45.0f),
+        "squircle" to RoundedCornerShape(0.0f)
+    )
+    val shapesRowTwo = mapOf(
+        "flower" to FlowerShape(petalCount = 7),
+        "cutcorner" to CutCornerShape(0.dp)
+    )
 
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text("Select Icon Shape") },
+        text = {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    shapesRowOne.forEach { (name, shape) ->
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.clickable { onShapeSelected(name) }
+                        ) {
+                            ShapePreview(
+                                shape = shape,
+                                size = 56.dp,
+                                borderColor = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(name.replaceFirstChar { it.uppercase() })
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    shapesRowTwo.forEach { (name, shape) ->
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.clickable { onShapeSelected(name) }
+                        ) {
+                            ShapePreview(
+                                shape = shape,
+                                size = 56.dp,
+                                borderColor = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(name.replaceFirstChar { it.uppercase() })
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text("Cancel")
+            }
+        },
+        properties = DialogProperties()
+    )
+}
+@Composable
+fun ShapePreview(
+    shape: Shape,
+    size: Dp = 30.dp,
+    borderColor: Color = MaterialTheme.colorScheme.outline
+) {
+    var iconShape = shape
+    when (shape) {
+        CircleShape -> {
+            iconShape = shape
+        }
+        is RoundedCornerShape -> {
+            val cornerRadius = size * 0.425f
+            iconShape = RoundedCornerShape(cornerRadius)
+        }
+
+        is CutCornerShape -> {
+            val cornerCut = size * 0.225f
+            iconShape = CutCornerShape(cornerCut)
+        }
+    }
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(iconShape)
+            .border(width = 2.dp, color = borderColor, shape = iconShape)
+    )
+}
 @OptIn(ExperimentalTime::class)
 @Composable
 fun ImagePickerSettingItem(

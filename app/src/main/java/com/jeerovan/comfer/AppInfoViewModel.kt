@@ -4,7 +4,11 @@ import android.app.Application
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import android.graphics.drawable.AdaptiveIconDrawable
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.AndroidViewModel
@@ -16,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import androidx.core.graphics.drawable.toDrawable
 
 private const val REST_LIST_NAME = "Rest"
 
@@ -26,10 +31,10 @@ data class AppInfoUiState(
 )
 
 data class AppInfo(
-    val resolveInfo: ResolveInfo?,
-    val icon: Drawable?,
-    val color: Color,
+    val background: Drawable?,
+    val foreground: Drawable?,
     val label: CharSequence,
+    val scale: Float,
     val packageName: String
 )
 
@@ -39,17 +44,35 @@ fun mapPackageNameToAppInfo(
 ): AppInfo? {
     if (packageName == null) return null
     val cachedIcon = AppIconCache.getIcon(packageName)
-    val color = AppIconCache.getColor(packageName)
+    val defaultIcon = packageManager.defaultActivityIcon
+    val savedIcon = if (cachedIcon === defaultIcon) null else cachedIcon
     return try {
         packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
             packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
-                val icon = cachedIcon ?: resolveInfo.loadIcon(packageManager).also {
+
+                val iconDrawable = savedIcon ?: resolveInfo.loadIcon(packageManager).also {
                     AppIconCache.cacheIcon(packageName, it)
                 }
+                var backgroundDrawable: Drawable? = null
+                var foregroundDrawable: Drawable? = null
+                var scale = 0.8f
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                    if(iconDrawable is AdaptiveIconDrawable) {
+                        backgroundDrawable = iconDrawable.background
+                        foregroundDrawable = iconDrawable.foreground
+                        scale = 1.5f
+                    } else {
+                        backgroundDrawable = Color.Transparent.toArgb().toDrawable()
+                        foregroundDrawable = iconDrawable
+                    }
+                } else {
+                    backgroundDrawable = Color.Transparent.toArgb().toDrawable()
+                    foregroundDrawable = iconDrawable
+                }
                 AppInfo(
-                    resolveInfo = resolveInfo,
-                    icon = icon,
-                    color = if (color == null) { Color.White } else { Color(color)},
+                    background = backgroundDrawable,
+                    foreground = foregroundDrawable,
+                    scale = scale,
                     label = resolveInfo.loadLabel(packageManager),
                     packageName = packageName
                 )
@@ -104,6 +127,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun loadAppLists() {
+        val logger = LoggerManager(getApplication())
         viewModelScope.launch {
             // 1. Get all currently installed launchable apps
             val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
@@ -184,32 +208,39 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             // 5. Efficiently create AppInfo objects and update UI state
             val resolveInfoMap = allCurrentResolveInfos.associateBy { it.activityInfo.packageName }
 
+
             fun createAppInfo(packageName: String): AppInfo? {
                 val resolveInfo = resolveInfoMap[packageName] ?: return null
                 val defaultIcon = packageManager.defaultActivityIcon
                 return try {
                     val cachedIcon = AppIconCache.getIcon(packageName)
                     val savedIcon = if (cachedIcon === defaultIcon) null else cachedIcon
-                    val icon = savedIcon ?: resolveInfo.loadIcon(packageManager).also {
+                    val iconDrawable = savedIcon ?: resolveInfo.loadIcon(packageManager).also {
                         AppIconCache.cacheIcon(packageName, it)
                     }
-                    var colourInt: Int? = AppIconCache.getColor(packageName)
-                    if (colourInt == null){
-                        val bitmap = icon.toBitmapSafely(
-                            width = 16,
-                            height = 16
-                        )
-                        if(bitmap != null) {
-                            colourInt =
-                                findOutermostColor(bitmap, Color.White.toArgb())
-                            AppIconCache.cacheColor(packageName,colourInt)
+                    var backgroundDrawable: Drawable? = null
+                    var foregroundDrawable: Drawable? = null
+                    var scale = 0.8f
+                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ){
+                        logger.setLog("AppInfoViewMode:CreateAppInfo","Build Version < O")
+                        if( iconDrawable is AdaptiveIconDrawable) {
+                            backgroundDrawable = iconDrawable.background
+                            foregroundDrawable = iconDrawable.foreground
+                            scale = 1.5f
+                        } else {
+                            logger.setLog("AppInfoViewMode:CreateAppInfo","$packageName -> Not adaptive")
+                            backgroundDrawable = Color.White.toArgb().toDrawable()
+                            foregroundDrawable = iconDrawable
                         }
+                    } else {
+                        logger.setLog("AppInfoViewMode:CreateAppInfo","$packageName -> Not adaptive")
+                        backgroundDrawable = Color.White.toArgb().toDrawable()
+                        foregroundDrawable = iconDrawable
                     }
-                    val color = if(colourInt == null) { Color.White } else {Color(colourInt)}
                     AppInfo(
-                        resolveInfo = resolveInfo,
-                        icon = icon,
-                        color = color,
+                        background = backgroundDrawable,
+                        foreground = foregroundDrawable,
+                        scale = scale,
                         label = resolveInfo.loadLabel(packageManager),
                         packageName = packageName
                     )

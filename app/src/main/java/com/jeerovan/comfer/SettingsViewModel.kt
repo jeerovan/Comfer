@@ -1,12 +1,12 @@
 package com.jeerovan.comfer
 
 import android.app.Application
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.impl.utils.PREFERENCE_FILE_KEY
-import com.google.android.datatransport.runtime.time.TimeModule_UptimeClockFactory
+import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
-import io.ktor.http.cio.encodeChunked
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,8 +17,9 @@ import kotlinx.coroutines.withContext
 data class SettingsUiState(
     val wallpaperMotionEnabled: Boolean = true,
     val wallpaperOnLockScreen: Boolean = false,
-    val enhancedIcons : Boolean = true,
     val iconSize: Int = 48,
+    val iconShapeString: String? = "circle",
+    val iconShape: Shape = CircleShape,
     val leftSwipeApp:String? = null,
     val rightSwipeApp:String? = null,
     val dateTimeColor:String? = null
@@ -38,7 +39,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val wallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(getApplication())
             val iconSize = PreferenceManager.getIconSize(getApplication())
-            val enhancedIcons = PreferenceManager.getEnhancedIcons(getApplication(),true)
+            val iconShapeString  = PreferenceManager.getIconShapeString(getApplication())
+            val iconShape  = PreferenceManager.getIconShape(getApplication())
             val leftSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"left")
             val rightSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"right")
             val imageData = PreferenceManager.getImageData(getApplication())
@@ -48,9 +50,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     wallpaperMotionEnabled = wallpaperMotion,
                     wallpaperOnLockScreen = wallpaperOnLockScreen,
                     iconSize = iconSize,
+                    iconShape = iconShape,
+                    iconShapeString =  iconShapeString,
                     leftSwipeApp = leftSwipeApp,
                     rightSwipeApp = rightSwipeApp,
-                    enhancedIcons = enhancedIcons,
                     dateTimeColor = dateTimeColor
                 )
             }
@@ -87,11 +90,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-
-    fun setEnhancedIcons(enabled: Boolean){
+    fun setIconShape(shapeString: String){
         viewModelScope.launch {
-            PreferenceManager.setEnhancedIcons(getApplication(),enabled)
-            _uiState.update { it.copy(enhancedIcons = enabled) }
+            PreferenceManager.setIconShape(getApplication(),shapeString)
+            val iconShape = getShapeFromString(shapeString)
+            _uiState.update { it.copy(iconShapeString = shapeString, iconShape = iconShape) }
         }
     }
 

@@ -50,13 +50,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
+import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import com.jeerovan.comfer.utils.GuideUtil.GuideDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -92,7 +97,9 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
     val primaryListState = rememberLazyListState()
     val restListState = rememberLazyListState()
 
-
+    val iconSize = PreferenceManager.getIconSize(context)
+    val shape = PreferenceManager.getIconShape(context)
+    val iconShape = getShapeFromShape(shape,iconSize.dp)
     val listStates = remember {
         mapOf(
             AppInfoManager.QUICK_APPS_LIST_NAME to quickListState,
@@ -130,7 +137,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
     var canShowGuide by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        guideShown = PreferenceManager.getBoolean(context,guideKeyword)
+        guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
         delay(500)
         canShowGuide = true
     }
@@ -164,7 +171,9 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 viewModel = viewModel,
                 selectedList = selectedList,
                 selectedIndices = selectedIndices,
-                onItemSelect = onItemSelect
+                onItemSelect = onItemSelect,
+                iconShape = iconShape,
+                iconSize = iconSize.dp
             )
             Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
                 Row {
@@ -229,7 +238,9 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 viewModel = viewModel,
                 selectedList = selectedList,
                 selectedIndices = selectedIndices,
-                onItemSelect = onItemSelect
+                onItemSelect = onItemSelect,
+                iconShape = iconShape,
+                iconSize = iconSize.dp
             )
             Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
                 Row {
@@ -288,7 +299,9 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 viewModel = viewModel,
                 selectedList = selectedList,
                 selectedIndices = selectedIndices,
-                onItemSelect = onItemSelect
+                onItemSelect = onItemSelect,
+                iconShape = iconShape,
+                iconSize = iconSize.dp
             )
         }
         SnackbarHost(
@@ -308,6 +321,8 @@ fun AppListColumn(
     viewModel: AppInfoViewModel,
     selectedList: String?,
     selectedIndices: Set<Int>,
+    iconSize: Dp,
+    iconShape: Shape,
     onItemSelect: (String, Int) -> Unit
 ) {
     val hapticFeedback = LocalHapticFeedback.current
@@ -350,7 +365,7 @@ fun AppListColumn(
                     val isSelected = selectedList == listName && selectedIndices.contains(index)
 
                     Surface(
-                        shape = CircleShape,
+                        shape = iconShape,
                         modifier = Modifier
                             .longPressDraggableHandle()
                             .clickable(
@@ -360,7 +375,7 @@ fun AppListColumn(
                         shadowElevation = elevation,
 
                         ) {
-                        AppCard(app = apps[index], isSelected = isSelected)
+                        AppCard(app = apps[index], isSelected = isSelected,iconSize,iconShape)
                     }
                 }
             }
@@ -369,26 +384,47 @@ fun AppListColumn(
 }
 
 @Composable
-fun AppCard(app: AppInfo, isSelected: Boolean) {
+fun AppCard(app: AppInfo, isSelected: Boolean,iconSize: Dp,iconShape: Shape) {
     val borderColor = if (isSystemInDarkTheme()) Color.Red else Color.Gray
     val borderModifier = if (isSelected) {
-        Modifier.border(2.dp, borderColor, CircleShape)
+        Modifier.border(2.dp, borderColor, iconShape)
     } else {
         Modifier
     }
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .clip(CircleShape)
+            //.fillMaxWidth()
+            .clip(iconShape)
             .then(borderModifier)
-            .padding(10.dp),
+            .padding(7.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Image(
-            painter = rememberDrawablePainter(drawable = app.icon),
-            contentDescription = app.label.toString(),
-            modifier = Modifier.size(40.dp),
-        )
+        Box(
+            modifier = Modifier
+                .size(iconSize)
+                .clip(iconShape),
+            contentAlignment = Alignment.Center
+        ) {
+            // Background Layer
+            if (app.background != null) {
+                Image(
+                    painter = rememberDrawablePainter(drawable = app.background),
+                    contentDescription = "${app.label} background",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+            }
+
+            // Foreground Layer
+            if (app.foreground != null) {
+                Image(
+                    painter = rememberDrawablePainter(drawable = app.foreground),
+                    contentDescription = app.label.toString(),
+                    modifier = Modifier.fillMaxSize().scale(app.scale), // Let it fill the clipped Box
+                    contentScale = ContentScale.FillBounds
+                )
+            }
+        }
     }
 }
