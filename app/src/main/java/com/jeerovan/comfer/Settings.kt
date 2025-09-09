@@ -79,6 +79,7 @@ import androidx.core.net.toUri
 import com.jeerovan.comfer.utils.CommonUtil.canSetLockScreenWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.copyUriToInternalStorage
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
+import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import kotlinx.io.IOException
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -231,10 +232,11 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
             }
             item {
-                IconShapeSettingItem(currentShape = iconShapeString, onShapeChange = {
-                    newShape ->
-                    settingsViewModel.setIconShape(newShape)
-                }
+                IconShapeSettingItem(currentShape = iconShapeString,
+                    onShapeChange = {
+                        newShape ->
+                        settingsViewModel.setIconShape(newShape)
+                    }
                 )
             }
 
@@ -443,7 +445,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item {
+            /*item {
                 ListItem(
                     headlineContent = { Text("Date-Time color") },
                     supportingContent = { Text("Set to white") },
@@ -465,7 +467,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             item{
                 ImagePickerSettingItem(title = "Set wallpaper")
-            }
+            }*/
             item {
                 ListItem(
                     headlineContent = { Text("Version") },
@@ -483,14 +485,7 @@ fun IconShapeSettingItem(
     onShapeChange: (String) -> Unit
 ) {
     var showDialog by remember { mutableStateOf(false) }
-
-    val shapeMap: Map<String, Shape> = mapOf(
-        "circle" to CircleShape,
-        "cloud" to FlowerShape(angle = 45.0f),
-        "squircle" to RoundedCornerShape(0.0f),
-        "flower" to FlowerShape(petalCount = 7),
-        "cutcorner" to CutCornerShape(0.dp)
-    )
+    val currentShape:Shape = getShapeFromString(currentShape)
 
     ListItem(
         modifier = Modifier.clickable { showDialog = true },
@@ -503,10 +498,7 @@ fun IconShapeSettingItem(
             )
         },
         trailingContent = {
-            // Preview of the currently selected shape
-            shapeMap[currentShape]?.let {
-                ShapePreview(shape = it)
-            }
+            ShapePreview(shape = currentShape)
         }
     )
 

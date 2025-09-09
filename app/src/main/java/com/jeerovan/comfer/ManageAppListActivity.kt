@@ -97,7 +97,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
     val primaryListState = rememberLazyListState()
     val restListState = rememberLazyListState()
 
-    val iconSize = PreferenceManager.getIconSize(context)
+    val iconSize = PreferenceManager.getIconSize(context) - 10
     val shape = PreferenceManager.getIconShape(context)
     val iconShape = getShapeFromShape(shape,iconSize.dp)
     val listStates = remember {
@@ -393,7 +393,6 @@ fun AppCard(app: AppInfo, isSelected: Boolean,iconSize: Dp,iconShape: Shape) {
     }
     Row(
         modifier = Modifier
-            //.fillMaxWidth()
             .clip(iconShape)
             .then(borderModifier)
             .padding(7.dp),

@@ -30,51 +30,51 @@ object PreferenceManager {
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun getBoolean(context: Context,key:String,default: Boolean):Boolean{
-        val cachedValue = AppCache.get(key) as? Boolean
+        /*val cachedValue = AppCache.get(key) as? Boolean
         if (cachedValue != null) {
             return cachedValue
-        }
+        }*/
         val prefValue = getPrefs(context).getBoolean(key,default)
-        AppCache.set(key, prefValue)
+        //AppCache.set(key, prefValue)
         return prefValue
     }
     fun setBoolean(context: Context,key:String,state:Boolean) {
-        AppCache.set(key, state)
+        //AppCache.set(key, state)
         getPrefs(context).edit {
             putBoolean(key,state)
         }
     }
     fun setString(context: Context,key:String,string: String) {
-        AppCache.set(key, string)
+        //AppCache.set(key, string)
         getPrefs(context).edit {
             putString(key,string)
         }
     }
     fun getString(context: Context,key:String,default: String?):String?{
-        val cachedValue = AppCache.get(key) as? String
+        /*val cachedValue = AppCache.get(key) as? String
         if (cachedValue != null) {
             return cachedValue
-        }
+        }*/
         val prefValue = getPrefs(context).getString(key,default) ?: default
-        if(prefValue != null){
+        /*if(prefValue != null){
             AppCache.set(key, prefValue)
-        }
+        }*/
         return prefValue
     }
 
     fun setInt(context: Context,key:String,int: Int) {
-        AppCache.set(key, int)
+        //AppCache.set(key, int)
         getPrefs(context).edit {
             putInt(key,int)
         }
     }
     fun getInt(context: Context,key:String,default: Int ):Int{
-        val cachedValue = AppCache.get(key) as? Int
+        /*val cachedValue = AppCache.get(key) as? Int
         if (cachedValue != null) {
             return cachedValue
-        }
+        }*/
         val prefValue = getPrefs(context).getInt(key,default)
-        AppCache.set(key, prefValue)
+        //AppCache.set(key, prefValue)
         return prefValue
     }
 

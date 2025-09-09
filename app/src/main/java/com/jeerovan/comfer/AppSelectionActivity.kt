@@ -66,7 +66,7 @@ fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, swipeDirection: Strin
     val appListState by appInfoViewModel.uiState.collectAsState()
     val context = LocalContext.current
     val allApps = (appListState.quickApps + appListState.primaryApps + appListState.restApps).sortedBy { it.label.toString() }
-    val iconSize = PreferenceManager.getIconSize(context)
+    val iconSize = PreferenceManager.getIconSize(context) - 6
     val iconShape = PreferenceManager.getIconShape(context)
     Scaffold(topBar = { TopAppBar(title = {Text("Select app for $swipeDirection swipe")}) }
         ) { paddingValues ->
