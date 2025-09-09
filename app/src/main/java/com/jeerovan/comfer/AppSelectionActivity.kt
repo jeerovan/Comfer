@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
+import kotlin.math.min
 
 class AppSelectionActivity : ComponentActivity() {
 
@@ -66,7 +67,7 @@ fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, swipeDirection: Strin
     val appListState by appInfoViewModel.uiState.collectAsState()
     val context = LocalContext.current
     val allApps = (appListState.quickApps + appListState.primaryApps + appListState.restApps).sortedBy { it.label.toString() }
-    val iconSize = PreferenceManager.getIconSize(context) - 6
+    val iconSize = min(50,PreferenceManager.getIconSize(context))
     val iconShape = PreferenceManager.getIconShape(context)
     Scaffold(topBar = { TopAppBar(title = {Text("Select app for $swipeDirection swipe")}) }
         ) { paddingValues ->

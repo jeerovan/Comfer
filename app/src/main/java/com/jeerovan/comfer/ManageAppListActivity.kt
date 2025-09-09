@@ -67,6 +67,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import kotlin.math.min
 
 private const val REST_LIST_NAME = "Rest"
 private const val MAX_QUICK_APPS = 5
@@ -97,7 +98,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
     val primaryListState = rememberLazyListState()
     val restListState = rememberLazyListState()
 
-    val iconSize = PreferenceManager.getIconSize(context) - 10
+    val iconSize = min(46,PreferenceManager.getIconSize(context))
     val shape = PreferenceManager.getIconShape(context)
     val iconShape = getShapeFromShape(shape,iconSize.dp)
     val listStates = remember {
