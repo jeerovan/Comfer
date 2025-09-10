@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import androidx.core.graphics.drawable.toDrawable
+import kotlinx.coroutines.Dispatchers
 
 private const val REST_LIST_NAME = "Rest"
 
@@ -95,46 +96,15 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         loadAppLists()
     }
 
-    fun moveAppInList(listName: String, fromIndex: Int, toIndex: Int) {
-        viewModelScope.launch {
-            val currentList = when (listName) {
-                AppInfoManager.QUICK_APPS_LIST_NAME -> _uiState.value.quickApps
-                AppInfoManager.PRIMARY_APPS_LIST_NAME -> _uiState.value.primaryApps
-                REST_LIST_NAME -> _uiState.value.restApps
-                else -> return@launch
-            }.toMutableList()
-
-            val app = currentList.removeAt(fromIndex)
-            currentList.add(toIndex, app)
-            val packageNames = currentList.map { it.packageName }
-
-            when (listName) {
-                AppInfoManager.QUICK_APPS_LIST_NAME -> {
-                    AppInfoManager.saveAppPackageNames(getApplication(), listName, packageNames)
-                    _uiState.update { it.copy(quickApps = currentList) }
-                }
-
-                AppInfoManager.PRIMARY_APPS_LIST_NAME -> {
-                    AppInfoManager.saveAppPackageNames(getApplication(), listName, packageNames)
-                    _uiState.update { it.copy(primaryApps = currentList) }
-                }
-
-                REST_LIST_NAME -> {
-                    _uiState.update { it.copy(restApps = currentList) }
-                }
-            }
-        }
-    }
-
     fun loadAppLists() {
         val logger = LoggerManager(getApplication())
         viewModelScope.launch {
-            // 1. Get all currently installed launchable apps
+            // --- Stage 1: Fast, Main-Thread Work ---
+            // 1. Get package names and determine lists (no icon loading yet)
             val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
             val allCurrentResolveInfos = packageManager.queryIntentActivities(intent, 0)
             val allCurrentPackageNames = allCurrentResolveInfos.map { it.activityInfo.packageName }.toSet()
 
-            // 2. Load previously saved app lists, preserving order
             val savedQuickPackageNames = AppInfoManager.getAppPackageNames(
                 getApplication(),
                 AppInfoManager.QUICK_APPS_LIST_NAME
@@ -147,28 +117,25 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 getApplication(),
                 AppInfoManager.ALL_APPS_LIST_NAME
             )?.toSet() ?: emptySet()
-
             val isFirstLaunch = savedAllPackageNames.isEmpty()
 
             val finalQuickPackageNames: List<String>
             val finalPrimaryPackageNames: List<String>
 
+            // (Your existing logic for determining finalQuickPackageNames and finalPrimaryPackageNames remains here)
+            // ...
             if (isFirstLaunch) {
-                // 3a. First launch: Populate lists with standard and other apps
                 PreferenceManager.onFirstOpen(getApplication())
                 val standardApps = filterStandardApps(allCurrentPackageNames).toList()
                 finalQuickPackageNames = standardApps.take(4)
                 finalPrimaryPackageNames = allCurrentPackageNames.filter { it !in finalQuickPackageNames }
             } else {
-                // 3b. Subsequent launch: Update lists based on installed/uninstalled apps
                 val addedPackages = allCurrentPackageNames - savedAllPackageNames
                 val removedPackages = savedAllPackageNames - allCurrentPackageNames
 
-                // Remove uninstalled apps, preserving order
                 var currentQuickPackages = savedQuickPackageNames.filter { it !in removedPackages }
                 var currentPrimaryPackages = savedPrimaryPackageNames.filter { it !in removedPackages }
 
-                // Add newly installed apps, preserving order. New apps are added to the end.
                 if (addedPackages.isNotEmpty()) {
                     val quickAppsCapacity = 4
                     val quickAppsSpace = quickAppsCapacity - currentQuickPackages.size
@@ -177,7 +144,6 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     }
                     currentPrimaryPackages = currentPrimaryPackages + addedPackages.drop(quickAppsSpace)
                 }
-                // If quick apps has 5, move last one to primary
                 if (currentQuickPackages.size == 5){
                     val lastPackage = currentQuickPackages.drop(4)
                     currentQuickPackages = currentQuickPackages.take(4)
@@ -188,7 +154,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 finalPrimaryPackageNames = currentPrimaryPackages
             }
 
-            // 4. Save the updated lists for the next launch
+            // 2. Save the updated package name lists
             AppInfoManager.saveAppPackageNames(
                 getApplication(),
                 AppInfoManager.QUICK_APPS_LIST_NAME,
@@ -202,13 +168,11 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             AppInfoManager.saveAppPackageNames(
                 getApplication(),
                 AppInfoManager.ALL_APPS_LIST_NAME,
-                allCurrentPackageNames.toList() // Order doesn't matter for this one
+                allCurrentPackageNames.toList()
             )
 
-            // 5. Efficiently create AppInfo objects and update UI state
+            // 3. Create a helper function to build AppInfo objects (this will be used in both stages)
             val resolveInfoMap = allCurrentResolveInfos.associateBy { it.activityInfo.packageName }
-
-
             fun createAppInfo(packageName: String): AppInfo? {
                 val resolveInfo = resolveInfoMap[packageName] ?: return null
                 val defaultIcon = packageManager.defaultActivityIcon
@@ -250,19 +214,69 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 }
             }
 
+            // 4. Load icons *only* for the quick apps list
             val quickApps = finalQuickPackageNames.mapNotNull { createAppInfo(it) }
-            val primaryApps = finalPrimaryPackageNames.mapNotNull { createAppInfo(it) }
 
-            val quickAndPrimaryPackages = finalQuickPackageNames.toSet() + finalPrimaryPackageNames.toSet()
-            val restPackages = allCurrentPackageNames - quickAndPrimaryPackages
-            val restApps = restPackages.mapNotNull { createAppInfo(it) }
-
+            // 5. **Immediate UI Update**: Show the quick apps right away
             _uiState.update {
                 it.copy(
                     quickApps = quickApps,
-                    primaryApps = primaryApps,
-                    restApps = restApps
+                    primaryApps = emptyList(), // Keep these empty for now
+                    restApps = emptyList()
                 )
+            }
+
+            // --- Stage 2: Slow, Background Work ---
+            // 6. Launch a new coroutine for the heavy work
+            viewModelScope.launch(Dispatchers.IO) {
+                // Load icons for the primary and rest of the apps
+                val primaryApps = finalPrimaryPackageNames.mapNotNull { createAppInfo(it) }
+
+                val quickAndPrimaryPackages = finalQuickPackageNames.toSet() + finalPrimaryPackageNames.toSet()
+                val restPackages = allCurrentPackageNames - quickAndPrimaryPackages
+                val restApps = restPackages.mapNotNull { createAppInfo(it) }
+
+                // 7. **Final UI Update**: Update the state with the complete lists
+                _uiState.update {
+                    it.copy(
+                        quickApps = quickApps, // This list is already loaded
+                        primaryApps = primaryApps,
+                        restApps = restApps
+                    )
+                }
+            }
+        }
+    }
+
+
+
+    fun moveAppInList(listName: String, fromIndex: Int, toIndex: Int) {
+        viewModelScope.launch {
+            val currentList = when (listName) {
+                AppInfoManager.QUICK_APPS_LIST_NAME -> _uiState.value.quickApps
+                AppInfoManager.PRIMARY_APPS_LIST_NAME -> _uiState.value.primaryApps
+                REST_LIST_NAME -> _uiState.value.restApps
+                else -> return@launch
+            }.toMutableList()
+
+            val app = currentList.removeAt(fromIndex)
+            currentList.add(toIndex, app)
+            val packageNames = currentList.map { it.packageName }
+
+            when (listName) {
+                AppInfoManager.QUICK_APPS_LIST_NAME -> {
+                    AppInfoManager.saveAppPackageNames(getApplication(), listName, packageNames)
+                    _uiState.update { it.copy(quickApps = currentList) }
+                }
+
+                AppInfoManager.PRIMARY_APPS_LIST_NAME -> {
+                    AppInfoManager.saveAppPackageNames(getApplication(), listName, packageNames)
+                    _uiState.update { it.copy(primaryApps = currentList) }
+                }
+
+                REST_LIST_NAME -> {
+                    _uiState.update { it.copy(restApps = currentList) }
+                }
             }
         }
     }

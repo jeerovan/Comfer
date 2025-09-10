@@ -1065,10 +1065,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
 
     val wallpaperMotionEnabled = settingInfoUiState.wallpaperMotionEnabled
 
-    var imageData = mainUiState.imageData
-    if(!wallpaperMotionEnabled){
-        imageData = null;
-    }
+    val imageData = mainUiState.imageData
     val cachedImagePath = mainUiState.imagePath
 
     val haptic = LocalHapticFeedback.current
