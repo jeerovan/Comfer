@@ -16,6 +16,7 @@ material = "1.8.3"
 reorderable = "2.5.1"
 work = "2.10.3"
 ktor = "3.2.3"
+animationCore = "1.9.0"
 
 [libraries]
 accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanistDrawablepainter" }
@@ -43,6 +44,7 @@ ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-conte
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClientOkhttp" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
+androidx-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
 
 
 [plugins]

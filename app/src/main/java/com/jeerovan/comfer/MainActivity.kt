@@ -116,7 +116,12 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import android.text.TextUtils
 import android.view.SoundEffectConstants
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -690,6 +695,7 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
+            //.border(width = 1.dp, Color.Cyan)
             .pointerInput(Unit) {
                 var totalDragOffset = Offset.Zero
                 detectDragGestures(
@@ -720,25 +726,6 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.padding(bottom = 64.dp)
             ) {
-                val maxWidth = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp }
-                val textBoxPadding = (maxWidth/5).dp
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = textBoxPadding) // Keep horizontal padding for screen margins
-                        .height(40.dp)
-                        .clip(RoundedCornerShape(16.dp)) // Clip the content to the rounded shape
-                        .background(Color.Black.copy(alpha = 0.5f)), // Black background for the box
-                    contentAlignment = Alignment.Center // Center the Text inside the Box
-                ) {
-                    Text(
-                        text = inputText.ifEmpty { "Type app name" },
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 20.sp,
-                        textAlign = TextAlign.Center, // Ensure placeholder text is centered
-                        modifier = Modifier.padding(horizontal = 16.dp) // Inner padding for the text
-                    )
-                }
 
                 // Circular Keyboard
                 CircularKeyboard(
@@ -1108,62 +1095,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
         val maxWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
         val maxHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
-        val angle = remember { Animatable(0f) }
-
-        val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-        var isScreenVisible by remember { mutableStateOf(true) }
-
-        DisposableEffect(lifecycleOwner) {
-            val observer = LifecycleEventObserver { _, event ->
-                if (event == Lifecycle.Event.ON_RESUME) {
-                    isScreenVisible = true
-                } else if (event == Lifecycle.Event.ON_PAUSE) {
-                    isScreenVisible = false
-                }
-            }
-            lifecycleOwner.lifecycle.addObserver(observer)
-            onDispose {
-                lifecycleOwner.lifecycle.removeObserver(observer)
-            }
-        }
-
-        LaunchedEffect(isScreenVisible, wallpaperMotionEnabled) {
-            if (isScreenVisible && wallpaperMotionEnabled) {
-                var lastFrameTime = withFrameNanos { it }
-                while (isActive) {
-                    val frameTime = withFrameNanos { it }
-                    val deltaTimeNanos = frameTime - lastFrameTime
-                    val deltaTimeSeconds = deltaTimeNanos / 1_000_000_000f
-                    val angleDelta = deltaTimeSeconds * (2f * PI.toFloat() / 60f)
-                    val newAngle = (angle.value + angleDelta) % (2f * PI.toFloat())
-                    angle.snapTo(newAngle)
-                    lastFrameTime = frameTime
-                }
-            }
-        }
-
-        val xOffset = cos(angle.value) * maxWidthPx * 0.08f
-        val yOffset = sin(angle.value) * maxHeightPx * 0.08f
-
-        if (backgroundImage != null && wallpaperMotionEnabled) {
-            AsyncImage(
-                model =
-                    ImageRequest
-                        .Builder(LocalContext.current)
-                        .data(backgroundImage)
-                        .crossfade(true)
-                        .build(),
-                contentDescription = "Background",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .scale(1.2f)
-                    .graphicsLayer {
-                        translationX = xOffset
-                        translationY = yOffset
-                    },
-                contentScale = ContentScale.Crop
-            )
-        }
+        AnimatedBackground(backgroundImage,wallpaperMotionEnabled,maxWidthPx,maxHeightPx)
 
         // Quick-list layer
         AnimatedVisibility(
@@ -1216,6 +1148,49 @@ private fun lerp(start: Float, stop: Float, fraction: Float): Float {
     return start + (stop - start) * fraction
 }
 
+@Composable
+fun AnimatedBackground(
+    backgroundImage: Any?, // Can be a URL, URI, or other data Coil can handle
+    wallpaperMotionEnabled: Boolean,
+    maxWidthPx: Float,
+    maxHeightPx: Float
+) {
+    if (backgroundImage != null && wallpaperMotionEnabled) {
+        // 1. Create an infinite transition
+        val infiniteTransition = rememberInfiniteTransition(label = "background-animation")
+
+        // 2. Animate the angle from 0 to 2*PI over 60 seconds
+        val angle by infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = (2f * Math.PI).toFloat(),
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 60000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "angle-animation"
+        )
+
+        // 3. Calculate offsets based on the animated angle
+        val xOffset = cos(angle) * maxWidthPx * 0.08f
+        val yOffset = sin(angle) * maxHeightPx * 0.08f
+
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(backgroundImage)
+                .crossfade(true)
+                .build(),
+            contentDescription = "Background",
+            modifier = Modifier
+                .fillMaxSize()
+                .scale(1.2f)
+                .graphicsLayer {
+                    translationX = xOffset
+                    translationY = yOffset
+                },
+            contentScale = ContentScale.Crop
+        )
+    }
+}
 @Composable
 fun UshapedAppList(
     apps: List<AppInfo>,
@@ -1604,7 +1579,7 @@ fun CircularKeyboard(
 
     Box (
         modifier = Modifier
-            //.border(width = 1.dp,color = Color.Blue)
+            //.border(width = 1.dp,color = Color.Red)
             .wrapContentSize(Alignment.Center),
         contentAlignment = Alignment.Center
     ) {
