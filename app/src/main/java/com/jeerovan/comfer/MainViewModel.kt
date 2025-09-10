@@ -32,7 +32,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val logger = LoggerManager(applicationContext)
             logger.setLog("MainViewModel","Loading")
             val imageData = PreferenceManager.getImageData(applicationContext)
-            if(imageData == null){
+            val backgroundImage = PreferenceManager.getBackgroundImagePath(applicationContext)
+            if(imageData == null || backgroundImage == null){
                 if(!isDownloading()) {
                     setDownloading(true)
                     // without dispatchers it will run on main ui thread
@@ -58,7 +59,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     setDownloading(false)
                 }
             } else {
-                val backgroundImage = PreferenceManager.getBackgroundImagePath(applicationContext)
                 if(_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImage) {
                     PreferenceManager.setWallpaperApplied(applicationContext,true)
                     withContext(Dispatchers.IO){
