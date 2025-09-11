@@ -845,7 +845,6 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
             .pointerInput(Unit) {
                 // Combine multiple gesture detectors in one pointerInput
                 detectTapGestures(
@@ -871,7 +870,7 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier.padding(bottom = 40.dp)
+                modifier = Modifier.padding(bottom = 40.dp, top = 16.dp, start = 16.dp, end = 16.dp)
             ) {
                 TabRow(
                     selectedTabIndex = activeTab.ordinal,
@@ -927,7 +926,7 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                                 modifier = Modifier
                                 .fillMaxSize()
                                 //.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
-                                .padding(vertical = 20.dp)
+                                //.padding(vertical = 10.dp)
                             ) {
                                 items(filteredContacts) { contact ->
                                     ContactListItem(contact,
