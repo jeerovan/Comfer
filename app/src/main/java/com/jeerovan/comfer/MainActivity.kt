@@ -151,6 +151,7 @@ import androidx.core.graphics.drawable.toDrawable
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import android.net.Uri
 import android.provider.ContactsContract
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -683,11 +684,15 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
             searchApps(inputText, apps)
         }
     }
-
+    val filteredContacts by remember(inputText, contacts) {
+        derivedStateOf {
+            searchContacts(inputText, contacts)
+        }
+    }
     var selectedContactIndex by remember { mutableIntStateOf(0) }
     val selectedContact by remember(selectedContactIndex) {
         derivedStateOf {
-            contacts.getOrNull(selectedContactIndex)
+            filteredContacts.getOrNull(selectedContactIndex)
         }
     }
     // Coroutine scope to run suspend functions like scrolling
@@ -698,8 +703,7 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
 
     // Function to handle the double-tap action
     fun onTapSelectedContact() {
-        // TODO: Implement your action here, e.g., navigate or show details
-        println("Double tapped on: ${selectedContact?.name}")
+        placeCallWithDialer(context,selectedContact?.number)
     }
 
     LaunchedEffect(lazyListState) {
@@ -789,18 +793,11 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                 }
             }
             contacts.clear()
-            //contacts.addAll(contactsList)
-            val tempContacts = List(20) { index -> Contact(id = index.toLong(), name = "Contact Name ${index + 1}",null,"Number: $index") }
-            contacts.addAll(tempContacts)
-
+            contacts.addAll(contactsList)
         }
 
     }
-    val filteredContacts by remember(inputText, contacts) {
-        derivedStateOf {
-            searchContacts(inputText, contacts)
-        }
-    }
+
     LaunchedEffect(filteredApps) {
         if (filteredApps.size == 1) {
             val singleApp = filteredApps.first()
@@ -865,7 +862,7 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                     }
                 )
             }
-            .pointerInput(lazyListState, contacts.size) { // Relaunch gesture detection if state or data changes
+            .pointerInput(lazyListState, filteredContacts.size) { // Relaunch gesture detection if state or data changes
                 detectVerticalDragGestures(
                     onDragStart = { dragAccumulator = 0f },
                     onDragEnd = { dragAccumulator = 0f },
@@ -897,7 +894,7 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                             // If at the end of the list, change selection instead of scrolling
                             if (isAtEndOfList) {
                                 if (dragAccumulator < -scrollThreshold) {
-                                    selectedContactIndex = (selectedContactIndex + 1).coerceAtMost(contacts.lastIndex)
+                                    selectedContactIndex = (selectedContactIndex + 1).coerceAtMost(filteredContacts.lastIndex)
                                     dragAccumulator = 0f
                                 }
                             } else {
@@ -1101,14 +1098,14 @@ fun ContactListItem(contact: Contact,isSelected:Boolean) {
             .padding(vertical = 4.dp)
             .clip(RoundedCornerShape(16.dp)), // Rounded corners for each item
         colors = ListItemDefaults.colors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+            containerColor = if (isSelected) MaterialTheme.colorScheme.surface.copy(alpha = 0.7f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
         ),
         headlineContent = {
             Text(
                 text = contact.name,
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                color = if(isSelected)MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
         supportingContent = {
@@ -1117,7 +1114,7 @@ fun ContactListItem(contact: Contact,isSelected:Boolean) {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if(isSelected)MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
@@ -2081,6 +2078,23 @@ fun searchContacts(text: String, contactList: List<Contact>): List<Contact> {
     }
     return contactList.filter { contact ->
         contact.name.contains(text, ignoreCase = true)
+    }
+}
+fun placeCallWithDialer(context: Context, number: String?) {
+    if (number.isNullOrBlank()) {
+        Toast.makeText(context, "Contact number is not available", Toast.LENGTH_SHORT).show()
+        return
+    }
+
+    val intent = Intent(Intent.ACTION_DIAL).apply {
+        data = "tel:$number".toUri()
+    }
+
+    // Check if there's an app that can handle this intent
+    if (intent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(intent)
+    } else {
+        Toast.makeText(context, "No app found to handle making phone calls", Toast.LENGTH_SHORT).show()
     }
 }
 
