@@ -164,8 +164,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.withContext
 
 // Placeholder for your contact data structure
 data class Contact(
@@ -681,12 +683,20 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
     }
     val filteredApps by remember(inputText, apps) {
         derivedStateOf {
-            searchApps(inputText, apps)
+            if(activeTab == SearchTab.APPS) {
+                searchApps(inputText, apps)
+            } else {
+                apps
+            }
         }
     }
     val filteredContacts by remember(inputText, contacts) {
         derivedStateOf {
-            searchContacts(inputText, contacts)
+            if(activeTab == SearchTab.CONTACTS){
+                searchContacts(inputText, contacts)
+            } else {
+                contacts
+            }
         }
     }
     var selectedContactIndex by remember { mutableIntStateOf(0) }
@@ -720,13 +730,18 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
     }
 
     fun onTabSelected(tab:SearchTab){
+        if(activeTab != tab) {
+            inputText = ""
+        }
         activeTab = tab
     }
     fun swipeRightOnKeyboard() {
         activeTab = SearchTab.CONTACTS
+        inputText = ""
     }
     fun swipeLeftOnKeyboard() {
         activeTab = SearchTab.APPS
+        inputText = ""
     }
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -738,64 +753,68 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
         permissionLauncher.launch(Manifest.permission.READ_CONTACTS)
     }
     if (hasContactsPermission) {
+        // This LaunchedEffect will run the contact fetching logic
         LaunchedEffect(Unit) {
-            val contactsList = mutableListOf<Contact>()
-            val contentResolver = context.contentResolver
-            val projection = arrayOf(
-                ContactsContract.Contacts._ID,
-                ContactsContract.Contacts.DISPLAY_NAME,
-                ContactsContract.Contacts.PHOTO_URI,
-                ContactsContract.Contacts.HAS_PHONE_NUMBER
-            )
+            val fetchedContacts = withContext(Dispatchers.IO) {
+                // withContext(Dispatchers.IO) switches the coroutine to a background thread
+                // ideal for disk or network I/O operations.
+                val contactsList = mutableListOf<Contact>()
+                val contentResolver = context.contentResolver
+                val projection = arrayOf(
+                    ContactsContract.Contacts._ID,
+                    ContactsContract.Contacts.DISPLAY_NAME,
+                    ContactsContract.Contacts.PHOTO_URI,
+                    ContactsContract.Contacts.HAS_PHONE_NUMBER
+                )
 
-            val cursor = contentResolver.query(
-                ContactsContract.Contacts.CONTENT_URI,
-                projection,
-                null,
-                null,
-                null
-            )
+                val cursor = contentResolver.query(
+                    ContactsContract.Contacts.CONTENT_URI,
+                    projection,
+                    null,
+                    null,
+                    null
+                )
 
-            cursor?.use { contactCursor ->
-                val idIndex = contactCursor.getColumnIndex(ContactsContract.Contacts._ID)
-                val nameIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
-                val photoUriIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
-                val hasPhoneNumberIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
+                cursor?.use { contactCursor ->
+                    val idIndex = contactCursor.getColumnIndex(ContactsContract.Contacts._ID)
+                    val nameIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+                    val photoUriIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
+                    val hasPhoneNumberIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
 
-                while (contactCursor.moveToNext()) {
-                    val id = contactCursor.getLong(idIndex)
-                    val name = contactCursor.getString(nameIndex)
-                    val photoUriString = contactCursor.getString(photoUriIndex)
-                    val photoUri = photoUriString?.toUri()
-                    val hasPhoneNumber = contactCursor.getInt(hasPhoneNumberIndex) > 0
+                    while (contactCursor.moveToNext()) {
+                        val id = contactCursor.getLong(idIndex)
+                        val name = contactCursor.getString(nameIndex)
+                        val photoUriString = contactCursor.getString(photoUriIndex)
+                        val photoUri = photoUriString?.toUri()
+                        val hasPhoneNumber = contactCursor.getInt(hasPhoneNumberIndex) > 0
 
-                    var number: String? = null
-                    // If the contact has a phone number, query for it
-                    if (hasPhoneNumber) {
-                        val phoneCursor = contentResolver.query(
-                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                            null,
-                            "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
-                            arrayOf(id.toString()),
-                            null
-                        )
+                        var number: String? = null
+                        if (hasPhoneNumber) {
+                            val phoneCursor = contentResolver.query(
+                                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                                null,
+                                "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
+                                arrayOf(id.toString()),
+                                null
+                            )
 
-                        phoneCursor?.use {
-                            // Move to the first phone number
-                            if (it.moveToFirst()) {
-                                val numberIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-                                number = it.getString(numberIndex)
+                            phoneCursor?.use {
+                                if (it.moveToFirst()) {
+                                    val numberIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                                    number = it.getString(numberIndex)
+                                }
                             }
                         }
+                        contactsList.add(Contact(id, name, photoUri, number))
                     }
-
-                    contactsList.add(Contact(id, name, photoUri, number))
                 }
+                contactsList // The result of the withContext block
             }
+            // Update the state list on the main thread.
+            // It is safe to update Compose's state objects from any thread.
             contacts.clear()
-            contacts.addAll(contactsList)
+            contacts.addAll(fetchedContacts)
         }
-
     }
 
     LaunchedEffect(filteredApps) {
