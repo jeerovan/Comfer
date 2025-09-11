@@ -1,5 +1,6 @@
 package com.jeerovan.comfer
 
+import android.Manifest
 import android.accessibilityservice.AccessibilityService
 import android.annotation.SuppressLint
 import android.app.ActivityOptions
@@ -7,6 +8,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.os.BatteryManager
 import android.os.Bundle
@@ -148,21 +150,23 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.drawable.toDrawable
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import android.net.Uri
+import android.provider.ContactsContract
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
-import androidx.compose.animation.with
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.alpha
+import androidx.core.content.ContextCompat
 
 // Placeholder for your contact data structure
 data class Contact(
     val id: Long,
     val name: String,
-    val photoUri: Uri?
+    val photoUri: Uri?,
+    val number: String?
 )
 
 // Enum to manage the active tab state
@@ -655,11 +659,20 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
     var iconShape: Shape by remember { mutableStateOf(CircleShape) }
     var inputText by remember { mutableStateOf("") }
     var guideShown by remember { mutableStateOf(true) }
-    var hasContactPermission by remember { mutableStateOf(false) }
+    var hasContactsPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.READ_CONTACTS
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
     val guideKeyword = "search_guide_1"
     var canShowGuide by remember { mutableStateOf(false) }
-    val contactList: List<Contact> = emptyList()
+    val contacts = remember {
+        mutableStateListOf<Contact>()
+    }
     val filteredApps by remember(inputText, apps) {
         derivedStateOf {
             searchApps(inputText, apps)
@@ -668,12 +681,79 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
     fun onTabSelected(tab:SearchTab){
         activeTab = tab
     }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            hasContactsPermission = isGranted
+        }
+    )
     fun onRequestPermission(){
+        permissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+    }
+    if (hasContactsPermission) {
+
+        LaunchedEffect(Unit) {
+            val contactsList = mutableListOf<Contact>()
+            val contentResolver = context.contentResolver
+            val projection = arrayOf(
+                ContactsContract.Contacts._ID,
+                ContactsContract.Contacts.DISPLAY_NAME,
+                ContactsContract.Contacts.PHOTO_URI,
+                ContactsContract.Contacts.HAS_PHONE_NUMBER
+            )
+
+            val cursor = contentResolver.query(
+                ContactsContract.Contacts.CONTENT_URI,
+                projection,
+                null,
+                null,
+                null
+            )
+
+            cursor?.use { contactCursor ->
+                val idIndex = contactCursor.getColumnIndex(ContactsContract.Contacts._ID)
+                val nameIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+                val photoUriIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
+                val hasPhoneNumberIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
+
+                while (contactCursor.moveToNext()) {
+                    val id = contactCursor.getLong(idIndex)
+                    val name = contactCursor.getString(nameIndex)
+                    val photoUriString = contactCursor.getString(photoUriIndex)
+                    val photoUri = photoUriString?.toUri()
+                    val hasPhoneNumber = contactCursor.getInt(hasPhoneNumberIndex) > 0
+
+                    var number: String? = null
+                    // If the contact has a phone number, query for it
+                    if (hasPhoneNumber) {
+                        val phoneCursor = contentResolver.query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            null,
+                            "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
+                            arrayOf(id.toString()),
+                            null
+                        )
+
+                        phoneCursor?.use {
+                            // Move to the first phone number
+                            if (it.moveToFirst()) {
+                                val numberIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                                number = it.getString(numberIndex)
+                            }
+                        }
+                    }
+
+                    contactsList.add(Contact(id, name, photoUri, number))
+                }
+            }
+            contacts.clear()
+            contacts.addAll(contactsList)
+        }
 
     }
-    val filteredContacts by remember(inputText, contactList) {
+    val filteredContacts by remember(inputText, contacts) {
         derivedStateOf {
-            searchContacts(inputText, contactList)
+            searchContacts(inputText, contacts)
         }
     }
     LaunchedEffect(filteredApps) {
@@ -715,16 +795,20 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
         onDismiss = {onGuideDismiss()},
         title = "Navigation",
         steps = listOf(
-            "Swipe down to go back.",
+            "Swipe down on the keyboard to go back.",
+            "Swipe right on the keyboard to search contacts.",
+            "Swipe left on the keyboard to search apps.",
+            "Scroll sides to scroll contact list.",
             "Tap icon to open app.",
-            "Scroll list to view all result."
+            "Long press icon to view details.",
+            "Scroll app list to view all."
         )
     )
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .border(width = 1.dp, Color.Cyan)
+            .padding(16.dp)
             .pointerInput(Unit) {
                 var totalDragOffset = Offset.Zero
                 detectDragGestures(
@@ -752,8 +836,8 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.padding(bottom = 60.dp)
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+                modifier = Modifier.padding(bottom = 40.dp)
             ) {
                 TabRow(
                     selectedTabIndex = activeTab.ordinal,
@@ -812,18 +896,14 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                             }
                         }
                         SearchTab.CONTACTS -> {
-                            if (hasContactPermission) {
+                            if (hasContactsPermission) {
                                 LazyColumn(modifier = Modifier
                                     .fillMaxSize()
-                                    .border(width = 1.dp,color = Color.Green)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
                                 ) {
                                     items(filteredContacts) { contact ->
-                                        Text(
-                                            text = contact.name,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                                        )
+                                        ContactListItem(contact)
                                     }
                                 }
                             } else {
@@ -936,17 +1016,75 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
             }
         }
 }
-
+@Composable
+fun ContactListItem(contact: Contact) {
+    ListItem(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(RoundedCornerShape(16.dp)), // Rounded corners for each item
+        colors = ListItemDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+        ),
+        headlineContent = {
+            Text(
+                text = contact.name,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
+        supportingContent = {
+            // Only display the subtitle if a number is present
+            contact.number?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        leadingContent = {
+            Box(
+                modifier = Modifier.size(48.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (contact.photoUri != null) {
+                    // Use AsyncImage from Coil to load the photo
+                    AsyncImage(
+                        model = contact.photoUri,
+                        contentDescription = "${contact.name}'s photo",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.clip(CircleShape)
+                    )
+                } else {
+                    // If no photo, display the first initial in a colored circle
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.primary, shape = CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = contact.name.firstOrNull()?.toString() ?: "",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+            }
+        }
+    )
+}
 @Composable
 fun PermissionRequestView(onRequestPermission: () -> Unit) {
     Box(modifier = Modifier
         .fillMaxWidth()
-        .padding(16.dp)
         ) {
         Column(
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
-                .background(Color.White.copy(alpha = 0.7f))
+                .background(Color.White.copy(alpha = 0.5f))
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -1751,7 +1889,6 @@ fun CircularKeyboard(
 
     Box (
         modifier = Modifier
-            .border(width = 1.dp,color = Color.Red)
             .wrapContentSize(Alignment.Center)
             .pointerInput(Unit) {
                 var totalDragOffset = Offset.Zero
