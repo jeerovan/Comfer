@@ -681,6 +681,12 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
     fun onTabSelected(tab:SearchTab){
         activeTab = tab
     }
+    fun swipeRightOnKeyboard() {
+        activeTab = SearchTab.CONTACTS
+    }
+    fun swipeLeftOnKeyboard() {
+        activeTab = SearchTab.APPS
+    }
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
@@ -885,34 +891,41 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                         }
                     }
                 ) { targetTab ->
-                    when (targetTab) {
-                        SearchTab.APPS -> {
-                            LazyRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                contentPadding = PaddingValues(horizontal = 16.dp)
+                    if (targetTab == SearchTab.CONTACTS) {
+                        if (hasContactsPermission) {
+                            LazyColumn(modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
                             ) {
-
-                            }
-                        }
-                        SearchTab.CONTACTS -> {
-                            if (hasContactsPermission) {
-                                LazyColumn(modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
-                                ) {
-                                    items(filteredContacts) { contact ->
-                                        ContactListItem(contact)
-                                    }
+                                items(filteredContacts) { contact ->
+                                    ContactListItem(contact)
                                 }
-                            } else {
-                                PermissionRequestView { onRequestPermission() }
                             }
+                        } else {
+                            PermissionRequestView { onRequestPermission() }
                         }
                     }
                 }
-
+                val maxWidth = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp }
+                val textBoxPadding = (maxWidth/5).dp
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = textBoxPadding) // Keep horizontal padding for screen margins
+                        .height(40.dp)
+                        .clip(RoundedCornerShape(16.dp)) // Clip the content to the rounded shape
+                        .background(Color.Black.copy(alpha = 0.5f)), // Black background for the box
+                    contentAlignment = Alignment.Center // Center the Text inside the Box
+                ) {
+                    Text(
+                        text = inputText.ifEmpty { "Type text" },
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.Center, // Ensure placeholder text is centered
+                        modifier = Modifier.padding(horizontal = 16.dp) // Inner padding for the text
+                    )
+                }
                 // Circular Keyboard
                 CircularKeyboard(
                     onChar = { char ->
@@ -923,7 +936,9 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                             inputText = inputText.dropLast(1)
                         }
                     },
-                    onSwipeDown = onSwipeDown
+                    onSwipeDown = onSwipeDown,
+                    onSwipeRight = { swipeRightOnKeyboard() },
+                    onSwipeLeft = { swipeLeftOnKeyboard() }
                 )
 
                 AnimatedContent(
@@ -943,70 +958,59 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                         }
                     }
                 ) { targetTab ->
-                    when (targetTab) {
-                        SearchTab.APPS -> {
-                            LazyRow(
-                                Modifier.height(iconSize + 20.dp),
-                                // Add some padding around the content
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                                // Add spacing between the items
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                items(filteredApps) { app ->
-                                    Box(
-                                        modifier = Modifier
-                                            .size(iconSize)
-                                            .clip(getShapeFromShape(iconShape, iconSize))
-                                            .pointerInput(Unit) {
-                                                detectTapGestures(
-                                                    onTap = {
-                                                        view.playSoundEffect(SoundEffectConstants.CLICK)
-                                                        val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(app.packageName)
-                                                        if (launchIntent != null) {
-                                                            context.startActivity(launchIntent)
-                                                        }
-                                                    },
-                                                    onLongPress = {
-                                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                                        val intent =
-                                                            android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                                                        intent.data = "package:${app.packageName}".toUri()
-                                                        context.startActivity(intent)
+                    if (targetTab == SearchTab.APPS) {
+                        LazyRow(
+                            Modifier.height(iconSize + 20.dp),
+                            // Add some padding around the content
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            // Add spacing between the items
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(filteredApps) { app ->
+                                Box(
+                                    modifier = Modifier
+                                        .size(iconSize)
+                                        .clip(getShapeFromShape(iconShape, iconSize))
+                                        .pointerInput(Unit) {
+                                            detectTapGestures(
+                                                onTap = {
+                                                    view.playSoundEffect(SoundEffectConstants.CLICK)
+                                                    val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(app.packageName)
+                                                    if (launchIntent != null) {
+                                                        context.startActivity(launchIntent)
                                                     }
-                                                )
-                                            },
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        // Background Layer
-                                        if (app.background != null) {
-                                            Image(
-                                                painter = rememberDrawablePainter(drawable = app.background),
-                                                contentDescription = "${app.label} background",
-                                                modifier = Modifier.fillMaxSize(),
-                                                contentScale = ContentScale.FillBounds
+                                                },
+                                                onLongPress = {
+                                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                    val intent =
+                                                        android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                                    intent.data = "package:${app.packageName}".toUri()
+                                                    context.startActivity(intent)
+                                                }
                                             )
-                                        }
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    // Background Layer
+                                    if (app.background != null) {
+                                        Image(
+                                            painter = rememberDrawablePainter(drawable = app.background),
+                                            contentDescription = "${app.label} background",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.FillBounds
+                                        )
+                                    }
 
-                                        // Foreground Layer
-                                        if (app.foreground != null) {
-                                            Image(
-                                                painter = rememberDrawablePainter(drawable = app.foreground),
-                                                contentDescription = app.label.toString(),
-                                                modifier = Modifier.fillMaxSize().scale(app.scale), // Let it fill the clipped Box
-                                                contentScale = ContentScale.FillBounds
-                                            )
-                                        }
+                                    // Foreground Layer
+                                    if (app.foreground != null) {
+                                        Image(
+                                            painter = rememberDrawablePainter(drawable = app.foreground),
+                                            contentDescription = app.label.toString(),
+                                            modifier = Modifier.fillMaxSize().scale(app.scale), // Let it fill the clipped Box
+                                            contentScale = ContentScale.FillBounds
+                                        )
                                     }
                                 }
-                            }
-                        }
-                        SearchTab.CONTACTS -> {
-                            LazyRow(
-                                Modifier.height(iconSize + 20.dp),
-                                // Add some padding around the content
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                            ) {
-
                             }
                         }
                     }
@@ -1883,6 +1887,8 @@ fun CircularKeyboard(
     onChar: (Char) -> Unit,
     onBackspace: () -> Unit,
     onSwipeDown: () -> Unit,
+    onSwipeLeft: () -> Unit,
+    onSwipeRight: () -> Unit
 ) {
     val layer1Chars = charArrayOf('g','h','j','k','m','n','z','s','d','f').toList()
     val layer2Chars = charArrayOf('t','y','u','i','o','p','l','b','v','c','x','a','q','w','e','r').toList()
@@ -1907,6 +1913,17 @@ fun CircularKeyboard(
                             if (y.absoluteValue > swipeThreshold) {
                                 if (y > 0) {
                                     onSwipeDown()
+                                }
+                            }
+                        } else {
+                            // Horizontal swipe detection
+                            if (x.absoluteValue > swipeThreshold) {
+                                if (x > 0) {
+                                    // Positive x means a swipe from left to right
+                                    onSwipeRight()
+                                } else {
+                                    // Negative x means a swipe from right to left
+                                    onSwipeLeft()
                                 }
                             }
                         }
