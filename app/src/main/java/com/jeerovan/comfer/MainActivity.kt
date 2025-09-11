@@ -62,7 +62,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -112,7 +111,6 @@ import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.sin
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import android.text.TextUtils
 import android.view.SoundEffectConstants
@@ -139,21 +137,38 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextAlign
 import androidx.core.content.res.ResourcesCompat
 import coil.compose.AsyncImage
 import kotlin.math.min
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.drawable.toDrawable
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
-import kotlinx.coroutines.processNextEventInCurrentThread
+import android.net.Uri
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.with
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
+
+// Placeholder for your contact data structure
+data class Contact(
+    val id: Long,
+    val name: String,
+    val photoUri: Uri?
+)
+
+// Enum to manage the active tab state
+enum class SearchTab {
+    APPS, CONTACTS
+}
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
 
@@ -630,6 +645,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
     val context = LocalContext.current
@@ -639,14 +655,27 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
     var iconShape: Shape by remember { mutableStateOf(CircleShape) }
     var inputText by remember { mutableStateOf("") }
     var guideShown by remember { mutableStateOf(true) }
+    var hasContactPermission by remember { mutableStateOf(false) }
+    var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
     val guideKeyword = "search_guide_1"
     var canShowGuide by remember { mutableStateOf(false) }
+    val contactList: List<Contact> = emptyList()
     val filteredApps by remember(inputText, apps) {
         derivedStateOf {
             searchApps(inputText, apps)
         }
     }
+    fun onTabSelected(tab:SearchTab){
+        activeTab = tab
+    }
+    fun onRequestPermission(){
 
+    }
+    val filteredContacts by remember(inputText, contactList) {
+        derivedStateOf {
+            searchContacts(inputText, contactList)
+        }
+    }
     LaunchedEffect(filteredApps) {
         if (filteredApps.size == 1) {
             val singleApp = filteredApps.first()
@@ -695,7 +724,7 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            //.border(width = 1.dp, Color.Cyan)
+            .border(width = 1.dp, Color.Cyan)
             .pointerInput(Unit) {
                 var totalDragOffset = Offset.Zero
                 detectDragGestures(
@@ -712,7 +741,7 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                         if (y.absoluteValue > x.absoluteValue) {
                             if (y.absoluteValue > swipeThreshold) {
                                 if (y > 0) {
-                                    onSwipeDown()
+                                    //onSwipeDown()
                                 }
                             }
                         }
@@ -723,9 +752,86 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(bottom = 64.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.padding(bottom = 60.dp)
             ) {
+                TabRow(
+                    selectedTabIndex = activeTab.ordinal,
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    divider = {}
+                ) {
+                    Tab(
+                        selected = activeTab == SearchTab.APPS,
+                        onClick = { onTabSelected(SearchTab.APPS) },
+                        text = {
+                            Text(
+                                "Apps",
+                                color = if (activeTab == SearchTab.APPS) MaterialTheme.colorScheme.primary else Color.Gray
+                            )
+                        }
+                    )
+                    Tab(
+                        selected = activeTab == SearchTab.CONTACTS,
+                        onClick = { onTabSelected(SearchTab.CONTACTS) },
+                        text = {
+                            Text(
+                                "Contacts",
+                                color = if (activeTab == SearchTab.CONTACTS) MaterialTheme.colorScheme.primary else Color.Gray
+                            )
+                        }
+                    )
+                }
+
+                AnimatedContent(
+                    targetState = activeTab,
+                    modifier = Modifier.weight(1f),
+                    transitionSpec = {
+                        // Determine animation direction based on tab switch
+                        if (targetState == SearchTab.CONTACTS && initialState == SearchTab.APPS) {
+                            // Apps -> Contacts: Contacts slide in from right, Apps slide out to left
+                            (slideInHorizontally(initialOffsetX = { -it }) + fadeIn()).togetherWith(
+                                slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+                            )
+                        } else {
+                            // Contacts -> Apps: Apps slide in from left, Contacts slide out to right
+                            (slideInHorizontally(initialOffsetX = { it }) + fadeIn()).togetherWith(
+                                slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+                            )
+                        }
+                    }
+                ) { targetTab ->
+                    when (targetTab) {
+                        SearchTab.APPS -> {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                contentPadding = PaddingValues(horizontal = 16.dp)
+                            ) {
+
+                            }
+                        }
+                        SearchTab.CONTACTS -> {
+                            if (hasContactPermission) {
+                                LazyColumn(modifier = Modifier
+                                    .fillMaxSize()
+                                    .border(width = 1.dp,color = Color.Green)
+                                ) {
+                                    items(filteredContacts) { contact ->
+                                        Text(
+                                            text = contact.name,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                        )
+                                    }
+                                }
+                            } else {
+                                PermissionRequestView { onRequestPermission() }
+                            }
+                        }
+                    }
+                }
 
                 // Circular Keyboard
                 CircularKeyboard(
@@ -736,65 +842,130 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                         if (inputText.isNotEmpty()) {
                             inputText = inputText.dropLast(1)
                         }
-                    }
+                    },
+                    onSwipeDown = onSwipeDown
                 )
 
-                LazyRow(
-                    Modifier.height(iconSize + 20.dp),
-                    // Add some padding around the content
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    // Add spacing between the items
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(filteredApps) { app ->
-                        Box(
-                            modifier = Modifier
-                                .size(iconSize)
-                                .clip(getShapeFromShape(iconShape, iconSize))
-                                .pointerInput(Unit) {
-                                    detectTapGestures(
-                                        onTap = {
-                                            view.playSoundEffect(SoundEffectConstants.CLICK)
-                                            val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(app.packageName)
-                                            if (launchIntent != null) {
-                                                context.startActivity(launchIntent)
-                                            }
-                                        },
-                                        onLongPress = {
-                                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                            val intent =
-                                                android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                                            intent.data = "package:${app.packageName}".toUri()
-                                            context.startActivity(intent)
+                AnimatedContent(
+                    targetState = activeTab,
+                    transitionSpec = {
+                        // Determine animation direction based on tab switch
+                        if (targetState == SearchTab.CONTACTS && initialState == SearchTab.APPS) {
+                            // Apps -> Contacts: Contacts slide in from right, Apps slide out to left
+                            (slideInHorizontally(initialOffsetX = { -it }) + fadeIn()).togetherWith(
+                                slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+                            )
+                        } else {
+                            // Contacts -> Apps: Apps slide in from left, Contacts slide out to right
+                            (slideInHorizontally(initialOffsetX = { it }) + fadeIn()).togetherWith(
+                                slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+                            )
+                        }
+                    }
+                ) { targetTab ->
+                    when (targetTab) {
+                        SearchTab.APPS -> {
+                            LazyRow(
+                                Modifier.height(iconSize + 20.dp),
+                                // Add some padding around the content
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                                // Add spacing between the items
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                items(filteredApps) { app ->
+                                    Box(
+                                        modifier = Modifier
+                                            .size(iconSize)
+                                            .clip(getShapeFromShape(iconShape, iconSize))
+                                            .pointerInput(Unit) {
+                                                detectTapGestures(
+                                                    onTap = {
+                                                        view.playSoundEffect(SoundEffectConstants.CLICK)
+                                                        val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(app.packageName)
+                                                        if (launchIntent != null) {
+                                                            context.startActivity(launchIntent)
+                                                        }
+                                                    },
+                                                    onLongPress = {
+                                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                        val intent =
+                                                            android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                                        intent.data = "package:${app.packageName}".toUri()
+                                                        context.startActivity(intent)
+                                                    }
+                                                )
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        // Background Layer
+                                        if (app.background != null) {
+                                            Image(
+                                                painter = rememberDrawablePainter(drawable = app.background),
+                                                contentDescription = "${app.label} background",
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentScale = ContentScale.FillBounds
+                                            )
                                         }
-                                    )
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            // Background Layer
-                            if (app.background != null) {
-                                Image(
-                                    painter = rememberDrawablePainter(drawable = app.background),
-                                    contentDescription = "${app.label} background",
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.FillBounds
-                                )
-                            }
 
-                            // Foreground Layer
-                            if (app.foreground != null) {
-                                Image(
-                                    painter = rememberDrawablePainter(drawable = app.foreground),
-                                    contentDescription = app.label.toString(),
-                                    modifier = Modifier.fillMaxSize().scale(app.scale), // Let it fill the clipped Box
-                                    contentScale = ContentScale.FillBounds
-                                )
+                                        // Foreground Layer
+                                        if (app.foreground != null) {
+                                            Image(
+                                                painter = rememberDrawablePainter(drawable = app.foreground),
+                                                contentDescription = app.label.toString(),
+                                                modifier = Modifier.fillMaxSize().scale(app.scale), // Let it fill the clipped Box
+                                                contentScale = ContentScale.FillBounds
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        SearchTab.CONTACTS -> {
+                            LazyRow(
+                                Modifier.height(iconSize + 20.dp),
+                                // Add some padding around the content
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            ) {
+
                             }
                         }
                     }
                 }
+
+
             }
         }
+}
+
+@Composable
+fun PermissionRequestView(onRequestPermission: () -> Unit) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .padding(16.dp)
+        ) {
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White.copy(alpha = 0.7f))
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "This feature requires permission to access your contacts.",
+                textAlign = TextAlign.Center
+            )
+            Button(onClick = onRequestPermission) {
+                Text("Grant Permission")
+            }
+            Text(
+                text = "We respect your privacy and do not collect any of your data. Tap here to read our privacy policy.",
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center
+                // Add a clickable modifier for the privacy policy link
+            )
+        }
+    }
 }
 
 @Composable
@@ -1572,15 +1743,39 @@ fun CircularButton(
 @Composable
 fun CircularKeyboard(
     onChar: (Char) -> Unit,
-    onBackspace: () -> Unit
+    onBackspace: () -> Unit,
+    onSwipeDown: () -> Unit,
 ) {
     val layer1Chars = charArrayOf('g','h','j','k','m','n','z','s','d','f').toList()
     val layer2Chars = charArrayOf('t','y','u','i','o','p','l','b','v','c','x','a','q','w','e','r').toList()
 
     Box (
         modifier = Modifier
-            //.border(width = 1.dp,color = Color.Red)
-            .wrapContentSize(Alignment.Center),
+            .border(width = 1.dp,color = Color.Red)
+            .wrapContentSize(Alignment.Center)
+            .pointerInput(Unit) {
+                var totalDragOffset = Offset.Zero
+                detectDragGestures(
+                    onDragStart = {
+                        totalDragOffset = Offset.Zero
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        totalDragOffset += dragAmount
+                    },
+                    onDragEnd = {
+                        val swipeThreshold = 50f
+                        val (x, y) = totalDragOffset
+                        if (y.absoluteValue > x.absoluteValue) {
+                            if (y.absoluteValue > swipeThreshold) {
+                                if (y > 0) {
+                                    onSwipeDown()
+                                }
+                            }
+                        }
+                    }
+                )
+            },
         contentAlignment = Alignment.Center
     ) {
 
@@ -1651,6 +1846,14 @@ fun searchApps(text: String, appList: List<AppInfo>): List<AppInfo> {
     }
     return appList.filter { app ->
         app.label.contains(text, ignoreCase = true)
+    }
+}
+fun searchContacts(text: String, contactList: List<Contact>): List<Contact> {
+    if (text.isBlank()) {
+        return contactList // Return the full list if search text is empty
+    }
+    return contactList.filter { contact ->
+        contact.name.contains(text, ignoreCase = true)
     }
 }
 
