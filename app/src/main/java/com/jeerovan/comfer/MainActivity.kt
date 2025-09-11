@@ -156,8 +156,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.core.content.ContextCompat
 
@@ -678,6 +681,29 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
             searchApps(inputText, apps)
         }
     }
+    var selectedContact by remember { mutableStateOf<Contact?>(null) }
+    // Coroutine scope to run suspend functions like scrolling
+    val coroutineScope = rememberCoroutineScope()
+
+    // The scroll handle for the LazyColumn
+    val lazyListState = rememberLazyListState()
+
+    // Function to handle the double-tap action
+    fun onTapSelectedContact() {
+        // TODO: Implement your action here, e.g., navigate or show details
+        println("Double tapped on: ${selectedContact?.name}")
+    }
+
+    // Update the selected contact whenever the scroll position changes
+    LaunchedEffect(lazyListState) {
+        snapshotFlow { lazyListState.firstVisibleItemIndex }
+            .collect {
+                if (contacts.isNotEmpty()) {
+                    selectedContact = contacts.getOrNull(lazyListState.firstVisibleItemIndex)
+                }
+            }
+    }
+
     fun onTabSelected(tab:SearchTab){
         activeTab = tab
     }
@@ -753,7 +779,12 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                 }
             }
             contacts.clear()
-            contacts.addAll(contactsList)
+            //contacts.addAll(contactsList)
+            val tempContacts = List(20) { index -> Contact(id = index.toLong(), name = "Contact Name ${index + 1}",null,"Number: $index") }
+            contacts.addAll(tempContacts)
+            if(contacts.isNotEmpty()){
+                selectedContact = contacts.first()
+            }
         }
 
     }
@@ -816,27 +847,24 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
             .fillMaxSize()
             .padding(16.dp)
             .pointerInput(Unit) {
-                var totalDragOffset = Offset.Zero
-                detectDragGestures(
-                    onDragStart = {
-                        totalDragOffset = Offset.Zero
-                    },
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-                        totalDragOffset += dragAmount
-                    },
-                    onDragEnd = {
-                        val swipeThreshold = 50f
-                        val (x, y) = totalDragOffset
-                        if (y.absoluteValue > x.absoluteValue) {
-                            if (y.absoluteValue > swipeThreshold) {
-                                if (y > 0) {
-                                    //onSwipeDown()
-                                }
-                            }
+                // Combine multiple gesture detectors in one pointerInput
+                detectTapGestures(
+                    onDoubleTap = {
+                        if (selectedContact != null) {
+                            onTapSelectedContact()
                         }
                     }
                 )
+            }
+            .pointerInput(Unit) {
+                detectVerticalDragGestures { change, dragAmount ->
+                    change.consume() // Consume the gesture event
+
+                    // Use the coroutine scope to dispatch scroll events
+                    coroutineScope.launch {
+                        lazyListState.dispatchRawDelta(-dragAmount)
+                    }
+                }
             },
         contentAlignment = Alignment.BottomCenter
         ) {
@@ -891,15 +919,19 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                         }
                     }
                 ) { targetTab ->
+
                     if (targetTab == SearchTab.CONTACTS) {
                         if (hasContactsPermission) {
-                            LazyColumn(modifier = Modifier
+                            LazyColumn(
+                                state = lazyListState,
+                                modifier = Modifier
                                 .fillMaxSize()
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+                                //.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+                                .padding(vertical = 20.dp)
                             ) {
                                 items(filteredContacts) { contact ->
-                                    ContactListItem(contact)
+                                    ContactListItem(contact,
+                                        isSelected = (contact.id == selectedContact?.id))
                                 }
                             }
                         } else {
@@ -1021,14 +1053,14 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
         }
 }
 @Composable
-fun ContactListItem(contact: Contact) {
+fun ContactListItem(contact: Contact,isSelected:Boolean) {
     ListItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .clip(RoundedCornerShape(16.dp)), // Rounded corners for each item
         colors = ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
         ),
         headlineContent = {
             Text(
