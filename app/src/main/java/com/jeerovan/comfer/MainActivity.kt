@@ -163,6 +163,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 
 // Placeholder for your contact data structure
 data class Contact(
@@ -681,7 +683,13 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
             searchApps(inputText, apps)
         }
     }
-    var selectedContact by remember { mutableStateOf<Contact?>(null) }
+
+    var selectedContactIndex by remember { mutableIntStateOf(0) }
+    val selectedContact by remember(selectedContactIndex) {
+        derivedStateOf {
+            contacts.getOrNull(selectedContactIndex)
+        }
+    }
     // Coroutine scope to run suspend functions like scrolling
     val coroutineScope = rememberCoroutineScope()
 
@@ -694,13 +702,16 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
         println("Double tapped on: ${selectedContact?.name}")
     }
 
-    // Update the selected contact whenever the scroll position changes
     LaunchedEffect(lazyListState) {
         snapshotFlow { lazyListState.firstVisibleItemIndex }
-            .collect {
-                if (contacts.isNotEmpty()) {
-                    selectedContact = contacts.getOrNull(lazyListState.firstVisibleItemIndex)
-                }
+            .distinctUntilChanged()
+            .filter {
+                // Only update if the scroll was not triggered by our custom drag logic
+                // i.e., when the selected index is aligned with the top of the list
+                selectedContactIndex <= it
+            }
+            .collect { firstVisibleIndex ->
+                selectedContactIndex = firstVisibleIndex
             }
     }
 
@@ -723,7 +734,6 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
         permissionLauncher.launch(Manifest.permission.READ_CONTACTS)
     }
     if (hasContactsPermission) {
-
         LaunchedEffect(Unit) {
             val contactsList = mutableListOf<Contact>()
             val contentResolver = context.contentResolver
@@ -782,9 +792,7 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
             //contacts.addAll(contactsList)
             val tempContacts = List(20) { index -> Contact(id = index.toLong(), name = "Contact Name ${index + 1}",null,"Number: $index") }
             contacts.addAll(tempContacts)
-            if(contacts.isNotEmpty()){
-                selectedContact = contacts.first()
-            }
+
         }
 
     }
@@ -841,6 +849,8 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
             "Scroll app list to view all."
         )
     )
+    var dragAccumulator by remember { mutableFloatStateOf(0f) }
+    val scrollThreshold = 80f // The number of pixels to drag before the index changes
 
     Box(
         modifier = Modifier
@@ -855,15 +865,48 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                     }
                 )
             }
-            .pointerInput(Unit) {
-                detectVerticalDragGestures { change, dragAmount ->
-                    change.consume() // Consume the gesture event
+            .pointerInput(lazyListState, contacts.size) { // Relaunch gesture detection if state or data changes
+                detectVerticalDragGestures(
+                    onDragStart = { dragAccumulator = 0f },
+                    onDragEnd = { dragAccumulator = 0f },
+                    onVerticalDrag = { change, dragAmount ->
+                        change.consume()
+                        val isAtEndOfList = !lazyListState.canScrollForward
 
-                    // Use the coroutine scope to dispatch scroll events
-                    coroutineScope.launch {
-                        lazyListState.dispatchRawDelta(-dragAmount)
+                        dragAccumulator += dragAmount
+
+                        // --- Refined Drag Logic ---
+
+                        // A. Dragging DOWN (positive dragAmount)
+                        if (dragAmount > 0) {
+                            // If selection is ahead of the list, bring it back without scrolling
+                            if (selectedContactIndex > lazyListState.firstVisibleItemIndex) {
+                                if (dragAccumulator > scrollThreshold) {
+                                    selectedContactIndex = (selectedContactIndex - 1).coerceAtLeast(lazyListState.firstVisibleItemIndex)
+                                    dragAccumulator = 0f
+                                }
+                            } else {
+                                // Otherwise, scroll the list normally if possible
+                                if (lazyListState.canScrollBackward) {
+                                    coroutineScope.launch { lazyListState.dispatchRawDelta(-dragAmount) }
+                                }
+                            }
+                        }
+                        // B. Dragging UP (negative dragAmount)
+                        else if (dragAmount < 0) {
+                            // If at the end of the list, change selection instead of scrolling
+                            if (isAtEndOfList) {
+                                if (dragAccumulator < -scrollThreshold) {
+                                    selectedContactIndex = (selectedContactIndex + 1).coerceAtMost(contacts.lastIndex)
+                                    dragAccumulator = 0f
+                                }
+                            } else {
+                                // Otherwise, scroll the list normally
+                                coroutineScope.launch { lazyListState.dispatchRawDelta(-dragAmount) }
+                            }
+                        }
                     }
-                }
+                )
             },
         contentAlignment = Alignment.BottomCenter
         ) {
@@ -918,7 +961,6 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                         }
                     }
                 ) { targetTab ->
-
                     if (targetTab == SearchTab.CONTACTS) {
                         if (hasContactsPermission) {
                             LazyColumn(
