@@ -122,7 +122,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.material3.Button
@@ -659,7 +658,11 @@ fun QuickListOverlay(apps: List<AppInfo>,
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
+fun SearchListOverlay(apps: List<AppInfo>,
+                      contacts: List<Contact>,
+                      onRequestContactsPermission: () -> Unit,
+                      onSwipeDown: () -> Unit,
+                      hasContactPermission: Boolean) {
     val context = LocalContext.current
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
@@ -667,20 +670,11 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
     var iconShape: Shape by remember { mutableStateOf(CircleShape) }
     var inputText by remember { mutableStateOf("") }
     var guideShown by remember { mutableStateOf(true) }
-    var hasContactsPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_CONTACTS
-            ) == PackageManager.PERMISSION_GRANTED
-        )
-    }
+
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
     val guideKeyword = "search_guide_1"
     var canShowGuide by remember { mutableStateOf(false) }
-    val contacts = remember {
-        mutableStateListOf<Contact>()
-    }
+
     val filteredApps by remember(inputText, apps) {
         derivedStateOf {
             if(activeTab == SearchTab.APPS) {
@@ -742,79 +736,6 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
     fun swipeLeftOnKeyboard() {
         activeTab = SearchTab.APPS
         inputText = ""
-    }
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            hasContactsPermission = isGranted
-        }
-    )
-    fun onRequestPermission(){
-        permissionLauncher.launch(Manifest.permission.READ_CONTACTS)
-    }
-    if (hasContactsPermission) {
-        // This LaunchedEffect will run the contact fetching logic
-        LaunchedEffect(Unit) {
-            val fetchedContacts = withContext(Dispatchers.IO) {
-                // withContext(Dispatchers.IO) switches the coroutine to a background thread
-                // ideal for disk or network I/O operations.
-                val contactsList = mutableListOf<Contact>()
-                val contentResolver = context.contentResolver
-                val projection = arrayOf(
-                    ContactsContract.Contacts._ID,
-                    ContactsContract.Contacts.DISPLAY_NAME,
-                    ContactsContract.Contacts.PHOTO_URI,
-                    ContactsContract.Contacts.HAS_PHONE_NUMBER
-                )
-
-                val cursor = contentResolver.query(
-                    ContactsContract.Contacts.CONTENT_URI,
-                    projection,
-                    null,
-                    null,
-                    null
-                )
-
-                cursor?.use { contactCursor ->
-                    val idIndex = contactCursor.getColumnIndex(ContactsContract.Contacts._ID)
-                    val nameIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
-                    val photoUriIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
-                    val hasPhoneNumberIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
-
-                    while (contactCursor.moveToNext()) {
-                        val id = contactCursor.getLong(idIndex)
-                        val name = contactCursor.getString(nameIndex)
-                        val photoUriString = contactCursor.getString(photoUriIndex)
-                        val photoUri = photoUriString?.toUri()
-                        val hasPhoneNumber = contactCursor.getInt(hasPhoneNumberIndex) > 0
-
-                        var number: String? = null
-                        if (hasPhoneNumber) {
-                            val phoneCursor = contentResolver.query(
-                                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                                null,
-                                "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
-                                arrayOf(id.toString()),
-                                null
-                            )
-
-                            phoneCursor?.use {
-                                if (it.moveToFirst()) {
-                                    val numberIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-                                    number = it.getString(numberIndex)
-                                }
-                            }
-                        }
-                        contactsList.add(Contact(id, name, photoUri, number))
-                    }
-                }
-                contactsList // The result of the withContext block
-            }
-            // Update the state list on the main thread.
-            // It is safe to update Compose's state objects from any thread.
-            contacts.clear()
-            contacts.addAll(fetchedContacts)
-        }
     }
 
     LaunchedEffect(filteredApps) {
@@ -888,11 +809,7 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                     onVerticalDrag = { change, dragAmount ->
                         change.consume()
                         val isAtEndOfList = !lazyListState.canScrollForward
-
                         dragAccumulator += dragAmount
-
-                        // --- Refined Drag Logic ---
-
                         // A. Dragging DOWN (positive dragAmount)
                         if (dragAmount > 0) {
                             // If selection is ahead of the list, bring it back without scrolling
@@ -978,7 +895,7 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                     }
                 ) { targetTab ->
                     if (targetTab == SearchTab.CONTACTS) {
-                        if (hasContactsPermission) {
+                        if (hasContactPermission) {
                             LazyColumn(
                                 state = lazyListState,
                                 modifier = Modifier
@@ -992,7 +909,7 @@ fun SearchListOverlay(apps: List<AppInfo>,onSwipeDown: () -> Unit) {
                                 }
                             }
                         } else {
-                            PermissionRequestView { onRequestPermission() }
+                            PermissionRequestView { onRequestContactsPermission() }
                         }
                     }
                 }
@@ -1177,7 +1094,7 @@ fun PermissionRequestView(onRequestPermission: () -> Unit) {
         Column(
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
-                .background(Color.White.copy(alpha = 0.5f))
+                .background(Color.White.copy(alpha = 0.7f))
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -1451,7 +1368,9 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
 private enum class DragAxis { HORIZONTAL, VERTICAL }
 
 @Composable
-fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: SettingsViewModel,mainViewModel: MainViewModel) {
+fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
+                   settingsViewModel: SettingsViewModel,
+                   mainViewModel: MainViewModel) {
     val context = LocalContext.current
     var isAppListVisible by remember { mutableStateOf(false) }
     var isSearchListVisible by remember { mutableStateOf(false) }
@@ -1469,6 +1388,91 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
 
     val imageData = mainUiState.imageData
     val cachedImagePath = mainUiState.imagePath
+
+    val contacts = remember {
+        mutableStateListOf<Contact>()
+    }
+    var hasContactsPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.READ_CONTACTS
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+    val contactsPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            hasContactsPermission = isGranted
+        }
+    )
+    fun onRequestContactsPermission(){
+        contactsPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+    }
+    if (hasContactsPermission) {
+        // This LaunchedEffect will run the contact fetching logic
+        LaunchedEffect(Unit) {
+            val fetchedContacts = withContext(Dispatchers.IO) {
+                // withContext(Dispatchers.IO) switches the coroutine to a background thread
+                // ideal for disk or network I/O operations.
+                val contactsList = mutableListOf<Contact>()
+                val contentResolver = context.contentResolver
+                val projection = arrayOf(
+                    ContactsContract.Contacts._ID,
+                    ContactsContract.Contacts.DISPLAY_NAME,
+                    ContactsContract.Contacts.PHOTO_URI,
+                    ContactsContract.Contacts.HAS_PHONE_NUMBER
+                )
+
+                val cursor = contentResolver.query(
+                    ContactsContract.Contacts.CONTENT_URI,
+                    projection,
+                    null,
+                    null,
+                    null
+                )
+
+                cursor?.use { contactCursor ->
+                    val idIndex = contactCursor.getColumnIndex(ContactsContract.Contacts._ID)
+                    val nameIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+                    val photoUriIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
+                    val hasPhoneNumberIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
+
+                    while (contactCursor.moveToNext()) {
+                        val id = contactCursor.getLong(idIndex)
+                        val name = contactCursor.getString(nameIndex)
+                        val photoUriString = contactCursor.getString(photoUriIndex)
+                        val photoUri = photoUriString?.toUri()
+                        val hasPhoneNumber = contactCursor.getInt(hasPhoneNumberIndex) > 0
+
+                        var number: String? = null
+                        if (hasPhoneNumber) {
+                            val phoneCursor = contentResolver.query(
+                                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                                null,
+                                "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
+                                arrayOf(id.toString()),
+                                null
+                            )
+
+                            phoneCursor?.use {
+                                if (it.moveToFirst()) {
+                                    val numberIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                                    number = it.getString(numberIndex)
+                                }
+                            }
+                        }
+                        contactsList.add(Contact(id, name, photoUri, number))
+                    }
+                }
+                contactsList // The result of the withContext block
+            }
+            // Update the state list on the main thread.
+            // It is safe to update Compose's state objects from any thread.
+            contacts.clear()
+            contacts.addAll(fetchedContacts)
+        }
+    }
 
     val haptic = LocalHapticFeedback.current
 
@@ -1528,7 +1532,11 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel, settingsViewModel: Settin
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
         ) {
             SearchListOverlay (apps = primaryApps,
-                onSwipeDown = { isSearchListVisible = false })
+                contacts,
+                onSwipeDown = { isSearchListVisible = false },
+                onRequestContactsPermission = { onRequestContactsPermission() },
+                hasContactPermission = hasContactsPermission
+            )
         }
         if (showDisclosure) {
             AccessibilityPermissionDisclosureScreen(
