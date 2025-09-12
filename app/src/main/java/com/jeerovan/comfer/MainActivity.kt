@@ -776,9 +776,10 @@ fun SearchListOverlay(apps: List<AppInfo>,
             "Swipe right on the keyboard to search contacts.",
             "Swipe left on the keyboard to search apps.",
             "Scroll sides to scroll contact list.",
+            "Double tap on either sides to open dialer with contact.",
             "Tap icon to open app.",
             "Long press icon to view details.",
-            "Scroll app list to view all."
+            "Scroll app list to view all result."
         )
     )
 

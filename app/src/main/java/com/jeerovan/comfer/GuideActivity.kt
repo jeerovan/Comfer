@@ -128,22 +128,25 @@ fun UserGuideScreen() {
                 GuideStepItem(text = "Swipe down on the keyboard to go back.")
             }
             item {
-                GuideStepItem(text = "Tap icon to open app.")
-            }
-            item {
-                GuideStepItem(text = "Long press icon to view details.")
-            }
-            item {
-                GuideStepItem(text = "Scroll list to view all apps.")
-            }
-            item {
                 GuideStepItem(text = "Swipe right on the keyboard to search contacts.")
             }
             item {
                 GuideStepItem(text = "Swipe left on the keyboard to search apps.")
             }
             item {
-                GuideStepItem(text = "Scroll sides to scroll contact list.")
+                GuideStepItem(text = "Tap icon to open app.")
+            }
+            item {
+                GuideStepItem(text = "Long press icon to view details.")
+            }
+            item {
+                GuideStepItem(text = "Scroll app list to view all results.")
+            }
+            item {
+                GuideStepItem(text = "Scroll either sides to scroll contact list.")
+            }
+            item {
+                GuideStepItem(text = "Double tap on either sides to open dialer with number.")
             }
 
             // Manage app list
