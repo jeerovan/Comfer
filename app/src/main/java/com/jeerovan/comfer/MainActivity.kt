@@ -157,6 +157,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyColumn
@@ -165,6 +166,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -1135,6 +1137,8 @@ fun ContactListItem(contact: Contact,isSelected:Boolean) {
 }
 @Composable
 fun PermissionRequestView(onRequestPermission: () -> Unit) {
+    val uriHandler = LocalUriHandler.current
+    val privacyPolicyUrl = "https://comfer.jeerovan.com/privacy"
     Box(modifier = Modifier
         .fillMaxWidth()
         ) {
@@ -1156,8 +1160,10 @@ fun PermissionRequestView(onRequestPermission: () -> Unit) {
             Text(
                 text = "We respect your privacy and do not collect any of your data. Tap here to read our privacy policy.",
                 style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center
-                // Add a clickable modifier for the privacy policy link
+                textAlign = TextAlign.Center,
+                        modifier = Modifier.clickable {
+                    uriHandler.openUri(privacyPolicyUrl)
+                }
             )
         }
     }
