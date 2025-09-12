@@ -2010,6 +2010,14 @@ fun CircularKeyboard(
         modifier = Modifier
             .wrapContentSize(Alignment.Center)
             .pointerInput(Unit) {
+                detectTapGestures(
+                    onDoubleTap =  {
+                        // This tap is handled and consumed here, so it won't propagate
+                        // to the parent Box.
+                    }
+                )
+            }
+            .pointerInput(Unit) {
                 var totalDragOffset = Offset.Zero
                 detectDragGestures(
                     onDragStart = {
