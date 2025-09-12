@@ -853,7 +853,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp)), // Softens the container edges
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant, // Adapts to theme
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f), // Adapts to theme
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant, // Default for unselected tabs
                     indicator = { tabPositions ->
                         // A more modern, pill-shaped indicator
@@ -1046,7 +1046,7 @@ fun ContactListItem(contact: Contact,isSelected:Boolean) {
             .padding(vertical = 4.dp)
             .clip(RoundedCornerShape(16.dp)), // Rounded corners for each item
         colors = ListItemDefaults.colors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant
+            containerColor = if (isSelected) MaterialTheme.colorScheme.surface.copy(alpha = 0.8f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
         ),
         headlineContent = {
             Text(
@@ -1482,8 +1482,11 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             // Update the state list on the main thread.
             // It is safe to update Compose's state objects from any thread.
             contacts.clear()
-            contacts.addAll(fetchedContacts.sortedBy { contact -> contact.name
-            })
+            val uniqueAndSortedContacts = fetchedContacts
+                //.distinctBy { it.number } // First, create a new list with unique contacts based on their number
+                .sortedBy { it.name }     // Then, sort the resulting unique list by name
+
+            contacts.addAll(uniqueAndSortedContacts)
         }
     }
 
