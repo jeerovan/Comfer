@@ -867,13 +867,14 @@ fun SearchListOverlay(apps: List<AppInfo>,
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier.padding(bottom = 40.dp, top = 16.dp, start = 16.dp, end = 16.dp)
+                modifier = Modifier.padding(bottom = 40.dp)
             ) {
                 TabRow(
                     selectedTabIndex = activeTab.ordinal,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp)), // Softens the container edges
+                        .padding(start = 16.dp,end = 16.dp, top = 16.dp)
+                        .clip(RoundedCornerShape(12.dp)),
                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f), // Adapts to theme
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant, // Default for unselected tabs
                     indicator = { tabPositions ->
@@ -943,6 +944,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                     state = lazyListState,
                                     modifier = Modifier
                                     .fillMaxSize()
+                                        .padding(horizontal = 16.dp)
                                 ) {
                                     items(filteredContacts) { contact ->
                                         ContactListItem(contact,
@@ -1142,6 +1144,7 @@ fun PermissionRequestView(onRequestPermission: () -> Unit) {
     val privacyPolicyUrl = "https://comfer.jeerovan.com/privacy"
     Box(modifier = Modifier
         .fillMaxWidth()
+        .padding(horizontal = 16.dp)
         ) {
         Column(
             modifier = Modifier
