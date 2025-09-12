@@ -155,6 +155,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.clickable
@@ -166,6 +167,8 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -2011,49 +2014,66 @@ fun CircularButton(
     char: Char? = null,
     size: Dp
 ) {
-    // 1. InteractionSource to track press state
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    // 2. Animate scale based on press state for visual feedback
-    val scale by animateFloatAsState(targetValue = if (isPressed) 1.2f else 1f)
+    // 1. Refined Animation: Scale down for a more natural "push" effect
+    val scale by animateFloatAsState(targetValue = if (isPressed) 0.9f else 1f, label = "scale")
+    val shadowElevation by animateFloatAsState(targetValue = if (isPressed) 4f else 8f, label = "shadow")
 
-    // 3. Get the current view to trigger the sound effect
+    // 2. Haptic and Auditory Feedback
     val view = LocalView.current
+    val haptic = LocalHapticFeedback.current
 
-    Button(
-        onClick = {
-            // Play default tap sound
-            view.playSoundEffect(SoundEffectConstants.CLICK)
-            // Execute the original onClick action
-            onClick()
-        },
+    // 3. Sophisticated Color Palette with Gradients
+    val buttonColor by animateColorAsState(
+        targetValue = if (isPressed) Color(0xFF2C2C2E) else Color(0xFF1C1C1E),
+        label = "color"
+    )
+    val gradient = Brush.radialGradient(
+        colors = listOf(Color.White.copy(alpha = 0.05f), Color.Transparent),
+        radius = size.value * 0.8f
+    )
+
+    Box(
         modifier = modifier
             .size(size)
-            .graphicsLayer { // Apply the scaling animation
+            .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
-            },
-        shape = CircleShape,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Black.copy(alpha = 0.5f)
-        ),
-        // Pass the interactionSource to the button
-        interactionSource = interactionSource,
-        contentPadding = PaddingValues(0.dp)
+            }
+            .shadow(
+                elevation = shadowElevation.dp,
+                shape = CircleShape,
+                clip = false
+            )
+            .clip(CircleShape)
+            .background(buttonColor)
+            .background(gradient) // Subtle gradient for a "sheen" effect
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null, // Disable default ripple to use our custom feedback
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    view.playSoundEffect(SoundEffectConstants.CLICK)
+                    onClick()
+                }
+            ),
+        contentAlignment = Alignment.Center
     ) {
         if (char != null) {
             Text(
-                text = char.toString(),
-                color = Color.White.copy(alpha = 0.8f),
-                fontSize = (size.value / 2.0).sp
+                text = char.toString().uppercase(),
+                color = Color.White,
+                fontSize = (size.value / 2.5).sp, // Slightly smaller font for better padding
+                fontWeight = FontWeight.W300 // A lighter font weight can look more modern
             )
         } else {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Backspace",
-                tint = Color.White.copy(alpha = 0.8f),
-                modifier = Modifier.size(size * 0.5f)
+                tint = Color.White,
+                modifier = Modifier.size(size * 0.45f) // Adjust icon size
             )
         }
     }
