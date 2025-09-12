@@ -910,14 +910,23 @@ fun SearchListOverlay(apps: List<AppInfo>,
                 ) { targetTab ->
                     if (targetTab == SearchTab.CONTACTS) {
                         if (hasContactPermission) {
-                            LazyColumn(
-                                state = lazyListState,
-                                modifier = Modifier
-                                .fillMaxSize()
-                            ) {
-                                items(filteredContacts) { contact ->
-                                    ContactListItem(contact,
-                                        isSelected = (contact.id == selectedContact?.id))
+                            if(filteredContacts.isEmpty()){
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            } else {
+                                LazyColumn(
+                                    state = lazyListState,
+                                    modifier = Modifier
+                                    .fillMaxSize()
+                                ) {
+                                    items(filteredContacts) { contact ->
+                                        ContactListItem(contact,
+                                            isSelected = (contact.id == selectedContact?.id))
+                                    }
                                 }
                             }
                         } else {
