@@ -1040,11 +1040,19 @@ fun SearchListOverlay(apps: List<AppInfo>,
 }
 @Composable
 fun ContactListItem(contact: Contact,isSelected:Boolean) {
+    val context = LocalContext.current
     ListItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .clip(RoundedCornerShape(16.dp)), // Rounded corners for each item
+            .clip(RoundedCornerShape(16.dp))
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {
+                        placeCallWithDialer(context,contact.number)
+                    }
+                )
+            }, // Rounded corners for each item
         colors = ListItemDefaults.colors(
             containerColor = if (isSelected) MaterialTheme.colorScheme.surface.copy(alpha = 0.8f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
         ),
