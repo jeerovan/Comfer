@@ -168,6 +168,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -1425,6 +1426,9 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                    settingsViewModel: SettingsViewModel,
                    mainViewModel: MainViewModel) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val coroutineScope = rememberCoroutineScope()
+
     var isAppListVisible by remember { mutableStateOf(false) }
     var isSearchListVisible by remember { mutableStateOf(false) }
     var backgroundImage by remember { mutableStateOf<String?>(null) }
@@ -1462,9 +1466,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     fun onRequestContactsPermission(){
         contactsPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
     }
-    if (hasContactsPermission) {
-        // This LaunchedEffect will run the contact fetching logic
-        LaunchedEffect(Unit) {
+    fun fetchContacts(){
+        coroutineScope.launch {
             val fetchedContacts = withContext(Dispatchers.IO) {
                 // withContext(Dispatchers.IO) switches the coroutine to a background thread
                 // ideal for disk or network I/O operations.
@@ -1476,7 +1479,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                     ContactsContract.Contacts.PHOTO_URI,
                     ContactsContract.Contacts.HAS_PHONE_NUMBER
                 )
-
                 val cursor = contentResolver.query(
                     ContactsContract.Contacts.CONTENT_URI,
                     projection,
@@ -1484,13 +1486,11 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                     null,
                     null
                 )
-
                 cursor?.use { contactCursor ->
                     val idIndex = contactCursor.getColumnIndex(ContactsContract.Contacts._ID)
                     val nameIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
                     val photoUriIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
                     val hasPhoneNumberIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
-
                     while (contactCursor.moveToNext()) {
                         val id = contactCursor.getLong(idIndex)
                         val name = contactCursor.getString(nameIndex)
@@ -1528,6 +1528,24 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 .sortedBy { it.name }     // Then, sort the resulting unique list by name
 
             contacts.addAll(uniqueAndSortedContacts)
+        }
+    }
+    DisposableEffect(lifecycleOwner, hasContactsPermission) {
+        val observer = LifecycleEventObserver { _, event ->
+            // Trigger on resume
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // Only fetch if permission has been granted
+                if (hasContactsPermission) {
+                    fetchContacts()
+                }
+            }
+        }
+        // Add the observer to the lifecycle
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        // When the effect leaves the Composition, remove the observer
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 

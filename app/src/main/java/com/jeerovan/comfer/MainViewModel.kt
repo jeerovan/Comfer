@@ -49,11 +49,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val imageData = PreferenceManager.getImageData(applicationContext)
                     val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
                     // this is a first time fetch, do not set wallpaper on home screen as the app is not set default home app now
-                    _uiState.update {
-                        it.copy(
-                            imageData = imageData,
-                            imagePath = filePath
-                        )
+                    if( imageData != null && filePath != null) {
+                        _uiState.update {
+                            it.copy(
+                                imageData = imageData,
+                                imagePath = filePath
+                            )
+                        }
                     }
                     PreferenceManager.setWallpaperApplied(applicationContext,true)
                     setDownloading(false)
