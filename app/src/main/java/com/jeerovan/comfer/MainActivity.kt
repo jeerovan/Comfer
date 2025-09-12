@@ -150,6 +150,7 @@ import androidx.core.graphics.drawable.toDrawable
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import android.net.Uri
 import android.provider.ContactsContract
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -157,8 +158,10 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -684,6 +687,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
             }
         }
     }
+    //val filteredContacts = remember { (1..20).map { Contact(it.toLong(),"Contact $it",null,it.toString()) } }
     val filteredContacts by remember(inputText, contacts) {
         derivedStateOf {
             if(activeTab == SearchTab.CONTACTS){
@@ -708,19 +712,6 @@ fun SearchListOverlay(apps: List<AppInfo>,
     // Function to handle the double-tap action
     fun onTapSelectedContact() {
         placeCallWithDialer(context,selectedContact?.number)
-    }
-
-    LaunchedEffect(lazyListState) {
-        snapshotFlow { lazyListState.firstVisibleItemIndex }
-            .distinctUntilChanged()
-            .filter {
-                // Only update if the scroll was not triggered by our custom drag logic
-                // i.e., when the selected index is aligned with the top of the list
-                selectedContactIndex <= it
-            }
-            .collect { firstVisibleIndex ->
-                selectedContactIndex = firstVisibleIndex
-            }
     }
 
     fun onTabSelected(tab:SearchTab){
@@ -786,9 +777,18 @@ fun SearchListOverlay(apps: List<AppInfo>,
             "Scroll app list to view all."
         )
     )
-    var dragAccumulator by remember { mutableFloatStateOf(0f) }
-    val scrollThreshold = 80f // The number of pixels to drag before the index changes
 
+
+    LaunchedEffect(lazyListState) {
+        snapshotFlow { lazyListState.firstVisibleItemIndex }
+            .distinctUntilChanged() // Only emit when the index actually changes
+            .collect { visibleIndex ->
+                selectedContactIndex = visibleIndex
+            }
+    }
+
+    var dragAccumulator by remember { mutableFloatStateOf(0f) }
+    val scrollThreshold = 50f // The number of pixels to drag before the index changes
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -821,7 +821,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                             } else {
                                 // Otherwise, scroll the list normally if possible
                                 if (lazyListState.canScrollBackward) {
-                                    coroutineScope.launch { lazyListState.dispatchRawDelta(-dragAmount) }
+                                    coroutineScope.launch { lazyListState.scrollBy(-3*dragAmount) }
                                 }
                             }
                         }
@@ -835,7 +835,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                 }
                             } else {
                                 // Otherwise, scroll the list normally
-                                coroutineScope.launch { lazyListState.dispatchRawDelta(-dragAmount) }
+                                coroutineScope.launch { lazyListState.scrollBy(-3*dragAmount) }
                             }
                         }
                     }
@@ -850,29 +850,43 @@ fun SearchListOverlay(apps: List<AppInfo>,
             ) {
                 TabRow(
                     selectedTabIndex = activeTab.ordinal,
-                    containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    divider = {}
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp)), // Softens the container edges
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant, // Adapts to theme
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant, // Default for unselected tabs
+                    indicator = { tabPositions ->
+                        // A more modern, pill-shaped indicator
+                        TabRowDefaults.SecondaryIndicator(
+                            modifier = Modifier
+                                .tabIndicatorOffset(tabPositions[activeTab.ordinal])
+                                .clip(RoundedCornerShape(100)),
+                            height = 4.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    divider = {
+                        // A subtle divider for better visual separation
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
                 ) {
+                    // "Apps" Tab
                     Tab(
                         selected = activeTab == SearchTab.APPS,
                         onClick = { onTabSelected(SearchTab.APPS) },
-                        text = {
-                            Text(
-                                "Apps",
-                                color = if (activeTab == SearchTab.APPS) MaterialTheme.colorScheme.primary else Color.Gray
-                            )
-                        }
+                        text = { Text("Apps") },
+                        // Let the Tab itself handle color changes based on its 'selected' state
+                        selectedContentColor = MaterialTheme.colorScheme.primary,
+                        unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    // "Contacts" Tab
                     Tab(
                         selected = activeTab == SearchTab.CONTACTS,
                         onClick = { onTabSelected(SearchTab.CONTACTS) },
-                        text = {
-                            Text(
-                                "Contacts",
-                                color = if (activeTab == SearchTab.CONTACTS) MaterialTheme.colorScheme.primary else Color.Gray
-                            )
-                        }
+                        text = { Text("Contacts") },
+                        selectedContentColor = MaterialTheme.colorScheme.primary,
+                        unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -900,8 +914,6 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                 state = lazyListState,
                                 modifier = Modifier
                                 .fillMaxSize()
-                                //.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
-                                //.padding(vertical = 10.dp)
                             ) {
                                 items(filteredContacts) { contact ->
                                     ContactListItem(contact,
@@ -1034,14 +1046,14 @@ fun ContactListItem(contact: Contact,isSelected:Boolean) {
             .padding(vertical = 4.dp)
             .clip(RoundedCornerShape(16.dp)), // Rounded corners for each item
         colors = ListItemDefaults.colors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.surface.copy(alpha = 0.7f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+            containerColor = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceVariant
         ),
         headlineContent = {
             Text(
                 text = contact.name,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color = if(isSelected)MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurface
             )
         },
         supportingContent = {
@@ -1050,7 +1062,7 @@ fun ContactListItem(contact: Contact,isSelected:Boolean) {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if(isSelected)MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         },
@@ -1470,7 +1482,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             // Update the state list on the main thread.
             // It is safe to update Compose's state objects from any thread.
             contacts.clear()
-            contacts.addAll(fetchedContacts)
+            contacts.addAll(fetchedContacts.sortedBy { contact -> contact.name
+            })
         }
     }
 
