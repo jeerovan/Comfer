@@ -122,16 +122,28 @@ fun UserGuideScreen() {
 
             // Search app list
             item {
-                GuideSectionHeader(title = "Search app list")
+                GuideSectionHeader(title = "Search apps/contacts")
             }
             item {
-                GuideStepItem(text = "Swipe down to go back.")
+                GuideStepItem(text = "Swipe down on the keyboard to go back.")
             }
             item {
                 GuideStepItem(text = "Tap icon to open app.")
             }
             item {
-                GuideStepItem(text = "Scroll list to view all results.")
+                GuideStepItem(text = "Long press icon to view details.")
+            }
+            item {
+                GuideStepItem(text = "Scroll list to view all apps.")
+            }
+            item {
+                GuideStepItem(text = "Swipe right on the keyboard to search contacts.")
+            }
+            item {
+                GuideStepItem(text = "Swipe left on the keyboard to search apps.")
+            }
+            item {
+                GuideStepItem(text = "Scroll sides to scroll contact list.")
             }
 
             // Manage app list

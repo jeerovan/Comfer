@@ -169,6 +169,7 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 // Placeholder for your contact data structure
@@ -675,7 +676,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
     var guideShown by remember { mutableStateOf(true) }
 
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
-    val guideKeyword = "search_guide_1"
+    val guideKeyword = "search_guide_2"
     var canShowGuide by remember { mutableStateOf(false) }
 
     val filteredApps by remember(inputText, apps) {
@@ -780,10 +781,22 @@ fun SearchListOverlay(apps: List<AppInfo>,
 
 
     LaunchedEffect(lazyListState) {
-        snapshotFlow { lazyListState.firstVisibleItemIndex }
-            .distinctUntilChanged() // Only emit when the index actually changes
-            .collect { visibleIndex ->
-                selectedContactIndex = visibleIndex
+        snapshotFlow { lazyListState.firstVisibleItemIndex to lazyListState.firstVisibleItemScrollOffset }
+            .map { (index, offset) ->
+                if (index == 0 && offset == 0) {
+                    // When at the absolute top, select the first item.
+                    0
+                } else {
+                    // Otherwise, select the second visible item.
+                    // Fallback to the last visible item if there's no second one.
+                    lazyListState.layoutInfo.visibleItemsInfo.getOrNull(1)?.index
+                        ?: lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+                        ?: 0
+                }
+            }
+            .distinctUntilChanged()
+            .collect { index ->
+                selectedContactIndex = index
             }
     }
 
@@ -808,34 +821,39 @@ fun SearchListOverlay(apps: List<AppInfo>,
                     onDragEnd = { dragAccumulator = 0f },
                     onVerticalDrag = { change, dragAmount ->
                         change.consume()
-                        val isAtEndOfList = !lazyListState.canScrollForward
-                        dragAccumulator += dragAmount
-                        // A. Dragging DOWN (positive dragAmount)
-                        if (dragAmount > 0) {
-                            // If selection is ahead of the list, bring it back without scrolling
-                            if (selectedContactIndex > lazyListState.firstVisibleItemIndex) {
-                                if (dragAccumulator > scrollThreshold) {
-                                    selectedContactIndex = (selectedContactIndex - 1).coerceAtLeast(lazyListState.firstVisibleItemIndex)
-                                    dragAccumulator = 0f
-                                }
-                            } else {
-                                // Otherwise, scroll the list normally if possible
-                                if (lazyListState.canScrollBackward) {
-                                    coroutineScope.launch { lazyListState.scrollBy(-3*dragAmount) }
+                        val isAtTop = !lazyListState.canScrollBackward
+                        val isAtBottom = !lazyListState.canScrollForward
+
+                        when {
+                            // Dragging Down (finger moves down, content tries to move up)
+                            dragAmount > 0 -> {
+                                if (isAtTop) {
+                                    // Requirement 4: At the top, select previous item on drag.
+                                    dragAccumulator += dragAmount
+                                    if (dragAccumulator > scrollThreshold) {
+                                        selectedContactIndex = (selectedContactIndex - 1).coerceAtLeast(0)
+                                        dragAccumulator = 0f
+                                    }
+                                } else {
+                                    coroutineScope.launch {
+                                        lazyListState.scrollBy(-2*dragAmount)
+                                    }
                                 }
                             }
-                        }
-                        // B. Dragging UP (negative dragAmount)
-                        else if (dragAmount < 0) {
-                            // If at the end of the list, change selection instead of scrolling
-                            if (isAtEndOfList) {
-                                if (dragAccumulator < -scrollThreshold) {
-                                    selectedContactIndex = (selectedContactIndex + 1).coerceAtMost(filteredContacts.lastIndex)
-                                    dragAccumulator = 0f
+                            // Dragging Up (finger moves up, content tries to move down)
+                            dragAmount < 0 -> {
+                                if (isAtBottom) {
+                                    // Requirement 3: At the bottom, select next item on drag.
+                                    dragAccumulator += dragAmount
+                                    if (dragAccumulator < -scrollThreshold) {
+                                        selectedContactIndex = (selectedContactIndex + 1).coerceAtMost(filteredContacts.lastIndex)
+                                        dragAccumulator = 0f
+                                    }
+                                } else {
+                                    coroutineScope.launch {
+                                        lazyListState.scrollBy(-2*dragAmount)
+                                    }
                                 }
-                            } else {
-                                // Otherwise, scroll the list normally
-                                coroutineScope.launch { lazyListState.scrollBy(-3*dragAmount) }
                             }
                         }
                     }
@@ -910,7 +928,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                 ) { targetTab ->
                     if (targetTab == SearchTab.CONTACTS) {
                         if (hasContactPermission) {
-                            if(filteredContacts.isEmpty()){
+                            if(contacts.isEmpty()){
                                 Box(
                                     modifier = Modifier.fillMaxSize(),
                                     contentAlignment = Alignment.Center
@@ -1069,7 +1087,7 @@ fun ContactListItem(contact: Contact,isSelected:Boolean) {
             Text(
                 text = contact.name,
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
         },
