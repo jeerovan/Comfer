@@ -181,7 +181,7 @@ import kotlinx.coroutines.withContext
 // Placeholder for your contact data structure
 data class Contact(
     val id: Long,
-    val name: String,
+    val name: String?,
     val photoUri: Uri?,
     val number: String?
 )
@@ -1094,7 +1094,7 @@ fun ContactListItem(contact: Contact,isSelected:Boolean) {
         ),
         headlineContent = {
             Text(
-                text = contact.name,
+                text = contact.name ?: "",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -1132,7 +1132,7 @@ fun ContactListItem(contact: Contact,isSelected:Boolean) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = contact.name.firstOrNull()?.toString() ?: "",
+                            text = contact.name?.firstOrNull()?.toString() ?: "",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
@@ -1498,6 +1498,13 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                     val nameIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
                     val photoUriIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
                     val hasPhoneNumberIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
+
+                    // Check if any column is not found
+                    if (idIndex == -1 || nameIndex == -1 || photoUriIndex == -1 || hasPhoneNumberIndex == -1) {
+                        // Handle error: a required column is missing
+                        return@withContext emptyList<Contact>()
+                    }
+
                     while (contactCursor.moveToNext()) {
                         val id = contactCursor.getLong(idIndex)
                         val name = contactCursor.getString(nameIndex)
@@ -1533,7 +1540,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             val uniqueAndSortedContacts = fetchedContacts
                 //.distinctBy { it.number } // First, create a new list with unique contacts based on their number
                 .sortedBy { it.name }     // Then, sort the resulting unique list by name
-
             contacts.addAll(uniqueAndSortedContacts)
         }
     }
@@ -2211,7 +2217,7 @@ fun searchContacts(text: String, contactList: List<Contact>): List<Contact> {
         return contactList // Return the full list if search text is empty
     }
     return contactList.filter { contact ->
-        contact.name.contains(text, ignoreCase = true)
+        contact.name?.contains(text, ignoreCase = true) ?: false
     }
 }
 fun placeCallWithDialer(context: Context, number: String?) {
