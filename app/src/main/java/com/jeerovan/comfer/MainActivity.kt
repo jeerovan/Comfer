@@ -191,6 +191,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
@@ -502,17 +503,19 @@ fun WidgetGrid(
         .padding(horizontal = gapWidth)
     ) {
         boundWidgets.forEach { widget ->
-            WidgetInstance(
-                widget = widget,
-                allWidgets = boundWidgets,
-                appWidgetHost = appWidgetHost,
-                editMode = editMode,
-                cellWidthPx = cellWidthPx,
-                cellHeightPx = cellHeightPx,
-                gapPx = gapWidthPx,
-                onUpdate = onWidgetUpdate,
-                onRemove = onWidgetRemove
-            )
+            key(widget.widgetId) {
+                WidgetInstance(
+                    widget = widget,
+                    allWidgets = boundWidgets,
+                    appWidgetHost = appWidgetHost,
+                    editMode = editMode,
+                    cellWidthPx = cellWidthPx,
+                    cellHeightPx = cellHeightPx,
+                    gapPx = gapWidthPx,
+                    onUpdate = onWidgetUpdate,
+                    onRemove = onWidgetRemove
+                )
+            }
         }
     }
 }
@@ -661,7 +664,7 @@ private fun WidgetInstance(
                     onClick = { onRemove(widget) },
                     modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).background(Color.Black.copy(alpha = 0.6f), CircleShape)
                 ) {
-                    Icon(Icons.Default.Close, "Remove", tint = Color.White)
+                    Icon(Icons.Default.Delete, "Remove", tint = Color.White)
                 }
             }
         }
