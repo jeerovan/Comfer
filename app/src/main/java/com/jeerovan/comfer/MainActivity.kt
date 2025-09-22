@@ -1529,7 +1529,9 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                                 }
                             }
                         }
-                        contactsList.add(Contact(id, name, photoUri, number))
+                        if( name != null && number != null && name.isNotEmpty()) {
+                            contactsList.add(Contact(id, name, photoUri, number))
+                        }
                     }
                 }
                 contactsList // The result of the withContext block
