@@ -150,7 +150,6 @@ import androidx.core.graphics.drawable.toDrawable
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import android.net.Uri
 import android.provider.ContactsContract
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -174,9 +173,37 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+
+
+import android.app.Activity
+import android.appwidget.AppWidgetHost
+import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProviderInfo
+import android.content.ComponentName
+import android.content.SharedPreferences
+import android.graphics.drawable.Drawable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.runtime.*
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.viewinterop.AndroidView
+import kotlin.math.max
+import kotlin.math.roundToInt
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import androidx.core.content.edit
 
 // Placeholder for your contact data structure
 data class Contact(
@@ -193,10 +220,46 @@ enum class SearchTab {
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
 
+private const val APPWIDGET_HOST_ID = 1024
+private const val PREFS_NAME = "widget_prefs"
+private const val BOUND_WIDGETS_KEY = "bound_widgets_v2"
+private const val GRID_COLUMNS = 4 // Defines the grid layout columns
+
+@Serializable
+data class PersistableBoundWidget(
+    val widgetId: Int,
+    val providerPackage: String,
+    val providerClass: String,
+    val gridX: Int,
+    val gridY: Int,
+    val spanX: Int,
+    val spanY: Int
+)
+
+data class BoundWidget(
+    val widgetId: Int,
+    val providerInfo: AppWidgetProviderInfo,
+    var gridX: Int,
+    var gridY: Int,
+    var spanX: Int,
+    var spanY: Int
+)
+
+data class WidgetProviderGroup(
+    val appName: String,
+    val appIcon: Drawable?,
+    val providers: List<AppWidgetProviderInfo>
+)
+
 class MainActivity : ComponentActivity() {
     private val appInfoViewModel: AppInfoViewModel by viewModels()
     private val settingInfoViewModel:SettingsViewModel by viewModels()
     private val mainViewModel: MainViewModel by viewModels()
+
+    // Widgets
+    private lateinit var appWidgetHost: AppWidgetHost
+    private lateinit var appWidgetManager: AppWidgetManager
+    private lateinit var prefs: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -213,8 +276,15 @@ class MainActivity : ComponentActivity() {
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
         windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
 
+        appWidgetManager = AppWidgetManager.getInstance(this)
+        appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
+        prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+
         setContent {
-            ComferTheme { LauncherScreen(appInfoViewModel,settingInfoViewModel,mainViewModel) }
+            ComferTheme {
+                //LauncherScreen(appInfoViewModel, settingInfoViewModel, mainViewModel, appWidgetManager, appWidgetHost)
+                WidgetHostScreen(appWidgetManager,appWidgetHost,prefs)
+            }
         }
     }
 
@@ -222,6 +292,7 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         val logger = LoggerManager(applicationContext)
         logger.setLog("MainActivity","Resumed")
+        appWidgetHost.startListening()
         lifecycleScope.launch {
             appInfoViewModel.loadAppLists()
             settingInfoViewModel.loadSettings()
@@ -232,10 +303,526 @@ class MainActivity : ComponentActivity() {
         super.onPause()
         val logger = LoggerManager(applicationContext)
         logger.setLog("MainActivity","Paused")
+        appWidgetHost.stopListening()
         lifecycleScope.launch {
             //delay(1000) // Delay, does not stop main thread
             mainViewModel.loadImageData()
         }
+    }
+}
+
+@Composable
+fun WidgetHostScreen(
+    appWidgetManager: AppWidgetManager,
+    appWidgetHost: AppWidgetHost,
+    prefs: SharedPreferences
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var editMode by remember { mutableStateOf(false) }
+    var showPicker by remember { mutableStateOf(false) }
+    val boundWidgets = remember { mutableStateListOf<BoundWidget>() }
+    var pendingProvider by remember { mutableStateOf<AppWidgetProviderInfo?>(null) }
+    var isFabMenuExpanded by remember { mutableStateOf(false) }
+
+    // Load widgets from SharedPreferences on startup
+    LaunchedEffect(Unit) {
+        val loadedWidgets = loadWidgetsFromPrefs(prefs, appWidgetManager)
+        boundWidgets.addAll(loadedWidgets)
+    }
+
+    val bindWidgetLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val widgetId = result.data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1) ?: -1
+        if (result.resultCode == Activity.RESULT_OK && widgetId != -1) {
+            val provider = pendingProvider ?: return@rememberLauncherForActivityResult
+            val (x, y) = findNextAvailableCell(boundWidgets, 2, 2)
+            val newWidget = BoundWidget(widgetId, provider, x, y, GRID_COLUMNS, 2)
+            boundWidgets.add(newWidget)
+            coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
+        } else {
+            appWidgetHost.deleteAppWidgetId(widgetId)
+            Toast.makeText(context, "Widget binding cancelled", Toast.LENGTH_SHORT).show()
+        }
+        pendingProvider = null
+    }
+
+    Scaffold(
+        containerColor = Color.Transparent,
+        floatingActionButton = {
+            // Conditionally display the FAB menu; hide it when the picker is shown.
+            if (!showPicker) {
+                AnimatedFabMenu(
+                    isExpanded = isFabMenuExpanded,
+                    onToggle = { isFabMenuExpanded = !isFabMenuExpanded },
+                    onEditClick = { editMode = !editMode },
+                    onAddClick = { showPicker = true }
+                )
+            }
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+
+        ) {
+            if (boundWidgets.isEmpty() && !showPicker) {
+                Text(
+                    "Press '+' to add a widget",
+                    modifier = Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            }
+
+            WidgetGrid(
+                boundWidgets = boundWidgets,
+                appWidgetHost = appWidgetHost,
+                editMode = editMode,
+                onWidgetUpdate = {
+                    coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
+                },
+                onWidgetRemove = { widgetToRemove ->
+                    appWidgetHost.deleteAppWidgetId(widgetToRemove.widgetId)
+                    boundWidgets.remove(widgetToRemove)
+                    coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
+                }
+            )
+
+            if (showPicker) {
+                WidgetPickerFullScreen(
+                    appWidgetHost = appWidgetHost,
+                    onDismiss = { showPicker = false },
+                    onWidgetSelected = { provider ->
+                        showPicker = false
+                        val widgetId = appWidgetHost.allocateAppWidgetId()
+                        val canBind = appWidgetManager.bindAppWidgetIdIfAllowed(widgetId, provider.provider)
+                        if (canBind) {
+                            val (x, y) = findNextAvailableCell(boundWidgets, 2, 2)
+                            val newWidget = BoundWidget(widgetId, provider, x, y, GRID_COLUMNS, 2)
+                            boundWidgets.add(newWidget)
+                            coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
+                        } else {
+                            pendingProvider = provider
+                            val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
+                                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+                                putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
+                            }
+                            bindWidgetLauncher.launch(intent)
+                        }
+                    },
+                    boundWidgets = boundWidgets
+                )
+            }
+        }
+    }
+}
+@Composable
+private fun AnimatedFabMenu(
+    isExpanded: Boolean,
+    onToggle: () -> Unit,
+    onEditClick: () -> Unit,
+    onAddClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Animated visibility for the secondary FABs
+        AnimatedVisibility(
+            visible = isExpanded,
+            enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
+            exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 })
+        ) {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                FloatingActionButton(onClick = {
+                    onEditClick()
+                    onToggle() // Collapse menu after action
+                }) {
+                    Icon(Icons.Default.Edit, "Edit Widgets")
+                }
+                FloatingActionButton(onClick = {
+                    onAddClick()
+                    onToggle() // Collapse menu after action
+                }) {
+                    Icon(Icons.Default.Add, "Add Widget")
+                }
+            }
+        }
+
+        // Main FAB that controls the menu state
+        FloatingActionButton(onClick = onToggle) {
+            val rotation by animateFloatAsState(
+                targetValue = if (isExpanded) 45f else 0f,
+                animationSpec = tween(durationMillis = 300)
+            )
+            Icon(
+                imageVector = Icons.Default.Menu,
+                contentDescription = "Menu",
+                modifier = Modifier.rotate(rotation)
+            )
+        }
+    }
+}
+
+// --- Widget Grid ---
+// --- Widget Grid ---
+
+@Composable
+fun WidgetGrid(
+    boundWidgets: List<BoundWidget>,
+    appWidgetHost: AppWidgetHost,
+    editMode: Boolean,
+    onWidgetUpdate: () -> Unit,
+    onWidgetRemove: (BoundWidget) -> Unit
+) {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+
+    val gapWidth = 8.dp
+    val gapWidthPx = with(density) { gapWidth.toPx() }
+
+    // Calculate the total horizontal space available after accounting for all gaps
+    val screenWidthPx = context.resources.displayMetrics.widthPixels
+    val totalHorizontalGapPx = (GRID_COLUMNS + 1) * gapWidthPx
+    val totalAvailableWidth = screenWidthPx - totalHorizontalGapPx
+    val cellWidthPx = totalAvailableWidth / GRID_COLUMNS
+
+    val cellHeightPx = with(density) { 80.dp.toPx() }
+
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(horizontal = gapWidth)
+    ) {
+        boundWidgets.forEach { widget ->
+            WidgetInstance(
+                widget = widget,
+                allWidgets = boundWidgets,
+                appWidgetHost = appWidgetHost,
+                editMode = editMode,
+                cellWidthPx = cellWidthPx,
+                cellHeightPx = cellHeightPx,
+                gapPx = gapWidthPx,
+                onUpdate = onWidgetUpdate,
+                onRemove = onWidgetRemove
+            )
+        }
+    }
+}
+
+@Composable
+private fun WidgetInstance(
+    widget: BoundWidget,
+    allWidgets: List<BoundWidget>,
+    appWidgetHost: AppWidgetHost,
+    editMode: Boolean,
+    cellWidthPx: Float,
+    cellHeightPx: Float,
+    gapPx: Float,
+    onUpdate: () -> Unit,
+    onRemove: (BoundWidget) -> Unit
+) {
+    val initialX = (widget.gridX * (cellWidthPx + gapPx))
+    val initialY = (widget.gridY * (cellHeightPx + gapPx)) + gapPx
+    val initialWidth = (widget.spanX * cellWidthPx) + ((widget.spanX - 1) * gapPx)
+    val initialHeight = (widget.spanY * cellHeightPx) + ((widget.spanY - 1) * gapPx)
+
+    var position by remember { mutableStateOf(Offset(initialX, initialY)) }
+    var size by remember { mutableStateOf(IntSize(initialWidth.roundToInt(), initialHeight.roundToInt())) }
+
+    val density = LocalDensity.current
+    val context = LocalContext.current
+    val screenWidthPx = context.resources.displayMetrics.widthPixels.toFloat()
+    val screenHeightPx = context.resources.displayMetrics.heightPixels.toFloat()
+
+    val minWidgetSizePx = with(density) { 40.dp.toPx() }
+
+    Box { // Parent container for the widget and its handles
+        // Main widget Box, which is also the repositioning drag area
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
+                .size(with(density) { size.width.toDp() }, with(density) { size.height.toDp() })
+                .shadow(if (editMode) 16.dp else 6.dp, RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
+                .border(
+                    width = if (editMode) 2.dp else 0.dp,
+                    color = if (editMode) MaterialTheme.colorScheme.primary else Color.Transparent,
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .pointerInput(editMode) {
+                    if (editMode) {
+                        detectDragGestures(
+                            onDragEnd = {
+                                val newGridX = ((position.x) / (cellWidthPx + gapPx)).roundToInt().coerceIn(0, GRID_COLUMNS - widget.spanX)
+                                val newGridY = ((position.y - gapPx) / (cellHeightPx + gapPx)).roundToInt().coerceAtLeast(0)
+                                val newRect = IntRect(newGridX, newGridY, newGridX + widget.spanX, newGridY + widget.spanY)
+                                val collision = allWidgets.any { other ->
+                                    if (other.widgetId == widget.widgetId) return@any false
+                                    IntRect(other.gridX, other.gridY, other.gridX + other.spanX, other.gridY + other.spanY).overlaps(newRect)
+                                }
+                                if (!collision) {
+                                    widget.gridX = newGridX
+                                    widget.gridY = newGridY
+                                    onUpdate()
+                                }
+                                position = Offset(widget.gridX * (cellWidthPx + gapPx), widget.gridY * (cellHeightPx + gapPx) + gapPx)
+                            }
+                        ) { change, dragAmount ->
+                            change.consume()
+                            position = Offset(
+                                x = (position.x + dragAmount.x).coerceIn(0f, screenWidthPx - size.width - (gapPx)),
+                                y = (position.y + dragAmount.y).coerceIn(0f, screenHeightPx - size.height)
+                            )
+                        }
+                    }
+                }
+        ) {
+            AndroidView(
+                factory = { ctx -> appWidgetHost.createView(ctx, widget.widgetId, widget.providerInfo) },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        // --- Edit Mode Controls ---
+        AnimatedVisibility(visible = editMode, enter = fadeIn(), exit = fadeOut()) {
+            val handleSize = 24.dp
+            val handleSizePx = with(density) { handleSize.toPx() }
+
+            val onResizeEnd: () -> Unit = {
+                widget.spanX = max(1, (size.width / (cellWidthPx + gapPx)).roundToInt()).coerceAtMost(GRID_COLUMNS - widget.gridX)
+                widget.spanY = max(1, (size.height / (cellHeightPx + gapPx)).roundToInt())
+                onUpdate()
+                // Snap back to grid-aligned position and size
+                position = Offset(widget.gridX * (cellWidthPx + gapPx), widget.gridY * (cellHeightPx + gapPx) + gapPx)
+                size = IntSize(
+                    (widget.spanX * cellWidthPx + (widget.spanX - 1) * gapPx).roundToInt(),
+                    (widget.spanY * cellHeightPx + (widget.spanY - 1) * gapPx).roundToInt()
+                )
+            }
+
+            // Top (Resize)
+            DragHandle(
+                modifier = Modifier.offset(
+                    x = with(density) { (position.x + size.width / 2 - handleSizePx / 2).toDp() },
+                    y = with(density) { (position.y - handleSizePx / 2).toDp() }
+                ),
+                onDragEnd = onResizeEnd
+            ) { dragAmount ->
+                val newY = (position.y + dragAmount.y).coerceIn(0f, position.y + size.height - minWidgetSizePx)
+                val heightChange = position.y - newY
+                position = Offset(position.x, newY)
+                size = IntSize(size.width, (size.height + heightChange).roundToInt())
+            }
+            // Bottom (Resize)
+            DragHandle(
+                modifier = Modifier.offset(
+                    x = with(density) { (position.x + size.width / 2 - handleSizePx / 2).toDp() },
+                    y = with(density) { (position.y + size.height - handleSizePx / 2).toDp() }
+                ),
+                onDragEnd = onResizeEnd
+            ) { dragAmount ->
+                size = IntSize(size.width, (size.height + dragAmount.y).roundToInt().coerceIn(minWidgetSizePx.roundToInt(), (screenHeightPx - position.y).roundToInt()))
+            }
+            // Left (Resize)
+            DragHandle(
+                modifier = Modifier.offset(
+                    x = with(density) { (position.x - handleSizePx / 2).toDp() },
+                    y = with(density) { (position.y + size.height / 2 - handleSizePx / 2).toDp() }
+                ),
+                onDragEnd = onResizeEnd
+            ) { dragAmount ->
+                val newX = (position.x + dragAmount.x).coerceIn(0f, position.x + size.width - minWidgetSizePx)
+                val widthChange = position.x - newX
+                position = Offset(newX, position.y)
+                size = IntSize((size.width + widthChange).roundToInt(), size.height)
+            }
+            // Right (Resize)
+            DragHandle(
+                modifier = Modifier.offset(
+                    x = with(density) { (position.x + size.width - handleSizePx / 2).toDp() },
+                    y = with(density) { (position.y + size.height / 2 - handleSizePx / 2).toDp() }
+                ),
+                onDragEnd = onResizeEnd
+            ) { dragAmount ->
+                size = IntSize((size.width + dragAmount.x).roundToInt().coerceIn(minWidgetSizePx.roundToInt(), (screenWidthPx - position.x - gapPx).roundToInt()), size.height)
+            }
+
+            // Close Button needs its own container to be placed correctly relative to the widget
+            Box(modifier = Modifier.offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }.size(with(density) { size.width.toDp() }, with(density) { size.height.toDp() })) {
+                IconButton(
+                    onClick = { onRemove(widget) },
+                    modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                ) {
+                    Icon(Icons.Default.Close, "Remove", tint = Color.White)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DragHandle(
+    modifier: Modifier,
+    onDragEnd: () -> Unit,
+    onDrag: (Offset) -> Unit
+) {
+    Box(
+        modifier = modifier
+            .size(24.dp)
+            .background(MaterialTheme.colorScheme.primary, CircleShape)
+            .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragEnd = onDragEnd,
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        onDrag(dragAmount)
+                    }
+                )
+            }
+    )
+}
+
+
+// --- Full-Screen Widget Picker ---
+
+@Composable
+fun WidgetPickerFullScreen(
+    appWidgetHost: AppWidgetHost,
+    onDismiss: () -> Unit,
+    onWidgetSelected: (AppWidgetProviderInfo) -> Unit,
+    boundWidgets: List<BoundWidget>
+) {
+    val context = LocalContext.current
+    val widgetProviderGroups = remember {
+        getGroupedWidgetProviders(context).filter { group ->
+            group.providers.any { provider -> boundWidgets.none { it.providerInfo.provider == provider.provider } }
+        }
+    }
+
+    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Column {
+            Text("Add Widget", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(16.dp))
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(1),
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(widgetProviderGroups) { group ->
+                    Card(elevation = CardDefaults.cardElevation(4.dp)) {
+                        Column(Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Image(
+                                    painter = rememberDrawablePainter(drawable = group.appIcon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Text(group.appName, style = MaterialTheme.typography.titleLarge)
+                            }
+                            Spacer(Modifier.height(16.dp))
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                                items(group.providers) { provider ->
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.width(120.dp).clickable { onWidgetSelected(provider) }
+                                    ) {
+                                        AndroidView(
+                                            factory = { ctx -> appWidgetHost.createView(ctx, 0, provider) },
+                                            modifier = Modifier.height(100.dp).fillMaxWidth()
+                                        )
+                                        Text(
+                                            provider.loadLabel(context.packageManager),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            maxLines = 2
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                Text("Cancel")
+            }
+        }
+    }
+}
+
+
+// --- Utility & Persistence Functions ---
+
+private fun getGroupedWidgetProviders(context: Context): List<WidgetProviderGroup> {
+    val appWidgetManager = AppWidgetManager.getInstance(context)
+    val packageManager = context.packageManager
+    return appWidgetManager.installedProviders.groupBy { it.provider.packageName }
+        .map { (packageName, providers) ->
+            try {
+                val appInfo = packageManager.getApplicationInfo(packageName, 0)
+                WidgetProviderGroup(
+                    appName = appInfo.loadLabel(packageManager).toString(),
+                    appIcon = appInfo.loadIcon(packageManager),
+                    providers = providers
+                )
+            } catch (_: Exception) {
+                null // App might have been uninstalled
+            }
+        }.filterNotNull()
+}
+
+private fun saveWidgetsToPrefs(prefs: SharedPreferences, widgets: List<BoundWidget>) {
+    val persistableList = widgets.map {
+        PersistableBoundWidget(it.widgetId, it.providerInfo.provider.packageName, it.providerInfo.provider.className, it.gridX, it.gridY, it.spanX, it.spanY)
+    }
+    val jsonString = Json.encodeToString(persistableList)
+    prefs.edit { putString(BOUND_WIDGETS_KEY, jsonString) }
+}
+
+private fun loadWidgetsFromPrefs(prefs: SharedPreferences, appWidgetManager: AppWidgetManager): List<BoundWidget> {
+    val jsonString = prefs.getString(BOUND_WIDGETS_KEY, null) ?: return emptyList()
+    return try {
+        val persistableList = Json.decodeFromString<List<PersistableBoundWidget>>(jsonString)
+        persistableList.mapNotNull { persist ->
+            val provider = appWidgetManager.installedProviders.find {
+                it.provider == ComponentName(persist.providerPackage, persist.providerClass)
+            }
+            if (provider != null) {
+                BoundWidget(persist.widgetId, provider, persist.gridX, persist.gridY, persist.spanX, persist.spanY)
+            } else {
+                null // Provider not found, maybe app was uninstalled
+            }
+        }
+    } catch (_: Exception) {
+        emptyList()
+    }
+}
+
+private fun findNextAvailableCell(widgets: List<BoundWidget>, spanX: Int, spanY: Int): Pair<Int, Int> {
+    var y = 0
+    while (true) {
+        for (x in 0..(GRID_COLUMNS - spanX)) {
+            val rect = IntRect(x, y, x + spanX, y + spanY)
+            val collision = widgets.any {
+                val otherRect = IntRect(it.gridX, it.gridY, it.gridX + it.spanX, it.gridY + it.spanY)
+                rect.overlaps(otherRect)
+            }
+            if (!collision) return Pair(x, y)
+        }
+        y++
+    }
+}
+
+@Immutable
+data class IntRect(val left: Int, val top: Int, val right: Int, val bottom: Int) {
+    fun overlaps(other: IntRect): Boolean {
+        return left < other.right && right > other.left && top < other.bottom && bottom > other.top
     }
 }
 
@@ -315,7 +902,7 @@ fun BatteryStatus(themeColor: Color) {
                 }
 
                 if (isCharging) {
-                    val path = androidx.compose.ui.graphics.Path().apply {
+                    val path = Path().apply {
                         val w = size.width
                         val h = size.height
                         moveTo(w * 0.7f, h * 0.15f)
@@ -369,7 +956,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
         canShowGuide = true
     }
 
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -418,7 +1005,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
             val playStoreIntent = Intent(Intent.ACTION_VIEW,
                 "market://details?id=$packageName".toUri())
             context.startActivity(playStoreIntent)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // If Play Store is not installed, open in a web browser
             val webIntent = Intent(Intent.ACTION_VIEW,
                 "https://play.google.com/store/apps/details?id=$packageName".toUri())
@@ -628,9 +1215,9 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                         },
                                         onLongPress = {
                                             if(app.packageName != "search") {
-                                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 val intent =
-                                                    android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                                                 intent.data = "package:${app.packageName}".toUri()
                                                 context.startActivity(intent)
                                             }
@@ -752,7 +1339,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
         canShowGuide = true
     }
 
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -1035,9 +1622,9 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                                     }
                                                 },
                                                 onLongPress = {
-                                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                     val intent =
-                                                        android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                                                     intent.data = "package:${app.packageName}".toUri()
                                                     context.startActivity(intent)
                                                 }
@@ -1195,7 +1782,7 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
         canShowGuide = true
     }
 
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -1431,7 +2018,8 @@ private enum class DragAxis { HORIZONTAL, VERTICAL }
 @Composable
 fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                    settingsViewModel: SettingsViewModel,
-                   mainViewModel: MainViewModel) {
+                   mainViewModel: MainViewModel,
+                   appWidgetManager: AppWidgetManager, appWidgetHost: AppWidgetHost) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
