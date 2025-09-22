@@ -767,9 +767,19 @@ fun WidgetPickerFullScreen(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         modifier = Modifier.width(120.dp).clickable { onWidgetSelected(provider) }
                                     ) {
-                                        AndroidView(
-                                            factory = { ctx -> appWidgetHost.createView(ctx, 0, provider) },
-                                            modifier = Modifier.height(100.dp).fillMaxWidth()
+                                        val previewDrawable = remember(provider) {
+                                            // Load the preview image with a fallback to the icon.
+                                            provider.loadPreviewImage(context, 0)
+                                                ?: provider.loadIcon(context, 0)
+                                        }
+
+                                        Image(
+                                            painter = rememberDrawablePainter(drawable = previewDrawable),
+                                            contentDescription = provider.loadLabel(context.packageManager),
+                                            modifier = Modifier
+                                                .height(100.dp)
+                                                .fillMaxWidth(),
+                                            contentScale = ContentScale.Fit
                                         )
                                         Text(
                                             provider.loadLabel(context.packageManager),
