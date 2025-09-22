@@ -185,6 +185,7 @@ import android.content.ComponentName
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -194,7 +195,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Path
@@ -326,6 +326,35 @@ fun WidgetHostScreen(
     val boundWidgets = remember { mutableStateListOf<BoundWidget>() }
     var pendingProvider by remember { mutableStateOf<AppWidgetProviderInfo?>(null) }
     var isFabMenuExpanded by remember { mutableStateOf(false) }
+    val isDarkTheme = isSystemInDarkTheme()
+
+    // --- START: THEME CHANGE HANDLER ---
+    // This effect runs when the composable first launches and any time isDarkTheme changes.
+    LaunchedEffect(isDarkTheme) {
+        // Find all unique provider classes from the currently bound widgets
+        val providerClasses = boundWidgets
+            .map { it.providerInfo.provider.className }
+            .distinct()
+
+        // Send an update broadcast for each provider class
+        providerClasses.forEach { className ->
+            try {
+                val providerClass = Class.forName(className)
+                val componentName = ComponentName(context, providerClass)
+                val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+
+                if (appWidgetIds.isNotEmpty()) {
+                    val intent = Intent(context, providerClass).apply {
+                        action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds)
+                    }
+                    context.sendBroadcast(intent)
+                }
+            } catch (_: ClassNotFoundException) {
+                // Handle case where the provider class can't be found, if necessary
+            }
+        }
+    }
 
     // Load widgets from SharedPreferences on startup
     LaunchedEffect(Unit) {
