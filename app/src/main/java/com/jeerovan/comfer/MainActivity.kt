@@ -189,6 +189,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Menu
@@ -354,6 +355,7 @@ fun WidgetHostScreen(
             // Conditionally display the FAB menu; hide it when the picker is shown.
             if (!showPicker) {
                 AnimatedFabMenu(
+                    isEditing = editMode,
                     isExpanded = isFabMenuExpanded,
                     onToggle = { isFabMenuExpanded = !isFabMenuExpanded },
                     onEditClick = { editMode = !editMode },
@@ -421,6 +423,7 @@ fun WidgetHostScreen(
 @Composable
 private fun AnimatedFabMenu(
     isExpanded: Boolean,
+    isEditing: Boolean,
     onToggle: () -> Unit,
     onEditClick: () -> Unit,
     onAddClick: () -> Unit
@@ -442,26 +445,28 @@ private fun AnimatedFabMenu(
                 FloatingActionButton(onClick = {
                     onEditClick()
                     onToggle() // Collapse menu after action
-                }) {
+                }, shape = CircleShape) {
                     Icon(Icons.Default.Edit, "Edit Widgets")
                 }
                 FloatingActionButton(onClick = {
                     onAddClick()
                     onToggle() // Collapse menu after action
-                }) {
+                }, shape = CircleShape) {
                     Icon(Icons.Default.Add, "Add Widget")
                 }
             }
         }
 
         // Main FAB that controls the menu state
-        FloatingActionButton(onClick = onToggle) {
+        FloatingActionButton(onClick = {
+            if (isEditing) { onEditClick() } else { onToggle() }
+        }, shape = CircleShape) {
             val rotation by animateFloatAsState(
-                targetValue = if (isExpanded) 45f else 0f,
+                targetValue = if (isExpanded) 90f else 0f,
                 animationSpec = tween(durationMillis = 300)
             )
             Icon(
-                imageVector = Icons.Default.Menu,
+                imageVector = if (isEditing) Icons.Default.Check else  Icons.Default.Menu,
                 contentDescription = "Menu",
                 modifier = Modifier.rotate(rotation)
             )
@@ -470,8 +475,6 @@ private fun AnimatedFabMenu(
 }
 
 // --- Widget Grid ---
-// --- Widget Grid ---
-
 @Composable
 fun WidgetGrid(
     boundWidgets: List<BoundWidget>,
@@ -707,7 +710,6 @@ fun WidgetPickerFullScreen(
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column {
-            Text("Add Widget", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(16.dp))
             LazyVerticalGrid(
                 columns = GridCells.Fixed(1),
                 modifier = Modifier.weight(1f),
@@ -749,8 +751,20 @@ fun WidgetPickerFullScreen(
                     }
                 }
             }
-            Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                Text("Cancel")
+
+        }
+        Box(modifier = Modifier.fillMaxSize()) { // Use a Box to control alignment
+            FloatingActionButton(
+                onClick = onDismiss,
+                shape = CircleShape,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd) // Align to the bottom-right corner
+                    .padding(16.dp) // Add standard margin from the edges
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                )
             }
         }
     }
