@@ -512,19 +512,16 @@ fun WidgetGrid(
     onWidgetUpdate: () -> Unit,
     onWidgetRemove: (BoundWidget) -> Unit
 ) {
-    val context = LocalContext.current
-    val density = LocalDensity.current
-
     val gapWidth = 8.dp
-    val gapWidthPx = with(density) { gapWidth.toPx() }
+    val gapWidthPx = with(LocalDensity.current) { gapWidth.toPx() }
 
     // Calculate the total horizontal space available after accounting for all gaps
-    val screenWidthPx = context.resources.displayMetrics.widthPixels
+    val screenWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
     val totalHorizontalGapPx = (GRID_COLUMNS + 1) * gapWidthPx
     val totalAvailableWidth = screenWidthPx - totalHorizontalGapPx
     val cellWidthPx = totalAvailableWidth / GRID_COLUMNS
 
-    val cellHeightPx = with(density) { 80.dp.toPx() }
+    val cellHeightPx = with(LocalDensity.current) { 80.dp.toPx() }
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -568,19 +565,17 @@ private fun WidgetInstance(
     var position by remember { mutableStateOf(Offset(initialX, initialY)) }
     var size by remember { mutableStateOf(IntSize(initialWidth.roundToInt(), initialHeight.roundToInt())) }
 
-    val density = LocalDensity.current
-    val context = LocalContext.current
-    val screenWidthPx = context.resources.displayMetrics.widthPixels.toFloat()
-    val screenHeightPx = context.resources.displayMetrics.heightPixels.toFloat()
+    val screenWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+    val screenHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
-    val minWidgetSizePx = with(density) { 40.dp.toPx() }
+    val minWidgetSizePx = with(LocalDensity.current) { 40.dp.toPx() }
 
     Box { // Parent container for the widget and its handles
         // Main widget Box, which is also the repositioning drag area
         Box(
             modifier = Modifier
                 .offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
-                .size(with(density) { size.width.toDp() }, with(density) { size.height.toDp() })
+                .size(with(LocalDensity.current) { size.width.toDp() }, with(LocalDensity.current) { size.height.toDp() })
                 .shadow(if (editMode) 16.dp else 6.dp, RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
                 .border(
@@ -625,7 +620,7 @@ private fun WidgetInstance(
         // --- Edit Mode Controls ---
         AnimatedVisibility(visible = editMode, enter = fadeIn(), exit = fadeOut()) {
             val handleSize = 12.dp
-            val handleSizePx = with(density) { handleSize.toPx() }
+            val handleSizePx = with(LocalDensity.current) { handleSize.toPx() }
 
             val onResizeEnd: () -> Unit = {
                 widget.spanX = max(1, (size.width / (cellWidthPx + gapPx)).roundToInt()).coerceAtMost(GRID_COLUMNS - widget.gridX)
@@ -642,8 +637,8 @@ private fun WidgetInstance(
             // Top (Resize)
             DragHandle(
                 modifier = Modifier.offset(
-                    x = with(density) { (position.x + size.width / 2 - handleSizePx / 2).toDp() },
-                    y = with(density) { (position.y - handleSizePx / 2).toDp() }
+                    x = with(LocalDensity.current) { (position.x + size.width / 2 - handleSizePx / 2).toDp() },
+                    y = with(LocalDensity.current) { (position.y - handleSizePx / 2).toDp() }
                 ),
                 onDragEnd = onResizeEnd
             ) { dragAmount ->
@@ -655,8 +650,8 @@ private fun WidgetInstance(
             // Bottom (Resize)
             DragHandle(
                 modifier = Modifier.offset(
-                    x = with(density) { (position.x + size.width / 2 - handleSizePx / 2).toDp() },
-                    y = with(density) { (position.y + size.height - handleSizePx / 2).toDp() }
+                    x = with(LocalDensity.current) { (position.x + size.width / 2 - handleSizePx / 2).toDp() },
+                    y = with(LocalDensity.current) { (position.y + size.height - handleSizePx / 2).toDp() }
                 ),
                 onDragEnd = onResizeEnd
             ) { dragAmount ->
@@ -665,8 +660,8 @@ private fun WidgetInstance(
             // Left (Resize)
             DragHandle(
                 modifier = Modifier.offset(
-                    x = with(density) { (position.x - handleSizePx / 2).toDp() },
-                    y = with(density) { (position.y + size.height / 2 - handleSizePx / 2).toDp() }
+                    x = with(LocalDensity.current) { (position.x - handleSizePx / 2).toDp() },
+                    y = with(LocalDensity.current) { (position.y + size.height / 2 - handleSizePx / 2).toDp() }
                 ),
                 onDragEnd = onResizeEnd
             ) { dragAmount ->
@@ -678,8 +673,8 @@ private fun WidgetInstance(
             // Right (Resize)
             DragHandle(
                 modifier = Modifier.offset(
-                    x = with(density) { (position.x + size.width - handleSizePx / 2).toDp() },
-                    y = with(density) { (position.y + size.height / 2 - handleSizePx / 2).toDp() }
+                    x = with(LocalDensity.current) { (position.x + size.width - handleSizePx / 2).toDp() },
+                    y = with(LocalDensity.current) { (position.y + size.height / 2 - handleSizePx / 2).toDp() }
                 ),
                 onDragEnd = onResizeEnd
             ) { dragAmount ->
@@ -690,7 +685,7 @@ private fun WidgetInstance(
             Box(
                 modifier = Modifier
                     .offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
-                    .size(with(density) { size.width.toDp() }, with(density) { size.height.toDp() })
+                    .size(with(LocalDensity.current) { size.width.toDp() }, with(LocalDensity.current) { size.height.toDp() })
             ) {
                 SmallFloatingActionButton(
                     onClick = { onRemove(widget) },
@@ -1147,15 +1142,14 @@ fun QuickListOverlay(apps: List<AppInfo>,
                 BatteryStatus(textColor)
             }
         }
-
+        val screenHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp }
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 //.border(1.dp,color=Color.Green)
                 .fillMaxWidth()
-                .height(LocalConfiguration.current.screenHeightDp.dp / 2 - 40.dp)
+                .height(screenHeightDp / 2 - 40.dp)
                 .pointerInput(Unit) {
-                    val packageManager = context.packageManager
                     var totalDragOffset = Offset.Zero
                     detectDragGestures(
                         onDragStart = {
@@ -1256,7 +1250,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     val appsList = apps.toMutableList()
                     appsList.add(searchPosition,searchApp)
                     appsList.forEach { app ->
-                        val packageManager = context.packageManager
                         Box(
                             modifier = Modifier
                                 .size(iconSize)
@@ -1878,7 +1871,6 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
 
     val scrollAnimatable = remember { Animatable(0f) }
     val velocityTracker = remember { VelocityTracker() }
-    var lastYPosition by remember { mutableFloatStateOf(0f) }
     var centerAppIndex by remember { mutableIntStateOf(0) }
     var lastCenterAppIndex by remember { mutableIntStateOf(0) }
     var centerIconX by remember { mutableFloatStateOf(0f) }
@@ -1962,7 +1954,6 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
                                     change.uptimeMillis,
                                     change.position
                                 )
-                                lastYPosition = change.position.y
                                 if (change.position.y > size.height / 2) {
                                     val increment = dragAmount.x * 0.3f
 
@@ -2545,7 +2536,7 @@ fun isAccessibilityServiceEnabled(context: Context, serviceClass: Class<*>): Boo
                 }
             }
         }
-    } catch (e: Settings.SettingNotFoundException) {
+    } catch (_: Settings.SettingNotFoundException) {
         // Handle exception
     }
     return false
