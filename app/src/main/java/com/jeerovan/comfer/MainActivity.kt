@@ -585,7 +585,7 @@ private fun WidgetInstance(
                 .shadow(if (editMode) 16.dp else 6.dp, RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
                 .border(
-                    width = if (editMode) 2.dp else 0.dp,
+                    width = if (editMode) 1.dp else 0.dp,
                     color = if (editMode) MaterialTheme.colorScheme.primary else Color.Transparent,
                     shape = RoundedCornerShape(16.dp)
                 )
@@ -625,7 +625,7 @@ private fun WidgetInstance(
 
         // --- Edit Mode Controls ---
         AnimatedVisibility(visible = editMode, enter = fadeIn(), exit = fadeOut()) {
-            val handleSize = 24.dp
+            val handleSize = 12.dp
             val handleSizePx = with(density) { handleSize.toPx() }
 
             val onResizeEnd: () -> Unit = {
@@ -708,9 +708,8 @@ fun DragHandle(
 ) {
     Box(
         modifier = modifier
-            .size(24.dp)
+            .size(12.dp)
             .background(MaterialTheme.colorScheme.primary, CircleShape)
-            .border(2.dp, MaterialTheme.colorScheme.surface, CircleShape)
             .pointerInput(Unit) {
                 detectDragGestures(
                     onDragEnd = onDragEnd,
