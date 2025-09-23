@@ -362,16 +362,31 @@ fun WidgetHostScreen(
         boundWidgets.addAll(loadedWidgets)
     }
 
+    val density = LocalDensity.current
+    val configuration = LocalConfiguration.current
+
+    val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
+    val cellHeightPx = with(density) { 80.dp.toPx() } // Same as in WidgetGrid
+    val gapWidthPx = with(density) { 8.dp.toPx() } // Same as in WidgetGrid
+
+    // Calculate total rows based on screen height, cell height, and gaps
+    val totalGridRows = (screenHeightPx / (cellHeightPx + gapWidthPx)).toInt()
+
     val bindWidgetLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val widgetId = result.data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1) ?: -1
         if (result.resultCode == Activity.RESULT_OK && widgetId != -1) {
             val provider = pendingProvider ?: return@rememberLauncherForActivityResult
-            val (x, y) = findNextAvailableCell(boundWidgets, 2, 2)
-            val newWidget = BoundWidget(widgetId, provider, x, y, GRID_COLUMNS, 2)
-            boundWidgets.add(newWidget)
-            coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
+            val position = findNextAvailableCell(boundWidgets, 2, 2,GRID_COLUMNS,totalGridRows)
+            if (position == null) {
+                Toast.makeText(context, "No space left on the screen", Toast.LENGTH_SHORT).show()
+            } else {
+                val newWidget = BoundWidget(widgetId, provider, position.first, position.second, 2, 2)
+                boundWidgets.add(newWidget)
+                coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
+            }
+
         } else {
             appWidgetHost.deleteAppWidgetId(widgetId)
             Toast.makeText(context, "Widget binding cancelled", Toast.LENGTH_SHORT).show()
@@ -430,10 +445,14 @@ fun WidgetHostScreen(
                         val widgetId = appWidgetHost.allocateAppWidgetId()
                         val canBind = appWidgetManager.bindAppWidgetIdIfAllowed(widgetId, provider.provider)
                         if (canBind) {
-                            val (x, y) = findNextAvailableCell(boundWidgets, 2, 2)
-                            val newWidget = BoundWidget(widgetId, provider, x, y, GRID_COLUMNS, 2)
-                            boundWidgets.add(newWidget)
-                            coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
+                            val position = findNextAvailableCell(boundWidgets, 2, 2,GRID_COLUMNS,totalGridRows)
+                            if (position == null) {
+                                Toast.makeText(context, "No space left on the screen", Toast.LENGTH_SHORT).show()
+                            } else {
+                                val newWidget = BoundWidget(widgetId, provider, position.first, position.second, 2, 2)
+                                boundWidgets.add(newWidget)
+                                coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
+                            }
                         } else {
                             pendingProvider = provider
                             val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
@@ -520,7 +539,6 @@ fun WidgetGrid(
     val totalHorizontalGapPx = (GRID_COLUMNS + 1) * gapWidthPx
     val totalAvailableWidth = screenWidthPx - totalHorizontalGapPx
     val cellWidthPx = totalAvailableWidth / GRID_COLUMNS
-
     val cellHeightPx = with(LocalDensity.current) { 80.dp.toPx() }
 
     Box(modifier = Modifier
@@ -935,19 +953,24 @@ private fun loadWidgetsFromPrefs(prefs: SharedPreferences, appWidgetManager: App
     }
 }
 
-private fun findNextAvailableCell(widgets: List<BoundWidget>, spanX: Int, spanY: Int): Pair<Int, Int> {
-    var y = 0
-    while (true) {
-        for (x in 0..(GRID_COLUMNS - spanX)) {
+private fun findNextAvailableCell(widgets: List<BoundWidget>, spanX: Int, spanY: Int,
+                                  gridColumns: Int,
+                                  gridRows: Int): Pair<Int, Int>? {
+    // Iterate through rows up to the calculated max
+    for (y in 0..(gridRows - spanY)) {
+        for (x in 0..(gridColumns - spanX)) {
             val rect = IntRect(x, y, x + spanX, y + spanY)
             val collision = widgets.any {
                 val otherRect = IntRect(it.gridX, it.gridY, it.gridX + it.spanX, it.gridY + it.spanY)
                 rect.overlaps(otherRect)
             }
-            if (!collision) return Pair(x, y)
+            if (!collision) {
+                return Pair(x, y)
+            }
         }
-        y++
     }
+    // No space was found within the dynamic grid bounds
+    return null
 }
 
 @Immutable
