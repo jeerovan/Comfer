@@ -206,6 +206,7 @@ import kotlin.math.roundToInt
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import androidx.core.content.edit
+import kotlin.text.ifEmpty
 
 // Placeholder for your contact data structure
 data class Contact(
@@ -400,6 +401,7 @@ fun WidgetHostScreen(
             // Conditionally display the FAB menu; hide it when the picker is shown.
             if (!showPicker) {
                 AnimatedFabMenu(
+                    hasWidgets = boundWidgets.isNotEmpty(),
                     isEditing = editMode,
                     isExpanded = isFabMenuExpanded,
                     onToggle = { isFabMenuExpanded = !isFabMenuExpanded },
@@ -416,11 +418,24 @@ fun WidgetHostScreen(
 
         ) {
             if (boundWidgets.isEmpty() && !showPicker) {
-                Text(
-                    "Press '+' to add a widget",
-                    modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp) // Keep horizontal padding for screen margins
+                        .height(50.dp)
+                        .clip(RoundedCornerShape(16.dp)) // Clip the content to the rounded shape
+                        .background(Color.Black.copy(alpha = 0.5f)), // Black background for the box
+                    contentAlignment = Alignment.Center, // Center the Text inside the Box
+                ) {
+                    Text(
+                        text = "Tap '+' to add a widget",
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.Center, // Ensure placeholder text is centered
+                        modifier = Modifier.padding(horizontal = 16.dp) // Inner padding for the text
+                    )
+                }
             }
 
             WidgetGrid(
@@ -470,6 +485,7 @@ fun WidgetHostScreen(
 }
 @Composable
 private fun AnimatedFabMenu(
+    hasWidgets: Boolean,
     isExpanded: Boolean,
     isEditing: Boolean,
     onToggle: () -> Unit,
@@ -507,14 +523,14 @@ private fun AnimatedFabMenu(
 
         // Main FAB that controls the menu state
         SmallFloatingActionButton(onClick = {
-            if (isEditing) { onEditClick() } else { onToggle() }
+            if (isEditing) { onEditClick() } else if (!hasWidgets) { onAddClick() } else { onToggle() }
         }, shape = CircleShape) {
             val rotation by animateFloatAsState(
                 targetValue = if (isExpanded) 90f else 0f,
                 animationSpec = tween(durationMillis = 300)
             )
             Icon(
-                imageVector = if (isEditing) Icons.Default.Check else  Icons.Default.Menu,
+                imageVector = if (isEditing) Icons.Default.Check else if (!hasWidgets) Icons.Default.Add else Icons.Default.Menu,
                 contentDescription = "Menu",
                 modifier = Modifier.rotate(rotation)
             )
