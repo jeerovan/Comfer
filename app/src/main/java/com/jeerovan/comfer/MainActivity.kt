@@ -557,6 +557,7 @@ private fun WidgetInstance(
     onUpdate: () -> Unit,
     onRemove: (BoundWidget) -> Unit
 ) {
+    // Initial grid-based calculations
     val initialX = (widget.gridX * (cellWidthPx + gapPx))
     val initialY = (widget.gridY * (cellHeightPx + gapPx)) + gapPx
     val initialWidth = (widget.spanX * cellWidthPx) + ((widget.spanX - 1) * gapPx)
@@ -565,17 +566,23 @@ private fun WidgetInstance(
     var position by remember { mutableStateOf(Offset(initialX, initialY)) }
     var size by remember { mutableStateOf(IntSize(initialWidth.roundToInt(), initialHeight.roundToInt())) }
 
-    val screenWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
-    val screenHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
+    // Re-sync position and size if the widget's grid properties change externally
+    LaunchedEffect(widget.gridX, widget.gridY, widget.spanX, widget.spanY) {
+        position = Offset(initialX, initialY)
+        size = IntSize(initialWidth.roundToInt(), initialHeight.roundToInt())
+    }
 
-    val minWidgetSizePx = with(LocalDensity.current) { 40.dp.toPx() }
+    val density = LocalDensity.current
+    val screenWidthPx = with(density) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+    val screenHeightPx = with(density) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
+    val minWidgetSizePx = with(density) { 40.dp.toPx() }
 
     Box { // Parent container for the widget and its handles
         // Main widget Box, which is also the repositioning drag area
         Box(
             modifier = Modifier
                 .offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
-                .size(with(LocalDensity.current) { size.width.toDp() }, with(LocalDensity.current) { size.height.toDp() })
+                .size(with(density) { size.width.toDp() }, with(density) { size.height.toDp() })
                 .shadow(if (editMode) 16.dp else 6.dp, RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
                 .border(
@@ -583,30 +590,38 @@ private fun WidgetInstance(
                     color = if (editMode) MaterialTheme.colorScheme.primary else Color.Transparent,
                     shape = RoundedCornerShape(16.dp)
                 )
-                .pointerInput(editMode) {
+                .pointerInput(editMode, allWidgets) { // Re-trigger pointer input if widgets change
                     if (editMode) {
                         detectDragGestures(
                             onDragEnd = {
-                                val newGridX = ((position.x) / (cellWidthPx + gapPx)).roundToInt().coerceIn(0, GRID_COLUMNS - widget.spanX)
-                                val newGridY = ((position.y - gapPx) / (cellHeightPx + gapPx)).roundToInt().coerceAtLeast(0)
-                                val newRect = IntRect(newGridX, newGridY, newGridX + widget.spanX, newGridY + widget.spanY)
-                                val collision = allWidgets.any { other ->
-                                    if (other.widgetId == widget.widgetId) return@any false
-                                    IntRect(other.gridX, other.gridY, other.gridX + other.spanX, other.gridY + other.spanY).overlaps(newRect)
-                                }
-                                if (!collision) {
-                                    widget.gridX = newGridX
-                                    widget.gridY = newGridY
+                                // Snap to the final grid position after dragging
+                                val finalGridX = ((position.x) / (cellWidthPx + gapPx)).roundToInt()
+                                val finalGridY = ((position.y - gapPx) / (cellHeightPx + gapPx)).roundToInt()
+
+                                if (widget.gridX != finalGridX || widget.gridY != finalGridY) {
+                                    widget.gridX = finalGridX
+                                    widget.gridY = finalGridY
                                     onUpdate()
                                 }
+                                // Ensure the visual position snaps perfectly to the grid
                                 position = Offset(widget.gridX * (cellWidthPx + gapPx), widget.gridY * (cellHeightPx + gapPx) + gapPx)
                             }
                         ) { change, dragAmount ->
                             change.consume()
-                            position = Offset(
-                                x = (position.x + dragAmount.x).coerceIn(0f, screenWidthPx - size.width - (gapPx)),
-                                y = (position.y + dragAmount.y).coerceIn(0f, screenHeightPx - size.height)
+                            val newPos = Offset(
+                                x = (position.x + dragAmount.x).coerceIn(0f, screenWidthPx - size.width),
+                                y = (position.y + dragAmount.y).coerceIn(gapPx, screenHeightPx - size.height)
                             )
+
+                            // Calculate proposed grid position
+                            val newGridX = ((newPos.x) / (cellWidthPx + gapPx)).roundToInt().coerceIn(0, GRID_COLUMNS - widget.spanX)
+                            val newGridY = ((newPos.y - gapPx) / (cellHeightPx + gapPx)).roundToInt().coerceAtLeast(0)
+                            val proposedRect = IntRect(newGridX, newGridY, newGridX + widget.spanX, newGridY + widget.spanY)
+
+                            // Update position only if there's no collision
+                            if (!isColliding(proposedRect, widget.widgetId, allWidgets)) {
+                                position = newPos
+                            }
                         }
                     }
                 }
@@ -620,13 +635,27 @@ private fun WidgetInstance(
         // --- Edit Mode Controls ---
         AnimatedVisibility(visible = editMode, enter = fadeIn(), exit = fadeOut()) {
             val handleSize = 12.dp
-            val handleSizePx = with(LocalDensity.current) { handleSize.toPx() }
+            val handleSizePx = with(density) { handleSize.toPx() }
 
             val onResizeEnd: () -> Unit = {
-                widget.spanX = max(1, (size.width / (cellWidthPx + gapPx)).roundToInt()).coerceAtMost(GRID_COLUMNS - widget.gridX)
-                widget.spanY = max(1, (size.height / (cellHeightPx + gapPx)).roundToInt())
-                onUpdate()
-                // Snap back to grid-aligned position and size
+                // Calculate final spans from the current size
+                val finalSpanX = max(1, (size.width / (cellWidthPx + gapPx)).roundToInt()).coerceAtMost(GRID_COLUMNS - widget.gridX)
+                val finalSpanY = max(1, (size.height / (cellHeightPx + gapPx)).roundToInt())
+
+                // Calculate final grid position (important for top/left resize)
+                val finalGridX = ((position.x) / (cellWidthPx + gapPx)).roundToInt()
+                val finalGridY = ((position.y - gapPx) / (cellHeightPx + gapPx)).roundToInt()
+
+                // Check if anything actually changed
+                if (widget.spanX != finalSpanX || widget.spanY != finalSpanY || widget.gridX != finalGridX || widget.gridY != finalGridY) {
+                    widget.spanX = finalSpanX
+                    widget.spanY = finalSpanY
+                    widget.gridX = finalGridX
+                    widget.gridY = finalGridY
+                    onUpdate()
+                }
+
+                // Snap back to grid-aligned position and size after resizing
                 position = Offset(widget.gridX * (cellWidthPx + gapPx), widget.gridY * (cellHeightPx + gapPx) + gapPx)
                 size = IntSize(
                     (widget.spanX * cellWidthPx + (widget.spanX - 1) * gapPx).roundToInt(),
@@ -634,54 +663,105 @@ private fun WidgetInstance(
                 )
             }
 
-            // Top (Resize)
-            DragHandle(
-                modifier = Modifier.offset(
-                    x = with(LocalDensity.current) { (position.x + size.width / 2 - handleSizePx / 2).toDp() },
-                    y = with(LocalDensity.current) { (position.y - handleSizePx / 2).toDp() }
-                ),
-                onDragEnd = onResizeEnd
-            ) { dragAmount ->
-                val newY = (position.y + dragAmount.y).coerceIn(0f, position.y + size.height - minWidgetSizePx)
-                val heightChange = position.y - newY
-                position = Offset(position.x, newY)
-                size = IntSize(size.width, (size.height + heightChange).roundToInt())
-            }
-            // Bottom (Resize)
-            DragHandle(
-                modifier = Modifier.offset(
-                    x = with(LocalDensity.current) { (position.x + size.width / 2 - handleSizePx / 2).toDp() },
-                    y = with(LocalDensity.current) { (position.y + size.height - handleSizePx / 2).toDp() }
-                ),
-                onDragEnd = onResizeEnd
-            ) { dragAmount ->
-                size = IntSize(size.width, (size.height + dragAmount.y).roundToInt().coerceIn(minWidgetSizePx.roundToInt(), (screenHeightPx - position.y).roundToInt()))
-            }
-            // Left (Resize)
-            DragHandle(
-                modifier = Modifier.offset(
-                    x = with(LocalDensity.current) { (position.x - handleSizePx / 2).toDp() },
-                    y = with(LocalDensity.current) { (position.y + size.height / 2 - handleSizePx / 2).toDp() }
-                ),
-                onDragEnd = onResizeEnd
-            ) { dragAmount ->
-                val newX = (position.x + dragAmount.x).coerceIn(0f, position.x + size.width - minWidgetSizePx)
-                val widthChange = position.x - newX
-                position = Offset(newX, position.y)
-                size = IntSize((size.width + widthChange).roundToInt(), size.height)
-            }
-            // Right (Resize)
-            DragHandle(
-                modifier = Modifier.offset(
-                    x = with(LocalDensity.current) { (position.x + size.width - handleSizePx / 2).toDp() },
-                    y = with(LocalDensity.current) { (position.y + size.height / 2 - handleSizePx / 2).toDp() }
-                ),
-                onDragEnd = onResizeEnd
-            ) { dragAmount ->
-                size = IntSize((size.width + dragAmount.x).roundToInt().coerceIn(minWidgetSizePx.roundToInt(), (screenWidthPx - position.x - gapPx).roundToInt()), size.height)
-            }
+            val resizeModifier = Modifier.size(handleSize).background(MaterialTheme.colorScheme.primary, CircleShape)
 
-            // Close Button needs its own container to be placed correctly relative to the widget
+            // Right (Resize)
+            Box(modifier = Modifier
+                .offset(
+                    x = with(density) { (position.x + size.width - handleSizePx / 2).toDp() },
+                    y = with(density) { (position.y + size.height / 2 - handleSizePx / 2).toDp() }
+                )
+                .pointerInput(Unit) {
+                    detectDragGestures(onDragEnd = { onResizeEnd() }) { change, dragAmount ->
+                        change.consume()
+                        val newWidth = (size.width + dragAmount.x).coerceIn(minWidgetSizePx, screenWidthPx - position.x)
+                        val newSpanX = max(1, (newWidth / (cellWidthPx + gapPx)).roundToInt()).coerceAtMost(GRID_COLUMNS - widget.gridX)
+                        val proposedRect = IntRect(widget.gridX, widget.gridY, widget.gridX + newSpanX, widget.gridY + widget.spanY)
+
+                        if (!isColliding(proposedRect, widget.widgetId, allWidgets)) {
+                            size = IntSize(newWidth.roundToInt(), size.height)
+                        }
+                    }
+                }
+                .then(resizeModifier)
+            )
+
+            // Left (Resize)
+            Box(modifier = Modifier
+                .offset(
+                    x = with(density) { (position.x - handleSizePx / 2).toDp() },
+                    y = with(density) { (position.y + size.height / 2 - handleSizePx / 2).toDp() }
+                )
+                .pointerInput(Unit) {
+                    detectDragGestures(onDragEnd = { onResizeEnd() }) { change, dragAmount ->
+                        change.consume()
+                        val newX = (position.x + dragAmount.x).coerceAtLeast(0f)
+                        val widthChange = position.x - newX
+                        val newWidth = (size.width + widthChange).coerceAtLeast(minWidgetSizePx)
+
+                        val newGridX = ((newX) / (cellWidthPx + gapPx)).roundToInt().coerceAtLeast(0)
+                        val newSpanX = max(1, (newWidth / (cellWidthPx + gapPx)).roundToInt())
+
+                        if(newGridX + newSpanX <= GRID_COLUMNS){
+                            val proposedRect = IntRect(newGridX, widget.gridY, newGridX + newSpanX, widget.gridY + widget.spanY)
+                            if (!isColliding(proposedRect, widget.widgetId, allWidgets)) {
+                                position = Offset(newX, position.y)
+                                size = IntSize(newWidth.roundToInt(), size.height)
+                            }
+                        }
+                    }
+                }
+                .then(resizeModifier)
+            )
+
+            // Bottom (Resize)
+            Box(modifier = Modifier
+                .offset(
+                    x = with(density) { (position.x + size.width / 2 - handleSizePx / 2).toDp() },
+                    y = with(density) { (position.y + size.height - handleSizePx / 2).toDp() }
+                )
+                .pointerInput(Unit) {
+                    detectDragGestures(onDragEnd = { onResizeEnd() }) { change, dragAmount ->
+                        change.consume()
+                        val newHeight = (size.height + dragAmount.y).coerceIn(minWidgetSizePx, screenHeightPx - position.y)
+                        val newSpanY = max(1, (newHeight / (cellHeightPx + gapPx)).roundToInt())
+                        val proposedRect = IntRect(widget.gridX, widget.gridY, widget.gridX + widget.spanX, widget.gridY + newSpanY)
+
+                        if (!isColliding(proposedRect, widget.widgetId, allWidgets)) {
+                            size = IntSize(size.width, newHeight.roundToInt())
+                        }
+                    }
+                }
+                .then(resizeModifier)
+            )
+
+            // Top (Resize)
+            Box(modifier = Modifier
+                .offset(
+                    x = with(density) { (position.x + size.width / 2 - handleSizePx / 2).toDp() },
+                    y = with(density) { (position.y - handleSizePx / 2).toDp() }
+                )
+                .pointerInput(Unit) {
+                    detectDragGestures(onDragEnd = { onResizeEnd() }) { change, dragAmount ->
+                        change.consume()
+                        val newY = (position.y + dragAmount.y).coerceAtLeast(gapPx)
+                        val heightChange = position.y - newY
+                        val newHeight = (size.height + heightChange).coerceAtLeast(minWidgetSizePx)
+
+                        val newGridY = ((newY - gapPx) / (cellHeightPx + gapPx)).roundToInt().coerceAtLeast(0)
+                        val newSpanY = max(1, (newHeight / (cellHeightPx + gapPx)).roundToInt())
+
+                        val proposedRect = IntRect(widget.gridX, newGridY, widget.gridX + widget.spanX, newGridY + newSpanY)
+                        if (!isColliding(proposedRect, widget.widgetId, allWidgets)) {
+                            position = Offset(position.x, newY)
+                            size = IntSize(size.width, newHeight.roundToInt())
+                        }
+                    }
+                }
+                .then(resizeModifier)
+            )
+
+            // Close Button
             Box(
                 modifier = Modifier
                     .offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
@@ -704,26 +784,21 @@ private fun WidgetInstance(
     }
 }
 
-@Composable
-fun DragHandle(
-    modifier: Modifier,
-    onDragEnd: () -> Unit,
-    onDrag: (Offset) -> Unit
-) {
-    Box(
-        modifier = modifier
-            .size(12.dp)
-            .background(MaterialTheme.colorScheme.primary, CircleShape)
-            .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragEnd = onDragEnd,
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-                        onDrag(dragAmount)
-                    }
-                )
-            }
-    )
+private fun isColliding(
+    proposedRect: IntRect,
+    currentWidgetId: Int,
+    allWidgets: List<BoundWidget>
+): Boolean {
+    return allWidgets.any { other ->
+        if (other.widgetId == currentWidgetId) return@any false
+        val otherRect = IntRect(
+            left = other.gridX,
+            top = other.gridY,
+            right = other.gridX + other.spanX,
+            bottom = other.gridY + other.spanY
+        )
+        proposedRect.overlaps(otherRect)
+    }
 }
 
 // --- Full-Screen Widget Picker ---
