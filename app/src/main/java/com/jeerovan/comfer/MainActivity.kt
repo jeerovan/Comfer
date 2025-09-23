@@ -424,7 +424,6 @@ fun WidgetHostScreen(
 
             if (showPicker) {
                 WidgetPickerFullScreen(
-                    appWidgetHost = appWidgetHost,
                     onDismiss = { showPicker = false },
                     onWidgetSelected = { provider ->
                         showPicker = false
@@ -472,13 +471,13 @@ private fun AnimatedFabMenu(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                FloatingActionButton(onClick = {
+                SmallFloatingActionButton(onClick = {
                     onEditClick()
                     onToggle() // Collapse menu after action
                 }, shape = CircleShape) {
                     Icon(Icons.Default.Edit, "Edit Widgets")
                 }
-                FloatingActionButton(onClick = {
+                SmallFloatingActionButton(onClick = {
                     onAddClick()
                     onToggle() // Collapse menu after action
                 }, shape = CircleShape) {
@@ -488,7 +487,7 @@ private fun AnimatedFabMenu(
         }
 
         // Main FAB that controls the menu state
-        FloatingActionButton(onClick = {
+        SmallFloatingActionButton(onClick = {
             if (isEditing) { onEditClick() } else { onToggle() }
         }, shape = CircleShape) {
             val rotation by animateFloatAsState(
@@ -688,12 +687,22 @@ private fun WidgetInstance(
             }
 
             // Close Button needs its own container to be placed correctly relative to the widget
-            Box(modifier = Modifier.offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }.size(with(density) { size.width.toDp() }, with(density) { size.height.toDp() })) {
-                IconButton(
+            Box(
+                modifier = Modifier
+                    .offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
+                    .size(with(density) { size.width.toDp() }, with(density) { size.height.toDp() })
+            ) {
+                SmallFloatingActionButton(
                     onClick = { onRemove(widget) },
-                    modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                    modifier = Modifier.align(Alignment.TopEnd),
+                    shape = CircleShape,
+                    // Set elevation to 0 to remove the default shadow, which might look odd in this context
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp)
                 ) {
-                    Icon(Icons.Default.Delete, "Remove", tint = Color.White)
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Remove"
+                    )
                 }
             }
         }
@@ -722,12 +731,9 @@ fun DragHandle(
     )
 }
 
-
 // --- Full-Screen Widget Picker ---
-
 @Composable
 fun WidgetPickerFullScreen(
-    appWidgetHost: AppWidgetHost,
     onDismiss: () -> Unit,
     onWidgetSelected: (AppWidgetProviderInfo) -> Unit,
     boundWidgets: List<BoundWidget>
