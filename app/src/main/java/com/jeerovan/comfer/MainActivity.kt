@@ -328,6 +328,8 @@ fun WidgetHostScreen(
     var pendingProvider by remember { mutableStateOf<AppWidgetProviderInfo?>(null) }
     val allWidgetProviderGroups = remember { mutableStateListOf<WidgetProviderGroup>() }
     val widgetProviderGroups = remember { mutableStateListOf<WidgetProviderGroup>() }
+    // Map to hold position data for widgets awaiting configuration
+    val pendingWidgetPositions = mutableMapOf<Int, Pair<Int, Int>>()
     var isFabMenuExpanded by remember { mutableStateOf(false) }
     val isDarkTheme = isSystemInDarkTheme()
 
@@ -409,24 +411,67 @@ fun WidgetHostScreen(
     // Calculate total rows based on screen height, cell height, and gaps
     val totalGridRows = (screenHeightPx / (cellHeightPx + gapWidthPx)).toInt()
 
+    fun createWidgetView(provider: AppWidgetProviderInfo,widgetId:Int,position:Pair<Int,Int>){
+        val newWidget = BoundWidget(widgetId, provider, position.first, position.second, 2, 2)
+        boundWidgets.add(newWidget)
+        coroutineScope.launch {
+            saveWidgetsToPrefs(prefs, boundWidgets)
+            updateWidgetGroups()
+        }
+    }
+
+    val configureWidgetLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val appWidgetId = result.data?.getIntExtra(
+            AppWidgetManager.EXTRA_APPWIDGET_ID,
+            AppWidgetManager.INVALID_APPWIDGET_ID
+        ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
+
+        // Retrieve the stored position using the appWidgetId
+        val position = pendingWidgetPositions.remove(appWidgetId)
+
+        if (result.resultCode == Activity.RESULT_OK) {
+            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID && position != null) {
+                val provider = pendingProvider ?: return@rememberLauncherForActivityResult
+                createWidgetView(provider, appWidgetId, position)
+            }
+        } else {
+            appWidgetHost.deleteAppWidgetId(appWidgetId)
+            Toast.makeText(context, "Widget binding cancelled", Toast.LENGTH_SHORT).show()
+        }
+        pendingProvider = null
+    }
+    fun checkConfigureWidget(provider: AppWidgetProviderInfo,appWidgetId:Int,position:Pair<Int,Int>) {
+        if (provider.configure != null) {
+            pendingWidgetPositions[appWidgetId] = position
+            pendingProvider = provider
+            // This widget needs configuration
+            val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE)
+            intent.component = provider.configure
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            // Use ActivityResultLauncher to start the activity and handle the result
+            configureWidgetLauncher.launch(intent)
+        } else {
+            // No configuration needed, create the widget view directly
+            createWidgetView(provider, appWidgetId,position)
+        }
+    }
     val bindWidgetLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val widgetId = result.data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1) ?: -1
-        if (result.resultCode == Activity.RESULT_OK && widgetId != -1) {
+        val widgetId = result.data?.getIntExtra(
+            AppWidgetManager.EXTRA_APPWIDGET_ID,
+            AppWidgetManager.INVALID_APPWIDGET_ID
+        ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
+        if (result.resultCode == Activity.RESULT_OK && widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
             val provider = pendingProvider ?: return@rememberLauncherForActivityResult
             val position = findNextAvailableCell(boundWidgets, totalGridRows)
             if (position == null) {
                 Toast.makeText(context, "No space left on the screen", Toast.LENGTH_SHORT).show()
             } else {
-                val newWidget = BoundWidget(widgetId, provider, position.first, position.second, 2, 2)
-                boundWidgets.add(newWidget)
-                coroutineScope.launch {
-                    saveWidgetsToPrefs(prefs, boundWidgets)
-                    updateWidgetGroups()
-                }
+                checkConfigureWidget(provider,widgetId,position)
             }
-
         } else {
             appWidgetHost.deleteAppWidgetId(widgetId)
             Toast.makeText(context, "Widget binding cancelled", Toast.LENGTH_SHORT).show()
@@ -506,12 +551,7 @@ fun WidgetHostScreen(
                             if (position == null) {
                                 Toast.makeText(context, "No space left on the screen", Toast.LENGTH_SHORT).show()
                             } else {
-                                val newWidget = BoundWidget(widgetId, provider, position.first, position.second, 2, 2)
-                                boundWidgets.add(newWidget)
-                                coroutineScope.launch {
-                                    saveWidgetsToPrefs(prefs, boundWidgets)
-                                    updateWidgetGroups()
-                                }
+                                checkConfigureWidget(provider,widgetId,position)
                             }
                         } else {
                             pendingProvider = provider
@@ -662,8 +702,8 @@ private fun WidgetInstance(
             modifier = Modifier
                 .offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
                 .size(with(density) { size.width.toDp() }, with(density) { size.height.toDp() })
-                .shadow(if (editMode) 16.dp else 6.dp, RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
+                //.shadow(if (editMode) 16.dp else 6.dp, RoundedCornerShape(16.dp))
+                //.background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
                 .border(
                     width = if (editMode) 1.dp else 0.dp,
                     color = if (editMode) MaterialTheme.colorScheme.primary else Color.Transparent,
@@ -945,7 +985,7 @@ fun WidgetPickerFullScreen(
 
         }
         Box(modifier = Modifier.fillMaxSize()) { // Use a Box to control alignment
-            FloatingActionButton(
+            SmallFloatingActionButton(
                 onClick = onDismiss,
                 shape = CircleShape,
                 modifier = Modifier
