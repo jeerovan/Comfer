@@ -183,9 +183,11 @@ import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
+import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -209,6 +211,47 @@ import kotlinx.serialization.json.Json
 import androidx.core.content.edit
 import kotlin.text.ifEmpty
 
+import androidx.compose.ui.composed
+import kotlin.math.abs
+
+fun Modifier.detectSwipes(
+    onSwipeLeft: () -> Unit,
+    onSwipeRight: () -> Unit
+) = composed {
+    // A threshold in pixels to consider the gesture a swipe
+    val density = LocalDensity.current
+    val swipeThreshold = with(density) { 100.dp.toPx() }
+
+    pointerInput(Unit) {
+        var totalHorizontalDrag = 0f
+        detectHorizontalDragGestures(
+            onDragStart = {
+                // Reset the total drag when a new gesture starts
+                totalHorizontalDrag = 0f
+            },
+            onHorizontalDrag = { change, dragAmount ->
+                // Consume the pointer event
+                change.consume()
+                // Accumulate the horizontal drag amount
+                totalHorizontalDrag += dragAmount
+            },
+            onDragEnd = {
+                // When the drag ends, check if it was a swipe
+                if (abs(totalHorizontalDrag) > swipeThreshold) {
+                    if (totalHorizontalDrag > 0) {
+                        // Positive drag means a swipe from left to right
+                        onSwipeRight()
+                    } else {
+                        // Negative drag means a swipe from right to left
+                        onSwipeLeft()
+                    }
+                }
+            }
+        )
+    }
+}
+
+
 // Placeholder for your contact data structure
 data class Contact(
     val id: Long,
@@ -225,7 +268,7 @@ enum class SearchTab {
 data class BatteryState(val level: Int, val isCharging: Boolean)
 
 private const val APPWIDGET_HOST_ID = 1024
-private const val PREFS_NAME = "widget_prefs"
+private const val WIDGETS_PREFS_NAME = "widget_prefs"
 private const val BOUND_WIDGETS_KEY = "bound_widgets_v2"
 private const val GRID_COLUMNS = 4 // Defines the grid layout columns
 
@@ -263,7 +306,6 @@ class MainActivity : ComponentActivity() {
     // Widgets
     private lateinit var appWidgetHost: AppWidgetHost
     private lateinit var appWidgetManager: AppWidgetManager
-    private lateinit var prefs: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -282,12 +324,11 @@ class MainActivity : ComponentActivity() {
 
         appWidgetManager = AppWidgetManager.getInstance(this)
         appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
-        prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
 
         setContent {
             ComferTheme {
-                //LauncherScreen(appInfoViewModel, settingInfoViewModel, mainViewModel, appWidgetManager, appWidgetHost)
-                WidgetHostScreen(appWidgetManager,appWidgetHost,prefs)
+                LauncherScreen(appInfoViewModel, settingInfoViewModel, mainViewModel, appWidgetManager, appWidgetHost)
+                //WidgetHostScreen(appWidgetManager,appWidgetHost)
             }
         }
     }
@@ -319,9 +360,12 @@ class MainActivity : ComponentActivity() {
 fun WidgetHostScreen(
     appWidgetManager: AppWidgetManager,
     appWidgetHost: AppWidgetHost,
-    prefs: SharedPreferences
+    widgetPrefsTitle: String,
+    onSwipeLeft: () -> Unit,
+    onSwipeRight: () -> Unit
 ) {
     val context = LocalContext.current
+    val prefs: SharedPreferences = context.getSharedPreferences(widgetPrefsTitle, MODE_PRIVATE)
     val coroutineScope = rememberCoroutineScope()
     var editMode by remember { mutableStateOf(false) }
     var showPicker by remember { mutableStateOf(false) }
@@ -504,7 +548,10 @@ fun WidgetHostScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-
+                .detectSwipes(
+                onSwipeLeft =  onSwipeLeft ,
+                onSwipeRight = onSwipeRight
+            )
         ) {
             if (boundWidgets.isEmpty() && !showPicker) {
                 Box(
@@ -1251,6 +1298,8 @@ fun BatteryStatus(themeColor: Color) {
 fun QuickListOverlay(apps: List<AppInfo>,
                      imageData: ImageData?,
                      onSwipeUp: () -> Unit,
+                     onSwipeRight: () -> Unit,
+                     onSwipeLeft: () -> Unit,
                      onShowSearch:() -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
@@ -1332,7 +1381,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
             context.startActivity(webIntent)
         }
     }
-    if (guideShown && canShowGuide && !feedbackShown && isDefault)FeedbackDialog(
+    if (guideShown && canShowGuide && !feedbackShown && isDefault)
+        FeedbackDialog(
         {onFeedbackDismiss()},
         {onFeedbackRateIt()}
     )
@@ -1406,7 +1456,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                 BatteryStatus(textColor)
             }
         }
-        val screenHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp }
+        val screenHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp }
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -2342,6 +2392,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
 
     var isAppListVisible by remember { mutableStateOf(false) }
     var isSearchListVisible by remember { mutableStateOf(false) }
+    var areLeftWigetsVisible by remember { mutableStateOf(false) }
+    var areRightWigetsVisible by remember { mutableStateOf(false) }
     var backgroundImage by remember { mutableStateOf<String?>(null) }
     var showDisclosure by remember { mutableStateOf(false) }
 
@@ -2353,6 +2405,26 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val primaryApps = appInfoUiState.primaryApps
 
     val wallpaperMotionEnabled = settingInfoUiState.wallpaperMotionEnabled
+
+    // 1. Define all possible enter and exit animations
+    val slideUpExit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
+    val slideDownEnter = slideInVertically(initialOffsetY = { -it }) + fadeIn()
+
+    val slideLeftExit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+    val slideRightEnter = slideInHorizontally(initialOffsetX = { it }) + fadeIn()
+
+    val slideRightExit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+    val slideLeftEnter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn()
+
+    // 2. Create state variables to hold the current enter/exit transitions.
+    //    Initialize them with the default (vertical) animations.
+    var enterTransition by remember { mutableStateOf(slideDownEnter) }
+    var exitTransition by remember { mutableStateOf(slideUpExit) }
+    // --- Transitions for AppList and SearchList (Second Layer) ---
+
+    // These overlays always enter from the bottom and exit to the bottom
+    val layer2Enter = slideInVertically(initialOffsetY = { it }) + fadeIn()
+    val layer2Exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
 
     val imageData = mainUiState.imageData
     val cachedImagePath = mainUiState.imagePath
@@ -2497,23 +2569,46 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
 
         AnimatedBackground(backgroundImage,wallpaperMotionEnabled,maxWidthPx,maxHeightPx)
 
-        // Quick-list layer
+        // Quick-list layer, goes up and hides, come down and shows up
         AnimatedVisibility(
-            visible = !isAppListVisible && !isSearchListVisible,
-            enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
+            visible = !isAppListVisible && !isSearchListVisible && !areLeftWigetsVisible && !areRightWigetsVisible,
+            enter = enterTransition,
+            exit = exitTransition
         ) {
             QuickListOverlay(apps = quickApps,
                 imageData = imageData,
-                onSwipeUp = { isAppListVisible = true },
-                onShowSearch = { isSearchListVisible = true})
+                onSwipeUp = {
+                    // Set transitions for vertical exit, then hide
+                    enterTransition = slideDownEnter
+                    exitTransition = slideUpExit
+                    isAppListVisible = true
+                },
+                onSwipeLeft = {
+                    // Set transitions for sliding left, then hide
+                    enterTransition = slideRightEnter
+                    exitTransition = slideLeftExit
+                    areRightWigetsVisible = true
+                },
+                onSwipeRight = {
+                    // Set transitions for sliding right, then hide
+                    enterTransition = slideLeftEnter
+                    exitTransition = slideRightExit
+                    areLeftWigetsVisible = true
+                },
+                onShowSearch = {
+                    // Set transitions for vertical exit, then hide
+                    enterTransition = slideDownEnter
+                    exitTransition = slideUpExit
+                    isSearchListVisible = true
+                }
+            )
         }
 
         // app list - second layer
         AnimatedVisibility(
             visible = isAppListVisible,
-            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+            enter = layer2Enter,
+            exit = layer2Exit
         ) {
             AppListOverlay(apps = primaryApps,
                 onSwipeDown = { isAppListVisible = false })
@@ -2522,8 +2617,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         // search list
         AnimatedVisibility(
             visible = isSearchListVisible,
-            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+            enter = layer2Enter,
+            exit = layer2Exit
         ) {
             SearchListOverlay (apps = primaryApps,
                 contacts,
@@ -2532,6 +2627,36 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 hasContactPermission = hasContactsPermission
             )
         }
+
+        // left widgets, add enter, exit animation. Enter from left, exit to left
+        AnimatedVisibility(
+            visible = areLeftWigetsVisible,
+            enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
+            exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+        ) {
+            WidgetHostScreen(
+                appWidgetManager,
+                appWidgetHost,
+                "widgets_prefs_left",
+                onSwipeLeft = { areLeftWigetsVisible = false},
+                onSwipeRight = {}
+            )
+        }
+        // right widgets, add enter, exit animation. Enter from right, exit to right
+        AnimatedVisibility(
+            visible = areRightWigetsVisible,
+            enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+            exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+        ) {
+            WidgetHostScreen(
+                appWidgetManager,
+                appWidgetHost,
+                "widgets_prefs_right",
+                onSwipeLeft = { },
+                onSwipeRight = { areRightWigetsVisible = false}
+            )
+        }
+
         if (showDisclosure) {
             AccessibilityPermissionDisclosureScreen(
                 onContinue = {
