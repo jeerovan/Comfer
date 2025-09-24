@@ -179,6 +179,7 @@ import kotlinx.coroutines.withContext
 
 import android.app.Activity
 import android.appwidget.AppWidgetHost
+import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
@@ -451,7 +452,11 @@ fun WidgetHostScreen(
             intent.component = provider.configure
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             // Use ActivityResultLauncher to start the activity and handle the result
-            configureWidgetLauncher.launch(intent)
+            try {
+                configureWidgetLauncher.launch(intent)
+            } catch (_:Exception){
+                Toast.makeText(context, "Widget configuration failed.", Toast.LENGTH_SHORT).show()
+            }
         } else {
             // No configuration needed, create the widget view directly
             createWidgetView(provider, appWidgetId,position)
@@ -559,7 +564,11 @@ fun WidgetHostScreen(
                                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
                                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
                             }
-                            bindWidgetLauncher.launch(intent)
+                            try {
+                                bindWidgetLauncher.launch(intent)
+                            } catch (_:Exception){
+                                Toast.makeText(context, "Widget add failed.", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     },
                     widgetProviderGroups = widgetProviderGroups
@@ -663,7 +672,11 @@ fun WidgetGrid(
         }
     }
 }
-
+private enum class WidgetState {
+    LOADING,
+    SUCCESS,
+    ERROR
+}
 @Composable
 private fun WidgetInstance(
     widget: BoundWidget,
@@ -696,19 +709,39 @@ private fun WidgetInstance(
     val screenHeightPx = with(density) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
     val minWidgetSizePx = with(density) { 40.dp.toPx() }
 
+    var widgetState by remember { mutableStateOf(WidgetState.LOADING) }
+    // This will hold the successfully created AppWidgetHostView
+    var hostView by remember { mutableStateOf<AppWidgetHostView?>(null) }
+
+    val context = LocalContext.current
+
+    // Perform the view creation as a side-effect
+    LaunchedEffect( Unit) {
+        try {
+            val appWidgetInfo = widget.providerInfo
+
+            // This is the call that can throw the InflateException
+            val view = appWidgetHost.createView(context, widget.widgetId, appWidgetInfo).apply {
+                setAppWidget(appWidgetId, appWidgetInfo)
+            }
+            hostView = view
+            widgetState = WidgetState.SUCCESS
+        } catch (_: Exception) {
+            widgetState = WidgetState.ERROR
+        }
+    }
+
     Box { // Parent container for the widget and its handles
         // Main widget Box, which is also the repositioning drag area
         Box(
             modifier = Modifier
                 .offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
                 .size(with(density) { size.width.toDp() }, with(density) { size.height.toDp() })
-                //.shadow(if (editMode) 16.dp else 6.dp, RoundedCornerShape(16.dp))
-                //.background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
                 .border(
                     width = if (editMode) 1.dp else 0.dp,
                     color = if (editMode) MaterialTheme.colorScheme.primary else Color.Transparent,
-                    shape = RoundedCornerShape(16.dp)
-                )
+                    shape = RoundedCornerShape(16.dp))
+                .fillMaxSize()
                 .pointerInput(editMode, allWidgets) { // Re-trigger pointer input if widgets change
                     if (editMode) {
                         detectDragGestures(
@@ -743,12 +776,31 @@ private fun WidgetInstance(
                             }
                         }
                     }
-                }
+                },
+            contentAlignment = Alignment.Center
         ) {
-            AndroidView(
-                factory = { ctx -> appWidgetHost.createView(ctx, widget.widgetId, widget.providerInfo) },
-                modifier = Modifier.fillMaxSize()
-            )
+            when (widgetState) {
+                WidgetState.LOADING -> {
+                    // Show a loading indicator while the widget is being created
+                    CircularProgressIndicator()
+                }
+                WidgetState.SUCCESS -> {
+                    // When successful, display the widget using AndroidView
+                    hostView?.let { view ->
+                        AndroidView(
+                            factory = { view },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } ?: run {
+                        // Fallback in the unlikely case hostView is null after success
+                        IncompatibleWidgetError()
+                    }
+                }
+                WidgetState.ERROR -> {
+                    // On failure, show the incompatible widget message
+                    IncompatibleWidgetError()
+                }
+            }
         }
 
         // --- Edit Mode Controls ---
@@ -902,7 +954,23 @@ private fun WidgetInstance(
         }
     }
 }
-
+@Composable
+fun IncompatibleWidgetError() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.DarkGray.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Incompatible Widget",
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+}
 private fun isColliding(
     proposedRect: IntRect,
     currentWidgetId: Int,
