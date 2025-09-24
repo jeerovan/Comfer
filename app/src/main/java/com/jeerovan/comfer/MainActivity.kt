@@ -326,6 +326,8 @@ fun WidgetHostScreen(
     var showPicker by remember { mutableStateOf(false) }
     val boundWidgets = remember { mutableStateListOf<BoundWidget>() }
     var pendingProvider by remember { mutableStateOf<AppWidgetProviderInfo?>(null) }
+    val allWidgetProviderGroups = remember { mutableStateListOf<WidgetProviderGroup>() }
+    val widgetProviderGroups = remember { mutableStateListOf<WidgetProviderGroup>() }
     var isFabMenuExpanded by remember { mutableStateOf(false) }
     val isDarkTheme = isSystemInDarkTheme()
 
@@ -357,10 +359,44 @@ fun WidgetHostScreen(
         }
     }
 
+    fun updateWidgetGroups (){
+        // Create a set of provider ComponentNames that are already bound for efficient lookup.
+        val boundProviderNames = boundWidgets.map { it.providerInfo.provider }.toSet()
+
+        // Map over the original list of all providers to create a new filtered list.
+        val filteredGroups = allWidgetProviderGroups.mapNotNull { group ->
+            // For each group, filter its list of providers to exclude the ones already bound.
+            val availableProviders = group.providers.filter { providerInfo ->
+                providerInfo.provider !in boundProviderNames
+            }
+
+            // If the group still has available providers after filtering, create a new
+            // group object with the filtered list. Otherwise (if the group is now empty),
+            // return null to have it removed from the final list by mapNotNull.
+            if (availableProviders.isNotEmpty()) {
+                group.copy(providers = availableProviders) // Assumes WidgetProviderGroup is a data class
+            } else {
+                null
+            }
+        }
+
+        // Atomically update the state list that is passed to the picker.
+        widgetProviderGroups.clear()
+        widgetProviderGroups.addAll(filteredGroups)
+    }
+
     // Load widgets from SharedPreferences on startup
     LaunchedEffect(Unit) {
         val loadedWidgets = loadWidgetsFromPrefs(prefs, appWidgetManager)
         boundWidgets.addAll(loadedWidgets)
+        coroutineScope.launch {
+            allWidgetProviderGroups.clear()
+            val groupedWidgetProviders = withContext(Dispatchers.IO) {
+                getGroupedWidgetProviders(context)
+            }
+            allWidgetProviderGroups.addAll(groupedWidgetProviders)
+            updateWidgetGroups()
+        }
     }
 
     val density = LocalDensity.current
@@ -379,13 +415,16 @@ fun WidgetHostScreen(
         val widgetId = result.data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1) ?: -1
         if (result.resultCode == Activity.RESULT_OK && widgetId != -1) {
             val provider = pendingProvider ?: return@rememberLauncherForActivityResult
-            val position = findNextAvailableCell(boundWidgets, 2, 2,GRID_COLUMNS,totalGridRows)
+            val position = findNextAvailableCell(boundWidgets, totalGridRows)
             if (position == null) {
                 Toast.makeText(context, "No space left on the screen", Toast.LENGTH_SHORT).show()
             } else {
                 val newWidget = BoundWidget(widgetId, provider, position.first, position.second, 2, 2)
                 boundWidgets.add(newWidget)
-                coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
+                coroutineScope.launch {
+                    saveWidgetsToPrefs(prefs, boundWidgets)
+                    updateWidgetGroups()
+                }
             }
 
         } else {
@@ -448,7 +487,10 @@ fun WidgetHostScreen(
                 onWidgetRemove = { widgetToRemove ->
                     appWidgetHost.deleteAppWidgetId(widgetToRemove.widgetId)
                     boundWidgets.remove(widgetToRemove)
-                    coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
+                    coroutineScope.launch {
+                        saveWidgetsToPrefs(prefs, boundWidgets)
+                        updateWidgetGroups()
+                    }
                 }
             )
 
@@ -460,13 +502,16 @@ fun WidgetHostScreen(
                         val widgetId = appWidgetHost.allocateAppWidgetId()
                         val canBind = appWidgetManager.bindAppWidgetIdIfAllowed(widgetId, provider.provider)
                         if (canBind) {
-                            val position = findNextAvailableCell(boundWidgets, 2, 2,GRID_COLUMNS,totalGridRows)
+                            val position = findNextAvailableCell(boundWidgets, totalGridRows)
                             if (position == null) {
                                 Toast.makeText(context, "No space left on the screen", Toast.LENGTH_SHORT).show()
                             } else {
                                 val newWidget = BoundWidget(widgetId, provider, position.first, position.second, 2, 2)
                                 boundWidgets.add(newWidget)
-                                coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
+                                coroutineScope.launch {
+                                    saveWidgetsToPrefs(prefs, boundWidgets)
+                                    updateWidgetGroups()
+                                }
                             }
                         } else {
                             pendingProvider = provider
@@ -477,7 +522,7 @@ fun WidgetHostScreen(
                             bindWidgetLauncher.launch(intent)
                         }
                     },
-                    boundWidgets = boundWidgets
+                    widgetProviderGroups = widgetProviderGroups
                 )
             }
         }
@@ -840,14 +885,9 @@ private fun isColliding(
 fun WidgetPickerFullScreen(
     onDismiss: () -> Unit,
     onWidgetSelected: (AppWidgetProviderInfo) -> Unit,
-    boundWidgets: List<BoundWidget>
+    widgetProviderGroups: List<WidgetProviderGroup>
 ) {
     val context = LocalContext.current
-    val widgetProviderGroups = remember {
-        getGroupedWidgetProviders(context).filter { group ->
-            group.providers.any { provider -> boundWidgets.none { it.providerInfo.provider == provider.provider } }
-        }
-    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column {
@@ -969,9 +1009,11 @@ private fun loadWidgetsFromPrefs(prefs: SharedPreferences, appWidgetManager: App
     }
 }
 
-private fun findNextAvailableCell(widgets: List<BoundWidget>, spanX: Int, spanY: Int,
-                                  gridColumns: Int,
+private fun findNextAvailableCell(widgets: List<BoundWidget>,
                                   gridRows: Int): Pair<Int, Int>? {
+    val spanX = 2
+    val spanY = 2
+    val gridColumns = GRID_COLUMNS
     // Iterate through rows up to the calculated max
     for (y in 0..(gridRows - spanY)) {
         for (x in 0..(gridColumns - spanX)) {
