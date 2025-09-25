@@ -114,7 +114,7 @@ fun SwipeActionSettingItem(
 
     ListItem(
         headlineContent = { Text(headline) },
-        supportingContent = { Text(supportingText) },
+        supportingContent = { Text("Select an app or Widgets screen") },
         leadingContent = { icon() },
         trailingContent = {
             when {
