@@ -214,43 +214,6 @@ import kotlin.text.ifEmpty
 import androidx.compose.ui.composed
 import kotlin.math.abs
 
-fun Modifier.detectSwipes(
-    onSwipeLeft: () -> Unit,
-    onSwipeRight: () -> Unit
-) = composed {
-    // A threshold in pixels to consider the gesture a swipe
-    val density = LocalDensity.current
-    val swipeThreshold = with(density) { 100.dp.toPx() }
-
-    pointerInput(Unit) {
-        var totalHorizontalDrag = 0f
-        detectHorizontalDragGestures(
-            onDragStart = {
-                // Reset the total drag when a new gesture starts
-                totalHorizontalDrag = 0f
-            },
-            onHorizontalDrag = { change, dragAmount ->
-                // Consume the pointer event
-                change.consume()
-                // Accumulate the horizontal drag amount
-                totalHorizontalDrag += dragAmount
-            },
-            onDragEnd = {
-                // When the drag ends, check if it was a swipe
-                if (abs(totalHorizontalDrag) > swipeThreshold) {
-                    if (totalHorizontalDrag > 0) {
-                        // Positive drag means a swipe from left to right
-                        onSwipeRight()
-                    } else {
-                        // Negative drag means a swipe from right to left
-                        onSwipeLeft()
-                    }
-                }
-            }
-        )
-    }
-}
-
 
 // Placeholder for your contact data structure
 data class Contact(
@@ -1463,64 +1426,46 @@ fun QuickListOverlay(apps: List<AppInfo>,
                 //.border(1.dp,color=Color.Green)
                 .fillMaxWidth()
                 .height(screenHeightDp / 2 - 40.dp)
-                .pointerInput(Unit) {
-                    var totalDragOffset = Offset.Zero
-                    detectDragGestures(
-                        onDragStart = {
-                            totalDragOffset = Offset.Zero
-                        },
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-                            totalDragOffset += dragAmount
-                        },
-                        onDragEnd = {
-                            val swipeThreshold = 50f
-                            val (x, y) = totalDragOffset
-                            if (x.absoluteValue > y.absoluteValue) {
-                                if (x.absoluteValue > swipeThreshold) {
-                                    if (x > 0) {
-                                        val swipeRightPackage =
-                                            PreferenceManager.getSwipeApp(context, "right")
-                                        if (swipeRightPackage != null) {
-                                            val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(swipeRightPackage)
-                                            if (launchIntent != null) {
-                                                context.startActivity(launchIntent)
-                                            }
-                                        }
-                                    } else {
-                                        val swipeLeftPackage =
-                                            PreferenceManager.getSwipeApp(context, "left")
-                                        if (swipeLeftPackage != null) {
-                                            val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(swipeLeftPackage)
-                                            if (launchIntent != null) {
-                                                context.startActivity(launchIntent)
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                if (y.absoluteValue > swipeThreshold) {
-                                    if (y > 0) {
-                                        try {
-                                            @SuppressLint("WrongConstant")
-                                            val statusBarService =
-                                                context.getSystemService("statusbar")
-                                            val statusBarManager =
-                                                Class.forName("android.app.StatusBarManager")
-                                            val method =
-                                                statusBarManager.getMethod("expandNotificationsPanel")
-                                            method.invoke(statusBarService)
-                                        } catch (e: Exception) {
-                                            e.printStackTrace()
-                                        }
-                                    } else {
-                                        onSwipeUp()
-                                    }
-                                }
+                .detectSwipes(
+                    onSwipeUp = onSwipeUp,
+                    onSwipeDown = {
+                        try {
+                            @SuppressLint("WrongConstant")
+                            val statusBarService =
+                                context.getSystemService("statusbar")
+                            val statusBarManager =
+                                Class.forName("android.app.StatusBarManager")
+                            val method =
+                                statusBarManager.getMethod("expandNotificationsPanel")
+                            method.invoke(statusBarService)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    },
+                    onSwipeLeft = onSwipeLeft
+                        /*{
+                        val swipeLeftPackage =
+                            PreferenceManager.getSwipeApp(context, "left")
+                        if (swipeLeftPackage != null) {
+                            val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(swipeLeftPackage)
+                            if (launchIntent != null) {
+                                context.startActivity(launchIntent)
                             }
                         }
-                    )
-                },
+                    }*/
+                    ,
+                    onSwipeRight = onSwipeRight
+                        /*{
+                        val swipeRightPackage =
+                            PreferenceManager.getSwipeApp(context, "right")
+                        if (swipeRightPackage != null) {
+                            val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(swipeRightPackage)
+                            if (launchIntent != null) {
+                                context.startActivity(launchIntent)
+                            }
+                        }
+                    }*/
+                ),
             contentAlignment = Alignment.BottomCenter
         ) {
             Column(
@@ -2521,6 +2466,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             contacts.addAll(uniqueAndSortedContacts)
         }
     }
+
     DisposableEffect(lifecycleOwner, hasContactsPermission) {
         val observer = LifecycleEventObserver { _, event ->
             // Trigger on resume
@@ -2585,13 +2531,13 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 },
                 onSwipeLeft = {
                     // Set transitions for sliding left, then hide
-                    enterTransition = slideRightEnter
+                    enterTransition = slideLeftEnter
                     exitTransition = slideLeftExit
                     areRightWigetsVisible = true
                 },
                 onSwipeRight = {
                     // Set transitions for sliding right, then hide
-                    enterTransition = slideLeftEnter
+                    enterTransition = slideRightEnter
                     exitTransition = slideRightExit
                     areLeftWigetsVisible = true
                 },
@@ -3266,6 +3212,62 @@ fun placeCallWithDialer(context: Context, number: String?) {
         context.startActivity(intent)
     } else {
         Toast.makeText(context, "No app found to handle making phone calls", Toast.LENGTH_SHORT).show()
+    }
+}
+
+fun Modifier.detectSwipes(
+    onSwipeUp: () -> Unit = {},
+    onSwipeDown: () -> Unit = {},
+    onSwipeLeft: () -> Unit = {},
+    onSwipeRight: () -> Unit = {}
+) = composed {
+    // A threshold in pixels to register the gesture as a swipe
+    val density = LocalDensity.current
+    val swipeThreshold = with(density) { 50.dp.toPx() }
+
+    pointerInput(Unit) {
+        var totalHorizontalDrag = 0f
+        var totalVerticalDrag = 0f
+
+        detectDragGestures(
+            onDragStart = {
+                // Reset drag totals when a new gesture starts
+                totalHorizontalDrag = 0f
+                totalVerticalDrag = 0f
+            },
+            onDrag = { change, dragAmount ->
+                // Consume the pointer input
+                change.consume()
+                // Accumulate the drag amounts on both axes
+                totalHorizontalDrag += dragAmount.x
+                totalVerticalDrag += dragAmount.y
+            },
+            onDragEnd = {
+                val absHorizontal = abs(totalHorizontalDrag)
+                val absVertical = abs(totalVerticalDrag)
+
+                // Determine if the swipe was primarily horizontal or vertical
+                if (absHorizontal > absVertical) {
+                    // Horizontal swipe detected
+                    if (absHorizontal > swipeThreshold) {
+                        if (totalHorizontalDrag > 0) {
+                            onSwipeRight()
+                        } else {
+                            onSwipeLeft()
+                        }
+                    }
+                } else {
+                    // Vertical swipe detected
+                    if (absVertical > swipeThreshold) {
+                        if (totalVerticalDrag > 0) {
+                            onSwipeDown()
+                        } else {
+                            onSwipeUp()
+                        }
+                    }
+                }
+            }
+        )
     }
 }
 
