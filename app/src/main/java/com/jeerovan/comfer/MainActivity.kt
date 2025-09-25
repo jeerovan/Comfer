@@ -1916,61 +1916,12 @@ fun SearchListOverlay(apps: List<AppInfo>,
                         LazyRow(
                             Modifier.height(iconSize + 20.dp),
                             // Add some padding around the content
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
                             // Add spacing between the items
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            horizontalArrangement = Arrangement.spacedBy(20.dp)
                         ) {
                             items(filteredApps) { app ->
-                                Box(
-                                    modifier = Modifier
-                                        .size(iconSize)
-                                        .clip(getShapeFromShape(iconShape, iconSize))
-                                        .pointerInput(Unit) {
-                                            detectTapGestures(
-                                                onTap = {
-                                                    view.playSoundEffect(SoundEffectConstants.CLICK)
-                                                    val launchIntent: Intent? =
-                                                        context.packageManager.getLaunchIntentForPackage(
-                                                            app.packageName
-                                                        )
-                                                    if (launchIntent != null) {
-                                                        context.startActivity(launchIntent)
-                                                    }
-                                                },
-                                                onLongPress = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                    val intent =
-                                                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                                                    intent.data =
-                                                        "package:${app.packageName}".toUri()
-                                                    context.startActivity(intent)
-                                                }
-                                            )
-                                        },
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    // Background Layer
-                                    if (app.background != null) {
-                                        Image(
-                                            painter = rememberDrawablePainter(drawable = app.background),
-                                            contentDescription = "${app.label} background",
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.FillBounds
-                                        )
-                                    }
-
-                                    // Foreground Layer
-                                    if (app.foreground != null) {
-                                        Image(
-                                            painter = rememberDrawablePainter(drawable = app.foreground),
-                                            contentDescription = app.label.toString(),
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .scale(app.scale), // Let it fill the clipped Box
-                                            contentScale = ContentScale.FillBounds
-                                        )
-                                    }
-                                }
+                                ListAppIcon(iconSize,iconShape,app)
                             }
                         }
                     }
