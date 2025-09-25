@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.log
 
 data class SettingsUiState(
     val wallpaperMotionEnabled: Boolean = true,
@@ -28,15 +29,14 @@ data class SettingsUiState(
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
-
+    private val logger = LoggerManager(application)
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState = _uiState.asStateFlow()
-
     init {
         loadSettings()
     }
-
     fun loadSettings() {
+        logger.setLog("SettingsViewModel","LoadSettings")
         viewModelScope.launch {
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val wallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(getApplication())

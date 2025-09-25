@@ -16,32 +16,31 @@ import kotlinx.coroutines.withContext
 
 data class MainUiState (
     val imageData: ImageData? = null,
-    val imagePath:String? = null,
-    val downloading:Boolean = false
+    val imagePath:String? = null
 )
 class MainViewModel(application: Application) : AndroidViewModel(application) {
+    private val logger = LoggerManager(application)
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState = _uiState.asStateFlow()
-
+    private var isWorking = false
     init {
        loadImageData()
     }
     fun loadImageData(){
+        if(isWorking)return
+        isWorking = true
+        logger.setLog("MainViewModel","LoadImageData")
         viewModelScope.launch {
-            val applicationContext:Application = getApplication()
-            val logger = LoggerManager(applicationContext)
-            logger.setLog("MainViewModel","Loading")
-            val imageData = PreferenceManager.getImageData(applicationContext)
-            val backgroundImage = PreferenceManager.getBackgroundImagePath(applicationContext)
-            if(imageData == null || backgroundImage == null){
-                if(!isDownloading()) {
-                    setDownloading(true)
-                    // without dispatchers it will run on main ui thread
-                    withContext(Dispatchers.IO){
+            try {
+                val applicationContext: Application = getApplication()
+                val imageData = PreferenceManager.getImageData(applicationContext)
+                val backgroundImage = PreferenceManager.getBackgroundImagePath(applicationContext)
+                if (imageData == null || backgroundImage == null) {
+                    withContext(Dispatchers.IO) {
                         fetchImageData(applicationContext)
                     }
                     delay(500)
-                    withContext(Dispatchers.IO){
+                    withContext(Dispatchers.IO) {
                         downloadImage(applicationContext)
                     }
                     delay(500)
@@ -49,7 +48,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val imageData = PreferenceManager.getImageData(applicationContext)
                     val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
                     // this is a first time fetch, do not set wallpaper on home screen as the app is not set default home app now
-                    if( imageData != null && filePath != null) {
+                    if (imageData != null && filePath != null) {
                         _uiState.update {
                             it.copy(
                                 imageData = imageData,
@@ -57,34 +56,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             )
                         }
                     }
-                    PreferenceManager.setWallpaperApplied(applicationContext,true)
-                    setDownloading(false)
-                }
-            } else {
-                if(_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImage) {
-                    PreferenceManager.setWallpaperApplied(applicationContext,true)
-                    withContext(Dispatchers.IO){
-                        setWallpaper(applicationContext)
-                    }
-                    _uiState.update {
-                        it.copy(
-                            imageData = imageData,
-                            imagePath = backgroundImage
-                        )
+                    PreferenceManager.setWallpaperApplied(applicationContext, true)
+                } else {
+                    if (_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImage) {
+                        PreferenceManager.setWallpaperApplied(applicationContext, true)
+                        withContext(Dispatchers.IO) {
+                            setWallpaper(applicationContext)
+                        }
+                        _uiState.update {
+                            it.copy(
+                                imageData = imageData,
+                                imagePath = backgroundImage
+                            )
+                        }
                     }
                 }
             }
+            catch (e: Exception){
+                logger.setLog("MainViewModel",e.toString())
+            }
+            finally {
+                isWorking = false
+            }
         }
     }
-    private fun setDownloading(downloading: Boolean){
-        _uiState.update {
-            it.copy(
-                downloading = downloading
-            )
-        }
-    }
-    private fun isDownloading():Boolean{
-        return _uiState.value.downloading
-    }
-
 }
