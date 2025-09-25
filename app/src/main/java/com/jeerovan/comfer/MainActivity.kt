@@ -36,7 +36,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -187,8 +186,8 @@ import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -212,6 +211,7 @@ import androidx.core.content.edit
 import kotlin.text.ifEmpty
 
 import androidx.compose.ui.composed
+import androidx.compose.ui.res.painterResource
 import kotlin.math.abs
 
 
@@ -512,9 +512,9 @@ fun WidgetHostScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .detectSwipes(
-                onSwipeLeft =  onSwipeLeft ,
-                onSwipeRight = onSwipeRight
-            )
+                    onSwipeLeft = onSwipeLeft,
+                    onSwipeRight = onSwipeRight
+                )
         ) {
             if (boundWidgets.isEmpty() && !showPicker) {
                 Box(
@@ -750,7 +750,8 @@ private fun WidgetInstance(
                 .border(
                     width = if (editMode) 1.dp else 0.dp,
                     color = if (editMode) MaterialTheme.colorScheme.primary else Color.Transparent,
-                    shape = RoundedCornerShape(16.dp))
+                    shape = RoundedCornerShape(16.dp)
+                )
                 .fillMaxSize()
                 .pointerInput(editMode, allWidgets) { // Re-trigger pointer input if widgets change
                     if (editMode) {
@@ -758,7 +759,8 @@ private fun WidgetInstance(
                             onDragEnd = {
                                 // Snap to the final grid position after dragging
                                 val finalGridX = ((position.x) / (cellWidthPx + gapPx)).roundToInt()
-                                val finalGridY = ((position.y - gapPx) / (cellHeightPx + gapPx)).roundToInt()
+                                val finalGridY =
+                                    ((position.y - gapPx) / (cellHeightPx + gapPx)).roundToInt()
 
                                 if (widget.gridX != finalGridX || widget.gridY != finalGridY) {
                                     widget.gridX = finalGridX
@@ -766,19 +768,36 @@ private fun WidgetInstance(
                                     onUpdate()
                                 }
                                 // Ensure the visual position snaps perfectly to the grid
-                                position = Offset(widget.gridX * (cellWidthPx + gapPx), widget.gridY * (cellHeightPx + gapPx) + gapPx)
+                                position = Offset(
+                                    widget.gridX * (cellWidthPx + gapPx),
+                                    widget.gridY * (cellHeightPx + gapPx) + gapPx
+                                )
                             }
                         ) { change, dragAmount ->
                             change.consume()
                             val newPos = Offset(
-                                x = (position.x + dragAmount.x).coerceIn(0f, screenWidthPx - size.width),
-                                y = (position.y + dragAmount.y).coerceIn(gapPx, screenHeightPx - size.height)
+                                x = (position.x + dragAmount.x).coerceIn(
+                                    0f,
+                                    screenWidthPx - size.width
+                                ),
+                                y = (position.y + dragAmount.y).coerceIn(
+                                    gapPx,
+                                    screenHeightPx - size.height
+                                )
                             )
 
                             // Calculate proposed grid position
-                            val newGridX = ((newPos.x) / (cellWidthPx + gapPx)).roundToInt().coerceIn(0, GRID_COLUMNS - widget.spanX)
-                            val newGridY = ((newPos.y - gapPx) / (cellHeightPx + gapPx)).roundToInt().coerceAtLeast(0)
-                            val proposedRect = IntRect(newGridX, newGridY, newGridX + widget.spanX, newGridY + widget.spanY)
+                            val newGridX = ((newPos.x) / (cellWidthPx + gapPx)).roundToInt()
+                                .coerceIn(0, GRID_COLUMNS - widget.spanX)
+                            val newGridY =
+                                ((newPos.y - gapPx) / (cellHeightPx + gapPx)).roundToInt()
+                                    .coerceAtLeast(0)
+                            val proposedRect = IntRect(
+                                newGridX,
+                                newGridY,
+                                newGridX + widget.spanX,
+                                newGridY + widget.spanY
+                            )
 
                             // Update position only if there's no collision
                             if (!isColliding(proposedRect, widget.widgetId, allWidgets)) {
@@ -844,7 +863,9 @@ private fun WidgetInstance(
                 )
             }
 
-            val resizeModifier = Modifier.size(handleSize).background(MaterialTheme.colorScheme.primary, CircleShape)
+            val resizeModifier = Modifier
+                .size(handleSize)
+                .background(MaterialTheme.colorScheme.primary, CircleShape)
 
             // Right (Resize)
             Box(modifier = Modifier
@@ -855,9 +876,20 @@ private fun WidgetInstance(
                 .pointerInput(Unit) {
                     detectDragGestures(onDragEnd = { onResizeEnd() }) { change, dragAmount ->
                         change.consume()
-                        val newWidth = (size.width + dragAmount.x).coerceIn(minWidgetSizePx, screenWidthPx - position.x)
-                        val newSpanX = max(1, (newWidth / (cellWidthPx + gapPx)).roundToInt()).coerceAtMost(GRID_COLUMNS - widget.gridX)
-                        val proposedRect = IntRect(widget.gridX, widget.gridY, widget.gridX + newSpanX, widget.gridY + widget.spanY)
+                        val newWidth = (size.width + dragAmount.x).coerceIn(
+                            minWidgetSizePx,
+                            screenWidthPx - position.x
+                        )
+                        val newSpanX =
+                            max(1, (newWidth / (cellWidthPx + gapPx)).roundToInt()).coerceAtMost(
+                                GRID_COLUMNS - widget.gridX
+                            )
+                        val proposedRect = IntRect(
+                            widget.gridX,
+                            widget.gridY,
+                            widget.gridX + newSpanX,
+                            widget.gridY + widget.spanY
+                        )
 
                         if (!isColliding(proposedRect, widget.widgetId, allWidgets)) {
                             size = IntSize(newWidth.roundToInt(), size.height)
@@ -880,11 +912,17 @@ private fun WidgetInstance(
                         val widthChange = position.x - newX
                         val newWidth = (size.width + widthChange).coerceAtLeast(minWidgetSizePx)
 
-                        val newGridX = ((newX) / (cellWidthPx + gapPx)).roundToInt().coerceAtLeast(0)
+                        val newGridX =
+                            ((newX) / (cellWidthPx + gapPx)).roundToInt().coerceAtLeast(0)
                         val newSpanX = max(1, (newWidth / (cellWidthPx + gapPx)).roundToInt())
 
-                        if(newGridX + newSpanX <= GRID_COLUMNS){
-                            val proposedRect = IntRect(newGridX, widget.gridY, newGridX + newSpanX, widget.gridY + widget.spanY)
+                        if (newGridX + newSpanX <= GRID_COLUMNS) {
+                            val proposedRect = IntRect(
+                                newGridX,
+                                widget.gridY,
+                                newGridX + newSpanX,
+                                widget.gridY + widget.spanY
+                            )
                             if (!isColliding(proposedRect, widget.widgetId, allWidgets)) {
                                 position = Offset(newX, position.y)
                                 size = IntSize(newWidth.roundToInt(), size.height)
@@ -904,9 +942,17 @@ private fun WidgetInstance(
                 .pointerInput(Unit) {
                     detectDragGestures(onDragEnd = { onResizeEnd() }) { change, dragAmount ->
                         change.consume()
-                        val newHeight = (size.height + dragAmount.y).coerceIn(minWidgetSizePx, screenHeightPx - position.y)
+                        val newHeight = (size.height + dragAmount.y).coerceIn(
+                            minWidgetSizePx,
+                            screenHeightPx - position.y
+                        )
                         val newSpanY = max(1, (newHeight / (cellHeightPx + gapPx)).roundToInt())
-                        val proposedRect = IntRect(widget.gridX, widget.gridY, widget.gridX + widget.spanX, widget.gridY + newSpanY)
+                        val proposedRect = IntRect(
+                            widget.gridX,
+                            widget.gridY,
+                            widget.gridX + widget.spanX,
+                            widget.gridY + newSpanY
+                        )
 
                         if (!isColliding(proposedRect, widget.widgetId, allWidgets)) {
                             size = IntSize(size.width, newHeight.roundToInt())
@@ -929,10 +975,16 @@ private fun WidgetInstance(
                         val heightChange = position.y - newY
                         val newHeight = (size.height + heightChange).coerceAtLeast(minWidgetSizePx)
 
-                        val newGridY = ((newY - gapPx) / (cellHeightPx + gapPx)).roundToInt().coerceAtLeast(0)
+                        val newGridY =
+                            ((newY - gapPx) / (cellHeightPx + gapPx)).roundToInt().coerceAtLeast(0)
                         val newSpanY = max(1, (newHeight / (cellHeightPx + gapPx)).roundToInt())
 
-                        val proposedRect = IntRect(widget.gridX, newGridY, widget.gridX + widget.spanX, newGridY + newSpanY)
+                        val proposedRect = IntRect(
+                            widget.gridX,
+                            newGridY,
+                            widget.gridX + widget.spanX,
+                            newGridY + newSpanY
+                        )
                         if (!isColliding(proposedRect, widget.widgetId, allWidgets)) {
                             position = Offset(position.x, newY)
                             size = IntSize(size.width, newHeight.roundToInt())
@@ -946,7 +998,9 @@ private fun WidgetInstance(
             Box(
                 modifier = Modifier
                     .offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
-                    .size(with(LocalDensity.current) { size.width.toDp() }, with(LocalDensity.current) { size.height.toDp() })
+                    .size(
+                        with(LocalDensity.current) { size.width.toDp() },
+                        with(LocalDensity.current) { size.height.toDp() })
             ) {
                 SmallFloatingActionButton(
                     onClick = { onRemove(widget) },
@@ -1032,7 +1086,9 @@ fun WidgetPickerFullScreen(
                                 items(group.providers) { provider ->
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
-                                        modifier = Modifier.width(120.dp).clickable { onWidgetSelected(provider) }
+                                        modifier = Modifier
+                                            .width(120.dp)
+                                            .clickable { onWidgetSelected(provider) }
                                     ) {
                                         val previewDrawable = remember(provider) {
                                             // Load the preview image with a fallback to the icon.
@@ -1443,8 +1499,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         }
                     },
                     onSwipeLeft = {
-                        val showWidget = PreferenceManager.getWidgetsOnSwipe(context,"left");
-                        if(showWidget){
+                        val showWidget = PreferenceManager.getWidgetsOnSwipe(context, "left");
+                        if (showWidget) {
                             onSwipeLeft()
                         } else {
                             val swipeLeftPackage =
@@ -1461,8 +1517,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         }
                     },
                     onSwipeRight = {
-                        val showWidget = PreferenceManager.getWidgetsOnSwipe(context,"right");
-                        if(showWidget){
+                        val showWidget = PreferenceManager.getWidgetsOnSwipe(context, "right");
+                        if (showWidget) {
                             onSwipeRight()
                         } else {
                             val swipeRightPackage =
@@ -1499,81 +1555,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                             color = Color.White)
                     }
                 }
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(24.dp)
-                ) {
-                    val searchPosition = when (apps.size) {
-                        0 -> 0 // Insert at the start if empty
-                        1 -> 1 // Insert at the end if one item
-                        2 -> 1 // Insert in the middle if two items
-                        else -> 2 // Otherwise, insert at index 2
-                    }
-                    val searchIcon = ResourcesCompat.getDrawable(
-                        context.resources,
-                        R.drawable.outline_search_24,
-                        null // or context.theme if needed for themed drawables
-                    )
-                    val searchApp = AppInfo(
-                        background = Color.White.toArgb().toDrawable(),
-                        foreground = searchIcon,
-                        scale = 0.8f,
-                        label = "Search",
-                        packageName = "search")
-                    val appsList = apps.toMutableList()
-                    appsList.add(searchPosition,searchApp)
-                    appsList.forEach { app ->
-                        Box(
-                            modifier = Modifier
-                                .size(iconSize)
-                                .clip(getShapeFromShape(iconShape,iconSize))
-                                .pointerInput(Unit) {
-                                    detectTapGestures(
-                                        onTap = {
-                                            view.playSoundEffect(SoundEffectConstants.CLICK)
-                                            if (app.packageName == "search"){
-                                                onShowSearch()
-                                            } else {
-                                                val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(app.packageName)
-                                                if (launchIntent != null) {
-                                                    context.startActivity(launchIntent)
-                                                }
-                                            }
-                                        },
-                                        onLongPress = {
-                                            if(app.packageName != "search") {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                val intent =
-                                                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                                                intent.data = "package:${app.packageName}".toUri()
-                                                context.startActivity(intent)
-                                            }
-                                        }
-                                    )
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            // Background Layer
-                            if (app.background != null) {
-                                Image(
-                                    painter = rememberDrawablePainter(drawable = app.background),
-                                    contentDescription = "${app.label} background",
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.FillBounds
-                                )
-                            }
-
-                            // Foreground Layer
-                            if (app.foreground != null) {
-                                Image(
-                                    painter = rememberDrawablePainter(drawable = app.foreground),
-                                    contentDescription = app.label.toString(),
-                                    modifier = Modifier.fillMaxSize().scale(app.scale), // Let it fill the clipped Box
-                                    contentScale = ContentScale.FillBounds
-                                )
-                            }
-                        }
-                    }
-                }
+                FiveColumnLayout(apps,iconSize,iconShape,onShowSearch)
             }
         }
     }
@@ -1735,7 +1717,10 @@ fun SearchListOverlay(apps: List<AppInfo>,
                     }
                 )
             }
-            .pointerInput(lazyListState, filteredContacts.size) { // Relaunch gesture detection if state or data changes
+            .pointerInput(
+                lazyListState,
+                filteredContacts.size
+            ) { // Relaunch gesture detection if state or data changes
                 detectVerticalDragGestures(
                     onDragStart = { dragAccumulator = 0f },
                     onDragEnd = { dragAccumulator = 0f },
@@ -1751,12 +1736,13 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                     // Requirement 4: At the top, select previous item on drag.
                                     dragAccumulator += dragAmount
                                     if (dragAccumulator > scrollThreshold) {
-                                        selectedContactIndex = (selectedContactIndex - 1).coerceAtLeast(0)
+                                        selectedContactIndex =
+                                            (selectedContactIndex - 1).coerceAtLeast(0)
                                         dragAccumulator = 0f
                                     }
                                 } else {
                                     coroutineScope.launch {
-                                        lazyListState.scrollBy(-2*dragAmount)
+                                        lazyListState.scrollBy(-2 * dragAmount)
                                     }
                                 }
                             }
@@ -1766,12 +1752,13 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                     // Requirement 3: At the bottom, select next item on drag.
                                     dragAccumulator += dragAmount
                                     if (dragAccumulator < -scrollThreshold) {
-                                        selectedContactIndex = (selectedContactIndex + 1).coerceAtMost(filteredContacts.lastIndex)
+                                        selectedContactIndex =
+                                            (selectedContactIndex + 1).coerceAtMost(filteredContacts.lastIndex)
                                         dragAccumulator = 0f
                                     }
                                 } else {
                                     coroutineScope.launch {
-                                        lazyListState.scrollBy(-2*dragAmount)
+                                        lazyListState.scrollBy(-2 * dragAmount)
                                     }
                                 }
                             }
@@ -1790,7 +1777,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                     selectedTabIndex = activeTab.ordinal,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp,end = 16.dp, top = 16.dp)
+                        .padding(start = 16.dp, end = 16.dp, top = 16.dp)
                         .clip(RoundedCornerShape(12.dp)),
                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f), // Adapts to theme
                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant, // Default for unselected tabs
@@ -1860,7 +1847,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                 LazyColumn(
                                     state = lazyListState,
                                     modifier = Modifier
-                                    .fillMaxSize()
+                                        .fillMaxSize()
                                         .padding(horizontal = 16.dp)
                                 ) {
                                     items(filteredContacts) { contact ->
@@ -1942,7 +1929,10 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                             detectTapGestures(
                                                 onTap = {
                                                     view.playSoundEffect(SoundEffectConstants.CLICK)
-                                                    val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(app.packageName)
+                                                    val launchIntent: Intent? =
+                                                        context.packageManager.getLaunchIntentForPackage(
+                                                            app.packageName
+                                                        )
                                                     if (launchIntent != null) {
                                                         context.startActivity(launchIntent)
                                                     }
@@ -1951,7 +1941,8 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                     val intent =
                                                         Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                                                    intent.data = "package:${app.packageName}".toUri()
+                                                    intent.data =
+                                                        "package:${app.packageName}".toUri()
                                                     context.startActivity(intent)
                                                 }
                                             )
@@ -1973,7 +1964,9 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                         Image(
                                             painter = rememberDrawablePainter(drawable = app.foreground),
                                             contentDescription = app.label.toString(),
-                                            modifier = Modifier.fillMaxSize().scale(app.scale), // Let it fill the clipped Box
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .scale(app.scale), // Let it fill the clipped Box
                                             contentScale = ContentScale.FillBounds
                                         )
                                     }
@@ -1998,7 +1991,7 @@ fun ContactListItem(contact: Contact,isSelected:Boolean) {
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        placeCallWithDialer(context,contact.number)
+                        placeCallWithDialer(context, contact.number)
                     }
                 )
             }, // Rounded corners for each item
@@ -2178,7 +2171,7 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
                     },
                     onDoubleTap = {
                         if (apps.isNotEmpty()) {
-                            if(centerAppIndex < apps.size) {
+                            if (centerAppIndex < apps.size) {
                                 val app = apps[centerAppIndex]
                                 val launchIntent =
                                     packageManager.getLaunchIntentForPackage(app.packageName)
@@ -2515,7 +2508,11 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                         context.startActivity(Intent(context, SettingsActivity::class.java))
                     },
                     onDoubleTap = {
-                        if (isAccessibilityServiceEnabled(context, RecentsAccessibilityService::class.java)) {
+                        if (isAccessibilityServiceEnabled(
+                                context,
+                                RecentsAccessibilityService::class.java
+                            )
+                        ) {
                             showRecentApps()
                         } else {
                             showDisclosure = true
@@ -2791,7 +2788,7 @@ fun UshapedAppList(
                 updateCenterIconGeom(x + sizePx / 2, y + sizePx / 2, sizePx)
             }
             key(apps[appIndex].packageName) {
-                AppIcon(
+                DrawerAppIcon(
                     app = apps[appIndex],
                     shape = iconShape,
                     x = x.toDp(),
@@ -2804,7 +2801,7 @@ fun UshapedAppList(
 }
 
 @Composable
-fun AppIcon(app: AppInfo,shape: Shape, x: Dp, y: Dp, size: Dp) {
+fun DrawerAppIcon(app: AppInfo, shape: Shape, x: Dp, y: Dp, size: Dp) {
     val context = LocalContext.current
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
@@ -2818,7 +2815,8 @@ fun AppIcon(app: AppInfo,shape: Shape, x: Dp, y: Dp, size: Dp) {
                 detectTapGestures(
                     onTap = {
                         view.playSoundEffect(SoundEffectConstants.CLICK)
-                        val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(app.packageName)
+                        val launchIntent: Intent? =
+                            context.packageManager.getLaunchIntentForPackage(app.packageName)
                         if (launchIntent != null) {
                             context.startActivity(launchIntent)
                         }
@@ -2848,7 +2846,9 @@ fun AppIcon(app: AppInfo,shape: Shape, x: Dp, y: Dp, size: Dp) {
             Image(
                 painter = rememberDrawablePainter(drawable = app.foreground),
                 contentDescription = app.label.toString(),
-                modifier = Modifier.fillMaxSize().scale(app.scale),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .scale(app.scale),
                 contentScale = ContentScale.FillBounds
             )
         }
@@ -3090,7 +3090,7 @@ fun CircularKeyboard(
             .wrapContentSize(Alignment.Center)
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onDoubleTap =  {
+                    onDoubleTap = {
                         // This tap is handled and consumed here, so it won't propagate
                         // to the parent Box.
                     }
@@ -3253,6 +3253,120 @@ fun Modifier.detectSwipes(
                 }
             }
         )
+    }
+}
+@Composable
+fun FiveColumnLayout(apps:List<AppInfo>,iconSize: Dp,iconShape: Shape,onShowSearch: () -> Unit) {
+    val gap = 20.dp
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically // Aligns the middle box with the stacked columns
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(gap)
+        ) {
+            if(apps.size >= 3)ListAppIcon(iconSize,iconShape,apps[2])
+            if(apps.size >= 7)ListAppIcon(iconSize,iconShape,apps[6])
+        }
+        Box(modifier = Modifier.size(width = gap, height = 1.dp))
+        Column(
+            verticalArrangement = Arrangement.spacedBy(gap)
+        ) {
+            if(apps.isNotEmpty())ListAppIcon(iconSize,iconShape,apps[0])
+            if(apps.size >= 5)ListAppIcon(iconSize,iconShape,apps[4])
+        }
+        Box(modifier = Modifier.size(width = gap, height = 1.dp))
+        // --- Middle column (single box) ---
+        Box(
+            modifier = Modifier
+                .clip(getShapeFromShape(iconShape, iconSize))
+                .background(Color.White)
+                .size(iconSize)
+                .scale(0.8f)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            onShowSearch()
+                        }
+                    )
+                }
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.outline_search_24),
+                contentDescription = "Widgets",
+                modifier = Modifier.size(iconSize)
+            )
+        }
+        Box(modifier = Modifier.size(width = gap, height = 1.dp))
+        Column(
+            verticalArrangement = Arrangement.spacedBy(gap)
+        ) {
+            if(apps.size >= 2)ListAppIcon(iconSize,iconShape,apps[1])
+            if(apps.size >= 6)ListAppIcon(iconSize,iconShape,apps[5])
+        }
+        Box(modifier = Modifier.size(width = gap, height = 1.dp))
+        Column(
+            verticalArrangement = Arrangement.spacedBy(gap)
+        ) {
+            if(apps.size >= 4)ListAppIcon(iconSize,iconShape,apps[3])
+            if(apps.size >= 8)ListAppIcon(iconSize,iconShape,apps[7])
+        }
+    }
+}
+@Composable
+fun ListAppIcon(iconSize: Dp,
+                iconShape: Shape,
+                app: AppInfo){
+    val context = LocalContext.current
+    val view = LocalView.current
+    val haptic = LocalHapticFeedback.current
+    Box(
+        modifier = Modifier
+            .size(iconSize)
+            .clip(getShapeFromShape(iconShape, iconSize))
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {
+                        view.playSoundEffect(SoundEffectConstants.CLICK)
+                        val launchIntent: Intent? =
+                            context.packageManager.getLaunchIntentForPackage(app.packageName)
+                        if (launchIntent != null) {
+                            context.startActivity(launchIntent)
+                        }
+                    },
+                    onLongPress = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        val intent =
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        intent.data = "package:${app.packageName}".toUri()
+                        context.startActivity(intent)
+                    }
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        // Background Layer
+        if (app.background != null) {
+            Image(
+                painter = rememberDrawablePainter(drawable = app.background),
+                contentDescription = "${app.label} background",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds
+            )
+        }
+
+        // Foreground Layer
+        if (app.foreground != null) {
+            Image(
+                painter = rememberDrawablePainter(drawable = app.foreground),
+                contentDescription = app.label.toString(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .scale(app.scale), // Let it fill the clipped Box
+                contentScale = ContentScale.FillBounds
+            )
+        }
     }
 }
 

@@ -70,7 +70,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.math.min
 
 private const val REST_LIST_NAME = "Rest"
-private const val MAX_QUICK_APPS = 5
+private const val MAX_QUICK_APPS = 8
 
 class ManageAppListActivity : ComponentActivity() {
     private val viewModel: AppInfoViewModel by viewModels()
@@ -186,7 +186,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                         onClick = {
                             if (uiState.quickApps.size + selectedIndices.size > MAX_QUICK_APPS) {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar("Maximum 5 apps only")
+                                    snackbarHostState.showSnackbar("Maximum $MAX_QUICK_APPS apps only")
                                 }
                             } else {
                                 viewModel.moveAppsToList(

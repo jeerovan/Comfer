@@ -373,8 +373,17 @@ fun filterStandardApps(allPackageNames: Set<String>): Set<String> {
         "com.google.android.apps.photos",
         "com.sec.android.gallery3d",
         "com.samsung.android.gallery",
-        "com.miui.gallery"
-        // Add more as you discover them
+        "com.miui.gallery",
+
+        // Generally available / must have
+        "com.whatsapp",
+        "com.facebook.katana",
+        "com.google.android.gm",
+        "com.google.android.chrome",
+        "com.google.android.apps.maps",
+        "com.google.android.youtube",
+        "com.google.android.apps.nbu.paisa.user",
+        "com.phonepe.app"
     )
 
     return allPackageNames.filter { packageName ->
