@@ -3096,46 +3096,18 @@ fun CircularKeyboard(
                     }
                 )
             }
-            .pointerInput(Unit) {
-                var totalDragOffset = Offset.Zero
-                detectDragGestures(
-                    onDragStart = {
-                        totalDragOffset = Offset.Zero
-                    },
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-                        totalDragOffset += dragAmount
-                    },
-                    onDragEnd = {
-                        val swipeThreshold = 50f
-                        val (x, y) = totalDragOffset
-                        if (y.absoluteValue > x.absoluteValue) {
-                            if (y.absoluteValue > swipeThreshold) {
-                                if (y > 0) {
-                                    onSwipeDown()
-                                }
-                            }
-                        } else {
-                            // Horizontal swipe detection
-                            if (x.absoluteValue > swipeThreshold) {
-                                if (x > 0) {
-                                    // Positive x means a swipe from left to right
-                                    onSwipeRight()
-                                } else {
-                                    // Negative x means a swipe from right to left
-                                    onSwipeLeft()
-                                }
-                            }
-                        }
-                    }
-                )
-            },
+            .detectSwipes(
+                {},
+                onSwipeDown,
+                onSwipeLeft,
+                onSwipeRight
+            ),
         contentAlignment = Alignment.Center
     ) {
 
         val maxWidth = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp }
         val maxHeight = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp }
-        // FIX: Explicitly use the 'this' scope to resolve the warning.
+
         val maxDiameter = min(maxWidth, maxHeight)
         val keyboardDiameter = (maxDiameter * 0.7f).dp
 
