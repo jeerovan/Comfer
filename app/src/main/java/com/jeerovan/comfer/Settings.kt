@@ -36,9 +36,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -85,6 +85,113 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.unit.dp
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
+
+@Composable
+fun SwipeActionSettingItem(
+    headline: String,
+    icon: @Composable () -> Unit,
+    selectedApp: AppInfo?,
+    isWidgetsSelected: Boolean,
+    onAppSelectionClick: () -> Unit,
+    onWidgetsSelectionClick: () -> Unit,
+    iconShape: Shape,
+    iconSize: Dp
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    val supportingText = when {
+        isWidgetsSelected -> "Widgets screen"
+        selectedApp != null -> selectedApp.label.toString()
+        else -> "Select an app or Widgets screen"
+    }
+
+    ListItem(
+        headlineContent = { Text(headline) },
+        supportingContent = { Text(supportingText) },
+        leadingContent = { icon() },
+        trailingContent = {
+            when {
+                // If widgets are selected, show a widgets icon
+                isWidgetsSelected -> {
+                    Icon(
+                        painter = painterResource(R.drawable.outline_widgets_24),
+                        contentDescription = "Widgets",
+                        modifier = Modifier.size(iconSize)
+                    )
+                }
+                // If an app is selected, show its icon
+                selectedApp != null -> {
+                    Box(
+                        modifier = Modifier
+                            .size(iconSize)
+                            .clip(iconShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Your existing logic to display the app icon
+                        if (selectedApp.background != null) {
+                            Image(
+                                painter = rememberDrawablePainter(drawable = selectedApp.background),
+                                contentDescription = "${selectedApp.label} background",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.FillBounds
+                            )
+                        }
+                        if (selectedApp.foreground != null) {
+                            Image(
+                                painter = rememberDrawablePainter(drawable = selectedApp.foreground),
+                                contentDescription = selectedApp.label.toString(),
+                                modifier = Modifier.fillMaxSize().scale(selectedApp.scale),
+                                contentScale = ContentScale.FillBounds
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        modifier = Modifier.clickable { showDialog = true },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+    )
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Choose Action") },
+            text = {
+                Column {
+                    TextButton(
+                        onClick = {
+                            showDialog = false
+                            onAppSelectionClick()
+                        }
+                    ) {
+                        Text("Select App")
+                    }
+                    TextButton(
+                        onClick = {
+                            showDialog = false
+                            onWidgetsSelectionClick()
+                        }
+                    ) {
+                        Text("Widgets Screen")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
 class SettingsActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
 
@@ -127,6 +234,9 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
 
     val leftSwipeApp = mapPackageNameToAppInfo(packageManager, settingsState.leftSwipeApp)
     val rightSwipeApp = mapPackageNameToAppInfo(packageManager, settingsState.rightSwipeApp)
+
+    val isLeftSwipeWidgets = settingsState.isLeftSwipeWidgets
+    val isRightSwipeWidgets = settingsState.isRightSwipeWidgets
 
     val iconShape = settingsState.iconShape
     val iconSize = settingsState.iconSize - 10
@@ -245,105 +355,50 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 val intent = Intent(context, AppSelectionActivity::class.java).apply {
                     putExtra("swipe_direction", "left")
                 }
-                ListItem(
-                    headlineContent = { Text("Left Swipe Action") },
-                    supportingContent = { Text(leftSwipeApp?.label?.toString() ?: "Not set") },
-                    leadingContent = {
+                SwipeActionSettingItem(
+                    headline = "Left Swipe Action",
+                    icon = {
                         Icon(
                             Icons.AutoMirrored.Default.ArrowBack,
                             contentDescription = "Left Swipe"
                         )
                     },
-                    trailingContent = {
-                        if (leftSwipeApp != null) {
-                            Box(
-                                modifier = Modifier
-                                    .size(iconSize.dp)
-                                    .clip(getShapeFromShape(iconShape,iconSize.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                // Background Layer
-                                if (leftSwipeApp.background != null) {
-                                    Image(
-                                        painter = rememberDrawablePainter(drawable = leftSwipeApp.background),
-                                        contentDescription = "${leftSwipeApp.label} background",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.FillBounds
-                                    )
-                                }
-
-                                // Foreground Layer
-                                if (leftSwipeApp.foreground != null) {
-                                    Image(
-                                        painter = rememberDrawablePainter(drawable = leftSwipeApp.foreground),
-                                        contentDescription = leftSwipeApp.label.toString(),
-                                        modifier = Modifier.fillMaxSize().scale(leftSwipeApp.scale), // Let it fill the clipped Box
-                                        contentScale = ContentScale.FillBounds
-                                    )
-                                }
-                            }
-                        } else {
-                            Icon(
-                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                contentDescription = "Select App"
-                            )
-                        }
+                    selectedApp = leftSwipeApp, // Your state variable
+                    isWidgetsSelected = isLeftSwipeWidgets, // Your state variable
+                    onAppSelectionClick = {
+                        // This now launches the app selection activity
+                        launcher.launch(intent)
                     },
-                    modifier = Modifier.clickable { launcher.launch(intent) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    onWidgetsSelectionClick = {
+                        settingsViewModel.setWidgetsOnSwipe("left")
+                    },
+                    iconShape = getShapeFromShape(iconShape, iconSize.dp),
+                    iconSize = iconSize.dp
                 )
             }
-
             item {
                 val intent = Intent(context, AppSelectionActivity::class.java).apply {
                     putExtra("swipe_direction", "right")
                 }
-                ListItem(
-                    headlineContent = { Text("Right Swipe Action") },
-                    supportingContent = { Text(rightSwipeApp?.label?.toString() ?: "Not set") },
-                    leadingContent = {
+                SwipeActionSettingItem(
+                    headline = "Right Swipe Action",
+                    icon = {
                         Icon(
                             Icons.AutoMirrored.Default.ArrowForward,
                             contentDescription = "Right Swipe"
                         )
                     },
-                    trailingContent = {
-                        if (rightSwipeApp != null) {
-                            Box(
-                                modifier = Modifier
-                                    .size(iconSize.dp)
-                                    .clip(getShapeFromShape(iconShape,iconSize.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                // Background Layer
-                                if (rightSwipeApp.background != null) {
-                                    Image(
-                                        painter = rememberDrawablePainter(drawable = rightSwipeApp.background),
-                                        contentDescription = "${rightSwipeApp.label} background",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.FillBounds
-                                    )
-                                }
-
-                                // Foreground Layer
-                                if (rightSwipeApp.foreground != null) {
-                                    Image(
-                                        painter = rememberDrawablePainter(drawable = rightSwipeApp.foreground),
-                                        contentDescription = rightSwipeApp.label.toString(),
-                                        modifier = Modifier.fillMaxSize().scale(rightSwipeApp.scale), // Let it fill the clipped Box
-                                        contentScale = ContentScale.FillBounds
-                                    )
-                                }
-                            }
-                        } else {
-                            Icon(
-                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                contentDescription = "Select App"
-                            )
-                        }
+                    selectedApp = rightSwipeApp, // Your state variable
+                    isWidgetsSelected = isRightSwipeWidgets, // Your state variable
+                    onAppSelectionClick = {
+                        // This now launches the app selection activity
+                        launcher.launch(intent)
                     },
-                    modifier = Modifier.clickable { launcher.launch(intent) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    onWidgetsSelectionClick = {
+                        settingsViewModel.setWidgetsOnSwipe("right")
+                    },
+                    iconShape = getShapeFromShape(iconShape, iconSize.dp),
+                    iconSize = iconSize.dp
                 )
             }
             item {
@@ -369,7 +424,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 ListItem(
                     headlineContent = { Text("Manage App Lists") },
                     supportingContent = { Text("Organize your apps into custom lists") },
-                    leadingContent = { Icon(Icons.Default.List, contentDescription = "Manage App Lists") },
+                    leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Manage App Lists") },
                     trailingContent = {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -398,7 +453,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                             val playStoreIntent = Intent(Intent.ACTION_VIEW,
                                 "market://details?id=$packageName".toUri())
                             context.startActivity(playStoreIntent)
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             // If Play Store is not installed, open in a web browser
                             val webIntent = Intent(Intent.ACTION_VIEW,
                                 "https://play.google.com/store/apps/details?id=$packageName".toUri())
@@ -432,7 +487,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 ListItem(
                     headlineContent = { Text("Logs") },
                     supportingContent = { Text("App logs") },
-                    leadingContent = { Icon(Icons.Default.List, contentDescription = "App logs") },
+                    leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "App logs") },
                     trailingContent = {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -528,7 +583,7 @@ fun getAppVersion(context: Context): String? {
     return try {
         val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
         packageInfo.versionName
-    } catch (e: PackageManager.NameNotFoundException) {
+    } catch (_: PackageManager.NameNotFoundException) {
         "N/A"
     }
 }

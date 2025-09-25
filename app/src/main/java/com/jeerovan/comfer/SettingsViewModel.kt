@@ -22,6 +22,8 @@ data class SettingsUiState(
     val iconShape: Shape = CircleShape,
     val leftSwipeApp:String? = null,
     val rightSwipeApp:String? = null,
+    val isLeftSwipeWidgets: Boolean = false,
+    val isRightSwipeWidgets: Boolean = false,
     val dateTimeColor:String? = null
 )
 
@@ -43,6 +45,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val iconShape  = PreferenceManager.getIconShape(getApplication())
             val leftSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"left")
             val rightSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"right")
+            val isLeftSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"left")
+            val isRightSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"right")
             val imageData = PreferenceManager.getImageData(getApplication())
             val dateTimeColor = imageData?.color
             _uiState.update {
@@ -54,6 +58,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     iconShapeString =  iconShapeString,
                     leftSwipeApp = leftSwipeApp,
                     rightSwipeApp = rightSwipeApp,
+                    isLeftSwipeWidgets = isLeftSwipeWidgets,
+                    isRightSwipeWidgets = isRightSwipeWidgets,
                     dateTimeColor = dateTimeColor
                 )
             }
@@ -63,11 +69,25 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setSwipeApp(swipeDirection:String, appName: String){
         viewModelScope.launch {
             PreferenceManager.setSwipeApp(getApplication(),swipeDirection,appName)
+            PreferenceManager.setWidgetsOnSwipe(getApplication(),swipeDirection,false)
             if( swipeDirection == "left"){
-                _uiState.update { it.copy( leftSwipeApp =  appName) }
+                _uiState.update { it.copy( leftSwipeApp =  appName, isLeftSwipeWidgets = false) }
             }
             if( swipeDirection == "right"){
-                _uiState.update { it.copy( rightSwipeApp =  appName) }
+                _uiState.update { it.copy( rightSwipeApp =  appName, isRightSwipeWidgets = false) }
+            }
+        }
+    }
+
+    fun setWidgetsOnSwipe(swipeDirection: String) {
+        viewModelScope.launch {
+            PreferenceManager.setWidgetsOnSwipe(getApplication(),swipeDirection,true)
+            PreferenceManager.setSwipeApp(getApplication(),swipeDirection,null)
+            if( swipeDirection == "left"){
+                _uiState.update { it.copy( isLeftSwipeWidgets = true, leftSwipeApp = null) }
+            }
+            if( swipeDirection == "right"){
+                _uiState.update { it.copy( isRightSwipeWidgets = true, rightSwipeApp = null) }
             }
         }
     }

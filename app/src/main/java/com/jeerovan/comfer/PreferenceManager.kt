@@ -1,12 +1,10 @@
 package com.jeerovan.comfer
 
-import FlowerShape
 import android.content.Context
 import androidx.compose.ui.graphics.Shape
 import androidx.core.content.edit
 import com.jeerovan.comfer.utils.CommonUtil
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
-import io.ktor.http.parseClientCookiesHeader
 import kotlinx.serialization.json.Json
 import java.util.Calendar
 
@@ -44,7 +42,7 @@ object PreferenceManager {
             putBoolean(key,state)
         }
     }
-    fun setString(context: Context,key:String,string: String) {
+    fun setString(context: Context,key:String,string: String?) {
         //AppCache.set(key, string)
         getPrefs(context).edit {
             putString(key,string)
@@ -135,8 +133,16 @@ object PreferenceManager {
         return getString(context,"${swipeDirection}_swipe_app",null)
     }
 
-    fun setSwipeApp(context:Context,swipeDirection:String,appPackage:String){
+    fun setSwipeApp(context:Context,swipeDirection:String,appPackage:String?){
         setString(context,"${swipeDirection}_swipe_app", appPackage)
+    }
+
+    fun getWidgetsOnSwipe(context:Context, swipeDirection:String):Boolean{
+        return getBoolean(context,"${swipeDirection}_swipe_widgets",false)
+    }
+
+    fun setWidgetsOnSwipe(context:Context, swipeDirection:String,set: Boolean){
+        setBoolean(context,"${swipeDirection}_swipe_widgets", set)
     }
 
     fun setUsername(context: Context,name:String){

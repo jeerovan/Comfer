@@ -1442,29 +1442,42 @@ fun QuickListOverlay(apps: List<AppInfo>,
                             e.printStackTrace()
                         }
                     },
-                    onSwipeLeft = onSwipeLeft
-                        /*{
-                        val swipeLeftPackage =
-                            PreferenceManager.getSwipeApp(context, "left")
-                        if (swipeLeftPackage != null) {
-                            val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(swipeLeftPackage)
-                            if (launchIntent != null) {
-                                context.startActivity(launchIntent)
+                    onSwipeLeft = {
+                        val showWidget = PreferenceManager.getWidgetsOnSwipe(context,"left");
+                        if(showWidget){
+                            onSwipeLeft()
+                        } else {
+                            val swipeLeftPackage =
+                                PreferenceManager.getSwipeApp(context, "left")
+                            if (swipeLeftPackage != null) {
+                                val launchIntent: Intent? =
+                                    context.packageManager.getLaunchIntentForPackage(
+                                        swipeLeftPackage
+                                    )
+                                if (launchIntent != null) {
+                                    context.startActivity(launchIntent)
+                                }
                             }
                         }
-                    }*/
-                    ,
-                    onSwipeRight = onSwipeRight
-                        /*{
-                        val swipeRightPackage =
-                            PreferenceManager.getSwipeApp(context, "right")
-                        if (swipeRightPackage != null) {
-                            val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(swipeRightPackage)
-                            if (launchIntent != null) {
-                                context.startActivity(launchIntent)
+                    },
+                    onSwipeRight = {
+                        val showWidget = PreferenceManager.getWidgetsOnSwipe(context,"right");
+                        if(showWidget){
+                            onSwipeRight()
+                        } else {
+                            val swipeRightPackage =
+                                PreferenceManager.getSwipeApp(context, "right")
+                            if (swipeRightPackage != null) {
+                                val launchIntent: Intent? =
+                                    context.packageManager.getLaunchIntentForPackage(
+                                        swipeRightPackage
+                                    )
+                                if (launchIntent != null) {
+                                    context.startActivity(launchIntent)
+                                }
                             }
                         }
-                    }*/
+                    }
                 ),
             contentAlignment = Alignment.BottomCenter
         ) {
