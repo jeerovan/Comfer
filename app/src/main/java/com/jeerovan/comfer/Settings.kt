@@ -39,6 +39,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -505,6 +506,27 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
 
             //item { SectionHeader("App") }
+            if(saveCrashes)item {
+                ListItem(
+                    headlineContent = { Text("Crash logs") },
+                    supportingContent = { Text("View uncaught exceptions") },
+                    leadingContent = {
+                        Icon(
+                            Icons.Default.Menu,
+                            contentDescription = "View crash logs")
+                                     },
+                    trailingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "Go"
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        context.startActivity(Intent(context, CrashViewActivity::class.java))
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
             item {
                 val context = LocalContext.current
                 val packageName = context.packageName

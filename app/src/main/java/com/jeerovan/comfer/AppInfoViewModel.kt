@@ -127,7 +127,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     var eightStandardApps = allStandardApps.take(8)
                     if(eightStandardApps.size < 8){
                         val remainingSpace = 8 - eightStandardApps.size
-                        eightStandardApps = eightStandardApps + allCurrentPackageNames.take(remainingSpace)
+                        val remainingPackageNames = allCurrentPackageNames.filter { it !in eightStandardApps}
+                        eightStandardApps = eightStandardApps + remainingPackageNames.take(remainingSpace)
                     }
                     finalQuickPackageNames = eightStandardApps
                     finalPrimaryPackageNames =

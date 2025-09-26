@@ -4,10 +4,12 @@ import android.app.Application
 import androidx.work.*
 import java.util.concurrent.TimeUnit
 
+const val saveCrashes = false
 class ComferApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        if(saveCrashes)Thread.setDefaultUncaughtExceptionHandler(CrashHandler(this))
         setupImageWorker()
     }
 
