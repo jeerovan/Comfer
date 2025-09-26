@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.work.*
 import java.util.concurrent.TimeUnit
 
-const val saveCrashes = true
+const val saveCrashes = false
 class ComferApp : Application() {
 
     override fun onCreate() {

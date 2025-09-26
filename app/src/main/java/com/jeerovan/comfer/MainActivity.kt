@@ -209,10 +209,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import androidx.core.content.edit
 import kotlin.text.ifEmpty
-
 import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import java.nio.file.WatchEvent
 import kotlin.math.abs
 
 // Placeholder for your contact data structure
@@ -1316,6 +1315,7 @@ fun BatteryStatus(themeColor: Color) {
 @Composable
 fun QuickListOverlay(apps: List<AppInfo>,
                      appsLayout: String?,
+                     hasNotificationAccess: Boolean,
                      imageData: ImageData?,
                      onSwipeUp: () -> Unit,
                      onSwipeRight: () -> Unit,
@@ -1473,6 +1473,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     )
                     BatteryStatus(textColor)
                 }
+                if(hasNotificationAccess)NotificationIconRow(iconColor = textColor)
             }
             Box(
                 modifier = Modifier
@@ -2309,6 +2310,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
 
     val wallpaperMotionEnabled = settingInfoUiState.wallpaperMotionEnabled
     val quickAppsLayout = settingInfoUiState.quickAppsLayout
+    val hasNotificationAccess = settingInfoUiState.hasNotificationAccess
 
     // 1. Define all possible enter and exit animations
     val slideUpExit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
@@ -2493,6 +2495,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             QuickListOverlay(apps = quickApps,
                 appsLayout = quickAppsLayout,
                 imageData = imageData,
+                hasNotificationAccess = hasNotificationAccess,
                 onSwipeUp = {
                     // Set transitions for vertical exit, then hide
                     enterTransition = slideDownEnter
@@ -3392,4 +3395,71 @@ fun ListAppIcon(iconSize: Dp,
     }
 }
 
+@Composable
+fun NotificationIconRow(
+    modifier: Modifier = Modifier,
+    maxVisibleIcons: Int = 5,
+    iconSize: Dp = 16.dp,
+    iconColor: Color
+) {
+    val context = LocalContext.current
 
+    // Collect the full StatusBarNotification objects from the service
+    val notifications by MyNotificationListenerService.activeNotifications.collectAsState()
+
+    // Remember the list of small icons derived from the notifications
+    val notificationIcons by remember(notifications) {
+        derivedStateOf {
+            notifications.mapNotNull { sbn ->
+                try {
+                    // Load the small icon drawable from the notification
+                    sbn.notification.smallIcon.loadDrawable(context)
+                } catch (e: Exception) {
+                    null // Gracefully handle cases where the icon can't be loaded
+                }
+            }
+        }
+    }
+
+    if (notificationIcons.isNotEmpty()) {
+        Row(
+            modifier = modifier.padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val iconsToShow = if (notificationIcons.size > maxVisibleIcons + 1) {
+                notificationIcons.take(maxVisibleIcons)
+            } else {
+                notificationIcons
+            }
+
+            iconsToShow.forEach { drawable ->
+                Image(
+                    painter = rememberDrawablePainter(drawable = drawable),
+                    contentDescription = "Notification Icon",
+                    // Apply a tint to make the icon visible
+                    colorFilter = ColorFilter.tint(iconColor),
+                    modifier = Modifier.size(iconSize)
+                )
+            }
+
+            // Overflow badge remains the same
+            if (notificationIcons.size > maxVisibleIcons + 1) {
+                val overflowCount = notificationIcons.size - maxVisibleIcons
+                Box(
+                    modifier = Modifier
+                        .size(iconSize)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "+$overflowCount",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        }
+    }
+}

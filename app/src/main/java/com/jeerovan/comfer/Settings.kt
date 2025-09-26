@@ -53,8 +53,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -77,10 +75,12 @@ import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import androidx.core.net.toUri
+import androidx.lifecycle.lifecycleScope
 import com.jeerovan.comfer.utils.CommonUtil.canSetLockScreenWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.copyUriToInternalStorage
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
+import kotlinx.coroutines.launch
 import kotlinx.io.IOException
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -275,6 +275,14 @@ class SettingsActivity : ComponentActivity() {
             }
         }
     }
+    override fun onResume() {
+        super.onResume()
+        val logger = LoggerManager(applicationContext)
+        logger.setLog("SettingsActivity","Resumed")
+        lifecycleScope.launch {
+            settingsViewModel.loadSettings()
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -466,6 +474,26 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     },
                     iconShape = getShapeFromShape(iconShape, iconSize.dp),
                     iconSize = iconSize.dp
+                )
+            }
+            item {
+                ListItem(
+                    headlineContent = { Text("Notification + Badges") },
+                    supportingContent = { Text("Requires notification permission") },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.outline_notifications_unread_24),
+                            contentDescription = "Notification and badges"
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settingsState.hasNotificationAccess,
+                            onCheckedChange = { settingsViewModel.requestNotificationPermission(context) }
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.requestNotificationPermission(context) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
             item {

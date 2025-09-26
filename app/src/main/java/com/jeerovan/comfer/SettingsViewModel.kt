@@ -13,7 +13,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.math.log
+import android.content.Intent
+import android.provider.Settings
+import android.content.Context
+import androidx.core.app.NotificationManagerCompat
+
+
 
 data class SettingsUiState(
     val wallpaperMotionEnabled: Boolean = true,
@@ -26,6 +31,7 @@ data class SettingsUiState(
     val rightSwipeApp:String? = null,
     val isLeftSwipeWidgets: Boolean = false,
     val isRightSwipeWidgets: Boolean = false,
+    val hasNotificationAccess: Boolean = false,
     val dateTimeColor:String? = null
 )
 
@@ -51,6 +57,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val isRightSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"right")
             val imageData = PreferenceManager.getImageData(getApplication())
             val dateTimeColor = imageData?.color
+            val isNotificationServiceEnabled = isNotificationServiceEnabled(getApplication())
             _uiState.update {
                 it.copy(
                     wallpaperMotionEnabled = wallpaperMotion,
@@ -63,6 +70,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     rightSwipeApp = rightSwipeApp,
                     isLeftSwipeWidgets = isLeftSwipeWidgets,
                     isRightSwipeWidgets = isRightSwipeWidgets,
+                    hasNotificationAccess = isNotificationServiceEnabled,
                     dateTimeColor = dateTimeColor
                 )
             }
@@ -148,5 +156,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val newColor = if (white) "White" else "Black"
             _uiState.update { it.copy(dateTimeColor = newColor) }
         }
+    }
+
+    // Function to check if the notification listener permission is enabled
+    fun isNotificationServiceEnabled(context: Context): Boolean {
+        val enabledListeners = NotificationManagerCompat.getEnabledListenerPackages(context)
+        return enabledListeners.contains(context.packageName)
+    }
+    fun requestNotificationPermission(context: Context) {
+        val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+        context.startActivity(intent)
     }
 }
