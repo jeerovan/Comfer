@@ -24,6 +24,7 @@ object PreferenceManager {
     private const val IMAGE_AVAILABLE = "image_available"
     private const val FEEDBACK_DIALOG = "feedback_dialog"
     private const val WALLPAPER_SET = "wallpaper_set"
+    private const val QUICK_APPS_LAYOUT = "quick_apps_layout"
 
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -81,6 +82,14 @@ object PreferenceManager {
         val millisecondsString = milliseconds.toString()
         val dummyName = CommonUtil.randomCode(millisecondsString,8)
         setDummyName(context,dummyName)
+        setQuickAppsLayout(context,"circular")
+    }
+
+    fun setQuickAppsLayout(context: Context,layout:String){
+        setString(context,QUICK_APPS_LAYOUT,layout)
+    }
+    fun getQuickAppsLayout(context: Context):String? {
+        return getString(context,QUICK_APPS_LAYOUT,"linear")
     }
 
     // Example: setWallpaperMotion

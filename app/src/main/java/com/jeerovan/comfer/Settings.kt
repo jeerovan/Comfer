@@ -85,14 +85,80 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.time.ExperimentalTime
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.unit.dp
-import com.google.accompanist.drawablepainter.rememberDrawablePainter
+@Composable
+fun QuickAppsLayoutSettingItem(
+    selectedLayout: String?,
+    onLayoutSelected: (String) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
 
+    ListItem(
+        headlineContent = { Text("Home apps layout") },
+        supportingContent = { Text("Select circular or linear") },
+        leadingContent = { Icon(
+                            painter = painterResource(R.drawable.outline_apps_24),
+                            contentDescription = "Home apps layout")
+                         },
+        trailingContent = {
+            when (selectedLayout) {
+                "linear" -> {
+                    Icon(
+                        painter = painterResource(R.drawable.layout_linear),
+                        contentDescription = "Widgets",
+                        modifier = Modifier.size(44.dp)
+                    )
+                }
+                "circular" -> {
+                    Icon(
+                        painter = painterResource(R.drawable.layout_circular),
+                        contentDescription = "Widgets",
+                        modifier = Modifier.size(44.dp)
+                    )
+                }
+            }
+        },
+        modifier = Modifier.clickable { showDialog = true },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+    )
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Choose Layout") },
+            text = {
+                Column (modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        painter = painterResource(R.drawable.layout_linear),
+                        contentDescription = "Widgets",
+                        modifier = Modifier
+                            .size(76.dp)
+                            .clickable {
+                                showDialog = false
+                                onLayoutSelected("linear")
+                            }
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Icon(
+                        painter = painterResource(R.drawable.layout_circular),
+                        contentDescription = "Widgets",
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clickable {
+                                showDialog = false
+                                onLayoutSelected("circular")
+                            }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
 @Composable
 fun SwipeActionSettingItem(
     headline: String,
@@ -241,23 +307,18 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val iconShape = settingsState.iconShape
     val iconSize = settingsState.iconSize - 10
     val iconShapeString = settingsState.iconShapeString
+
+    val quickAppsLayout = settingsState.quickAppsLayout
+
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Settings") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            )
-        }
+
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            item { SectionHeader("Appearance") }
+            //item { SectionHeader("Appearance") }
             item {
                 ListItem(
                     headlineContent = { Text("Wallpaper Motion") },
@@ -349,8 +410,13 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     }
                 )
             }
-
-            item { SectionHeader("Gestures") }
+            item {
+                QuickAppsLayoutSettingItem(
+                    selectedLayout = quickAppsLayout,
+                    onLayoutSelected = { layout -> settingsViewModel.setQuickAppsLayout(layout)}
+                )
+            }
+            //item { SectionHeader("Gestures") }
             item {
                 val intent = Intent(context, AppSelectionActivity::class.java).apply {
                     putExtra("swipe_direction", "left")
@@ -419,7 +485,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item { SectionHeader("Customization") }
+            //item { SectionHeader("Customization") }
             item {
                 ListItem(
                     headlineContent = { Text("Manage App Lists") },
@@ -438,7 +504,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
             }
 
-            item { SectionHeader("App") }
+            //item { SectionHeader("App") }
             item {
                 val context = LocalContext.current
                 val packageName = context.packageName

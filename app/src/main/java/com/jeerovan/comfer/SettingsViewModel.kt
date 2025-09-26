@@ -21,6 +21,7 @@ data class SettingsUiState(
     val iconSize: Int = 48,
     val iconShapeString: String? = "circle",
     val iconShape: Shape = CircleShape,
+    val quickAppsLayout: String? = "linear",
     val leftSwipeApp:String? = null,
     val rightSwipeApp:String? = null,
     val isLeftSwipeWidgets: Boolean = false,
@@ -43,6 +44,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val iconSize = PreferenceManager.getIconSize(getApplication())
             val iconShapeString  = PreferenceManager.getIconShapeString(getApplication())
             val iconShape  = PreferenceManager.getIconShape(getApplication())
+            val quickAppsLayout = PreferenceManager.getQuickAppsLayout(getApplication())
             val leftSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"left")
             val rightSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"right")
             val isLeftSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"left")
@@ -55,6 +57,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     wallpaperOnLockScreen = wallpaperOnLockScreen,
                     iconSize = iconSize,
                     iconShape = iconShape,
+                    quickAppsLayout = quickAppsLayout,
                     iconShapeString =  iconShapeString,
                     leftSwipeApp = leftSwipeApp,
                     rightSwipeApp = rightSwipeApp,
@@ -66,6 +69,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun setQuickAppsLayout(layout:String){
+        viewModelScope.launch {
+            PreferenceManager.setQuickAppsLayout(getApplication(),layout)
+            _uiState.update { it.copy(quickAppsLayout = layout) }
+        }
+    }
     fun setSwipeApp(swipeDirection:String, appName: String){
         viewModelScope.launch {
             PreferenceManager.setSwipeApp(getApplication(),swipeDirection,appName)

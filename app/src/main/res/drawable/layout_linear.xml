@@ -1,0 +1,40 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="12dp"
+    android:viewportWidth="200"
+    android:viewportHeight="100">
+
+    <!-- Left group of four dots -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M25,25 a10,10 0 1,1 0,20 a10,10 0 1,1 0,-20" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M55,25 a10,10 0 1,1 0,20 a10,10 0 1,1 0,-20" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M25,55 a10,10 0 1,1 0,20 a10,10 0 1,1 0,-20" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M55,55 a10,10 0 1,1 0,20 a10,10 0 1,1 0,-20" />
+
+    <!-- Center dot -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M100,40 a10,10 0 1,1 0,20 a10,10 0 1,1 0,-20" />
+
+    <!-- Right group of four dots -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M145,25 a10,10 0 1,1 0,20 a10,10 0 1,1 0,-20" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M175,25 a10,10 0 1,1 0,20 a10,10 0 1,1 0,-20" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M145,55 a10,10 0 1,1 0,20 a10,10 0 1,1 0,-20" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M175,55 a10,10 0 1,1 0,20 a10,10 0 1,1 0,-20" />
+
+</vector>

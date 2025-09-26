@@ -55,16 +55,7 @@ class GuideActivity: ComponentActivity(){
 @Composable
 fun UserGuideScreen() {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Navigation/Gestures") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-        }
+
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier

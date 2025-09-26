@@ -123,8 +123,13 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
                 if (isFirstLaunch) {
                     PreferenceManager.onFirstOpen(getApplication())
-                    val standardApps = filterStandardApps(allCurrentPackageNames).toList()
-                    finalQuickPackageNames = standardApps.take(8)
+                    val allStandardApps = filterStandardApps(allCurrentPackageNames).toList()
+                    var eightStandardApps = allStandardApps.take(8)
+                    if(eightStandardApps.size < 8){
+                        val remainingSpace = 8 - eightStandardApps.size
+                        eightStandardApps = eightStandardApps + allCurrentPackageNames.take(remainingSpace)
+                    }
+                    finalQuickPackageNames = eightStandardApps
                     finalPrimaryPackageNames =
                         allCurrentPackageNames.filter { it !in finalQuickPackageNames }
                 } else {
@@ -383,7 +388,9 @@ fun filterStandardApps(allPackageNames: Set<String>): Set<String> {
         "com.google.android.apps.maps",
         "com.google.android.youtube",
         "com.google.android.apps.nbu.paisa.user",
-        "com.phonepe.app"
+        "com.phonepe.app",
+        "com.openai.chatgpt",
+        "com.instagram.android"
     )
 
     return allPackageNames.filter { packageName ->

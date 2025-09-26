@@ -214,7 +214,6 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.res.painterResource
 import kotlin.math.abs
 
-
 // Placeholder for your contact data structure
 data class Contact(
     val id: Long,
@@ -1315,6 +1314,7 @@ fun BatteryStatus(themeColor: Color) {
 
 @Composable
 fun QuickListOverlay(apps: List<AppInfo>,
+                     appsLayout: String?,
                      imageData: ImageData?,
                      onSwipeUp: () -> Unit,
                      onSwipeRight: () -> Unit,
@@ -1550,12 +1550,15 @@ fun QuickListOverlay(apps: List<AppInfo>,
                             containerColor = Color.Black.copy(alpha = 0.5f) // Text color
                         )
                     ) {
-                        Text("Set as default launcher",
+                        Text("Set default launcher",
                             fontSize = 18.sp,
                             color = Color.White)
                     }
                 }
-                FiveColumnLayout(apps,iconSize,iconShape,onShowSearch)
+                when (appsLayout) {
+                    "linear" -> FiveColumnLayout(apps,iconSize,iconShape,onShowSearch)
+                    "circular" -> CircularLayout(apps,iconSize,iconShape,onShowSearch)
+                }
             }
         }
     }
@@ -1569,8 +1572,6 @@ fun SearchListOverlay(apps: List<AppInfo>,
                       onSwipeDown: () -> Unit,
                       hasContactPermission: Boolean) {
     val context = LocalContext.current
-    val view = LocalView.current
-    val haptic = LocalHapticFeedback.current
     var iconSize by remember { mutableStateOf(48.dp) }
     var iconShape: Shape by remember { mutableStateOf(CircleShape) }
     var inputText by remember { mutableStateOf("") }
@@ -2307,6 +2308,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val primaryApps = appInfoUiState.primaryApps
 
     val wallpaperMotionEnabled = settingInfoUiState.wallpaperMotionEnabled
+    val quickAppsLayout = settingInfoUiState.quickAppsLayout
 
     // 1. Define all possible enter and exit animations
     val slideUpExit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
@@ -2483,6 +2485,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             exit = exitTransition
         ) {
             QuickListOverlay(apps = quickApps,
+                appsLayout = quickAppsLayout,
                 imageData = imageData,
                 onSwipeUp = {
                     // Set transitions for vertical exit, then hide
@@ -3206,6 +3209,70 @@ fun Modifier.detectSwipes(
         )
     }
 }
+
+
+@Composable
+fun CircularLayout(
+    apps: List<AppInfo>,
+    iconSize: Dp,
+    iconShape: Shape,
+    onShowSearch: () -> Unit
+) {
+    // Radius calculated to maintain a 20.dp gap between 56.dp icons.
+    val radius =  iconSize * 1.768f
+    // Angles in degrees for each app icon, corresponding to the apps list index.
+    // Assumes a coordinate system where 0° is right and 90° is down.
+    val angles = listOf(
+        180f, // apps[0]: left
+        0f,   // apps[1]: right
+        270f, // apps[2]: top
+        90f,  // apps[3]: bottom
+        225f, // apps[4]: top-left (-45° from top)
+        315f, // apps[5]: top-right (+45° from top)
+        135f, // apps[6]: bottom-left (-45° from left)
+        45f   // apps[7]: bottom-right (+45° from right)
+    )
+    val boxSize = iconSize *  4.696f
+    Box(
+        modifier = Modifier
+            .size (boxSize)
+            .aspectRatio(1f), // Ensures the layout area is square
+        contentAlignment = Alignment.Center
+    ) {
+        // Center Search Icon
+        Box(
+            modifier = Modifier
+                .clip(getShapeFromShape(iconShape, iconSize))
+                .background(Color.White)
+                .size(iconSize)
+                .scale(0.8f)
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { onShowSearch() })
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.outline_search_24),
+                contentDescription = "Search",
+                modifier = Modifier.size(iconSize)
+            )
+        }
+
+        // Place up to 8 app icons in a circle
+        apps.take(8).forEachIndexed { index, app ->
+            val angleRad = Math.toRadians(angles[index].toDouble())
+            val xOffset = (radius.value * cos(angleRad)).dp
+            val yOffset = (radius.value * sin(angleRad)).dp
+
+            Box(
+                modifier = Modifier.offset(x = xOffset, y = yOffset)
+            ) {
+                ListAppIcon(iconSize = iconSize, iconShape = iconShape, app = app)
+            }
+        }
+    }
+}
+
 @Composable
 fun FiveColumnLayout(apps:List<AppInfo>,iconSize: Dp,iconShape: Shape,onShowSearch: () -> Unit) {
     val gap = 20.dp

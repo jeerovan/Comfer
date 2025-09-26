@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Center Circle -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12,12m-3.5,0a3.5,3.5 0,1 1,7 0a3.5,3.5 0,1 1,-7 0"/>
+
+    <!-- Surrounding Circles (8 circles at 45-degree increments) -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M19,12m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M16.95,16.95m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12,19m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M7.05,16.95m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M5,12m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M7.05,7.05m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12,5m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M16.95,7.05m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"/>
+</vector>
