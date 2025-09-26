@@ -212,6 +212,7 @@ import kotlin.text.ifEmpty
 
 import androidx.compose.ui.composed
 import androidx.compose.ui.res.painterResource
+import java.nio.file.WatchEvent
 import kotlin.math.abs
 
 // Placeholder for your contact data structure
@@ -1406,158 +1407,156 @@ fun QuickListOverlay(apps: List<AppInfo>,
         {onFeedbackRateIt()}
     )
 
-    val dateTimeAlignment = imageData?.position?.let { position ->
-        alignmentFromString(position)
-    } ?: Alignment.TopCenter
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .align(dateTimeAlignment)
-                //.border(1.dp,color = Color.Red)
-                .padding(top = 40.dp, start = 20.dp, end = 20.dp, bottom = 40.dp)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = {
-                            view.playSoundEffect(SoundEffectConstants.CLICK)
-                            // Open Alarms
-                            val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
-                            if (intent.resolveActivity(context.packageManager) != null) {
-                                context.startActivity(intent)
+        Column (modifier = Modifier) {
+            Column(
+                modifier = Modifier
+                    //.border(1.dp, color = Color.Red)
+                    .padding(top = 40.dp, start = 20.dp, end = 20.dp, bottom = 40.dp)
+                    .fillMaxWidth()
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = {
+                                view.playSoundEffect(SoundEffectConstants.CLICK)
+                                // Open Alarms
+                                val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
+                                if (intent.resolveActivity(context.packageManager) != null) {
+                                    context.startActivity(intent)
+                                }
+                            },
+                            onLongPress = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                // Open Calendar
+                                val calendarIntent = Intent(
+                                    Intent.ACTION_VIEW,
+                                    CalendarContract.CONTENT_URI.buildUpon()
+                                        .appendPath("time")
+                                        .build()
+                                )
+                                if (calendarIntent.resolveActivity(context.packageManager) != null) {
+                                    context.startActivity(calendarIntent)
+                                }
+                            }
+                        )
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                var time by remember { mutableStateOf("") }
+                var date by remember { mutableStateOf("") }
+
+                val timeFormat = remember { SimpleDateFormat("h:mm a", Locale.getDefault()) }
+                val dateFormat = remember { SimpleDateFormat("EEE, MMM d", Locale.getDefault()) }
+
+                LaunchedEffect(Unit) {
+                    while (true) {
+                        val now = System.currentTimeMillis()
+                        time = timeFormat.format(Date(now))
+                        date = dateFormat.format(Date(now))
+                        delay(1000)
+                    }
+                }
+                val textColor = imageData?.color?.let { colorName ->
+                    stringToColor(colorName)
+                } ?: Color.White
+                Text(
+                    text = time,
+                    color = textColor,
+                    fontSize = 60.sp,
+                    fontWeight = FontWeight.Light
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = date,
+                        color = textColor,
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    BatteryStatus(textColor)
+                }
+            }
+            Box(
+                modifier = Modifier
+                    //.border(1.dp, color = Color.Green)
+                    .fillMaxSize()
+                    .detectSwipes(
+                        onSwipeUp = onSwipeUp,
+                        onSwipeDown = {
+                            try {
+                                @SuppressLint("WrongConstant")
+                                val statusBarService =
+                                    context.getSystemService("statusbar")
+                                val statusBarManager =
+                                    Class.forName("android.app.StatusBarManager")
+                                val method =
+                                    statusBarManager.getMethod("expandNotificationsPanel")
+                                method.invoke(statusBarService)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
                             }
                         },
-                        onLongPress = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            // Open Calendar
-                            val calendarIntent = Intent(
-                                Intent.ACTION_VIEW,
-                                CalendarContract.CONTENT_URI.buildUpon()
-                                    .appendPath("time")
-                                    .build()
-                            )
-                            if (calendarIntent.resolveActivity(context.packageManager) != null) {
-                                context.startActivity(calendarIntent)
+                        onSwipeLeft = {
+                            val showWidget = PreferenceManager.getWidgetsOnSwipe(context, "left");
+                            if (showWidget) {
+                                onSwipeLeft()
+                            } else {
+                                val swipeLeftPackage =
+                                    PreferenceManager.getSwipeApp(context, "left")
+                                if (swipeLeftPackage != null) {
+                                    val launchIntent: Intent? =
+                                        context.packageManager.getLaunchIntentForPackage(
+                                            swipeLeftPackage
+                                        )
+                                    if (launchIntent != null) {
+                                        context.startActivity(launchIntent)
+                                    }
+                                }
                             }
-                        }
-                    )
-                },
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            var time by remember { mutableStateOf("") }
-            var date by remember { mutableStateOf("") }
-
-            val timeFormat = remember { SimpleDateFormat("h:mm a", Locale.getDefault()) }
-            val dateFormat = remember { SimpleDateFormat("EEE, MMM d", Locale.getDefault()) }
-
-            LaunchedEffect(Unit) {
-                while (true) {
-                    val now = System.currentTimeMillis()
-                    time = timeFormat.format(Date(now))
-                    date = dateFormat.format(Date(now))
-                    delay(1000)
-                }
-            }
-            val textColor = imageData?.color?.let { colorName ->
-                stringToColor(colorName)
-            } ?: Color.White
-            Text(
-                text = time,
-                color = textColor,
-                fontSize = 60.sp,
-                fontWeight = FontWeight.Light
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = date,
-                    color = textColor,
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(end = 8.dp)
-                )
-                BatteryStatus(textColor)
-            }
-        }
-        val screenHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp }
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                //.border(1.dp,color=Color.Green)
-                .fillMaxWidth()
-                .height(screenHeightDp / 2 - 40.dp)
-                .detectSwipes(
-                    onSwipeUp = onSwipeUp,
-                    onSwipeDown = {
-                        try {
-                            @SuppressLint("WrongConstant")
-                            val statusBarService =
-                                context.getSystemService("statusbar")
-                            val statusBarManager =
-                                Class.forName("android.app.StatusBarManager")
-                            val method =
-                                statusBarManager.getMethod("expandNotificationsPanel")
-                            method.invoke(statusBarService)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    },
-                    onSwipeLeft = {
-                        val showWidget = PreferenceManager.getWidgetsOnSwipe(context, "left");
-                        if (showWidget) {
-                            onSwipeLeft()
-                        } else {
-                            val swipeLeftPackage =
-                                PreferenceManager.getSwipeApp(context, "left")
-                            if (swipeLeftPackage != null) {
-                                val launchIntent: Intent? =
-                                    context.packageManager.getLaunchIntentForPackage(
-                                        swipeLeftPackage
-                                    )
-                                if (launchIntent != null) {
-                                    context.startActivity(launchIntent)
+                        },
+                        onSwipeRight = {
+                            val showWidget = PreferenceManager.getWidgetsOnSwipe(context, "right");
+                            if (showWidget) {
+                                onSwipeRight()
+                            } else {
+                                val swipeRightPackage =
+                                    PreferenceManager.getSwipeApp(context, "right")
+                                if (swipeRightPackage != null) {
+                                    val launchIntent: Intent? =
+                                        context.packageManager.getLaunchIntentForPackage(
+                                            swipeRightPackage
+                                        )
+                                    if (launchIntent != null) {
+                                        context.startActivity(launchIntent)
+                                    }
                                 }
                             }
                         }
-                    },
-                    onSwipeRight = {
-                        val showWidget = PreferenceManager.getWidgetsOnSwipe(context, "right");
-                        if (showWidget) {
-                            onSwipeRight()
-                        } else {
-                            val swipeRightPackage =
-                                PreferenceManager.getSwipeApp(context, "right")
-                            if (swipeRightPackage != null) {
-                                val launchIntent: Intent? =
-                                    context.packageManager.getLaunchIntentForPackage(
-                                        swipeRightPackage
-                                    )
-                                if (launchIntent != null) {
-                                    context.startActivity(launchIntent)
-                                }
-                            }
-                        }
-                    }
-                ),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(bottom = 64.dp)
+                    ),
+                contentAlignment = Alignment.BottomCenter
             ) {
-
-                if (!isDefault) {
-                    OutlinedButton (onClick = { openDefaultLauncherSettings()},
-                        border = null,
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = Color.Black.copy(alpha = 0.5f) // Text color
-                        )
-                    ) {
-                        Text("Set default launcher",
-                            fontSize = 18.sp,
-                            color = Color.White)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(bottom = 64.dp)
+                ) {
+                    if (!isDefault) {
+                        OutlinedButton(
+                            onClick = { openDefaultLauncherSettings() },
+                            border = null,
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color.Black.copy(alpha = 0.5f) // Text color
+                            )
+                        ) {
+                            Text(
+                                "Set default launcher",
+                                fontSize = 18.sp,
+                                color = Color.White
+                            )
+                        }
                     }
-                }
-                when (appsLayout) {
-                    "linear" -> FiveColumnLayout(apps,iconSize,iconShape,onShowSearch)
-                    "circular" -> CircularLayout(apps,iconSize,iconShape,onShowSearch)
+                    when (appsLayout) {
+                        "linear" -> FiveColumnLayout(apps, iconSize, iconShape, onShowSearch)
+                        "circular" -> CircularLayout(apps, iconSize, iconShape, onShowSearch)
+                    }
                 }
             }
         }
@@ -3232,14 +3231,12 @@ fun CircularLayout(
         135f, // apps[6]: bottom-left (-45° from left)
         45f   // apps[7]: bottom-right (+45° from right)
     )
-    val boxSize = iconSize *  4.696f
+    val boxSize = iconSize * 4.8f
     Box(
         modifier = Modifier
-            .size (boxSize)
-            .aspectRatio(1f), // Ensures the layout area is square
+            .size(boxSize),
         contentAlignment = Alignment.Center
     ) {
-        // Center Search Icon
         Box(
             modifier = Modifier
                 .clip(getShapeFromShape(iconShape, iconSize))
