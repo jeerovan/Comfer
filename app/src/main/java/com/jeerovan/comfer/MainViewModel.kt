@@ -49,6 +49,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
                     // this is a first time fetch, do not set wallpaper on home screen as the app is not set default home app now
                     if (imageData != null && filePath != null) {
+                        logger.setLog("MainViewModel","Updating State with image path & data")
                         _uiState.update {
                             it.copy(
                                 imageData = imageData,

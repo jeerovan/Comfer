@@ -2291,6 +2291,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
+    val logger = LoggerManager(context)
 
     var isAppListVisible by remember { mutableStateOf(false) }
     var isSearchListVisible by remember { mutableStateOf(false) }
@@ -2446,8 +2447,14 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
 
     val haptic = LocalHapticFeedback.current
 
-    if (cachedImagePath != null && File(cachedImagePath).exists()) {
-        backgroundImage = cachedImagePath
+    if (cachedImagePath != null){
+        if(File(cachedImagePath).exists()) {
+            backgroundImage = cachedImagePath
+        } else {
+            logger.setLog("LauncherScreen","$cachedImagePath does not exist")
+        }
+    } else {
+        logger.setLog("LauncherScreen","cachedImagepath is NULL")
     }
 
     Box(

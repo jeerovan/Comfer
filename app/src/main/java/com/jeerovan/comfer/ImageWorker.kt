@@ -33,10 +33,10 @@ class ImageWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
+        delay(5000)
         fetchImageData(applicationContext)
-        delay(500)
+        delay(2000)
         downloadImage(applicationContext)
-        delay(500)
         return Result.success()
     }
 }

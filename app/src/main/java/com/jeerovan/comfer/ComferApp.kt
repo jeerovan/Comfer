@@ -4,12 +4,14 @@ import android.app.Application
 import androidx.work.*
 import java.util.concurrent.TimeUnit
 
-const val saveCrashes = false
+const val saveCrashes = true
 class ComferApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        if(saveCrashes)Thread.setDefaultUncaughtExceptionHandler(CrashHandler(this))
+        if(saveCrashes) {
+            Thread.setDefaultUncaughtExceptionHandler(CrashHandler(this))
+        }
         setupImageWorker()
     }
 
@@ -18,13 +20,13 @@ class ComferApp : Application() {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val periodicWorkRequest = PeriodicWorkRequestBuilder<ImageWorker>(15, TimeUnit.MINUTES)
+        val periodicWorkRequest = PeriodicWorkRequestBuilder<ImageWorker>(20, TimeUnit.MINUTES)
             .setConstraints(constraints)
             .build()
 
         WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
             "ImageWorker",
-            ExistingPeriodicWorkPolicy.KEEP,
+            ExistingPeriodicWorkPolicy.REPLACE,
             periodicWorkRequest
         )
     }

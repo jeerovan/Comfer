@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import androidx.core.content.edit
 
-const val saveLogs: Boolean = false
+const val saveLogs: Boolean = true
 @Serializable
 data class LogEntry(
     val timestamp: Long,

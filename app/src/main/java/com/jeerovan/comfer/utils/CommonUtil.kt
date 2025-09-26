@@ -104,6 +104,7 @@ object CommonUtil {
         val hour = PreferenceManager.getHour(applicationContext)
         if (hour > 0) {
             try {
+                logger.setLog("FetchImageData", "Fetching")
                 val name = PreferenceManager.getUsername(applicationContext)
                 val (sslSocketFactory, trustManager) = SSLHelper.createSslSocketFactory(
                     applicationContext,
@@ -136,8 +137,8 @@ object CommonUtil {
                     parameter("hour", hour)
                 }.body()
                 logger.setLog("FetchImageData", response.toString())
-                PreferenceManager.saveImageData(applicationContext, response)
                 client.close()
+                PreferenceManager.saveImageData(applicationContext, response)
                 PreferenceManager.setHour(applicationContext, hour)
             } catch (e: Exception) {
                 logger.setLog("FetchImageData",  e.toString())
@@ -145,7 +146,7 @@ object CommonUtil {
         }
     }
     fun canSetLockScreenWallpaper(): Boolean {
-        return android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
     }
     fun setWallpaper(applicationContext: Context){
         if(isDefaultLauncher(applicationContext)){
@@ -198,6 +199,7 @@ object CommonUtil {
                                 stream
                             )
                         stream.close()
+                        logger.setLog("DownloadImage","Downloaded: $filename")
                         PreferenceManager.setBackgroundImagePath(
                             applicationContext,
                             file.absolutePath
@@ -205,9 +207,10 @@ object CommonUtil {
                         PreferenceManager.setImageDownloaded(applicationContext)
                         PreferenceManager.setWallpaperApplied(applicationContext,false)
                         // delete old file
-                        if(oldFilePath != null) {
+                        if(oldFilePath != null && oldFilePath != file.absolutePath) {
                             val oldFile = File(oldFilePath)
                             oldFile.delete()
+                            logger.setLog("DownloadImage","Deleted: $oldFilePath")
                         }
                     }
                 }
