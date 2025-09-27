@@ -2038,7 +2038,9 @@ fun PermissionRequestView(onRequestPermission: () -> Unit) {
 }
 
 @Composable
-fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
+fun AppListOverlay(apps: List<AppInfo>,
+                   notificationPackages: List<String>,
+                   onSwipeDown: () -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
     val packageManager = context.packageManager
@@ -2234,6 +2236,7 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
         if (apps.isNotEmpty()) {
             UshapedAppList(
                 apps = apps,
+                notificationPackages,
                 updateCenterIndex = { updateCenterAppIndex(it) },
                 scrollOffset = -scrollAnimatable.value,
                 iconSize = iconSize,
@@ -2564,6 +2567,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             exit = layer2Exit
         ) {
             AppListOverlay(apps = primaryApps,
+                notificationPackages,
                 onSwipeDown = { isAppListVisible = false })
         }
 
@@ -2677,6 +2681,7 @@ fun AnimatedBackground(
 @Composable
 fun UshapedAppList(
     apps: List<AppInfo>,
+    notificationPackages: List<String>,
     updateCenterIndex: (Int) -> Unit,
     scrollOffset: Float,
     iconSize: Dp,
@@ -2788,10 +2793,11 @@ fun UshapedAppList(
             key(apps[appIndex].packageName) {
                 DrawerAppIcon(
                     app = apps[appIndex],
+                    notificationPackages,
                     shape = iconShape,
                     x = x.toDp(),
                     y = y.toDp(),
-                    size = size
+                    iconSize = size
                 )
             }
         }
@@ -2799,55 +2805,81 @@ fun UshapedAppList(
 }
 
 @Composable
-fun DrawerAppIcon(app: AppInfo, shape: Shape, x: Dp, y: Dp, size: Dp) {
+fun DrawerAppIcon(app: AppInfo,
+                  notificationPackages: List<String>,
+                  shape: Shape,
+                  x: Dp,
+                  y: Dp,
+                  iconSize: Dp) {
     val context = LocalContext.current
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
-    val iconShape = getShapeFromShape(shape,size)
-    Box(
-        modifier = Modifier
-            .offset(x = x, y = y)
-            .size(size)
-            .clip(iconShape)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = {
-                        view.playSoundEffect(SoundEffectConstants.CLICK)
-                        val launchIntent: Intent? =
-                            context.packageManager.getLaunchIntentForPackage(app.packageName)
-                        if (launchIntent != null) {
-                            context.startActivity(launchIntent)
-                        }
-                    },
-                    onLongPress = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                        intent.data = "package:${app.packageName}".toUri()
-                        context.startActivity(intent)
-                    }
-                )
-            },
+    val iconShape = getShapeFromShape(shape,iconSize)
+    Box (modifier = Modifier
+        .offset(x = x, y = y),
         contentAlignment = Alignment.Center
     ) {
-        // Background Layer
-        if (app.background != null) {
-            Image(
-                painter = rememberDrawablePainter(drawable = app.background),
-                contentDescription = "${app.label} background",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds
-            )
-        }
+        Box(
+            modifier = Modifier
+                .size(iconSize)
+                .clip(iconShape)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            view.playSoundEffect(SoundEffectConstants.CLICK)
+                            val launchIntent: Intent? =
+                                context.packageManager.getLaunchIntentForPackage(app.packageName)
+                            if (launchIntent != null) {
+                                context.startActivity(launchIntent)
+                            }
+                        },
+                        onLongPress = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                            intent.data = "package:${app.packageName}".toUri()
+                            context.startActivity(intent)
+                        }
+                    )
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            // Background Layer
+            if (app.background != null) {
+                Image(
+                    painter = rememberDrawablePainter(drawable = app.background),
+                    contentDescription = "${app.label} background",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+            }
 
-        // Foreground Layer
-        if (app.foreground != null) {
-            Image(
-                painter = rememberDrawablePainter(drawable = app.foreground),
-                contentDescription = app.label.toString(),
+            // Foreground Layer
+            if (app.foreground != null) {
+                Image(
+                    painter = rememberDrawablePainter(drawable = app.foreground),
+                    contentDescription = app.label.toString(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(app.scale),
+                    contentScale = ContentScale.FillBounds
+                )
+            }
+        }
+        if (app.packageName in notificationPackages) {
+            // 1. Badge size is proportional to the icon size
+            val badgeSize = iconSize / 4
+
+            // 2. Adjust offset to sit nicely on curved corners (like squircles)
+            ///val badgeOffset = badgeSize / 20
+
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .scale(app.scale),
-                contentScale = ContentScale.FillBounds
+                    .size(badgeSize)
+                    .align(Alignment.TopEnd) // 3. Align to the top-right corner of the parent Box
+                    //.offset(x = -badgeOffset, y = badgeOffset) // 4. Nudge into place
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary) // 5. Use theme color for professional look
+                //.border(1.dp, Color.White, CircleShape) // 6. Add a border for contrast
             )
         }
     }
