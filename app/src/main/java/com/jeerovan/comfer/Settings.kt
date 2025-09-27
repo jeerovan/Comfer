@@ -94,7 +94,7 @@ fun QuickAppsLayoutSettingItem(
     var showDialog by remember { mutableStateOf(false) }
 
     ListItem(
-        headlineContent = { Text("Home apps layout") },
+        headlineContent = { Text("Quick apps layout") },
         supportingContent = { Text("Select circular or linear") },
         leadingContent = { Icon(
                             painter = painterResource(R.drawable.outline_apps_24),
@@ -327,7 +327,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            //item { SectionHeader("Appearance") }
+            item { SectionHeader("Background") }
             item {
                 ListItem(
                     headlineContent = { Text("Wallpaper Motion") },
@@ -370,7 +370,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     )
                 }
             }
-
+            item { SectionHeader("Icons") }
             item {
                 ListItem(
                     headlineContent = { Text("Icon Size") },
@@ -420,12 +420,32 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
             }
             item {
+                ListItem(
+                    headlineContent = { Text("Notification + Badges") },
+                    supportingContent = { Text("Requires notification permission") },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.outline_notifications_unread_24),
+                            contentDescription = "Notification and badges"
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settingsState.hasNotificationAccess,
+                            onCheckedChange = { settingsViewModel.requestNotificationPermission(context) }
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.requestNotificationPermission(context) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
+            item { SectionHeader("Home Screen") }
+            item {
                 QuickAppsLayoutSettingItem(
                     selectedLayout = quickAppsLayout,
                     onLayoutSelected = { layout -> settingsViewModel.setQuickAppsLayout(layout)}
                 )
             }
-            //item { SectionHeader("Gestures") }
             item {
                 val intent = Intent(context, AppSelectionActivity::class.java).apply {
                     putExtra("swipe_direction", "left")
@@ -476,45 +496,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     iconSize = iconSize.dp
                 )
             }
-            item {
-                ListItem(
-                    headlineContent = { Text("Notification + Badges") },
-                    supportingContent = { Text("Requires notification permission") },
-                    leadingContent = {
-                        Icon(
-                            painter = painterResource(R.drawable.outline_notifications_unread_24),
-                            contentDescription = "Notification and badges"
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settingsState.hasNotificationAccess,
-                            onCheckedChange = { settingsViewModel.requestNotificationPermission(context) }
-                        )
-                    },
-                    modifier = Modifier.clickable { settingsViewModel.requestNotificationPermission(context) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text("Navigation/Gestures") },
-                    supportingContent = { Text("Gestures on multiple screens") },
-                    leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
-                        contentDescription = "Manage App Lists") },
-                    trailingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "Go"
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, GuideActivity::class.java))
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            //item { SectionHeader("Customization") }
+            item { SectionHeader("App") }
             item {
                 ListItem(
                     headlineContent = { Text("Manage App Lists") },
@@ -532,17 +514,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-
-            //item { SectionHeader("App") }
-            if(saveCrashes)item {
+            item {
                 ListItem(
-                    headlineContent = { Text("Crash logs") },
-                    supportingContent = { Text("View uncaught exceptions") },
-                    leadingContent = {
-                        Icon(
-                            Icons.Default.Menu,
-                            contentDescription = "View crash logs")
-                                     },
+                    headlineContent = { Text("Navigation guide") },
+                    supportingContent = { Text("Gestures on multiple screens") },
+                    leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
+                        contentDescription = "Manage App Lists") },
                     trailingContent = {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -550,7 +527,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         )
                     },
                     modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, CrashViewActivity::class.java))
+                        context.startActivity(Intent(context, GuideActivity::class.java))
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
@@ -558,7 +535,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 val context = LocalContext.current
                 val packageName = context.packageName
-
                 ListItem(
                     headlineContent = { Text("Feedback") },
                     leadingContent = { Icon(painter = painterResource(R.drawable.outline_star_rate_24), contentDescription = "Rate Icon") },
@@ -599,23 +575,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     }
                 )
             }
-            if(saveLogs)item {
-                ListItem(
-                    headlineContent = { Text("Logs") },
-                    supportingContent = { Text("App logs") },
-                    leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "App logs") },
-                    trailingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "View"
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, LogsActivity::class.java))
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
             /*item {
                 ListItem(
                     headlineContent = { Text("Date-Time color") },
@@ -644,6 +603,44 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     headlineContent = { Text("Version") },
                     supportingContent = { Text(getAppVersion(context) ?: "N/A") },
                     leadingContent = { Icon(Icons.Default.Info, contentDescription = "Version") },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
+            if(saveLogs)item {
+                ListItem(
+                    headlineContent = { Text("Logs") },
+                    supportingContent = { Text("App logs") },
+                    leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "App logs") },
+                    trailingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "View"
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        context.startActivity(Intent(context, LogsActivity::class.java))
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
+            if(saveCrashes)item {
+                ListItem(
+                    headlineContent = { Text("Crash logs") },
+                    supportingContent = { Text("View uncaught exceptions") },
+                    leadingContent = {
+                        Icon(
+                            Icons.Default.Menu,
+                            contentDescription = "View crash logs")
+                    },
+                    trailingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "Go"
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        context.startActivity(Intent(context, CrashViewActivity::class.java))
+                    },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
