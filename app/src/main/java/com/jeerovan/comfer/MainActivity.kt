@@ -96,7 +96,6 @@ import androidx.lifecycle.lifecycleScope
 import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
-import com.jeerovan.comfer.utils.CommonUtil.alignmentFromString
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import com.jeerovan.comfer.utils.CommonUtil.stringToColor
 import com.jeerovan.comfer.utils.GuideUtil.GuideDialog
@@ -138,14 +137,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.ui.text.style.TextAlign
-import androidx.core.content.res.ResourcesCompat
 import coil.compose.AsyncImage
 import kotlin.math.min
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.toArgb
-import androidx.core.graphics.drawable.toDrawable
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import android.net.Uri
 import android.provider.ContactsContract
@@ -1315,6 +1311,7 @@ fun BatteryStatus(themeColor: Color) {
 @Composable
 fun QuickListOverlay(apps: List<AppInfo>,
                      appsLayout: String?,
+                     motionEnabled: Boolean,
                      hasNotificationAccess: Boolean,
                      imageData: ImageData?,
                      onSwipeUp: () -> Unit,
@@ -1455,9 +1452,12 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         delay(1000)
                     }
                 }
-                val textColor = imageData?.color?.let { colorName ->
+                var textColor = imageData?.color?.let { colorName ->
                     stringToColor(colorName)
                 } ?: Color.White
+                if(!motionEnabled && !isDefault){
+                    textColor = Color.White
+                }
                 Text(
                     text = time,
                     color = textColor,
@@ -2110,7 +2110,11 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
             centerAppIndex = apps.lastIndex.coerceAtLeast(0)
         }
     }
-
+    // A robust helper function to wrap a value within a given range [0, max)
+    fun Float.wrap(max: Float): Float {
+        if (max <= 0f) return 0f // Avoid division by zero
+        return (this % max + max) % max
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -2143,94 +2147,85 @@ fun AppListOverlay(apps: List<AppInfo>, onSwipeDown: () -> Unit) {
                 )
             }
             .pointerInput(Unit) {
+                // These state variables are scoped to the gesture detection session
+                val velocityTracker = VelocityTracker()
+                var dragAxis: DragAxis? = null
+                var verticalDragAmount = 0f
+                var isSwipeDownTriggered = false
+
                 detectDragGestures(
                     onDragStart = {
+                        // Reset state for the new gesture
                         dragAxis = null
                         verticalDragAmount = 0f
+                        isSwipeDownTriggered = false
                         velocityTracker.resetTracking()
                         scope.launch {
-                            scrollAnimatable.stop()
+                            scrollAnimatable.stop() // Stop any ongoing animation
                         }
                     },
                     onDrag = { change, dragAmount ->
                         change.consume()
+
+                        // Lock the drag axis after a small initial movement
                         if (dragAxis == null) {
                             if (dragAmount.x.absoluteValue > 4f || dragAmount.y.absoluteValue > 4f) {
-                                dragAxis =
-                                    if (dragAmount.x.absoluteValue > dragAmount.y.absoluteValue) {
-                                        DragAxis.HORIZONTAL
-                                    } else {
-                                        DragAxis.VERTICAL
-                                    }
+                                dragAxis = if (dragAmount.x.absoluteValue > dragAmount.y.absoluteValue) {
+                                    DragAxis.HORIZONTAL
+                                } else {
+                                    DragAxis.VERTICAL
+                                }
                             }
                         }
 
                         when (dragAxis) {
                             DragAxis.HORIZONTAL -> {
-                                velocityTracker.addPosition(
-                                    change.uptimeMillis,
-                                    change.position
-                                )
-                                if (change.position.y > size.height / 2) {
-                                    val increment = dragAmount.x * 0.3f
+                                velocityTracker.addPosition(change.uptimeMillis, change.position)
 
-                                    scope.launch {
-                                        val currentValue = scrollAnimatable.value
-                                        var newValue =
-                                            currentValue + increment
-                                        if (apps.isNotEmpty()) {
-                                            val totalScrollWidth = apps.size * 20f
-                                            if (totalScrollWidth > 0) {
-                                                newValue =
-                                                    newValue.rem(totalScrollWidth)
-                                                if (newValue < 0) {
-                                                    newValue += totalScrollWidth
-                                                }
-                                            }
-                                        }
-                                        scrollAnimatable.snapTo(newValue)
-                                    }
+                                val increment = dragAmount.x * 0.3f
+                                val totalScrollWidth = apps.size * 20f
+
+                                // Launching a coroutine is necessary to call the suspend function `snapTo`.
+                                scope.launch {
+                                    val newPosition = (scrollAnimatable.value + increment).wrap(totalScrollWidth)
+                                    scrollAnimatable.snapTo(newPosition)
                                 }
                             }
 
                             DragAxis.VERTICAL -> {
-                                verticalDragAmount += dragAmount.y
-                                if (verticalDragAmount > 80f) {
-                                    onSwipeDown()
+                                // Only process vertical drag if the action hasn't been triggered yet.
+                                if (!isSwipeDownTriggered) {
+                                    verticalDragAmount += dragAmount.y
+                                    // Trigger the action once the threshold is passed.
+                                    if (verticalDragAmount > 80f) {
+                                        onSwipeDown()
+                                        isSwipeDownTriggered = true // Prevents repeated calls in this gesture.
+                                    }
                                 }
                             }
 
-                            null -> { /* Wait for axis detection */
-                            }
+                            null -> { /* Wait for axis to be locked */ }
                         }
                     },
                     onDragEnd = {
                         if (dragAxis == DragAxis.HORIZONTAL) {
-                            val velocity = velocityTracker.calculateVelocity()
+                            val velocity = velocityTracker.calculateVelocity().x * 0.3f
                             scope.launch {
-                                val initialVelocity = velocity.x * 0.3f
-                                val result = scrollAnimatable.animateDecay(
-                                    initialVelocity,
-                                    exponentialDecay()
-                                )
+                                // Animate the fling with the calculated velocity.
+                                val result = scrollAnimatable.animateDecay(velocity, exponentialDecay())
 
-                                if (result.endReason == AnimationEndReason.Finished && apps.isNotEmpty()) {
+                                // After the decay animation, ensure the final value is wrapped correctly.
+                                if (result.endReason == AnimationEndReason.Finished) {
                                     val totalScrollWidth = apps.size * 20f
-                                    if (totalScrollWidth > 0) {
-                                        var wrappedValue =
-                                            scrollAnimatable.value.rem(totalScrollWidth)
-                                        if (wrappedValue < 0) {
-                                            wrappedValue += totalScrollWidth
-                                        }
-                                        scrollAnimatable.snapTo(wrappedValue)
-                                    }
+                                    val finalValue = scrollAnimatable.value.wrap(totalScrollWidth)
+                                    scrollAnimatable.snapTo(finalValue)
                                 }
                             }
                         }
-                    }/*,
+                    },
                     onDragCancel = {
                         velocityTracker.resetTracking()
-                    }*/
+                    }
                 )
             }
     ) {
@@ -2495,6 +2490,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             QuickListOverlay(apps = quickApps,
                 appsLayout = quickAppsLayout,
                 imageData = imageData,
+                motionEnabled = wallpaperMotionEnabled,
                 hasNotificationAccess = hasNotificationAccess,
                 onSwipeUp = {
                     // Set transitions for vertical exit, then hide
@@ -3399,7 +3395,7 @@ fun ListAppIcon(iconSize: Dp,
 fun NotificationIconRow(
     modifier: Modifier = Modifier,
     maxVisibleIcons: Int = 5,
-    iconSize: Dp = 16.dp,
+    iconSize: Dp = 18.dp,
     iconColor: Color
 ) {
     val context = LocalContext.current
@@ -3414,7 +3410,7 @@ fun NotificationIconRow(
                 try {
                     // Load the small icon drawable from the notification
                     sbn.notification.smallIcon.loadDrawable(context)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     null // Gracefully handle cases where the icon can't be loaded
                 }
             }
@@ -3450,12 +3446,12 @@ fun NotificationIconRow(
                     modifier = Modifier
                         .size(iconSize)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
+                        .background(iconColor),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "+$overflowCount",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = if (iconColor == Color.White) Color.Black else Color.White,
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
