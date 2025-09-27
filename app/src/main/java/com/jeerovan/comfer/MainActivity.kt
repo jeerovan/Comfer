@@ -286,7 +286,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             ComferTheme {
                 LauncherScreen(appInfoViewModel, settingInfoViewModel, mainViewModel, appWidgetManager, appWidgetHost)
-                //WidgetHostScreen(appWidgetManager,appWidgetHost)
             }
         }
     }
@@ -1310,6 +1309,8 @@ fun BatteryStatus(themeColor: Color) {
 
 @Composable
 fun QuickListOverlay(apps: List<AppInfo>,
+                     notificationIcons: List<Drawable>,
+                     notificationPackages: List<String>,
                      appsLayout: String?,
                      motionEnabled: Boolean,
                      hasNotificationAccess: Boolean,
@@ -1473,7 +1474,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     )
                     BatteryStatus(textColor)
                 }
-                if(hasNotificationAccess)NotificationIconRow(iconColor = textColor)
+                if(hasNotificationAccess)NotificationIconRow(notificationIcons,iconColor = textColor)
             }
             Box(
                 modifier = Modifier
@@ -1555,8 +1556,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         }
                     }
                     when (appsLayout) {
-                        "linear" -> FiveColumnLayout(apps, iconSize, iconShape, onShowSearch)
-                        "circular" -> CircularLayout(apps, iconSize, iconShape, onShowSearch)
+                        "linear" -> FiveColumnLayout(apps, notificationPackages, iconSize, iconShape, onShowSearch)
+                        "circular" -> CircularLayout(apps, notificationPackages, iconSize, iconShape, onShowSearch)
                     }
                 }
             }
@@ -1567,6 +1568,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun SearchListOverlay(apps: List<AppInfo>,
+                      notificationPackages: List<String>,
                       contacts: List<Contact>,
                       onRequestContactsPermission: () -> Unit,
                       onSwipeDown: () -> Unit,
@@ -1922,7 +1924,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                             horizontalArrangement = Arrangement.spacedBy(20.dp)
                         ) {
                             items(filteredApps) { app ->
-                                ListAppIcon(iconSize,iconShape,app)
+                                ListAppIcon(iconSize,iconShape,notificationPackages,app)
                             }
                         }
                     }
@@ -2299,6 +2301,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val appInfoUiState by appInfoViewModel.uiState.collectAsState()
     val settingInfoUiState by settingsViewModel.uiState.collectAsState()
     val mainUiState by mainViewModel.uiState.collectAsState()
+    val notifications by MyNotificationListenerService.activeNotifications.collectAsState()
 
     val quickApps = appInfoUiState.quickApps
     val primaryApps = appInfoUiState.primaryApps
@@ -2307,6 +2310,39 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val quickAppsLayout = settingInfoUiState.quickAppsLayout
     val hasNotificationAccess = settingInfoUiState.hasNotificationAccess
 
+    val notificationPackages by remember(notifications, hasNotificationAccess) {
+        derivedStateOf {
+            // First, check if notification access is even enabled
+            if (!hasNotificationAccess) {
+                emptyList<String>() // Return an empty list if access is not granted
+            } else {
+                // If access is granted, proceed with mapping the packages
+                notifications.mapNotNull { sbn ->
+                    try {
+                        sbn.packageName
+                    } catch (_: Exception) {
+                        null // Gracefully handle any exceptions
+                    }
+                }
+            }
+        }
+    }
+    val notificationIcons by remember(notifications,hasNotificationAccess) {
+        derivedStateOf {
+            if (!hasNotificationAccess) {
+                emptyList<Drawable>() // Return an empty list if access is not granted
+            } else {
+                notifications.mapNotNull { sbn ->
+                    try {
+                        // Load the small icon drawable from the notification
+                        sbn.notification.smallIcon.loadDrawable(context)
+                    } catch (_: Exception) {
+                        null // Gracefully handle cases where the icon can't be loaded
+                    }
+                }
+            }
+        }
+    }
     // 1. Define all possible enter and exit animations
     val slideUpExit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
     val slideDownEnter = slideInVertically(initialOffsetY = { -it }) + fadeIn()
@@ -2488,6 +2524,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             exit = exitTransition
         ) {
             QuickListOverlay(apps = quickApps,
+                notificationIcons = notificationIcons,
+                notificationPackages = notificationPackages,
                 appsLayout = quickAppsLayout,
                 imageData = imageData,
                 motionEnabled = wallpaperMotionEnabled,
@@ -2536,6 +2574,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             exit = layer2Exit
         ) {
             SearchListOverlay (apps = primaryApps,
+                notificationPackages,
                 contacts,
                 onSwipeDown = { isSearchListVisible = false },
                 onRequestContactsPermission = { onRequestContactsPermission() },
@@ -3219,6 +3258,7 @@ fun Modifier.detectSwipes(
 @Composable
 fun CircularLayout(
     apps: List<AppInfo>,
+    notificationPackages: List<String>,
     iconSize: Dp,
     iconShape: Shape,
     onShowSearch: () -> Unit
@@ -3270,14 +3310,18 @@ fun CircularLayout(
             Box(
                 modifier = Modifier.offset(x = xOffset, y = yOffset)
             ) {
-                ListAppIcon(iconSize = iconSize, iconShape = iconShape, app = app)
+                ListAppIcon(iconSize = iconSize, iconShape = iconShape,notificationPackages, app = app)
             }
         }
     }
 }
 
 @Composable
-fun FiveColumnLayout(apps:List<AppInfo>,iconSize: Dp,iconShape: Shape,onShowSearch: () -> Unit) {
+fun FiveColumnLayout(apps:List<AppInfo>,
+                     notificationPackages: List<String>,
+                     iconSize: Dp,
+                     iconShape: Shape,
+                     onShowSearch: () -> Unit) {
     val gap = 20.dp
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -3287,15 +3331,15 @@ fun FiveColumnLayout(apps:List<AppInfo>,iconSize: Dp,iconShape: Shape,onShowSear
         Column(
             verticalArrangement = Arrangement.spacedBy(gap)
         ) {
-            if(apps.size >= 3)ListAppIcon(iconSize,iconShape,apps[2])
-            if(apps.size >= 7)ListAppIcon(iconSize,iconShape,apps[6])
+            if(apps.size >= 3)ListAppIcon(iconSize,iconShape,notificationPackages,apps[2])
+            if(apps.size >= 7)ListAppIcon(iconSize,iconShape,notificationPackages,apps[6])
         }
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
         Column(
             verticalArrangement = Arrangement.spacedBy(gap)
         ) {
-            if(apps.isNotEmpty())ListAppIcon(iconSize,iconShape,apps[0])
-            if(apps.size >= 5)ListAppIcon(iconSize,iconShape,apps[4])
+            if(apps.isNotEmpty())ListAppIcon(iconSize,iconShape,notificationPackages,apps[0])
+            if(apps.size >= 5)ListAppIcon(iconSize,iconShape,notificationPackages,apps[4])
         }
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
         // --- Middle column (single box) ---
@@ -3323,69 +3367,92 @@ fun FiveColumnLayout(apps:List<AppInfo>,iconSize: Dp,iconShape: Shape,onShowSear
         Column(
             verticalArrangement = Arrangement.spacedBy(gap)
         ) {
-            if(apps.size >= 2)ListAppIcon(iconSize,iconShape,apps[1])
-            if(apps.size >= 6)ListAppIcon(iconSize,iconShape,apps[5])
+            if(apps.size >= 2)ListAppIcon(iconSize,iconShape,notificationPackages,apps[1])
+            if(apps.size >= 6)ListAppIcon(iconSize,iconShape,notificationPackages,apps[5])
         }
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
         Column(
             verticalArrangement = Arrangement.spacedBy(gap)
         ) {
-            if(apps.size >= 4)ListAppIcon(iconSize,iconShape,apps[3])
-            if(apps.size >= 8)ListAppIcon(iconSize,iconShape,apps[7])
+            if(apps.size >= 4)ListAppIcon(iconSize,iconShape,notificationPackages,apps[3])
+            if(apps.size >= 8)ListAppIcon(iconSize,iconShape,notificationPackages,apps[7])
         }
     }
 }
 @Composable
 fun ListAppIcon(iconSize: Dp,
                 iconShape: Shape,
+                notificationPackages: List<String>,
                 app: AppInfo){
     val context = LocalContext.current
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
     Box(
-        modifier = Modifier
-            .size(iconSize)
-            .clip(getShapeFromShape(iconShape, iconSize))
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = {
-                        view.playSoundEffect(SoundEffectConstants.CLICK)
-                        val launchIntent: Intent? =
-                            context.packageManager.getLaunchIntentForPackage(app.packageName)
-                        if (launchIntent != null) {
-                            context.startActivity(launchIntent)
-                        }
-                    },
-                    onLongPress = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        val intent =
-                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                        intent.data = "package:${app.packageName}".toUri()
-                        context.startActivity(intent)
-                    }
-                )
-            },
+        // This is the main container for the icon and badge
         contentAlignment = Alignment.Center
     ) {
-        // Background Layer
-        if (app.background != null) {
-            Image(
-                painter = rememberDrawablePainter(drawable = app.background),
-                contentDescription = "${app.label} background",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds
-            )
-        }
+        Box(
+            modifier = Modifier
+                .size(iconSize)
+                .clip(getShapeFromShape(iconShape, iconSize))
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            view.playSoundEffect(SoundEffectConstants.CLICK)
+                            val launchIntent: Intent? =
+                                context.packageManager.getLaunchIntentForPackage(app.packageName)
+                            if (launchIntent != null) {
+                                context.startActivity(launchIntent)
+                            }
+                        },
+                        onLongPress = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            val intent =
+                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                            intent.data = "package:${app.packageName}".toUri()
+                            context.startActivity(intent)
+                        }
+                    )
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            // Background Layer
+            if (app.background != null) {
+                Image(
+                    painter = rememberDrawablePainter(drawable = app.background),
+                    contentDescription = "${app.label} background",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.FillBounds
+                )
+            }
 
-        // Foreground Layer
-        if (app.foreground != null) {
-            Image(
-                painter = rememberDrawablePainter(drawable = app.foreground),
-                contentDescription = app.label.toString(),
+            // Foreground Layer
+            if (app.foreground != null) {
+                Image(
+                    painter = rememberDrawablePainter(drawable = app.foreground),
+                    contentDescription = app.label.toString(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .scale(app.scale), // Let it fill the clipped Box
+                    contentScale = ContentScale.FillBounds
+                )
+            }
+        }
+        if (app.packageName in notificationPackages) {
+            // 1. Badge size is proportional to the icon size
+            val badgeSize = iconSize / 4
+
+            // 2. Adjust offset to sit nicely on curved corners (like squircles)
+            ///val badgeOffset = badgeSize / 20
+
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .scale(app.scale), // Let it fill the clipped Box
-                contentScale = ContentScale.FillBounds
+                    .size(badgeSize)
+                    .align(Alignment.TopEnd) // 3. Align to the top-right corner of the parent Box
+                    //.offset(x = -badgeOffset, y = badgeOffset) // 4. Nudge into place
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary) // 5. Use theme color for professional look
+                    //.border(1.dp, Color.White, CircleShape) // 6. Add a border for contrast
             )
         }
     }
@@ -3393,29 +3460,12 @@ fun ListAppIcon(iconSize: Dp,
 
 @Composable
 fun NotificationIconRow(
+    notificationIcons: List<Drawable>,
     modifier: Modifier = Modifier,
     maxVisibleIcons: Int = 5,
     iconSize: Dp = 18.dp,
     iconColor: Color
 ) {
-    val context = LocalContext.current
-
-    // Collect the full StatusBarNotification objects from the service
-    val notifications by MyNotificationListenerService.activeNotifications.collectAsState()
-
-    // Remember the list of small icons derived from the notifications
-    val notificationIcons by remember(notifications) {
-        derivedStateOf {
-            notifications.mapNotNull { sbn ->
-                try {
-                    // Load the small icon drawable from the notification
-                    sbn.notification.smallIcon.loadDrawable(context)
-                } catch (_: Exception) {
-                    null // Gracefully handle cases where the icon can't be loaded
-                }
-            }
-        }
-    }
 
     if (notificationIcons.isNotEmpty()) {
         Row(
