@@ -8,7 +8,9 @@ import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -23,6 +25,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState = _uiState.asStateFlow()
     private var isWorking = false
+    private val _backPressEvent = MutableSharedFlow<Unit>()
+    val backPressEvent = _backPressEvent.asSharedFlow()
+
+    fun onBackButtonPressed() {
+        viewModelScope.launch {
+            _backPressEvent.emit(Unit)
+        }
+    }
     init {
        loadImageData()
     }

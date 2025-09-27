@@ -270,7 +270,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // Do nothing because this is a launcher screen
+                mainViewModel.onBackButtonPressed()
             }
         })
 
@@ -285,7 +285,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             ComferTheme {
-                LauncherScreen(appInfoViewModel, settingInfoViewModel, mainViewModel, appWidgetManager, appWidgetHost)
+                LauncherScreen(appInfoViewModel,
+                    settingInfoViewModel,
+                    mainViewModel,
+                    appWidgetManager,
+                    appWidgetHost)
             }
         }
     }
@@ -2346,6 +2350,22 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             }
         }
     }
+    LaunchedEffect(Unit) {
+        mainViewModel.backPressEvent.collect {
+            if(areLeftWigetsVisible) {
+                areLeftWigetsVisible = false
+            }
+            if(areRightWigetsVisible){
+                areRightWigetsVisible = false
+            }
+            if (isSearchListVisible) {
+                isSearchListVisible = false
+            }
+            if (isAppListVisible){
+                isAppListVisible = false
+            }
+        }
+    }
     // 1. Define all possible enter and exit animations
     val slideUpExit = slideOutVertically(targetOffsetY = { -it }) + fadeOut()
     val slideDownEnter = slideInVertically(initialOffsetY = { -it }) + fadeIn()
@@ -2482,7 +2502,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     }
 
     val haptic = LocalHapticFeedback.current
-
     if (cachedImagePath != null){
         if(File(cachedImagePath).exists()) {
             backgroundImage = cachedImagePath
