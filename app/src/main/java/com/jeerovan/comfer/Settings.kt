@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,12 +43,14 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -68,8 +71,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
@@ -318,14 +323,20 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val iconShapeString = settingsState.iconShapeString
 
     val quickAppsLayout = settingsState.quickAppsLayout
+    var showDisclosure by remember { mutableStateOf(false) }
 
-    Scaffold(
-
-    ) { paddingValues ->
+    fun checkShowDiscloseOrPermissionIntent(){
+        if(settingsState.hasNotificationAccess){
+            settingsViewModel.requestNotificationPermission(context)
+        } else {
+            showDisclosure = true
+        }
+    }
+    Box( modifier = Modifier.fillMaxSize()
+    ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
         ) {
             item { SectionHeader("Background") }
             item {
@@ -432,10 +443,10 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     trailingContent = {
                         Switch(
                             checked = settingsState.hasNotificationAccess,
-                            onCheckedChange = { settingsViewModel.requestNotificationPermission(context) }
+                            onCheckedChange = { checkShowDiscloseOrPermissionIntent() }
                         )
                     },
-                    modifier = Modifier.clickable { settingsViewModel.requestNotificationPermission(context) },
+                    modifier = Modifier.clickable { checkShowDiscloseOrPermissionIntent() },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
@@ -645,6 +656,19 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
             }
         }
+    }
+    if (showDisclosure) {
+        NotificationServicePermissionDisclosureScreen(
+            onContinue = {
+                // The user consented. Now we can send them to the settings.
+                showDisclosure = false
+                settingsViewModel.requestNotificationPermission(context)
+            },
+            onCancel = {
+                // The user declined. Just hide the dialog.
+                showDisclosure = false
+            }
+        )
     }
 }
 @Composable
@@ -875,4 +899,68 @@ fun ImagePickerSettingItem(
             )
         }
     )
+}
+
+@Composable
+fun NotificationServicePermissionDisclosureScreen(
+    onContinue: () -> Unit,
+    onCancel: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Permission Required",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "To show notification icons on Home screen and badges on app icons, this launcher requires notification service access.",
+                textAlign = TextAlign.Center,
+                fontSize = 16.sp
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "What this service does:",
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = "• Access notification apps from service and show icons and badges as required.",
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "This service does NOT:",
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = "• Collect any personal data.",
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            Row {
+                Button(onClick = onContinue) {
+                    Text("Continue")
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                OutlinedButton(onClick = onCancel) {
+                    Text("Cancel")
+                }
+            }
+        }
+    }
 }
