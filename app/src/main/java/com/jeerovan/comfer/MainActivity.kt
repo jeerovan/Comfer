@@ -336,7 +336,6 @@ fun WidgetHostScreen(
     val widgetProviderGroups = remember { mutableStateListOf<WidgetProviderGroup>() }
     // Map to hold position data for widgets awaiting configuration
     val pendingWidgetPositions = mutableMapOf<Int, Pair<Int, Int>>()
-    var isFabMenuExpanded by remember { mutableStateOf(false) }
     val isDarkTheme = isSystemInDarkTheme()
 
     // --- START: THEME CHANGE HANDLER ---
@@ -408,9 +407,8 @@ fun WidgetHostScreen(
     }
 
     val density = LocalDensity.current
-    val configuration = LocalConfiguration.current
 
-    val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
+    val screenHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
     val cellHeightPx = with(density) { 80.dp.toPx() } // Same as in WidgetGrid
     val gapWidthPx = with(density) { 8.dp.toPx() } // Same as in WidgetGrid
 
@@ -489,32 +487,26 @@ fun WidgetHostScreen(
         pendingProvider = null
     }
 
-    Scaffold(
-        containerColor = Color.Transparent,
-        floatingActionButton = {
-            // Conditionally display the FAB menu; hide it when the picker is shown.
-            if (!showPicker) {
-                AnimatedFabMenu(
-                    hasWidgets = boundWidgets.isNotEmpty(),
-                    isEditing = editMode,
-                    isExpanded = isFabMenuExpanded,
-                    onToggle = { isFabMenuExpanded = !isFabMenuExpanded },
-                    onEditClick = { editMode = !editMode },
-                    onAddClick = { showPicker = true }
-                )
-            }
-        }
-    ) { paddingValues ->
-        Box(
+    Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .detectSwipes(
                     onSwipeLeft = onSwipeLeft,
                     onSwipeRight = onSwipeRight
-                )
+                ).pointerInput(Unit){
+                    detectTapGestures (
+                        onTap = {
+                            if (editMode) {
+                                editMode = false
+                            }
+                        },
+                        onLongPress = {
+                            editMode = !editMode
+                        }
+                    )
+                }
         ) {
-            if (boundWidgets.isEmpty() && !showPicker) {
+            if (boundWidgets.isEmpty() && !editMode) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -526,7 +518,7 @@ fun WidgetHostScreen(
                     contentAlignment = Alignment.Center, // Center the Text inside the Box
                 ) {
                     Text(
-                        text = "Tap '+' to add a widget",
+                        text = "Long press to add/edit widgets",
                         color = Color.White.copy(alpha = 0.8f),
                         fontSize = 20.sp,
                         textAlign = TextAlign.Center, // Ensure placeholder text is centered
@@ -549,7 +541,8 @@ fun WidgetHostScreen(
                         saveWidgetsToPrefs(prefs, boundWidgets)
                         updateWidgetGroups()
                     }
-                }
+                },
+                onAddClick = { showPicker = true }
             )
 
             if (showPicker) {
@@ -583,61 +576,7 @@ fun WidgetHostScreen(
                 )
             }
         }
-    }
-}
-@Composable
-private fun AnimatedFabMenu(
-    hasWidgets: Boolean,
-    isExpanded: Boolean,
-    isEditing: Boolean,
-    onToggle: () -> Unit,
-    onEditClick: () -> Unit,
-    onAddClick: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        // Animated visibility for the secondary FABs
-        AnimatedVisibility(
-            visible = isExpanded,
-            enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
-            exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 })
-        ) {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                SmallFloatingActionButton(onClick = {
-                    onEditClick()
-                    onToggle() // Collapse menu after action
-                }, shape = CircleShape) {
-                    Icon(Icons.Default.Edit, "Edit Widgets")
-                }
-                SmallFloatingActionButton(onClick = {
-                    onAddClick()
-                    onToggle() // Collapse menu after action
-                }, shape = CircleShape) {
-                    Icon(Icons.Default.Add, "Add Widget")
-                }
-            }
-        }
 
-        // Main FAB that controls the menu state
-        SmallFloatingActionButton(onClick = {
-            if (isEditing) { onEditClick() } else if (!hasWidgets) { onAddClick() } else { onToggle() }
-        }, shape = CircleShape) {
-            val rotation by animateFloatAsState(
-                targetValue = if (isExpanded) 90f else 0f,
-                animationSpec = tween(durationMillis = 300)
-            )
-            Icon(
-                imageVector = if (isEditing) Icons.Default.Check else if (!hasWidgets) Icons.Default.Add else Icons.Default.Menu,
-                contentDescription = "Menu",
-                modifier = Modifier.rotate(rotation)
-            )
-        }
-    }
 }
 
 // --- Widget Grid ---
@@ -647,18 +586,21 @@ fun WidgetGrid(
     appWidgetHost: AppWidgetHost,
     editMode: Boolean,
     onWidgetUpdate: () -> Unit,
-    onWidgetRemove: (BoundWidget) -> Unit
+    onWidgetRemove: (BoundWidget) -> Unit,
+    onAddClick: () -> Unit
 ) {
+    var beingRearranged by remember { mutableStateOf(false) }
     val gapWidth = 8.dp
     val gapWidthPx = with(LocalDensity.current) { gapWidth.toPx() }
 
     // Calculate the total horizontal space available after accounting for all gaps
     val screenWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+    val screenHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
     val totalHorizontalGapPx = (GRID_COLUMNS + 1) * gapWidthPx
     val totalAvailableWidth = screenWidthPx - totalHorizontalGapPx
     val cellWidthPx = totalAvailableWidth / GRID_COLUMNS
     val cellHeightPx = with(LocalDensity.current) { 80.dp.toPx() }
-
+    val totalGridRows = (screenHeightPx / (cellHeightPx + gapWidthPx)).toInt()
     Box(modifier = Modifier
         .fillMaxSize()
         .padding(horizontal = gapWidth)
@@ -674,9 +616,77 @@ fun WidgetGrid(
                     cellHeightPx = cellHeightPx,
                     gapPx = gapWidthPx,
                     onUpdate = onWidgetUpdate,
-                    onRemove = onWidgetRemove
+                    onRemove = onWidgetRemove,
+                    beingRearranged = {flag:Boolean -> beingRearranged = flag}
                 )
             }
+        }
+        if(editMode && !beingRearranged){
+            val position = findNextAvailableCell(boundWidgets,totalGridRows)
+            if(position != null) {
+                WidgetAddButton(
+                    position,
+                    cellWidthPx,
+                    cellHeightPx,
+                    gapWidthPx,
+                    onAddClick
+                )
+            }
+        }
+    }
+}
+@Composable
+fun WidgetAddButton(
+    buttonPosition: Pair<Int,Int>,
+    cellWidthPx: Float,
+    cellHeightPx: Float,
+    gapPx: Float,
+    onAddClick: () -> Unit
+) {
+    val gridX = buttonPosition.first
+    val gridY = buttonPosition.second
+    val initialX = (gridX * (cellWidthPx + gapPx))
+    val initialY = (gridY * (cellHeightPx + gapPx)) + gapPx
+    val initialWidth = (2 * cellWidthPx) + ((2 - 1) * gapPx)
+    val initialHeight = (2 * cellHeightPx) + ((2 - 1) * gapPx)
+
+    var position by remember { mutableStateOf(Offset(initialX, initialY)) }
+    var size by remember { mutableStateOf(IntSize(initialWidth.roundToInt(), initialHeight.roundToInt())) }
+
+    // Re-sync position and size if the widget's grid properties change externally
+    LaunchedEffect(gridX, gridY) {
+        position = Offset(initialX, initialY)
+        size = IntSize(initialWidth.roundToInt(), initialHeight.roundToInt())
+    }
+    val density = LocalDensity.current
+    Box(
+        modifier = Modifier
+            .offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
+            .size(with(density) { size.width.toDp() }, with(density) { size.height.toDp() })
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(16.dp)
+            )
+            .fillMaxSize()
+            .pointerInput(Unit){
+                detectTapGestures (
+                    onTap = {
+                        onAddClick()
+                    }
+                )
+            },
+        contentAlignment = Alignment.Center
+    ){
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.7f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Default.Add,
+                "Add Widget")
         }
     }
 }
@@ -695,7 +705,8 @@ private fun WidgetInstance(
     cellHeightPx: Float,
     gapPx: Float,
     onUpdate: () -> Unit,
-    onRemove: (BoundWidget) -> Unit
+    onRemove: (BoundWidget) -> Unit,
+    beingRearranged: (Boolean) -> Unit
 ) {
     // Initial grid-based calculations
     val initialX = (widget.gridX * (cellWidthPx + gapPx))
@@ -770,6 +781,7 @@ private fun WidgetInstance(
                                     widget.gridX * (cellWidthPx + gapPx),
                                     widget.gridY * (cellHeightPx + gapPx) + gapPx
                                 )
+                                beingRearranged(false)
                             }
                         ) { change, dragAmount ->
                             change.consume()
@@ -801,6 +813,7 @@ private fun WidgetInstance(
                             if (!isColliding(proposedRect, widget.widgetId, allWidgets)) {
                                 position = newPos
                             }
+                            beingRearranged(true)
                         }
                     }
                 },
@@ -859,6 +872,7 @@ private fun WidgetInstance(
                     (widget.spanX * cellWidthPx + (widget.spanX - 1) * gapPx).roundToInt(),
                     (widget.spanY * cellHeightPx + (widget.spanY - 1) * gapPx).roundToInt()
                 )
+                beingRearranged(false)
             }
 
             val resizeModifier = Modifier
@@ -892,6 +906,7 @@ private fun WidgetInstance(
                         if (!isColliding(proposedRect, widget.widgetId, allWidgets)) {
                             size = IntSize(newWidth.roundToInt(), size.height)
                         }
+                        beingRearranged(true)
                     }
                 }
                 .then(resizeModifier)
@@ -926,6 +941,7 @@ private fun WidgetInstance(
                                 size = IntSize(newWidth.roundToInt(), size.height)
                             }
                         }
+                        beingRearranged(true)
                     }
                 }
                 .then(resizeModifier)
@@ -955,6 +971,7 @@ private fun WidgetInstance(
                         if (!isColliding(proposedRect, widget.widgetId, allWidgets)) {
                             size = IntSize(size.width, newHeight.roundToInt())
                         }
+                        beingRearranged(true)
                     }
                 }
                 .then(resizeModifier)
@@ -987,12 +1004,13 @@ private fun WidgetInstance(
                             position = Offset(position.x, newY)
                             size = IntSize(size.width, newHeight.roundToInt())
                         }
+                        beingRearranged(true)
                     }
                 }
                 .then(resizeModifier)
             )
 
-            // Close Button
+            // Remove Button
             Box(
                 modifier = Modifier
                     .offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
@@ -1408,14 +1426,15 @@ fun QuickListOverlay(apps: List<AppInfo>,
         {onFeedbackDismiss()},
         {onFeedbackRateIt()}
     )
-
+    val maxHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp }
+    val topColumnHeight = maxHeightDp.dp*2/5
     Box(modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier) {
             Column(
                 modifier = Modifier
                     //.border(1.dp, color = Color.Red)
-                    .padding(top = 40.dp, start = 20.dp, end = 20.dp, bottom = 40.dp)
                     .fillMaxWidth()
+                    .height(topColumnHeight)
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onTap = {
@@ -1441,6 +1460,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                             }
                         )
                     },
+                verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 var time by remember { mutableStateOf("") }
@@ -1482,7 +1502,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
             }
             Box(
                 modifier = Modifier
-                    //.border(1.dp, color = Color.Green)
+                    //.border(1.dp, color = Color.Cyan)
                     .fillMaxSize()
                     .detectSwipes(
                         onSwipeUp = onSwipeUp,
