@@ -405,14 +405,24 @@ fun WidgetHostScreen(
         }
     }
 
-    val density = LocalDensity.current
 
+    val gapWidth = 8.dp
+    val gapWidthPx = with(LocalDensity.current) { gapWidth.toPx() }
+    // Calculate the total horizontal space available after accounting for all gaps
+    val screenWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
     val screenHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
-    val cellHeightPx = with(density) { 80.dp.toPx() } // Same as in WidgetGrid
-    val gapWidthPx = with(density) { 8.dp.toPx() } // Same as in WidgetGrid
-
-    // Calculate total rows based on screen height, cell height, and gaps
-    val totalGridRows = (screenHeightPx / (cellHeightPx + gapWidthPx)).toInt()
+    val totalHorizontalGapPx = (GRID_COLUMNS + 1) * gapWidthPx
+    val totalAvailableWidth = screenWidthPx - totalHorizontalGapPx
+    val cellWidthPx = totalAvailableWidth / GRID_COLUMNS
+    // 1. Estimate total rows based on square cells to start
+    val estimatedCellHeightPx = cellWidthPx
+    val totalGridRows = floor(screenHeightPx / (estimatedCellHeightPx + gapWidthPx)).toInt()
+    // 2. Calculate the exact cell height required to fill the screen with that many rows
+    // The total space for cells is the screen height minus all vertical gaps.
+    // There is one gap for each row, plus one final gap at the bottom.
+    val totalVerticalGapPx = (totalGridRows + 1) * gapWidthPx
+    val totalAvailableHeight = screenHeightPx - totalVerticalGapPx
+    val cellHeightPx = totalAvailableHeight / totalGridRows
 
     fun createWidgetView(provider: AppWidgetProviderInfo,widgetId:Int,position:Pair<Int,Int>){
         val newWidget = BoundWidget(widgetId, provider, position.first, position.second, 2, 2)
@@ -529,6 +539,10 @@ fun WidgetHostScreen(
             WidgetGrid(
                 boundWidgets = boundWidgets,
                 appWidgetHost = appWidgetHost,
+                gapWidth,
+                cellWidthPx,
+                cellHeightPx,
+                totalGridRows,
                 editMode = editMode,
                 onWidgetUpdate = {
                     coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
@@ -583,32 +597,17 @@ fun WidgetHostScreen(
 fun WidgetGrid(
     boundWidgets: List<BoundWidget>,
     appWidgetHost: AppWidgetHost,
+    gapWidth: Dp,
+    cellWidthPx: Float,
+    cellHeightPx: Float,
+    totalGridRows: Int,
     editMode: Boolean,
     onWidgetUpdate: () -> Unit,
     onWidgetRemove: (BoundWidget) -> Unit,
     onAddClick: () -> Unit
 ) {
     var beingRearranged by remember { mutableStateOf(false) }
-    val gapWidth = 8.dp
     val gapWidthPx = with(LocalDensity.current) { gapWidth.toPx() }
-
-    // Calculate the total horizontal space available after accounting for all gaps
-    val screenWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
-    val screenHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
-    val totalHorizontalGapPx = (GRID_COLUMNS + 1) * gapWidthPx
-    val totalAvailableWidth = screenWidthPx - totalHorizontalGapPx
-    val cellWidthPx = totalAvailableWidth / GRID_COLUMNS
-
-    // 1. Estimate total rows based on square cells to start
-    val estimatedCellHeightPx = cellWidthPx
-    val totalGridRows = floor(screenHeightPx / (estimatedCellHeightPx + gapWidthPx)).toInt()
-
-    // 2. Calculate the exact cell height required to fill the screen with that many rows
-    // The total space for cells is the screen height minus all vertical gaps.
-    // There is one gap for each row, plus one final gap at the bottom.
-    val totalVerticalGapPx = (totalGridRows + 1) * gapWidthPx
-    val totalAvailableHeight = screenHeightPx - totalVerticalGapPx
-    val cellHeightPx = totalAvailableHeight / totalGridRows
 
     Box(modifier = Modifier
         .fillMaxSize()
