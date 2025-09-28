@@ -226,9 +226,8 @@ enum class SearchTab {
 data class BatteryState(val level: Int, val isCharging: Boolean)
 
 private const val APPWIDGET_HOST_ID = 1024
-private const val WIDGETS_PREFS_NAME = "widget_prefs"
 private const val BOUND_WIDGETS_KEY = "bound_widgets_v2"
-private const val GRID_COLUMNS = 4 // Defines the grid layout columns
+private const val GRID_COLUMNS = 5 // Defines the grid layout columns
 
 @Serializable
 data class PersistableBoundWidget(
@@ -599,8 +598,18 @@ fun WidgetGrid(
     val totalHorizontalGapPx = (GRID_COLUMNS + 1) * gapWidthPx
     val totalAvailableWidth = screenWidthPx - totalHorizontalGapPx
     val cellWidthPx = totalAvailableWidth / GRID_COLUMNS
-    val cellHeightPx = with(LocalDensity.current) { 80.dp.toPx() }
-    val totalGridRows = (screenHeightPx / (cellHeightPx + gapWidthPx)).toInt()
+
+    // 1. Estimate total rows based on square cells to start
+    val estimatedCellHeightPx = cellWidthPx
+    val totalGridRows = floor(screenHeightPx / (estimatedCellHeightPx + gapWidthPx)).toInt()
+
+    // 2. Calculate the exact cell height required to fill the screen with that many rows
+    // The total space for cells is the screen height minus all vertical gaps.
+    // There is one gap for each row, plus one final gap at the bottom.
+    val totalVerticalGapPx = (totalGridRows + 1) * gapWidthPx
+    val totalAvailableHeight = screenHeightPx - totalVerticalGapPx
+    val cellHeightPx = totalAvailableHeight / totalGridRows
+
     Box(modifier = Modifier
         .fillMaxSize()
         .padding(horizontal = gapWidth)
