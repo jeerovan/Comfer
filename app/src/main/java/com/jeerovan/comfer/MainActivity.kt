@@ -227,7 +227,6 @@ data class BatteryState(val level: Int, val isCharging: Boolean)
 
 private const val APPWIDGET_HOST_ID = 1024
 private const val BOUND_WIDGETS_KEY = "bound_widgets_v2"
-private const val GRID_COLUMNS = 5 // Defines the grid layout columns
 
 @Serializable
 data class PersistableBoundWidget(
@@ -321,6 +320,7 @@ fun WidgetHostScreen(
     appWidgetManager: AppWidgetManager,
     appWidgetHost: AppWidgetHost,
     widgetPrefsTitle: String,
+    gridColumns: Int,
     screenHeightPx: Float,
     onSwipeLeft: () -> Unit,
     onSwipeRight: () -> Unit
@@ -411,9 +411,9 @@ fun WidgetHostScreen(
     // Calculate the total horizontal space available after accounting for all gaps
     val screenWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
     //val screenHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
-    val totalHorizontalGapPx = (GRID_COLUMNS + 1) * gapWidthPx
+    val totalHorizontalGapPx = (gridColumns + 1) * gapWidthPx
     val totalAvailableWidth = screenWidthPx - totalHorizontalGapPx
-    val cellWidthPx = totalAvailableWidth / GRID_COLUMNS
+    val cellWidthPx = totalAvailableWidth / gridColumns
     // 1. Estimate total rows based on square cells to start
     val estimatedCellHeightPx = cellWidthPx
     val totalGridRows = floor(screenHeightPx / (estimatedCellHeightPx + gapWidthPx)).toInt()
@@ -483,7 +483,7 @@ fun WidgetHostScreen(
         ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
         if (result.resultCode == Activity.RESULT_OK && widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
             val provider = pendingProvider ?: return@rememberLauncherForActivityResult
-            val position = findNextAvailableCell(boundWidgets, totalGridRows)
+            val position = findNextAvailableCell(boundWidgets,gridColumns, totalGridRows)
             if (position == null) {
                 Toast.makeText(context, "No space left on the screen", Toast.LENGTH_SHORT).show()
             } else {
@@ -540,6 +540,7 @@ fun WidgetHostScreen(
                 boundWidgets = boundWidgets,
                 appWidgetHost = appWidgetHost,
                 gapWidth,
+                gridColumns,
                 cellWidthPx,
                 cellHeightPx,
                 totalGridRows,
@@ -566,7 +567,7 @@ fun WidgetHostScreen(
                         val widgetId = appWidgetHost.allocateAppWidgetId()
                         val canBind = appWidgetManager.bindAppWidgetIdIfAllowed(widgetId, provider.provider)
                         if (canBind) {
-                            val position = findNextAvailableCell(boundWidgets, totalGridRows)
+                            val position = findNextAvailableCell(boundWidgets, gridColumns,totalGridRows)
                             if (position == null) {
                                 Toast.makeText(context, "No space left on the screen", Toast.LENGTH_SHORT).show()
                             } else {
@@ -598,6 +599,7 @@ fun WidgetGrid(
     boundWidgets: List<BoundWidget>,
     appWidgetHost: AppWidgetHost,
     gapWidth: Dp,
+    gridColumns: Int,
     cellWidthPx: Float,
     cellHeightPx: Float,
     totalGridRows: Int,
@@ -620,6 +622,7 @@ fun WidgetGrid(
                     allWidgets = boundWidgets,
                     appWidgetHost = appWidgetHost,
                     editMode = editMode,
+                    gridColumns,
                     cellWidthPx = cellWidthPx,
                     cellHeightPx = cellHeightPx,
                     gapPx = gapWidthPx,
@@ -630,7 +633,7 @@ fun WidgetGrid(
             }
         }
         if(editMode && !beingRearranged){
-            val position = findNextAvailableCell(boundWidgets,totalGridRows)
+            val position = findNextAvailableCell(boundWidgets,gridColumns,totalGridRows)
             if(position != null) {
                 WidgetAddButton(
                     position,
@@ -709,6 +712,7 @@ private fun WidgetInstance(
     allWidgets: List<BoundWidget>,
     appWidgetHost: AppWidgetHost,
     editMode: Boolean,
+    gridColumns: Int,
     cellWidthPx: Float,
     cellHeightPx: Float,
     gapPx: Float,
@@ -806,7 +810,7 @@ private fun WidgetInstance(
 
                             // Calculate proposed grid position
                             val newGridX = ((newPos.x) / (cellWidthPx + gapPx)).roundToInt()
-                                .coerceIn(0, GRID_COLUMNS - widget.spanX)
+                                .coerceIn(0, gridColumns - widget.spanX)
                             val newGridY =
                                 ((newPos.y - gapPx) / (cellHeightPx + gapPx)).roundToInt()
                                     .coerceAtLeast(0)
@@ -858,7 +862,7 @@ private fun WidgetInstance(
 
             val onResizeEnd: () -> Unit = {
                 // Calculate final spans from the current size
-                val finalSpanX = max(1, (size.width / (cellWidthPx + gapPx)).roundToInt()).coerceAtMost(GRID_COLUMNS - widget.gridX)
+                val finalSpanX = max(1, (size.width / (cellWidthPx + gapPx)).roundToInt()).coerceAtMost(gridColumns - widget.gridX)
                 val finalSpanY = max(1, (size.height / (cellHeightPx + gapPx)).roundToInt())
 
                 // Calculate final grid position (important for top/left resize)
@@ -902,7 +906,7 @@ private fun WidgetInstance(
                         )
                         val newSpanX =
                             max(1, (newWidth / (cellWidthPx + gapPx)).roundToInt()).coerceAtMost(
-                                GRID_COLUMNS - widget.gridX
+                                gridColumns - widget.gridX
                             )
                         val proposedRect = IntRect(
                             widget.gridX,
@@ -937,7 +941,7 @@ private fun WidgetInstance(
                             ((newX) / (cellWidthPx + gapPx)).roundToInt().coerceAtLeast(0)
                         val newSpanX = max(1, (newWidth / (cellWidthPx + gapPx)).roundToInt())
 
-                        if (newGridX + newSpanX <= GRID_COLUMNS) {
+                        if (newGridX + newSpanX <= gridColumns) {
                             val proposedRect = IntRect(
                                 newGridX,
                                 widget.gridY,
@@ -1208,10 +1212,10 @@ private fun loadWidgetsFromPrefs(prefs: SharedPreferences, appWidgetManager: App
 }
 
 private fun findNextAvailableCell(widgets: List<BoundWidget>,
+                                  gridColumns: Int,
                                   gridRows: Int): Pair<Int, Int>? {
     val spanX = 2
     val spanY = 2
-    val gridColumns = GRID_COLUMNS
     // Iterate through rows up to the calculated max
     for (y in 0..(gridRows - spanY)) {
         for (x in 0..(gridColumns - spanX)) {
@@ -1436,6 +1440,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
     )
     val maxHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp }
     val topColumnHeight = maxHeightDp.dp*2/5
+    val topColumnHeightPx = with(LocalDensity.current) {topColumnHeight.toPx()}
     Box(modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier) {
             Column(
@@ -2123,14 +2128,11 @@ fun AppListOverlay(apps: List<AppInfo>,
     )
 
     val scrollAnimatable = remember { Animatable(0f) }
-    val velocityTracker = remember { VelocityTracker() }
     var centerAppIndex by remember { mutableIntStateOf(0) }
     var lastCenterAppIndex by remember { mutableIntStateOf(0) }
     var centerIconX by remember { mutableFloatStateOf(0f) }
     var centerIconY by remember { mutableFloatStateOf(0f) }
     var centerIconSize by remember { mutableFloatStateOf(0f) }
-    var dragAxis by remember { mutableStateOf<DragAxis?>(null) }
-    var verticalDragAmount by remember { mutableFloatStateOf(0f) }
 
     fun updateCenterAppIndex(index:Int){
         centerAppIndex = index
@@ -2643,6 +2645,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 appWidgetManager,
                 appWidgetHost,
                 "widgets_prefs_left",
+                gridColumns = 5,
                 screenHeightPx = maxHeightPx,
                 onSwipeLeft = { areLeftWigetsVisible = false},
                 onSwipeRight = {}
@@ -2658,6 +2661,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 appWidgetManager,
                 appWidgetHost,
                 "widgets_prefs_right",
+                gridColumns = 5,
                 screenHeightPx = maxHeightPx,
                 onSwipeLeft = { },
                 onSwipeRight = { areRightWigetsVisible = false}
