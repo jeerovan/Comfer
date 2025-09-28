@@ -321,6 +321,7 @@ fun WidgetHostScreen(
     appWidgetManager: AppWidgetManager,
     appWidgetHost: AppWidgetHost,
     widgetPrefsTitle: String,
+    screenHeightPx: Float,
     onSwipeLeft: () -> Unit,
     onSwipeRight: () -> Unit
 ) {
@@ -405,12 +406,11 @@ fun WidgetHostScreen(
         }
     }
 
-
     val gapWidth = 8.dp
     val gapWidthPx = with(LocalDensity.current) { gapWidth.toPx() }
     // Calculate the total horizontal space available after accounting for all gaps
     val screenWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
-    val screenHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
+    //val screenHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
     val totalHorizontalGapPx = (GRID_COLUMNS + 1) * gapWidthPx
     val totalAvailableWidth = screenWidthPx - totalHorizontalGapPx
     val cellWidthPx = totalAvailableWidth / GRID_COLUMNS
@@ -2643,6 +2643,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 appWidgetManager,
                 appWidgetHost,
                 "widgets_prefs_left",
+                screenHeightPx = maxHeightPx,
                 onSwipeLeft = { areLeftWigetsVisible = false},
                 onSwipeRight = {}
             )
@@ -2657,6 +2658,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 appWidgetManager,
                 appWidgetHost,
                 "widgets_prefs_right",
+                screenHeightPx = maxHeightPx,
                 onSwipeLeft = { },
                 onSwipeRight = { areRightWigetsVisible = false}
             )
