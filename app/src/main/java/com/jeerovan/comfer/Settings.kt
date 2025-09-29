@@ -450,6 +450,27 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
+            item { SectionHeader("Home Widgets") }
+            item {
+                ListItem(
+                    headlineContent = { Text("Custom") },
+                    supportingContent = { Text("Set your own widgets") },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.outline_widgets_24),
+                            contentDescription = "Custom Widgets"
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settingsState.hasCustomWidgets,
+                            onCheckedChange = { settingsViewModel.setCustomWidgets(it) }
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.setCustomWidgets(!settingsState.hasCustomWidgets) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
             item { SectionHeader("Home Screen") }
             item {
                 QuickAppsLayoutSettingItem(

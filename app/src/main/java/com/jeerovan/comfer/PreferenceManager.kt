@@ -25,6 +25,7 @@ object PreferenceManager {
     private const val FEEDBACK_DIALOG = "feedback_dialog"
     private const val WALLPAPER_SET = "wallpaper_set"
     private const val QUICK_APPS_LAYOUT = "quick_apps_layout"
+    private const val CUSTOM_WIDGETS = "custom_widgets"
 
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -90,6 +91,13 @@ object PreferenceManager {
     }
     fun getQuickAppsLayout(context: Context):String? {
         return getString(context,QUICK_APPS_LAYOUT,"linear")
+    }
+
+    fun setCustomWidgets(context: Context, enabled: Boolean){
+        setBoolean(context,CUSTOM_WIDGETS,enabled)
+    }
+    fun getCustomWidgets(context: Context):Boolean{
+        return getBoolean(context,CUSTOM_WIDGETS,false)
     }
 
     // Example: setWallpaperMotion

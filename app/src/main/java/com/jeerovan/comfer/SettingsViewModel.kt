@@ -32,6 +32,7 @@ data class SettingsUiState(
     val isLeftSwipeWidgets: Boolean = false,
     val isRightSwipeWidgets: Boolean = false,
     val hasNotificationAccess: Boolean = false,
+    val hasCustomWidgets: Boolean = false,
     val dateTimeColor:String? = null
 )
 
@@ -58,6 +59,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val imageData = PreferenceManager.getImageData(getApplication())
             val dateTimeColor = imageData?.color
             val isNotificationServiceEnabled = isNotificationServiceEnabled(getApplication())
+            val hasCustomWidgets = PreferenceManager.getCustomWidgets(getApplication())
             _uiState.update {
                 it.copy(
                     wallpaperMotionEnabled = wallpaperMotion,
@@ -71,12 +73,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     isLeftSwipeWidgets = isLeftSwipeWidgets,
                     isRightSwipeWidgets = isRightSwipeWidgets,
                     hasNotificationAccess = isNotificationServiceEnabled,
+                    hasCustomWidgets =  hasCustomWidgets,
                     dateTimeColor = dateTimeColor
                 )
             }
         }
     }
-
+    fun setCustomWidgets(enabled: Boolean){
+        viewModelScope.launch {
+            PreferenceManager.setCustomWidgets(getApplication(),enabled)
+            _uiState.update { it.copy(hasCustomWidgets = enabled) }
+        }
+    }
     fun setQuickAppsLayout(layout:String){
         viewModelScope.launch {
             PreferenceManager.setQuickAppsLayout(getApplication(),layout)

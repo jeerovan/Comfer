@@ -175,6 +175,8 @@ import android.content.ComponentName
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
+import android.provider.AlarmClock
+import android.provider.CalendarContract
 import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -199,6 +201,10 @@ import kotlin.text.ifEmpty
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import com.jeerovan.comfer.utils.CommonUtil.stringToColor
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlin.math.abs
 
 // Placeholder for your contact data structure
@@ -1431,6 +1437,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                      appsLayout: String?,
                      motionEnabled: Boolean,
                      hasNotificationAccess: Boolean,
+                     hasCustomWidgets:Boolean,
                      imageData: ImageData?,
                      onSwipeUp: () -> Unit,
                      onSwipeRight: () -> Unit,
@@ -1525,83 +1532,91 @@ fun QuickListOverlay(apps: List<AppInfo>,
     val topColumnHeight = maxHeightDp.dp * 2/5
     Box(modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier) {
-            WidgetHostScreen(appWidgetManager,
-                mainWidgetHost,
-                "widgets_center",
-                gridColumns = 9,
-                screenHeight = topColumnHeight,
-                onSwipeRight = {},
-                onSwipeLeft = {})
-            /*Column(
-                modifier = Modifier
-                    //.border(1.dp, color = Color.Red)
-                    .fillMaxWidth()
-                    .height(topColumnHeight)
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onTap = {
-                                view.playSoundEffect(SoundEffectConstants.CLICK)
-                                // Open Alarms
-                                val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
-                                if (intent.resolveActivity(context.packageManager) != null) {
-                                    context.startActivity(intent)
+            if(hasCustomWidgets) {
+                WidgetHostScreen(
+                    appWidgetManager,
+                    mainWidgetHost,
+                    "widgets_center",
+                    gridColumns = 9,
+                    screenHeight = topColumnHeight,
+                    onSwipeRight = {},
+                    onSwipeLeft = {})
+            } else {
+                Column(
+                    modifier = Modifier
+                        //.border(1.dp, color = Color.Red)
+                        .fillMaxWidth()
+                        .height(topColumnHeight)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onTap = {
+                                    view.playSoundEffect(SoundEffectConstants.CLICK)
+                                    // Open Alarms
+                                    val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
+                                    if (intent.resolveActivity(context.packageManager) != null) {
+                                        context.startActivity(intent)
+                                    }
+                                },
+                                onLongPress = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    // Open Calendar
+                                    val calendarIntent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        CalendarContract.CONTENT_URI.buildUpon()
+                                            .appendPath("time")
+                                            .build()
+                                    )
+                                    if (calendarIntent.resolveActivity(context.packageManager) != null) {
+                                        context.startActivity(calendarIntent)
+                                    }
                                 }
-                            },
-                            onLongPress = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                // Open Calendar
-                                val calendarIntent = Intent(
-                                    Intent.ACTION_VIEW,
-                                    CalendarContract.CONTENT_URI.buildUpon()
-                                        .appendPath("time")
-                                        .build()
-                                )
-                                if (calendarIntent.resolveActivity(context.packageManager) != null) {
-                                    context.startActivity(calendarIntent)
-                                }
-                            }
-                        )
-                    },
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                var time by remember { mutableStateOf("") }
-                var date by remember { mutableStateOf("") }
+                            )
+                        },
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    var time by remember { mutableStateOf("") }
+                    var date by remember { mutableStateOf("") }
 
-                val timeFormat = remember { SimpleDateFormat("h:mm a", Locale.getDefault()) }
-                val dateFormat = remember { SimpleDateFormat("EEE, MMM d", Locale.getDefault()) }
+                    val timeFormat = remember { SimpleDateFormat("h:mm a", Locale.getDefault()) }
+                    val dateFormat =
+                        remember { SimpleDateFormat("EEE, MMM d", Locale.getDefault()) }
 
-                LaunchedEffect(Unit) {
-                    while (true) {
-                        val now = System.currentTimeMillis()
-                        time = timeFormat.format(Date(now))
-                        date = dateFormat.format(Date(now))
-                        delay(1000)
+                    LaunchedEffect(Unit) {
+                        while (true) {
+                            val now = System.currentTimeMillis()
+                            time = timeFormat.format(Date(now))
+                            date = dateFormat.format(Date(now))
+                            delay(1000)
+                        }
                     }
-                }
-                var textColor = imageData?.color?.let { colorName ->
-                    stringToColor(colorName)
-                } ?: Color.White
-                if(!motionEnabled && !isDefault){
-                    textColor = Color.White
-                }
-                Text(
-                    text = time,
-                    color = textColor,
-                    fontSize = 60.sp,
-                    fontWeight = FontWeight.Light
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                    var textColor = imageData?.color?.let { colorName ->
+                        stringToColor(colorName)
+                    } ?: Color.White
+                    if (!motionEnabled && !isDefault) {
+                        textColor = Color.White
+                    }
                     Text(
-                        text = date,
+                        text = time,
                         color = textColor,
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(end = 8.dp)
+                        fontSize = 60.sp,
+                        fontWeight = FontWeight.Light
                     )
-                    BatteryStatus(textColor)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = date,
+                            color = textColor,
+                            fontSize = 20.sp,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        BatteryStatus(textColor)
+                    }
+                    if (hasNotificationAccess) NotificationIconRow(
+                        notificationIcons,
+                        iconColor = textColor
+                    )
                 }
-                if(hasNotificationAccess)NotificationIconRow(notificationIcons,iconColor = textColor)
-            }*/
+            }
             Box(
                 modifier = Modifier
                     //.border(1.dp, color = Color.Cyan)
@@ -2438,6 +2453,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val wallpaperMotionEnabled = settingInfoUiState.wallpaperMotionEnabled
     val quickAppsLayout = settingInfoUiState.quickAppsLayout
     val hasNotificationAccess = settingInfoUiState.hasNotificationAccess
+    val hasCustomWidgets = settingInfoUiState.hasCustomWidgets
 
     val notificationPackages by remember(notifications, hasNotificationAccess) {
         derivedStateOf {
@@ -2677,6 +2693,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 imageData = imageData,
                 motionEnabled = wallpaperMotionEnabled,
                 hasNotificationAccess = hasNotificationAccess,
+                hasCustomWidgets = hasCustomWidgets,
                 onSwipeUp = {
                     // Set transitions for vertical exit, then hide
                     enterTransition = slideDownEnter
