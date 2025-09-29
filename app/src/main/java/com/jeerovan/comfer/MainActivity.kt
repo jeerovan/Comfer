@@ -330,6 +330,7 @@ fun WidgetHostScreen(
     sideWidgetHost: AppWidgetHost,
     widgetPrefsTitle: String,
     gridColumns: Int,
+    fullScreen: Boolean,
     screenHeight: Dp,
     onSwipeLeft: () -> Unit,
     onSwipeRight: () -> Unit
@@ -338,7 +339,7 @@ fun WidgetHostScreen(
     val prefs: SharedPreferences = context.getSharedPreferences(widgetPrefsTitle, MODE_PRIVATE)
     val coroutineScope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
-
+    val haptic = LocalHapticFeedback.current
     var editMode by remember { mutableStateOf(false) }
     var showPicker by remember { mutableStateOf(false) }
     val boundWidgets = remember { mutableStateListOf<BoundWidget>() }
@@ -476,7 +477,9 @@ fun WidgetHostScreen(
     val gapWidthPx = with(LocalDensity.current) { gapWidth.toPx() }
     // Calculate the total horizontal space available after accounting for all gaps
     val screenWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
-    val windowHeightPx = with(LocalDensity.current) { screenHeight.toPx()}
+    val screenHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp }
+    val windowHeightDp = if (fullScreen) screenHeightDp else screenHeight
+    val windowHeightPx = with(LocalDensity.current) { windowHeightDp.toPx()}
     val totalHorizontalGapPx = (gridColumns + 1) * gapWidthPx
     val totalAvailableWidth = screenWidthPx - totalHorizontalGapPx
     val cellWidthPx = totalAvailableWidth / gridColumns
@@ -516,14 +519,14 @@ fun WidgetHostScreen(
         if (result.resultCode == Activity.RESULT_OK) {
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                 if (provider != null) {
-                    Log.i("configureWidgetLauncher", "Creating Widget")
+                    LoggerManager(context).setLog("configureWidgetLauncher", "Creating Widget")
                     createWidgetView(provider, appWidgetId)
                 } else {
                     sideWidgetHost.deleteAppWidgetId(appWidgetId)
-                    Log.e("configureWidgetLauncher", "Provider is NULL")
+                    LoggerManager(context).setLog("configureWidgetLauncher", "Provider is NULL")
                 }
             } else {
-                Log.e("configureWidgetLauncher","Invalid widgetId")
+                LoggerManager(context).setLog("configureWidgetLauncher","Invalid widgetId")
             }
         } else {
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
@@ -542,14 +545,14 @@ fun WidgetHostScreen(
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
             // Use ActivityResultLauncher to start the activity and handle the result
             try {
-                Log.i("CheckConfigureWidget","Running configureWidgetLauncher")
+                LoggerManager(context).setLog("CheckConfigureWidget","Running configureWidgetLauncher")
                 configureWidgetLauncher.launch(intent)
             } catch (_:Exception){
                 Toast.makeText(context, "Widget configuration failed.", Toast.LENGTH_SHORT).show()
             }
         } else {
             // No configuration needed, create the widget view directly
-            Log.i("CheckConfigureWidget","Not Required")
+            LoggerManager(context).setLog("CheckConfigureWidget","Not Required")
             createWidgetView(provider, appWidgetId)
         }
     }
@@ -564,14 +567,14 @@ fun WidgetHostScreen(
         if (result.resultCode == Activity.RESULT_OK) {
             if( widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                 if (provider != null) {
-                    Log.i("BindWidgetLauncher", "Checking configuration")
+                    LoggerManager(context).setLog("BindWidgetLauncher", "Checking configuration")
                     checkConfigureWidget(provider, widgetId)
                 } else {
                     sideWidgetHost.deleteAppWidgetId(widgetId)
-                    Log.e("BindWidgetLauncher", "provider is null: $widgetId")
+                    LoggerManager(context).setLog("BindWidgetLauncher", "provider is null: $widgetId")
                 }
             } else {
-                Log.e("BindWidgetLauncher", "Invalid appWidgetId")
+                LoggerManager(context).setLog("BindWidgetLauncher", "Invalid appWidgetId")
             }
         } else {
             // User cancelled the binding. Clean up the allocated ID.
@@ -581,11 +584,9 @@ fun WidgetHostScreen(
             Toast.makeText(context, "Widget binding cancelled", Toast.LENGTH_SHORT).show()
         }
     }
-
+    val sizeModifier = if(fullScreen) Modifier.fillMaxSize() else Modifier.fillMaxWidth().height(windowHeightDp)
     Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(screenHeight)
+            modifier = sizeModifier
                 .detectSwipes(
                     onSwipeLeft = onSwipeLeft,
                     onSwipeRight = onSwipeRight
@@ -597,6 +598,7 @@ fun WidgetHostScreen(
                             }
                         },
                         onLongPress = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             editMode = !editMode
                         }
                     )
@@ -657,14 +659,14 @@ fun WidgetHostScreen(
                         if (canBind) {
                             checkConfigureWidget(provider,widgetId)
                         } else {
-                            Log.i("WidgetHost","Can NOT bind: $widgetId")
+                            LoggerManager(context).setLog("WidgetHost","Can NOT bind: $widgetId")
                             pendingBindRequests[widgetId] = provider
                             val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
                                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
                                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
                             }
                             try {
-                                Log.i("WidgetHost","Calling bindWidgetLauncher")
+                                LoggerManager(context).setLog("WidgetHost","Calling bindWidgetLauncher")
                                 bindWidgetLauncher.launch(intent)
                             } catch (_:Exception){
                                 Toast.makeText(context, "Widget add failed.", Toast.LENGTH_SHORT).show()
@@ -740,6 +742,8 @@ fun WidgetAddButton(
     gapPx: Float,
     onAddClick: () -> Unit
 ) {
+
+    val view = LocalView.current
     val gridX = buttonPosition.first
     val gridY = buttonPosition.second
     val initialX = (gridX * (cellWidthPx + gapPx))
@@ -769,6 +773,7 @@ fun WidgetAddButton(
             .pointerInput(Unit){
                 detectTapGestures (
                     onTap = {
+                        view.playSoundEffect(SoundEffectConstants.CLICK)
                         onAddClick()
                     }
                 )
@@ -807,6 +812,7 @@ private fun WidgetInstance(
     onRemove: (BoundWidget) -> Unit,
     beingRearranged: (Boolean) -> Unit
 ) {
+    val view = LocalView.current
     // Initial grid-based calculations
     val initialX = (widget.gridX * (cellWidthPx + gapPx))
     val initialY = (widget.gridY * (cellHeightPx + gapPx)) + gapPx
@@ -859,7 +865,6 @@ private fun WidgetInstance(
                     color = if (editMode) MaterialTheme.colorScheme.primary else Color.Transparent,
                     shape = RoundedCornerShape(16.dp)
                 )
-                .fillMaxSize()
                 .pointerInput(editMode, allWidgets) { // Re-trigger pointer input if widgets change
                     if (editMode) {
                         detectDragGestures(
@@ -1117,7 +1122,10 @@ private fun WidgetInstance(
                         with(LocalDensity.current) { size.height.toDp() })
             ) {
                 SmallFloatingActionButton(
-                    onClick = { onRemove(widget) },
+                    onClick = {
+                        view.playSoundEffect(SoundEffectConstants.CLICK)
+                        onRemove(widget)
+                              },
                     modifier = Modifier.align(Alignment.TopEnd),
                     shape = CircleShape,
                     // Set elevation to 0 to remove the default shadow, which might look odd in this context
@@ -1174,7 +1182,7 @@ fun WidgetPickerFullScreen(
     widgetProviderGroups: List<WidgetProviderGroup>
 ) {
     val context = LocalContext.current
-
+    val view = LocalView.current
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column {
             LazyVerticalGrid(
@@ -1202,7 +1210,10 @@ fun WidgetPickerFullScreen(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         modifier = Modifier
                                             .width(120.dp)
-                                            .clickable { onWidgetSelected(provider) }
+                                            .clickable {
+                                                view.playSoundEffect(SoundEffectConstants.CLICK)
+                                                onWidgetSelected(provider)
+                                            }
                                     ) {
                                         val previewDrawable = remember(provider) {
                                             // Load the preview image with a fallback to the icon.
@@ -1234,7 +1245,10 @@ fun WidgetPickerFullScreen(
         }
         Box(modifier = Modifier.fillMaxSize()) { // Use a Box to control alignment
             SmallFloatingActionButton(
-                onClick = onDismiss,
+                onClick = {
+                    view.playSoundEffect(SoundEffectConstants.CLICK)
+                    onDismiss()
+                },
                 shape = CircleShape,
                 modifier = Modifier
                     .align(Alignment.BottomEnd) // Align to the bottom-right corner
@@ -1538,6 +1552,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     mainWidgetHost,
                     "widgets_center",
                     gridColumns = 9,
+                    fullScreen = false,
                     screenHeight = topColumnHeight,
                     onSwipeRight = {},
                     onSwipeLeft = {})
@@ -2652,6 +2667,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
 
     Box(
         modifier = Modifier
+            //.border(width=1.dp,Color.White)
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -2673,7 +2689,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 )
             }) {
         val maxWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
-        val maxHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp }
         val maxHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
         AnimatedBackground(backgroundImage,wallpaperMotionEnabled,maxWidthPx,maxHeightPx)
@@ -2758,7 +2773,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 leftSideWidgetHost,
                 "widgets_prefs_left",
                 gridColumns = 7,
-                screenHeight = maxHeightDp,
+                fullScreen = true,
+                screenHeight = 0.dp,
                 onSwipeLeft = { areLeftWigetsVisible = false},
                 onSwipeRight = {}
             )
@@ -2774,7 +2790,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 rightSideWidgetHost,
                 "widgets_prefs_right",
                 gridColumns = 7,
-                screenHeight = maxHeightDp,
+                fullScreen = true,
+                screenHeight = 0.dp,
                 onSwipeLeft = { },
                 onSwipeRight = { areRightWigetsVisible = false}
             )
@@ -3460,6 +3477,7 @@ fun CircularLayout(
     iconShape: Shape,
     onShowSearch: () -> Unit
 ) {
+    val view = LocalView.current
     // Radius calculated to maintain a 20.dp gap between 56.dp icons.
     val radius =  iconSize * 1.768f
     // Angles in degrees for each app icon, corresponding to the apps list index.
@@ -3487,7 +3505,10 @@ fun CircularLayout(
                 .size(iconSize)
                 .scale(0.8f)
                 .pointerInput(Unit) {
-                    detectTapGestures(onTap = { onShowSearch() })
+                    detectTapGestures(onTap = {
+                        view.playSoundEffect(SoundEffectConstants.CLICK)
+                        onShowSearch()
+                    })
                 },
             contentAlignment = Alignment.Center
         ) {
@@ -3519,6 +3540,7 @@ fun FiveColumnLayout(apps:List<AppInfo>,
                      iconSize: Dp,
                      iconShape: Shape,
                      onShowSearch: () -> Unit) {
+    val view = LocalView.current
     val gap = 20.dp
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -3549,6 +3571,7 @@ fun FiveColumnLayout(apps:List<AppInfo>,
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onTap = {
+                            view.playSoundEffect(SoundEffectConstants.CLICK)
                             onShowSearch()
                         }
                     )

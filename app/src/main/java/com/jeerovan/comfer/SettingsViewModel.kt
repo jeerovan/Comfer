@@ -17,8 +17,19 @@ import android.content.Intent
 import android.provider.Settings
 import android.content.Context
 import androidx.core.app.NotificationManagerCompat
+import androidx.compose.ui.text.font.FontWeight
 
+// Enums for settings options
+enum class TimeFormat(val pattern: String, val displayName: String) {
+    H12("h:mm a", "12-hour"),
+    H24("HH:mm", "24-hour")
+}
 
+enum class TextStyle(val fontWeight: FontWeight) {
+    LIGHT(FontWeight.Light),
+    NORMAL(FontWeight.Normal),
+    BOLD(FontWeight.Bold)
+}
 
 data class SettingsUiState(
     val wallpaperMotionEnabled: Boolean = true,

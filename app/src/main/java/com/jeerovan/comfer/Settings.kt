@@ -178,12 +178,6 @@ fun SwipeActionSettingItem(
 ) {
     var showDialog by remember { mutableStateOf(false) }
 
-    val supportingText = when {
-        isWidgetsSelected -> "Widgets screen"
-        selectedApp != null -> selectedApp.label.toString()
-        else -> "Select an app or Widgets screen"
-    }
-
     ListItem(
         headlineContent = { Text(headline) },
         supportingContent = { Text("Select an app or Widgets screen") },
@@ -450,7 +444,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item { SectionHeader("Home Widgets") }
+            /*item { SectionHeader("Home Widgets") }
             item {
                 ListItem(
                     headlineContent = { Text("Custom") },
@@ -470,7 +464,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     modifier = Modifier.clickable { settingsViewModel.setCustomWidgets(!settingsState.hasCustomWidgets) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
-            }
+            }*/
             item { SectionHeader("Home Screen") }
             item {
                 QuickAppsLayoutSettingItem(
