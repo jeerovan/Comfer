@@ -9,6 +9,7 @@
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.BIND_APPWIDGET" />
     <application
         android:name=".ComferApp"
         android:allowBackup="true"

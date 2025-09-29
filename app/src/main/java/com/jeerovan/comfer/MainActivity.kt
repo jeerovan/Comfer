@@ -12,8 +12,6 @@ import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.os.BatteryManager
 import android.os.Bundle
-import android.provider.AlarmClock
-import android.provider.CalendarContract
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
@@ -97,12 +95,8 @@ import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
-import com.jeerovan.comfer.utils.CommonUtil.stringToColor
 import com.jeerovan.comfer.utils.GuideUtil.GuideDialog
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.asin
@@ -181,6 +175,7 @@ import android.content.ComponentName
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
+import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -188,13 +183,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.*
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -225,7 +216,9 @@ enum class SearchTab {
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
 
-private const val APPWIDGET_HOST_ID = 1024
+private const val MAIN_WIDGET_HOST_ID = 1025
+private const val LEFT_SIDE_WIDGET_HOST_ID = 1024
+private const val RIGHT_SIDE_WIDGET_HOST_ID = 1026
 private const val BOUND_WIDGETS_KEY = "bound_widgets_v2"
 
 @Serializable
@@ -256,11 +249,13 @@ data class WidgetProviderGroup(
 
 class MainActivity : ComponentActivity() {
     private val appInfoViewModel: AppInfoViewModel by viewModels()
-    private val settingInfoViewModel:SettingsViewModel by viewModels()
+    private val settingsViewModel:SettingsViewModel by viewModels()
     private val mainViewModel: MainViewModel by viewModels()
 
     // Widgets
-    private lateinit var appWidgetHost: AppWidgetHost
+    private lateinit var mainWidgetHost: AppWidgetHost
+    private lateinit var leftSideWidgetHost: AppWidgetHost
+    private lateinit var rightSideWidgetHost: AppWidgetHost
     private lateinit var appWidgetManager: AppWidgetManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -279,35 +274,43 @@ class MainActivity : ComponentActivity() {
         windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
 
         appWidgetManager = AppWidgetManager.getInstance(this)
-        appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
+        mainWidgetHost = AppWidgetHost(this, MAIN_WIDGET_HOST_ID)
+        leftSideWidgetHost = AppWidgetHost(this, LEFT_SIDE_WIDGET_HOST_ID)
+        rightSideWidgetHost = AppWidgetHost(this, RIGHT_SIDE_WIDGET_HOST_ID)
 
         setContent {
             ComferTheme {
                 LauncherScreen(appInfoViewModel,
-                    settingInfoViewModel,
+                    settingsViewModel,
                     mainViewModel,
                     appWidgetManager,
-                    appWidgetHost)
+                    mainWidgetHost,
+                    leftSideWidgetHost,
+                    rightSideWidgetHost)
             }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onStart() {
+        super.onStart()
         val logger = LoggerManager(applicationContext)
-        logger.setLog("MainActivity","Resumed")
-        appWidgetHost.startListening()
+        logger.setLog("MainActivity","Started")
+        mainWidgetHost.startListening()
+        leftSideWidgetHost.startListening()
+        rightSideWidgetHost.startListening()
         lifecycleScope.launch {
             appInfoViewModel.loadAppLists()
-            settingInfoViewModel.loadSettings()
+            settingsViewModel.loadSettings()
         }
     }
 
-    override fun onPause(){
-        super.onPause()
+    override fun onStop(){
+        super.onStop()
         val logger = LoggerManager(applicationContext)
-        logger.setLog("MainActivity","Paused")
-        appWidgetHost.stopListening()
+        logger.setLog("MainActivity","Stopped")
+        mainWidgetHost.stopListening()
+        leftSideWidgetHost.stopListening()
+        rightSideWidgetHost.stopListening()
         lifecycleScope.launch {
             //delay(1000) // Delay, does not stop main thread
             mainViewModel.loadImageData()
@@ -318,26 +321,123 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WidgetHostScreen(
     appWidgetManager: AppWidgetManager,
-    appWidgetHost: AppWidgetHost,
+    sideWidgetHost: AppWidgetHost,
     widgetPrefsTitle: String,
     gridColumns: Int,
-    screenHeightPx: Float,
+    screenHeight: Dp,
     onSwipeLeft: () -> Unit,
     onSwipeRight: () -> Unit
 ) {
     val context = LocalContext.current
     val prefs: SharedPreferences = context.getSharedPreferences(widgetPrefsTitle, MODE_PRIVATE)
     val coroutineScope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     var editMode by remember { mutableStateOf(false) }
     var showPicker by remember { mutableStateOf(false) }
     val boundWidgets = remember { mutableStateListOf<BoundWidget>() }
-    var pendingProvider by remember { mutableStateOf<AppWidgetProviderInfo?>(null) }
+    val pendingBindRequests = remember { mutableMapOf<Int, AppWidgetProviderInfo>() }
     val allWidgetProviderGroups = remember { mutableStateListOf<WidgetProviderGroup>() }
     val widgetProviderGroups = remember { mutableStateListOf<WidgetProviderGroup>() }
-    // Map to hold position data for widgets awaiting configuration
-    val pendingWidgetPositions = mutableMapOf<Int, Pair<Int, Int>>()
     val isDarkTheme = isSystemInDarkTheme()
+    val isFirstOnResume = remember { mutableStateOf(true) }
 
+    fun updateWidgetGroups (){
+        // Create a set of provider ComponentNames that are already bound for efficient lookup.
+        val boundProviderNames = boundWidgets.map { it.providerInfo.provider }.toSet()
+
+        // Map over the original list of all providers to create a new filtered list.
+        val filteredGroups = allWidgetProviderGroups.mapNotNull { group ->
+            // For each group, filter its list of providers to exclude the ones already bound.
+            val availableProviders = group.providers.filter { providerInfo ->
+                providerInfo.provider !in boundProviderNames
+            }
+
+            // If the group still has available providers after filtering, create a new
+            // group object with the filtered list. Otherwise (if the group is now empty),
+            // return null to have it removed from the final list by mapNotNull.
+            if (availableProviders.isNotEmpty()) {
+                group.copy(providers = availableProviders) // Assumes WidgetProviderGroup is a data class
+            } else {
+                null
+            }
+        }
+        // Atomically update the state list that is passed to the picker.
+        widgetProviderGroups.clear()
+        widgetProviderGroups.addAll(filteredGroups)
+    }
+    /**
+     * Fetches the latest widget providers and syncs the app's state. It cleans up
+     * any bound widgets whose provider is no longer available (e.g., app uninstalled).
+     */
+    fun syncAndRefreshProviders() {
+        coroutineScope.launch {
+            // Fetch the current list of all available widget providers from the system.
+            val newProviderGroups = withContext(Dispatchers.IO) {
+                getGroupedWidgetProviders(context)
+            }
+
+            // On subsequent onResume calls (not the first), sync state and clean up.
+            if (!isFirstOnResume.value && allWidgetProviderGroups.isNotEmpty()) {
+                // Create a set of all currently available provider ComponentNames for fast lookups.
+                val availableProviderNames = newProviderGroups.flatMap { it.providers }.map { it.provider }.toSet()
+
+                // Identify bound widgets whose providers are no longer in the available list.
+                val widgetsToRemove = boundWidgets.filter { widget ->
+                    widget.providerInfo.provider !in availableProviderNames
+                }
+
+                // If there are orphaned widgets, remove them.
+                if (widgetsToRemove.isNotEmpty()) {
+                    widgetsToRemove.forEach { widget ->
+                        sideWidgetHost.deleteAppWidgetId(widget.widgetId)
+                    }
+                    boundWidgets.removeAll(widgetsToRemove)
+                    // Persist the cleaned list to SharedPreferences.
+                    saveWidgetsToPrefs(prefs, boundWidgets)
+                }
+            }
+
+            // Update the master list of all providers with the newly fetched data.
+            allWidgetProviderGroups.clear()
+            allWidgetProviderGroups.addAll(newProviderGroups)
+
+            // If this was the first onResume, flip the flag.
+            if (isFirstOnResume.value) {
+                isFirstOnResume.value = false
+            }
+
+            // Finally, refresh the UI-facing list.
+            updateWidgetGroups()
+        }
+    }
+    // Load widgets from SharedPreferences on startup
+    LaunchedEffect(Unit) {
+        val loadedWidgets = loadWidgetsFromPrefs(prefs, appWidgetManager)
+        boundWidgets.clear()
+        boundWidgets.addAll(loadedWidgets)
+        /*coroutineScope.launch {
+            allWidgetProviderGroups.clear()
+            val groupedWidgetProviders = withContext(Dispatchers.IO) {
+                getGroupedWidgetProviders(context)
+            }
+            allWidgetProviderGroups.addAll(groupedWidgetProviders)
+            updateWidgetGroups()
+        }*/
+    }
+    // Hook into the onResume lifecycle event.
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                syncAndRefreshProviders()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
     // --- START: THEME CHANGE HANDLER ---
     // This effect runs when the composable first launches and any time isDarkTheme changes.
     LaunchedEffect(isDarkTheme) {
@@ -366,70 +466,35 @@ fun WidgetHostScreen(
         }
     }
 
-    fun updateWidgetGroups (){
-        // Create a set of provider ComponentNames that are already bound for efficient lookup.
-        val boundProviderNames = boundWidgets.map { it.providerInfo.provider }.toSet()
-
-        // Map over the original list of all providers to create a new filtered list.
-        val filteredGroups = allWidgetProviderGroups.mapNotNull { group ->
-            // For each group, filter its list of providers to exclude the ones already bound.
-            val availableProviders = group.providers.filter { providerInfo ->
-                providerInfo.provider !in boundProviderNames
-            }
-
-            // If the group still has available providers after filtering, create a new
-            // group object with the filtered list. Otherwise (if the group is now empty),
-            // return null to have it removed from the final list by mapNotNull.
-            if (availableProviders.isNotEmpty()) {
-                group.copy(providers = availableProviders) // Assumes WidgetProviderGroup is a data class
-            } else {
-                null
-            }
-        }
-
-        // Atomically update the state list that is passed to the picker.
-        widgetProviderGroups.clear()
-        widgetProviderGroups.addAll(filteredGroups)
-    }
-
-    // Load widgets from SharedPreferences on startup
-    LaunchedEffect(Unit) {
-        val loadedWidgets = loadWidgetsFromPrefs(prefs, appWidgetManager)
-        boundWidgets.addAll(loadedWidgets)
-        coroutineScope.launch {
-            allWidgetProviderGroups.clear()
-            val groupedWidgetProviders = withContext(Dispatchers.IO) {
-                getGroupedWidgetProviders(context)
-            }
-            allWidgetProviderGroups.addAll(groupedWidgetProviders)
-            updateWidgetGroups()
-        }
-    }
-
     val gapWidth = 8.dp
     val gapWidthPx = with(LocalDensity.current) { gapWidth.toPx() }
     // Calculate the total horizontal space available after accounting for all gaps
     val screenWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
-    //val screenHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
+    val windowHeightPx = with(LocalDensity.current) { screenHeight.toPx()}
     val totalHorizontalGapPx = (gridColumns + 1) * gapWidthPx
     val totalAvailableWidth = screenWidthPx - totalHorizontalGapPx
     val cellWidthPx = totalAvailableWidth / gridColumns
     // 1. Estimate total rows based on square cells to start
     val estimatedCellHeightPx = cellWidthPx
-    val totalGridRows = floor(screenHeightPx / (estimatedCellHeightPx + gapWidthPx)).toInt()
+    val totalGridRows = floor(windowHeightPx / (estimatedCellHeightPx + gapWidthPx)).toInt()
     // 2. Calculate the exact cell height required to fill the screen with that many rows
     // The total space for cells is the screen height minus all vertical gaps.
     // There is one gap for each row, plus one final gap at the bottom.
     val totalVerticalGapPx = (totalGridRows + 1) * gapWidthPx
-    val totalAvailableHeight = screenHeightPx - totalVerticalGapPx
+    val totalAvailableHeight = windowHeightPx - totalVerticalGapPx
     val cellHeightPx = totalAvailableHeight / totalGridRows
 
-    fun createWidgetView(provider: AppWidgetProviderInfo,widgetId:Int,position:Pair<Int,Int>){
-        val newWidget = BoundWidget(widgetId, provider, position.first, position.second, 2, 2)
-        boundWidgets.add(newWidget)
-        coroutineScope.launch {
-            saveWidgetsToPrefs(prefs, boundWidgets)
-            updateWidgetGroups()
+    fun createWidgetView(provider: AppWidgetProviderInfo,widgetId:Int){
+        val position = findNextAvailableCell(boundWidgets, gridColumns,totalGridRows)
+        if(position != null) {
+            val newWidget = BoundWidget(widgetId, provider, position.first, position.second, 2, 2)
+            boundWidgets.add(newWidget)
+            coroutineScope.launch {
+                saveWidgetsToPrefs(prefs, boundWidgets)
+                updateWidgetGroups()
+            }
+        } else {
+            sideWidgetHost.deleteAppWidgetId(widgetId)
         }
     }
 
@@ -441,37 +506,45 @@ fun WidgetHostScreen(
             AppWidgetManager.INVALID_APPWIDGET_ID
         ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
-        // Retrieve the stored position using the appWidgetId
-        val position = pendingWidgetPositions.remove(appWidgetId)
-
+        val provider = pendingBindRequests.remove(appWidgetId)
         if (result.resultCode == Activity.RESULT_OK) {
-            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID && position != null) {
-                val provider = pendingProvider ?: return@rememberLauncherForActivityResult
-                createWidgetView(provider, appWidgetId, position)
+            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                if (provider != null) {
+                    Log.i("configureWidgetLauncher", "Creating Widget")
+                    createWidgetView(provider, appWidgetId)
+                } else {
+                    sideWidgetHost.deleteAppWidgetId(appWidgetId)
+                    Log.e("configureWidgetLauncher", "Provider is NULL")
+                }
+            } else {
+                Log.e("configureWidgetLauncher","Invalid widgetId")
             }
         } else {
-            appWidgetHost.deleteAppWidgetId(appWidgetId)
+            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                sideWidgetHost.deleteAppWidgetId(appWidgetId)
+            }
             Toast.makeText(context, "Widget binding cancelled", Toast.LENGTH_SHORT).show()
         }
-        pendingProvider = null
     }
-    fun checkConfigureWidget(provider: AppWidgetProviderInfo,appWidgetId:Int,position:Pair<Int,Int>) {
+    fun checkConfigureWidget(provider: AppWidgetProviderInfo,appWidgetId:Int) {
         if (provider.configure != null) {
-            pendingWidgetPositions[appWidgetId] = position
-            pendingProvider = provider
+            pendingBindRequests[appWidgetId] = provider
             // This widget needs configuration
             val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE)
             intent.component = provider.configure
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
             // Use ActivityResultLauncher to start the activity and handle the result
             try {
+                Log.i("CheckConfigureWidget","Running configureWidgetLauncher")
                 configureWidgetLauncher.launch(intent)
             } catch (_:Exception){
                 Toast.makeText(context, "Widget configuration failed.", Toast.LENGTH_SHORT).show()
             }
         } else {
             // No configuration needed, create the widget view directly
-            createWidgetView(provider, appWidgetId,position)
+            Log.i("CheckConfigureWidget","Not Required")
+            createWidgetView(provider, appWidgetId)
         }
     }
     val bindWidgetLauncher = rememberLauncherForActivityResult(
@@ -481,24 +554,32 @@ fun WidgetHostScreen(
             AppWidgetManager.EXTRA_APPWIDGET_ID,
             AppWidgetManager.INVALID_APPWIDGET_ID
         ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
-        if (result.resultCode == Activity.RESULT_OK && widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-            val provider = pendingProvider ?: return@rememberLauncherForActivityResult
-            val position = findNextAvailableCell(boundWidgets,gridColumns, totalGridRows)
-            if (position == null) {
-                Toast.makeText(context, "No space left on the screen", Toast.LENGTH_SHORT).show()
+        val provider = pendingBindRequests.remove(widgetId)
+        if (result.resultCode == Activity.RESULT_OK) {
+            if( widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                if (provider != null) {
+                    Log.i("BindWidgetLauncher", "Checking configuration")
+                    checkConfigureWidget(provider, widgetId)
+                } else {
+                    sideWidgetHost.deleteAppWidgetId(widgetId)
+                    Log.e("BindWidgetLauncher", "provider is null: $widgetId")
+                }
             } else {
-                checkConfigureWidget(provider,widgetId,position)
+                Log.e("BindWidgetLauncher", "Invalid appWidgetId")
             }
         } else {
-            appWidgetHost.deleteAppWidgetId(widgetId)
+            // User cancelled the binding. Clean up the allocated ID.
+            if (widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                sideWidgetHost.deleteAppWidgetId(widgetId)
+            }
             Toast.makeText(context, "Widget binding cancelled", Toast.LENGTH_SHORT).show()
         }
-        pendingProvider = null
     }
 
     Box(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .height(screenHeight)
                 .detectSwipes(
                     onSwipeLeft = onSwipeLeft,
                     onSwipeRight = onSwipeRight
@@ -538,9 +619,10 @@ fun WidgetHostScreen(
 
             WidgetGrid(
                 boundWidgets = boundWidgets,
-                appWidgetHost = appWidgetHost,
+                appWidgetHost = sideWidgetHost,
                 gapWidth,
                 gridColumns,
+                windowHeightPx,
                 cellWidthPx,
                 cellHeightPx,
                 totalGridRows,
@@ -549,7 +631,7 @@ fun WidgetHostScreen(
                     coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
                 },
                 onWidgetRemove = { widgetToRemove ->
-                    appWidgetHost.deleteAppWidgetId(widgetToRemove.widgetId)
+                    sideWidgetHost.deleteAppWidgetId(widgetToRemove.widgetId)
                     boundWidgets.remove(widgetToRemove)
                     coroutineScope.launch {
                         saveWidgetsToPrefs(prefs, boundWidgets)
@@ -564,22 +646,19 @@ fun WidgetHostScreen(
                     onDismiss = { showPicker = false },
                     onWidgetSelected = { provider ->
                         showPicker = false
-                        val widgetId = appWidgetHost.allocateAppWidgetId()
+                        val widgetId = sideWidgetHost.allocateAppWidgetId()
                         val canBind = appWidgetManager.bindAppWidgetIdIfAllowed(widgetId, provider.provider)
                         if (canBind) {
-                            val position = findNextAvailableCell(boundWidgets, gridColumns,totalGridRows)
-                            if (position == null) {
-                                Toast.makeText(context, "No space left on the screen", Toast.LENGTH_SHORT).show()
-                            } else {
-                                checkConfigureWidget(provider,widgetId,position)
-                            }
+                            checkConfigureWidget(provider,widgetId)
                         } else {
-                            pendingProvider = provider
+                            Log.i("WidgetHost","Can NOT bind: $widgetId")
+                            pendingBindRequests[widgetId] = provider
                             val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
                                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
                                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
                             }
                             try {
+                                Log.i("WidgetHost","Calling bindWidgetLauncher")
                                 bindWidgetLauncher.launch(intent)
                             } catch (_:Exception){
                                 Toast.makeText(context, "Widget add failed.", Toast.LENGTH_SHORT).show()
@@ -590,7 +669,6 @@ fun WidgetHostScreen(
                 )
             }
         }
-
 }
 
 // --- Widget Grid ---
@@ -600,6 +678,7 @@ fun WidgetGrid(
     appWidgetHost: AppWidgetHost,
     gapWidth: Dp,
     gridColumns: Int,
+    windowHeightPx: Float,
     cellWidthPx: Float,
     cellHeightPx: Float,
     totalGridRows: Int,
@@ -623,6 +702,7 @@ fun WidgetGrid(
                     appWidgetHost = appWidgetHost,
                     editMode = editMode,
                     gridColumns,
+                    windowHeightPx,
                     cellWidthPx = cellWidthPx,
                     cellHeightPx = cellHeightPx,
                     gapPx = gapWidthPx,
@@ -713,6 +793,7 @@ private fun WidgetInstance(
     appWidgetHost: AppWidgetHost,
     editMode: Boolean,
     gridColumns: Int,
+    windowHeightPx: Float,
     cellWidthPx: Float,
     cellHeightPx: Float,
     gapPx: Float,
@@ -736,8 +817,7 @@ private fun WidgetInstance(
     }
 
     val density = LocalDensity.current
-    val screenWidthPx = with(density) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
-    val screenHeightPx = with(density) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
+    val windowWidthPx = with(density) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
     val minWidgetSizePx = with(density) { 40.dp.toPx() }
 
     var widgetState by remember { mutableStateOf(WidgetState.LOADING) }
@@ -800,11 +880,11 @@ private fun WidgetInstance(
                             val newPos = Offset(
                                 x = (position.x + dragAmount.x).coerceIn(
                                     0f,
-                                    screenWidthPx - size.width
+                                    windowWidthPx - size.width
                                 ),
                                 y = (position.y + dragAmount.y).coerceIn(
                                     gapPx,
-                                    screenHeightPx - size.height
+                                    windowHeightPx - size.height
                                 )
                             )
 
@@ -902,7 +982,7 @@ private fun WidgetInstance(
                         change.consume()
                         val newWidth = (size.width + dragAmount.x).coerceIn(
                             minWidgetSizePx,
-                            screenWidthPx - position.x
+                            windowWidthPx - position.x
                         )
                         val newSpanX =
                             max(1, (newWidth / (cellWidthPx + gapPx)).roundToInt()).coerceAtMost(
@@ -970,7 +1050,7 @@ private fun WidgetInstance(
                         change.consume()
                         val newHeight = (size.height + dragAmount.y).coerceIn(
                             minWidgetSizePx,
-                            screenHeightPx - position.y
+                            windowHeightPx - position.y
                         )
                         val newSpanY = max(1, (newHeight / (cellHeightPx + gapPx)).roundToInt())
                         val proposedRect = IntRect(
@@ -1206,7 +1286,8 @@ private fun loadWidgetsFromPrefs(prefs: SharedPreferences, appWidgetManager: App
                 null // Provider not found, maybe app was uninstalled
             }
         }
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        Log.e("LoadWidgetsFromPrefs",e.toString())
         emptyList()
     }
 }
@@ -1343,6 +1424,8 @@ fun BatteryStatus(themeColor: Color) {
 
 @Composable
 fun QuickListOverlay(apps: List<AppInfo>,
+                     appWidgetManager: AppWidgetManager,
+                     mainWidgetHost: AppWidgetHost,
                      notificationIcons: List<Drawable>,
                      notificationPackages: List<String>,
                      appsLayout: String?,
@@ -1439,11 +1522,17 @@ fun QuickListOverlay(apps: List<AppInfo>,
         {onFeedbackRateIt()}
     )
     val maxHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp }
-    val topColumnHeight = maxHeightDp.dp*2/5
-    val topColumnHeightPx = with(LocalDensity.current) {topColumnHeight.toPx()}
+    val topColumnHeight = maxHeightDp.dp * 2/5
     Box(modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier) {
-            Column(
+            WidgetHostScreen(appWidgetManager,
+                mainWidgetHost,
+                "widgets_center",
+                gridColumns = 9,
+                screenHeight = topColumnHeight,
+                onSwipeRight = {},
+                onSwipeLeft = {})
+            /*Column(
                 modifier = Modifier
                     //.border(1.dp, color = Color.Red)
                     .fillMaxWidth()
@@ -1512,7 +1601,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     BatteryStatus(textColor)
                 }
                 if(hasNotificationAccess)NotificationIconRow(notificationIcons,iconColor = textColor)
-            }
+            }*/
             Box(
                 modifier = Modifier
                     //.border(1.dp, color = Color.Cyan)
@@ -2322,7 +2411,10 @@ private enum class DragAxis { HORIZONTAL, VERTICAL }
 fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                    settingsViewModel: SettingsViewModel,
                    mainViewModel: MainViewModel,
-                   appWidgetManager: AppWidgetManager, appWidgetHost: AppWidgetHost) {
+                   appWidgetManager: AppWidgetManager,
+                   mainWidgetHost: AppWidgetHost,
+                   leftSideWidgetHost: AppWidgetHost,
+                   rightSideWidgetHost: AppWidgetHost) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
@@ -2565,6 +2657,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 )
             }) {
         val maxWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+        val maxHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp }
         val maxHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
         AnimatedBackground(backgroundImage,wallpaperMotionEnabled,maxWidthPx,maxHeightPx)
@@ -2576,6 +2669,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             exit = exitTransition
         ) {
             QuickListOverlay(apps = quickApps,
+                appWidgetManager,
+                mainWidgetHost,
                 notificationIcons = notificationIcons,
                 notificationPackages = notificationPackages,
                 appsLayout = quickAppsLayout,
@@ -2643,10 +2738,10 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         ) {
             WidgetHostScreen(
                 appWidgetManager,
-                appWidgetHost,
+                leftSideWidgetHost,
                 "widgets_prefs_left",
-                gridColumns = 5,
-                screenHeightPx = maxHeightPx,
+                gridColumns = 7,
+                screenHeight = maxHeightDp,
                 onSwipeLeft = { areLeftWigetsVisible = false},
                 onSwipeRight = {}
             )
@@ -2659,10 +2754,10 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         ) {
             WidgetHostScreen(
                 appWidgetManager,
-                appWidgetHost,
+                rightSideWidgetHost,
                 "widgets_prefs_right",
-                gridColumns = 5,
-                screenHeightPx = maxHeightPx,
+                gridColumns = 7,
+                screenHeight = maxHeightDp,
                 onSwipeLeft = { },
                 onSwipeRight = { areRightWigetsVisible = false}
             )
