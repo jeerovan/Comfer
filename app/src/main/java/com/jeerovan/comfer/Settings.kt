@@ -337,7 +337,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 ListItem(
                     headlineContent = { Text("Wallpaper Motion") },
-                    supportingContent = { Text("Make your screen alive") },
+                    supportingContent = { Text("Make home screen alive") },
                     leadingContent = {
                         Icon(
                             painter = painterResource(R.drawable.outline_motion_mode_24),
@@ -449,10 +449,10 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 ListItem(
                     headlineContent = { Text("Custom") },
-                    supportingContent = { Text("Set your own widgets") },
+                    supportingContent = { Text("My widgets") },
                     leadingContent = {
                         Icon(
-                            painter = painterResource(R.drawable.outline_widgets_24),
+                            painter = painterResource(R.drawable.outline_custom_widgets_24),
                             contentDescription = "Custom Widgets"
                         )
                     },
@@ -470,12 +470,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 item {
                     ListItem(
                         headlineContent = { Text("Customize default widget") },
-                        supportingContent = { Text("Select font size/type and other customization") },
-                        leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
+                        supportingContent = { Text("Make it yours") },
+                        leadingContent = { Icon(painter = painterResource(R.drawable.outline_customize_widgets_24),
                             contentDescription = "Customize default widget") },
                         trailingContent = {
                             Icon(
-                                Icons.AutoMirrored.Filled.Send,
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                 contentDescription = "Go"
                             )
                         },
@@ -547,7 +547,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 ListItem(
                     headlineContent = { Text("Manage App Lists") },
-                    supportingContent = { Text("Organize your apps into custom lists") },
+                    supportingContent = { Text("Organize/Reorder apps in lists") },
                     leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Manage App Lists") },
                     trailingContent = {
                         Icon(
@@ -718,7 +718,7 @@ fun IconShapeSettingItem(
     ListItem(
         modifier = Modifier.clickable { showDialog = true },
         headlineContent = { Text("Icon Shape") },
-        supportingContent = { Text("Customize the icon shape") },
+        supportingContent = { Text("Set unique style") },
         leadingContent = {
             Icon(
                 painter = painterResource(R.drawable.outline_blur_circular_24),

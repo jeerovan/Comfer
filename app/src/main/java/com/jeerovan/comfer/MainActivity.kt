@@ -1570,102 +1570,114 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     onSwipeRight = {},
                     onSwipeLeft = {})
             } else {
-                Column(
-                    modifier = Modifier
-                        //.border(1.dp, color = Color.Red)
-                        .fillMaxWidth()
-                        .height(topColumnHeight)
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onTap = {
-                                    view.playSoundEffect(SoundEffectConstants.CLICK)
-                                    // Open Alarms
-                                    val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
-                                    if (intent.resolveActivity(context.packageManager) != null) {
-                                        context.startActivity(intent)
-                                    }
-                                },
-                                onLongPress = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    // Open Calendar
-                                    val calendarIntent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        CalendarContract.CONTENT_URI.buildUpon()
-                                            .appendPath("time")
-                                            .build()
-                                    )
-                                    if (calendarIntent.resolveActivity(context.packageManager) != null) {
-                                        context.startActivity(calendarIntent)
-                                    }
-                                }
-                            )
-                        },
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    val timeFormat = remember(settings.timeFormat, settings.showAmPm) {
-                        // Build your pattern based on the settings
-                        val pattern = if (settings.timeFormat == "H12") {
-                            if (settings.showAmPm) "h:mm a" else "h:mm"
-                        } else { // "H24"
-                            "HH:mm"
-                        }
-                        SimpleDateFormat(pattern, Locale.getDefault())
-                    }
-
-                    // Date format is static and doesn't need keys
-                    val dateFormat = remember {
-                        SimpleDateFormat("EEE, MMM d", Locale.getDefault())
-                    }
-
-                    // Use mutableStateOf to hold the string values that will be displayed
-                    var time by remember { mutableStateOf("") }
-                    var date by remember { mutableStateOf("") }
-
-                    // This effect now restarts whenever `timeFormat` changes
-                    LaunchedEffect(timeFormat) {
-                        while (true) {
-                            val now = System.currentTimeMillis()
-                            // Update the state variables, triggering recomposition for the Text composables
-                            time = timeFormat.format(Date(now))
-                            date = dateFormat.format(Date(now))
-                            delay(1000)
-                        }
-                    }
-
-                    var textColor = imageData?.color?.let { colorName ->
-                        stringToColor(colorName)
-                    } ?: Color.White
-                    if (!settings.wallpaperMotionEnabled && !isDefault) {
-                        textColor = Color.White
-                    }
-                    Text(
-                        text = time,
-                        color = textColor,
-                        fontSize = settings.timeFontSize.sp,
-                        fontWeight = getFontWeightFromString(settings.timeFontWeight),
-                        fontFamily = settings.timeFontFamily
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = date,
-                            color = textColor,
-                            fontSize = settings.dateFontSize.sp,
-                            fontWeight = getFontWeightFromString(settings.dateFontWeight),
-                            fontFamily = settings.dateFontFamily,
-                            modifier = Modifier.padding(end = 8.dp)
+                Box (modifier = Modifier
+                    //.border(width = 1.dp,Color.Cyan)
+                    .fillMaxWidth()
+                    .height(topColumnHeight)
+                    .pointerInput(Unit){
+                      detectTapGestures (
+                          onTap = { },
+                          onDoubleTap = {},
+                          onLongPress = {}
                         )
-                        if(settings.showBatteryIcon || settings.showBatteryPercentage)BatteryStatus(textColor,
-                            showBatteryIcon = settings.showBatteryIcon,
-                            showBatteryPercentage = settings.showBatteryPercentage,
-                            fontFamily = settings.dateFontFamily,
-                            fontWeight = getFontWeightFromString(settings.dateFontWeight),
-                            fontSize = settings.dateFontSize.sp)
+                    },
+                    contentAlignment = Alignment.Center
+                ){
+                    Column(
+                        modifier = Modifier
+                            //.border(1.dp, color = Color.Red)
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = {
+                                        view.playSoundEffect(SoundEffectConstants.CLICK)
+                                        // Open Alarms
+                                        val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
+                                        if (intent.resolveActivity(context.packageManager) != null) {
+                                            context.startActivity(intent)
+                                        }
+                                    },
+                                    onLongPress = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        // Open Calendar
+                                        val calendarIntent = Intent(
+                                            Intent.ACTION_VIEW,
+                                            CalendarContract.CONTENT_URI.buildUpon()
+                                                .appendPath("time")
+                                                .build()
+                                        )
+                                        if (calendarIntent.resolveActivity(context.packageManager) != null) {
+                                            context.startActivity(calendarIntent)
+                                        }
+                                    }
+                                )
+                            },
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        val timeFormat = remember(settings.timeFormat, settings.showAmPm) {
+                            // Build your pattern based on the settings
+                            val pattern = if (settings.timeFormat == "H12") {
+                                if (settings.showAmPm) "h:mm a" else "h:mm"
+                            } else { // "H24"
+                                "HH:mm"
+                            }
+                            SimpleDateFormat(pattern, Locale.getDefault())
+                        }
+
+                        // Date format is static and doesn't need keys
+                        val dateFormat = remember {
+                            SimpleDateFormat("EEE, MMM d", Locale.getDefault())
+                        }
+
+                        // Use mutableStateOf to hold the string values that will be displayed
+                        var time by remember { mutableStateOf("") }
+                        var date by remember { mutableStateOf("") }
+
+                        // This effect now restarts whenever `timeFormat` changes
+                        LaunchedEffect(timeFormat) {
+                            while (true) {
+                                val now = System.currentTimeMillis()
+                                // Update the state variables, triggering recomposition for the Text composables
+                                time = timeFormat.format(Date(now))
+                                date = dateFormat.format(Date(now))
+                                delay(1000)
+                            }
+                        }
+
+                        var textColor = imageData?.color?.let { colorName ->
+                            stringToColor(colorName)
+                        } ?: Color.White
+                        if (!settings.wallpaperMotionEnabled && !isDefault) {
+                            textColor = Color.White
+                        }
+                        Text(
+                            text = time,
+                            color = textColor,
+                            fontSize = settings.timeFontSize.sp,
+                            fontWeight = getFontWeightFromString(settings.timeFontWeight),
+                            fontFamily = settings.timeFontFamily
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = date,
+                                color = textColor,
+                                fontSize = settings.dateFontSize.sp,
+                                fontWeight = getFontWeightFromString(settings.dateFontWeight),
+                                fontFamily = settings.dateFontFamily,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            if(settings.showBatteryIcon || settings.showBatteryPercentage)BatteryStatus(textColor,
+                                showBatteryIcon = settings.showBatteryIcon,
+                                showBatteryPercentage = settings.showBatteryPercentage,
+                                fontFamily = settings.dateFontFamily,
+                                fontWeight = getFontWeightFromString(settings.dateFontWeight),
+                                fontSize = settings.dateFontSize.sp)
+                        }
+                        if (settings.hasNotificationAccess && settings.showNotificationRow) NotificationIconRow(
+                            notificationIcons,
+                            iconColor = textColor
+                        )
                     }
-                    if (settings.hasNotificationAccess && settings.showNotificationRow) NotificationIconRow(
-                        notificationIcons,
-                        iconColor = textColor
-                    )
                 }
             }
             Box(

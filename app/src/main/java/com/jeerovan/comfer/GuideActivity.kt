@@ -69,17 +69,20 @@ fun UserGuideScreen() {
             }
             item {
                 // Using more descriptive text for a better user experience
-                GuideStepItem(text = "Swipe up to see the full App List.")
+                GuideStepItem(text = "Swipe up to see the App List.")
             }
             item {
                 // Using more descriptive text for a better user experience
-                GuideStepItem(text = "Swipe down to see system notifications.")
+                GuideStepItem(text = "Swipe down to see notifications.")
             }
             item {
                 GuideStepItem(text = "Double tap screen to open recents.")
             }
             item {
-                GuideStepItem(text = "Long-press to open settings.")
+                GuideStepItem(text = "Long-press lower half screen to open settings.")
+            }
+            item {
+                GuideStepItem(text = "Long-press upper half screen to edit widgets.")
             }
             item {
                 GuideStepItem(text = "Tap on Date/Time to see alarms.")
@@ -88,7 +91,7 @@ fun UserGuideScreen() {
                 GuideStepItem(text = "Long-press on Date/Time to see calendar.")
             }
             item {
-                GuideStepItem(text = "Swipe left/right to open desired app.")
+                GuideStepItem(text = "Swipe left/right to open desired app or widgets screen.")
             }
 
             // App List Section
