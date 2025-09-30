@@ -201,6 +201,8 @@ import kotlin.text.ifEmpty
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.TextUnit
 import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
 import com.jeerovan.comfer.utils.CommonUtil.stringToColor
 import java.text.SimpleDateFormat
@@ -1376,17 +1378,28 @@ fun rememberBatteryState(): State<BatteryState> {
 
 
 @Composable
-fun BatteryStatus(themeColor: Color) {
+fun BatteryStatus(
+    themeColor: Color,
+    showBatteryIcon: Boolean,
+    showBatteryPercentage: Boolean,
+    fontFamily: FontFamily,
+    fontWeight: FontWeight,
+    fontSize: TextUnit = 16.sp // Default font size
+) {
     val batteryState by rememberBatteryState()
     val batteryLevel = batteryState.level
     val isCharging = batteryState.isCharging
     val isLow = batteryLevel < 10
     val batteryLevelColor = if (isLow) Color.Red else themeColor
 
+    // Calculate icon size based on font size
+    val iconHeight = with(LocalDensity.current) { fontSize.toDp() * 0.7f}
+    val iconWidth = iconHeight * 2 // Maintain a 2:1 aspect ratio
+
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
+        if(showBatteryIcon)Box(
             modifier = Modifier
-                .size(24.dp, 12.dp)
+                .size(width = iconWidth, height = iconHeight)
                 .padding(end = 4.dp)
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -1433,11 +1446,13 @@ fun BatteryStatus(themeColor: Color) {
                 }
             }
         }
-        if (batteryLevel > 0) {
+        if (batteryLevel > 0 && showBatteryPercentage) {
             Text(
                 text = "$batteryLevel%",
                 color = themeColor,
-                fontSize = 16.sp,
+                fontSize = fontSize, // Use the fontSize parameter
+                fontFamily = fontFamily,
+                fontWeight = fontWeight
             )
         }
     }
@@ -1588,21 +1603,36 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    val timeFormat = remember(settings.timeFormat, settings.showAmPm) {
+                        // Build your pattern based on the settings
+                        val pattern = if (settings.timeFormat == "H12") {
+                            if (settings.showAmPm) "h:mm a" else "h:mm"
+                        } else { // "H24"
+                            "HH:mm"
+                        }
+                        SimpleDateFormat(pattern, Locale.getDefault())
+                    }
+
+                    // Date format is static and doesn't need keys
+                    val dateFormat = remember {
+                        SimpleDateFormat("EEE, MMM d", Locale.getDefault())
+                    }
+
+                    // Use mutableStateOf to hold the string values that will be displayed
                     var time by remember { mutableStateOf("") }
                     var date by remember { mutableStateOf("") }
 
-                    val timeFormat = remember { SimpleDateFormat("h:mm a", Locale.getDefault()) }
-                    val dateFormat =
-                        remember { SimpleDateFormat("EEE, MMM d", Locale.getDefault()) }
-
-                    LaunchedEffect(Unit) {
+                    // This effect now restarts whenever `timeFormat` changes
+                    LaunchedEffect(timeFormat) {
                         while (true) {
                             val now = System.currentTimeMillis()
+                            // Update the state variables, triggering recomposition for the Text composables
                             time = timeFormat.format(Date(now))
                             date = dateFormat.format(Date(now))
                             delay(1000)
                         }
                     }
+
                     var textColor = imageData?.color?.let { colorName ->
                         stringToColor(colorName)
                     } ?: Color.White
@@ -1625,7 +1655,12 @@ fun QuickListOverlay(apps: List<AppInfo>,
                             fontFamily = settings.dateFontFamily,
                             modifier = Modifier.padding(end = 8.dp)
                         )
-                        BatteryStatus(textColor)
+                        if(settings.showBatteryIcon || settings.showBatteryPercentage)BatteryStatus(textColor,
+                            showBatteryIcon = settings.showBatteryIcon,
+                            showBatteryPercentage = settings.showBatteryPercentage,
+                            fontFamily = settings.dateFontFamily,
+                            fontWeight = getFontWeightFromString(settings.dateFontWeight),
+                            fontSize = settings.dateFontSize.sp)
                     }
                     if (settings.hasNotificationAccess && settings.showNotificationRow) NotificationIconRow(
                         notificationIcons,
