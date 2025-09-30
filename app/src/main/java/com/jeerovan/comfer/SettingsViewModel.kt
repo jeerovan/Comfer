@@ -16,20 +16,12 @@ import kotlinx.coroutines.withContext
 import android.content.Intent
 import android.provider.Settings
 import android.content.Context
+import android.util.Log
 import androidx.core.app.NotificationManagerCompat
-import androidx.compose.ui.text.font.FontWeight
-
-// Enums for settings options
-enum class TimeFormat(val pattern: String, val displayName: String) {
-    H12("h:mm a", "12-hour"),
-    H24("HH:mm", "24-hour")
-}
-
-enum class TextStyle(val fontWeight: FontWeight) {
-    LIGHT(FontWeight.Light),
-    NORMAL(FontWeight.Normal),
-    BOLD(FontWeight.Bold)
-}
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.GoogleFont
+import com.jeerovan.comfer.ui.theme.fontProvider
 
 data class SettingsUiState(
     val wallpaperMotionEnabled: Boolean = true,
@@ -44,13 +36,41 @@ data class SettingsUiState(
     val isRightSwipeWidgets: Boolean = false,
     val hasNotificationAccess: Boolean = false,
     val hasCustomWidgets: Boolean = false,
-    val dateTimeColor:String? = null
+    val dateTimeColor:String? = null,
+    val timeFormat: String = "H12",
+    val showAmPm: Boolean = true,
+    val timeFontSize: Int = 60,
+    val timeFontName: String = "Roboto",
+    val timeFontFamily: FontFamily = FontFamily.Default,
+    val timeFontWeight: String = "Light",
+    val dateFormat: String = "EEE,MMM d",
+    val dateFontSize: Int = 20,
+    val dateFontName: String = "Roboto",
+    val dateFontFamily: FontFamily = FontFamily.Default,
+    val dateFontWeight: String = "Normal",
+    val showBatteryIcon: Boolean  = true,
+    val showBatteryPercentage: Boolean = true,
+    val showNotificationRow : Boolean = true
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
     private val logger = LoggerManager(application)
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState = _uiState.asStateFlow()
+
+    // const
+    private val TIME_FORMAT = "time_format"
+    private val SHOW_AM_PM = "show_am_pm"
+    private val TIME_FONT_SIZE = "time_font_size"
+    private val TIME_FONT_NAME = "time_font_name"
+    private val TIME_FONT_WEIGHT = "time_font_weight"
+    private val DATE_FORMAT = "date_format"
+    private val DATE_FONT_SIZE = "date_font_size"
+    private val DATE_FONT_NAME = "date_font_name"
+    private val DATE_FONT_WEIGHT = "date_font_weight"
+    private val SHOW_BATTERY_ICON = "show_battery_icon"
+    private val SHOW_BATTERY_PERCENTAGE = "show_battery_percentage"
+    private val SHOW_NOTIFICATIONS_ROW = "show_notifications_row"
     init {
         loadSettings()
     }
@@ -71,6 +91,39 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val dateTimeColor = imageData?.color
             val isNotificationServiceEnabled = isNotificationServiceEnabled(getApplication())
             val hasCustomWidgets = PreferenceManager.getCustomWidgets(getApplication())
+            val timeFormat = PreferenceManager.getString(getApplication(),TIME_FORMAT, "H12") ?: "H12"
+            val showAmPm = PreferenceManager.getBoolean(getApplication(),SHOW_AM_PM,true)
+            val timeFontSize = PreferenceManager.getInt(getApplication(),TIME_FONT_SIZE,60)
+            val timeFontName = PreferenceManager.getString(getApplication(),TIME_FONT_NAME,"Roboto") ?: "Roboto"
+            val timeFontFamily = try {
+                FontFamily(
+                    Font(
+                        googleFont = GoogleFont(timeFontName),
+                        fontProvider = fontProvider
+                    )
+                )
+            } catch (_: Exception) {
+                FontFamily.Default
+            }
+            val timeFontWeight = PreferenceManager.getString(getApplication(),TIME_FONT_WEIGHT,
+                "Light") ?: "Light"
+            val dateFormat = PreferenceManager.getString(getApplication(),DATE_FORMAT,"EEE,MMM d") ?: "EEE,MMM d"
+            val dateFontSize = PreferenceManager.getInt(getApplication(),DATE_FONT_SIZE,20)
+            val dateFontName = PreferenceManager.getString(getApplication(),DATE_FONT_NAME,"Roboto") ?: "Roboto"
+            val dateFontFamily = try {
+                FontFamily(
+                    Font(
+                        googleFont = GoogleFont(dateFontName),
+                        fontProvider = fontProvider
+                    )
+                )
+            } catch (_: Exception) {
+                FontFamily.Default
+            }
+            val dateFontWeight = PreferenceManager.getString(getApplication(),DATE_FONT_WEIGHT,"Normal") ?: "Normal"
+            val showBatteryIcon = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_ICON,true)
+            val showBatteryPercentage = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_PERCENTAGE,true)
+            val showNotificationRow = PreferenceManager.getBoolean(getApplication(),SHOW_NOTIFICATIONS_ROW,true)
             _uiState.update {
                 it.copy(
                     wallpaperMotionEnabled = wallpaperMotion,
@@ -85,11 +138,150 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     isRightSwipeWidgets = isRightSwipeWidgets,
                     hasNotificationAccess = isNotificationServiceEnabled,
                     hasCustomWidgets =  hasCustomWidgets,
-                    dateTimeColor = dateTimeColor
+                    dateTimeColor = dateTimeColor,
+                    timeFormat =  timeFormat,
+                    showAmPm = showAmPm,
+                    timeFontSize = timeFontSize,
+                    timeFontName = timeFontName,
+                    timeFontFamily = timeFontFamily,
+                    timeFontWeight = timeFontWeight,
+                    dateFormat = dateFormat,
+                    dateFontSize = dateFontSize,
+                    dateFontName = dateFontName,
+                    dateFontFamily = dateFontFamily,
+                    dateFontWeight = dateFontWeight,
+                    showBatteryIcon = showBatteryIcon,
+                    showBatteryPercentage = showBatteryPercentage,
+                    showNotificationRow = showNotificationRow
                 )
             }
         }
     }
+    fun setTimeFormat(format: String) {
+        viewModelScope.launch {
+            PreferenceManager.setString(getApplication(),TIME_FORMAT,format)
+            _uiState.update { it.copy(timeFormat = format) }
+        }
+    }
+
+    fun setShowAmPm(show: Boolean) {
+        viewModelScope.launch {
+            PreferenceManager.setBoolean(getApplication(),SHOW_AM_PM,show)
+            _uiState.update { it.copy(showAmPm = show) }
+        }
+    }
+
+    fun setTimeFontSize(size: Int) {
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),TIME_FONT_SIZE,size)
+            _uiState.update { it.copy(timeFontSize = size) }
+        }
+    }
+
+    fun setTimeFontName(fontName: String) {
+        viewModelScope.launch {
+            // Save the new font name to preferences
+            PreferenceManager.setString(getApplication(), TIME_FONT_NAME, fontName)
+
+            // Create the new FontFamily
+            val timeFontFamily = try {
+                FontFamily(
+                    Font(
+                        googleFont = GoogleFont(fontName),
+                        fontProvider = fontProvider
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e("SetTimeFontName",e.toString())
+                FontFamily.Default
+            }
+
+            // Update the UI state with the new font name and family
+            _uiState.update {
+                it.copy(
+                    timeFontName = fontName,
+                    timeFontFamily = timeFontFamily
+                )
+            }
+        }
+    }
+
+    fun setTimeFontWeight(style: String) {
+        viewModelScope.launch {
+            PreferenceManager.setString(getApplication(),TIME_FONT_WEIGHT,style)
+            _uiState.update { it.copy(timeFontWeight = style) }
+        }
+    }
+
+    fun setDateFormat(format: String) {
+        viewModelScope.launch {
+            PreferenceManager.setString(getApplication(),DATE_FORMAT,format)
+            _uiState.update { it.copy(dateFormat = format) }
+        }
+    }
+
+    fun setDateFontSize(size: Int) {
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),DATE_FONT_SIZE,size)
+            _uiState.update { it.copy(dateFontSize = size) }
+        }
+    }
+
+    fun setDateFontName(fontName: String) {
+        viewModelScope.launch {
+            // Save the new font name to preferences
+            PreferenceManager.setString(getApplication(), DATE_FONT_NAME, fontName)
+
+            // Create the new FontFamily
+            val dateFontFamily = try {
+                FontFamily(
+                    Font(
+                        googleFont = GoogleFont(fontName),
+                        fontProvider = fontProvider
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e("SetTimeFontName",e.toString())
+                FontFamily.Default
+            }
+
+            // Update the UI state with the new font name and family
+            _uiState.update {
+                it.copy(
+                    dateFontName = fontName,
+                    dateFontFamily = dateFontFamily
+                )
+            }
+        }
+    }
+    fun setDateFontWeight(style: String) {
+        viewModelScope.launch {
+            PreferenceManager.setString(getApplication(),DATE_FONT_WEIGHT,style)
+            _uiState.update { it.copy(dateFontWeight = style) }
+        }
+    }
+
+    fun setShowBatteryIcon(show: Boolean) {
+        viewModelScope.launch {
+            PreferenceManager.setBoolean(getApplication(),SHOW_BATTERY_ICON,show)
+            _uiState.update { it.copy(showBatteryIcon = show) }
+        }
+    }
+
+    fun setShowBatteryPercentage(show: Boolean) {
+        viewModelScope.launch {
+            PreferenceManager.setBoolean(getApplication(),SHOW_BATTERY_PERCENTAGE,show)
+            _uiState.update { it.copy(showBatteryPercentage = show) }
+        }
+    }
+
+    fun setShowNotificationRow(show: Boolean) {
+        viewModelScope.launch {
+            PreferenceManager.setBoolean(getApplication(),SHOW_NOTIFICATIONS_ROW,show)
+            _uiState.update { it.copy(showNotificationRow = show) }
+        }
+    }
+
     fun setCustomWidgets(enabled: Boolean){
         viewModelScope.launch {
             PreferenceManager.setCustomWidgets(getApplication(),enabled)

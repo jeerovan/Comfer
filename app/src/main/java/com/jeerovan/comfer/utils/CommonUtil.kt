@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
@@ -50,6 +51,15 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
 object CommonUtil {
+
+    fun getFontWeightFromString(string: String): FontWeight {
+        when (string) {
+            "Light" -> return FontWeight.Light
+            "Normal" -> return FontWeight.Normal
+            "Bold" -> return FontWeight.Bold
+        }
+        return FontWeight.Normal
+    }
     fun randomCode(input: String, length: Int = 6): String {
         // Create SHA-256 hash
         val digest = MessageDigest.getInstance("SHA-256")

@@ -201,6 +201,7 @@ import kotlin.text.ifEmpty
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
 import com.jeerovan.comfer.utils.CommonUtil.stringToColor
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -1448,11 +1449,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                      mainWidgetHost: AppWidgetHost,
                      notificationIcons: List<Drawable>,
                      notificationPackages: List<String>,
-                     appsLayout: String?,
-                     motionEnabled: Boolean,
-                     hasNotificationAccess: Boolean,
-                     hasCustomWidgets:Boolean,
                      imageData: ImageData?,
+                     settings: SettingsUiState,
                      onSwipeUp: () -> Unit,
                      onSwipeRight: () -> Unit,
                      onSwipeLeft: () -> Unit,
@@ -1546,7 +1544,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
     val topColumnHeight = maxHeightDp.dp * 2/5
     Box(modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier) {
-            if(hasCustomWidgets) {
+            if(settings.hasCustomWidgets) {
                 WidgetHostScreen(
                     appWidgetManager,
                     mainWidgetHost,
@@ -1608,25 +1606,28 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     var textColor = imageData?.color?.let { colorName ->
                         stringToColor(colorName)
                     } ?: Color.White
-                    if (!motionEnabled && !isDefault) {
+                    if (!settings.wallpaperMotionEnabled && !isDefault) {
                         textColor = Color.White
                     }
                     Text(
                         text = time,
                         color = textColor,
-                        fontSize = 60.sp,
-                        fontWeight = FontWeight.Light
+                        fontSize = settings.timeFontSize.sp,
+                        fontWeight = getFontWeightFromString(settings.timeFontWeight),
+                        fontFamily = settings.timeFontFamily
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = date,
                             color = textColor,
-                            fontSize = 20.sp,
+                            fontSize = settings.dateFontSize.sp,
+                            fontWeight = getFontWeightFromString(settings.dateFontWeight),
+                            fontFamily = settings.dateFontFamily,
                             modifier = Modifier.padding(end = 8.dp)
                         )
                         BatteryStatus(textColor)
                     }
-                    if (hasNotificationAccess) NotificationIconRow(
+                    if (settings.hasNotificationAccess && settings.showNotificationRow) NotificationIconRow(
                         notificationIcons,
                         iconColor = textColor
                     )
@@ -1711,7 +1712,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                             )
                         }
                     }
-                    when (appsLayout) {
+                    when (settings.quickAppsLayout) {
                         "linear" -> FiveColumnLayout(apps, notificationPackages, iconSize, iconShape, onShowSearch)
                         "circular" -> CircularLayout(apps, notificationPackages, iconSize, iconShape, onShowSearch)
                     }
@@ -2466,9 +2467,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val primaryApps = appInfoUiState.primaryApps
 
     val wallpaperMotionEnabled = settingInfoUiState.wallpaperMotionEnabled
-    val quickAppsLayout = settingInfoUiState.quickAppsLayout
     val hasNotificationAccess = settingInfoUiState.hasNotificationAccess
-    val hasCustomWidgets = settingInfoUiState.hasCustomWidgets
 
     val notificationPackages by remember(notifications, hasNotificationAccess) {
         derivedStateOf {
@@ -2704,11 +2703,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 mainWidgetHost,
                 notificationIcons = notificationIcons,
                 notificationPackages = notificationPackages,
-                appsLayout = quickAppsLayout,
                 imageData = imageData,
-                motionEnabled = wallpaperMotionEnabled,
-                hasNotificationAccess = hasNotificationAccess,
-                hasCustomWidgets = hasCustomWidgets,
+                settings = settingInfoUiState,
                 onSwipeUp = {
                     // Set transitions for vertical exit, then hide
                     enterTransition = slideDownEnter

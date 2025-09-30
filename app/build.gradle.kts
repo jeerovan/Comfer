@@ -41,6 +41,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.billing.ktx)
     implementation(libs.androidx.core.ktx)
@@ -63,6 +64,7 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.androidx.animation.core)
     implementation(libs.androidx.foundation)
+    implementation(libs.androidx.ui.text)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

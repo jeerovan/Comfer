@@ -43,6 +43,9 @@
             android:name=".SettingsActivity"
             android:exported="false" />
         <activity
+            android:name=".ProSettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".AppSelectionActivity"
             android:exported="false" />
         <activity

@@ -38,6 +38,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
@@ -326,7 +327,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             showDisclosure = true
         }
     }
-    Box( modifier = Modifier.fillMaxSize()
+    Box( modifier = Modifier.fillMaxSize().padding(bottom=48.dp)
     ) {
         LazyColumn(
             modifier = Modifier
@@ -444,7 +445,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            /*item { SectionHeader("Home Widgets") }
+            item { SectionHeader("Home Widgets") }
             item {
                 ListItem(
                     headlineContent = { Text("Custom") },
@@ -464,7 +465,27 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     modifier = Modifier.clickable { settingsViewModel.setCustomWidgets(!settingsState.hasCustomWidgets) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
-            }*/
+            }
+            if(!settingsState.hasCustomWidgets){
+                item {
+                    ListItem(
+                        headlineContent = { Text("Customize default widget") },
+                        supportingContent = { Text("Select font size/type and other customization") },
+                        leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
+                            contentDescription = "Customize default widget") },
+                        trailingContent = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.Send,
+                                contentDescription = "Go"
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            context.startActivity(Intent(context, ProSettingsActivity()::class.java))
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+            }
             item { SectionHeader("Home Screen") }
             item {
                 QuickAppsLayoutSettingItem(
