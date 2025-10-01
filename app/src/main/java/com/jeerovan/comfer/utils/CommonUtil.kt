@@ -51,7 +51,10 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.X509TrustManager
 
 object CommonUtil {
-
+    fun isColorDark(color: Color): Boolean {
+        val darkness = 1 - (0.299 * color.red + 0.587 * color.green + 0.114 * color.blue)
+        return darkness >= 0.5
+    }
     fun getFontWeightFromString(string: String): FontWeight {
         when (string) {
             "Light" -> return FontWeight.Light

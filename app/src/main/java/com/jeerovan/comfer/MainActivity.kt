@@ -165,7 +165,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
-
 import android.app.Activity
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
@@ -210,6 +209,19 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.StrokeCap
+import kotlinx.coroutines.delay
+import java.util.Calendar
 // Placeholder for your contact data structure
 data class Contact(
     val id: Long,
@@ -1650,13 +1662,21 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         if (!settings.wallpaperMotionEnabled && !isDefault) {
                             textColor = Color.White
                         }
-                        Text(
-                            text = time,
-                            color = textColor,
-                            fontSize = settings.timeFontSize.sp,
-                            fontWeight = getFontWeightFromString(settings.timeFontWeight),
-                            fontFamily = settings.timeFontFamily
-                        )
+                        if(settings.showAnalog) {
+                            BasicClock(settings.clockSize.dp,
+                                settings.clockBgColor,
+                                settings.clockBgAlpha,
+                                settings.clockHourColor,
+                                settings.clockMinuteColor)
+                        } else {
+                            Text(
+                                text = time,
+                                color = textColor,
+                                fontSize = settings.timeFontSize.sp,
+                                fontWeight = getFontWeightFromString(settings.timeFontWeight),
+                                fontFamily = settings.timeFontFamily
+                            )
+                        }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = date,
@@ -3769,6 +3789,71 @@ fun NotificationIconRow(
                     )
                 }
             }
+        }
+    }
+}
+@Composable
+fun BasicClock(
+    size: Dp,
+    backgroundColor: Color,
+    backgroundAlpha: Float = 1f,
+    minuteHandColor: Color,
+    hourHandColor: Color
+) {
+    var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(60000L - (System.currentTimeMillis() % 60000L))
+            currentTime = System.currentTimeMillis()
+        }
+    }
+
+    val calendar = remember { Calendar.getInstance() }
+    calendar.timeInMillis = currentTime
+
+    val hours = calendar.get(Calendar.HOUR)
+    val minutes = calendar.get(Calendar.MINUTE)
+
+    Box(
+        modifier = Modifier
+            .size(size)
+            .padding(8.dp)
+            .background(color = backgroundColor.copy(alpha = backgroundAlpha), shape = CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.size(size)) {
+            val centerX = this.size.width / 2
+            val centerY = this.size.height / 2
+            val radius = this.size.width / 2
+
+            // Hour Hand
+            val hourAngle = (hours + minutes / 60f) * 30f - 90
+            val hourHandLength = radius * 0.5f
+            val hourHandEndX = centerX + hourHandLength * kotlin.math.cos(Math.toRadians(hourAngle.toDouble())).toFloat()
+            val hourHandEndY = centerY + hourHandLength * kotlin.math.sin(Math.toRadians(hourAngle.toDouble())).toFloat()
+
+            drawLine(
+                color = hourHandColor,
+                start = Offset(centerX, centerY),
+                end = Offset(hourHandEndX, hourHandEndY),
+                strokeWidth = size.toPx() * 0.05f,
+                cap = StrokeCap.Round
+            )
+
+            // Minute Hand
+            val minuteAngle = minutes * 6f - 90
+            val minuteHandLength = radius * 0.8f
+            val minuteHandEndX = centerX + minuteHandLength * kotlin.math.cos(Math.toRadians(minuteAngle.toDouble())).toFloat()
+            val minuteHandEndY = centerY + minuteHandLength * kotlin.math.sin(Math.toRadians(minuteAngle.toDouble())).toFloat()
+
+            drawLine(
+                color = minuteHandColor,
+                start = Offset(centerX, centerY),
+                end = Offset(minuteHandEndX, minuteHandEndY),
+                strokeWidth = size.toPx() * 0.03f,
+                cap = StrokeCap.Round
+            )
         }
     }
 }

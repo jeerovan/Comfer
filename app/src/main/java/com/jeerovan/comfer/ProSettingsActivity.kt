@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,27 @@ import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.ui.theme.fontProvider
 import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
 import kotlin.getValue
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import com.jeerovan.comfer.utils.CommonUtil.isColorDark
 
 class ProSettingsActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
@@ -50,90 +72,187 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
     val settingsState by settingsViewModel.uiState.collectAsState()
     var showTimeFontDialog by remember { mutableStateOf(false) }
     var showDateFontDialog by remember { mutableStateOf(false) }
+    var showClockBgPicker by remember { mutableStateOf(false) }
+    var showClockHourPicker by remember { mutableStateOf(false) }
+    var showClockMinutePicker by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(start=16.dp,top=16.dp,end=16.dp,bottom=48.dp)
     ) {
-        Text("Status Bar Settings", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 16.dp))
 
         // Time Settings
         SettingSection("Time") {
-            // Time Format
-            SettingDropdown(
-                label = "Time Format",
-                selectedValue = settingsState.timeFormat,
-                options = arrayOf("H12","H24").map { it },
-                onValueChange = {
-                    settingsViewModel.setTimeFormat(it)
-                }
+            SettingSwitch(
+                label = "Analog Clock",
+                checked = settingsState.showAnalog,
+                onCheckedChange = { settingsViewModel.showAnalog(it) }
             )
-
-            // Show AM/PM
-            if (settingsState.timeFormat == "H12") {
-                SettingSwitch(
-                    label = "Show AM/PM",
-                    checked = settingsState.showAmPm,
-                    onCheckedChange = { settingsViewModel.setShowAmPm(it) }
+            if (settingsState.showAnalog) {
+                // Clock Size
+                SettingSlider(
+                    label = "Clock Size",
+                    value = settingsState.clockSize,
+                    range = 70f..200f,
+                    onValueChange = { settingsViewModel.setClockSize(it) }
                 )
-            }
-
-            // Time Font Size
-            SettingSlider(
-                label = "Font Size",
-                value = settingsState.timeFontSize,
-                range = 20f..100f,
-                onValueChange = { settingsViewModel.setTimeFontSize(it) }
-            )
-
-            // Time Text Style
-            SettingDropdown(
-                label = "Font Weight",
-                selectedValue = settingsState.timeFontWeight,
-                options = arrayOf("Light","Normal","Bold").map { it },
-                onValueChange = {
-                    settingsViewModel.setTimeFontWeight(it)
-                }
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showTimeFontDialog = true } // Make the whole row clickable
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                val fontName = settingsState.timeFontName
-                val fontFamily = remember(fontName) {
-                    FontFamily(
-                        Font(
-                            googleFont = GoogleFont(fontName),
-                            fontProvider = fontProvider
-                        )
+                // Background Color
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .background(settingsState.clockBgColor, RoundedCornerShape(12.dp))
+                        .clickable { showClockBgPicker = true}
+                ) {
+                    Text(
+                        text = "Clock background color",
+                        modifier = Modifier.align(Alignment.Center),
+                        color = if (isColorDark(settingsState.clockBgColor)) Color.White else Color.Black
                     )
                 }
-                Text("Font Style", style = MaterialTheme.typography.bodyLarge)
-                Text(
-                    text = "12:34 PM",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontFamily = fontFamily,
-                    fontSize = 32.sp,
-                    fontWeight = getFontWeightFromString(settingsState.timeFontWeight)
+                // Background Alpha
+                SettingSlider(
+                    label = "Background Transparency",
+                    value = (settingsState.clockBgAlpha*100f).toInt(),
+                    range = 0f..100f,
+                    onValueChange = { settingsViewModel.setClockBgAlpha(it) }
+                )
+                // Hour Color
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .background(settingsState.clockHourColor, RoundedCornerShape(12.dp))
+                        .clickable { showClockHourPicker = true}
+                ) {
+                    Text(
+                        text = "Hour hand color",
+                        modifier = Modifier.align(Alignment.Center),
+                        color = if (isColorDark(settingsState.clockHourColor)) Color.White else Color.Black
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                // Minute Color
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .background(settingsState.clockMinuteColor, RoundedCornerShape(12.dp))
+                        .clickable { showClockMinutePicker = true}
+                ) {
+                    Text(
+                        text = "Minute hand color",
+                        modifier = Modifier.align(Alignment.Center),
+                        color = if (isColorDark(settingsState.clockMinuteColor)) Color.White else Color.Black
+                    )
+                }
+                if(showClockBgPicker){
+                    EnhancedColorPicker(
+                        predefinedColors = settingsViewModel.predefinedColors,
+                        initialColor = settingsState.clockBgColor,
+                        onColorSelected = { color ->
+                            settingsViewModel.setClockBgColor(color)
+                        },
+                        onDismissRequest = { showClockBgPicker = false }
+                    )
+                }
+                if(showClockHourPicker){
+                    EnhancedColorPicker(
+                        predefinedColors = settingsViewModel.predefinedColors,
+                        initialColor = settingsState.clockHourColor,
+                        onColorSelected = { color ->
+                            settingsViewModel.setClockHourColor(color)
+                        },
+                        onDismissRequest = { showClockHourPicker = false }
+                    )
+                }
+                if(showClockMinutePicker){
+                    EnhancedColorPicker(
+                        predefinedColors = settingsViewModel.predefinedColors,
+                        initialColor = settingsState.clockMinuteColor,
+                        onColorSelected = { color ->
+                            settingsViewModel.setClockMinuteColor(color)
+                        },
+                        onDismissRequest = { showClockMinutePicker = false }
+                    )
+                }
+            } else {
+                // Time Format
+                SettingDropdown(
+                    label = "Time Format",
+                    selectedValue = settingsState.timeFormat,
+                    options = arrayOf("H12", "H24").map { it },
+                    onValueChange = {
+                        settingsViewModel.setTimeFormat(it)
+                    }
+                )
+
+                // Show AM/PM
+                if (settingsState.timeFormat == "H12") {
+                    SettingSwitch(
+                        label = "Show AM/PM",
+                        checked = settingsState.showAmPm,
+                        onCheckedChange = { settingsViewModel.setShowAmPm(it) }
+                    )
+                }
+
+                // Time Font Size
+                SettingSlider(
+                    label = "Font Size",
+                    value = settingsState.timeFontSize,
+                    range = 20f..100f,
+                    onValueChange = { settingsViewModel.setTimeFontSize(it) }
+                )
+
+                // Time Text Style
+                SettingDropdown(
+                    label = "Font Weight",
+                    selectedValue = settingsState.timeFontWeight,
+                    options = arrayOf("Light", "Normal", "Bold").map { it },
+                    onValueChange = {
+                        settingsViewModel.setTimeFontWeight(it)
+                    }
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showTimeFontDialog = true } // Make the whole row clickable
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    val fontName = settingsState.timeFontName
+                    val fontFamily = remember(fontName) {
+                        FontFamily(
+                            Font(
+                                googleFont = GoogleFont(fontName),
+                                fontProvider = fontProvider
+                            )
+                        )
+                    }
+                    Text("Font Style", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = "12:34 PM",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontFamily = fontFamily,
+                        fontSize = 32.sp,
+                        fontWeight = getFontWeightFromString(settingsState.timeFontWeight)
+                    )
+                }
+            }
+            if (showTimeFontDialog) {
+                FontSelectionDialog(
+                    sampleText = "12:34 PM",
+                    onDismissRequest = { showTimeFontDialog = false },
+                    onFontSelected = { fontName ->
+                        settingsViewModel.setTimeFontName(fontName)
+                        showTimeFontDialog = false // Also dismiss dialog after selection
+                    }
                 )
             }
-        }
-        if (showTimeFontDialog) {
-            FontSelectionDialog(
-                sampleText = "12:34 PM",
-                onDismissRequest = { showTimeFontDialog = false },
-                onFontSelected = { fontName ->
-                    settingsViewModel.setTimeFontName(fontName)
-                    showTimeFontDialog = false // Also dismiss dialog after selection
-                }
-            )
         }
 
         HorizontalDivider(
@@ -144,13 +263,6 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
 
         // Date Settings
         SettingSection("Date") {
-            // Date Format
-            OutlinedTextField(
-                value = settingsState.dateFormat,
-                onValueChange = { settingsViewModel.setDateFormat(it) },
-                label = { Text("Date Format Pattern") },
-                modifier = Modifier.fillMaxWidth()
-            )
 
             // Date Font Size
             SettingSlider(
@@ -245,12 +357,19 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
     }
 }
 
-// Helper composables for a cleaner settings screen
+// Helper composable for a cleaner settings screen
 
 @Composable
 fun SettingSection(title: String, content: @Composable ColumnScope.() -> Unit) {
     Column {
-        Text(text = title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 8.dp))
+        Text(
+            text = title.uppercase(),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        )
         Column(modifier = Modifier.padding(start = 16.dp), content = content)
     }
 }
@@ -260,7 +379,8 @@ fun SettingSwitch(label: String, checked: Boolean, onCheckedChange: (Boolean) ->
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .clickable{ onCheckedChange(!checked) },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -289,7 +409,8 @@ fun SettingDropdown(label: String, selectedValue: String, options: List<String>,
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .clickable { expanded = true },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -297,7 +418,6 @@ fun SettingDropdown(label: String, selectedValue: String, options: List<String>,
         Box {
             Text(
                 text = selectedValue,
-                modifier = Modifier.clickable { expanded = true },
                 style = MaterialTheme.typography.bodyLarge
             )
             DropdownMenu(
@@ -439,6 +559,117 @@ fun FontSelectionDialog(
                         thickness = DividerDefaults.Thickness,
                         color = DividerDefaults.color
                     )
+                }
+            }
+        }
+    }
+}
+@Composable
+fun EnhancedColorPicker(
+    predefinedColors: List<Color>,
+    initialColor: Color,
+    onColorSelected: (Color) -> Unit,
+    onDismissRequest: () -> Unit
+) {
+    var selectedColor by remember { mutableStateOf(initialColor) }
+
+    @Composable
+    fun ColorSlider(
+        modifier: Modifier = Modifier,
+        onColorChange: (Color) -> Unit
+    ) {
+        val gradientColors = remember {
+            (0..360 step 2).map {
+                Color.hsv(it.toFloat(), 1f, 1f)
+            }
+        }
+
+        Box(
+            modifier = modifier
+                .height(40.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(
+                    brush = Brush.horizontalGradient(gradientColors)
+                )
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures { change, _ ->
+                        val x = change.position.x.coerceIn(0f, size.width.toFloat())
+                        val hue = (x / size.width) * 360f
+                        val color = Color.hsv(hue, 1f, 1f)
+                        onColorChange(color)
+                        change.consume()
+                    }
+                }
+        )
+    }
+
+    Dialog(onDismissRequest = onDismissRequest) {
+        Column(
+            modifier = Modifier
+                .background(Color.White, RoundedCornerShape(16.dp))
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Color preview rectangle
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+                    .background(selectedColor, RoundedCornerShape(8.dp))
+            ) {
+                Text(
+                    text = "Selected Color",
+                    modifier = Modifier.align(Alignment.Center),
+                    color = if (isColorDark(selectedColor)) Color.White else Color.Black
+                )
+            }
+
+            // Predefined color palette
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 48.dp),
+                modifier = Modifier.heightIn(max = 120.dp)
+            ) {
+                items(predefinedColors) { color ->
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(4.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                            .border(
+                                width = if (color == selectedColor) 3.dp else 1.dp,
+                                color = if (color == selectedColor) Color.DarkGray else Color.LightGray,
+                                shape = CircleShape
+                            )
+                            .clickable {
+                                selectedColor = color
+                            }
+                    )
+                }
+            }
+
+            // Continuous color slider
+            ColorSlider(
+                onColorChange = { color ->
+                    selectedColor = color
+                }
+            )
+
+            // Action buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                TextButton(onClick = onDismissRequest) {
+                    Text("Cancel")
+                }
+                TextButton(onClick = {
+                    onColorSelected(selectedColor)
+                    onDismissRequest()
+                }) {
+                    Text("Set")
                 }
             }
         }

@@ -17,6 +17,8 @@ import android.content.Intent
 import android.provider.Settings
 import android.content.Context
 import android.util.Log
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationManagerCompat
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.googlefonts.Font
@@ -37,6 +39,12 @@ data class SettingsUiState(
     val hasNotificationAccess: Boolean = false,
     val hasCustomWidgets: Boolean = false,
     val dateTimeColor:String? = null,
+    val showAnalog:Boolean = false,
+    val clockSize: Int = 150,
+    val clockBgColor: Color = Color.Black,
+    val clockBgAlpha: Float = 0.6f,
+    val clockHourColor: Color = Color.White,
+    val clockMinuteColor: Color = Color.White,
     val timeFormat: String = "H12",
     val showAmPm: Boolean = true,
     val timeFontSize: Int = 60,
@@ -59,18 +67,30 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     val uiState = _uiState.asStateFlow()
 
     // const
+    private val ANALOG_CLOCK = "analog_clock"
+    private val CLOCK_BG_COLOR = "clock_bg_color"
+    private val CLOCK_BG_ALPHA = "clock_bg_alpha"
+    private val CLOCK_SIZE = "clock_size"
+    private val CLOCK_HOUR_COLOR = "clock_hour_color"
+    private val CLOCK_MINUTE_COLOR = "clock_minute_color"
     private val TIME_FORMAT = "time_format"
     private val SHOW_AM_PM = "show_am_pm"
     private val TIME_FONT_SIZE = "time_font_size"
     private val TIME_FONT_NAME = "time_font_name"
     private val TIME_FONT_WEIGHT = "time_font_weight"
-    private val DATE_FORMAT = "date_format"
     private val DATE_FONT_SIZE = "date_font_size"
     private val DATE_FONT_NAME = "date_font_name"
     private val DATE_FONT_WEIGHT = "date_font_weight"
     private val SHOW_BATTERY_ICON = "show_battery_icon"
     private val SHOW_BATTERY_PERCENTAGE = "show_battery_percentage"
     private val SHOW_NOTIFICATIONS_ROW = "show_notifications_row"
+
+    val predefinedColors = listOf(
+        Color.Red, Color.Green, Color.Blue, Color.Yellow,
+        Color.Cyan, Color.Magenta, Color.Black, Color.Gray,
+        Color.White, Color(0xFF_FFA500), Color(0xFF_800080), Color(0xFF_008080)
+    )
+
     init {
         loadSettings()
     }
@@ -91,6 +111,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val dateTimeColor = imageData?.color
             val isNotificationServiceEnabled = isNotificationServiceEnabled(getApplication())
             val hasCustomWidgets = PreferenceManager.getCustomWidgets(getApplication())
+            val showAnalog = PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false)
+            val clockSize = PreferenceManager.getInt(getApplication(),CLOCK_SIZE,150)
+            val clockBgColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_BG_COLOR,Color.Black.toArgb()))
+            val clockBgAlpha = PreferenceManager.getInt(getApplication(),CLOCK_BG_ALPHA,70) / 100f
+            val clockHourColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_HOUR_COLOR,Color.White.toArgb()))
+            val clockMinuteColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_MINUTE_COLOR,Color.White.toArgb()))
             val timeFormat = PreferenceManager.getString(getApplication(),TIME_FORMAT, "H12") ?: "H12"
             val showAmPm = PreferenceManager.getBoolean(getApplication(),SHOW_AM_PM,true)
             val timeFontSize = PreferenceManager.getInt(getApplication(),TIME_FONT_SIZE,60)
@@ -107,7 +133,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
             val timeFontWeight = PreferenceManager.getString(getApplication(),TIME_FONT_WEIGHT,
                 "Light") ?: "Light"
-            val dateFormat = PreferenceManager.getString(getApplication(),DATE_FORMAT,"EEE,MMM d") ?: "EEE,MMM d"
             val dateFontSize = PreferenceManager.getInt(getApplication(),DATE_FONT_SIZE,20)
             val dateFontName = PreferenceManager.getString(getApplication(),DATE_FONT_NAME,"Roboto") ?: "Roboto"
             val dateFontFamily = try {
@@ -139,13 +164,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     hasNotificationAccess = isNotificationServiceEnabled,
                     hasCustomWidgets =  hasCustomWidgets,
                     dateTimeColor = dateTimeColor,
+                    showAnalog = showAnalog,
+                    clockSize = clockSize,
+                    clockBgColor = clockBgColor,
+                    clockBgAlpha = clockBgAlpha,
+                    clockHourColor = clockHourColor,
+                    clockMinuteColor = clockMinuteColor,
                     timeFormat =  timeFormat,
                     showAmPm = showAmPm,
                     timeFontSize = timeFontSize,
                     timeFontName = timeFontName,
                     timeFontFamily = timeFontFamily,
                     timeFontWeight = timeFontWeight,
-                    dateFormat = dateFormat,
                     dateFontSize = dateFontSize,
                     dateFontName = dateFontName,
                     dateFontFamily = dateFontFamily,
@@ -155,6 +185,42 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     showNotificationRow = showNotificationRow
                 )
             }
+        }
+    }
+    fun showAnalog(show: Boolean){
+        viewModelScope.launch {
+            PreferenceManager.setBoolean(getApplication(),ANALOG_CLOCK,show)
+            _uiState.update { it.copy(showAnalog = show) }
+        }
+    }
+    fun setClockSize(size: Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),CLOCK_SIZE,size)
+            _uiState.update { it.copy(clockSize = size) }
+        }
+    }
+    fun setClockBgColor(color: Color){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),CLOCK_BG_COLOR,color.toArgb())
+            _uiState.update { it.copy(clockBgColor = color) }
+        }
+    }
+    fun setClockBgAlpha(alpha: Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),CLOCK_BG_ALPHA,alpha)
+            _uiState.update { it.copy(clockBgAlpha = alpha/100f) }
+        }
+    }
+    fun setClockHourColor(color: Color){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),CLOCK_HOUR_COLOR,color.toArgb())
+            _uiState.update { it.copy(clockHourColor = color) }
+        }
+    }
+    fun setClockMinuteColor(color: Color){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),CLOCK_MINUTE_COLOR,color.toArgb())
+            _uiState.update { it.copy(clockMinuteColor = color) }
         }
     }
     fun setTimeFormat(format: String) {
@@ -210,13 +276,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             PreferenceManager.setString(getApplication(),TIME_FONT_WEIGHT,style)
             _uiState.update { it.copy(timeFontWeight = style) }
-        }
-    }
-
-    fun setDateFormat(format: String) {
-        viewModelScope.launch {
-            PreferenceManager.setString(getApplication(),DATE_FORMAT,format)
-            _uiState.update { it.copy(dateFormat = format) }
         }
     }
 
