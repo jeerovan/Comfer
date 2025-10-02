@@ -1,12 +1,13 @@
 package com.jeerovan.comfer
 
 import FlowerShape
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import androidx.compose.ui.graphics.Shape
 import android.net.Uri
+import androidx.compose.ui.graphics.Shape
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -38,7 +39,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
@@ -52,7 +52,6 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -77,20 +76,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import com.jeerovan.comfer.utils.CommonUtil.canSetLockScreenWallpaper
-import com.jeerovan.comfer.utils.CommonUtil.copyUriToInternalStorage
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import kotlinx.coroutines.launch
-import kotlinx.io.IOException
-import java.io.File
-import java.util.concurrent.TimeUnit
-import kotlin.time.ExperimentalTime
 
 @Composable
 fun QuickAppsLayoutSettingItem(
@@ -354,6 +349,23 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
+            item{
+                SelectSetOwnWallpapersDirectory(
+                    onSelectDirectory = { directoryUri -> settingsViewModel.setWallpaperDirectory(directoryUri)},
+                    selectedDirectory = settingsState.wallpaperDirectory)
+            }
+            if(settingsState.wallpaperDirectory != null){
+                item {
+                    SettingDropdown(
+                        label = "Wallpaper change frequency",
+                        selectedValue = settingsState.wallpaperFrequency,
+                        options = arrayOf("Hourly","Daily").map { it},
+                        onValueChange = {
+                            settingsViewModel.setWallpaperFrequency(it)
+                        }
+                    )
+                }
+            }
             if(isDefaultLauncher(context) && canSetLockScreenWallpaper()){
                 item {
                     ListItem(
@@ -563,8 +575,8 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             item {
                 ListItem(
-                    headlineContent = { Text("Navigation guide") },
-                    supportingContent = { Text("Gestures on multiple screens") },
+                    headlineContent = { Text("How to...") },
+                    supportingContent = { Text("Navigation guide") },
                     leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
                         contentDescription = "Manage App Lists") },
                     trailingContent = {
@@ -641,9 +653,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     modifier = Modifier.clickable { settingsViewModel.changeDateTimeColor(settingsState.dateTimeColor != "White") },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
-            }
-            item{
-                ImagePickerSettingItem(title = "Set wallpaper")
             }*/
             item {
                 ListItem(
@@ -857,82 +866,90 @@ fun ShapePreview(
             .border(width = 2.dp, color = borderColor, shape = iconShape)
     )
 }
-@OptIn(ExperimentalTime::class)
 @Composable
-fun ImagePickerSettingItem(
-    title: String,
-    modifier: Modifier = Modifier
+fun SelectSetOwnWallpapersDirectory(
+    onSelectDirectory: (directory: Uri?) -> Unit,
+    selectedDirectory: Uri?
 ) {
-    // State to hold the FILE PATH of the selected image in internal storage.
-    var savedImagePath by remember { mutableStateOf<String?>(null) }
-    val isChecked = savedImagePath != null
-
     val context = LocalContext.current
+    var isChecked by remember { mutableStateOf(false) }
 
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri: Uri? ->
+    // Launcher for the directory picker
+    val directoryPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree(),
+        onResult = { uri ->
             if (uri != null) {
-                // --- THIS IS THE NEW LOGIC ---
-                try {
-                    // 1. Define the destination file
-                    val currentUtcSeconds = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
-                    val filename = "comfer_${currentUtcSeconds}.jpg"
-                    val destinationFile = File(context.filesDir, filename)
-
-                    // 2. Copy the file
-                    copyUriToInternalStorage(context, uri, destinationFile)
-
-                    // 3. Save the path to the new file in our state
-                    savedImagePath = destinationFile.absolutePath
-                    Log.d("ImagePicker", "Successfully copied image to ${destinationFile.absolutePath}")
-                    PreferenceManager.setBackgroundImagePath(
-                        context,
-                        destinationFile.absolutePath
-                    )
-                } catch (e: IOException) {
-                    Log.e("ImagePicker", "Failed to copy image", e)
-                    // If copy fails, ensure the switch remains off
-                    savedImagePath = null
-                }
+                // Persist permissions
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+                isChecked = true
+                onSelectDirectory(uri)
             } else {
-                // User canceled the selection, do nothing or ensure state is null
-                savedImagePath = null
+                // User canceled the directory picker
+                isChecked = false
+                onSelectDirectory(null)
             }
         }
     )
 
-    val toggleAction = {
-        if (!isChecked) {
-            galleryLauncher.launch("image/*")
-        } else {
-            // If the switch is on, delete the file and clear the state
-            savedImagePath?.let { path ->
-                val fileToDelete = File(path)
-                if (fileToDelete.exists()) {
-                    fileToDelete.delete()
-                }
-                savedImagePath = null
+    // Launcher for the permission request
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                directoryPickerLauncher.launch(null)
+            } else {
+                isChecked = false
             }
         }
-    }
+    )
 
-    // 3. The ListItem composable for the UI.
     ListItem(
-        modifier = modifier.clickable { toggleAction() },
-        headlineContent = { Text(title) },
-        supportingContent = { },
+        headlineContent = { Text("Set own Wallpapers Directory") },
+        supportingContent = { Text(selectedDirectory?.toString() ?: "Not set")},
         leadingContent = {
             Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "$title Icon"
+                painter = painterResource(R.drawable.outline_wallpaper_directory),
+                contentDescription = "Wallpaper Directory"
             )
         },
         trailingContent = {
             Switch(
                 checked = isChecked,
-                onCheckedChange = { toggleAction() }
+                onCheckedChange = { checked ->
+                    if (checked) {
+                        // When switch is ON, check permission and launch picker
+                        if (ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.READ_EXTERNAL_STORAGE
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            directoryPickerLauncher.launch(null)
+                        } else {
+                            permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                        }
+                    } else {
+                        // When switch is OFF
+                        isChecked = false
+                        onSelectDirectory(null)
+                    }
+                }
             )
+        },
+        modifier = Modifier.clickable {
+            if(isChecked){
+                if (ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    directoryPickerLauncher.launch(null)
+                } else {
+                    permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                }
+            }
         }
     )
 }

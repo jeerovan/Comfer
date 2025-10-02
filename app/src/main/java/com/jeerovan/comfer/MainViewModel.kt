@@ -91,4 +91,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+    fun checkLoadWallpaper(){
+        val applyNow = PreferenceManager.getApplyWallpaperNow(getApplication())
+        if(applyNow){
+            loadImageData()
+            PreferenceManager.setApplyWallpaperNow(getApplication(),false)
+        }
+    }
 }

@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 import android.content.Intent
 import android.provider.Settings
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -24,21 +25,23 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import com.jeerovan.comfer.ui.theme.fontProvider
+import com.jeerovan.comfer.utils.CommonUtil.setBackgroundImageFromImageUri
 
 data class SettingsUiState(
     val wallpaperMotionEnabled: Boolean = true,
+    val wallpaperDirectory: Uri? = null,
+    val wallpaperFrequency:String = "Hourly",
     val wallpaperOnLockScreen: Boolean = false,
     val iconSize: Int = 48,
-    val iconShapeString: String? = "circle",
+    val iconShapeString: String = "circle",
     val iconShape: Shape = CircleShape,
-    val quickAppsLayout: String? = "linear",
+    val quickAppsLayout: String = "linear",
     val leftSwipeApp:String? = null,
     val rightSwipeApp:String? = null,
     val isLeftSwipeWidgets: Boolean = false,
     val isRightSwipeWidgets: Boolean = false,
     val hasNotificationAccess: Boolean = false,
     val hasCustomWidgets: Boolean = false,
-    val dateTimeColor:String? = null,
     val showAnalog:Boolean = false,
     val clockSize: Int = 150,
     val clockBgColor: Color = Color.Black,
@@ -51,7 +54,7 @@ data class SettingsUiState(
     val timeFontName: String = "Roboto",
     val timeFontFamily: FontFamily = FontFamily.Default,
     val timeFontWeight: String = "Light",
-    val dateFormat: String = "EEE,MMM d",
+    val dateFormat: String? = "EEE,MMM d",
     val dateFontSize: Int = 20,
     val dateFontName: String = "Roboto",
     val dateFontFamily: FontFamily = FontFamily.Default,
@@ -99,6 +102,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val wallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(getApplication())
+            val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(getApplication())
+            val wallpaperFrequency = PreferenceManager.getWallpaperFrequency(getApplication())
             val iconSize = PreferenceManager.getIconSize(getApplication())
             val iconShapeString  = PreferenceManager.getIconShapeString(getApplication())
             val iconShape  = PreferenceManager.getIconShape(getApplication())
@@ -107,8 +112,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val rightSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"right")
             val isLeftSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"left")
             val isRightSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"right")
-            val imageData = PreferenceManager.getImageData(getApplication())
-            val dateTimeColor = imageData?.color
             val isNotificationServiceEnabled = isNotificationServiceEnabled(getApplication())
             val hasCustomWidgets = PreferenceManager.getCustomWidgets(getApplication())
             val showAnalog = PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false)
@@ -153,6 +156,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 it.copy(
                     wallpaperMotionEnabled = wallpaperMotion,
                     wallpaperOnLockScreen = wallpaperOnLockScreen,
+                    wallpaperDirectory = wallpaperDirectory,
+                    wallpaperFrequency = wallpaperFrequency,
                     iconSize = iconSize,
                     iconShape = iconShape,
                     quickAppsLayout = quickAppsLayout,
@@ -163,7 +168,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     isRightSwipeWidgets = isRightSwipeWidgets,
                     hasNotificationAccess = isNotificationServiceEnabled,
                     hasCustomWidgets =  hasCustomWidgets,
-                    dateTimeColor = dateTimeColor,
                     showAnalog = showAnalog,
                     clockSize = clockSize,
                     clockBgColor = clockBgColor,
@@ -184,6 +188,25 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     showBatteryPercentage = showBatteryPercentage,
                     showNotificationRow = showNotificationRow
                 )
+            }
+        }
+    }
+
+    fun setWallpaperFrequency(frequency:String){
+        viewModelScope.launch {
+            PreferenceManager.setWallpaperFrequency(getApplication(),frequency)
+            _uiState.update { it.copy(wallpaperFrequency = frequency) }
+        }
+    }
+    fun setWallpaperDirectory(directoryUri: Uri?){
+        viewModelScope.launch {
+            PreferenceManager.setWallpaperDirectory(getApplication(),directoryUri)
+            _uiState.update { it.copy(wallpaperDirectory = directoryUri) }
+            if(directoryUri != null) {
+                withContext(Dispatchers.IO) {
+                    setBackgroundImageFromImageUri(getApplication(),directoryUri)
+                }
+                PreferenceManager.setApplyWallpaperNow(getApplication(),true)
             }
         }
     }
@@ -417,14 +440,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 PreferenceManager.setIconSize(getApplication(), newSize)
                 _uiState.update { it.copy(iconSize = newSize) }
             }
-        }
-    }
-
-    fun changeDateTimeColor(white:Boolean){
-        viewModelScope.launch {
-            PreferenceManager.updateImageData(getApplication(),white)
-            val newColor = if (white) "White" else "Black"
-            _uiState.update { it.copy(dateTimeColor = newColor) }
         }
     }
 

@@ -1,18 +1,19 @@
 package com.jeerovan.comfer
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.ui.graphics.Shape
 import androidx.core.content.edit
 import com.jeerovan.comfer.utils.CommonUtil
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import kotlinx.serialization.json.Json
 import java.util.Calendar
+import androidx.core.net.toUri
 
 object PreferenceManager {
     private const val PREF_BACKGROUND_IMAGE = "background_image"
     private const val PREFS_NAME = "com.jeerovan.comfer.Prefs"
     private const val KEY_WALLPAPER_MOTION = "wallpaper_motion"
-
     private const val WALLPAPER_ON_LOCK_SCREEN = "wallpaper_on_lock_screen"
     private const val KEY_ICON_SIZE = "icon_size"
     private const val KEY_ICON_SHAPE = "icon_shape"
@@ -26,55 +27,39 @@ object PreferenceManager {
     private const val WALLPAPER_SET = "wallpaper_set"
     private const val QUICK_APPS_LAYOUT = "quick_apps_layout"
     private const val CUSTOM_WIDGETS = "custom_widgets"
+    private const val WALLPAPER_DIRECTORY = "wallpaper_directory"
+    private const val WALLPAPER_FREQUENCY = "wallpaper_frequency"
+    private const val WALLPAPER_URI = "wallpaper_uri"
+    private const val WALLPAPER_NOW = "wallpaper_now"
 
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun getBoolean(context: Context,key:String,default: Boolean):Boolean{
-        /*val cachedValue = AppCache.get(key) as? Boolean
-        if (cachedValue != null) {
-            return cachedValue
-        }*/
         val prefValue = getPrefs(context).getBoolean(key,default)
-        //AppCache.set(key, prefValue)
         return prefValue
     }
     fun setBoolean(context: Context,key:String,state:Boolean) {
-        //AppCache.set(key, state)
         getPrefs(context).edit {
             putBoolean(key,state)
         }
     }
     fun setString(context: Context,key:String,string: String?) {
-        //AppCache.set(key, string)
         getPrefs(context).edit {
             putString(key,string)
         }
     }
     fun getString(context: Context,key:String,default: String?):String?{
-        /*val cachedValue = AppCache.get(key) as? String
-        if (cachedValue != null) {
-            return cachedValue
-        }*/
         val prefValue = getPrefs(context).getString(key,default) ?: default
-        /*if(prefValue != null){
-            AppCache.set(key, prefValue)
-        }*/
         return prefValue
     }
 
     fun setInt(context: Context,key:String,int: Int) {
-        //AppCache.set(key, int)
         getPrefs(context).edit {
             putInt(key,int)
         }
     }
     fun getInt(context: Context,key:String,default: Int ):Int{
-        /*val cachedValue = AppCache.get(key) as? Int
-        if (cachedValue != null) {
-            return cachedValue
-        }*/
         val prefValue = getPrefs(context).getInt(key,default)
-        //AppCache.set(key, prefValue)
         return prefValue
     }
 
@@ -85,12 +70,38 @@ object PreferenceManager {
         setDummyName(context,dummyName)
         setQuickAppsLayout(context,"circular")
     }
+    fun setApplyWallpaperNow(context: Context,apply: Boolean){
+        setBoolean(context,WALLPAPER_NOW,apply)
+    }
+    fun getApplyWallpaperNow(context: Context):Boolean {
+        return getBoolean(context,WALLPAPER_NOW,false)
+    }
+    fun getBackgroundImageUri(context: Context): Uri? {
+        val uriString = getString(context,WALLPAPER_URI,null)
+        return uriString?.toUri()
+    }
 
+    fun setBackgroundImageUri(context: Context, uri: Uri) {
+        setString(context,WALLPAPER_URI,uri.toString())
+    }
+    fun getWallpaperDirectory(context: Context): Uri?{
+        val uriString = getString(context,WALLPAPER_DIRECTORY,null)
+        return uriString?.toUri()
+    }
+    fun setWallpaperDirectory(context: Context,directoryUri: Uri?){
+        setString(context,WALLPAPER_DIRECTORY,directoryUri.toString())
+    }
+    fun getWallpaperFrequency(context: Context):String {
+        return getString(context,WALLPAPER_FREQUENCY,"Hourly") ?: "Hourly"
+    }
+    fun setWallpaperFrequency(context: Context,frequency:String){
+        setString(context,WALLPAPER_FREQUENCY,frequency)
+    }
     fun setQuickAppsLayout(context: Context,layout:String){
         setString(context,QUICK_APPS_LAYOUT,layout)
     }
-    fun getQuickAppsLayout(context: Context):String? {
-        return getString(context,QUICK_APPS_LAYOUT,"linear")
+    fun getQuickAppsLayout(context: Context):String {
+        return getString(context,QUICK_APPS_LAYOUT,"linear") ?: "linear"
     }
 
     fun setCustomWidgets(context: Context, enabled: Boolean){
@@ -202,13 +213,6 @@ object PreferenceManager {
     }
     fun getImageDataString(context: Context,default:String?): String? {
         return getString(context,KEY_IMAGE_DATA,default)
-    }
-    fun updateImageData(context: Context, white: Boolean){
-        val imageData:ImageData? = getImageData(context)
-        imageData?.position = "TopCenter"
-        imageData?.color = if (white) "White" else "Black"
-        val jsonString = Json.encodeToString(imageData)
-        setImageDataString(context,jsonString)
     }
     fun getImageData(context: Context): ImageData? {
         val jsonString = getImageDataString(context,null)

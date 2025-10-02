@@ -452,7 +452,6 @@ fun FontSelectionDialog(
         "Indie Flower",
         "Yellowtail",
         "Ole",
-        "Press Start 2P",
         "Creepster",
         "Sacramento",
         "Rock Salt",
@@ -546,7 +545,7 @@ fun FontSelectionDialog(
                             Text(
                                 text = sampleText,
                                 fontFamily = fontFamily,
-                                fontSize = 48.sp
+                                fontSize = 40.sp
                             )
                         },
                         modifier = Modifier.clickable {

@@ -322,6 +322,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             appInfoViewModel.loadAppLists()
             settingsViewModel.loadSettings()
+            mainViewModel.checkLoadWallpaper()
         }
     }
 
@@ -1655,7 +1656,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 delay(1000)
                             }
                         }
-
+                        val customWallpaper = settings.wallpaperDirectory != null
                         var textColor = imageData?.color?.let { colorName ->
                             stringToColor(colorName)
                         } ?: Color.White
@@ -1664,10 +1665,10 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         }
                         if(settings.showAnalog) {
                             BasicClock(settings.clockSize.dp,
-                                settings.clockBgColor,
-                                settings.clockBgAlpha,
-                                settings.clockHourColor,
-                                settings.clockMinuteColor)
+                                if(customWallpaper)settings.clockBgColor else Color.Black,
+                                if(customWallpaper)settings.clockBgAlpha else 0f,
+                                if(customWallpaper)settings.clockHourColor else textColor,
+                                if(customWallpaper)settings.clockMinuteColor else textColor)
                         } else {
                             Text(
                                 text = time,
@@ -1686,12 +1687,14 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 fontFamily = settings.dateFontFamily,
                                 modifier = Modifier.padding(end = 8.dp)
                             )
-                            if(settings.showBatteryIcon || settings.showBatteryPercentage)BatteryStatus(textColor,
-                                showBatteryIcon = settings.showBatteryIcon,
-                                showBatteryPercentage = settings.showBatteryPercentage,
-                                fontFamily = settings.dateFontFamily,
-                                fontWeight = getFontWeightFromString(settings.dateFontWeight),
-                                fontSize = settings.dateFontSize.sp)
+                            if(settings.showBatteryIcon || settings.showBatteryPercentage)
+                                BatteryStatus(textColor,
+                                    showBatteryIcon = settings.showBatteryIcon,
+                                    showBatteryPercentage = settings.showBatteryPercentage,
+                                    fontFamily = settings.dateFontFamily,
+                                    fontWeight = getFontWeightFromString(settings.dateFontWeight),
+                                    fontSize = settings.dateFontSize.sp
+                                )
                         }
                         if (settings.hasNotificationAccess && settings.showNotificationRow) NotificationIconRow(
                             notificationIcons,

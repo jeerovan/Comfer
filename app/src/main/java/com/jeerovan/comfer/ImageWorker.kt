@@ -13,21 +13,20 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.delay
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 import java.util.*
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
+@JsonIgnoreUnknownKeys
 data class ImageData(
     val id:Int,
     val imageUrl: String,
-    val theme: String,
-    var color: String,
-    var position: String,
-    val paddingTop: Int,
-    val paddingStart: Int,
-    val paddingEnd: Int,
-    val paddingBottom: Int)
+    var color: String
+)
 
 class ImageWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {

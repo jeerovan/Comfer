@@ -8,10 +8,10 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.os.Build
-import android.util.Log
 import androidx.compose.ui.Alignment
 import android.graphics.Canvas
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.alpha
 import coil.Coil
 import coil.request.ImageRequest
@@ -44,13 +43,83 @@ import com.jeerovan.comfer.LoggerManager
 import com.jeerovan.comfer.R
 import okhttp3.ConnectionSpec
 import java.io.IOException
-
-import java.security.cert.X509Certificate
-import java.util.Calendar
-import javax.net.ssl.SSLContext
-import javax.net.ssl.X509TrustManager
+import androidx.documentfile.provider.DocumentFile
+import java.time.Clock.system
 
 object CommonUtil {
+    fun copyFileFromUri(context: Context, sourceUri: Uri, destinationFile: File): Boolean {
+        return try {
+            // Open an InputStream from the source URI
+            context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                // Open a FileOutputStream to the destination file
+                FileOutputStream(destinationFile).use { outputStream ->
+                    // Copy the data from the input stream to the output stream
+                    inputStream.copyTo(outputStream)
+                }
+            }
+            true // Indicate success
+        } catch (e: IOException) {
+            e.printStackTrace()
+            false // Indicate failure
+        }
+    }
+    fun getFileNameFromUri(context: Context, uri: Uri): String? {
+        var fileName: String? = null
+        val cursor = context.contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1) {
+                    fileName = it.getString(nameIndex)
+                }
+            }
+        }
+        return fileName
+    }
+    fun getNextWallpaperImageUri(
+        context: Context,
+        directoryUri: Uri,
+        currentWallpaperUri: Uri?
+    ): Uri? {
+        // Get a DocumentFile representing the directory from its Uri
+        val directory = DocumentFile.fromTreeUri(context, directoryUri)
+
+        // Check if the directory is valid and readable
+        if (directory == null || !directory.isDirectory || !directory.canRead()) {
+            return null
+        }
+
+        // Define common image file extensions
+        val imageExtensions = setOf("jpg", "jpeg", "png", "bmp", "webp")
+
+        // List files, filter for images, and sort them
+        val imageFiles = directory.listFiles()
+            .filter { it.isFile && it.name?.substringAfterLast('.')?.lowercase() in imageExtensions }
+            .sortedBy { it.name }
+
+        // If there are no image files, return null
+        if (imageFiles.isEmpty()) {
+            return null
+        }
+
+        // If there is no current wallpaper, return the first one
+        if (currentWallpaperUri == null) {
+            return imageFiles.first().uri
+        }
+
+        // Find the index of the current wallpaper
+        val currentIndex = imageFiles.indexOfFirst { it.uri == currentWallpaperUri }
+
+        // Determine the next index, looping back to the start if at the end
+        val nextIndex = if (currentIndex == -1 || currentIndex == imageFiles.lastIndex) {
+            0
+        } else {
+            currentIndex + 1
+        }
+
+        return imageFiles[nextIndex].uri
+    }
+
     fun isColorDark(color: Color): Boolean {
         val darkness = 1 - (0.299 * color.red + 0.587 * color.green + 0.114 * color.blue)
         return darkness >= 0.5
@@ -110,56 +179,143 @@ object CommonUtil {
         val resolveInfo = context.packageManager.resolveActivity(intent, 0)
         return resolveInfo?.activityInfo?.packageName == context.packageName
     }
+    fun setBackgroundImageFromImageUri(context:Context,wallpaperDirectory:Uri) {
+        val currentWallpaperImageUri = PreferenceManager.getBackgroundImageUri(context)
+        val nextLocalImageUri = getNextWallpaperImageUri(
+            context,
+            wallpaperDirectory,
+            currentWallpaperImageUri)
+        if(nextLocalImageUri != null && currentWallpaperImageUri != nextLocalImageUri){
+            PreferenceManager.setBackgroundImageUri(
+                context,
+                nextLocalImageUri
+            )
+            //copy file to app files
+            val filename = getFileNameFromUri(context, nextLocalImageUri)
+            if (filename != null) {
+                // 2. Create a destination file in your app's private storage
+                val destinationFile = File(context.filesDir, filename)
+                // 3. Copy the file
+                val success = copyFileFromUri(context, nextLocalImageUri, destinationFile)
+                if (success) {
+                    val newFilePath = destinationFile.absolutePath
+                    val oldFilePath:String? = PreferenceManager.getBackgroundImagePath(context)
+                    PreferenceManager.setBackgroundImagePath(
+                        context,
+                        newFilePath
+                    )
+                    PreferenceManager.setWallpaperApplied(context,false)
+                    // delete old file
+                    if(oldFilePath != null && oldFilePath != newFilePath) {
+                        val oldFile = File(oldFilePath)
+                        oldFile.delete()
+                    }
+                }
+            }
+        }
+    }
     suspend fun fetchImageData(applicationContext: Context){
         val previousWallpaperApplied = PreferenceManager.getWallpaperApplied(applicationContext)
         if(!previousWallpaperApplied) return;
         val logger = LoggerManager(applicationContext)
         val hour = PreferenceManager.getHour(applicationContext)
         if (hour > 0) {
-            try {
-                logger.setLog("FetchImageData", "Fetching")
-                val name = PreferenceManager.getUsername(applicationContext)
-                val (sslSocketFactory, trustManager) = SSLHelper.createSslSocketFactory(
-                    applicationContext,
-                    R.raw.cacert // Use the name of your certificate file
-                )
+            val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(applicationContext)
+            if(wallpaperDirectory != null){
+                val changeFrequency = PreferenceManager.getWallpaperFrequency(applicationContext)
+                if (changeFrequency == "Hourly" || hour == 12){
+                    setBackgroundImageFromImageUri(applicationContext,wallpaperDirectory)
+                }
+            } else {
+                try {
+                    logger.setLog("FetchImageData", "Fetching")
+                    val name = PreferenceManager.getUsername(applicationContext)
+                    val (sslSocketFactory, trustManager) = SSLHelper.createSslSocketFactory(
+                        applicationContext,
+                        R.raw.cacert // Use the name of your certificate file
+                    )
 
-                // 2. Define connection specs, including one for compatibility with older devices
-                val connectionSpecs = listOf(
-                    ConnectionSpec.MODERN_TLS,
-                    ConnectionSpec.COMPATIBLE_TLS
-                )
-                val client = HttpClient(OkHttp) {
-                    engine {
-                        config {
-                            // Attach the custom SSLSocketFactory
-                            sslSocketFactory(sslSocketFactory, trustManager)
+                    // 2. Define connection specs, including one for compatibility with older devices
+                    val connectionSpecs = listOf(
+                        ConnectionSpec.MODERN_TLS,
+                        ConnectionSpec.COMPATIBLE_TLS
+                    )
+                    val client = HttpClient(OkHttp) {
+                        engine {
+                            config {
+                                // Attach the custom SSLSocketFactory
+                                sslSocketFactory(sslSocketFactory, trustManager)
 
-                            // Set the compatible connection specifications
-                            connectionSpecs(connectionSpecs)
+                                // Set the compatible connection specifications
+                                connectionSpecs(connectionSpecs)
+                            }
+                        }
+                        install(ContentNegotiation) {
+                            json(Json {
+                                ignoreUnknownKeys = true
+                            })
                         }
                     }
-                    install(ContentNegotiation) {
-                        json(Json {
-                            ignoreUnknownKeys = true
-                        })
-                    }
+                    val response: ImageData = client.get("https://comfer.jeerovan.com/api") {
+                        parameter("name", name)
+                        parameter("hour", hour)
+                    }.body()
+                    logger.setLog("FetchImageData", response.toString())
+                    client.close()
+                    PreferenceManager.saveImageData(applicationContext, response)
+                    PreferenceManager.setHour(applicationContext, hour)
+                } catch (e: Exception) {
+                    logger.setLog("FetchImageData", e.toString())
                 }
-                val response: ImageData = client.get("https://comfer.jeerovan.com/api") {
-                    parameter("name", name)
-                    parameter("hour", hour)
-                }.body()
-                logger.setLog("FetchImageData", response.toString())
-                client.close()
-                PreferenceManager.saveImageData(applicationContext, response)
-                PreferenceManager.setHour(applicationContext, hour)
-            } catch (e: Exception) {
-                logger.setLog("FetchImageData",  e.toString())
             }
         }
     }
     fun canSetLockScreenWallpaper(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+    }
+    suspend fun downloadImage(applicationContext: Context){
+        val logger = LoggerManager(applicationContext)
+        if (PreferenceManager.newImageAvailable(applicationContext)) {
+            logger.setLog("DownloadImage", "Downloading New Image")
+            val tempImageData: ImageData? =
+                PreferenceManager.getTempImageData(applicationContext)
+            if (tempImageData != null) {
+                val imageUrl = tempImageData.imageUrl
+                val request = ImageRequest.Builder(applicationContext)
+                    .data(imageUrl)
+                    .build()
+                val result = Coil.imageLoader(applicationContext).execute(request)
+                if (result is ImageResult) {
+                    val drawable = result.drawable
+                    if (drawable != null) {
+                        val filename = "comfer_${tempImageData.id}.jpg"
+                        val file = File(applicationContext.filesDir, filename)
+                        val stream = FileOutputStream(file)
+                        drawable.toBitmap()
+                            .compress(
+                                Bitmap.CompressFormat.JPEG,
+                                100,
+                                stream
+                            )
+                        stream.close()
+                        logger.setLog("DownloadImage","Downloaded: $filename")
+                        val oldFilePath:String? = PreferenceManager.getBackgroundImagePath(applicationContext)
+                        PreferenceManager.setBackgroundImagePath(
+                            applicationContext,
+                            file.absolutePath
+                        )
+                        PreferenceManager.setImageDownloaded(applicationContext)
+                        PreferenceManager.setWallpaperApplied(applicationContext,false)
+                        // delete old file
+                        if(oldFilePath != null && oldFilePath != file.absolutePath) {
+                            val oldFile = File(oldFilePath)
+                            oldFile.delete()
+                            logger.setLog("DownloadImage","Deleted: $oldFilePath")
+                        }
+                    }
+                }
+            }
+        }
     }
     fun setWallpaper(applicationContext: Context){
         if(isDefaultLauncher(applicationContext)){
@@ -186,50 +342,7 @@ object CommonUtil {
             }
         }
     }
-    suspend fun downloadImage(applicationContext: Context){
-        val logger = LoggerManager(applicationContext)
-        if (PreferenceManager.newImageAvailable(applicationContext)) {
-            logger.setLog("DownloadImage", "Downloading New Image")
-            val tempImageData: ImageData? =
-                PreferenceManager.getTempImageData(applicationContext)
-            if (tempImageData != null) {
-                val imageUrl = tempImageData.imageUrl
-                val request = ImageRequest.Builder(applicationContext)
-                    .data(imageUrl)
-                    .build()
-                val result = Coil.imageLoader(applicationContext).execute(request)
-                if (result is ImageResult) {
-                    val drawable = result.drawable
-                    if (drawable != null) {
-                        val oldFilePath:String? = PreferenceManager.getBackgroundImagePath(applicationContext)
-                        val filename = "comfer_${tempImageData.id}.jpg"
-                        val file = File(applicationContext.filesDir, filename)
-                        val stream = FileOutputStream(file)
-                        drawable.toBitmap()
-                            .compress(
-                                android.graphics.Bitmap.CompressFormat.JPEG,
-                                100,
-                                stream
-                            )
-                        stream.close()
-                        logger.setLog("DownloadImage","Downloaded: $filename")
-                        PreferenceManager.setBackgroundImagePath(
-                            applicationContext,
-                            file.absolutePath
-                        )
-                        PreferenceManager.setImageDownloaded(applicationContext)
-                        PreferenceManager.setWallpaperApplied(applicationContext,false)
-                        // delete old file
-                        if(oldFilePath != null && oldFilePath != file.absolutePath) {
-                            val oldFile = File(oldFilePath)
-                            oldFile.delete()
-                            logger.setLog("DownloadImage","Deleted: $oldFilePath")
-                        }
-                    }
-                }
-            }
-        }
-    }
+
     fun Drawable.toBitmapSafely(width: Int = intrinsicWidth, height: Int = intrinsicHeight): Bitmap? {
         if (width <= 0 || height <= 0) return null
         val bitmap = createBitmap(width, height)
