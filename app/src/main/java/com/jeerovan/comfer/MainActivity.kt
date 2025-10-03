@@ -1672,7 +1672,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         } else {
                             Text(
                                 text = time,
-                                color = textColor,
+                                color = if(customWallpaper) settings.timeFontColor else textColor,
                                 fontSize = settings.timeFontSize.sp,
                                 fontWeight = getFontWeightFromString(settings.timeFontWeight),
                                 fontFamily = settings.timeFontFamily
@@ -1681,14 +1681,14 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = date,
-                                color = textColor,
+                                color = if(customWallpaper) settings.dateFontColor else textColor,
                                 fontSize = settings.dateFontSize.sp,
                                 fontWeight = getFontWeightFromString(settings.dateFontWeight),
                                 fontFamily = settings.dateFontFamily,
                                 modifier = Modifier.padding(end = 8.dp)
                             )
                             if(settings.showBatteryIcon || settings.showBatteryPercentage)
-                                BatteryStatus(textColor,
+                                BatteryStatus(if(customWallpaper) settings.batteryColor else textColor,
                                     showBatteryIcon = settings.showBatteryIcon,
                                     showBatteryPercentage = settings.showBatteryPercentage,
                                     fontFamily = settings.dateFontFamily,
@@ -1698,7 +1698,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         }
                         if (settings.hasNotificationAccess && settings.showNotificationRow) NotificationIconRow(
                             notificationIcons,
-                            iconColor = textColor
+                            iconColor = if(customWallpaper) settings.notificationColor else textColor
                         )
                     }
                 }

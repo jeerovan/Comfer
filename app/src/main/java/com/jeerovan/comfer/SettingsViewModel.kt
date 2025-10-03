@@ -53,16 +53,20 @@ data class SettingsUiState(
     val showAmPm: Boolean = true,
     val timeFontSize: Int = 60,
     val timeFontName: String = "Roboto",
+    val timeFontColor: Color = Color.White,
     val timeFontFamily: FontFamily = FontFamily.Default,
     val timeFontWeight: String = "Light",
     val dateFormat: String? = "EEE,MMM d",
     val dateFontSize: Int = 20,
     val dateFontName: String = "Roboto",
+    val dateFontColor: Color = Color.White,
     val dateFontFamily: FontFamily = FontFamily.Default,
     val dateFontWeight: String = "Normal",
     val showBatteryIcon: Boolean  = true,
+    val batteryColor: Color = Color.White,
     val showBatteryPercentage: Boolean = true,
-    val showNotificationRow : Boolean = true
+    val showNotificationRow : Boolean = true,
+    val notificationColor: Color = Color.White
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -81,12 +85,16 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val SHOW_AM_PM = "show_am_pm"
     private val TIME_FONT_SIZE = "time_font_size"
     private val TIME_FONT_NAME = "time_font_name"
+    private val TIME_FONT_COLOR = "time_font_color"
     private val TIME_FONT_WEIGHT = "time_font_weight"
     private val DATE_FONT_SIZE = "date_font_size"
+    private val DATE_FONT_COLOR = "date_font_color"
     private val DATE_FONT_NAME = "date_font_name"
     private val DATE_FONT_WEIGHT = "date_font_weight"
     private val SHOW_BATTERY_ICON = "show_battery_icon"
     private val SHOW_BATTERY_PERCENTAGE = "show_battery_percentage"
+    private val BATTERY_COLOR = "battery_color"
+    private val NOTIFICATION_COLOR = "notification_color"
     private val SHOW_NOTIFICATIONS_ROW = "show_notifications_row"
 
     private var working = false
@@ -127,6 +135,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val timeFormat = PreferenceManager.getString(getApplication(),TIME_FORMAT, "H12") ?: "H12"
             val showAmPm = PreferenceManager.getBoolean(getApplication(),SHOW_AM_PM,true)
             val timeFontSize = PreferenceManager.getInt(getApplication(),TIME_FONT_SIZE,60)
+            val timeFontColor = Color(PreferenceManager.getInt(getApplication(),TIME_FONT_COLOR,Color.White.toArgb()))
             val timeFontName = PreferenceManager.getString(getApplication(),TIME_FONT_NAME,"Roboto") ?: "Roboto"
             val timeFontFamily = try {
                 FontFamily(
@@ -141,6 +150,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val timeFontWeight = PreferenceManager.getString(getApplication(),TIME_FONT_WEIGHT,
                 "Light") ?: "Light"
             val dateFontSize = PreferenceManager.getInt(getApplication(),DATE_FONT_SIZE,20)
+            val dateFontColor = Color(PreferenceManager.getInt(getApplication(),DATE_FONT_COLOR,Color.White.toArgb()))
             val dateFontName = PreferenceManager.getString(getApplication(),DATE_FONT_NAME,"Roboto") ?: "Roboto"
             val dateFontFamily = try {
                 FontFamily(
@@ -154,7 +164,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
             val dateFontWeight = PreferenceManager.getString(getApplication(),DATE_FONT_WEIGHT,"Normal") ?: "Normal"
             val showBatteryIcon = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_ICON,true)
+            val batteryColor = Color(PreferenceManager.getInt(getApplication(),BATTERY_COLOR,Color.White.toArgb()))
             val showBatteryPercentage = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_PERCENTAGE,true)
+            val notificationColor = Color(PreferenceManager.getInt(getApplication(),NOTIFICATION_COLOR,Color.White.toArgb()))
             val showNotificationRow = PreferenceManager.getBoolean(getApplication(),SHOW_NOTIFICATIONS_ROW,true)
             _uiState.update {
                 it.copy(
@@ -181,22 +193,49 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     timeFormat =  timeFormat,
                     showAmPm = showAmPm,
                     timeFontSize = timeFontSize,
+                    timeFontColor = timeFontColor,
                     timeFontName = timeFontName,
                     timeFontFamily = timeFontFamily,
                     timeFontWeight = timeFontWeight,
                     dateFontSize = dateFontSize,
+                    dateFontColor = dateFontColor,
                     dateFontName = dateFontName,
                     dateFontFamily = dateFontFamily,
                     dateFontWeight = dateFontWeight,
                     showBatteryIcon = showBatteryIcon,
+                    batteryColor = batteryColor,
                     showBatteryPercentage = showBatteryPercentage,
-                    showNotificationRow = showNotificationRow
+                    showNotificationRow = showNotificationRow,
+                    notificationColor = notificationColor
                 )
             }
             working = false
         }
     }
-
+    fun setTimeFontColor(color: Color){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),TIME_FONT_COLOR,color.toArgb())
+            _uiState.update { it.copy(timeFontColor = color) }
+        }
+    }
+    fun setDateFontColor(color: Color){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),DATE_FONT_COLOR,color.toArgb())
+            _uiState.update { it.copy(dateFontColor = color) }
+        }
+    }
+    fun setBatteryColor(color: Color){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),BATTERY_COLOR,color.toArgb())
+            _uiState.update { it.copy(batteryColor = color) }
+        }
+    }
+    fun setNotificationColor(color: Color){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),NOTIFICATION_COLOR,color.toArgb())
+            _uiState.update { it.copy(notificationColor = color) }
+        }
+    }
     fun setWallpaperFrequency(frequency:String){
         viewModelScope.launch {
             PreferenceManager.setWallpaperFrequency(getApplication(),frequency)

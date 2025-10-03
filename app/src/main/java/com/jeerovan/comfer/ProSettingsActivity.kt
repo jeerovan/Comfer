@@ -71,10 +71,14 @@ class ProSettingsActivity : ComponentActivity() {
 fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
     val settingsState by settingsViewModel.uiState.collectAsState()
     var showTimeFontDialog by remember { mutableStateOf(false) }
+    var showTimeFontColor by remember { mutableStateOf(false) }
     var showDateFontDialog by remember { mutableStateOf(false) }
+    var showDateFontColor by remember { mutableStateOf(false) }
     var showClockBgPicker by remember { mutableStateOf(false) }
     var showClockHourPicker by remember { mutableStateOf(false) }
     var showClockMinutePicker by remember { mutableStateOf(false) }
+    var showBatteryColor by remember { mutableStateOf(false) }
+    var showNotificationColor by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -98,55 +102,30 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                     range = 70f..200f,
                     onValueChange = { settingsViewModel.setClockSize(it) }
                 )
-                // Background Color
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .background(settingsState.clockBgColor, RoundedCornerShape(12.dp))
-                        .clickable { showClockBgPicker = true}
-                ) {
-                    Text(
-                        text = "Clock background color",
-                        modifier = Modifier.align(Alignment.Center),
-                        color = if (isColorDark(settingsState.clockBgColor)) Color.White else Color.Black
+                if(settingsState.wallpaperDirectory != null) {
+                    // Background Color
+                    ColorPickerSettingItem(
+                        "Clock background color",
+                        settingsState.clockBgColor
+                    ) { showClockBgPicker = true }
+                    // Background Alpha
+                    SettingSlider(
+                        label = "Background Transparency",
+                        value = (settingsState.clockBgAlpha * 100f).toInt(),
+                        range = 0f..100f,
+                        onValueChange = { settingsViewModel.setClockBgAlpha(it) }
                     )
-                }
-                // Background Alpha
-                SettingSlider(
-                    label = "Background Transparency",
-                    value = (settingsState.clockBgAlpha*100f).toInt(),
-                    range = 0f..100f,
-                    onValueChange = { settingsViewModel.setClockBgAlpha(it) }
-                )
-                // Hour Color
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .background(settingsState.clockHourColor, RoundedCornerShape(12.dp))
-                        .clickable { showClockHourPicker = true}
-                ) {
-                    Text(
-                        text = "Hour hand color",
-                        modifier = Modifier.align(Alignment.Center),
-                        color = if (isColorDark(settingsState.clockHourColor)) Color.White else Color.Black
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                // Minute Color
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .background(settingsState.clockMinuteColor, RoundedCornerShape(12.dp))
-                        .clickable { showClockMinutePicker = true}
-                ) {
-                    Text(
-                        text = "Minute hand color",
-                        modifier = Modifier.align(Alignment.Center),
-                        color = if (isColorDark(settingsState.clockMinuteColor)) Color.White else Color.Black
-                    )
+                    // Hour Color
+                    ColorPickerSettingItem(
+                        "Hour hand color",
+                        settingsState.clockHourColor
+                    ) { showClockHourPicker = true }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    // Minute Color
+                    ColorPickerSettingItem(
+                        "Minute hand color",
+                        settingsState.clockMinuteColor
+                    ) { showClockMinutePicker = true }
                 }
                 if(showClockBgPicker){
                     EnhancedColorPicker(
@@ -188,7 +167,6 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                         settingsViewModel.setTimeFormat(it)
                     }
                 )
-
                 // Show AM/PM
                 if (settingsState.timeFormat == "H12") {
                     SettingSwitch(
@@ -197,7 +175,6 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                         onCheckedChange = { settingsViewModel.setShowAmPm(it) }
                     )
                 }
-
                 // Time Font Size
                 SettingSlider(
                     label = "Font Size",
@@ -215,7 +192,6 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                         settingsViewModel.setTimeFontWeight(it)
                     }
                 )
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -243,16 +219,30 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                         fontWeight = getFontWeightFromString(settingsState.timeFontWeight)
                     )
                 }
-            }
-            if (showTimeFontDialog) {
-                FontSelectionDialog(
-                    sampleText = "12:34 PM",
-                    onDismissRequest = { showTimeFontDialog = false },
-                    onFontSelected = { fontName ->
-                        settingsViewModel.setTimeFontName(fontName)
-                        showTimeFontDialog = false // Also dismiss dialog after selection
-                    }
-                )
+                if(settingsState.wallpaperDirectory != null){
+                    ColorPickerSettingItem("Time font color",
+                        settingsState.timeFontColor) { showTimeFontColor = true }
+                }
+                if (showTimeFontDialog) {
+                    FontSelectionDialog(
+                        sampleText = "12:34 PM",
+                        onDismissRequest = { showTimeFontDialog = false },
+                        onFontSelected = { fontName ->
+                            settingsViewModel.setTimeFontName(fontName)
+                            showTimeFontDialog = false // Also dismiss dialog after selection
+                        }
+                    )
+                }
+                if(showTimeFontColor){
+                    EnhancedColorPicker(
+                        predefinedColors = settingsViewModel.predefinedColors,
+                        initialColor = settingsState.timeFontColor,
+                        onColorSelected = { color ->
+                            settingsViewModel.setTimeFontColor(color)
+                        },
+                        onDismissRequest = { showTimeFontColor = false }
+                    )
+                }
             }
         }
 
@@ -264,7 +254,6 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
 
         // Date Settings
         SettingSection("Date") {
-
             // Date Font Size
             SettingSlider(
                 label = "Font Size",
@@ -309,16 +298,30 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                     fontSize = 24.sp
                 )
             }
-        }
-        if (showDateFontDialog) {
-            FontSelectionDialog(
-                sampleText = "Sat, Sept 16",
-                onDismissRequest = { showDateFontDialog = false },
-                onFontSelected = { fontName ->
-                    settingsViewModel.setDateFontName(fontName)
-                    showDateFontDialog = false // Also dismiss dialog after selection
-                }
-            )
+            if(settingsState.wallpaperDirectory != null){
+                ColorPickerSettingItem("Date font color",
+                    settingsState.dateFontColor) { showDateFontColor = true }
+            }
+            if (showDateFontDialog) {
+                FontSelectionDialog(
+                    sampleText = "Sat, Sept 16",
+                    onDismissRequest = { showDateFontDialog = false },
+                    onFontSelected = { fontName ->
+                        settingsViewModel.setDateFontName(fontName)
+                        showDateFontDialog = false // Also dismiss dialog after selection
+                    }
+                )
+            }
+            if(showDateFontColor){
+                EnhancedColorPicker(
+                    predefinedColors = settingsViewModel.predefinedColors,
+                    initialColor = settingsState.dateFontColor,
+                    onColorSelected = { color ->
+                        settingsViewModel.setDateFontColor(color)
+                    },
+                    onDismissRequest = { showDateFontColor = false }
+                )
+            }
         }
 
         HorizontalDivider(
@@ -339,7 +342,22 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                 checked = settingsState.showBatteryPercentage,
                 onCheckedChange = { settingsViewModel.setShowBatteryPercentage(it) }
             )
+            if(settingsState.wallpaperDirectory != null){
+                ColorPickerSettingItem("Indicator color",
+                    settingsState.batteryColor) { showBatteryColor = true }
+            }
+            if(showBatteryColor){
+                EnhancedColorPicker(
+                    predefinedColors = settingsViewModel.predefinedColors,
+                    initialColor = settingsState.batteryColor,
+                    onColorSelected = { color ->
+                        settingsViewModel.setBatteryColor(color)
+                    },
+                    onDismissRequest = { showBatteryColor = false }
+                )
+            }
         }
+
 
         HorizontalDivider(
             modifier = Modifier.padding(vertical = 16.dp),
@@ -354,7 +372,26 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                 checked = settingsState.showNotificationRow,
                 onCheckedChange = { settingsViewModel.setShowNotificationRow(it) }
             )
+            if(settingsState.wallpaperDirectory != null){
+                ColorPickerSettingItem("Notification icons color",
+                    settingsState.notificationColor) { showNotificationColor = true }
+            }
+            if(showNotificationColor){
+                EnhancedColorPicker(
+                    predefinedColors = settingsViewModel.predefinedColors,
+                    initialColor = settingsState.notificationColor,
+                    onColorSelected = { color ->
+                        settingsViewModel.setNotificationColor(color)
+                    },
+                    onDismissRequest = { showNotificationColor = false }
+                )
+            }
         }
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 16.dp),
+            thickness = DividerDefaults.Thickness,
+            color = DividerDefaults.color
+        )
     }
 }
 
@@ -406,7 +443,6 @@ fun SettingSlider(label: String, value: Int, range: ClosedFloatingPointRange<Flo
 @Composable
 fun SettingDropdown(label: String, selectedValue: String, options: List<String>, onValueChange: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -673,5 +709,25 @@ fun EnhancedColorPicker(
                 }
             }
         }
+    }
+}
+@Composable
+fun ColorPickerSettingItem(
+    title: String,
+    color: Color,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .background(color, RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+    ) {
+        Text(
+            text = title,
+            modifier = Modifier.align(Alignment.Center),
+            color = if (isColorDark(color)) Color.White else Color.Black
+        )
     }
 }
