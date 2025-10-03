@@ -24,12 +24,13 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
+import androidx.core.net.toUri
 import com.jeerovan.comfer.ui.theme.fontProvider
 import com.jeerovan.comfer.utils.CommonUtil.setBackgroundImageFromImageUri
 
 data class SettingsUiState(
     val wallpaperMotionEnabled: Boolean = true,
-    val wallpaperDirectory: Uri? = null,
+    val wallpaperDirectory: String? = null,
     val wallpaperFrequency:String = "Hourly",
     val wallpaperOnLockScreen: Boolean = false,
     val iconSize: Int = 48,
@@ -88,6 +89,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val SHOW_BATTERY_PERCENTAGE = "show_battery_percentage"
     private val SHOW_NOTIFICATIONS_ROW = "show_notifications_row"
 
+    private var working = false
     val predefinedColors = listOf(
         Color.Red, Color.Green, Color.Blue, Color.Yellow,
         Color.Cyan, Color.Magenta, Color.Black, Color.Gray,
@@ -98,6 +100,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         loadSettings()
     }
     fun loadSettings() {
+        if(working)return
+        working = true
         logger.setLog("SettingsViewModel","LoadSettings")
         viewModelScope.launch {
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
@@ -189,6 +193,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     showNotificationRow = showNotificationRow
                 )
             }
+            working = false
         }
     }
 
@@ -198,13 +203,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _uiState.update { it.copy(wallpaperFrequency = frequency) }
         }
     }
-    fun setWallpaperDirectory(directoryUri: Uri?){
+    fun setWallpaperDirectory(directoryUri: String?){
         viewModelScope.launch {
             PreferenceManager.setWallpaperDirectory(getApplication(),directoryUri)
             _uiState.update { it.copy(wallpaperDirectory = directoryUri) }
             if(directoryUri != null) {
                 withContext(Dispatchers.IO) {
-                    setBackgroundImageFromImageUri(getApplication(),directoryUri)
+                    setBackgroundImageFromImageUri(getApplication(),directoryUri.toUri())
                 }
                 PreferenceManager.setApplyWallpaperNow(getApplication(),true)
             }

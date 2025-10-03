@@ -6,10 +6,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import androidx.compose.ui.graphics.Shape
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -24,13 +22,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
@@ -42,6 +44,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -85,174 +88,8 @@ import androidx.lifecycle.lifecycleScope
 import com.jeerovan.comfer.utils.CommonUtil.canSetLockScreenWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
+import com.jeerovan.comfer.utils.CommonUtil.getUriPath
 import kotlinx.coroutines.launch
-
-@Composable
-fun QuickAppsLayoutSettingItem(
-    selectedLayout: String?,
-    onLayoutSelected: (String) -> Unit
-) {
-    var showDialog by remember { mutableStateOf(false) }
-
-    ListItem(
-        headlineContent = { Text("Quick apps layout") },
-        supportingContent = { Text("Select circular or linear") },
-        leadingContent = { Icon(
-                            painter = painterResource(R.drawable.outline_apps_24),
-                            contentDescription = "Home apps layout")
-                         },
-        trailingContent = {
-            when (selectedLayout) {
-                "linear" -> {
-                    Icon(
-                        painter = painterResource(R.drawable.layout_linear),
-                        contentDescription = "Widgets",
-                        modifier = Modifier.size(44.dp)
-                    )
-                }
-                "circular" -> {
-                    Icon(
-                        painter = painterResource(R.drawable.layout_circular),
-                        contentDescription = "Widgets",
-                        modifier = Modifier.size(44.dp)
-                    )
-                }
-            }
-        },
-        modifier = Modifier.clickable { showDialog = true },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-    )
-
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("Choose Layout") },
-            text = {
-                Column (modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        painter = painterResource(R.drawable.layout_linear),
-                        contentDescription = "Widgets",
-                        modifier = Modifier
-                            .size(76.dp)
-                            .clickable {
-                                showDialog = false
-                                onLayoutSelected("linear")
-                            }
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Icon(
-                        painter = painterResource(R.drawable.layout_circular),
-                        contentDescription = "Widgets",
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clickable {
-                                showDialog = false
-                                onLayoutSelected("circular")
-                            }
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
-}
-@Composable
-fun SwipeActionSettingItem(
-    headline: String,
-    icon: @Composable () -> Unit,
-    selectedApp: AppInfo?,
-    isWidgetsSelected: Boolean,
-    onAppSelectionClick: () -> Unit,
-    onWidgetsSelectionClick: () -> Unit,
-    iconShape: Shape,
-    iconSize: Dp
-) {
-    var showDialog by remember { mutableStateOf(false) }
-
-    ListItem(
-        headlineContent = { Text(headline) },
-        supportingContent = { Text("Select an app or Widgets screen") },
-        leadingContent = { icon() },
-        trailingContent = {
-            when {
-                // If widgets are selected, show a widgets icon
-                isWidgetsSelected -> {
-                    Icon(
-                        painter = painterResource(R.drawable.outline_widgets_24),
-                        contentDescription = "Widgets",
-                        modifier = Modifier.size(iconSize)
-                    )
-                }
-                // If an app is selected, show its icon
-                selectedApp != null -> {
-                    Box(
-                        modifier = Modifier
-                            .size(iconSize)
-                            .clip(iconShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // Your existing logic to display the app icon
-                        if (selectedApp.background != null) {
-                            Image(
-                                painter = rememberDrawablePainter(drawable = selectedApp.background),
-                                contentDescription = "${selectedApp.label} background",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.FillBounds
-                            )
-                        }
-                        if (selectedApp.foreground != null) {
-                            Image(
-                                painter = rememberDrawablePainter(drawable = selectedApp.foreground),
-                                contentDescription = selectedApp.label.toString(),
-                                modifier = Modifier.fillMaxSize().scale(selectedApp.scale),
-                                contentScale = ContentScale.FillBounds
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        modifier = Modifier.clickable { showDialog = true },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-    )
-
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("Choose Action") },
-            text = {
-                Column {
-                    TextButton(
-                        onClick = {
-                            showDialog = false
-                            onAppSelectionClick()
-                        }
-                    ) {
-                        Text("Select App")
-                    }
-                    TextButton(
-                        onClick = {
-                            showDialog = false
-                            onWidgetsSelectionClick()
-                        }
-                    ) {
-                        Text("Widgets Screen")
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
-}
 
 class SettingsActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
@@ -322,11 +159,14 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             showDisclosure = true
         }
     }
-    Box( modifier = Modifier.fillMaxSize().padding(bottom=48.dp)
+    Box( modifier = Modifier
+        .fillMaxSize()
+        //.windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize(),
+            contentPadding = WindowInsets.navigationBars.asPaddingValues()
         ) {
             item { SectionHeader("Background") }
             item {
@@ -356,13 +196,13 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             if(settingsState.wallpaperDirectory != null){
                 item {
-                    SettingDropdown(
-                        label = "Wallpaper change frequency",
-                        selectedValue = settingsState.wallpaperFrequency,
-                        options = arrayOf("Hourly","Daily").map { it},
-                        onValueChange = {
-                            settingsViewModel.setWallpaperFrequency(it)
-                        }
+                    SelectOptionsWithListItemSettingItem(
+                        "Change wallpaper",
+                        null,
+                        {Icon(Icons.Filled.Refresh, contentDescription = "Change frequency")},
+                        settingsState.wallpaperFrequency,
+                        {option -> settingsViewModel.setWallpaperFrequency(option)},
+                        arrayOf("Hourly","Daily")
                     )
                 }
             }
@@ -868,47 +708,42 @@ fun ShapePreview(
 }
 @Composable
 fun SelectSetOwnWallpapersDirectory(
-    onSelectDirectory: (directory: Uri?) -> Unit,
-    selectedDirectory: Uri?
+    onSelectDirectory: (directory: String?) -> Unit,
+    selectedDirectory: String?
 ) {
     val context = LocalContext.current
-    var isChecked by remember { mutableStateOf(false) }
 
-    // Launcher for the directory picker
+    val isChecked = selectedDirectory != null
+
     val directoryPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree(),
         onResult = { uri ->
-            if (uri != null) {
-                // Persist permissions
+            // ROBUST CHECK: Ensure the URI is not null AND has a valid path.
+            // This handles edge cases where a non-null but empty URI is returned on cancel.
+            if (uri?.path?.isNotEmpty() == true) {
+                // This block only runs for a valid directory selection.
                 context.contentResolver.takePersistableUriPermission(
                     uri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
-                isChecked = true
-                onSelectDirectory(uri)
-            } else {
-                // User canceled the directory picker
-                isChecked = false
-                onSelectDirectory(null)
+                onSelectDirectory(uri.toString())
             }
         }
     )
 
-    // Launcher for the permission request
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
             if (isGranted) {
                 directoryPickerLauncher.launch(null)
-            } else {
-                isChecked = false
             }
         }
     )
 
     ListItem(
-        headlineContent = { Text("Set own Wallpapers Directory") },
-        supportingContent = { Text(selectedDirectory?.toString() ?: "Not set")},
+        headlineContent = { Text("Set own wallpapers directory") },
+        // Use the .path property for a cleaner display string.
+        supportingContent = { Text(getUriPath(selectedDirectory) ?: "Not set") },
         leadingContent = {
             Icon(
                 painter = painterResource(R.drawable.outline_wallpaper_directory),
@@ -917,10 +752,10 @@ fun SelectSetOwnWallpapersDirectory(
         },
         trailingContent = {
             Switch(
-                checked = isChecked,
+                checked = isChecked, // The UI is driven by the single source of truth.
                 onCheckedChange = { checked ->
                     if (checked) {
-                        // When switch is ON, check permission and launch picker
+                        // When user tries to turn the switch ON, launch the picker.
                         if (ContextCompat.checkSelfPermission(
                                 context,
                                 Manifest.permission.READ_EXTERNAL_STORAGE
@@ -931,28 +766,21 @@ fun SelectSetOwnWallpapersDirectory(
                             permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
                         }
                     } else {
-                        // When switch is OFF
-                        isChecked = false
+                        // When user turns the switch OFF, clear the directory.
                         onSelectDirectory(null)
                     }
                 }
             )
         },
         modifier = Modifier.clickable {
-            if(isChecked){
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    directoryPickerLauncher.launch(null)
-                } else {
-                    permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                }
+            // Allow re-picking the directory by tapping anywhere on the row.
+            if (isChecked) {
+                directoryPickerLauncher.launch(null)
             }
         }
     )
 }
+
 
 @Composable
 fun NotificationServicePermissionDisclosureScreen(
@@ -1015,5 +843,222 @@ fun NotificationServicePermissionDisclosureScreen(
                 }
             }
         }
+    }
+}
+@Composable
+fun QuickAppsLayoutSettingItem(
+    selectedLayout: String?,
+    onLayoutSelected: (String) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    ListItem(
+        headlineContent = { Text("Quick apps layout") },
+        supportingContent = { Text("Select circular or linear") },
+        leadingContent = { Icon(
+            painter = painterResource(R.drawable.outline_apps_24),
+            contentDescription = "Home apps layout")
+        },
+        trailingContent = {
+            when (selectedLayout) {
+                "linear" -> {
+                    Icon(
+                        painter = painterResource(R.drawable.layout_linear),
+                        contentDescription = "Widgets",
+                        modifier = Modifier.size(44.dp)
+                    )
+                }
+                "circular" -> {
+                    Icon(
+                        painter = painterResource(R.drawable.layout_circular),
+                        contentDescription = "Widgets",
+                        modifier = Modifier.size(44.dp)
+                    )
+                }
+            }
+        },
+        modifier = Modifier.clickable { showDialog = true },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+    )
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Choose Layout") },
+            text = {
+                Column (modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        painter = painterResource(R.drawable.layout_linear),
+                        contentDescription = "Widgets",
+                        modifier = Modifier
+                            .size(76.dp)
+                            .clickable {
+                                showDialog = false
+                                onLayoutSelected("linear")
+                            }
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Icon(
+                        painter = painterResource(R.drawable.layout_circular),
+                        contentDescription = "Widgets",
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clickable {
+                                showDialog = false
+                                onLayoutSelected("circular")
+                            }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+@Composable
+fun SwipeActionSettingItem(
+    headline: String,
+    icon: @Composable () -> Unit,
+    selectedApp: AppInfo?,
+    isWidgetsSelected: Boolean,
+    onAppSelectionClick: () -> Unit,
+    onWidgetsSelectionClick: () -> Unit,
+    iconShape: Shape,
+    iconSize: Dp
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    ListItem(
+        headlineContent = { Text(headline) },
+        supportingContent = { Text("Select an app or Widgets screen") },
+        leadingContent = { icon() },
+        trailingContent = {
+            when {
+                // If widgets are selected, show a widgets icon
+                isWidgetsSelected -> {
+                    Icon(
+                        painter = painterResource(R.drawable.outline_widgets_24),
+                        contentDescription = "Widgets",
+                        modifier = Modifier.size(iconSize)
+                    )
+                }
+                // If an app is selected, show its icon
+                selectedApp != null -> {
+                    Box(
+                        modifier = Modifier
+                            .size(iconSize)
+                            .clip(iconShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Your existing logic to display the app icon
+                        if (selectedApp.background != null) {
+                            Image(
+                                painter = rememberDrawablePainter(drawable = selectedApp.background),
+                                contentDescription = "${selectedApp.label} background",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.FillBounds
+                            )
+                        }
+                        if (selectedApp.foreground != null) {
+                            Image(
+                                painter = rememberDrawablePainter(drawable = selectedApp.foreground),
+                                contentDescription = selectedApp.label.toString(),
+                                modifier = Modifier.fillMaxSize().scale(selectedApp.scale),
+                                contentScale = ContentScale.FillBounds
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        modifier = Modifier.clickable { showDialog = true },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+    )
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Choose Option") },
+            text = {
+                Column {
+                    TextButton(
+                        onClick = {
+                            showDialog = false
+                            onAppSelectionClick()
+                        }
+                    ) {
+                        Text("Select App")
+                    }
+                    TextButton(
+                        onClick = {
+                            showDialog = false
+                            onWidgetsSelectionClick()
+                        }
+                    ) {
+                        Text("Widgets Screen")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun SelectOptionsWithListItemSettingItem(
+    headline: String,
+    supportingLine: String?,
+    icon: @Composable (() -> Unit)?,
+    selectedOption: String,
+    onSelectionClick: (String) -> Unit,
+    options: Array<String>
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    ListItem(
+        headlineContent = { Text(headline) },
+        supportingContent = { if(supportingLine != null)Text(supportingLine) },
+        leadingContent = { if(icon != null)icon() },
+        trailingContent = {
+            Text(selectedOption,style = MaterialTheme.typography.bodyLarge )
+        },
+        modifier = Modifier.fillMaxWidth().clickable { showDialog = true },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+    )
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Choose Action") },
+            text = {
+                LazyColumn {
+                    items(options) {
+                        option ->
+                            TextButton(
+                            onClick = {
+                                showDialog = false
+                                onSelectionClick(option)
+                            }
+                        ) {
+                            Text(option)
+                        }
+                    }
+
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

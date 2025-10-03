@@ -84,12 +84,12 @@ object PreferenceManager {
     fun setBackgroundImageUri(context: Context, uri: Uri) {
         setString(context,WALLPAPER_URI,uri.toString())
     }
-    fun getWallpaperDirectory(context: Context): Uri?{
+    fun getWallpaperDirectory(context: Context): String?{
         val uriString = getString(context,WALLPAPER_DIRECTORY,null)
-        return uriString?.toUri()
+        return uriString
     }
-    fun setWallpaperDirectory(context: Context,directoryUri: Uri?){
-        setString(context,WALLPAPER_DIRECTORY,directoryUri.toString())
+    fun setWallpaperDirectory(context: Context,directoryUri: String?){
+        setString(context,WALLPAPER_DIRECTORY,directoryUri)
     }
     fun getWallpaperFrequency(context: Context):String {
         return getString(context,WALLPAPER_FREQUENCY,"Hourly") ?: "Hourly"
@@ -250,7 +250,11 @@ object PreferenceManager {
     fun setHour(context: Context,hour:Int){
         setInt(context,"now_hour",hour)
     }
-
+    fun setCurrentHour(context: Context){
+        val calendar = Calendar.getInstance()
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        setInt(context,"now_hour",hour)
+    }
     fun getFeedbackDialogShown(context: Context):Boolean {
         return getBoolean(context,FEEDBACK_DIALOG,false)
     }
@@ -263,5 +267,6 @@ object PreferenceManager {
     }
     fun setWallpaperApplied(context: Context,applied : Boolean){
         setBoolean(context,WALLPAPER_SET,applied)
+        setCurrentHour(context)
     }
 }

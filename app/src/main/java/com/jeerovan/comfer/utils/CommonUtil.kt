@@ -39,14 +39,28 @@ import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
 import androidx.core.graphics.createBitmap
+import androidx.core.net.toUri
 import com.jeerovan.comfer.LoggerManager
 import com.jeerovan.comfer.R
 import okhttp3.ConnectionSpec
 import java.io.IOException
 import androidx.documentfile.provider.DocumentFile
+import java.net.URLDecoder
 import java.time.Clock.system
 
 object CommonUtil {
+    fun getUriPath(encodedUri: String?): String? {
+        if(encodedUri != null) {
+            val decodedUri = URLDecoder.decode(encodedUri, "UTF-8")
+            return if (decodedUri.contains(":")) {
+                decodedUri.split(":").last()
+            } else {
+                decodedUri
+            }
+        } else {
+            return null
+        }
+    }
     fun copyFileFromUri(context: Context, sourceUri: Uri, destinationFile: File): Boolean {
         return try {
             // Open an InputStream from the source URI
@@ -224,7 +238,7 @@ object CommonUtil {
             if(wallpaperDirectory != null){
                 val changeFrequency = PreferenceManager.getWallpaperFrequency(applicationContext)
                 if (changeFrequency == "Hourly" || hour == 12){
-                    setBackgroundImageFromImageUri(applicationContext,wallpaperDirectory)
+                    setBackgroundImageFromImageUri(applicationContext,wallpaperDirectory.toUri())
                 }
             } else {
                 try {

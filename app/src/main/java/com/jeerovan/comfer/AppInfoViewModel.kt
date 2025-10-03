@@ -3,6 +3,7 @@ package com.jeerovan.comfer
 import android.app.Application
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
@@ -17,6 +18,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import androidx.core.graphics.drawable.toDrawable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withContext
 
 private const val REST_LIST_NAME = "Rest"
 
@@ -83,7 +88,6 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
     private val logger = LoggerManager(application)
     private val _uiState = MutableStateFlow(AppInfoUiState())
     val uiState: StateFlow<AppInfoUiState> = _uiState.asStateFlow()
-    private var isWorking = false
     private val packageManager: PackageManager
         get() = getApplication<Application>().packageManager
 
@@ -91,172 +95,177 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         loadAppLists()
     }
 
+    private var isWorking = false
+
     fun loadAppLists() {
-        if(isWorking) return
+        // Basic check to avoid launching a coroutine if already working
+        if (isWorking) return
         isWorking = true
-        logger.setLog("AppInfoViewModel","LoadAppLists")
+        logger.setLog("LoadAppLists","Loading")
         viewModelScope.launch {
             try {
-                // --- Stage 1: Fast, Main-Thread Work ---
-                // 1. Get package names and determine lists (no icon loading yet)
-                val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
-                val allCurrentResolveInfos = packageManager.queryIntentActivities(intent, 0)
-                val allCurrentPackageNames =
-                    allCurrentResolveInfos.map { it.activityInfo.packageName }.toSet()
+                // All work now happens on a background thread.
+                withContext(Dispatchers.IO) {
+                    // --- Stage 1: Determine Package Lists (No Icon Loading) ---
+                    val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
+                    val allCurrentResolveInfos = packageManager.queryIntentActivities(intent, 0)
+                    val allCurrentPackageNames = allCurrentResolveInfos.map { it.activityInfo.packageName }.toSet()
 
-                val savedQuickPackageNames = AppInfoManager.getAppPackageNames(
-                    getApplication(),
-                    AppInfoManager.QUICK_APPS_LIST_NAME
-                ) ?: emptyList()
-                val savedPrimaryPackageNames = AppInfoManager.getAppPackageNames(
-                    getApplication(),
-                    AppInfoManager.PRIMARY_APPS_LIST_NAME
-                ) ?: emptyList()
-                val savedAllPackageNames = AppInfoManager.getAppPackageNames(
-                    getApplication(),
-                    AppInfoManager.ALL_APPS_LIST_NAME
-                )?.toSet() ?: emptySet()
-                val isFirstLaunch = savedAllPackageNames.isEmpty()
+                    val savedQuickPackageNames = AppInfoManager.getAppPackageNames(
+                        getApplication(),
+                        AppInfoManager.QUICK_APPS_LIST_NAME
+                    ) ?: emptyList()
+                    val savedPrimaryPackageNames = AppInfoManager.getAppPackageNames(
+                        getApplication(),
+                        AppInfoManager.PRIMARY_APPS_LIST_NAME
+                    ) ?: emptyList()
+                    val savedAllPackageNames = AppInfoManager.getAppPackageNames(
+                        getApplication(),
+                        AppInfoManager.ALL_APPS_LIST_NAME
+                    )?.toSet() ?: emptySet()
+                    val isFirstLaunch = savedAllPackageNames.isEmpty()
 
-                val finalQuickPackageNames: List<String>
-                val finalPrimaryPackageNames: List<String>
+                    val finalQuickPackageNames: List<String>
+                    val finalPrimaryPackageNames: List<String>
 
-                if (isFirstLaunch) {
-                    PreferenceManager.onFirstOpen(getApplication())
-                    val allStandardApps = filterStandardApps(allCurrentPackageNames).toList()
-                    var eightStandardApps = allStandardApps.take(8)
-                    if(eightStandardApps.size < 8){
-                        val remainingSpace = 8 - eightStandardApps.size
-                        val remainingPackageNames = allCurrentPackageNames.filter { it !in eightStandardApps}
-                        eightStandardApps = eightStandardApps + remainingPackageNames.take(remainingSpace)
-                    }
-                    finalQuickPackageNames = eightStandardApps
-                    finalPrimaryPackageNames =
-                        allCurrentPackageNames.filter { it !in finalQuickPackageNames }
-                } else {
-                    val addedPackages = allCurrentPackageNames - savedAllPackageNames
-                    val removedPackages = savedAllPackageNames - allCurrentPackageNames
-
-                    var currentQuickPackages =
-                        savedQuickPackageNames.filter { it !in removedPackages }
-                    var currentPrimaryPackages =
-                        savedPrimaryPackageNames.filter { it !in removedPackages }
-
-                    if (addedPackages.isNotEmpty()) {
-                        val quickAppsCapacity = 8
-                        val quickAppsSpace = quickAppsCapacity - currentQuickPackages.size
-                        if (quickAppsSpace > 0) {
-                            currentQuickPackages =
-                                currentQuickPackages + addedPackages.take(quickAppsSpace)
+                    if (isFirstLaunch) {
+                        PreferenceManager.onFirstOpen(getApplication())
+                        val allStandardApps = filterStandardApps(allCurrentPackageNames).toList()
+                        var eightStandardApps = allStandardApps.take(8)
+                        if(eightStandardApps.size < 8){
+                            val remainingSpace = 8 - eightStandardApps.size
+                            val remainingPackageNames = allCurrentPackageNames.filter { it !in eightStandardApps}
+                            eightStandardApps = eightStandardApps + remainingPackageNames.take(remainingSpace)
                         }
-                        currentPrimaryPackages =
-                            currentPrimaryPackages + addedPackages.drop(quickAppsSpace)
-                    }
+                        finalQuickPackageNames = eightStandardApps
+                        finalPrimaryPackageNames =
+                            allCurrentPackageNames.filter { it !in finalQuickPackageNames }
+                    } else {
+                        val addedPackages = allCurrentPackageNames - savedAllPackageNames
+                        val removedPackages = savedAllPackageNames - allCurrentPackageNames
 
-                    finalQuickPackageNames = currentQuickPackages
-                    finalPrimaryPackageNames = currentPrimaryPackages
-                }
+                        var currentQuickPackages =
+                            savedQuickPackageNames.filter { it !in removedPackages }
+                        var currentPrimaryPackages =
+                            savedPrimaryPackageNames.filter { it !in removedPackages }
 
-                // 2. Save the updated package name lists
-                AppInfoManager.saveAppPackageNames(
-                    getApplication(),
-                    AppInfoManager.QUICK_APPS_LIST_NAME,
-                    finalQuickPackageNames
-                )
-                AppInfoManager.saveAppPackageNames(
-                    getApplication(),
-                    AppInfoManager.PRIMARY_APPS_LIST_NAME,
-                    finalPrimaryPackageNames
-                )
-                AppInfoManager.saveAppPackageNames(
-                    getApplication(),
-                    AppInfoManager.ALL_APPS_LIST_NAME,
-                    allCurrentPackageNames.toList()
-                )
-
-                // 3. Create a helper function to build AppInfo objects (this will be used in both stages)
-                val resolveInfoMap =
-                    allCurrentResolveInfos.associateBy { it.activityInfo.packageName }
-
-                fun createAppInfo(packageName: String): AppInfo? {
-                    val resolveInfo = resolveInfoMap[packageName] ?: return null
-                    val defaultIcon = packageManager.defaultActivityIcon
-                    return try {
-                        val cachedIcon = AppIconCache.getIcon(packageName)
-                        val savedIcon = if (cachedIcon === defaultIcon) null else cachedIcon
-                        val iconDrawable = savedIcon ?: resolveInfo.loadIcon(packageManager).also {
-                            AppIconCache.cacheIcon(packageName, it)
-                        }
-                        var backgroundDrawable: Drawable?
-                        var foregroundDrawable: Drawable?
-                        var scale = 0.8f
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            if (iconDrawable is AdaptiveIconDrawable) {
-                                backgroundDrawable = iconDrawable.background
-                                foregroundDrawable = iconDrawable.foreground
-                                scale = 1.5f
-                            } else {
-                                backgroundDrawable = Color.White.toArgb().toDrawable()
-                                foregroundDrawable = iconDrawable
+                        if (addedPackages.isNotEmpty()) {
+                            val quickAppsCapacity = 8
+                            val quickAppsSpace = quickAppsCapacity - currentQuickPackages.size
+                            if (quickAppsSpace > 0) {
+                                currentQuickPackages =
+                                    currentQuickPackages + addedPackages.take(quickAppsSpace)
                             }
-                        } else {
-                            backgroundDrawable = Color.White.toArgb().toDrawable()
-                            foregroundDrawable = iconDrawable
+                            currentPrimaryPackages =
+                                currentPrimaryPackages + addedPackages.drop(quickAppsSpace)
                         }
-                        AppInfo(
-                            background = backgroundDrawable,
-                            foreground = foregroundDrawable,
-                            scale = scale,
-                            label = resolveInfo.loadLabel(packageManager),
-                            packageName = packageName
-                        )
-                    } catch (_: Exception) {
-                        // Could fail if app is being uninstalled, etc.
-                        null
+
+                        finalQuickPackageNames = currentQuickPackages
+                        finalPrimaryPackageNames = currentPrimaryPackages
                     }
-                }
 
-                // 4. Load icons *only* for the quick apps list
-                val quickApps = finalQuickPackageNames.mapNotNull { createAppInfo(it) }
-
-                // 5. **Immediate UI Update**: Show the quick apps right away
-                _uiState.update {
-                    it.copy(
-                        quickApps = quickApps,
-                        primaryApps = emptyList(), // Keep these empty for now
-                        restApps = emptyList()
+                    // 2. Save the updated package name lists
+                    AppInfoManager.saveAppPackageNames(
+                        getApplication(),
+                        AppInfoManager.QUICK_APPS_LIST_NAME,
+                        finalQuickPackageNames
                     )
-                }
+                    AppInfoManager.saveAppPackageNames(
+                        getApplication(),
+                        AppInfoManager.PRIMARY_APPS_LIST_NAME,
+                        finalPrimaryPackageNames
+                    )
+                    AppInfoManager.saveAppPackageNames(
+                        getApplication(),
+                        AppInfoManager.ALL_APPS_LIST_NAME,
+                        allCurrentPackageNames.toList()
+                    )
 
-                // --- Stage 2: Slow, Background Work ---
-                // 6. Launch a new coroutine for the heavy work
-                viewModelScope.launch(Dispatchers.IO) {
-                    // Load icons for the primary and rest of the apps
-                    val primaryApps = finalPrimaryPackageNames.mapNotNull { createAppInfo(it) }
+                    // --- Stage 2: Load App Info Concurrently ---
+                    val resolveInfoMap = allCurrentResolveInfos.associateBy { it.activityInfo.packageName }
 
-                    val quickAndPrimaryPackages =
-                        finalQuickPackageNames.toSet() + finalPrimaryPackageNames.toSet()
+                    // Load quick apps first and update UI immediately
+                    val quickApps = finalQuickPackageNames.map { packageName ->
+                        async { createAppInfo(packageName, resolveInfoMap) }
+                    }.awaitAll().filterNotNull()
+
+                    // **Immediate UI Update**
+                    withContext(Dispatchers.Main) {
+                        _uiState.update {
+                            it.copy(quickApps = quickApps)
+                        }
+                    }
+
+                    // Now load the rest of the apps in parallel
+                    val primaryApps = finalPrimaryPackageNames.map { packageName ->
+                        async { createAppInfo(packageName, resolveInfoMap) }
+                    }.awaitAll().filterNotNull()
+
+                    val quickAndPrimaryPackages = finalQuickPackageNames.toSet() + finalPrimaryPackageNames.toSet()
                     val restPackages = allCurrentPackageNames - quickAndPrimaryPackages
-                    val restApps = restPackages.mapNotNull { createAppInfo(it) }
 
-                    // 7. **Final UI Update**: Update the state with the complete lists
-                    _uiState.update {
-                        it.copy(
-                            quickApps = quickApps, // This list is already loaded
-                            primaryApps = primaryApps,
-                            restApps = restApps
-                        )
+                    val restApps = restPackages.map { packageName ->
+                        async { createAppInfo(packageName, resolveInfoMap) }
+                    }.awaitAll().filterNotNull()
+
+                    // **Final UI Update**
+                    withContext(Dispatchers.Main) {
+                        _uiState.update {
+                            it.copy(
+                                primaryApps = primaryApps,
+                                restApps = restApps,
+                            )
+                        }
                     }
                 }
-            } catch (e: Exception){
-                logger.setLog("AppInfoViewModel",e.toString())
+            } catch (e: Exception) {
+                logger.setLog("AppInfoViewModel", e.toString())
             } finally {
+                // Release the lock and reset the flag
                 isWorking = false
             }
         }
     }
 
+    private fun createAppInfo(packageName: String, resolveInfoMap: Map<String, ResolveInfo>): AppInfo? {
+        val resolveInfo = resolveInfoMap[packageName] ?: return null
+        val defaultIcon = packageManager.defaultActivityIcon
+        return try {
+            val cachedIcon = AppIconCache.getIcon(packageName)
+            val savedIcon = if (cachedIcon === defaultIcon) null else cachedIcon
+            val iconDrawable = savedIcon ?: resolveInfo.loadIcon(packageManager).also {
+                AppIconCache.cacheIcon(packageName, it)
+            }
 
+            var backgroundDrawable: Drawable?
+            var foregroundDrawable: Drawable?
+            var scale = 0.8f
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (iconDrawable is AdaptiveIconDrawable) {
+                    backgroundDrawable = iconDrawable.background
+                    foregroundDrawable = iconDrawable.foreground
+                    scale = 1.5f
+                } else {
+                    // This expensive operation is now safely on a background thread
+                    backgroundDrawable = Color.White.toArgb().toDrawable()
+                    foregroundDrawable = iconDrawable
+                }
+            } else {
+                backgroundDrawable = Color.White.toArgb().toDrawable()
+                foregroundDrawable = iconDrawable
+            }
+
+            AppInfo(
+                background = backgroundDrawable,
+                foreground = foregroundDrawable,
+                scale = scale,
+                label = resolveInfo.loadLabel(packageManager),
+                packageName = packageName
+            )
+        } catch (_: Exception) {
+            null
+        }
+    }
 
     fun moveAppInList(listName: String, fromIndex: Int, toIndex: Int) {
         viewModelScope.launch {

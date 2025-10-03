@@ -120,15 +120,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.vector.ImageVector
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.ui.text.style.TextAlign
 import coil.compose.AsyncImage
@@ -176,6 +173,7 @@ import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.provider.AlarmClock
 import android.provider.CalendarContract
+import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -183,9 +181,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.unit.IntOffset
@@ -214,6 +209,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -803,7 +804,8 @@ fun WidgetAddButton(
                 .background(Color.White.copy(alpha = 0.7f)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Default.Add,
+            Icon(
+                Icons.Filled.Add,
                 "Add Widget")
         }
     }
@@ -1148,7 +1150,7 @@ private fun WidgetInstance(
                     elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Delete,
+                        imageVector = Icons.Filled.Delete,
                         contentDescription = "Remove"
                     )
                 }
@@ -1271,7 +1273,7 @@ fun WidgetPickerFullScreen(
                     .padding(16.dp) // Add standard margin from the edges
             ) {
                 Icon(
-                    imageVector = Icons.Default.Close,
+                    imageVector = Icons.Filled.Close,
                     contentDescription = "Close",
                 )
             }
@@ -1612,12 +1614,10 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     onLongPress = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         // Open Calendar
-                                        val calendarIntent = Intent(
-                                            Intent.ACTION_VIEW,
-                                            CalendarContract.CONTENT_URI.buildUpon()
-                                                .appendPath("time")
-                                                .build()
-                                        )
+                                        val calendarIntent = Intent(Intent.ACTION_MAIN).apply {
+                                            addCategory(Intent.CATEGORY_APP_CALENDAR)
+                                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                        }
                                         if (calendarIntent.resolveActivity(context.packageManager) != null) {
                                             context.startActivity(calendarIntent)
                                         }
@@ -2556,22 +2556,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             }
         }
     }
-    val notificationIcons by remember(notifications,hasNotificationAccess) {
-        derivedStateOf {
-            if (!hasNotificationAccess) {
-                emptyList<Drawable>() // Return an empty list if access is not granted
-            } else {
-                notifications.mapNotNull { sbn ->
-                    try {
-                        // Load the small icon drawable from the notification
-                        sbn.notification.smallIcon.loadDrawable(context)
-                    } catch (_: Exception) {
-                        null // Gracefully handle cases where the icon can't be loaded
-                    }
-                }
-            }
-        }
-    }
+    val notificationIcons by rememberNotificationIcons(notifications,hasNotificationAccess,LocalContext.current)
     LaunchedEffect(Unit) {
         mainViewModel.backPressEvent.collect {
             if(areLeftWigetsVisible) {
@@ -3859,4 +3844,39 @@ fun BasicClock(
             )
         }
     }
+}
+@Composable
+fun rememberNotificationIcons(
+    notifications: List<StatusBarNotification>,
+    hasNotificationAccess: Boolean,
+    context: Context
+): State<List<Drawable>> {
+    val notificationIcons = remember { mutableStateOf<List<Drawable>>(emptyList()) }
+
+    // Use LaunchedEffect to perform the background loading.
+    // It will re-run whenever notifications or hasNotificationAccess changes.
+    LaunchedEffect(notifications, hasNotificationAccess) {
+        if (!hasNotificationAccess) {
+            notificationIcons.value = emptyList()
+            return@LaunchedEffect
+        }
+
+        // Switch to the IO dispatcher for background work.
+        val icons = withContext(Dispatchers.IO) {
+            notifications.mapNotNull { sbn ->
+                try {
+                    // Safely load the drawable on a background thread.
+                    sbn.notification.smallIcon?.loadDrawable(context)
+                } catch (_: Exception) {
+                    // Gracefully handle cases where the icon can't be loaded.
+                    null
+                }
+            }
+        }
+
+        // Update the state with the result on the main thread.
+        notificationIcons.value = icons
+    }
+
+    return notificationIcons
 }

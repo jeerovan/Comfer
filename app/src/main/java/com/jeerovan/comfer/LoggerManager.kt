@@ -3,7 +3,6 @@ package com.jeerovan.comfer
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import androidx.core.content.edit
@@ -74,7 +73,7 @@ class LoggerManager(context: Context) {
         // Deserialize the JSON string back to a list of LogEntry
         return try {
             Json.decodeFromString<List<LogEntry>>(logsJson)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Handle potential deserialization errors
             emptyList()
         }

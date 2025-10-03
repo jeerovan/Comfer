@@ -79,7 +79,8 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(start=16.dp,top=16.dp,end=16.dp,bottom=48.dp)
+            .padding(horizontal = 16.dp,)
+            .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
 
         // Time Settings
@@ -368,9 +369,9 @@ fun SettingSection(title: String, content: @Composable ColumnScope.() -> Unit) {
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding( vertical = 8.dp)
         )
-        Column(modifier = Modifier.padding(start = 16.dp), content = content)
+        Column(modifier = Modifier, content = content)
     }
 }
 

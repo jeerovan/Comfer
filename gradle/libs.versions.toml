@@ -3,23 +3,23 @@ accompanistDrawablepainter = "0.37.3"
 agp = "8.12.3"
 billingKtx = "8.0.0"
 coilCompose = "2.7.0"
-kotlin = "2.2.0"
-coreKtx = "1.16.0"
+kotlin = "2.2.20"
+coreKtx = "1.17.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 kotlinxSerializationJson = "1.9.0"
-ktorClientOkhttp = "3.2.3"
-lifecycleRuntimeKtx = "2.9.2"
-activityCompose = "1.10.1"
-composeBom = "2025.07.00"
-material = "1.8.3"
-reorderable = "2.5.1"
+ktorClientOkhttp = "3.3.0"
+lifecycleRuntimeKtx = "2.9.4"
+activityCompose = "1.11.0"
+composeBom = "2025.09.01"
+material = "1.9.2"
+reorderable = "3.0.0"
 uiTextGoogleFonts = "1.9.2"
-work = "2.10.3"
-ktor = "3.2.3"
-animationCore = "1.9.0"
-foundation = "1.9.1"
+work = "2.10.5"
+ktor = "3.3.0"
+animationCore = "1.9.2"
+foundation = "1.9.2"
 uiText = "1.9.2"
 documentfile = "1.1.0"
 
@@ -27,6 +27,8 @@ documentfile = "1.1.0"
 accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanistDrawablepainter" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
+androidx-material-icons-extended = { module = "androidx.material:material.icons-extended" }
+androidx-material3-icons = { module = "androidx.compose.material3:material3-icons" }
 androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 billing-ktx = { module = "com.android.billingclient:billing-ktx", version.ref = "billingKtx" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
@@ -50,6 +52,7 @@ ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClientOkhttp" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 androidx-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
 androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
