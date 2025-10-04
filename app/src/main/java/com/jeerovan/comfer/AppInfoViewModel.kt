@@ -259,7 +259,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 background = backgroundDrawable,
                 foreground = foregroundDrawable,
                 scale = scale,
-                label = resolveInfo.loadLabel(packageManager),
+                label = resolveInfo.loadLabel(packageManager).trim(),
                 packageName = packageName
             )
         } catch (_: Exception) {

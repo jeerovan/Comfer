@@ -1811,17 +1811,15 @@ fun SearchListOverlay(apps: List<AppInfo>,
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
     val guideKeyword = "search_guide_2"
     var canShowGuide by remember { mutableStateOf(false) }
-
     val filteredApps by remember(inputText, apps) {
         derivedStateOf {
             if(activeTab == SearchTab.APPS) {
-                searchApps(inputText, apps)
+                searchApps(inputText.trim(), apps)
             } else {
                 apps
             }
         }
     }
-    //val filteredContacts = remember { (1..20).map { Contact(it.toLong(),"Contact $it",null,it.toString()) } }
     val filteredContacts by remember(inputText, contacts) {
         derivedStateOf {
             if(activeTab == SearchTab.CONTACTS){
@@ -2537,6 +2535,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
 
     val quickApps = appInfoUiState.quickApps
     val primaryApps = appInfoUiState.primaryApps
+    val hiddenApps = appInfoUiState.restApps
 
     val wallpaperMotionEnabled = settingInfoUiState.wallpaperMotionEnabled
     val hasNotificationAccess = settingInfoUiState.hasNotificationAccess
@@ -2806,7 +2805,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             enter = layer2Enter,
             exit = layer2Exit
         ) {
-            SearchListOverlay (apps = primaryApps,
+            SearchListOverlay (apps = primaryApps+hiddenApps,
                 notificationPackages,
                 contacts,
                 onSwipeDown = { isSearchListVisible = false },
