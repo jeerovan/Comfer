@@ -474,26 +474,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     }
                 )
             }
-            /*item {
-                ListItem(
-                    headlineContent = { Text("Date-Time color") },
-                    supportingContent = { Text("Set to white") },
-                    leadingContent = {
-                        Icon(
-                            painter = painterResource(R.drawable.outline_motion_mode_24),
-                            contentDescription = "Wallpaper Motion"
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settingsState.dateTimeColor == "White",
-                            onCheckedChange = { settingsViewModel.changeDateTimeColor(it) }
-                        )
-                    },
-                    modifier = Modifier.clickable { settingsViewModel.changeDateTimeColor(settingsState.dateTimeColor != "White") },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }*/
             item {
                 ListItem(
                     headlineContent = { Text("Version") },

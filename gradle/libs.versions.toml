@@ -58,6 +58,7 @@ androidx-animation-core = { group = "androidx.compose.animation", name = "animat
 androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 androidx-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
+ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 
 
 [plugins]

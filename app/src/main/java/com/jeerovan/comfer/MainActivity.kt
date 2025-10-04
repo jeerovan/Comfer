@@ -1408,7 +1408,7 @@ fun BatteryStatus(
     val batteryLevelColor = if (isLow) Color.Red else themeColor
 
     // Calculate icon size based on font size
-    val iconHeight = with(LocalDensity.current) { fontSize.toDp() * 0.7f}
+    val iconHeight = with(LocalDensity.current) { fontSize.toDp() * 0.6f}
     val iconWidth = iconHeight * 2 // Maintain a 2:1 aspect ratio
 
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1693,13 +1693,15 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     showBatteryPercentage = settings.showBatteryPercentage,
                                     fontFamily = settings.dateFontFamily,
                                     fontWeight = getFontWeightFromString(settings.dateFontWeight),
-                                    fontSize = settings.dateFontSize.sp
+                                    fontSize = settings.batterySize.sp
                                 )
                         }
-                        if (settings.hasNotificationAccess && settings.showNotificationRow) NotificationIconRow(
-                            notificationIcons,
-                            iconColor = if(customWallpaper) settings.notificationColor else textColor
-                        )
+                        if (settings.hasNotificationAccess && settings.showNotificationRow)
+                            NotificationIconRow(
+                                notificationIcons,
+                                iconSize = settings.notificationSize.dp,
+                                iconColor = if(customWallpaper) settings.notificationColor else textColor
+                            )
                     }
                 }
             }

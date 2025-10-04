@@ -342,6 +342,12 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                 checked = settingsState.showBatteryPercentage,
                 onCheckedChange = { settingsViewModel.setShowBatteryPercentage(it) }
             )
+            SettingSlider(
+                label = "Size",
+                value = settingsState.batterySize,
+                range = 12f..40f,
+                onValueChange = { settingsViewModel.setBatterySize(it) }
+            )
             if(settingsState.wallpaperDirectory != null){
                 ColorPickerSettingItem("Indicator color",
                     settingsState.batteryColor) { showBatteryColor = true }
@@ -371,6 +377,12 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                 label = "Show Notification Icons",
                 checked = settingsState.showNotificationRow,
                 onCheckedChange = { settingsViewModel.setShowNotificationRow(it) }
+            )
+            SettingSlider(
+                label = "Size",
+                value = settingsState.notificationSize,
+                range = 12f..40f,
+                onValueChange = { settingsViewModel.setNotificationSize(it) }
             )
             if(settingsState.wallpaperDirectory != null){
                 ColorPickerSettingItem("Notification icons color",

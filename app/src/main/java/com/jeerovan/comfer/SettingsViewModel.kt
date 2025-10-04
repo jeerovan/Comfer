@@ -65,8 +65,10 @@ data class SettingsUiState(
     val showBatteryIcon: Boolean  = true,
     val batteryColor: Color = Color.White,
     val showBatteryPercentage: Boolean = true,
+    val batterySize: Int = 20,
     val showNotificationRow : Boolean = true,
-    val notificationColor: Color = Color.White
+    val notificationColor: Color = Color.White,
+    val notificationSize: Int = 18
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -94,8 +96,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val SHOW_BATTERY_ICON = "show_battery_icon"
     private val SHOW_BATTERY_PERCENTAGE = "show_battery_percentage"
     private val BATTERY_COLOR = "battery_color"
+    private val BATTERY_SIZE = "battery_size"
     private val NOTIFICATION_COLOR = "notification_color"
     private val SHOW_NOTIFICATIONS_ROW = "show_notifications_row"
+    private val NOTIFICATION_SIZE = "notification_size"
 
     private var working = false
     val predefinedColors = listOf(
@@ -165,8 +169,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val dateFontWeight = PreferenceManager.getString(getApplication(),DATE_FONT_WEIGHT,"Normal") ?: "Normal"
             val showBatteryIcon = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_ICON,true)
             val batteryColor = Color(PreferenceManager.getInt(getApplication(),BATTERY_COLOR,Color.White.toArgb()))
+            val batterySize = PreferenceManager.getInt(getApplication(),BATTERY_SIZE,20)
             val showBatteryPercentage = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_PERCENTAGE,true)
             val notificationColor = Color(PreferenceManager.getInt(getApplication(),NOTIFICATION_COLOR,Color.White.toArgb()))
+            val notificationSize = PreferenceManager.getInt(getApplication(),NOTIFICATION_SIZE,18)
             val showNotificationRow = PreferenceManager.getBoolean(getApplication(),SHOW_NOTIFICATIONS_ROW,true)
             _uiState.update {
                 it.copy(
@@ -204,12 +210,26 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     dateFontWeight = dateFontWeight,
                     showBatteryIcon = showBatteryIcon,
                     batteryColor = batteryColor,
+                    batterySize = batterySize,
                     showBatteryPercentage = showBatteryPercentage,
                     showNotificationRow = showNotificationRow,
-                    notificationColor = notificationColor
+                    notificationColor = notificationColor,
+                    notificationSize = notificationSize
                 )
             }
             working = false
+        }
+    }
+    fun setBatterySize(size: Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),BATTERY_SIZE,size)
+            _uiState.update { it.copy(batterySize = size) }
+        }
+    }
+    fun setNotificationSize(size: Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),NOTIFICATION_SIZE,size)
+            _uiState.update { it.copy(notificationSize = size) }
         }
     }
     fun setTimeFontColor(color: Color){
