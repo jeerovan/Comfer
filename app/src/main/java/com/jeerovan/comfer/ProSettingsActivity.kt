@@ -99,7 +99,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                 SettingSlider(
                     label = "Clock Size",
                     value = settingsState.clockSize,
-                    range = 70f..200f,
+                    range = 70f..250f,
                     onValueChange = { settingsViewModel.setClockSize(it) }
                 )
                 if(settingsState.wallpaperDirectory != null) {
