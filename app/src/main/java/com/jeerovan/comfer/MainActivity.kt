@@ -16,7 +16,6 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -170,7 +169,6 @@ import android.content.ComponentName
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.provider.AlarmClock
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -1544,7 +1542,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     onSwipeLeft = {})
             } else {
                 Box (modifier = Modifier
-                    //.border(width = 1.dp,Color.Cyan)
+                    .border(width = 1.dp,Color.Cyan)
                     .fillMaxWidth()
                     .height(topColumnHeight)
                     .pointerInput(Unit){
@@ -1558,58 +1556,22 @@ fun QuickListOverlay(apps: List<AppInfo>,
                 ){
                     Column(
                         modifier = Modifier
-                            //.border(1.dp, color = Color.Red)
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onTap = {
-                                        view.playSoundEffect(SoundEffectConstants.CLICK)
-                                        // Open Alarms
-                                        val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
-                                        if (intent.resolveActivity(context.packageManager) != null) {
-                                            context.startActivity(intent)
-                                        }
-                                    },
-                                    onLongPress = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        // Open Calendar
-                                        val calendarIntent = Intent(Intent.ACTION_MAIN).apply {
-                                            addCategory(Intent.CATEGORY_APP_CALENDAR)
-                                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                        }
-                                        if (calendarIntent.resolveActivity(context.packageManager) != null) {
-                                            context.startActivity(calendarIntent)
-                                        }
-                                    }
-                                )
-                            },
+                            .border(1.dp, color = Color.Red),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        val timeFormat = remember(settings.timeFormat, settings.showAmPm) {
-                            // Build your pattern based on the settings
-                            val pattern = if (settings.timeFormat == "H12") {
-                                if (settings.showAmPm) "h:mm a" else "h:mm"
-                            } else { // "H24"
-                                "HH:mm"
-                            }
-                            SimpleDateFormat(pattern, Locale.getDefault())
-                        }
 
                         // Date format is static and doesn't need keys
                         val dateFormat = remember {
                             SimpleDateFormat("EEE, MMM d", Locale.getDefault())
                         }
 
-                        // Use mutableStateOf to hold the string values that will be displayed
-                        var time by remember { mutableStateOf("") }
                         var date by remember { mutableStateOf("") }
 
                         // This effect now restarts whenever `timeFormat` changes
-                        LaunchedEffect(timeFormat) {
+                        LaunchedEffect(dateFormat) {
                             while (true) {
                                 val now = System.currentTimeMillis()
-                                // Update the state variables, triggering recomposition for the Text composables
-                                time = timeFormat.format(Date(now))
                                 date = dateFormat.format(Date(now))
                                 delay(1000)
                             }
@@ -1621,21 +1583,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         if (!settings.wallpaperMotionEnabled && !isDefault) {
                             textColor = Color.White
                         }
-                        if(settings.showAnalog) {
-                            BasicClock(settings.clockSize.dp,
-                                if(customWallpaper)settings.clockBgColor else Color.Black,
-                                if(customWallpaper)settings.clockBgAlpha else 0f,
-                                if(customWallpaper)settings.clockHourColor else textColor,
-                                if(customWallpaper)settings.clockMinuteColor else textColor)
-                        } else {
-                            Text(
-                                text = time,
-                                color = if(customWallpaper) settings.timeFontColor else textColor,
-                                fontSize = settings.timeFontSize.sp,
-                                fontWeight = getFontWeightFromString(settings.timeFontWeight),
-                                fontFamily = settings.timeFontFamily
-                            )
-                        }
+                        WidgetClock(settings,customWallpaper,textColor)
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = date,
@@ -1643,7 +1591,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 fontSize = settings.dateFontSize.sp,
                                 fontWeight = getFontWeightFromString(settings.dateFontWeight),
                                 fontFamily = settings.dateFontFamily,
-                                modifier = Modifier.padding(end = 8.dp)
+                                modifier = Modifier.padding(end = 4.dp)
                             )
                             if(settings.showBatteryIcon || settings.showBatteryPercentage)
                                 BatteryStatus(if(customWallpaper) settings.batteryColor else textColor,
@@ -3740,7 +3688,101 @@ fun NotificationIconRow(
     }
 }
 @Composable
-fun BasicClock(
+fun WidgetClock(
+    settings: SettingsUiState,
+    customWallpaper: Boolean,
+    textColor: Color
+){
+    val context = LocalContext.current
+    val view = LocalView.current
+    val haptic = LocalHapticFeedback.current
+    val timeFormat = remember(settings.timeFormat, settings.showAmPm) {
+        // Build your pattern based on the settings
+        val pattern = if (settings.timeFormat == "H12") {
+            if (settings.showAmPm) "h:mm a" else "h:mm"
+        } else { // "H24"
+            "HH:mm"
+        }
+        SimpleDateFormat(pattern, Locale.getDefault())
+    }
+    Box(modifier = Modifier
+        .pointerInput(Unit) {
+            detectTapGestures(
+                onTap = {
+                    view.playSoundEffect(SoundEffectConstants.CLICK)
+                    // Open Alarms
+                    val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    }
+                },
+                onLongPress = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    // Open Calendar
+                    val calendarIntent = Intent(Intent.ACTION_MAIN).apply {
+                        addCategory(Intent.CATEGORY_APP_CALENDAR)
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    }
+                    if (calendarIntent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(calendarIntent)
+                    }
+                }
+            )
+        }) {
+        if (settings.showAnalog) {
+            AnalogClock(
+                settings.clockSize.dp,
+                if (customWallpaper) settings.clockBgColor else Color.Black,
+                if (customWallpaper) settings.clockBgAlpha else 0f,
+                if (customWallpaper) settings.clockHourColor else textColor,
+                if (customWallpaper) settings.clockMinuteColor else textColor
+            )
+        } else {
+            TextClock(
+                timeFormat,
+                color = if (customWallpaper) settings.timeFontColor else textColor,
+                fontSize = settings.timeFontSize.sp,
+                fontWeight = getFontWeightFromString(settings.timeFontWeight),
+                fontFamily = settings.timeFontFamily
+            )
+        }
+    }
+}
+@Composable
+fun TextClock(
+    timeFormat: SimpleDateFormat,
+    color: Color,
+    fontWeight: FontWeight,
+    fontSize: TextUnit,
+    fontFamily: FontFamily
+) {
+    var time by remember { mutableStateOf("") }
+
+    // This effect now restarts whenever `timeFormat` changes
+    LaunchedEffect(timeFormat) {
+        while (true) {
+            val now = System.currentTimeMillis()
+            // Update the state variables, triggering recomposition for the Text composables
+            time = timeFormat.format(Date(now))
+            delay(60000L - (System.currentTimeMillis() % 60000L))
+        }
+    }
+    Box(
+        modifier = Modifier
+            .padding(4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = time,
+            color = color,
+            fontSize = fontSize,
+            fontWeight = fontWeight,
+            fontFamily = fontFamily
+        )
+    }
+}
+@Composable
+fun AnalogClock(
     size: Dp,
     backgroundColor: Color,
     backgroundAlpha: Float = 1f,
@@ -3765,7 +3807,7 @@ fun BasicClock(
     Box(
         modifier = Modifier
             .size(size)
-            .padding(8.dp)
+            .padding(4.dp)
             .background(color = backgroundColor.copy(alpha = backgroundAlpha), shape = CircleShape),
         contentAlignment = Alignment.Center
     ) {
