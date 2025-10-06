@@ -2,6 +2,7 @@ package com.jeerovan.comfer.utils
 
 import FlowerShape
 import android.app.WallpaperManager
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -12,6 +13,7 @@ import androidx.compose.ui.Alignment
 import android.graphics.Canvas
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.widget.Toast
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,6 +51,18 @@ import java.net.URLDecoder
 import java.time.Clock.system
 
 object CommonUtil {
+    fun openUrl(url: String,context: Context) {
+        try {
+            var validUrl = url
+            if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                validUrl = "http://$url"
+            }
+            val intent = Intent(Intent.ACTION_VIEW, validUrl.toUri())
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(context, "No application to open URL", Toast.LENGTH_SHORT).show()
+        }
+    }
     fun getUriPath(encodedUri: String?): String? {
         if(encodedUri != null) {
             val decodedUri = URLDecoder.decode(encodedUri, "UTF-8")

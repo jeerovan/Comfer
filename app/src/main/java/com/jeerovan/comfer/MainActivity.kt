@@ -546,6 +546,9 @@ fun WidgetHostScreen(
                 LoggerManager(context).setLog("CheckConfigureWidget","Running configureWidgetLauncher")
                 configureWidgetLauncher.launch(intent)
             } catch (e:Exception){
+                if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                    appWidgetHost.deleteAppWidgetId(appWidgetId)
+                }
                 LoggerManager(context).setLog( "configureWidgetLauncher.launch failed",e.toString())
             }
         } else {
@@ -668,6 +671,9 @@ fun WidgetHostScreen(
                                 LoggerManager(context).setLog("WidgetHost","Calling bindWidgetLauncher")
                                 bindWidgetLauncher.launch(intent)
                             } catch (e:Exception){
+                                if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                                    appWidgetHost.deleteAppWidgetId(appWidgetId)
+                                }
                                 LoggerManager(context).setLog("bindWidgetLauncher.launch failed", e.toString())
                             }
                         }

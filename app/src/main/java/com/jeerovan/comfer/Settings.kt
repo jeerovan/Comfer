@@ -46,6 +46,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Support
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -89,6 +90,7 @@ import com.jeerovan.comfer.utils.CommonUtil.canSetLockScreenWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import com.jeerovan.comfer.utils.CommonUtil.getUriPath
+import com.jeerovan.comfer.utils.CommonUtil.openUrl
 import kotlinx.coroutines.launch
 
 class SettingsActivity : ComponentActivity() {
@@ -168,6 +170,29 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 .fillMaxSize(),
             contentPadding = WindowInsets.navigationBars.asPaddingValues()
         ) {
+            item { SectionHeader("Support")}
+            item {
+                val context = LocalContext.current
+                val packageName = context.packageName
+                ListItem(
+                    headlineContent = { Text("Report an issue") },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.Support,
+                            contentDescription = "Report Link")
+                                     },
+                    trailingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "Go"
+                        )
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    modifier = Modifier.clickable {
+                        openUrl("https://t.me/comfer_launcher",context)
+                    }
+                )
+            }
             item { SectionHeader("Background") }
             item {
                 ListItem(
