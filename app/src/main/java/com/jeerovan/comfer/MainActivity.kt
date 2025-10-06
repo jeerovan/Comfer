@@ -1550,7 +1550,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     .height(topColumnHeight)
                     .pointerInput(Unit){
                       detectTapGestures (
-                          onTap = { },
+                          onTap = {},
                           onDoubleTap = {},
                           onLongPress = {}
                         )

@@ -214,11 +214,11 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item{
+            /*item{
                 SelectSetOwnWallpapersDirectory(
                     onSelectDirectory = { directoryUri -> settingsViewModel.setWallpaperDirectory(directoryUri)},
                     selectedDirectory = settingsState.wallpaperDirectory)
-            }
+            }*/
             if(settingsState.wallpaperDirectory != null){
                 item {
                     SelectOptionsWithListItemSettingItem(
@@ -322,7 +322,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item { SectionHeader("Home Widgets") }
+            /*item { SectionHeader("Home Widgets") }
             item {
                 ListItem(
                     headlineContent = { Text("Custom") },
@@ -362,7 +362,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                     )
                 }
-            }
+            }*/
             item { SectionHeader("Home Screen") }
             item {
                 QuickAppsLayoutSettingItem(
