@@ -209,7 +209,250 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.ui.graphics.StrokeCap
 import java.util.Calendar
-// Placeholder for your contact data structure
+
+import androidx.compose.ui.layout.onGloballyPositioned
+
+// Data model for composable positions
+data class ComposablePosition(
+    val id: String,
+    val offsetX: Float = 0f,
+    val offsetY: Float = 0f,
+    val width: Float = 0f,
+    val height: Float = 0f
+)
+
+// Position manager for SharedPreferences
+class PositionManager(private val prefs: SharedPreferences) {
+
+    fun savePosition(position: ComposablePosition) {
+        prefs.edit().apply {
+            putFloat("${position.id}_x", position.offsetX)
+            putFloat("${position.id}_y", position.offsetY)
+            putFloat("${position.id}_width", position.width)
+            putFloat("${position.id}_height", position.height)
+            apply()
+        }
+    }
+
+    fun loadPosition(id: String, defaultX: Float = 0f, defaultY: Float = 0f): ComposablePosition {
+        return ComposablePosition(
+            id = id,
+            offsetX = prefs.getFloat("${id}_x", defaultX),
+            offsetY = prefs.getFloat("${id}_y", defaultY),
+            width = prefs.getFloat("${id}_width", 0f),
+            height = prefs.getFloat("${id}_height", 0f)
+        )
+    }
+
+    fun saveAllPositions(positions: Map<String, ComposablePosition>) {
+        positions.values.forEach { savePosition(it) }
+    }
+}
+
+@Composable
+fun DraggableContainer(
+    modifier: Modifier = Modifier,
+    topColumnHeight: androidx.compose.ui.unit.Dp,
+    composableContent: @Composable (String, Boolean) -> Unit
+) {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val prefs = remember {
+        context.getSharedPreferences("composable_positions", Context.MODE_PRIVATE)
+    }
+    val positionManager = remember { PositionManager(prefs) }
+
+    // Edit mode state
+    var editMode by remember { mutableStateOf(false) }
+
+    // Container dimensions
+    var containerSize by remember { mutableStateOf(IntSize.Zero) }
+
+    // Position states for each composable
+    val composableIds = listOf("time_widget", "row_item_0", "row_item_1", "bottom_widget")
+    val positions = remember {
+        mutableStateMapOf<String, ComposablePosition>().apply {
+            composableIds.forEach { id ->
+                this[id] = positionManager.loadPosition(id)
+            }
+        }
+    }
+
+    // Currently dragging composable
+    var draggingId by remember { mutableStateOf<String?>(null) }
+
+    Box(
+        modifier = modifier
+            .border(width = 1.dp, Color.Cyan)
+            .fillMaxWidth()
+            .height(topColumnHeight)
+            .onGloballyPositioned { coordinates ->
+                containerSize = coordinates.size
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {},
+                    onDoubleTap = {},
+                    onLongPress = {
+                        editMode = !editMode
+                    }
+                )
+            }
+    ) {
+        // Render each composable with drag support
+        composableIds.forEach { id ->
+            val position = positions[id] ?: ComposablePosition(id)
+
+            DraggableComposable(
+                id = id,
+                position = position,
+                editMode = editMode,
+                containerSize = containerSize,
+                onPositionChange = { newPosition ->
+                    // Check collision with other composables
+                    val hasCollision = positions.values.any { other ->
+                        other.id != id && checkCollision(newPosition, other)
+                    }
+
+                    if (!hasCollision) {
+                        positions[id] = newPosition
+                        positionManager.savePosition(newPosition)
+                    }
+                },
+                onDragStart = { draggingId = id },
+                onDragEnd = { draggingId = null },
+                content = { composableContent(id, editMode) }
+            )
+        }
+    }
+}
+
+@Composable
+fun DraggableComposable(
+    id: String,
+    position: ComposablePosition,
+    editMode: Boolean,
+    containerSize: IntSize,
+    onPositionChange: (ComposablePosition) -> Unit,
+    onDragStart: () -> Unit,
+    onDragEnd: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    val density = LocalDensity.current
+    var currentOffset by remember(position) {
+        mutableStateOf(Offset(position.offsetX, position.offsetY))
+    }
+    var composableSize by remember { mutableStateOf(IntSize.Zero) }
+
+    Box(
+        modifier = Modifier
+            .offset {
+                IntOffset(
+                    currentOffset.x.roundToInt(),
+                    currentOffset.y.roundToInt()
+                )
+            }
+            .onGloballyPositioned { coordinates ->
+                composableSize = coordinates.size
+                // Update size in position if changed
+                val widthDp = with(density) { coordinates.size.width.toDp().value }
+                val heightDp = with(density) { coordinates.size.height.toDp().value }
+
+                if (position.width != widthDp || position.height != heightDp) {
+                    onPositionChange(
+                        position.copy(
+                            width = widthDp,
+                            height = heightDp
+                        )
+                    )
+                }
+            }
+            .then(
+                if (editMode) {
+                    Modifier.border(
+                        width = 2.dp,
+                        color = Color.Blue.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                } else {
+                    Modifier
+                }
+            )
+            .pointerInput(editMode) {
+                if (editMode) {
+                    detectDragGestures(
+                        onDragStart = {
+                            onDragStart()
+                        },
+                        onDrag = { change, dragAmount ->
+                            change.consume()
+
+                            val newOffset = Offset(
+                                x = currentOffset.x + dragAmount.x,
+                                y = currentOffset.y + dragAmount.y
+                            )
+
+                            // Boundary constraints
+                            val constrainedOffset = constrainToBoundary(
+                                offset = newOffset,
+                                composableSize = composableSize,
+                                containerSize = containerSize
+                            )
+
+                            currentOffset = constrainedOffset
+                        },
+                        onDragEnd = {
+                            onDragEnd()
+
+                            // Save final position
+                            val newPosition = position.copy(
+                                offsetX = currentOffset.x,
+                                offsetY = currentOffset.y
+                            )
+                            onPositionChange(newPosition)
+                        }
+                    )
+                }
+            }
+    ) {
+        content()
+    }
+}
+
+// Check collision between two composables
+private fun checkCollision(pos1: ComposablePosition, pos2: ComposablePosition): Boolean {
+    val rect1Left = pos1.offsetX
+    val rect1Right = pos1.offsetX + pos1.width
+    val rect1Top = pos1.offsetY
+    val rect1Bottom = pos1.offsetY + pos1.height
+
+    val rect2Left = pos2.offsetX
+    val rect2Right = pos2.offsetX + pos2.width
+    val rect2Top = pos2.offsetY
+    val rect2Bottom = pos2.offsetY + pos2.height
+
+    return !(rect1Right <= rect2Left ||
+            rect1Left >= rect2Right ||
+            rect1Bottom <= rect2Top ||
+            rect1Top >= rect2Bottom)
+}
+
+// Constrain offset to stay within container boundaries
+private fun constrainToBoundary(
+    offset: Offset,
+    composableSize: IntSize,
+    containerSize: IntSize
+): Offset {
+    val maxX = (containerSize.width - composableSize.width).toFloat()
+    val maxY = (containerSize.height - composableSize.height).toFloat()
+
+    return Offset(
+        x = offset.x.coerceIn(0f, maxX.coerceAtLeast(0f)),
+        y = offset.y.coerceIn(0f, maxY.coerceAtLeast(0f))
+    )
+}
+
+
 data class Contact(
     val id: Long,
     val name: String?,
@@ -1350,13 +1593,16 @@ fun rememberBatteryState(): State<BatteryState> {
 
 @Composable
 fun BatteryStatus(
-    themeColor: Color,
-    showBatteryIcon: Boolean,
-    showBatteryPercentage: Boolean,
-    fontFamily: FontFamily,
-    fontWeight: FontWeight,
-    fontSize: TextUnit = 16.sp // Default font size
+    settings: SettingsUiState,
+    defaultColor: Color,
 ) {
+    val customWallpaper = settings.wallpaperDirectory != null
+    val themeColor = if(customWallpaper) settings.batteryColor else defaultColor
+    val showBatteryIcon = settings.showBatteryIcon
+    val showBatteryPercentage = settings.showBatteryPercentage
+    val fontFamily = settings.dateFontFamily
+    val fontWeight = getFontWeightFromString(settings.dateFontWeight)
+    val fontSize = settings.batterySize.sp
     val batteryState by rememberBatteryState()
     val batteryLevel = batteryState.level
     val isCharging = batteryState.isCharging
@@ -1560,53 +1806,23 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-
-                        // Date format is static and doesn't need keys
-                        val dateFormat = remember {
-                            SimpleDateFormat("EEE, MMM d", Locale.getDefault())
-                        }
-
-                        var date by remember { mutableStateOf("") }
-
-                        // This effect now restarts whenever `timeFormat` changes
-                        LaunchedEffect(dateFormat) {
-                            while (true) {
-                                val now = System.currentTimeMillis()
-                                date = dateFormat.format(Date(now))
-                                delay(1000)
-                            }
-                        }
-                        val customWallpaper = settings.wallpaperDirectory != null
-                        var textColor = imageData?.color?.let { colorName ->
+                        var defaultColor = imageData?.color?.let { colorName ->
                             stringToColor(colorName)
                         } ?: Color.White
                         if (!settings.wallpaperMotionEnabled && !isDefault) {
-                            textColor = Color.White
+                            defaultColor = Color.White
                         }
-                        WidgetClock(settings,customWallpaper,textColor)
+                        WidgetClock(settings,defaultColor)
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = date,
-                                color = if(customWallpaper) settings.dateFontColor else textColor,
-                                fontSize = settings.dateFontSize.sp,
-                                fontWeight = getFontWeightFromString(settings.dateFontWeight),
-                                fontFamily = settings.dateFontFamily,
-                                modifier = Modifier.padding(end = 4.dp)
-                            )
+                            WidgetDate(settings,defaultColor)
                             if(settings.showBatteryIcon || settings.showBatteryPercentage)
-                                BatteryStatus(if(customWallpaper) settings.batteryColor else textColor,
-                                    showBatteryIcon = settings.showBatteryIcon,
-                                    showBatteryPercentage = settings.showBatteryPercentage,
-                                    fontFamily = settings.dateFontFamily,
-                                    fontWeight = getFontWeightFromString(settings.dateFontWeight),
-                                    fontSize = settings.batterySize.sp
-                                )
+                                BatteryStatus(settings, defaultColor)
                         }
                         if (settings.hasNotificationAccess && settings.showNotificationRow)
                             NotificationIconRow(
                                 notificationIcons,
-                                iconSize = settings.notificationSize.dp,
-                                iconColor = if(customWallpaper) settings.notificationColor else textColor
+                                settings = settings,
+                                defaultColor =  defaultColor
                             )
                     }
                 }
@@ -3641,10 +3857,12 @@ fun NotificationIconRow(
     notificationIcons: List<Drawable>,
     modifier: Modifier = Modifier,
     maxVisibleIcons: Int = 5,
-    iconSize: Dp = 18.dp,
-    iconColor: Color
+    settings: SettingsUiState,
+    defaultColor: Color
 ) {
-
+    val customWallpaper = settings.wallpaperDirectory != null
+    val iconSize = settings.notificationSize.dp
+    val iconColor = if(customWallpaper) settings.notificationColor else defaultColor
     if (notificationIcons.isNotEmpty()) {
         Row(
             modifier = modifier.padding(top = 8.dp),
@@ -3688,14 +3906,41 @@ fun NotificationIconRow(
     }
 }
 @Composable
+fun WidgetDate(
+    settings: SettingsUiState,
+    defaultColor: Color,
+){
+    val dateFormat = remember {
+        SimpleDateFormat("EEE, MMM d", Locale.getDefault())
+    }
+    var date by remember { mutableStateOf("") }
+    // This effect now restarts whenever `timeFormat` changes
+    LaunchedEffect(dateFormat) {
+        while (true) {
+            val now = System.currentTimeMillis()
+            date = dateFormat.format(Date(now))
+            delay(1000)
+        }
+    }
+    val customWallpaper = settings.wallpaperDirectory != null
+    Text(
+        text = date,
+        color = if(customWallpaper) settings.dateFontColor else defaultColor,
+        fontSize = settings.dateFontSize.sp,
+        fontWeight = getFontWeightFromString(settings.dateFontWeight),
+        fontFamily = settings.dateFontFamily,
+        modifier = Modifier.padding(end = 4.dp)
+    )
+}
+@Composable
 fun WidgetClock(
     settings: SettingsUiState,
-    customWallpaper: Boolean,
-    textColor: Color
+    defaultColor: Color
 ){
     val context = LocalContext.current
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
+    val customWallpaper = settings.wallpaperDirectory != null
     val timeFormat = remember(settings.timeFormat, settings.showAmPm) {
         // Build your pattern based on the settings
         val pattern = if (settings.timeFormat == "H12") {
@@ -3734,13 +3979,13 @@ fun WidgetClock(
                 settings.clockSize.dp,
                 if (customWallpaper) settings.clockBgColor else Color.Black,
                 if (customWallpaper) settings.clockBgAlpha else 0f,
-                if (customWallpaper) settings.clockHourColor else textColor,
-                if (customWallpaper) settings.clockMinuteColor else textColor
+                if (customWallpaper) settings.clockHourColor else defaultColor,
+                if (customWallpaper) settings.clockMinuteColor else defaultColor
             )
         } else {
             TextClock(
                 timeFormat,
-                color = if (customWallpaper) settings.timeFontColor else textColor,
+                color = if (customWallpaper) settings.timeFontColor else defaultColor,
                 fontSize = settings.timeFontSize.sp,
                 fontWeight = getFontWeightFromString(settings.timeFontWeight),
                 fontFamily = settings.timeFontFamily
