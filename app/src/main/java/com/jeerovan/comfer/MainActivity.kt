@@ -212,52 +212,18 @@ import java.util.Calendar
 
 import androidx.compose.ui.layout.onGloballyPositioned
 
-data class ComposablePosition(
-    val id: String,
-    val offsetX: Float = 0f,
-    val offsetY: Float = 0f
-)
-
-// Position manager for SharedPreferences
-class PositionManager(private val prefs: SharedPreferences) {
-
-    fun savePosition(id: String, offsetX: Float, offsetY: Float) {
-        prefs.edit().apply {
-            putFloat("${id}_x", offsetX)
-            putFloat("${id}_y", offsetY)
-            apply()
-        }
-    }
-
-    fun loadPosition(id: String): Offset? {
-        // Return null if position was never saved
-        if (!prefs.contains("${id}_x")) {
-            return null
-        }
-        return Offset(
-            x = prefs.getFloat("${id}_x", 0f),
-            y = prefs.getFloat("${id}_y", 0f)
-        )
-    }
-
-    fun hasPosition(id: String): Boolean {
-        return prefs.contains("${id}_x")
-    }
-}
 
 @Composable
-fun DraggableContainer(
+fun DraggableContainerWithViewModel(
     modifier: Modifier = Modifier,
-    topColumnHeight: androidx.compose.ui.unit.Dp,
-    composableIds: List<String>,
+    topColumnHeight: Dp,
+    widgetIds: List<String>,
+    widgetPositions: Map<String, Offset?>,
+    onPositionChanged: (String, Offset) -> Unit,
+    hasPosition: (String) -> Boolean,
     composableContent: @Composable (String, Boolean) -> Unit
 ) {
-    val context = LocalContext.current
     val density = LocalDensity.current
-    val prefs = remember {
-        context.getSharedPreferences("composable_positions", Context.MODE_PRIVATE)
-    }
-    val positionManager = remember { PositionManager(prefs) }
 
     // Edit mode state
     var editMode by remember { mutableStateOf(false) }
@@ -276,14 +242,14 @@ fun DraggableContainer(
     LaunchedEffect(containerSize, measuredSizes.size) {
         if (!hasCalculatedInitial &&
             containerSize.width > 0 &&
-            measuredSizes.size == composableIds.size) {
+            measuredSizes.size == widgetIds.size) {
 
             // Calculate positions for centered column layout
             val totalHeight = measuredSizes.values.sumOf { it.height }
             var currentY = (containerSize.height - totalHeight) / 2f
 
-            composableIds.forEach { id ->
-                if (!positionManager.hasPosition(id)) {
+            widgetIds.forEach { id ->
+                if (!hasPosition(id)) {
                     val size = measuredSizes[id] ?: IntSize.Zero
                     val centerX = (containerSize.width - size.width) / 2f
 
@@ -297,7 +263,7 @@ fun DraggableContainer(
 
     Box(
         modifier = modifier
-            //.border(width = 1.dp, Color.Cyan)
+            .border(width = 1.dp, Color.Cyan)
             .fillMaxWidth()
             .height(topColumnHeight)
             .onGloballyPositioned { coordinates ->
@@ -305,8 +271,7 @@ fun DraggableContainer(
             }
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = {if(editMode){editMode = false
-                    } },
+                    onTap = {if(editMode) editMode = false},
                     onDoubleTap = {},
                     onLongPress = {
                         editMode = !editMode
@@ -314,14 +279,17 @@ fun DraggableContainer(
                 )
             }
     ) {
-        // Render each composable with drag support
-        composableIds.forEach { id ->
-            DraggableComposable(
+        widgetIds.forEach { id ->
+            val savedPosition = widgetPositions[id]
+            val initialPosition = initialPositions[id]
+
+            DraggableComposableWithViewModel(
                 id = id,
                 editMode = editMode,
                 containerSize = containerSize,
-                positionManager = positionManager,
-                initialPosition = initialPositions[id],
+                savedPosition = savedPosition,
+                initialPosition = initialPosition,
+                onPositionChanged = onPositionChanged,
                 onSizeMeasured = { size ->
                     measuredSizes[id] = size
                 },
@@ -332,24 +300,30 @@ fun DraggableContainer(
 }
 
 @Composable
-fun DraggableComposable(
+fun DraggableComposableWithViewModel(
     id: String,
     editMode: Boolean,
     containerSize: IntSize,
-    positionManager: PositionManager,
+    savedPosition: Offset?,
     initialPosition: Offset?,
+    onPositionChanged: (String, Offset) -> Unit,
     onSizeMeasured: (IntSize) -> Unit,
     content: @Composable () -> Unit
 ) {
-    // Load saved position or use initial position
-    val savedOffset = remember { positionManager.loadPosition(id) }
     var currentOffset by remember {
-        mutableStateOf(savedOffset ?: initialPosition ?: Offset.Zero)
+        mutableStateOf(savedPosition ?: initialPosition ?: Offset.Zero)
+    }
+
+    // Update offset when saved position changes
+    LaunchedEffect(savedPosition) {
+        if (savedPosition != null) {
+            currentOffset = savedPosition
+        }
     }
 
     // Update offset when initial position is calculated
     LaunchedEffect(initialPosition) {
-        if (savedOffset == null && initialPosition != null) {
+        if (savedPosition == null && initialPosition != null) {
             currentOffset = initialPosition
         }
     }
@@ -366,7 +340,6 @@ fun DraggableComposable(
                 )
             }
             .onGloballyPositioned { coordinates ->
-                // Capture child size automatically
                 val newSize = coordinates.size
                 if (composableSize != newSize) {
                     composableSize = newSize
@@ -384,7 +357,6 @@ fun DraggableComposable(
                                 y = currentOffset.y + dragAmount.y
                             )
 
-                            // Apply boundary constraints
                             currentOffset = constrainToBoundary(
                                 offset = newOffset,
                                 composableSize = composableSize,
@@ -392,12 +364,7 @@ fun DraggableComposable(
                             )
                         },
                         onDragEnd = {
-                            // Save position to SharedPreferences
-                            positionManager.savePosition(
-                                id = id,
-                                offsetX = currentOffset.x,
-                                offsetY = currentOffset.y
-                            )
+                            onPositionChanged(id, currentOffset)
                         }
                     )
                 }
@@ -1657,7 +1624,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                      notificationIcons: List<Drawable>,
                      notificationPackages: List<String>,
                      imageData: ImageData?,
-                     settings: SettingsUiState,
+                     settingsModel: SettingsViewModel,
                      onSwipeUp: () -> Unit,
                      onSwipeRight: () -> Unit,
                      onSwipeLeft: () -> Unit,
@@ -1670,6 +1637,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
     var feedbackShown by remember { mutableStateOf(true)}
     val guideKeyword = "quick_guide_1"
     var canShowGuide by remember { mutableStateOf(false) }
+    val settings by settingsModel.uiState.collectAsState()
 
     fun openDefaultLauncherSettings() {
         val intent = Intent(Settings.ACTION_HOME_SETTINGS)
@@ -1766,21 +1734,22 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     onSwipeRight = {},
                     onSwipeLeft = {})
             } else {
-                val composableIds = listOf(
-                    "time",
-                    "date",
-                    "battery",
-                    "notifications"
-                )
-                DraggableContainer(
+                DraggableContainerWithViewModel (
                     topColumnHeight = topColumnHeight,
-                    composableIds = composableIds,
+                    widgetIds = settingsModel.widgetIds,
+                    widgetPositions = settings.widgetPositions,
+                    onPositionChanged = { id, offset ->
+                        settingsModel.saveWidgetPosition(id, offset.x, offset.y)
+                    },
+                    hasPosition = { id ->
+                        settingsModel.hasWidgetPosition(id)
+                    },
                     composableContent = { id, editMode ->
                         when (id) {
                             "time" -> WidgetClock(
                                 settings,
                                 defaultColor,
-                                showBorder = editMode)
+                                editMode = editMode)
                             "date" -> WidgetDate(
                                 settings,
                                 defaultColor,
@@ -1796,7 +1765,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 showBorder = editMode
                             )
                         }
-                    }
+                    },
                 )
             }
             Box(
@@ -2854,7 +2823,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 notificationIcons = notificationIcons,
                 notificationPackages = notificationPackages,
                 imageData = imageData,
-                settings = settingInfoUiState,
+                settingsModel = settingsViewModel,
                 onSwipeUp = {
                     // Set transitions for vertical exit, then hide
                     enterTransition = slideDownEnter
@@ -3919,7 +3888,7 @@ fun WidgetDate(
 fun WidgetClock(
     settings: SettingsUiState,
     defaultColor: Color,
-    showBorder: Boolean
+    editMode: Boolean
 ){
     val context = LocalContext.current
     val view = LocalView.current
@@ -3934,35 +3903,37 @@ fun WidgetClock(
         }
         SimpleDateFormat(pattern, Locale.getDefault())
     }
-    val borderColor = if (showBorder) {
+    val borderColor = if (editMode) {
         if (customWallpaper) {
             if (settings.showAnalog) settings.clockHourColor else settings.timeFontColor
         } else defaultColor
     } else Color.Transparent
     Box(modifier = Modifier
         .border(width = 2.dp,color = borderColor,shape = RoundedCornerShape(8.dp))
-        .pointerInput(Unit) {
-            detectTapGestures(
-                onTap = {
-                    view.playSoundEffect(SoundEffectConstants.CLICK)
-                    // Open Alarms
-                    val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(intent)
+        .pointerInput(editMode) {
+            if(!editMode) {
+                detectTapGestures(
+                    onTap = {
+                        view.playSoundEffect(SoundEffectConstants.CLICK)
+                        // Open Alarms
+                        val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
+                        if (intent.resolveActivity(context.packageManager) != null) {
+                            context.startActivity(intent)
+                        }
+                    },
+                    onLongPress = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        // Open Calendar
+                        val calendarIntent = Intent(Intent.ACTION_MAIN).apply {
+                            addCategory(Intent.CATEGORY_APP_CALENDAR)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        }
+                        if (calendarIntent.resolveActivity(context.packageManager) != null) {
+                            context.startActivity(calendarIntent)
+                        }
                     }
-                },
-                onLongPress = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    // Open Calendar
-                    val calendarIntent = Intent(Intent.ACTION_MAIN).apply {
-                        addCategory(Intent.CATEGORY_APP_CALENDAR)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    }
-                    if (calendarIntent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(calendarIntent)
-                    }
-                }
-            )
+                )
+            }
         }) {
         if (settings.showAnalog) {
             AnalogClock(

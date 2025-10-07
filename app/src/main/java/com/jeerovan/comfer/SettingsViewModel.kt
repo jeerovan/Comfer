@@ -18,6 +18,7 @@ import android.provider.Settings
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationManagerCompat
@@ -43,6 +44,7 @@ data class SettingsUiState(
     val isRightSwipeWidgets: Boolean = false,
     val hasNotificationAccess: Boolean = false,
     val hasCustomWidgets: Boolean = false,
+    val widgetPositions: Map<String,Offset?> = emptyMap(),
     val showAnalog:Boolean = false,
     val clockSize: Int = 150,
     val clockBgColor: Color = Color.Black,
@@ -108,6 +110,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         Color.White, Color(0xFF_FFA500), Color(0xFF_800080), Color(0xFF_008080)
     )
 
+    val widgetIds = listOf("time", "date", "battery", "notifications")
+
     init {
         loadSettings()
     }
@@ -130,6 +134,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val isRightSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"right")
             val isNotificationServiceEnabled = isNotificationServiceEnabled(getApplication())
             val hasCustomWidgets = PreferenceManager.getCustomWidgets(getApplication())
+            val widgetPositions = widgetIds.associateWith { id ->
+                loadWidgetPosition(id)
+            }
             val showAnalog = PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false)
             val clockSize = PreferenceManager.getInt(getApplication(),CLOCK_SIZE,150)
             val clockBgColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_BG_COLOR,Color.Black.toArgb()))
@@ -190,6 +197,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     isRightSwipeWidgets = isRightSwipeWidgets,
                     hasNotificationAccess = isNotificationServiceEnabled,
                     hasCustomWidgets =  hasCustomWidgets,
+                    widgetPositions = widgetPositions,
                     showAnalog = showAnalog,
                     clockSize = clockSize,
                     clockBgColor = clockBgColor,
@@ -219,6 +227,43 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
             working = false
         }
+    }
+    fun saveWidgetPosition(id: String, offsetX: Float, offsetY: Float) {
+        viewModelScope.launch {
+            PreferenceManager.setFloat(getApplication(),"widget_${id}_x",offsetX)
+            PreferenceManager.setFloat(getApplication(),"widget_${id}_y",offsetY)
+            // Update state with new position
+            _uiState.update { currentState ->
+                val updatedPositions = currentState.widgetPositions.toMutableMap().apply {
+                    this[id] = Offset(offsetX, offsetY)
+                }
+                currentState.copy(widgetPositions = updatedPositions)
+            }
+        }
+    }
+    fun loadWidgetPosition(id: String): Offset? {
+        if(!hasWidgetPosition(id)){
+            return null
+        }
+        return Offset(
+            x = PreferenceManager.getFloat(getApplication(),"widget_${id}_x",0f),
+            y = PreferenceManager.getFloat(getApplication(),"widget_${id}_y",0f)
+        )
+    }
+    fun clearAllWidgetPositions() {
+        viewModelScope.launch {
+            for (id in widgetIds){
+                PreferenceManager.clear(getApplication(),"widget_${id}_x")
+                PreferenceManager.clear(getApplication(),"widget_${id}_y")
+            }
+            _uiState.update {
+                it.copy(widgetPositions = emptyMap())
+            }
+        }
+    }
+
+    fun hasWidgetPosition(id: String): Boolean {
+        return PreferenceManager.hasKey(getApplication(),"widget_${id}_x")
     }
     fun setBatterySize(size: Int){
         viewModelScope.launch {

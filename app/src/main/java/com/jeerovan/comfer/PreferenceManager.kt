@@ -34,6 +34,12 @@ object PreferenceManager {
 
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
+    fun clear(context: Context,key: String){
+        getPrefs(context).edit { clear(context,key) }
+    }
+    fun hasKey(context: Context,key:String): Boolean{
+        return getPrefs(context).contains(key)
+    }
     fun getBoolean(context: Context,key:String,default: Boolean):Boolean{
         val prefValue = getPrefs(context).getBoolean(key,default)
         return prefValue
@@ -41,6 +47,15 @@ object PreferenceManager {
     fun setBoolean(context: Context,key:String,state:Boolean) {
         getPrefs(context).edit {
             putBoolean(key,state)
+        }
+    }
+    fun getFloat(context: Context,key:String,default: Float):Float{
+        val prefValue = getPrefs(context).getFloat(key,default)
+        return prefValue
+    }
+    fun setFloat(context: Context,key:String,value:Float) {
+        getPrefs(context).edit {
+            putFloat(key,value)
         }
     }
     fun setString(context: Context,key:String,string: String?) {
