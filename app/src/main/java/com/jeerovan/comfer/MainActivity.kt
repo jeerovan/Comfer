@@ -1585,7 +1585,8 @@ fun BatteryStatus(
     val iconWidth = iconHeight * 2 // Maintain a 2:1 aspect ratio
 
     Row(modifier = Modifier
-        .border(width = 2.dp,color = borderColor,shape = RoundedCornerShape(8.dp)),
+        .border(width = 2.dp,color = borderColor,shape = RoundedCornerShape(8.dp))
+        .padding(4.dp),
         verticalAlignment = Alignment.CenterVertically) {
         if (showBatteryIcon) Box(
             modifier = Modifier
@@ -3840,7 +3841,7 @@ fun NotificationIconRow(
         Row(
             modifier = modifier
                 .border(width = 2.dp,color = borderColor,shape = RoundedCornerShape(8.dp))
-                .padding(top = 8.dp),
+                .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -3904,7 +3905,7 @@ fun WidgetDate(
     } else Color.Transparent
     Box(modifier = Modifier
         .border(width = 2.dp,color = borderColor,shape = RoundedCornerShape(8.dp))
-        .padding(end = 4.dp)){
+        .padding(4.dp)){
         Text(
             text = date,
             color = if(customWallpaper) settings.dateFontColor else defaultColor,
