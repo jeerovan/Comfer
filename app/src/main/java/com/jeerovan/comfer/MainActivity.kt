@@ -212,40 +212,36 @@ import java.util.Calendar
 
 import androidx.compose.ui.layout.onGloballyPositioned
 
-// Data model for composable positions
 data class ComposablePosition(
     val id: String,
     val offsetX: Float = 0f,
-    val offsetY: Float = 0f,
-    val width: Float = 0f,
-    val height: Float = 0f
+    val offsetY: Float = 0f
 )
 
 // Position manager for SharedPreferences
 class PositionManager(private val prefs: SharedPreferences) {
 
-    fun savePosition(position: ComposablePosition) {
+    fun savePosition(id: String, offsetX: Float, offsetY: Float) {
         prefs.edit().apply {
-            putFloat("${position.id}_x", position.offsetX)
-            putFloat("${position.id}_y", position.offsetY)
-            putFloat("${position.id}_width", position.width)
-            putFloat("${position.id}_height", position.height)
+            putFloat("${id}_x", offsetX)
+            putFloat("${id}_y", offsetY)
             apply()
         }
     }
 
-    fun loadPosition(id: String, defaultX: Float = 0f, defaultY: Float = 0f): ComposablePosition {
-        return ComposablePosition(
-            id = id,
-            offsetX = prefs.getFloat("${id}_x", defaultX),
-            offsetY = prefs.getFloat("${id}_y", defaultY),
-            width = prefs.getFloat("${id}_width", 0f),
-            height = prefs.getFloat("${id}_height", 0f)
+    fun loadPosition(id: String): Offset? {
+        // Return null if position was never saved
+        if (!prefs.contains("${id}_x")) {
+            return null
+        }
+        return Offset(
+            x = prefs.getFloat("${id}_x", 0f),
+            y = prefs.getFloat("${id}_y", 0f)
         )
     }
 
-    fun saveAllPositions(positions: Map<String, ComposablePosition>) {
-        positions.values.forEach { savePosition(it) }
+    fun hasPosition(id: String): Boolean {
+        return prefs.contains("${id}_x")
     }
 }
 
@@ -253,6 +249,7 @@ class PositionManager(private val prefs: SharedPreferences) {
 fun DraggableContainer(
     modifier: Modifier = Modifier,
     topColumnHeight: androidx.compose.ui.unit.Dp,
+    composableIds: List<String>,
     composableContent: @Composable (String, Boolean) -> Unit
 ) {
     val context = LocalContext.current
@@ -268,22 +265,39 @@ fun DraggableContainer(
     // Container dimensions
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
 
-    // Position states for each composable
-    val composableIds = listOf("time_widget", "row_item_0", "row_item_1", "bottom_widget")
-    val positions = remember {
-        mutableStateMapOf<String, ComposablePosition>().apply {
+    // Track measured sizes for initial column layout calculation
+    val measuredSizes = remember { mutableStateMapOf<String, IntSize>() }
+
+    // Calculate initial positions when all sizes are measured
+    val initialPositions = remember { mutableStateMapOf<String, Offset>() }
+    var hasCalculatedInitial by remember { mutableStateOf(false) }
+
+    // Calculate centered column positions once container and all children are measured
+    LaunchedEffect(containerSize, measuredSizes.size) {
+        if (!hasCalculatedInitial &&
+            containerSize.width > 0 &&
+            measuredSizes.size == composableIds.size) {
+
+            // Calculate positions for centered column layout
+            val totalHeight = measuredSizes.values.sumOf { it.height }
+            var currentY = (containerSize.height - totalHeight) / 2f
+
             composableIds.forEach { id ->
-                this[id] = positionManager.loadPosition(id)
+                if (!positionManager.hasPosition(id)) {
+                    val size = measuredSizes[id] ?: IntSize.Zero
+                    val centerX = (containerSize.width - size.width) / 2f
+
+                    initialPositions[id] = Offset(centerX, currentY)
+                    currentY += size.height
+                }
             }
+            hasCalculatedInitial = true
         }
     }
 
-    // Currently dragging composable
-    var draggingId by remember { mutableStateOf<String?>(null) }
-
     Box(
         modifier = modifier
-            .border(width = 1.dp, Color.Cyan)
+            //.border(width = 1.dp, Color.Cyan)
             .fillMaxWidth()
             .height(topColumnHeight)
             .onGloballyPositioned { coordinates ->
@@ -291,7 +305,8 @@ fun DraggableContainer(
             }
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = {},
+                    onTap = {if(editMode){editMode = false
+                    } },
                     onDoubleTap = {},
                     onLongPress = {
                         editMode = !editMode
@@ -301,26 +316,15 @@ fun DraggableContainer(
     ) {
         // Render each composable with drag support
         composableIds.forEach { id ->
-            val position = positions[id] ?: ComposablePosition(id)
-
             DraggableComposable(
                 id = id,
-                position = position,
                 editMode = editMode,
                 containerSize = containerSize,
-                onPositionChange = { newPosition ->
-                    // Check collision with other composables
-                    val hasCollision = positions.values.any { other ->
-                        other.id != id && checkCollision(newPosition, other)
-                    }
-
-                    if (!hasCollision) {
-                        positions[id] = newPosition
-                        positionManager.savePosition(newPosition)
-                    }
+                positionManager = positionManager,
+                initialPosition = initialPositions[id],
+                onSizeMeasured = { size ->
+                    measuredSizes[id] = size
                 },
-                onDragStart = { draggingId = id },
-                onDragEnd = { draggingId = null },
                 content = { composableContent(id, editMode) }
             )
         }
@@ -330,18 +334,27 @@ fun DraggableContainer(
 @Composable
 fun DraggableComposable(
     id: String,
-    position: ComposablePosition,
     editMode: Boolean,
     containerSize: IntSize,
-    onPositionChange: (ComposablePosition) -> Unit,
-    onDragStart: () -> Unit,
-    onDragEnd: () -> Unit,
+    positionManager: PositionManager,
+    initialPosition: Offset?,
+    onSizeMeasured: (IntSize) -> Unit,
     content: @Composable () -> Unit
 ) {
-    val density = LocalDensity.current
-    var currentOffset by remember(position) {
-        mutableStateOf(Offset(position.offsetX, position.offsetY))
+    // Load saved position or use initial position
+    val savedOffset = remember { positionManager.loadPosition(id) }
+    var currentOffset by remember {
+        mutableStateOf(savedOffset ?: initialPosition ?: Offset.Zero)
     }
+
+    // Update offset when initial position is calculated
+    LaunchedEffect(initialPosition) {
+        if (savedOffset == null && initialPosition != null) {
+            currentOffset = initialPosition
+        }
+    }
+
+    // Track child composable size dynamically
     var composableSize by remember { mutableStateOf(IntSize.Zero) }
 
     Box(
@@ -353,25 +366,18 @@ fun DraggableComposable(
                 )
             }
             .onGloballyPositioned { coordinates ->
-                composableSize = coordinates.size
-                // Update size in position if changed
-                val widthDp = with(density) { coordinates.size.width.toDp().value }
-                val heightDp = with(density) { coordinates.size.height.toDp().value }
-
-                if (position.width != widthDp || position.height != heightDp) {
-                    onPositionChange(
-                        position.copy(
-                            width = widthDp,
-                            height = heightDp
-                        )
-                    )
+                // Capture child size automatically
+                val newSize = coordinates.size
+                if (composableSize != newSize) {
+                    composableSize = newSize
+                    onSizeMeasured(newSize)
                 }
             }
             .then(
                 if (editMode) {
                     Modifier.border(
                         width = 2.dp,
-                        color = Color.Blue.copy(alpha = 0.5f),
+                        color = MaterialTheme.colorScheme.primary,
                         shape = RoundedCornerShape(8.dp)
                     )
                 } else {
@@ -381,9 +387,6 @@ fun DraggableComposable(
             .pointerInput(editMode) {
                 if (editMode) {
                     detectDragGestures(
-                        onDragStart = {
-                            onDragStart()
-                        },
                         onDrag = { change, dragAmount ->
                             change.consume()
 
@@ -392,24 +395,20 @@ fun DraggableComposable(
                                 y = currentOffset.y + dragAmount.y
                             )
 
-                            // Boundary constraints
-                            val constrainedOffset = constrainToBoundary(
+                            // Apply boundary constraints
+                            currentOffset = constrainToBoundary(
                                 offset = newOffset,
                                 composableSize = composableSize,
                                 containerSize = containerSize
                             )
-
-                            currentOffset = constrainedOffset
                         },
                         onDragEnd = {
-                            onDragEnd()
-
-                            // Save final position
-                            val newPosition = position.copy(
+                            // Save position to SharedPreferences
+                            positionManager.savePosition(
+                                id = id,
                                 offsetX = currentOffset.x,
                                 offsetY = currentOffset.y
                             )
-                            onPositionChange(newPosition)
                         }
                     )
                 }
@@ -417,24 +416,6 @@ fun DraggableComposable(
     ) {
         content()
     }
-}
-
-// Check collision between two composables
-private fun checkCollision(pos1: ComposablePosition, pos2: ComposablePosition): Boolean {
-    val rect1Left = pos1.offsetX
-    val rect1Right = pos1.offsetX + pos1.width
-    val rect1Top = pos1.offsetY
-    val rect1Bottom = pos1.offsetY + pos1.height
-
-    val rect2Left = pos2.offsetX
-    val rect2Right = pos2.offsetX + pos2.width
-    val rect2Top = pos2.offsetY
-    val rect2Bottom = pos2.offsetY + pos2.height
-
-    return !(rect1Right <= rect2Left ||
-            rect1Left >= rect2Right ||
-            rect1Bottom <= rect2Top ||
-            rect1Top >= rect2Bottom)
 }
 
 // Constrain offset to stay within container boundaries
@@ -451,7 +432,6 @@ private fun constrainToBoundary(
         y = offset.y.coerceIn(0f, maxY.coerceAtLeast(0f))
     )
 }
-
 
 data class Contact(
     val id: Long,
@@ -1612,7 +1592,7 @@ fun BatteryStatus(
     // Calculate icon size based on font size
     val iconHeight = with(LocalDensity.current) { fontSize.toDp() * 0.6f}
     val iconWidth = iconHeight * 2 // Maintain a 2:1 aspect ratio
-
+    if(settings.showBatteryIcon || settings.showBatteryPercentage)
     Row(verticalAlignment = Alignment.CenterVertically) {
         if(showBatteryIcon)Box(
             modifier = Modifier
@@ -1688,8 +1668,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
                      onSwipeLeft: () -> Unit,
                      onShowSearch:() -> Unit) {
     val context = LocalContext.current
-    val view = LocalView.current
-    val haptic = LocalHapticFeedback.current
     var iconSize by remember { mutableStateOf(48.dp) }
     var iconShape: Shape by remember { mutableStateOf(CircleShape)}
     var isDefault by remember { mutableStateOf(false) }
@@ -1774,6 +1752,12 @@ fun QuickListOverlay(apps: List<AppInfo>,
     )
     val maxHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp }
     val topColumnHeight = maxHeightDp.dp * 2/5
+    var defaultColor = imageData?.color?.let { colorName ->
+        stringToColor(colorName)
+    } ?: Color.White
+    if (!settings.wallpaperMotionEnabled && !isDefault) {
+        defaultColor = Color.White
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier) {
             if(settings.hasCustomWidgets) {
@@ -1787,45 +1771,28 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     onSwipeRight = {},
                     onSwipeLeft = {})
             } else {
-                Box (modifier = Modifier
-                    .border(width = 1.dp,Color.Cyan)
-                    .fillMaxWidth()
-                    .height(topColumnHeight)
-                    .pointerInput(Unit){
-                      detectTapGestures (
-                          onTap = {},
-                          onDoubleTap = {},
-                          onLongPress = {}
-                        )
-                    },
-                    contentAlignment = Alignment.Center
-                ){
-                    Column(
-                        modifier = Modifier
-                            .border(1.dp, color = Color.Red),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        var defaultColor = imageData?.color?.let { colorName ->
-                            stringToColor(colorName)
-                        } ?: Color.White
-                        if (!settings.wallpaperMotionEnabled && !isDefault) {
-                            defaultColor = Color.White
-                        }
-                        WidgetClock(settings,defaultColor)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            WidgetDate(settings,defaultColor)
-                            if(settings.showBatteryIcon || settings.showBatteryPercentage)
-                                BatteryStatus(settings, defaultColor)
-                        }
-                        if (settings.hasNotificationAccess && settings.showNotificationRow)
-                            NotificationIconRow(
+                val composableIds = listOf(
+                    "time",
+                    "date",
+                    "battery",
+                    "notifications"
+                )
+                DraggableContainer(
+                    topColumnHeight = topColumnHeight,
+                    composableIds = composableIds,
+                    composableContent = { id, editMode ->
+                        when (id) {
+                            "time" -> WidgetClock(settings,defaultColor)
+                            "date" -> WidgetDate(settings,defaultColor)
+                            "battery" -> BatteryStatus(settings,defaultColor)
+                            "notifications" -> NotificationIconRow(
                                 notificationIcons,
                                 settings = settings,
                                 defaultColor =  defaultColor
                             )
+                        }
                     }
-                }
+                )
             }
             Box(
                 modifier = Modifier
@@ -3863,7 +3830,7 @@ fun NotificationIconRow(
     val customWallpaper = settings.wallpaperDirectory != null
     val iconSize = settings.notificationSize.dp
     val iconColor = if(customWallpaper) settings.notificationColor else defaultColor
-    if (notificationIcons.isNotEmpty()) {
+    if (settings.hasNotificationAccess && settings.showNotificationRow && notificationIcons.isNotEmpty()) {
         Row(
             modifier = modifier.padding(top = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
