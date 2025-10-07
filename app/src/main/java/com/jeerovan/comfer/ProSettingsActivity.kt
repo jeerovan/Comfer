@@ -495,6 +495,7 @@ fun FontSelectionDialog(
 ) {
     // The same curated list of stylish Google Fonts
     val stylishFonts = listOf(
+        "Iter",
         //"Picifico",
         "Shadows Into Light",
         //"Libertinus Keyboard",

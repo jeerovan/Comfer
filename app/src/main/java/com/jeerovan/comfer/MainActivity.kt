@@ -373,17 +373,6 @@ fun DraggableComposable(
                     onSizeMeasured(newSize)
                 }
             }
-            .then(
-                if (editMode) {
-                    Modifier.border(
-                        width = 2.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                } else {
-                    Modifier
-                }
-            )
             .pointerInput(editMode) {
                 if (editMode) {
                     detectDragGestures(
@@ -1575,9 +1564,11 @@ fun rememberBatteryState(): State<BatteryState> {
 fun BatteryStatus(
     settings: SettingsUiState,
     defaultColor: Color,
+    showBorder: Boolean
 ) {
     val customWallpaper = settings.wallpaperDirectory != null
     val themeColor = if(customWallpaper) settings.batteryColor else defaultColor
+    val borderColor = if(showBorder) themeColor else Color.Transparent
     val showBatteryIcon = settings.showBatteryIcon
     val showBatteryPercentage = settings.showBatteryPercentage
     val fontFamily = settings.dateFontFamily
@@ -1592,9 +1583,11 @@ fun BatteryStatus(
     // Calculate icon size based on font size
     val iconHeight = with(LocalDensity.current) { fontSize.toDp() * 0.6f}
     val iconWidth = iconHeight * 2 // Maintain a 2:1 aspect ratio
-    if(settings.showBatteryIcon || settings.showBatteryPercentage)
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        if(showBatteryIcon)Box(
+
+    Row(modifier = Modifier
+        .border(width = 2.dp,color = borderColor,shape = RoundedCornerShape(8.dp)),
+        verticalAlignment = Alignment.CenterVertically) {
+        if (showBatteryIcon) Box(
             modifier = Modifier
                 .size(width = iconWidth, height = iconHeight)
                 .padding(end = 4.dp)
@@ -1653,6 +1646,7 @@ fun BatteryStatus(
             )
         }
     }
+
 }
 
 @Composable
@@ -1782,13 +1776,23 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     composableIds = composableIds,
                     composableContent = { id, editMode ->
                         when (id) {
-                            "time" -> WidgetClock(settings,defaultColor)
-                            "date" -> WidgetDate(settings,defaultColor)
-                            "battery" -> BatteryStatus(settings,defaultColor)
+                            "time" -> WidgetClock(
+                                settings,
+                                defaultColor,
+                                showBorder = editMode)
+                            "date" -> WidgetDate(
+                                settings,
+                                defaultColor,
+                                showBorder = editMode)
+                            "battery" -> BatteryStatus(
+                                settings,
+                                defaultColor,
+                                showBorder = editMode)
                             "notifications" -> NotificationIconRow(
                                 notificationIcons,
                                 settings = settings,
-                                defaultColor =  defaultColor
+                                defaultColor =  defaultColor,
+                                showBorder = editMode
                             )
                         }
                     }
@@ -3825,14 +3829,18 @@ fun NotificationIconRow(
     modifier: Modifier = Modifier,
     maxVisibleIcons: Int = 5,
     settings: SettingsUiState,
-    defaultColor: Color
+    defaultColor: Color,
+    showBorder: Boolean
 ) {
     val customWallpaper = settings.wallpaperDirectory != null
     val iconSize = settings.notificationSize.dp
     val iconColor = if(customWallpaper) settings.notificationColor else defaultColor
+    val borderColor = if(showBorder) iconColor else Color.Transparent
     if (settings.hasNotificationAccess && settings.showNotificationRow && notificationIcons.isNotEmpty()) {
         Row(
-            modifier = modifier.padding(top = 8.dp),
+            modifier = modifier
+                .border(width = 2.dp,color = borderColor,shape = RoundedCornerShape(8.dp))
+                .padding(top = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -3876,6 +3884,7 @@ fun NotificationIconRow(
 fun WidgetDate(
     settings: SettingsUiState,
     defaultColor: Color,
+    showBorder: Boolean
 ){
     val dateFormat = remember {
         SimpleDateFormat("EEE, MMM d", Locale.getDefault())
@@ -3890,19 +3899,26 @@ fun WidgetDate(
         }
     }
     val customWallpaper = settings.wallpaperDirectory != null
-    Text(
-        text = date,
-        color = if(customWallpaper) settings.dateFontColor else defaultColor,
-        fontSize = settings.dateFontSize.sp,
-        fontWeight = getFontWeightFromString(settings.dateFontWeight),
-        fontFamily = settings.dateFontFamily,
-        modifier = Modifier.padding(end = 4.dp)
-    )
+    val borderColor = if(showBorder) {
+        if(customWallpaper) settings.dateFontColor else defaultColor
+    } else Color.Transparent
+    Box(modifier = Modifier
+        .border(width = 2.dp,color = borderColor,shape = RoundedCornerShape(8.dp))
+        .padding(end = 4.dp)){
+        Text(
+            text = date,
+            color = if(customWallpaper) settings.dateFontColor else defaultColor,
+            fontSize = settings.dateFontSize.sp,
+            fontWeight = getFontWeightFromString(settings.dateFontWeight),
+            fontFamily = settings.dateFontFamily,
+        )
+    }
 }
 @Composable
 fun WidgetClock(
     settings: SettingsUiState,
-    defaultColor: Color
+    defaultColor: Color,
+    showBorder: Boolean
 ){
     val context = LocalContext.current
     val view = LocalView.current
@@ -3917,7 +3933,13 @@ fun WidgetClock(
         }
         SimpleDateFormat(pattern, Locale.getDefault())
     }
+    val borderColor = if (showBorder) {
+        if (customWallpaper) {
+            if (settings.showAnalog) settings.clockHourColor else settings.timeFontColor
+        } else defaultColor
+    } else Color.Transparent
     Box(modifier = Modifier
+        .border(width = 2.dp,color = borderColor,shape = RoundedCornerShape(8.dp))
         .pointerInput(Unit) {
             detectTapGestures(
                 onTap = {
