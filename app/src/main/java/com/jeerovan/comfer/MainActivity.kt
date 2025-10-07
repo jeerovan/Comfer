@@ -221,6 +221,7 @@ fun DraggableContainerWithViewModel(
     widgetPositions: Map<String, Offset?>,
     onPositionChanged: (String, Offset) -> Unit,
     hasPosition: (String) -> Boolean,
+    onEditModeChanged: (Boolean) -> Unit,
     composableContent: @Composable (String, Boolean) -> Unit
 ) {
     val density = LocalDensity.current
@@ -271,10 +272,16 @@ fun DraggableContainerWithViewModel(
             }
             .pointerInput(Unit) {
                 detectTapGestures(
-                    onTap = {if(editMode) editMode = false},
+                    onTap = {
+                                if(editMode){
+                                    editMode = false
+                                    onEditModeChanged(false)
+                                }
+                            },
                     onDoubleTap = {},
                     onLongPress = {
                         editMode = !editMode
+                        onEditModeChanged(editMode)
                     }
                 )
             }
@@ -282,7 +289,6 @@ fun DraggableContainerWithViewModel(
         widgetIds.forEach { id ->
             val savedPosition = widgetPositions[id]
             val initialPosition = initialPositions[id]
-
             DraggableComposableWithViewModel(
                 id = id,
                 editMode = editMode,
@@ -1721,6 +1727,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
     if (!settings.wallpaperMotionEnabled && !isDefault) {
         defaultColor = Color.White
     }
+
+    var showWidgetSettings by remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier) {
             if(settings.hasCustomWidgets) {
@@ -1744,6 +1752,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     hasPosition = { id ->
                         settingsModel.hasWidgetPosition(id)
                     },
+                    onEditModeChanged = { editMode ->  showWidgetSettings = editMode},
                     composableContent = { id, editMode ->
                         when (id) {
                             "time" -> WidgetClock(
@@ -1768,88 +1777,134 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     },
                 )
             }
-            Box(
-                modifier = Modifier
-                    //.border(1.dp, color = Color.Cyan)
-                    .fillMaxSize()
-                    .detectSwipes(
-                        onSwipeUp = onSwipeUp,
-                        onSwipeDown = {
-                            try {
-                                @SuppressLint("WrongConstant")
-                                val statusBarService =
-                                    context.getSystemService("statusbar")
-                                val statusBarManager =
-                                    Class.forName("android.app.StatusBarManager")
-                                val method =
-                                    statusBarManager.getMethod("expandNotificationsPanel")
-                                method.invoke(statusBarService)
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
-                        },
-                        onSwipeLeft = {
-                            val showWidget = PreferenceManager.getWidgetsOnSwipe(context, "left");
-                            if (showWidget) {
-                                onSwipeLeft()
-                            } else {
-                                val swipeLeftPackage =
-                                    PreferenceManager.getSwipeApp(context, "left")
-                                if (swipeLeftPackage != null) {
-                                    val launchIntent: Intent? =
-                                        context.packageManager.getLaunchIntentForPackage(
-                                            swipeLeftPackage
-                                        )
-                                    if (launchIntent != null) {
-                                        context.startActivity(launchIntent)
-                                    }
-                                }
-                            }
-                        },
-                        onSwipeRight = {
-                            val showWidget = PreferenceManager.getWidgetsOnSwipe(context, "right");
-                            if (showWidget) {
-                                onSwipeRight()
-                            } else {
-                                val swipeRightPackage =
-                                    PreferenceManager.getSwipeApp(context, "right")
-                                if (swipeRightPackage != null) {
-                                    val launchIntent: Intent? =
-                                        context.packageManager.getLaunchIntentForPackage(
-                                            swipeRightPackage
-                                        )
-                                    if (launchIntent != null) {
-                                        context.startActivity(launchIntent)
-                                    }
-                                }
-                            }
-                        }
-                    ),
-                contentAlignment = Alignment.BottomCenter
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.padding(bottom = 64.dp)
-                ) {
-                    if (!isDefault) {
-                        OutlinedButton(
-                            onClick = { openDefaultLauncherSettings() },
-                            border = null,
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = Color.Black.copy(alpha = 0.5f) // Text color
-                            )
-                        ) {
-                            Text(
-                                "Set default launcher",
-                                fontSize = 18.sp,
-                                color = Color.White
-                            )
-                        }
+            AnimatedContent(
+                targetState = showWidgetSettings,
+                transitionSpec = {
+                    if (targetState) {
+                        slideInVertically(initialOffsetY = { it }) + fadeIn() togetherWith
+                                slideOutVertically(targetOffsetY = { -it }) + fadeOut()
+                    } else {
+                        slideInVertically(initialOffsetY = { -it }) + fadeIn() togetherWith
+                                slideOutVertically(targetOffsetY = { it }) + fadeOut()
                     }
-                    when (settings.quickAppsLayout) {
-                        "linear" -> FiveColumnLayout(apps, notificationPackages, iconSize, iconShape, onShowSearch)
-                        "circular" -> CircularLayout(apps, notificationPackages, iconSize, iconShape, onShowSearch)
+                }
+            ) { isShowingSettings ->
+                if (isShowingSettings) {
+                    Box(
+                        modifier = Modifier
+                            .border(1.dp, color = Color.Cyan)
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = {},
+                                    onDoubleTap = {},
+                                    onLongPress = {
+                                    }
+                                )
+                            }
+                    ) {
+                        Spacer(Modifier.width(1.dp))
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            //.border(1.dp, color = Color.Cyan)
+                            .fillMaxSize()
+                            .detectSwipes(
+                                onSwipeUp = onSwipeUp,
+                                onSwipeDown = {
+                                    try {
+                                        @SuppressLint("WrongConstant")
+                                        val statusBarService =
+                                            context.getSystemService("statusbar")
+                                        val statusBarManager =
+                                            Class.forName("android.app.StatusBarManager")
+                                        val method =
+                                            statusBarManager.getMethod("expandNotificationsPanel")
+                                        method.invoke(statusBarService)
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
+                                },
+                                onSwipeLeft = {
+                                    val showWidget =
+                                        PreferenceManager.getWidgetsOnSwipe(context, "left");
+                                    if (showWidget) {
+                                        onSwipeLeft()
+                                    } else {
+                                        val swipeLeftPackage =
+                                            PreferenceManager.getSwipeApp(context, "left")
+                                        if (swipeLeftPackage != null) {
+                                            val launchIntent: Intent? =
+                                                context.packageManager.getLaunchIntentForPackage(
+                                                    swipeLeftPackage
+                                                )
+                                            if (launchIntent != null) {
+                                                context.startActivity(launchIntent)
+                                            }
+                                        }
+                                    }
+                                },
+                                onSwipeRight = {
+                                    val showWidget =
+                                        PreferenceManager.getWidgetsOnSwipe(context, "right");
+                                    if (showWidget) {
+                                        onSwipeRight()
+                                    } else {
+                                        val swipeRightPackage =
+                                            PreferenceManager.getSwipeApp(context, "right")
+                                        if (swipeRightPackage != null) {
+                                            val launchIntent: Intent? =
+                                                context.packageManager.getLaunchIntentForPackage(
+                                                    swipeRightPackage
+                                                )
+                                            if (launchIntent != null) {
+                                                context.startActivity(launchIntent)
+                                            }
+                                        }
+                                    }
+                                }
+                            ),
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier.padding(bottom = 64.dp)
+                        ) {
+                            if (!isDefault) {
+                                OutlinedButton(
+                                    onClick = { openDefaultLauncherSettings() },
+                                    border = null,
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        containerColor = Color.Black.copy(alpha = 0.5f) // Text color
+                                    )
+                                ) {
+                                    Text(
+                                        "Set default launcher",
+                                        fontSize = 18.sp,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                            when (settings.quickAppsLayout) {
+                                "linear" -> FiveColumnLayout(
+                                    apps,
+                                    notificationPackages,
+                                    iconSize,
+                                    iconShape,
+                                    onShowSearch
+                                )
+
+                                "circular" -> CircularLayout(
+                                    apps,
+                                    notificationPackages,
+                                    iconSize,
+                                    iconShape,
+                                    onShowSearch
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -3934,7 +3989,8 @@ fun WidgetClock(
                     }
                 )
             }
-        }) {
+        }
+    ) {
         if (settings.showAnalog) {
             AnalogClock(
                 settings.clockSize.dp,
