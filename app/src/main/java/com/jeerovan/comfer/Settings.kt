@@ -343,26 +343,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            if(!settingsState.hasCustomWidgets){
-                item {
-                    ListItem(
-                        headlineContent = { Text("Customize default widget") },
-                        supportingContent = { Text("Make it yours") },
-                        leadingContent = { Icon(painter = painterResource(R.drawable.outline_customize_widgets_24),
-                            contentDescription = "Customize default widget") },
-                        trailingContent = {
-                            Icon(
-                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                contentDescription = "Go"
-                            )
-                        },
-                        modifier = Modifier.clickable {
-                            context.startActivity(Intent(context, ProSettingsActivity()::class.java))
-                        },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                    )
-                }
-            }
             item { SectionHeader("Home Screen") }
             item {
                 QuickAppsLayoutSettingItem(

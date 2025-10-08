@@ -16,7 +16,6 @@ import kotlinx.coroutines.withContext
 import android.content.Intent
 import android.provider.Settings
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -30,6 +29,7 @@ import com.jeerovan.comfer.ui.theme.fontProvider
 import com.jeerovan.comfer.utils.CommonUtil.setBackgroundImageFromImageUri
 
 data class SettingsUiState(
+    val hasPro: Boolean = false,
     val wallpaperMotionEnabled: Boolean = true,
     val wallpaperDirectory: String? = null,
     val wallpaperFrequency:String = "Hourly",
@@ -103,6 +103,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val NOTIFICATION_COLOR = "notification_color"
     private val SHOW_NOTIFICATIONS_ROW = "show_notifications_row"
     private val NOTIFICATION_SIZE = "notification_size"
+    private val HAS_PRO_VERSION = "has_pro_version"
 
     private var working = false
     val predefinedColors = listOf(
@@ -135,6 +136,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         working = true
         logger.setLog("SettingsViewModel","LoadSettings")
         viewModelScope.launch {
+            val hasPro = PreferenceManager.getBoolean(getApplication(),HAS_PRO_VERSION,true)
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val wallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(getApplication())
             val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(getApplication())
@@ -202,6 +204,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 showNotificationRow)
             _uiState.update {
                 it.copy(
+                    hasPro = hasPro,
                     wallpaperMotionEnabled = wallpaperMotion,
                     wallpaperOnLockScreen = wallpaperOnLockScreen,
                     wallpaperDirectory = wallpaperDirectory,
@@ -246,6 +249,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 )
             }
             working = false
+        }
+    }
+    fun setPro(enabled:Boolean){
+        viewModelScope.launch {
+            PreferenceManager.getBoolean(getApplication(),HAS_PRO_VERSION,enabled)
+            _uiState.update { it.copy(hasPro = enabled) }
         }
     }
     fun saveWidgetPosition(id: String, offsetX: Float, offsetY: Float) {

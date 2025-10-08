@@ -219,6 +219,7 @@ fun DraggableContainerWithViewModel(
     topColumnHeight: Dp,
     widgetIds: List<String>,
     widgetPositions: Map<String, Offset?>,
+    hasPro: Boolean,
     onPositionChanged: (String, Offset) -> Unit,
     onEditModeChanged: (Boolean) -> Unit,
     composableContent: @Composable (String, Boolean) -> Unit
@@ -236,15 +237,12 @@ fun DraggableContainerWithViewModel(
 
     // Calculate initial positions when all sizes are measured
     val initialPositions = remember { mutableStateMapOf<String, Offset>() }
-    var hasCalculatedInitial by remember { mutableStateOf(false) }
 
     // Calculate centered column positions once container and all children are measured
     fun setInitialSizes(){
-        if (
-            containerSize.width > 0 &&
-            measuredSizes.size == widgetIds.size) {
+        if (containerSize.width > 0) {
             // Calculate positions for centered column layout
-            val totalHeight = measuredSizes.values.sumOf { it.height }
+            val totalHeight = measuredSizes.filterKeys { it in widgetIds }.values.sumOf { it.height }
             var currentY = (containerSize.height - totalHeight) / 2f
 
             widgetIds.forEach { id ->
@@ -256,13 +254,9 @@ fun DraggableContainerWithViewModel(
                     currentY += size.height
                 }
             }
-            Log.d("DraggableContainer","Set initial sizes")
         }
     }
-    LaunchedEffect(widgetIds) {
-        setInitialSizes()
-    }
-    LaunchedEffect(containerSize, measuredSizes) {
+    LaunchedEffect(containerSize, measuredSizes.size) {
         setInitialSizes()
     }
     Log.d("DraggableContainer",widgetIds.toString())
@@ -275,7 +269,7 @@ fun DraggableContainerWithViewModel(
                 containerSize = coordinates.size
             }
             .pointerInput(Unit) {
-                detectTapGestures(
+                if(hasPro)detectTapGestures(
                     onTap = {
                                 if(editMode){
                                     editMode = false
@@ -1752,6 +1746,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     topColumnHeight = topColumnHeight,
                     widgetIds = settings.widgetIds,
                     widgetPositions = settings.widgetPositions,
+                    hasPro = settings.hasPro,
                     onPositionChanged = { id, offset ->
                         settingsModel.saveWidgetPosition(id, offset.x, offset.y)
                     },
