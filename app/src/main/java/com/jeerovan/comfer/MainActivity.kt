@@ -239,11 +239,10 @@ fun DraggableContainerWithViewModel(
     var hasCalculatedInitial by remember { mutableStateOf(false) }
 
     // Calculate centered column positions once container and all children are measured
-    LaunchedEffect(containerSize, measuredSizes.size) {
-        if (!hasCalculatedInitial &&
+    fun setInitialSizes(){
+        if (
             containerSize.width > 0 &&
             measuredSizes.size == widgetIds.size) {
-
             // Calculate positions for centered column layout
             val totalHeight = measuredSizes.values.sumOf { it.height }
             var currentY = (containerSize.height - totalHeight) / 2f
@@ -257,10 +256,16 @@ fun DraggableContainerWithViewModel(
                     currentY += size.height
                 }
             }
-            hasCalculatedInitial = true
+            Log.d("DraggableContainer","Set initial sizes")
         }
     }
-
+    LaunchedEffect(widgetIds) {
+        setInitialSizes()
+    }
+    LaunchedEffect(containerSize, measuredSizes) {
+        setInitialSizes()
+    }
+    Log.d("DraggableContainer",widgetIds.toString())
     Box(
         modifier = modifier
             //.border(width = 1.dp, Color.Cyan)
@@ -297,6 +302,8 @@ fun DraggableContainerWithViewModel(
                 onPositionChanged = onPositionChanged,
                 onSizeMeasured = { size ->
                     measuredSizes[id] = size
+                    setInitialSizes()
+                    Log.d("Container","Measured size for : $id is $size")
                 },
                 content = { composableContent(id, editMode) }
             )
@@ -1743,7 +1750,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
             } else {
                 DraggableContainerWithViewModel (
                     topColumnHeight = topColumnHeight,
-                    widgetIds = settingsModel.widgetIds,
+                    widgetIds = settings.widgetIds,
                     widgetPositions = settings.widgetPositions,
                     onPositionChanged = { id, offset ->
                         settingsModel.saveWidgetPosition(id, offset.x, offset.y)
@@ -3857,45 +3864,53 @@ fun NotificationIconRow(
     val iconSize = settings.notificationSize.dp
     val iconColor = if(customWallpaper) settings.notificationColor else defaultColor
     val borderColor = if(showBorder) iconColor else Color.Transparent
+    val rowHeight = iconSize + 16.dp
+    val rowWidth = iconSize * 8 + 8.dp
     if (settings.hasNotificationAccess && settings.showNotificationRow && notificationIcons.isNotEmpty()) {
-        Row(
-            modifier = modifier
-                .border(width = 2.dp,color = borderColor,shape = RoundedCornerShape(8.dp))
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val iconsToShow = if (notificationIcons.size > maxVisibleIcons + 1) {
-                notificationIcons.take(maxVisibleIcons)
-            } else {
-                notificationIcons
-            }
+        Box(modifier = Modifier
+            .size(width = rowWidth, height = rowHeight)
+            .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp)),
+            contentAlignment = Alignment.Center
+        )
+        {
+            Row(
+                modifier = modifier
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val iconsToShow = if (notificationIcons.size > maxVisibleIcons + 1) {
+                    notificationIcons.take(maxVisibleIcons)
+                } else {
+                    notificationIcons
+                }
 
-            iconsToShow.forEach { drawable ->
-                Image(
-                    painter = rememberDrawablePainter(drawable = drawable),
-                    contentDescription = "Notification Icon",
-                    // Apply a tint to make the icon visible
-                    colorFilter = ColorFilter.tint(iconColor),
-                    modifier = Modifier.size(iconSize)
-                )
-            }
-
-            // Overflow badge remains the same
-            if (notificationIcons.size > maxVisibleIcons + 1) {
-                val overflowCount = notificationIcons.size - maxVisibleIcons
-                Box(
-                    modifier = Modifier
-                        .size(iconSize)
-                        .clip(CircleShape)
-                        .background(iconColor),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "+$overflowCount",
-                        color = if (iconColor == Color.White) Color.Black else Color.White,
-                        style = MaterialTheme.typography.bodySmall
+                iconsToShow.forEach { drawable ->
+                    Image(
+                        painter = rememberDrawablePainter(drawable = drawable),
+                        contentDescription = "Notification Icon",
+                        // Apply a tint to make the icon visible
+                        colorFilter = ColorFilter.tint(iconColor),
+                        modifier = Modifier.size(iconSize)
                     )
+                }
+
+                // Overflow badge remains the same
+                if (notificationIcons.size > maxVisibleIcons + 1) {
+                    val overflowCount = notificationIcons.size - maxVisibleIcons
+                    Box(
+                        modifier = Modifier
+                            .size(iconSize)
+                            .clip(CircleShape)
+                            .background(iconColor),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "+$overflowCount",
+                            color = if (iconColor == Color.White) Color.Black else Color.White,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
         }

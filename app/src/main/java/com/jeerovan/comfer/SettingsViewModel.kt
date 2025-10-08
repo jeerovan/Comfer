@@ -44,6 +44,7 @@ data class SettingsUiState(
     val isRightSwipeWidgets: Boolean = false,
     val hasNotificationAccess: Boolean = false,
     val hasCustomWidgets: Boolean = false,
+    val widgetIds: List<String> = emptyList(),
     val widgetPositions: Map<String,Offset?> = emptyMap(),
     val showAnalog:Boolean = false,
     val clockSize: Int = 150,
@@ -111,7 +112,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     )
 
     val widgetIds = listOf("time", "date", "battery", "notifications")
+    fun getWidgetIds(showBatteryIcon:Boolean,
+                     showBatteryPercentage:Boolean,
+                     isNotificationServiceEnabled:Boolean,
+                     showNotificationRow:Boolean
 
+    ): List<String> {
+        val widgetIds = mutableListOf("time", "date")
+        if(showBatteryIcon || showBatteryPercentage){
+            widgetIds.add("battery")
+        }
+        if (isNotificationServiceEnabled && showNotificationRow){
+            widgetIds.add("notifications")
+        }
+        return widgetIds
+    }
     init {
         loadSettings()
     }
@@ -181,6 +196,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val notificationColor = Color(PreferenceManager.getInt(getApplication(),NOTIFICATION_COLOR,Color.White.toArgb()))
             val notificationSize = PreferenceManager.getInt(getApplication(),NOTIFICATION_SIZE,18)
             val showNotificationRow = PreferenceManager.getBoolean(getApplication(),SHOW_NOTIFICATIONS_ROW,true)
+            val widgetIds = getWidgetIds(showBatteryIcon,
+                showBatteryPercentage,
+                isNotificationServiceEnabled,
+                showNotificationRow)
             _uiState.update {
                 it.copy(
                     wallpaperMotionEnabled = wallpaperMotion,
@@ -197,6 +216,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     isRightSwipeWidgets = isRightSwipeWidgets,
                     hasNotificationAccess = isNotificationServiceEnabled,
                     hasCustomWidgets =  hasCustomWidgets,
+                    widgetIds = widgetIds,
                     widgetPositions = widgetPositions,
                     showAnalog = showAnalog,
                     clockSize = clockSize,
@@ -455,21 +475,36 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setShowBatteryIcon(show: Boolean) {
         viewModelScope.launch {
             PreferenceManager.setBoolean(getApplication(),SHOW_BATTERY_ICON,show)
-            _uiState.update { it.copy(showBatteryIcon = show) }
+            val isNotificationServiceEnabled = _uiState.value.hasNotificationAccess
+            val showBatteryPercentage = _uiState.value.showBatteryPercentage
+            val showNotificationRow = _uiState.value.showNotificationRow
+            val widgetIds = getWidgetIds(show,
+                showBatteryPercentage,isNotificationServiceEnabled,showNotificationRow)
+            _uiState.update { it.copy(showBatteryIcon = show, widgetIds = widgetIds) }
         }
     }
 
     fun setShowBatteryPercentage(show: Boolean) {
         viewModelScope.launch {
             PreferenceManager.setBoolean(getApplication(),SHOW_BATTERY_PERCENTAGE,show)
-            _uiState.update { it.copy(showBatteryPercentage = show) }
+            val showBatteryIcon = _uiState.value.showBatteryIcon
+            val isNotificationServiceEnabled = _uiState.value.hasNotificationAccess
+            val showNotificationRow = _uiState.value.showNotificationRow
+            val widgetIds = getWidgetIds(showBatteryIcon,
+                show,isNotificationServiceEnabled,showNotificationRow)
+            _uiState.update { it.copy(showBatteryPercentage = show, widgetIds = widgetIds) }
         }
     }
 
     fun setShowNotificationRow(show: Boolean) {
         viewModelScope.launch {
             PreferenceManager.setBoolean(getApplication(),SHOW_NOTIFICATIONS_ROW,show)
-            _uiState.update { it.copy(showNotificationRow = show) }
+            val showBatteryIcon = _uiState.value.showBatteryIcon
+            val showBatteryPercentage = _uiState.value.showBatteryPercentage
+            val isNotificationServiceEnabled = _uiState.value.hasNotificationAccess
+            val widgetIds = getWidgetIds(showBatteryIcon,
+                showBatteryPercentage,isNotificationServiceEnabled,show)
+            _uiState.update { it.copy(showNotificationRow = show, widgetIds = widgetIds) }
         }
     }
 
