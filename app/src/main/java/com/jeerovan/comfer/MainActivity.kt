@@ -264,7 +264,7 @@ fun DraggableContainerWithViewModel(
 
     Box(
         modifier = modifier
-            .border(width = 1.dp, Color.Cyan)
+            //.border(width = 1.dp, Color.Cyan)
             .fillMaxWidth()
             .height(topColumnHeight)
             .onGloballyPositioned { coordinates ->
@@ -1792,7 +1792,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                 if (isShowingSettings) {
                     Box(
                         modifier = Modifier
-                            .border(1.dp, color = Color.Cyan)
+                            //.border(1.dp, color = Color.Cyan)
                             .fillMaxSize()
                             .pointerInput(Unit) {
                                 detectTapGestures(
@@ -1803,7 +1803,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 )
                             }
                     ) {
-                        Spacer(Modifier.width(1.dp))
+                        ProSettingsScreen(settingsModel)
                     }
                 } else {
                     Box(
