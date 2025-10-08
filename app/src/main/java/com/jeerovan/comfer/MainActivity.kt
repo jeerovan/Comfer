@@ -220,7 +220,6 @@ fun DraggableContainerWithViewModel(
     widgetIds: List<String>,
     widgetPositions: Map<String, Offset?>,
     onPositionChanged: (String, Offset) -> Unit,
-    hasPosition: (String) -> Boolean,
     onEditModeChanged: (Boolean) -> Unit,
     composableContent: @Composable (String, Boolean) -> Unit
 ) {
@@ -250,7 +249,7 @@ fun DraggableContainerWithViewModel(
             var currentY = (containerSize.height - totalHeight) / 2f
 
             widgetIds.forEach { id ->
-                if (!hasPosition(id)) {
+                if (widgetPositions[id] == null) {
                     val size = measuredSizes[id] ?: IntSize.Zero
                     val centerX = (containerSize.width - size.width) / 2f
 
@@ -1727,7 +1726,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
     if (!settings.wallpaperMotionEnabled && !isDefault) {
         defaultColor = Color.White
     }
-
+    Log.d("QuickListOverlay",settings.widgetPositions.toString())
     var showWidgetSettings by remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier) {
@@ -1748,9 +1747,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     widgetPositions = settings.widgetPositions,
                     onPositionChanged = { id, offset ->
                         settingsModel.saveWidgetPosition(id, offset.x, offset.y)
-                    },
-                    hasPosition = { id ->
-                        settingsModel.hasWidgetPosition(id)
                     },
                     onEditModeChanged = { editMode ->  showWidgetSettings = editMode},
                     composableContent = { id, editMode ->
