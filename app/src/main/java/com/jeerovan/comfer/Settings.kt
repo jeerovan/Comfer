@@ -106,6 +106,7 @@ class SettingsActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         WindowCompat.setDecorFitsSystemWindows(window, false)
         // Only set colors for Android 14 and below to avoid deprecation warnings
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
@@ -117,18 +118,12 @@ class SettingsActivity : ComponentActivity() {
             window.attributes.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
-        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-        windowInsetsController.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-        windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
 
         setContent {
             ComferTheme {
                 Surface(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .windowInsetsPadding(WindowInsets.navigationBars),
+                        .fillMaxSize(),
                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
                 ) {
                     SettingsScreen(settingsViewModel)
@@ -190,13 +185,14 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     }
     Box( modifier = Modifier
         .fillMaxSize()
-        .padding(top = 16.dp, bottom = 16.dp)
     ) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier,
             contentPadding = WindowInsets.navigationBars.asPaddingValues()
         ) {
+            item {
+                Spacer(Modifier.height(24.dp))
+            }
             item { SectionHeader("Support")}
             item {
                 val context = LocalContext.current

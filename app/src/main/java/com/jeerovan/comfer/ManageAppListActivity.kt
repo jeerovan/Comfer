@@ -84,6 +84,7 @@ class ManageAppListActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         WindowCompat.setDecorFitsSystemWindows(window, false)
         // Only set colors for Android 14 and below to avoid deprecation warnings
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
@@ -95,11 +96,6 @@ class ManageAppListActivity : ComponentActivity() {
             window.attributes.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
-        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-        windowInsetsController.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-        windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
         setContent {
             ComferTheme {
                 Surface(
@@ -182,13 +178,13 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
 
     Box(modifier = Modifier
         .fillMaxSize()
-        .padding(top = 16.dp, bottom = 16.dp)
+        .padding(top = 24.dp)
         .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 8.dp, top = 8.dp, end = 8.dp, bottom = 20.dp),
+                .padding(start = 8.dp, top = 8.dp, end = 8.dp, bottom = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             AppListColumn(

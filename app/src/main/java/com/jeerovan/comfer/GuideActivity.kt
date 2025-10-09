@@ -9,10 +9,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -52,18 +54,12 @@ class GuideActivity: ComponentActivity(){
             window.attributes.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
-        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
-        windowInsetsController.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-        windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
 
         setContent {
             ComferTheme {
                 Surface(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .windowInsetsPadding(WindowInsets.navigationBars),
+                        .fillMaxSize(),
                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
                 ) {
                     UserGuideScreen()
@@ -75,14 +71,15 @@ class GuideActivity: ComponentActivity(){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserGuideScreen() {
-    Scaffold(containerColor = Color.Transparent) { innerPadding ->
+
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding), // Apply padding from the Scaffold
+                .fillMaxSize(),
             contentPadding = WindowInsets.navigationBars.asPaddingValues()
         ) {
-            // Home Screen Section
+            item {
+                Spacer(Modifier.height(24.dp))
+            }
             item {
                 GuideSectionHeader(title = "Home Screen")
             }
@@ -173,7 +170,7 @@ fun UserGuideScreen() {
                 GuideStepItem(text = "Long press app icon to drag and re-order within same list.")
             }
         }
-    }
+
 }
 
 /**
