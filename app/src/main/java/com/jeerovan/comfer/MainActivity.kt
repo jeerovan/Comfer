@@ -259,7 +259,6 @@ fun DraggableContainerWithViewModel(
     LaunchedEffect(containerSize, measuredSizes.size) {
         setInitialSizes()
     }
-    Log.d("DraggableContainer",widgetIds.toString())
     Box(
         modifier = modifier
             //.border(width = 1.dp, Color.Cyan)
@@ -297,7 +296,6 @@ fun DraggableContainerWithViewModel(
                 onSizeMeasured = { size ->
                     measuredSizes[id] = size
                     setInitialSizes()
-                    Log.d("Container","Measured size for : $id is $size")
                 },
                 content = { composableContent(id, editMode) }
             )
@@ -1104,15 +1102,11 @@ private fun WidgetInstance(
                     val hostView = appWidgetHost.createView(context.applicationContext, widget.widgetId, appWidgetProviderInfo)
                     hostView.setAppWidget(widget.widgetId, appWidgetProviderInfo)
                     hostView.updateAppWidgetOptions( getBundleOptionsFromCurrentSize())
-                    Log.i("AndroidView","Widget Added")
                     hostView
                 },
                 update = { hostView ->
-                    // This runs when size state changes
-                    Log.i("AndroidView","Widget Resized")
                     if ( !widgetUpdated) {
                         widgetUpdated = true
-                        Log.i("AndroidView","Widget Updated")
                         hostView.updateAppWidgetOptions( getBundleOptionsFromCurrentSize())
                     }
                 },
@@ -1727,7 +1721,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
     if (!settings.wallpaperMotionEnabled && !isDefault) {
         defaultColor = Color.White
     }
-    Log.d("QuickListOverlay",settings.widgetPositions.toString())
     var showWidgetSettings by remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier) {
