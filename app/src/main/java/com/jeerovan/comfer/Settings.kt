@@ -54,7 +54,9 @@ import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.Support
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -194,6 +196,24 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 Spacer(Modifier.height(24.dp))
             }
             item { SectionHeader("Support")}
+            item {
+                ListItem(
+                    headlineContent = { Text("How to...") },
+                    supportingContent = { Text("Navigation guide") },
+                    leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
+                        contentDescription = "Manage App Lists") },
+                    trailingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "Go"
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        context.startActivity(Intent(context, GuideActivity::class.java))
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
             item {
                 val context = LocalContext.current
                 val packageName = context.packageName
@@ -423,10 +443,10 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     iconSize = iconSize.dp
                 )
             }
-            item { SectionHeader("App") }
+            item { SectionHeader("App Lists") }
             item {
                 ListItem(
-                    headlineContent = { Text("Manage App Lists") },
+                    headlineContent = { Text("Manage") },
                     supportingContent = { Text("Organize/Reorder apps in lists") },
                     leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Manage App Lists") },
                     trailingContent = {
@@ -462,21 +482,10 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
             }
             item {
-                ListItem(
-                    headlineContent = { Text("How to...") },
-                    supportingContent = { Text("Navigation guide") },
-                    leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
-                        contentDescription = "Manage App Lists") },
-                    trailingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "Go"
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, GuideActivity::class.java))
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
+                    thickness = DividerDefaults.Thickness,
+                    color = DividerDefaults.color
                 )
             }
             item {

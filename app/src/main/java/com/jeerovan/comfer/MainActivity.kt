@@ -214,6 +214,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import java.util.Calendar
 
 import androidx.compose.ui.layout.onGloballyPositioned
+import kotlin.math.atan2
 
 
 @Composable
@@ -1814,7 +1815,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         modifier = Modifier
                             //.border(1.dp, color = Color.Cyan)
                             .fillMaxSize()
-                            .detectSwipes(
+                            .detectGestures(
                                 onSwipeUp = onSwipeUp,
                                 onSwipeDown = {
                                     try {
@@ -4156,4 +4157,300 @@ fun rememberNotificationIcons(
     }
 
     return notificationIcons
+}
+
+// Gestures
+
+fun Modifier.detectGestures(
+    onSwipeUp: () -> Unit = {},
+    onSwipeDown: () -> Unit = {},
+    onSwipeLeft: () -> Unit = {},
+    onSwipeRight: () -> Unit = {},
+    onLetterDetected: (String) -> Unit = {}
+): Modifier = this.pointerInput(Unit) {
+    val path = mutableListOf<Offset>()
+    val swipeThreshold = 50.dp.toPx() // Minimum distance for swipe detection
+
+    detectDragGestures(
+        onDragStart = { offset ->
+            path.clear()
+            path.add(offset)
+        },
+        onDrag = { change, _ ->
+            change.consume()
+            path.add(change.position)
+        },
+        onDragEnd = {
+            if (path.size >= 2) {
+                // First try letter detection
+                val detectedLetter = detectLetterPattern(path,swipeThreshold)
+                if (detectedLetter != null) {
+                    onLetterDetected(detectedLetter)
+                    when (detectedLetter) {
+                        "O" -> Log.i("GestureDetection","Detected: O")
+                        "L" -> Log.i("GestureDetection","Detected: L")
+                        "J" -> Log.i("GestureDetection","Detected: J")
+                        "V" -> Log.i("GestureDetection","Detected: V")
+                    }
+                } else {
+                    // Fall back to simple swipe detection
+                    detectSimpleSwipe(
+                        path = path,
+                        threshold = swipeThreshold,
+                        onSwipeUp = onSwipeUp,
+                        onSwipeDown = onSwipeDown,
+                        onSwipeLeft = onSwipeLeft,
+                        onSwipeRight = onSwipeRight
+                    )
+                }
+            }
+            path.clear()
+        }
+    )
+}
+
+private fun detectLetterPattern(path: List<Offset>,swipeThreshold:Float): String? {
+    if (path.size < 10) return null
+
+    // Normalize path to bounding box
+    val minX = path.minOf { it.x }
+    val maxX = path.maxOf { it.x }
+    val minY = path.minOf { it.y }
+    val maxY = path.maxOf { it.y }
+
+    val width = maxX - minX
+    val height = maxY - minY
+
+    // Need minimum gesture size
+    if (width < swipeThreshold || height < swipeThreshold) return null
+
+    // Normalize points to 0-1 range
+    val normalized = path.map {
+        Offset(
+            (it.x - minX) / width,
+            (it.y - minY) / height
+        )
+    }
+
+    // Detect patterns
+    return when {
+        isCaretPattern(path) -> "V"
+        isCircularPattern(normalized, width, height) -> "O"
+        isLPattern(normalized) -> "L"
+        isJPattern(normalized) -> "J"
+        else -> null
+    }
+}
+
+private fun isCircularPattern(points: List<Offset>, width: Float, height: Float): Boolean {
+    // Check if aspect ratio is close to square
+    val aspectRatio = width / height
+    if (aspectRatio < 0.7f || aspectRatio > 1.3f) return false
+
+    // Calculate center
+    val centerX = points.map { it.x }.average().toFloat()
+    val centerY = points.map { it.y }.average().toFloat()
+    val center = Offset(centerX, centerY)
+
+    // Calculate distances from center
+    val distances = points.map { point ->
+        kotlin.math.sqrt(
+            (point.x - center.x) * (point.x - center.x) +
+                    (point.y - center.y) * (point.y - center.y)
+        )
+    }
+
+    val avgDistance = distances.average()
+    val variance = distances.map { (it - avgDistance) * (it - avgDistance) }.average()
+    val stdDev = kotlin.math.sqrt(variance)
+
+    // Low standard deviation indicates circular path
+    return stdDev / avgDistance < 0.25
+}
+
+private fun isLPattern(points: List<Offset>): Boolean {
+    // L pattern: starts high, goes down, then goes right
+    val startPoint = points.first()
+    val endPoint = points.last()
+    val midIndex = points.size / 2
+
+    // Check if we have vertical movement followed by horizontal
+    val firstHalf = points.subList(0, midIndex)
+    val secondHalf = points.subList(midIndex, points.size)
+
+    // First half should be primarily vertical (downward)
+    val firstHalfVertical = abs(firstHalf.last().y - firstHalf.first().y)
+    val firstHalfHorizontal = abs(firstHalf.last().x - firstHalf.first().x)
+
+    // Second half should be primarily horizontal (rightward)
+    val secondHalfVertical = abs(secondHalf.last().y - secondHalf.first().y)
+    val secondHalfHorizontal = abs(secondHalf.last().x - secondHalf.first().x)
+
+    // L pattern conditions:
+    // 1. First half more vertical than horizontal
+    // 2. Second half more horizontal than vertical
+    // 3. Vertical movement is downward
+    // 4. Horizontal movement is rightward
+    return firstHalfVertical > firstHalfHorizontal * 1.5f &&
+            secondHalfHorizontal > secondHalfVertical * 1.5f &&
+            firstHalf.last().y > firstHalf.first().y &&
+            secondHalf.last().x > secondHalf.first().x
+}
+
+private fun isJPattern(points: List<Offset>): Boolean {
+    // J pattern: starts high, goes down, curves left at bottom
+    if (points.size < 15) return false
+
+    val startPoint = points.first()
+    val endPoint = points.last()
+
+    // Find the lowest point in the path
+    val lowestIndex = points.withIndex().maxByOrNull { it.value.y }?.index ?: return false
+
+    // Split into vertical stroke and curve
+    val verticalPart = points.subList(0, lowestIndex.coerceAtLeast(1))
+    val curvePart = if (lowestIndex < points.size) {
+        points.subList(lowestIndex, points.size)
+    } else {
+        emptyList()
+    }
+
+    if (verticalPart.isEmpty() || curvePart.isEmpty()) return false
+
+    // Vertical part should go downward
+    val verticalMovement = verticalPart.last().y - verticalPart.first().y
+    if (verticalMovement < 0.3f) return false
+
+    // Curve part should curve leftward
+    val curveLeftMovement = curvePart.first().x - curvePart.last().x
+    val curveUpMovement = curvePart.first().y - curvePart.last().y
+
+    // J hook curves left and might go slightly up
+    return curveLeftMovement > 0.15f
+}
+
+private fun isCaretPattern(points: List<Offset>): Boolean {
+    if (points.size < 10) return false
+
+    // Find the highest point (top/peak of the caret ^)
+    val highestIndex = points.withIndex().minByOrNull { it.value.y }?.index ?: return false
+
+    // Need points before and after the highest point for caret shape
+    if (highestIndex < 3 || highestIndex > points.size - 3) return false
+
+    // Split into left stroke (up) and right stroke (down)
+    val leftStroke = points.subList(0, highestIndex + 1)
+    val rightStroke = points.subList(highestIndex, points.size)
+
+    if (leftStroke.size < 3 || rightStroke.size < 3) return false
+
+    // Calculate angles for both strokes
+    val leftAngle = calculateStrokeAngle(leftStroke)
+    val rightAngle = calculateStrokeAngle(rightStroke)
+
+    // Caret pattern conditions:
+    // 1. Left stroke should go UP-right (upward movement)
+    // 2. Right stroke should go DOWN-right (downward movement)
+    // 3. The angle difference should form a caret/peak (not too narrow, not too wide)
+
+    val leftGoesUp = leftStroke.last().y < leftStroke.first().y
+    val rightGoesDown = rightStroke.last().y > rightStroke.first().y
+
+    if (!leftGoesUp || !rightGoesDown) return false
+
+    // Check the vertical movement is significant
+    val leftVerticalMovement = abs(leftStroke.first().y - leftStroke.last().y)
+    val rightVerticalMovement = abs(rightStroke.first().y - rightStroke.last().y)
+    val totalHeight = points.maxOf { it.y } - points.minOf { it.y }
+
+    // Both strokes should have significant vertical movement (at least 30% of total height)
+    if (leftVerticalMovement < totalHeight * 0.3f || rightVerticalMovement < totalHeight * 0.3f) {
+        return false
+    }
+
+    // Check if strokes form a caret shape (angle between 30° and 120°)
+    val angleDifference = abs(leftAngle - rightAngle)
+    val normalizedAngleDiff = if (angleDifference > 180) {
+        360 - angleDifference
+    } else {
+        angleDifference
+    }
+
+    // Caret should have opening angle between 30° and 120°
+    if (normalizedAngleDiff < 30 || normalizedAngleDiff > 120) return false
+
+    // Verify symmetry - both strokes should have similar length
+    val leftLength = calculatePathLength(leftStroke)
+    val rightLength = calculatePathLength(rightStroke)
+    val lengthRatio = minOf(leftLength, rightLength) / maxOf(leftLength, rightLength)
+
+    // Strokes should be reasonably similar in length (at least 50% ratio)
+    if (lengthRatio < 0.5) return false
+
+    // Additional check: Peak should be in the upper portion of the gesture
+    val peakY = points[highestIndex].y
+    val minY = points.minOf { it.y }
+    val maxY = points.maxOf { it.y }
+    val peakPosition = (peakY - minY) / (maxY - minY)
+
+    // Peak should be in upper 40% of the gesture
+    return peakPosition < 0.4f
+}
+
+private fun calculateStrokeAngle(stroke: List<Offset>): Double {
+    val start = stroke.first()
+    val end = stroke.last()
+
+    val deltaX = end.x - start.x
+    val deltaY = end.y - start.y
+
+    // Calculate angle in degrees
+    return Math.toDegrees(atan2(deltaY.toDouble(), deltaX.toDouble()))
+}
+
+private fun calculatePathLength(path: List<Offset>): Float {
+    var length = 0f
+    for (i in 1 until path.size) {
+        val dx = path[i].x - path[i - 1].x
+        val dy = path[i].y - path[i - 1].y
+        length += kotlin.math.sqrt(dx * dx + dy * dy)
+    }
+    return length
+}
+
+private fun detectSimpleSwipe(
+    path: List<Offset>,
+    threshold: Float,
+    onSwipeUp: () -> Unit,
+    onSwipeDown: () -> Unit,
+    onSwipeLeft: () -> Unit,
+    onSwipeRight: () -> Unit
+) {
+    val startPoint = path.first()
+    val endPoint = path.last()
+
+    val deltaX = endPoint.x - startPoint.x
+    val deltaY = endPoint.y - startPoint.y
+
+    val absDeltaX = abs(deltaX)
+    val absDeltaY = abs(deltaY)
+
+    // Determine if swipe is primarily horizontal or vertical
+    if (absDeltaX > threshold || absDeltaY > threshold) {
+        if (absDeltaX > absDeltaY) {
+            // Horizontal swipe
+            if (deltaX > 0) {
+                onSwipeRight()
+            } else {
+                onSwipeLeft()
+            }
+        } else {
+            // Vertical swipe
+            if (deltaY > 0) {
+                onSwipeDown()
+            } else {
+                onSwipeUp()
+            }
+        }
+    }
 }
