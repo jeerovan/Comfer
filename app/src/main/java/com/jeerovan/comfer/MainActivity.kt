@@ -2653,6 +2653,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val primaryApps = appInfoUiState.primaryApps
     val hiddenApps = appInfoUiState.restApps
 
+    val sortedPrimaryApps = if(settingInfoUiState.arrangeInAlphabeticalOrder) primaryApps.sortedBy { it.label.toString() } else primaryApps
+
     val wallpaperMotionEnabled = settingInfoUiState.wallpaperMotionEnabled
     val hasNotificationAccess = settingInfoUiState.hasNotificationAccess
 
@@ -2910,7 +2912,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             enter = layer2Enter,
             exit = layer2Exit
         ) {
-            AppListOverlay(apps = primaryApps,
+            AppListOverlay(apps = sortedPrimaryApps,
                 notificationPackages,
                 onSwipeDown = { isAppListVisible = false })
         }

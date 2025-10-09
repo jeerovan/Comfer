@@ -71,7 +71,8 @@ data class SettingsUiState(
     val batterySize: Int = 20,
     val showNotificationRow : Boolean = true,
     val notificationColor: Color = Color.White,
-    val notificationSize: Int = 18
+    val notificationSize: Int = 18,
+    val arrangeInAlphabeticalOrder: Boolean = false
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -202,6 +203,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 showBatteryPercentage,
                 isNotificationServiceEnabled,
                 showNotificationRow)
+            val alphabeticalOrder = PreferenceManager.getAlphabeticalOrder(getApplication())
             _uiState.update {
                 it.copy(
                     hasPro = hasPro,
@@ -245,7 +247,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     showBatteryPercentage = showBatteryPercentage,
                     showNotificationRow = showNotificationRow,
                     notificationColor = notificationColor,
-                    notificationSize = notificationSize
+                    notificationSize = notificationSize,
+                    arrangeInAlphabeticalOrder = alphabeticalOrder
                 )
             }
             working = false
@@ -253,8 +256,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     fun setPro(enabled:Boolean){
         viewModelScope.launch {
-            PreferenceManager.getBoolean(getApplication(),HAS_PRO_VERSION,enabled)
+            PreferenceManager.setBoolean(getApplication(),HAS_PRO_VERSION,enabled)
             _uiState.update { it.copy(hasPro = enabled) }
+        }
+    }
+    fun setAlphabeticalOrder(enabled:Boolean){
+        viewModelScope.launch {
+            PreferenceManager.setAlphabeticalOrder(getApplication(),enabled)
+            _uiState.update { it.copy(arrangeInAlphabeticalOrder = enabled) }
         }
     }
     fun saveWidgetPosition(id: String, offsetX: Float, offsetY: Float) {

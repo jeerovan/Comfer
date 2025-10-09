@@ -301,10 +301,10 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
     fun moveAppsToList(fromListName: String, toListName: String, appIndexes: List<Int>) {
         viewModelScope.launch {
             val currentState = _uiState.value
-
+            val alphabeticalOrder = PreferenceManager.getAlphabeticalOrder(getApplication())
             val fromList = when (fromListName) {
                 AppInfoManager.QUICK_APPS_LIST_NAME -> currentState.quickApps
-                AppInfoManager.PRIMARY_APPS_LIST_NAME -> currentState.primaryApps
+                AppInfoManager.PRIMARY_APPS_LIST_NAME -> if(alphabeticalOrder) currentState.primaryApps.sortedBy { it.label.toString() } else currentState.primaryApps
                 REST_LIST_NAME -> currentState.restApps
                 else -> return@launch
             }

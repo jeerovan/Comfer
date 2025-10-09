@@ -41,11 +41,13 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.Support
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -415,6 +417,26 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     modifier = Modifier.clickable {
                         context.startActivity(Intent(context, ManageAppListActivity::class.java))
                     },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
+            item {
+                ListItem(
+                    headlineContent = { Text("Alphabetical order") },
+                    supportingContent = { Text("Arrange apps in A-Z") },
+                    leadingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.Sort,
+                            contentDescription = "Sorted app list"
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settingsState.arrangeInAlphabeticalOrder,
+                            onCheckedChange = { settingsViewModel.setAlphabeticalOrder(it) }
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.setCustomWidgets(!settingsState.arrangeInAlphabeticalOrder) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }

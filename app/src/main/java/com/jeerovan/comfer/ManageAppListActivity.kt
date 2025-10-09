@@ -102,6 +102,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
 
     val iconSize = min(46,PreferenceManager.getIconSize(context))
     val shape = PreferenceManager.getIconShape(context)
+    val alphabeticalOrder = PreferenceManager.getAlphabeticalOrder(context)
     val iconShape = getShapeFromShape(shape,iconSize.dp)
     val listStates = remember {
         mapOf(
@@ -110,6 +111,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
             REST_LIST_NAME to restListState
         )
     }
+    val primaryApps = if(alphabeticalOrder) uiState.primaryApps.sortedBy { it.label.toString() } else uiState.primaryApps
 
     var selectedList by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedIndices by rememberSaveable { mutableStateOf(emptySet<Int>()) }
@@ -170,6 +172,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
             AppListColumn(
                 title = "⚡",
                 apps = uiState.quickApps,
+                canReOrder = true,
                 listState = listStates[AppInfoManager.QUICK_APPS_LIST_NAME]!!,
                 modifier = Modifier
                     .weight(1f),
@@ -236,7 +239,8 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
             }
             AppListColumn(
                 title = "⭐",
-                apps = uiState.primaryApps,
+                apps = primaryApps,
+                canReOrder = !alphabeticalOrder,
                 listState = listStates[AppInfoManager.PRIMARY_APPS_LIST_NAME]!!,
                 modifier = Modifier
                     .weight(1f),
@@ -298,6 +302,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
             AppListColumn(
                 title = "👻",
                 apps = uiState.restApps,
+                canReOrder = true,
                 listState = listStates[REST_LIST_NAME]!!,
                 modifier = Modifier
                     .weight(1f),
@@ -321,6 +326,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
 fun AppListColumn(
     title: String,
     apps: List<AppInfo>,
+    canReOrder: Boolean,
     listState: LazyListState,
     modifier: Modifier = Modifier,
     listName: String,
@@ -336,7 +342,6 @@ fun AppListColumn(
         viewModel.moveAppInList(listName, from.index, to.index)
         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
     }
-
 
     Column(
         modifier = modifier
@@ -363,25 +368,53 @@ fun AppListColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(apps.size, key = { index -> apps[index].packageName }) { index ->
-                ReorderableItem(
-                    reorderableLazyListState,
-                    key = apps[index].packageName
-                ) { isDragging ->
-                    val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp, label = "")
-                    val isSelected = selectedList == listName && selectedIndices.contains(index)
+                if(canReOrder) {
+                    ReorderableItem(
+                        reorderableLazyListState,
+                        key = apps[index].packageName
+                    ) { isDragging ->
+                        val elevation by animateDpAsState(
+                            if (isDragging) 4.dp else 0.dp,
+                            label = ""
+                        )
+                        val isSelected = selectedList == listName && selectedIndices.contains(index)
 
+                        Surface(
+                            shape = iconShape,
+                            modifier = Modifier
+                                .longPressDraggableHandle()
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) { onItemSelect(listName, index) },
+                            shadowElevation = elevation,
+
+                            ) {
+                            AppCard(app = apps[index], isSelected = isSelected, iconSize, iconShape)
+                        }
+                    }
+                } else {
+                    // Normal list with selectable items
+                    val isSelected = selectedList == listName && selectedIndices.contains(index)
+                    val elevation by animateDpAsState(
+                        if (isSelected) 2.dp else 0.dp,
+                        label = ""
+                    )
                     Surface(
                         shape = iconShape,
                         modifier = Modifier
-                            .longPressDraggableHandle()
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
                             ) { onItemSelect(listName, index) },
                         shadowElevation = elevation,
-
-                        ) {
-                        AppCard(app = apps[index], isSelected = isSelected,iconSize,iconShape)
+                    ) {
+                        AppCard(
+                            app = apps[index],
+                            isSelected = isSelected,
+                            iconSize,
+                            iconShape
+                        )
                     }
                 }
             }

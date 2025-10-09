@@ -31,7 +31,7 @@ object PreferenceManager {
     private const val WALLPAPER_FREQUENCY = "wallpaper_frequency"
     private const val WALLPAPER_URI = "wallpaper_uri"
     private const val WALLPAPER_NOW = "wallpaper_now"
-
+    private const val ALPHABETICAL_ORDER = "alphabetical_order"
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun clear(context: Context,key: String){
@@ -84,6 +84,12 @@ object PreferenceManager {
         val dummyName = CommonUtil.randomCode(millisecondsString,8)
         setDummyName(context,dummyName)
         setQuickAppsLayout(context,"circular")
+    }
+    fun setAlphabeticalOrder(context: Context,enabled: Boolean){
+        setBoolean(context,ALPHABETICAL_ORDER,enabled)
+    }
+    fun getAlphabeticalOrder(context: Context):Boolean{
+        return getBoolean(context,ALPHABETICAL_ORDER,false)
     }
     fun setApplyWallpaperNow(context: Context,apply: Boolean){
         setBoolean(context,WALLPAPER_NOW,apply)
