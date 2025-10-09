@@ -78,14 +78,14 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
         modifier = Modifier.fillMaxSize(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-        tonalElevation = 8.dp,
-        shadowElevation = 4.dp
+        //tonalElevation = 8.dp,
+        //shadowElevation = 4.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp,)
+                .padding(16.dp,)
                 .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
 
@@ -294,7 +294,9 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                             )
                         )
                     }
-                    Text("Font Style", style = MaterialTheme.typography.bodyLarge)
+                    Text("Font Style",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface)
                     Text(
                         text = "Sat,Sept 16",
                         style = MaterialTheme.typography.bodyLarge,
@@ -411,11 +413,6 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                     )
                 }
             }
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 16.dp),
-                thickness = DividerDefaults.Thickness,
-                color = DividerDefaults.color
-            )
         }
     }
 }

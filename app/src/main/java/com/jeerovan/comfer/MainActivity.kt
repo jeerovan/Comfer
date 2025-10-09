@@ -169,9 +169,12 @@ import android.content.ComponentName
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.provider.AlarmClock
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import android.view.WindowManager
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -456,7 +459,17 @@ class MainActivity : ComponentActivity() {
                 mainViewModel.onBackButtonPressed()
             }
         })
-
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        // Only set colors for Android 14 and below to avoid deprecation warnings
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        }
+        // Handle display cutout
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.attributes.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
         val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -3855,7 +3868,7 @@ fun NotificationIconRow(
     val iconColor = if(customWallpaper) settings.notificationColor else defaultColor
     val borderColor = if(showBorder) iconColor else Color.Transparent
     val rowHeight = iconSize + 16.dp
-    val rowWidth = iconSize * 8 + 8.dp
+    val rowWidth = iconSize * 10 + 8.dp
     if (settings.hasNotificationAccess && settings.showNotificationRow && notificationIcons.isNotEmpty()) {
         Box(modifier = Modifier
             .size(width = rowWidth, height = rowHeight)
