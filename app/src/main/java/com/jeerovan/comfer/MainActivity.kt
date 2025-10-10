@@ -287,7 +287,7 @@ fun DraggableContainerWithViewModel(
             }
     ) {
         widgetIds.forEach { id ->
-            key(widgetPositions[id]) {
+            key(id,widgetPositions[id]) {
                 DraggableComposableWithViewModel(
                     id = id,
                     editMode = editMode,
