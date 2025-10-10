@@ -259,7 +259,7 @@ fun DraggableContainerWithViewModel(
             }
         }
     }
-    LaunchedEffect(containerSize, measuredSizes.size) {
+    LaunchedEffect(widgetPositions.size,containerSize, measuredSizes.size) {
         setInitialSizes()
     }
     Box(
@@ -287,21 +287,21 @@ fun DraggableContainerWithViewModel(
             }
     ) {
         widgetIds.forEach { id ->
-            val savedPosition = widgetPositions[id]
-            val initialPosition = initialPositions[id]
-            DraggableComposableWithViewModel(
-                id = id,
-                editMode = editMode,
-                containerSize = containerSize,
-                savedPosition = savedPosition,
-                initialPosition = initialPosition,
-                onPositionChanged = onPositionChanged,
-                onSizeMeasured = { size ->
-                    measuredSizes[id] = size
-                    setInitialSizes()
-                },
-                content = { composableContent(id, editMode) }
-            )
+            key(widgetPositions[id]) {
+                DraggableComposableWithViewModel(
+                    id = id,
+                    editMode = editMode,
+                    containerSize = containerSize,
+                    savedPosition = widgetPositions[id],
+                    initialPosition = initialPositions[id],
+                    onPositionChanged = onPositionChanged,
+                    onSizeMeasured = { size ->
+                        measuredSizes[id] = size
+                        setInitialSizes()
+                    },
+                    content = { composableContent(id, editMode) }
+                )
+            }
         }
     }
 }

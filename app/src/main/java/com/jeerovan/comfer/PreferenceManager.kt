@@ -36,7 +36,7 @@ object PreferenceManager {
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun clear(context: Context,key: String){
-        getPrefs(context).edit { clear(context,key) }
+        getPrefs(context).edit { remove(key) }
     }
     fun hasKey(context: Context,key:String): Boolean{
         return getPrefs(context).contains(key)
@@ -90,7 +90,7 @@ object PreferenceManager {
         setBoolean(context,HAS_PRO_VERSION,enabled)
     }
     fun getPro(context: Context): Boolean {
-        return getBoolean(context,HAS_PRO_VERSION,false)
+        return getBoolean(context,HAS_PRO_VERSION,true)
     }
     fun setAlphabeticalOrder(context: Context,enabled: Boolean){
         setBoolean(context,ALPHABETICAL_ORDER,enabled)

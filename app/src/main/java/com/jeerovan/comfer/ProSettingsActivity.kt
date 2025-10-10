@@ -88,7 +88,25 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                 .padding(16.dp,)
                 .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
-
+            SettingSection("Widgets") {
+                Box(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .clickable {
+                        settingsViewModel.clearAllWidgetPositions()
+                    }
+                ) {
+                    Text("Reset positions",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 16.dp),
+                thickness = DividerDefaults.Thickness,
+                color = DividerDefaults.color
+            )
             // Time Settings
             SettingSection("Time") {
                 SettingSwitch(
