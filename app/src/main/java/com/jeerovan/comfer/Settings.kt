@@ -732,7 +732,6 @@ fun ShapeSelectionDialog(
 }
 @Composable
 fun IconShapePreview(
-    modifier: Modifier = Modifier,
     shape: Shape,
     size: Dp = 30.dp,
     borderColor: Color = MaterialTheme.colorScheme.outline
@@ -753,7 +752,7 @@ fun IconShapePreview(
         }
     }
     Box(
-        modifier = modifier
+        modifier = Modifier
             .size(size)
             .clip(iconShape)
             .border(width = 2.dp, color = borderColor, shape = iconShape)

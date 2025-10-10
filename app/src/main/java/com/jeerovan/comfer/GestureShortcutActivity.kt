@@ -604,39 +604,49 @@ fun AppsLayout(
     Box(modifier = Modifier.fillMaxSize()
     ) {
         // Center composable
-        IconShapePreview(
-            modifier = Modifier.align(Alignment.Center),
-            shape = iconShape,
-            size = iconSize
-        )
+        Box(modifier = Modifier.align(Alignment.Center),){
+            IconShapePreview(
+                shape = iconShape,
+                size = iconSize
+            )
+        }
         val offsetLength = (circleRadius + lineLength/2)
-        IconShapePreview(
-            shape = iconShape,
+        Box(
             modifier = Modifier
                 .align(Alignment.Center)
                 .offset(x = offsetLength, y = offsetLength),
-            size = iconSize
-        )
-        IconShapePreview(
-            shape = iconShape,
+        ){
+            IconShapePreview(
+                shape = iconShape,
+                size = iconSize
+            )
+        }
+        Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .offset(x = -offsetLength, y = offsetLength),
-            size = iconSize
-        )
-        IconShapePreview(
-            shape = iconShape,
+                .offset(x = -offsetLength, y = offsetLength),){
+            IconShapePreview(
+                shape = iconShape,
+                size = iconSize
+            )
+        }
+        Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .offset(x = offsetLength, y = -offsetLength),
-            size = iconSize
-        )
-        IconShapePreview(
-            shape = iconShape,
+                .offset(x = offsetLength, y = -offsetLength),){
+            IconShapePreview(
+                shape = iconShape,
+                size = iconSize
+            )
+        }
+        Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .offset(x = -offsetLength, y = -offsetLength),
-            size = iconSize
-        )
+                .offset(x = -offsetLength, y = -offsetLength),){
+            IconShapePreview(
+                shape = iconShape,
+                size = iconSize
+            )
+        }
     }
 }
