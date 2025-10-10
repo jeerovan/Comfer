@@ -56,7 +56,7 @@ fun GestureShortcutScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.background.copy(alpha = 0.7f))
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -65,8 +65,8 @@ fun GestureShortcutScreen() {
             TopAppBar(
                 title = { Text("Gesture Shortcuts") },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = Color.Transparent,
+                    titleContentColor = MaterialTheme.colorScheme.primary
                 )
             )
 
@@ -117,7 +117,7 @@ fun GestureCanvas(
     val density = LocalDensity.current
     val circleRadius = with(density) { 40.dp.toPx() }
     val lineLength = with(density) { 100.dp.toPx() }
-    val strokeWidth = with(density) { 3.dp.toPx() }
+    val strokeWidth = with(density) { 2.dp.toPx() }
     val dotRadius = with(density) { 7.dp.toPx() }
 
     // Infinite transition for animations

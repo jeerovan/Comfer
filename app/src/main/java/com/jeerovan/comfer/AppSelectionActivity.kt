@@ -98,7 +98,10 @@ fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, swipeDirection: Strin
                             title = {
                                 Text("Select app for $swipeDirection swipe")
                             },
-                            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = Color.Transparent,
+                                titleContentColor = MaterialTheme.colorScheme.primary
+                            )
                         )
                       },
         containerColor = Color.Transparent
