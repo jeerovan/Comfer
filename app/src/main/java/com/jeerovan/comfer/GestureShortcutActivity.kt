@@ -128,7 +128,7 @@ fun GestureCanvas(
         initialValue = 0f,
         targetValue = 2f,
         animationSpec = infiniteRepeatable(
-            animation = tween(6000, easing = LinearEasing),
+            animation = tween(4000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "circularProgress"
@@ -139,7 +139,7 @@ fun GestureCanvas(
         initialValue = 0f,
         targetValue = 2f,
         animationSpec = infiniteRepeatable(
-            animation = tween(3500, easing = FastOutSlowInEasing),
+            animation = tween(3500, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "lProgressTopRight"
@@ -319,24 +319,32 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawLShape(
             if (progress <= 1f) {
                 val dotProgress = progress
                 if (dotProgress <= 0.5f) {
-                    // Moving horizontally
-                    val dotX = hStartX + (hEndX - hStartX) * (dotProgress * 2)
+                    // Moving horizontally - start fast, end slow
+                    val normalizedProgress = dotProgress * 2 // 0.0 to 1.0
+                    val easedProgress = EaseOut.transform(normalizedProgress)
+                    val dotX = hStartX + (hEndX - hStartX) * easedProgress
                     drawCircle(color = dotColor, radius = dotRadius, center = Offset(dotX, hY))
                 } else {
-                    // Moving vertically
-                    val dotY = vStartY + (vEndY - vStartY) * ((dotProgress - 0.5f) * 2)
+                    // Moving vertically - start slow, end fast
+                    val normalizedProgress = (dotProgress - 0.5f) * 2 // 0.0 to 1.0
+                    val easedProgress = EaseIn.transform(normalizedProgress)
+                    val dotY = vStartY + (vEndY - vStartY) * easedProgress
                     drawCircle(color = dotColor, radius = dotRadius, center = Offset(vX, dotY))
                 }
             } else {
                 // Reverse: vertical first, then horizontal
                 val dotProgress = progress - 1f
                 if (dotProgress <= 0.5f) {
-                    // Moving vertically upward
-                    val dotY = vEndY - (vEndY - vStartY) * (dotProgress * 2)
+                    // Moving vertically upward - start fast, end slow
+                    val normalizedProgress = dotProgress * 2 // 0.0 to 1.0
+                    val easedProgress = EaseOut.transform(normalizedProgress)
+                    val dotY = vEndY - (vEndY - vStartY) * easedProgress
                     drawCircle(color = dotColor, radius = dotRadius, center = Offset(vX, dotY))
                 } else {
-                    // Moving horizontally leftward
-                    val dotX = hEndX - (hEndX - hStartX) * ((dotProgress - 0.5f) * 2)
+                    // Moving horizontally leftward - start slow, end fast
+                    val normalizedProgress = (dotProgress - 0.5f) * 2 // 0.0 to 1.0
+                    val easedProgress = EaseIn.transform(normalizedProgress)
+                    val dotX = hEndX - (hEndX - hStartX) * easedProgress
                     drawCircle(color = dotColor, radius = dotRadius, center = Offset(dotX, hY))
                 }
             }
