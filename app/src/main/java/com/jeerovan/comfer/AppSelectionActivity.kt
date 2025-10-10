@@ -70,7 +70,8 @@ class AppSelectionActivity : ComponentActivity() {
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
-        val swipeDirection = intent.getStringExtra("swipe_direction") ?: "left"
+        val swipeDirection = intent.getStringExtra("swipe_direction")
+        val gesturePattern = intent.getStringExtra("gesture_pattern")
         setContent {
             ComferTheme {
                 Surface(
@@ -78,7 +79,8 @@ class AppSelectionActivity : ComponentActivity() {
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
                 ) {
                     AppSelectionScreen(appInfoViewModel = appInfoViewModel,
-                        swipeDirection = swipeDirection)
+                        swipeDirection = swipeDirection,
+                        gesturePattern = gesturePattern)
                 }
             }
         }
@@ -87,7 +89,7 @@ class AppSelectionActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, swipeDirection: String) {
+fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, swipeDirection: String?, gesturePattern: String?) {
     val appListState by appInfoViewModel.uiState.collectAsState()
     val context = LocalContext.current
     val allApps = (appListState.quickApps + appListState.primaryApps + appListState.restApps).sortedBy { it.label.toString() }
@@ -96,7 +98,7 @@ fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, swipeDirection: Strin
     Scaffold(topBar = {
                         TopAppBar(
                             title = {
-                                Text("Select app for $swipeDirection swipe")
+                                Text("Select an app")
                             },
                             colors = TopAppBarDefaults.topAppBarColors(
                                 containerColor = Color.Transparent,
@@ -117,6 +119,7 @@ fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, swipeDirection: Strin
                     (context as? Activity)?.let { activity ->
                         val resultIntent = Intent()
                         resultIntent.putExtra("swipe_direction", swipeDirection)
+                        resultIntent.putExtra("gesture_pattern",gesturePattern)
                         resultIntent.putExtra("package_name", app.packageName)
                         activity.setResult(Activity.RESULT_OK, resultIntent)
                         activity.finish()

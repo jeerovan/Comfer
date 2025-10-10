@@ -634,11 +634,19 @@ fun AppsLayout(
             }
         }
     }
-
+    fun selectSetApp(pattern:String){
+        val intent = Intent(context, AppSelectionActivity::class.java).apply {
+            putExtra("gesture_pattern", pattern)
+        }
+        appSelectionLauncher.launch(intent)
+    }
     Box(modifier = Modifier.fillMaxSize()
     ) {
         // Center composable
-        Box(modifier = Modifier.align(Alignment.Center),){
+        Box(modifier = Modifier
+            .align(Alignment.Center)
+            .clickable { selectSetApp("Center")}
+        ){
             val centerApp = mapPackageNameToAppInfo(packageManager, patternApps["Center"])
             if(centerApp == null) {
                 IconShapePreview(
