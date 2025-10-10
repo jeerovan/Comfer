@@ -1,14 +1,16 @@
 package com.jeerovan.comfer
 
-import android.R
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -24,24 +26,36 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import kotlin.getValue
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.PI
 
 class GestureShortcutActivity : ComponentActivity() {
+    private val settingsViewModel: SettingsViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                GestureShortcutScreen()
+                GestureShortcutScreen(settingsViewModel)
             }
+        }
+    }
+    override fun onResume() {
+        super.onResume()
+        val logger = LoggerManager(applicationContext)
+        logger.setLog("SettingsActivity","Resumed")
+        lifecycleScope.launch {
+            settingsViewModel.loadSettings()
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GestureShortcutScreen() {
+fun GestureShortcutScreen(settingsViewModel: SettingsViewModel) {
     val context = LocalContext.current
     var selectedGesture by remember { mutableStateOf<GestureType?>(null) }
     var gestureApps by remember {
@@ -90,6 +104,7 @@ fun GestureShortcutScreen() {
                     lineLength = lineLength
                 )
                 AppsLayout(
+                    settingsViewModel,
                     circleRadius,
                     lineLength,
                     iconSize,
@@ -596,19 +611,43 @@ fun AppPickerDialog(
 }
 @Composable
 fun AppsLayout(
+    settingsViewModel: SettingsViewModel,
     circleRadius: Dp,
     lineLength: Dp,
     iconSize: Dp,
     iconShape: androidx.compose.ui.graphics.Shape
 ) {
+    val context = LocalContext.current
+    val packageManager = context.packageManager
+    val settings by settingsViewModel.uiState.collectAsState()
+    val patternApps = settings.patternApps
+    val appSelectionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.let {
+                val gesturePattern = it.getStringExtra("gesture_pattern")
+                val packageName = it.getStringExtra("package_name")
+                if (gesturePattern != null && packageName != null) {
+                    settingsViewModel.setPatternApp(gesturePattern, packageName)
+                }
+            }
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()
     ) {
         // Center composable
         Box(modifier = Modifier.align(Alignment.Center),){
-            IconShapePreview(
-                shape = iconShape,
-                size = iconSize
-            )
+            val centerApp = mapPackageNameToAppInfo(packageManager, patternApps["Center"])
+            if(centerApp == null) {
+                IconShapePreview(
+                    shape = iconShape,
+                    size = iconSize
+                )
+            } else {
+                AppIcon(app = centerApp,iconSize=iconSize,shape=iconShape, notificationPackages = emptyList(), clickable = false)
+            }
         }
         val offsetLength = (circleRadius + lineLength/2)
         Box(
@@ -616,37 +655,57 @@ fun AppsLayout(
                 .align(Alignment.Center)
                 .offset(x = offsetLength, y = offsetLength),
         ){
-            IconShapePreview(
-                shape = iconShape,
-                size = iconSize
-            )
+            val bottomRightApp = mapPackageNameToAppInfo(packageManager, patternApps["BottomRight"])
+            if(bottomRightApp == null) {
+                IconShapePreview(
+                    shape = iconShape,
+                    size = iconSize
+                )
+            } else {
+                AppIcon(app = bottomRightApp,iconSize=iconSize,shape=iconShape, notificationPackages = emptyList(), clickable = false)
+            }
         }
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
                 .offset(x = -offsetLength, y = offsetLength),){
-            IconShapePreview(
-                shape = iconShape,
-                size = iconSize
-            )
+            val bottomLeftApp = mapPackageNameToAppInfo(packageManager, patternApps["BottomLeft"])
+            if(bottomLeftApp == null) {
+                IconShapePreview(
+                    shape = iconShape,
+                    size = iconSize
+                )
+            } else {
+                AppIcon(app = bottomLeftApp,iconSize=iconSize,shape=iconShape, notificationPackages = emptyList(), clickable = false)
+            }
         }
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
                 .offset(x = offsetLength, y = -offsetLength),){
-            IconShapePreview(
-                shape = iconShape,
-                size = iconSize
-            )
+            val topRightApp = mapPackageNameToAppInfo(packageManager, patternApps["TopRight"])
+            if(topRightApp == null) {
+                IconShapePreview(
+                    shape = iconShape,
+                    size = iconSize
+                )
+            } else {
+                AppIcon(app = topRightApp,iconSize=iconSize,shape=iconShape, notificationPackages = emptyList(), clickable = false)
+            }
         }
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
                 .offset(x = -offsetLength, y = -offsetLength),){
-            IconShapePreview(
-                shape = iconShape,
-                size = iconSize
-            )
+            val topLeftApp = mapPackageNameToAppInfo(packageManager, patternApps["TopLeft"])
+            if(topLeftApp == null) {
+                IconShapePreview(
+                    shape = iconShape,
+                    size = iconSize
+                )
+            } else {
+                AppIcon(app = topLeftApp,iconSize=iconSize,shape=iconShape, notificationPackages = emptyList(), clickable = false)
+            }
         }
     }
 }

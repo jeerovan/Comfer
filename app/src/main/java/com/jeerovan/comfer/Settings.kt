@@ -145,7 +145,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val settingsState by settingsViewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    val launcher = rememberLauncherForActivityResult(
+    val appSelectionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -405,7 +405,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     isWidgetsSelected = isLeftSwipeWidgets, // Your state variable
                     onAppSelectionClick = {
                         // This now launches the app selection activity
-                        launcher.launch(intent)
+                        appSelectionLauncher.launch(intent)
                     },
                     onWidgetsSelectionClick = {
                         settingsViewModel.setWidgetsOnSwipe("left")
@@ -430,7 +430,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     isWidgetsSelected = isRightSwipeWidgets, // Your state variable
                     onAppSelectionClick = {
                         // This now launches the app selection activity
-                        launcher.launch(intent)
+                        appSelectionLauncher.launch(intent)
                     },
                     onWidgetsSelectionClick = {
                         settingsViewModel.setWidgetsOnSwipe("right")
@@ -1001,30 +1001,7 @@ fun SwipeActionSettingItem(
                 }
                 // If an app is selected, show its icon
                 selectedApp != null -> {
-                    Box(
-                        modifier = Modifier
-                            .size(iconSize)
-                            .clip(iconShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // Your existing logic to display the app icon
-                        if (selectedApp.background != null) {
-                            Image(
-                                painter = rememberDrawablePainter(drawable = selectedApp.background),
-                                contentDescription = "${selectedApp.label} background",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.FillBounds
-                            )
-                        }
-                        if (selectedApp.foreground != null) {
-                            Image(
-                                painter = rememberDrawablePainter(drawable = selectedApp.foreground),
-                                contentDescription = selectedApp.label.toString(),
-                                modifier = Modifier.fillMaxSize().scale(selectedApp.scale),
-                                contentScale = ContentScale.FillBounds
-                            )
-                        }
-                    }
+                    AppIcon(selectedApp,emptyList(),shape=iconShape,iconSize=iconSize, clickable = false)
                 }
             }
         },

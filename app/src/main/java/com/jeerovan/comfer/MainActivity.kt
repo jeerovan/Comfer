@@ -2273,7 +2273,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                             horizontalArrangement = Arrangement.spacedBy(20.dp)
                         ) {
                             items(filteredApps) { app ->
-                                ListAppIcon(iconSize,iconShape,notificationPackages,app)
+                                AppIcon(app,notificationPackages,iconShape,iconSize=iconSize)
                             }
                         }
                     }
@@ -3149,7 +3149,7 @@ fun UshapedAppList(
                 updateCenterIconGeom(x + sizePx / 2, y + sizePx / 2, sizePx)
             }
             key(apps[appIndex].packageName) {
-                DrawerAppIcon(
+                AppIcon(
                     app = apps[appIndex],
                     notificationPackages,
                     shape = iconShape,
@@ -3163,12 +3163,13 @@ fun UshapedAppList(
 }
 
 @Composable
-fun DrawerAppIcon(app: AppInfo,
-                  notificationPackages: List<String>,
-                  shape: Shape,
-                  x: Dp,
-                  y: Dp,
-                  iconSize: Dp) {
+fun AppIcon(app: AppInfo,
+            notificationPackages: List<String>,
+            shape: Shape,
+            x: Dp = 0.dp,
+            y: Dp = 0.dp,
+            iconSize: Dp,
+            clickable: Boolean = true) {
     val context = LocalContext.current
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
@@ -3182,7 +3183,7 @@ fun DrawerAppIcon(app: AppInfo,
                 .size(iconSize)
                 .clip(iconShape)
                 .pointerInput(Unit) {
-                    detectTapGestures(
+                    if(clickable)detectTapGestures(
                         onTap = {
                             view.playSoundEffect(SoundEffectConstants.CLICK)
                             val launchIntent: Intent? =
@@ -3224,20 +3225,13 @@ fun DrawerAppIcon(app: AppInfo,
             }
         }
         if (app.packageName in notificationPackages) {
-            // 1. Badge size is proportional to the icon size
             val badgeSize = iconSize / 4
-
-            // 2. Adjust offset to sit nicely on curved corners (like squircles)
-            ///val badgeOffset = badgeSize / 20
-
             Box(
                 modifier = Modifier
                     .size(badgeSize)
-                    .align(Alignment.TopEnd) // 3. Align to the top-right corner of the parent Box
-                    //.offset(x = -badgeOffset, y = badgeOffset) // 4. Nudge into place
+                    .align(Alignment.TopEnd)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary) // 5. Use theme color for professional look
-                //.border(1.dp, Color.White, CircleShape) // 6. Add a border for contrast
+                    .background(MaterialTheme.colorScheme.primary)
             )
         }
     }
@@ -3704,7 +3698,7 @@ fun CircularLayout(
             Box(
                 modifier = Modifier.offset(x = xOffset, y = yOffset)
             ) {
-                ListAppIcon(iconSize = iconSize, iconShape = iconShape,notificationPackages, app = app)
+                AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = app)
             }
         }
     }
@@ -3726,15 +3720,15 @@ fun FiveColumnLayout(apps:List<AppInfo>,
         Column(
             verticalArrangement = Arrangement.spacedBy(gap)
         ) {
-            if(apps.size >= 3)ListAppIcon(iconSize,iconShape,notificationPackages,apps[2])
-            if(apps.size >= 7)ListAppIcon(iconSize,iconShape,notificationPackages,apps[6])
+            if(apps.size >= 3)AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[2])
+            if(apps.size >= 7)AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[6])
         }
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
         Column(
             verticalArrangement = Arrangement.spacedBy(gap)
         ) {
-            if(apps.isNotEmpty())ListAppIcon(iconSize,iconShape,notificationPackages,apps[0])
-            if(apps.size >= 5)ListAppIcon(iconSize,iconShape,notificationPackages,apps[4])
+            if(apps.isNotEmpty())AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[0])
+            if(apps.size >= 5)AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[4])
         }
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
         // --- Middle column (single box) ---
@@ -3763,93 +3757,15 @@ fun FiveColumnLayout(apps:List<AppInfo>,
         Column(
             verticalArrangement = Arrangement.spacedBy(gap)
         ) {
-            if(apps.size >= 2)ListAppIcon(iconSize,iconShape,notificationPackages,apps[1])
-            if(apps.size >= 6)ListAppIcon(iconSize,iconShape,notificationPackages,apps[5])
+            if(apps.size >= 2)AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[1])
+            if(apps.size >= 6)AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[5])
         }
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
         Column(
             verticalArrangement = Arrangement.spacedBy(gap)
         ) {
-            if(apps.size >= 4)ListAppIcon(iconSize,iconShape,notificationPackages,apps[3])
-            if(apps.size >= 8)ListAppIcon(iconSize,iconShape,notificationPackages,apps[7])
-        }
-    }
-}
-@Composable
-fun ListAppIcon(iconSize: Dp,
-                iconShape: Shape,
-                notificationPackages: List<String>,
-                app: AppInfo){
-    val context = LocalContext.current
-    val view = LocalView.current
-    val haptic = LocalHapticFeedback.current
-    Box(
-        // This is the main container for the icon and badge
-        contentAlignment = Alignment.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .size(iconSize)
-                .clip(getShapeFromShape(iconShape, iconSize))
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = {
-                            view.playSoundEffect(SoundEffectConstants.CLICK)
-                            val launchIntent: Intent? =
-                                context.packageManager.getLaunchIntentForPackage(app.packageName)
-                            if (launchIntent != null) {
-                                context.startActivity(launchIntent)
-                            }
-                        },
-                        onLongPress = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            val intent =
-                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                            intent.data = "package:${app.packageName}".toUri()
-                            context.startActivity(intent)
-                        }
-                    )
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            // Background Layer
-            if (app.background != null) {
-                Image(
-                    painter = rememberDrawablePainter(drawable = app.background),
-                    contentDescription = "${app.label} background",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.FillBounds
-                )
-            }
-
-            // Foreground Layer
-            if (app.foreground != null) {
-                Image(
-                    painter = rememberDrawablePainter(drawable = app.foreground),
-                    contentDescription = app.label.toString(),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .scale(app.scale), // Let it fill the clipped Box
-                    contentScale = ContentScale.FillBounds
-                )
-            }
-        }
-        if (app.packageName in notificationPackages) {
-            // 1. Badge size is proportional to the icon size
-            val badgeSize = iconSize / 4
-
-            // 2. Adjust offset to sit nicely on curved corners (like squircles)
-            ///val badgeOffset = badgeSize / 20
-
-            Box(
-                modifier = Modifier
-                    .size(badgeSize)
-                    .align(Alignment.TopEnd) // 3. Align to the top-right corner of the parent Box
-                    //.offset(x = -badgeOffset, y = badgeOffset) // 4. Nudge into place
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary) // 5. Use theme color for professional look
-                    //.border(1.dp, Color.White, CircleShape) // 6. Add a border for contrast
-            )
+            if(apps.size >= 4)AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[3])
+            if(apps.size >= 8)AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[7])
         }
     }
 }

@@ -46,6 +46,7 @@ data class SettingsUiState(
     val hasCustomWidgets: Boolean = false,
     val widgetIds: List<String> = emptyList(),
     val widgetPositions: Map<String,Offset?> = emptyMap(),
+    val patternApps: Map<String,String?> = emptyMap(),
     val showAnalog:Boolean = false,
     val clockSize: Int = 150,
     val clockBgColor: Color = Color.Black,
@@ -114,6 +115,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     )
 
     val widgetIds = listOf("time", "date", "battery", "notifications")
+    val patternIds = listOf("TopLeft","TopRight","BottomRight","BottomLeft","Center")
     fun getWidgetIds(showBatteryIcon:Boolean,
                      showBatteryPercentage:Boolean,
                      isNotificationServiceEnabled:Boolean,
@@ -155,6 +157,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val widgetPositions = widgetIds.associateWith { id ->
                 loadWidgetPosition(id)
             }
+            val patternApps = patternIds.associateWith {id -> loadPatternApp(id)}
             val showAnalog = PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false)
             val clockSize = PreferenceManager.getInt(getApplication(),CLOCK_SIZE,150)
             val clockBgColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_BG_COLOR,Color.Black.toArgb()))
@@ -219,6 +222,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     rightSwipeApp = rightSwipeApp,
                     isLeftSwipeWidgets = isLeftSwipeWidgets,
                     isRightSwipeWidgets = isRightSwipeWidgets,
+                    patternApps = patternApps,
                     hasNotificationAccess = isNotificationServiceEnabled,
                     hasCustomWidgets =  hasCustomWidgets,
                     widgetIds = widgetIds,
@@ -287,6 +291,23 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             x = PreferenceManager.getFloat(getApplication(),"widget_${id}_x",0f),
             y = PreferenceManager.getFloat(getApplication(),"widget_${id}_y",0f)
         )
+    }
+    fun setPatternApp(id: String, app: String) {
+        viewModelScope.launch {
+            val patternKey = "Pattern_$id"
+            PreferenceManager.setString(getApplication(),patternKey,app)
+            // Update state with new position
+            _uiState.update { currentState ->
+                val updatedPatternApps = currentState.patternApps.toMutableMap().apply {
+                    this[id] = app
+                }
+                currentState.copy(patternApps = updatedPatternApps)
+            }
+        }
+    }
+    fun loadPatternApp(id:String): String? {
+        val patternKey = "Pattern_$id"
+        return PreferenceManager.getString(getApplication(),patternKey,null)
     }
     fun clearAllWidgetPositions() {
         viewModelScope.launch {

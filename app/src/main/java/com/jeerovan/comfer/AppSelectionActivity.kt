@@ -113,7 +113,7 @@ fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, swipeDirection: Strin
                 .padding(paddingValues),
         ) {
             items(allApps) { app ->
-                AppIcon(app = app,iconSize,iconShape) {
+                SelectAppIcon(app,iconSize,iconShape) {
                     (context as? Activity)?.let { activity ->
                         val resultIntent = Intent()
                         resultIntent.putExtra("swipe_direction", swipeDirection)
@@ -128,7 +128,7 @@ fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, swipeDirection: Strin
 }
 
 @Composable
-fun AppIcon(app: AppInfo, iconSize: Int, iconShape: Shape, onClick: () -> Unit) {
+fun SelectAppIcon(app: AppInfo, iconSize: Int, iconShape: Shape, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .padding(8.dp)
