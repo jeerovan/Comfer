@@ -248,8 +248,9 @@ object CommonUtil {
         val logger = LoggerManager(applicationContext)
         val hour = PreferenceManager.getHour(applicationContext)
         if (hour > 0) {
+            val hasPro = PreferenceManager.getPro(applicationContext)
             val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(applicationContext)
-            if(wallpaperDirectory != null){
+            if(wallpaperDirectory != null && hasPro){
                 val changeFrequency = PreferenceManager.getWallpaperFrequency(applicationContext)
                 if (changeFrequency == "Hourly" || hour == 12){
                     setBackgroundImageFromImageUri(applicationContext,wallpaperDirectory.toUri())

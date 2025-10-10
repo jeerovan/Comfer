@@ -105,7 +105,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val NOTIFICATION_COLOR = "notification_color"
     private val SHOW_NOTIFICATIONS_ROW = "show_notifications_row"
     private val NOTIFICATION_SIZE = "notification_size"
-    private val HAS_PRO_VERSION = "has_pro_version"
 
     private var working = false
     val predefinedColors = listOf(
@@ -139,7 +138,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         working = true
         logger.setLog("SettingsViewModel","LoadSettings")
         viewModelScope.launch {
-            val hasPro = PreferenceManager.getBoolean(getApplication(),HAS_PRO_VERSION,true)
+            val hasPro = PreferenceManager.getPro(getApplication())
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val wallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(getApplication())
             val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(getApplication())
@@ -260,7 +259,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     fun setPro(enabled:Boolean){
         viewModelScope.launch {
-            PreferenceManager.setBoolean(getApplication(),HAS_PRO_VERSION,enabled)
+            PreferenceManager.setPro(getApplication(),enabled)
             _uiState.update { it.copy(hasPro = enabled) }
         }
     }

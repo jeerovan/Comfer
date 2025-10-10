@@ -1737,7 +1737,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
     var showWidgetSettings by remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier) {
-            if(settings.hasCustomWidgets) {
+            if(settings.hasPro && settings.hasCustomWidgets) {
                 WidgetHostScreen(
                     appWidgetManager,
                     mainWidgetHost,
@@ -1870,7 +1870,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 },
                                 onCircular = {
                                     val appOnCircularPattern = settings.patternApps["Center"]
-                                    if(appOnCircularPattern != null) {
+                                    if(appOnCircularPattern != null && settings.hasPro) {
                                         val launchIntent: Intent? =
                                             context.packageManager.getLaunchIntentForPackage(
                                                 appOnCircularPattern
@@ -1882,7 +1882,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 },
                                 onLPatternDetected = { pattern ->
                                     val patternApp = settings.patternApps[pattern]
-                                    if(patternApp != null) {
+                                    if(patternApp != null && settings.hasPro) {
                                         val launchIntent: Intent? =
                                             context.packageManager.getLaunchIntentForPackage(
                                                 patternApp
