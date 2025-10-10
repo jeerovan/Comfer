@@ -1,5 +1,6 @@
 package com.jeerovan.comfer
 
+import android.R
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -7,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -19,6 +21,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.cos
@@ -52,7 +55,8 @@ fun GestureShortcutScreen() {
             )
         )
     }
-
+    val iconSize = PreferenceManager.getIconSize(context).dp
+    val iconShape = PreferenceManager.getIconShape(context)
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -69,20 +73,27 @@ fun GestureShortcutScreen() {
                     titleContentColor = MaterialTheme.colorScheme.primary
                 )
             )
-
+            Text("Tap icon to select app",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.offset(x=20.dp))
             // Main gesture display area
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f),
+                    .fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
+                val circleRadius = 40.dp
+                val lineLength = 100.dp
                 GestureCanvas(
-                    onGestureClick = { gestureType ->
-                        selectedGesture = gestureType
-                    },
-                    gestureApps = gestureApps
+                    circleRadius = circleRadius,
+                    lineLength = lineLength
                 )
+                AppsLayout(
+                    circleRadius,
+                    lineLength,
+                    iconSize,
+                    iconShape)
             }
         }
 
@@ -111,12 +122,12 @@ enum class GestureType {
 
 @Composable
 fun GestureCanvas(
-    onGestureClick: (GestureType) -> Unit,
-    gestureApps: Map<GestureType, String>
+    circleRadius: Dp,
+    lineLength: Dp
 ) {
     val density = LocalDensity.current
-    val circleRadius = with(density) { 40.dp.toPx() }
-    val lineLength = with(density) { 100.dp.toPx() }
+    val circleRadius = with(density) { circleRadius.toPx() }
+    val lineLength = with(density) { lineLength.toPx() }
     val strokeWidth = with(density) { 2.dp.toPx() }
     val dotRadius = with(density) { 7.dp.toPx() }
 
@@ -582,4 +593,50 @@ fun AppPickerDialog(
             }
         }
     )
+}
+@Composable
+fun AppsLayout(
+    circleRadius: Dp,
+    lineLength: Dp,
+    iconSize: Dp,
+    iconShape: androidx.compose.ui.graphics.Shape
+) {
+    Box(modifier = Modifier.fillMaxSize()
+    ) {
+        // Center composable
+        IconShapePreview(
+            modifier = Modifier.align(Alignment.Center),
+            shape = iconShape,
+            size = iconSize
+        )
+        val offsetLength = (circleRadius + lineLength/2)
+        IconShapePreview(
+            shape = iconShape,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .offset(x = offsetLength, y = offsetLength),
+            size = iconSize
+        )
+        IconShapePreview(
+            shape = iconShape,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .offset(x = -offsetLength, y = offsetLength),
+            size = iconSize
+        )
+        IconShapePreview(
+            shape = iconShape,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .offset(x = offsetLength, y = -offsetLength),
+            size = iconSize
+        )
+        IconShapePreview(
+            shape = iconShape,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .offset(x = -offsetLength, y = -offsetLength),
+            size = iconSize
+        )
+    }
 }

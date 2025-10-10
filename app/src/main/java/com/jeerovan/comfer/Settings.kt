@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CutCornerShape
@@ -50,7 +49,6 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.Support
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -93,8 +91,6 @@ import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import com.jeerovan.comfer.utils.CommonUtil.canSetLockScreenWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
@@ -630,7 +626,7 @@ fun IconShapeSettingItem(
             )
         },
         trailingContent = {
-            ShapePreview(shape = currentShape)
+            IconShapePreview(shape = currentShape)
         },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent)
     )
@@ -694,7 +690,7 @@ fun ShapeSelectionDialog(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.clickable { onShapeSelected(name) }
                         ) {
-                            ShapePreview(
+                            IconShapePreview(
                                 shape = shape,
                                 size = 56.dp,
                                 borderColor = MaterialTheme.colorScheme.primary
@@ -714,7 +710,7 @@ fun ShapeSelectionDialog(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.clickable { onShapeSelected(name) }
                         ) {
-                            ShapePreview(
+                            IconShapePreview(
                                 shape = shape,
                                 size = 56.dp,
                                 borderColor = MaterialTheme.colorScheme.primary
@@ -735,7 +731,8 @@ fun ShapeSelectionDialog(
     )
 }
 @Composable
-fun ShapePreview(
+fun IconShapePreview(
+    modifier: Modifier = Modifier,
     shape: Shape,
     size: Dp = 30.dp,
     borderColor: Color = MaterialTheme.colorScheme.outline
@@ -756,7 +753,7 @@ fun ShapePreview(
         }
     }
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(size)
             .clip(iconShape)
             .border(width = 2.dp, color = borderColor, shape = iconShape)
