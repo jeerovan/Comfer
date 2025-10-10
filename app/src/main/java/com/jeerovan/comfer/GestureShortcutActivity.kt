@@ -351,160 +351,184 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawLShape(
         }
 
         GestureType.L_TOP_LEFT -> {
-        // Vertical line (up)
-        val vX = centerX - circleRadius
-        val vEndY = centerY - circleRadius
-        val vStartY = vEndY - lineLength
-        drawLine(
-            color = color,
-            start = Offset(vX, vStartY),
-            end = Offset(vX, vEndY),
-            strokeWidth = strokeWidth,
-            cap = StrokeCap.Round
-        )
+            // Vertical line (going toward circle from top)
+            val vX = centerX - circleRadius
+            val vStartY = centerY - circleRadius - lineLength
+            val vEndY = vStartY + lineLength  // = centerY - circleRadius (CORNER near circle)
+            drawLine(
+                color = color,
+                start = Offset(vX, vStartY),
+                end = Offset(vX, vEndY),
+                strokeWidth = strokeWidth,
+                cap = StrokeCap.Round
+            )
 
-        // Horizontal line (left from vertical end)
-        val hStartX = centerX - circleRadius
-        val hEndX = hStartX - lineLength
-        val hY = vEndY
-        drawLine(
-            color = color,
-            start = Offset(hStartX, hY),
-            end = Offset(hEndX, hY),
-            strokeWidth = strokeWidth,
-            cap = StrokeCap.Round
-        )
+            // Horizontal line (going away left from corner)
+            val hStartX = vX  // = centerX - circleRadius (CORNER - same X as vertical)
+            val hEndX = hStartX - lineLength
+            val hY = vEndY  // = centerY - circleRadius (CORNER - same Y as vertical end)
+            drawLine(
+                color = color,
+                start = Offset(hStartX, hY),
+                end = Offset(hEndX, hY),
+                strokeWidth = strokeWidth,
+                cap = StrokeCap.Round
+            )
 
-        // Animated dot: vertical first, then horizontal
-        if (progress <= 1f) {
-            val dotProgress = progress
-            if (dotProgress <= 0.5f) {
-                // Moving vertically
-                val dotY = vStartY + (vEndY - vStartY) * (dotProgress * 2)
-                drawCircle(color = dotColor, radius = dotRadius, center = Offset(vX, dotY))
+            // Animated dot: vertical first, then horizontal
+            if (progress <= 1f) {
+                val dotProgress = progress
+                if (dotProgress <= 0.5f) {
+                    // Moving vertically downward (toward circle) - start fast, end slow
+                    val normalizedProgress = dotProgress * 2 // 0.0 to 1.0
+                    val easedProgress = EaseOut.transform(normalizedProgress)
+                    val dotY = vStartY + (vEndY - vStartY) * easedProgress
+                    drawCircle(color = dotColor, radius = dotRadius, center = Offset(vX, dotY))
+                } else {
+                    // Moving horizontally leftward (away from circle) - start slow, end fast
+                    val normalizedProgress = (dotProgress - 0.5f) * 2 // 0.0 to 1.0
+                    val easedProgress = EaseIn.transform(normalizedProgress)
+                    val dotX = hStartX + (hEndX - hStartX) * easedProgress
+                    drawCircle(color = dotColor, radius = dotRadius, center = Offset(dotX, hY))
+                }
             } else {
-                // Moving horizontally
-                val dotX = hStartX + (hEndX - hStartX) * ((dotProgress - 0.5f) * 2)
-                drawCircle(color = dotColor, radius = dotRadius, center = Offset(dotX, hY))
-            }
-        } else {
-            // Reverse: horizontal first, then vertical
-            val dotProgress = progress - 1f
-            if (dotProgress <= 0.5f) {
-                // Moving horizontally rightward
-                val dotX = hEndX - (hEndX - hStartX) * (dotProgress * 2)
-                drawCircle(color = dotColor, radius = dotRadius, center = Offset(dotX, hY))
-            } else {
-                // Moving vertically downward
-                val dotY = vEndY - (vEndY - vStartY) * ((dotProgress - 0.5f) * 2)
-                drawCircle(color = dotColor, radius = dotRadius, center = Offset(vX, dotY))
+                // Reverse: horizontal first, then vertical
+                val dotProgress = progress - 1f
+                if (dotProgress <= 0.5f) {
+                    // Moving horizontally rightward (toward circle) - start fast, end slow
+                    val normalizedProgress = dotProgress * 2 // 0.0 to 1.0
+                    val easedProgress = EaseOut.transform(normalizedProgress)
+                    val dotX = hEndX - (hEndX - hStartX) * easedProgress
+                    drawCircle(color = dotColor, radius = dotRadius, center = Offset(dotX, hY))
+                } else {
+                    // Moving vertically upward (away from circle) - start slow, end fast
+                    val normalizedProgress = (dotProgress - 0.5f) * 2 // 0.0 to 1.0
+                    val easedProgress = EaseIn.transform(normalizedProgress)
+                    val dotY = vEndY - (vEndY - vStartY) * easedProgress
+                    drawCircle(color = dotColor, radius = dotRadius, center = Offset(vX, dotY))
+                }
             }
         }
-    }
 
         GestureType.L_BOTTOM_LEFT -> {
-        // Horizontal line (left)
-        val hEndX = centerX - circleRadius
-        val hStartX = hEndX - lineLength
-        val hY = centerY + circleRadius
-        drawLine(
-            color = color,
-            start = Offset(hStartX, hY),
-            end = Offset(hEndX, hY),
-            strokeWidth = strokeWidth,
-            cap = StrokeCap.Round
-        )
+            // Horizontal line (going toward circle from left)
+            val hStartX = centerX - circleRadius - lineLength
+            val hEndX = hStartX + lineLength  // = centerX - circleRadius (CORNER near circle)
+            val hY = centerY + circleRadius
+            drawLine(
+                color = color,
+                start = Offset(hStartX, hY),
+                end = Offset(hEndX, hY),
+                strokeWidth = strokeWidth,
+                cap = StrokeCap.Round
+            )
 
-        // Vertical line (down from horizontal end)
-        val vX = hEndX
-        val vStartY = hY
-        val vEndY = centerY + lineLength + circleRadius
-        drawLine(
-            color = color,
-            start = Offset(vX, vStartY),
-            end = Offset(vX, vEndY),
-            strokeWidth = strokeWidth,
-            cap = StrokeCap.Round
-        )
+            // Vertical line (going away down from corner)
+            val vX = hEndX  // = centerX - circleRadius (CORNER - same X as horizontal end)
+            val vStartY = hY  // = centerY + circleRadius (CORNER - same Y as horizontal)
+            val vEndY = vStartY + lineLength
+            drawLine(
+                color = color,
+                start = Offset(vX, vStartY),
+                end = Offset(vX, vEndY),
+                strokeWidth = strokeWidth,
+                cap = StrokeCap.Round
+            )
 
-        // Animated dot: horizontal first, then vertical
-        if (progress <= 1f) {
-            val dotProgress = progress
-            if (dotProgress <= 0.5f) {
-                // Moving horizontally
-                val dotX = hStartX + (hEndX - hStartX) * (dotProgress * 2)
-                drawCircle(color = dotColor, radius = dotRadius, center = Offset(dotX, hY))
+            // Animated dot: horizontal first, then vertical
+            if (progress <= 1f) {
+                val dotProgress = progress
+                if (dotProgress <= 0.5f) {
+                    // Moving horizontally rightward (toward circle) - start fast, end slow
+                    val normalizedProgress = dotProgress * 2 // 0.0 to 1.0
+                    val easedProgress = EaseOut.transform(normalizedProgress)
+                    val dotX = hStartX + (hEndX - hStartX) * easedProgress
+                    drawCircle(color = dotColor, radius = dotRadius, center = Offset(dotX, hY))
+                } else {
+                    // Moving vertically downward (away from circle) - start slow, end fast
+                    val normalizedProgress = (dotProgress - 0.5f) * 2 // 0.0 to 1.0
+                    val easedProgress = EaseIn.transform(normalizedProgress)
+                    val dotY = vStartY + (vEndY - vStartY) * easedProgress
+                    drawCircle(color = dotColor, radius = dotRadius, center = Offset(vX, dotY))
+                }
             } else {
-                // Moving vertically
-                val dotY = vStartY + (vEndY - vStartY) * ((dotProgress - 0.5f) * 2)
-                drawCircle(color = dotColor, radius = dotRadius, center = Offset(vX, dotY))
-            }
-        } else {
-            // Reverse: vertical first, then horizontal
-            val dotProgress = progress - 1f
-            if (dotProgress <= 0.5f) {
-                // Moving vertically upward
-                val dotY = vEndY - (vEndY - vStartY) * (dotProgress * 2)
-                drawCircle(color = dotColor, radius = dotRadius, center = Offset(vX, dotY))
-            } else {
-                // Moving horizontally rightward
-                val dotX = hEndX - (hEndX - hStartX) * ((dotProgress - 0.5f) * 2)
-                drawCircle(color = dotColor, radius = dotRadius, center = Offset(dotX, hY))
+                // Reverse: vertical first, then horizontal
+                val dotProgress = progress - 1f
+                if (dotProgress <= 0.5f) {
+                    // Moving vertically upward (toward circle) - start fast, end slow
+                    val normalizedProgress = dotProgress * 2 // 0.0 to 1.0
+                    val easedProgress = EaseOut.transform(normalizedProgress)
+                    val dotY = vEndY - (vEndY - vStartY) * easedProgress
+                    drawCircle(color = dotColor, radius = dotRadius, center = Offset(vX, dotY))
+                } else {
+                    // Moving horizontally leftward (away from circle) - start slow, end fast
+                    val normalizedProgress = (dotProgress - 0.5f) * 2 // 0.0 to 1.0
+                    val easedProgress = EaseIn.transform(normalizedProgress)
+                    val dotX = hEndX - (hEndX - hStartX) * easedProgress
+                    drawCircle(color = dotColor, radius = dotRadius, center = Offset(dotX, hY))
+                }
             }
         }
-    }
 
         GestureType.L_BOTTOM_RIGHT -> {
-        // Vertical line (down)
-        val vX = centerX + circleRadius
-        val vStartY = centerY + circleRadius + lineLength
-        val vEndY = vStartY - lineLength
-        drawLine(
-            color = color,
-            start = Offset(vX, vStartY),
-            end = Offset(vX, vEndY),
-            strokeWidth = strokeWidth,
-            cap = StrokeCap.Round
-        )
+            // Vertical line (going toward circle from bottom)
+            val vX = centerX + circleRadius
+            val vStartY = centerY + circleRadius + lineLength
+            val vEndY = vStartY - lineLength  // = centerY + circleRadius (CORNER near circle)
+            drawLine(
+                color = color,
+                start = Offset(vX, vStartY),
+                end = Offset(vX, vEndY),
+                strokeWidth = strokeWidth,
+                cap = StrokeCap.Round
+            )
 
-        // Horizontal line (right from vertical end)
-        val hStartX = vX
-        val hEndX = hStartX + lineLength
-        val hY = vEndY
-        drawLine(
-            color = color,
-            start = Offset(hStartX, hY),
-            end = Offset(hEndX, hY),
-            strokeWidth = strokeWidth,
-            cap = StrokeCap.Round
-        )
+            // Horizontal line (going away right from corner)
+            val hStartX = vX  // = centerX + circleRadius (CORNER - same X as vertical)
+            val hEndX = hStartX + lineLength
+            val hY = vEndY  // = centerY + circleRadius (CORNER - same Y as vertical end)
+            drawLine(
+                color = color,
+                start = Offset(hStartX, hY),
+                end = Offset(hEndX, hY),
+                strokeWidth = strokeWidth,
+                cap = StrokeCap.Round
+            )
 
-        // Animated dot: vertical first, then horizontal
-        if (progress <= 1f) {
-            val dotProgress = progress
-            if (dotProgress <= 0.5f) {
-                // Moving vertically
-                val dotY = vStartY + (vEndY - vStartY) * (dotProgress * 2)
-                drawCircle(color = dotColor, radius = dotRadius, center = Offset(vX, dotY))
+            // Animated dot: vertical first, then horizontal
+            if (progress <= 1f) {
+                val dotProgress = progress
+                if (dotProgress <= 0.5f) {
+                    // Moving vertically upward (toward circle) - start fast, end slow
+                    val normalizedProgress = dotProgress * 2 // 0.0 to 1.0
+                    val easedProgress = EaseOut.transform(normalizedProgress)
+                    val dotY = vStartY + (vEndY - vStartY) * easedProgress
+                    drawCircle(color = dotColor, radius = dotRadius, center = Offset(vX, dotY))
+                } else {
+                    // Moving horizontally rightward (away from circle) - start slow, end fast
+                    val normalizedProgress = (dotProgress - 0.5f) * 2 // 0.0 to 1.0
+                    val easedProgress = EaseIn.transform(normalizedProgress)
+                    val dotX = hStartX + (hEndX - hStartX) * easedProgress
+                    drawCircle(color = dotColor, radius = dotRadius, center = Offset(dotX, hY))
+                }
             } else {
-                // Moving horizontally
-                val dotX = hStartX + (hEndX - hStartX) * ((dotProgress - 0.5f) * 2)
-                drawCircle(color = dotColor, radius = dotRadius, center = Offset(dotX, hY))
-            }
-        } else {
-            // Reverse: horizontal first, then vertical
-            val dotProgress = progress - 1f
-            if (dotProgress <= 0.5f) {
-                // Moving horizontally leftward
-                val dotX = hEndX - (hEndX - hStartX) * (dotProgress * 2)
-                drawCircle(color = dotColor, radius = dotRadius, center = Offset(dotX, hY))
-            } else {
-                // Moving vertically upward
-                val dotY = vEndY - (vEndY - vStartY) * ((dotProgress - 0.5f) * 2)
-                drawCircle(color = dotColor, radius = dotRadius, center = Offset(vX, dotY))
+                // Reverse: horizontal first, then vertical
+                val dotProgress = progress - 1f
+                if (dotProgress <= 0.5f) {
+                    // Moving horizontally leftward (toward circle) - start fast, end slow
+                    val normalizedProgress = dotProgress * 2 // 0.0 to 1.0
+                    val easedProgress = EaseOut.transform(normalizedProgress)
+                    val dotX = hEndX - (hEndX - hStartX) * easedProgress
+                    drawCircle(color = dotColor, radius = dotRadius, center = Offset(dotX, hY))
+                } else {
+                    // Moving vertically downward (away from circle) - start slow, end fast
+                    val normalizedProgress = (dotProgress - 0.5f) * 2 // 0.0 to 1.0
+                    val easedProgress = EaseIn.transform(normalizedProgress)
+                    val dotY = vEndY - (vEndY - vStartY) * easedProgress
+                    drawCircle(color = dotColor, radius = dotRadius, center = Offset(vX, dotY))
+                }
             }
         }
-    }
 
         else -> {}
     }
