@@ -57,18 +57,6 @@ class GestureShortcutActivity : ComponentActivity() {
 @Composable
 fun GestureShortcutScreen(settingsViewModel: SettingsViewModel) {
     val context = LocalContext.current
-    var selectedGesture by remember { mutableStateOf<GestureType?>(null) }
-    var gestureApps by remember {
-        mutableStateOf(
-            mapOf(
-                GestureType.CIRCULAR to "",
-                GestureType.L_TOP_RIGHT to "",
-                GestureType.L_TOP_LEFT to "",
-                GestureType.L_BOTTOM_LEFT to "",
-                GestureType.L_BOTTOM_RIGHT to ""
-            )
-        )
-    }
     val iconSize = PreferenceManager.getIconSize(context).dp
     val iconShape = PreferenceManager.getIconShape(context)
     Box(
@@ -112,23 +100,10 @@ fun GestureShortcutScreen(settingsViewModel: SettingsViewModel) {
             }
         }
 
-        // App picker dialog
-        if (selectedGesture != null) {
-            AppPickerDialog(
-                onDismiss = { selectedGesture = null },
-                onAppSelected = { packageName ->
-                    gestureApps = gestureApps.toMutableMap().apply {
-                        put(selectedGesture!!, packageName)
-                    }
-                    selectedGesture = null
-                }
-            )
-        }
     }
 }
 
 enum class GestureType {
-    CIRCULAR,
     L_TOP_RIGHT,
     L_TOP_LEFT,
     L_BOTTOM_LEFT,
@@ -556,59 +531,9 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawLShape(
             }
         }
 
-        else -> {}
     }
 }
 
-@Composable
-fun AppPickerDialog(
-    onDismiss: () -> Unit,
-    onAppSelected: (String) -> Unit
-) {
-    val context = LocalContext.current
-    val packageManager = context.packageManager
-
-    // Get all launchable apps
-    val apps = remember {
-        val mainIntent = Intent(Intent.ACTION_MAIN, null).apply {
-            addCategory(Intent.CATEGORY_LAUNCHER)
-        }
-        packageManager.queryIntentActivities(mainIntent, 0)
-            .map { it.activityInfo.packageName to it.loadLabel(packageManager).toString() }
-            .distinctBy { it.first }
-            .sortedBy { it.second }
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Select App") },
-        text = {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 400.dp)
-            ) {
-                apps.forEach { (packageName, appName) ->
-                    TextButton(
-                        onClick = { onAppSelected(packageName) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = appName,
-                            modifier = Modifier.fillMaxWidth(),
-                            fontSize = 16.sp
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
-}
 @Composable
 fun AppsLayout(
     settingsViewModel: SettingsViewModel,
@@ -661,7 +586,8 @@ fun AppsLayout(
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .offset(x = offsetLength, y = offsetLength),
+                .offset(x = offsetLength, y = offsetLength)
+                .clickable { selectSetApp("BottomRight")},
         ){
             val bottomRightApp = mapPackageNameToAppInfo(packageManager, patternApps["BottomRight"])
             if(bottomRightApp == null) {
@@ -676,7 +602,9 @@ fun AppsLayout(
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .offset(x = -offsetLength, y = offsetLength),){
+                .offset(x = -offsetLength, y = offsetLength)
+                .clickable { selectSetApp("BottomLeft")}
+        ){
             val bottomLeftApp = mapPackageNameToAppInfo(packageManager, patternApps["BottomLeft"])
             if(bottomLeftApp == null) {
                 IconShapePreview(
@@ -690,7 +618,9 @@ fun AppsLayout(
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .offset(x = offsetLength, y = -offsetLength),){
+                .offset(x = offsetLength, y = -offsetLength)
+                .clickable { selectSetApp("TopRight")}
+        ){
             val topRightApp = mapPackageNameToAppInfo(packageManager, patternApps["TopRight"])
             if(topRightApp == null) {
                 IconShapePreview(
@@ -704,7 +634,9 @@ fun AppsLayout(
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .offset(x = -offsetLength, y = -offsetLength),){
+                .offset(x = -offsetLength, y = -offsetLength)
+                .clickable { selectSetApp("TopLeft")}
+        ){
             val topLeftApp = mapPackageNameToAppInfo(packageManager, patternApps["TopLeft"])
             if(topLeftApp == null) {
                 IconShapePreview(

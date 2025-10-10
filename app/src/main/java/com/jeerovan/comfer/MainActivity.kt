@@ -1867,6 +1867,30 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                             }
                                         }
                                     }
+                                },
+                                onCircular = {
+                                    val appOnCircularPattern = settings.patternApps["Center"]
+                                    if(appOnCircularPattern != null) {
+                                        val launchIntent: Intent? =
+                                            context.packageManager.getLaunchIntentForPackage(
+                                                appOnCircularPattern
+                                            )
+                                        if (launchIntent != null) {
+                                            context.startActivity(launchIntent)
+                                        }
+                                    }
+                                },
+                                onLPatternDetected = { pattern ->
+                                    val patternApp = settings.patternApps[pattern]
+                                    if(patternApp != null) {
+                                        val launchIntent: Intent? =
+                                            context.packageManager.getLaunchIntentForPackage(
+                                                patternApp
+                                            )
+                                        if (launchIntent != null) {
+                                            context.startActivity(launchIntent)
+                                        }
+                                    }
                                 }
                             ),
                         contentAlignment = Alignment.BottomCenter
