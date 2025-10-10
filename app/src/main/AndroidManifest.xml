@@ -48,7 +48,7 @@
             android:name=".SettingsActivity"
             android:exported="false" />
         <activity
-            android:name=".ProSettingsActivity"
+            android:name=".GestureShortcutActivity"
             android:exported="false" />
         <activity
             android:name=".AppSelectionActivity"

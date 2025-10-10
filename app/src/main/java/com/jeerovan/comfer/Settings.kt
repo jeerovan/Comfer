@@ -443,6 +443,24 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     iconSize = iconSize.dp
                 )
             }
+            item {
+                ListItem(
+                    headlineContent = { Text("Gestures") },
+                    supportingContent = { Text("Set app shortcuts") },
+                    leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
+                        contentDescription = "Manage App Lists") },
+                    trailingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "Go"
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        context.startActivity(Intent(context, GestureShortcutActivity::class.java))
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
             item { SectionHeader("App Lists") }
             item {
                 ListItem(
