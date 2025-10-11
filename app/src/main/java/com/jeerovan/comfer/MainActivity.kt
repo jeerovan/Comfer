@@ -3925,8 +3925,8 @@ fun WidgetClock(
                 settings.clockSize.dp,
                 if (customWallpaper) settings.clockBgColor else Color.Black,
                 if (customWallpaper) settings.clockBgAlpha else 0f,
-                if (customWallpaper) settings.clockHourColor else defaultColor,
-                if (customWallpaper) settings.clockMinuteColor else defaultColor
+                if (customWallpaper) settings.clockMinuteColor else defaultColor,
+                if (customWallpaper) settings.clockHourColor else defaultColor
             )
         } else {
             TextClock(
