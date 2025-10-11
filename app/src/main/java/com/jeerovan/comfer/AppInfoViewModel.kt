@@ -11,6 +11,7 @@ import android.graphics.PorterDuffColorFilter
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -43,23 +44,25 @@ data class AppInfo(
     val packageName: String
 )
 
-fun getAppInfo(context: Context,
-               packageManager: PackageManager,
-               resolveInfo: ResolveInfo,
-               packageName: String,
-               showThemedIcons:Boolean): AppInfo?{
+fun getAppInfo(
+    context: Context,
+    packageManager: PackageManager,
+    resolveInfo: ResolveInfo,
+    packageName: String,
+    showThemedIcons: Boolean
+): AppInfo? {
     return try {
         val iconDrawable = resolveInfo.loadIcon(packageManager).mutate()
         var backgroundDrawable: Drawable?
         var foregroundDrawable: Drawable?
         var scale = 0.8f
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (iconDrawable is AdaptiveIconDrawable) {
                 // Check for Material You themed icons on Android 13+
                 if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     val monochromeDrawable = iconDrawable.monochrome
-                    backgroundDrawable =
-                        getThemedBackgroundColor(context).toDrawable()
+                    backgroundDrawable = getThemedBackgroundColor(context).toDrawable()
                     if (monochromeDrawable != null) {
                         foregroundDrawable = monochromeDrawable.mutate().apply {
                             setTint(getThemedIconColor(context))
@@ -74,6 +77,16 @@ fun getAppInfo(context: Context,
                         }
                         scale = 1.2f
                     }
+                } else if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    // Android 12 (S) - Themed icons without monochrome support
+                    backgroundDrawable = getThemedBackgroundColor(context).toDrawable()
+                    foregroundDrawable = iconDrawable.foreground?.mutate()?.apply {
+                        colorFilter = PorterDuffColorFilter(
+                            getThemedIconColor(context),
+                            PorterDuff.Mode.SRC_IN
+                        )
+                    }
+                    scale = 1.2f
                 } else {
                     // Standard adaptive icon
                     backgroundDrawable = iconDrawable.background
@@ -82,10 +95,13 @@ fun getAppInfo(context: Context,
                 }
             } else {
                 // Non-adaptive icon
-                backgroundDrawable = getBackgroundColor(context).toArgb().toDrawable()
-                foregroundDrawable =
-                    if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    // Apply themed tint to legacy icons
+                backgroundDrawable = if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    getThemedBackgroundColor(context).toDrawable()
+                } else {
+                    getBackgroundColor(context).toArgb().toDrawable()
+                }
+                foregroundDrawable = if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    // Apply themed tint to legacy icons on Android 13+
                     iconDrawable.mutate().apply {
                         colorFilter = PorterDuffColorFilter(
                             getThemedIconColor(context),
@@ -97,7 +113,7 @@ fun getAppInfo(context: Context,
                 }
             }
         } else {
-            backgroundDrawable = getBackgroundColor(context).toArgb().toDrawable() // Background on older devices
+            backgroundDrawable = getBackgroundColor(context).toArgb().toDrawable()
             foregroundDrawable = iconDrawable
         }
 
@@ -112,6 +128,7 @@ fun getAppInfo(context: Context,
         null
     }
 }
+
 fun mapPackageNameToAppInfo(
     context: Context,
     packageManager: PackageManager,
