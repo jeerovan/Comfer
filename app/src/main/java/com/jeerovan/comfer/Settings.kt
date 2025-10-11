@@ -45,6 +45,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
@@ -340,6 +341,28 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         settingsViewModel.setIconShape(newShape)
                     }
                 )
+            }
+            if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+                item{
+                    ListItem(
+                        headlineContent = { Text("Themed Icons") },
+                        supportingContent = { Text("Match icons with wallpaper") },
+                        leadingContent = {
+                            Icon(
+                                Icons.Filled.ColorLens,
+                                contentDescription = "Themed Icons"
+                            )
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = settingsState.showThemedIcons,
+                                onCheckedChange = { settingsViewModel.setThemedIcons(it) }
+                            )
+                        },
+                        modifier = Modifier.clickable { settingsViewModel.setThemedIcons(!settingsState.showThemedIcons) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
             }
             item {
                 ListItem(

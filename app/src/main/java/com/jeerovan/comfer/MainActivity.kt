@@ -1922,7 +1922,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     notificationPackages,
                                     iconSize,
                                     iconShape,
-                                    onShowSearch
+                                    onShowSearch,
+                                    settings.showThemedIcons
                                 )
 
                                 "circular" -> CircularLayout(
@@ -1930,7 +1931,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     notificationPackages,
                                     iconSize,
                                     iconShape,
-                                    onShowSearch
+                                    onShowSearch,
+                                    settings.showThemedIcons
                                 )
                             }
                         }
@@ -2860,7 +2862,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-
     val haptic = LocalHapticFeedback.current
     if (cachedImagePath != null){
         if(File(cachedImagePath).exists()) {
@@ -3268,13 +3269,13 @@ fun AppIcon(app: AppInfo,
 fun SearchIcon(
     iconSize: Dp,
     iconShape: Shape,
-    onShowSearch: () -> Unit
+    onShowSearch: () -> Unit,
+    showThemedIcon: Boolean
 ){
     val context = LocalContext.current
     val isDarkMode = isSystemInDarkTheme()
-    val showThemedIcons = PreferenceManager.getThemedIcons(context)
     val backgroundColor: Color =
-        if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (showThemedIcon && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (isDarkMode) {
                 Color(context.getColor(android.R.color.system_accent1_800))
             } else {
@@ -3288,7 +3289,7 @@ fun SearchIcon(
             }
         }
     val foregroundColor: Color =
-        if(showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if(showThemedIcon && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (isDarkMode) {
                 Color(context.getColor(android.R.color.system_accent1_200))
             } else {
@@ -3728,7 +3729,8 @@ fun CircularLayout(
     notificationPackages: List<String>,
     iconSize: Dp,
     iconShape: Shape,
-    onShowSearch: () -> Unit
+    onShowSearch: () -> Unit,
+    showThemedIcon: Boolean
 ) {
     val view = LocalView.current
     // Radius calculated to maintain a 20.dp gap between 56.dp icons.
@@ -3751,7 +3753,10 @@ fun CircularLayout(
             .size(boxSize),
         contentAlignment = Alignment.Center
     ) {
-        SearchIcon(iconSize,iconShape,onShowSearch)
+        SearchIcon(iconSize,
+            iconShape,
+            onShowSearch,
+            showThemedIcon)
 
         // Place up to 8 app icons in a circle
         apps.take(8).forEachIndexed { index, app ->
@@ -3776,7 +3781,9 @@ fun FiveColumnLayout(apps:List<AppInfo>,
                      notificationPackages: List<String>,
                      iconSize: Dp,
                      iconShape: Shape,
-                     onShowSearch: () -> Unit) {
+                     onShowSearch: () -> Unit,
+                     showThemedIcon: Boolean
+) {
     val view = LocalView.current
     val gap = 20.dp
     Row(
@@ -3799,7 +3806,10 @@ fun FiveColumnLayout(apps:List<AppInfo>,
         }
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
         // --- Middle column (single box) ---
-        SearchIcon(iconSize,iconShape,onShowSearch)
+        SearchIcon(iconSize,
+            iconShape,
+            onShowSearch,
+            showThemedIcon)
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
         Column(
             verticalArrangement = Arrangement.spacedBy(gap)

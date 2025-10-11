@@ -12,20 +12,19 @@ import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import androidx.core.graphics.drawable.toDrawable
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
 private const val REST_LIST_NAME = "Rest"
@@ -50,12 +49,7 @@ fun getAppInfo(context: Context,
                packageName: String,
                showThemedIcons:Boolean): AppInfo?{
     return try {
-        val defaultIcon = packageManager.defaultActivityIcon
-        val cachedIcon = AppIconCache.getIcon(packageName)
-        val savedIcon = if (cachedIcon === defaultIcon) null else cachedIcon
-        val iconDrawable = savedIcon ?: resolveInfo.loadIcon(packageManager).also {
-            AppIconCache.cacheIcon(packageName, it)
-        }
+        val iconDrawable = resolveInfo.loadIcon(packageManager).mutate()
         var backgroundDrawable: Drawable?
         var foregroundDrawable: Drawable?
         var scale = 0.8f
