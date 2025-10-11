@@ -168,6 +168,7 @@ import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.provider.AlarmClock
@@ -2297,7 +2298,10 @@ fun SearchListOverlay(apps: List<AppInfo>,
                             horizontalArrangement = Arrangement.spacedBy(20.dp)
                         ) {
                             items(filteredApps) { app ->
-                                AppIcon(app,notificationPackages,iconShape,iconSize=iconSize)
+                                AppIcon(app,
+                                    notificationPackages,
+                                    iconShape,
+                                    iconSize=iconSize)
                             }
                         }
                     }
@@ -3260,7 +3264,62 @@ fun AppIcon(app: AppInfo,
         }
     }
 }
-
+@Composable
+fun SearchIcon(
+    iconSize: Dp,
+    iconShape: Shape,
+    onShowSearch: () -> Unit
+){
+    val context = LocalContext.current
+    val isDarkMode = isSystemInDarkTheme()
+    val showThemedIcons = PreferenceManager.getThemedIcons(context)
+    val backgroundColor: Color =
+        if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (isDarkMode) {
+                Color(context.getColor(android.R.color.system_accent1_800))
+            } else {
+                Color(context.getColor(android.R.color.system_accent1_100))
+            }
+        } else {
+            if (isDarkMode){
+                Color.Black.copy(alpha = 0.5f)
+            } else {
+                Color.White.copy(alpha = 0.5f)
+            }
+        }
+    val foregroundColor: Color =
+        if(showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (isDarkMode) {
+                Color(context.getColor(android.R.color.system_accent1_200))
+            } else {
+                Color(context.getColor(android.R.color.system_accent1_600))
+            }
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        }
+    val view = LocalView.current
+    Box(
+        modifier = Modifier
+            .clip(getShapeFromShape(iconShape, iconSize))
+            .background(color=backgroundColor)
+            .size(iconSize)
+            .scale(0.8f)
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    view.playSoundEffect(SoundEffectConstants.CLICK)
+                    onShowSearch()
+                })
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.outline_search_24),
+            contentDescription = "Search",
+            modifier = Modifier.size(iconSize),
+            tint = foregroundColor
+        )
+    }
+}
 private fun Float.toDp(): Dp {
     return (this / Resources.getSystem().displayMetrics.density).dp
 }
@@ -3692,26 +3751,7 @@ fun CircularLayout(
             .size(boxSize),
         contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .clip(getShapeFromShape(iconShape, iconSize))
-                .background(Color.White)
-                .size(iconSize)
-                .scale(0.8f)
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = {
-                        view.playSoundEffect(SoundEffectConstants.CLICK)
-                        onShowSearch()
-                    })
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.outline_search_24),
-                contentDescription = "Search",
-                modifier = Modifier.size(iconSize)
-            )
-        }
+        SearchIcon(iconSize,iconShape,onShowSearch)
 
         // Place up to 8 app icons in a circle
         apps.take(8).forEachIndexed { index, app ->
@@ -3722,7 +3762,10 @@ fun CircularLayout(
             Box(
                 modifier = Modifier.offset(x = xOffset, y = yOffset)
             ) {
-                AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = app)
+                AppIcon(iconSize = iconSize,
+                    shape = iconShape,
+                    notificationPackages = notificationPackages,
+                    app = app)
             }
         }
     }
@@ -3756,27 +3799,7 @@ fun FiveColumnLayout(apps:List<AppInfo>,
         }
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
         // --- Middle column (single box) ---
-        Box(
-            modifier = Modifier
-                .clip(getShapeFromShape(iconShape, iconSize))
-                .background(Color.White)
-                .size(iconSize)
-                .scale(0.8f)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = {
-                            view.playSoundEffect(SoundEffectConstants.CLICK)
-                            onShowSearch()
-                        }
-                    )
-                }
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.outline_search_24),
-                contentDescription = "Widgets",
-                modifier = Modifier.size(iconSize)
-            )
-        }
+        SearchIcon(iconSize,iconShape,onShowSearch)
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
         Column(
             verticalArrangement = Arrangement.spacedBy(gap)

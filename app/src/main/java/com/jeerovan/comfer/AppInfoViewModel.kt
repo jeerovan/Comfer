@@ -1,12 +1,18 @@
 package com.jeerovan.comfer
 
 import android.app.Application
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import android.content.res.Configuration
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.AndroidViewModel
@@ -20,7 +26,6 @@ import androidx.core.graphics.drawable.toDrawable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 
 private const val REST_LIST_NAME = "Rest"
@@ -39,44 +44,95 @@ data class AppInfo(
     val packageName: String
 )
 
+fun getAppInfo(context: Context,
+               packageManager: PackageManager,
+               resolveInfo: ResolveInfo,
+               packageName: String,
+               showThemedIcons:Boolean): AppInfo?{
+    return try {
+        val defaultIcon = packageManager.defaultActivityIcon
+        val cachedIcon = AppIconCache.getIcon(packageName)
+        val savedIcon = if (cachedIcon === defaultIcon) null else cachedIcon
+        val iconDrawable = savedIcon ?: resolveInfo.loadIcon(packageManager).also {
+            AppIconCache.cacheIcon(packageName, it)
+        }
+        var backgroundDrawable: Drawable?
+        var foregroundDrawable: Drawable?
+        var scale = 0.8f
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (iconDrawable is AdaptiveIconDrawable) {
+                // Check for Material You themed icons on Android 13+
+                if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    val monochromeDrawable = iconDrawable.monochrome
+                    backgroundDrawable =
+                        getThemedBackgroundColor(context).toDrawable()
+                    if (monochromeDrawable != null) {
+                        foregroundDrawable = monochromeDrawable.mutate().apply {
+                            setTint(getThemedIconColor(context))
+                        }
+                        scale = 1.5f
+                    } else {
+                        foregroundDrawable = iconDrawable.foreground?.mutate()?.apply {
+                            colorFilter = PorterDuffColorFilter(
+                                getThemedIconColor(context),
+                                PorterDuff.Mode.SRC_IN
+                            )
+                        }
+                        scale = 1.2f
+                    }
+                } else {
+                    // Standard adaptive icon
+                    backgroundDrawable = iconDrawable.background
+                    foregroundDrawable = iconDrawable.foreground
+                    scale = 1.5f
+                }
+            } else {
+                // Non-adaptive icon
+                backgroundDrawable = getBackgroundColor(context).toArgb().toDrawable()
+                foregroundDrawable =
+                    if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    // Apply themed tint to legacy icons
+                    iconDrawable.mutate().apply {
+                        colorFilter = PorterDuffColorFilter(
+                            getThemedIconColor(context),
+                            PorterDuff.Mode.SRC_IN
+                        )
+                    }
+                } else {
+                    iconDrawable
+                }
+            }
+        } else {
+            backgroundDrawable = getBackgroundColor(context).toArgb().toDrawable() // Background on older devices
+            foregroundDrawable = iconDrawable
+        }
+
+        AppInfo(
+            background = backgroundDrawable,
+            foreground = foregroundDrawable,
+            scale = scale,
+            label = resolveInfo.loadLabel(packageManager).trim(),
+            packageName = packageName
+        )
+    } catch (_: Exception) {
+        null
+    }
+}
 fun mapPackageNameToAppInfo(
+    context: Context,
     packageManager: PackageManager,
     packageName: String?
 ): AppInfo? {
     if (packageName == null) return null
-    val cachedIcon = AppIconCache.getIcon(packageName)
-    val defaultIcon = packageManager.defaultActivityIcon
-    val savedIcon = if (cachedIcon === defaultIcon) null else cachedIcon
+    val showThemedIcons = PreferenceManager.getThemedIcons(context)
     return try {
         packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
             packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
-
-                val iconDrawable = savedIcon ?: resolveInfo.loadIcon(packageManager).also {
-                    AppIconCache.cacheIcon(packageName, it)
-                }
-                var backgroundDrawable: Drawable?
-                var foregroundDrawable: Drawable?
-                var scale = 0.8f
-                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-                    if(iconDrawable is AdaptiveIconDrawable) {
-                        backgroundDrawable = iconDrawable.background
-                        foregroundDrawable = iconDrawable.foreground
-                        scale = 1.5f
-                    } else {
-                        backgroundDrawable = Color.Transparent.toArgb().toDrawable()
-                        foregroundDrawable = iconDrawable
-                    }
-                } else {
-                    backgroundDrawable = Color.Transparent.toArgb().toDrawable()
-                    foregroundDrawable = iconDrawable
-                }
-                AppInfo(
-                    background = backgroundDrawable,
-                    foreground = foregroundDrawable,
-                    scale = scale,
-                    label = resolveInfo.loadLabel(packageManager),
-                    packageName = packageName
-                )
+                getAppInfo(context,
+                    packageManager,
+                    resolveInfo,
+                    packageName,
+                    showThemedIcons)
             }
         }
     } catch (_: Exception) {
@@ -110,17 +166,17 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
                     val allCurrentResolveInfos = packageManager.queryIntentActivities(intent, 0)
                     val allCurrentPackageNames = allCurrentResolveInfos.map { it.activityInfo.packageName }.toSet()
-
+                    val context: Application = getApplication()
                     val savedQuickPackageNames = AppInfoManager.getAppPackageNames(
-                        getApplication(),
+                        context,
                         AppInfoManager.QUICK_APPS_LIST_NAME
                     ) ?: emptyList()
                     val savedPrimaryPackageNames = AppInfoManager.getAppPackageNames(
-                        getApplication(),
+                        context,
                         AppInfoManager.PRIMARY_APPS_LIST_NAME
                     ) ?: emptyList()
                     val savedAllPackageNames = AppInfoManager.getAppPackageNames(
-                        getApplication(),
+                        context,
                         AppInfoManager.ALL_APPS_LIST_NAME
                     )?.toSet() ?: emptySet()
                     val isFirstLaunch = savedAllPackageNames.isEmpty()
@@ -129,7 +185,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     val finalPrimaryPackageNames: List<String>
 
                     if (isFirstLaunch) {
-                        PreferenceManager.onFirstOpen(getApplication())
+                        PreferenceManager.onFirstOpen(context)
                         val allStandardApps = filterStandardApps(allCurrentPackageNames).toList()
                         var eightStandardApps = allStandardApps.take(8)
                         if(eightStandardApps.size < 8){
@@ -183,10 +239,14 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
                     // --- Stage 2: Load App Info Concurrently ---
                     val resolveInfoMap = allCurrentResolveInfos.associateBy { it.activityInfo.packageName }
-
+                    val showThemedIcons = PreferenceManager.getThemedIcons(context)
                     // Load quick apps first and update UI immediately
                     val quickApps = finalQuickPackageNames.map { packageName ->
-                        async { createAppInfo(packageName, resolveInfoMap) }
+                        async { createAppInfo(context,
+                            packageManager,
+                            packageName,
+                            resolveInfoMap,
+                            showThemedIcons) }
                     }.awaitAll().filterNotNull()
 
                     // **Immediate UI Update**
@@ -198,14 +258,22 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
                     // Now load the rest of the apps in parallel
                     val primaryApps = finalPrimaryPackageNames.map { packageName ->
-                        async { createAppInfo(packageName, resolveInfoMap) }
+                        async { createAppInfo(context,
+                            packageManager,
+                            packageName,
+                            resolveInfoMap,
+                            showThemedIcons) }
                     }.awaitAll().filterNotNull()
 
                     val quickAndPrimaryPackages = finalQuickPackageNames.toSet() + finalPrimaryPackageNames.toSet()
                     val restPackages = allCurrentPackageNames - quickAndPrimaryPackages
 
                     val restApps = restPackages.map { packageName ->
-                        async { createAppInfo(packageName, resolveInfoMap) }
+                        async { createAppInfo(context,
+                            packageManager,
+                            packageName,
+                            resolveInfoMap,
+                            showThemedIcons) }
                     }.awaitAll().filterNotNull()
 
                     // **Final UI Update**
@@ -227,44 +295,18 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    private fun createAppInfo(packageName: String, resolveInfoMap: Map<String, ResolveInfo>): AppInfo? {
+    fun createAppInfo(context: Context,
+                      packageManager: PackageManager,
+                      packageName: String,
+                      resolveInfoMap: Map<String,
+                              ResolveInfo>,
+                      showThemedIcons: Boolean): AppInfo? {
         val resolveInfo = resolveInfoMap[packageName] ?: return null
-        val defaultIcon = packageManager.defaultActivityIcon
-        return try {
-            val cachedIcon = AppIconCache.getIcon(packageName)
-            val savedIcon = if (cachedIcon === defaultIcon) null else cachedIcon
-            val iconDrawable = savedIcon ?: resolveInfo.loadIcon(packageManager).also {
-                AppIconCache.cacheIcon(packageName, it)
-            }
-
-            var backgroundDrawable: Drawable?
-            var foregroundDrawable: Drawable?
-            var scale = 0.8f
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                if (iconDrawable is AdaptiveIconDrawable) {
-                    backgroundDrawable = iconDrawable.background
-                    foregroundDrawable = iconDrawable.foreground
-                    scale = 1.5f
-                } else {
-                    // This expensive operation is now safely on a background thread
-                    backgroundDrawable = Color.White.toArgb().toDrawable()
-                    foregroundDrawable = iconDrawable
-                }
-            } else {
-                backgroundDrawable = Color.White.toArgb().toDrawable()
-                foregroundDrawable = iconDrawable
-            }
-
-            AppInfo(
-                background = backgroundDrawable,
-                foreground = foregroundDrawable,
-                scale = scale,
-                label = resolveInfo.loadLabel(packageManager).trim(),
-                packageName = packageName
-            )
-        } catch (_: Exception) {
-            null
-        }
+        return getAppInfo(context,
+            packageManager,
+            resolveInfo,
+            packageName,
+            showThemedIcons)
     }
 
     fun moveAppInList(listName: String, fromIndex: Int, toIndex: Int) {
@@ -406,4 +448,36 @@ fun filterStandardApps(allPackageNames: Set<String>): Set<String> {
     return allPackageNames.filter { packageName ->
         standardAppPackageNames.contains(packageName)
     }.toSet()
+}
+
+@RequiresApi(Build.VERSION_CODES.S)
+fun getThemedIconColor(context: Context): Int {
+    val isDarkMode = (context.resources.configuration.uiMode and
+            Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    return if (isDarkMode) {
+        context.getColor(android.R.color.system_accent1_200)
+    } else {
+        context.getColor(android.R.color.system_accent1_600)
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.S)
+fun getThemedBackgroundColor(context: Context): Int {
+    val isDarkMode = (context.resources.configuration.uiMode and
+            Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    return if (isDarkMode) {
+        context.getColor(android.R.color.system_accent1_800)
+    } else {
+        context.getColor(android.R.color.system_accent1_100)
+    }
+}
+
+fun getBackgroundColor(context:Context):Color {
+    val isDarkMode = (context.resources.configuration.uiMode and
+            Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    return if (isDarkMode) {
+        Color.Black.copy(alpha = 0.5f)
+    } else {
+        Color.White.copy(alpha = 0.5f)
+    }
 }

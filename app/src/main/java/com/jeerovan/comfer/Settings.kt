@@ -161,8 +161,8 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
 
     val packageManager = context.packageManager
 
-    val leftSwipeApp = mapPackageNameToAppInfo(packageManager, settingsState.leftSwipeApp)
-    val rightSwipeApp = mapPackageNameToAppInfo(packageManager, settingsState.rightSwipeApp)
+    val leftSwipeApp = mapPackageNameToAppInfo(context,packageManager, settingsState.leftSwipeApp)
+    val rightSwipeApp = mapPackageNameToAppInfo(context,packageManager, settingsState.rightSwipeApp)
 
     val isLeftSwipeWidgets = settingsState.isLeftSwipeWidgets
     val isRightSwipeWidgets = settingsState.isRightSwipeWidgets

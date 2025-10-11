@@ -33,6 +33,7 @@ object PreferenceManager {
     private const val WALLPAPER_NOW = "wallpaper_now"
     private const val ALPHABETICAL_ORDER = "alphabetical_order"
     private const val HAS_PRO_VERSION = "has_pro_version"
+    private const val THEMED_ICONS = "themed_icons"
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun clear(context: Context,key: String){
@@ -91,6 +92,12 @@ object PreferenceManager {
     }
     fun getPro(context: Context): Boolean {
         return getBoolean(context,HAS_PRO_VERSION,true)
+    }
+    fun setThemedIcons(context: Context,enabled: Boolean){
+        setBoolean(context,THEMED_ICONS,enabled)
+    }
+    fun getThemedIcons(context: Context): Boolean {
+        return getBoolean(context,THEMED_ICONS,false)
     }
     fun setAlphabeticalOrder(context: Context,enabled: Boolean){
         setBoolean(context,ALPHABETICAL_ORDER,enabled)

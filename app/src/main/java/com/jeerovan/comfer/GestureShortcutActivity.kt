@@ -572,7 +572,7 @@ fun AppsLayout(
             .align(Alignment.Center)
             .clickable { selectSetApp("Center")}
         ){
-            val centerApp = mapPackageNameToAppInfo(packageManager, patternApps["Center"])
+            val centerApp = mapPackageNameToAppInfo(context,packageManager, patternApps["Center"])
             if(centerApp == null) {
                 IconShapePreview(
                     shape = iconShape,
@@ -589,7 +589,7 @@ fun AppsLayout(
                 .offset(x = offsetLength, y = offsetLength)
                 .clickable { selectSetApp("BottomRight")},
         ){
-            val bottomRightApp = mapPackageNameToAppInfo(packageManager, patternApps["BottomRight"])
+            val bottomRightApp = mapPackageNameToAppInfo(context,packageManager, patternApps["BottomRight"])
             if(bottomRightApp == null) {
                 IconShapePreview(
                     shape = iconShape,
@@ -605,7 +605,7 @@ fun AppsLayout(
                 .offset(x = -offsetLength, y = offsetLength)
                 .clickable { selectSetApp("BottomLeft")}
         ){
-            val bottomLeftApp = mapPackageNameToAppInfo(packageManager, patternApps["BottomLeft"])
+            val bottomLeftApp = mapPackageNameToAppInfo(context,packageManager, patternApps["BottomLeft"])
             if(bottomLeftApp == null) {
                 IconShapePreview(
                     shape = iconShape,
@@ -621,7 +621,7 @@ fun AppsLayout(
                 .offset(x = offsetLength, y = -offsetLength)
                 .clickable { selectSetApp("TopRight")}
         ){
-            val topRightApp = mapPackageNameToAppInfo(packageManager, patternApps["TopRight"])
+            val topRightApp = mapPackageNameToAppInfo(context,packageManager, patternApps["TopRight"])
             if(topRightApp == null) {
                 IconShapePreview(
                     shape = iconShape,
@@ -637,7 +637,7 @@ fun AppsLayout(
                 .offset(x = -offsetLength, y = -offsetLength)
                 .clickable { selectSetApp("TopLeft")}
         ){
-            val topLeftApp = mapPackageNameToAppInfo(packageManager, patternApps["TopLeft"])
+            val topLeftApp = mapPackageNameToAppInfo(context,packageManager, patternApps["TopLeft"])
             if(topLeftApp == null) {
                 IconShapePreview(
                     shape = iconShape,

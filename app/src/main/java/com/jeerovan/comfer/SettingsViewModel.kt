@@ -37,6 +37,7 @@ data class SettingsUiState(
     val iconSize: Int = 48,
     val iconShapeString: String = "circle",
     val iconShape: Shape = CircleShape,
+    val showThemedIcons: Boolean = false,
     val quickAppsLayout: String = "linear",
     val leftSwipeApp:String? = null,
     val rightSwipeApp:String? = null,
@@ -146,6 +147,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val iconSize = PreferenceManager.getIconSize(getApplication())
             val iconShapeString  = PreferenceManager.getIconShapeString(getApplication())
             val iconShape  = PreferenceManager.getIconShape(getApplication())
+            val showThemedIcons = PreferenceManager.getThemedIcons(getApplication())
             val quickAppsLayout = PreferenceManager.getQuickAppsLayout(getApplication())
             val leftSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"left")
             val rightSwipeApp = PreferenceManager.getSwipeApp(getApplication(),"right")
@@ -215,6 +217,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     wallpaperFrequency = wallpaperFrequency,
                     iconSize = iconSize,
                     iconShape = iconShape,
+                    showThemedIcons = showThemedIcons,
                     quickAppsLayout = quickAppsLayout,
                     iconShapeString =  iconShapeString,
                     leftSwipeApp = leftSwipeApp,
@@ -261,6 +264,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             PreferenceManager.setPro(getApplication(),enabled)
             _uiState.update { it.copy(hasPro = enabled) }
+        }
+    }
+    fun setThemedIcons(enabled: Boolean){
+        viewModelScope.launch {
+            PreferenceManager.setThemedIcons(getApplication(),enabled)
+            _uiState.update { it.copy(showThemedIcons = enabled) }
         }
     }
     fun setAlphabeticalOrder(enabled:Boolean){
