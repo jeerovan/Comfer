@@ -52,11 +52,17 @@ fun getAppInfo(
     showThemedIcons: Boolean
 ): AppInfo? {
     return try {
-        val iconDrawable = resolveInfo.loadIcon(packageManager).mutate()
+        val defaultIcon = packageManager.defaultActivityIcon
+        val cachedIcon = AppIconCache.getIcon(packageName)
+        val savedIcon = if (cachedIcon == defaultIcon) null else cachedIcon
+        val loadedDrawable = savedIcon ?: resolveInfo.loadIcon(packageManager).also {
+            AppIconCache.cacheIcon(packageName, it)
+        }
+        val iconDrawable = loadedDrawable.constantState?.newDrawable()?.mutate()
+        if(iconDrawable == null) return null
         var backgroundDrawable: Drawable?
         var foregroundDrawable: Drawable?
         var scale = 0.8f
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (iconDrawable is AdaptiveIconDrawable) {
                 // Check for Material You themed icons on Android 13+
