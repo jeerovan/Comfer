@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
+import com.jeerovan.comfer.ui.theme.ComferTheme
 import kotlinx.coroutines.launch
 import kotlin.getValue
 import kotlin.math.cos
@@ -38,8 +39,14 @@ class GestureShortcutActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme {
-                GestureShortcutScreen(settingsViewModel)
+            ComferTheme {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
+                ) {
+                    GestureShortcutScreen(settingsViewModel)
+                }
             }
         }
     }
@@ -62,7 +69,8 @@ fun GestureShortcutScreen(settingsViewModel: SettingsViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background.copy(alpha = 0.7f))
+            .padding(top = 24.dp)
+            .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
