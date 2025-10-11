@@ -274,7 +274,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             if(isDefaultLauncher(context) && canSetLockScreenWallpaper()){
                 item {
                     ListItem(
-                        headlineContent = { Text("Lock Screen Wallpaper") },
+                        headlineContent = { Text("Lock Screen") },
                         supportingContent = { Text("Set wallpaper on lock screen also") },
                         leadingContent = {
                             Icon(
@@ -388,7 +388,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 ListItem(
                     headlineContent = { Text("Custom") },
-                    supportingContent = { Text("My widgets") },
+                    supportingContent = { Text("My favorite widgets") },
                     leadingContent = {
                         Icon(
                             painter = painterResource(R.drawable.outline_custom_widgets_24),
@@ -465,7 +465,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 ListItem(
                     headlineContent = { Text("Gestures") },
-                    supportingContent = { Text("Set app shortcuts") },
+                    supportingContent = { Text("Magic app shortcuts") },
                     leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
                         contentDescription = "Manage App Lists") },
                     trailingContent = {
@@ -816,9 +816,9 @@ fun SelectSetOwnWallpapersDirectory(
     )
 
     ListItem(
-        headlineContent = { Text("Set own wallpapers directory") },
+        headlineContent = { Text("Set own wallpapers") },
         // Use the .path property for a cleaner display string.
-        supportingContent = { Text(getUriPath(selectedDirectory) ?: "Not set") },
+        supportingContent = { Text(getUriPath(selectedDirectory) ?: "Tap to select directory") },
         leadingContent = {
             Icon(
                 painter = painterResource(R.drawable.outline_wallpaper_directory),
@@ -930,7 +930,7 @@ fun QuickAppsLayoutSettingItem(
 
     ListItem(
         headlineContent = { Text("Quick apps layout") },
-        supportingContent = { Text("Select circular or linear") },
+        supportingContent = { Text("The way I like") },
         leadingContent = { Icon(
             painter = painterResource(R.drawable.outline_apps_24),
             contentDescription = "Home apps layout")
@@ -1010,7 +1010,7 @@ fun SwipeActionSettingItem(
 
     ListItem(
         headlineContent = { Text(headline) },
-        supportingContent = { Text("Select an app or Widgets screen") },
+        supportingContent = { Text("An app or Widgets screen") },
         leadingContent = { icon() },
         trailingContent = {
             when {

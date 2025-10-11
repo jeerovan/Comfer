@@ -111,7 +111,7 @@ fun UserGuideScreen() {
 
             // App List Section
             item {
-                GuideSectionHeader(title = "App List")
+                GuideSectionHeader(title = "App Drawer")
             }
             item {
                 GuideStepItem(text = "Swipe down to go back.")
