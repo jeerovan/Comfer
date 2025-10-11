@@ -154,28 +154,6 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    var guideShown by remember { mutableStateOf(true) }
-    val guideKeyword = "app_list_guide_1"
-    var canShowGuide by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
-        delay(500)
-        canShowGuide = true
-    }
-    fun onGuideDismiss(){
-        PreferenceManager.setBoolean(context,guideKeyword,true)
-        guideShown = true
-    }
-    if(!guideShown && canShowGuide) GuideDialog(
-        onDismiss = {onGuideDismiss()},
-        title = "Navigation",
-        steps = listOf(
-            "Tap to select and move.",
-            "Long press and drag to re-order."
-        )
-    )
-
     Box(modifier = Modifier
         .fillMaxSize()
         .padding(top = 24.dp)

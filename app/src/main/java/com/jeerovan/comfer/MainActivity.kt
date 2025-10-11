@@ -1691,14 +1691,9 @@ fun QuickListOverlay(apps: List<AppInfo>,
 
     if(!guideShown && canShowGuide)GuideDialog(
         onDismiss = {onGuideDismiss()},
-        title = "Navigation",
+        title = "Welcome to Comfer",
         steps = listOf(
-            "Swipe up to see apps.",
-            "Swipe down to see notifications.",
-            "Double tap screen to open recents.",
-            "Long press the screen to open settings.",
-            "Tap on Date-Time to show alarms.",
-            "Long press on Date-Time to open Calendar"
+            "Long press the screen to open menu and checkout how to..."
         )
     )
 
@@ -1955,11 +1950,9 @@ fun SearchListOverlay(apps: List<AppInfo>,
     var iconSize by remember { mutableStateOf(48.dp) }
     var iconShape: Shape by remember { mutableStateOf(CircleShape) }
     var inputText by remember { mutableStateOf("") }
-    var guideShown by remember { mutableStateOf(true) }
 
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
     val guideKeyword = "search_guide_2"
-    var canShowGuide by remember { mutableStateOf(false) }
     val filteredApps by remember(inputText, apps) {
         derivedStateOf {
             if(activeTab == SearchTab.APPS) {
@@ -2021,9 +2014,6 @@ fun SearchListOverlay(apps: List<AppInfo>,
                 inputText = ""
             }
         }
-        guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
-        delay(500)
-        canShowGuide = true
     }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -2032,7 +2022,6 @@ fun SearchListOverlay(apps: List<AppInfo>,
             if (event == Lifecycle.Event.ON_RESUME) {
                 iconSize = PreferenceManager.getIconSize(context).dp
                 iconShape = PreferenceManager.getIconShape(context)
-                guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -2040,26 +2029,6 @@ fun SearchListOverlay(apps: List<AppInfo>,
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-    fun onGuideDismiss(){
-        PreferenceManager.setBoolean(context,guideKeyword,true)
-        guideShown = true
-    }
-
-    if(!guideShown && canShowGuide)GuideDialog(
-        onDismiss = {onGuideDismiss()},
-        title = "Navigation",
-        steps = listOf(
-            "Swipe down on the keyboard to go back.",
-            "Swipe right on the keyboard to search contacts.",
-            "Swipe left on the keyboard to search apps.",
-            "Scroll sides to scroll contact list.",
-            "Double tap on either sides to open dialer with contact.",
-            "Tap icon to open app.",
-            "Long press icon to view details.",
-            "Scroll app list to view all result."
-        )
-    )
-
 
     LaunchedEffect(lazyListState) {
         snapshotFlow { lazyListState.firstVisibleItemIndex to lazyListState.firstVisibleItemScrollOffset }
@@ -2426,15 +2395,6 @@ fun AppListOverlay(apps: List<AppInfo>,
     val scope = rememberCoroutineScope()
     var iconSize by remember { mutableStateOf(48.dp) }
     var iconShape: Shape by remember { mutableStateOf(CircleShape) }
-    var guideShown by remember { mutableStateOf(true) }
-    val guideKeyword = "primary_guide_1"
-    var canShowGuide by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
-        delay(500)
-        canShowGuide = true
-    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -2443,7 +2403,6 @@ fun AppListOverlay(apps: List<AppInfo>,
             if (event == Lifecycle.Event.ON_RESUME) {
                 iconSize = PreferenceManager.getIconSize(context).dp
                 iconShape = PreferenceManager.getIconShape(context)
-                guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -2451,23 +2410,6 @@ fun AppListOverlay(apps: List<AppInfo>,
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-
-    fun onGuideDismiss(){
-        PreferenceManager.setBoolean(context,guideKeyword,true)
-        guideShown = true
-    }
-
-    if(!guideShown && canShowGuide)GuideDialog(
-        onDismiss = {onGuideDismiss()},
-        title = "Navigation",
-        steps = listOf(
-            "Double tap to open app in the middle.",
-            "Swipe down to go back.",
-            "Swipe left/right to scroll.",
-            "Tap on icon to open app.",
-            "Long press on icon to open app info"
-        )
-    )
 
     val scrollAnimatable = remember { Animatable(0f) }
     var centerAppIndex by remember { mutableIntStateOf(0) }

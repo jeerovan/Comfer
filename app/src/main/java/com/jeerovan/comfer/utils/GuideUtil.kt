@@ -21,7 +21,7 @@ object GuideUtil {
         onDismiss: () -> Unit
     ) {
         var isClosable by remember { mutableStateOf(false) }
-        var remainingTime by remember { mutableIntStateOf(5) }
+        var remainingTime by remember { mutableIntStateOf(2) }
 
         LaunchedEffect(Unit) {
             while (remainingTime > 0) {
