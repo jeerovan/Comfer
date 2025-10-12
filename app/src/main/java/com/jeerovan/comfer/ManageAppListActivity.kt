@@ -73,6 +73,7 @@ import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import com.jeerovan.comfer.utils.GuideUtil.GuideDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.select
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.math.min
@@ -421,12 +422,15 @@ fun AppListColumn(
 
 @Composable
 fun AppCard(app: AppInfo, isSelected: Boolean,iconSize: Dp,iconShape: Shape) {
-
-    Box(
-        modifier = Modifier
+    val themedModifier = if(isSelected){
+        Modifier
             .clip(iconShape)
-            .border(width = if(isSelected)2.dp else 0.dp, Color.Red,iconShape),
-        //verticalAlignment = Alignment.CenterVertically,
+            .border(width = 2.dp,Color.Cyan,iconShape)
+    } else {
+        Modifier.clip(iconShape)
+    }
+    Box(
+        modifier = themedModifier,
         contentAlignment = Alignment.Center
     ) {
         AppIcon(app,emptyList(),iconShape,iconSize=iconSize, clickable = false)

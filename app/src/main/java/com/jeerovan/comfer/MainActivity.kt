@@ -1117,22 +1117,14 @@ private fun WidgetInstance(
             } else {
                 AndroidView(
                     factory = { context ->
+                        val hostView = appWidgetHost.createView(context.applicationContext, widget.widgetId, appWidgetProviderInfo)
                         try {
-                            appWidgetHost.createView(
-                                context.applicationContext,
-                                widget.widgetId,
-                                appWidgetProviderInfo
-                            ).apply {
-                                setAppWidget(widget.widgetId, appWidgetProviderInfo)
-                                updateAppWidgetOptions(getBundleOptionsFromCurrentSize())
-                            }
+                            hostView.setAppWidget(widget.widgetId, appWidgetProviderInfo)
+                            hostView.updateAppWidgetOptions( getBundleOptionsFromCurrentSize())
                         } catch (_: Exception) {
                             hasError = true
-                            appWidgetHost.createView(
-                                context.applicationContext,
-                                widget.widgetId,
-                                appWidgetProviderInfo)
                         }
+                        hostView
                     },
                     update = { hostView ->
                         if (!widgetUpdated) {
@@ -1140,7 +1132,7 @@ private fun WidgetInstance(
                             try {
                                 hostView.updateAppWidgetOptions(getBundleOptionsFromCurrentSize())
                             } catch (_: Exception) {
-                                null
+
                             }
                         }
                     },

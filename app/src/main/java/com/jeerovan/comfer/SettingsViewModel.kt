@@ -276,7 +276,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setThemedIcons(enabled: Boolean){
         viewModelScope.launch {
             PreferenceManager.setThemedIcons(getApplication(),enabled)
-            _uiState.update { it.copy(showThemedIcons = enabled) }
+            val leftSwipeApp = mapPackageNameToAppInfo(
+                getApplication(),
+                packageManager,PreferenceManager.getSwipeApp(getApplication(),"left"))
+            val rightSwipeApp = mapPackageNameToAppInfo(
+                getApplication(),
+                packageManager,PreferenceManager.getSwipeApp(getApplication(),"right"))
+            _uiState.update { it.copy(showThemedIcons = enabled, leftSwipeApp = leftSwipeApp, rightSwipeApp = rightSwipeApp) }
         }
     }
     fun setAlphabeticalOrder(enabled:Boolean){

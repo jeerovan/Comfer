@@ -252,11 +252,11 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item{
+            /*item{
                 SelectSetOwnWallpapersDirectory(
                     onSelectDirectory = { directoryUri -> settingsViewModel.setWallpaperDirectory(directoryUri)},
                     selectedDirectory = settingsState.wallpaperDirectory)
-            }
+            }*/
             if(settingsState.wallpaperDirectory != null){
                 item {
                     SelectOptionsWithListItemSettingItem(
@@ -381,7 +381,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item { SectionHeader("Home Widgets") }
+            /*item { SectionHeader("Home Widgets") }
             item {
                 ListItem(
                     headlineContent = { Text("Custom") },
@@ -401,7 +401,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     modifier = Modifier.clickable { settingsViewModel.setCustomWidgets(!settingsState.hasCustomWidgets) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
-            }
+            }*/
             item { SectionHeader("Home Screen") }
             item {
                 QuickAppsLayoutSettingItem(
@@ -459,7 +459,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     iconSize = iconSize.dp
                 )
             }
-            item {
+            /*item {
                 ListItem(
                     headlineContent = { Text("Gestures") },
                     supportingContent = { Text("Magic app shortcuts") },
@@ -476,7 +476,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
-            }
+            }*/
             item { SectionHeader("App Lists") }
             item {
                 ListItem(
@@ -927,7 +927,7 @@ fun QuickAppsLayoutSettingItem(
 
     ListItem(
         headlineContent = { Text("Quick apps layout") },
-        supportingContent = { Text("The way I like") },
+        supportingContent = { Text("Arrange apps with style") },
         leadingContent = { Icon(
             painter = painterResource(R.drawable.outline_apps_24),
             contentDescription = "Home apps layout")

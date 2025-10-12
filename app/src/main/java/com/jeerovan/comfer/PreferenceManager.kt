@@ -83,7 +83,7 @@ object PreferenceManager {
     fun onFirstOpen(context: Context){
         val milliseconds = System.currentTimeMillis()
         val millisecondsString = milliseconds.toString()
-        val dummyName = CommonUtil.randomCode(millisecondsString,8)
+        val dummyName = CommonUtil.randomCode(millisecondsString,10)
         setDummyName(context,dummyName)
         setQuickAppsLayout(context,"circular")
     }
@@ -91,7 +91,7 @@ object PreferenceManager {
         setBoolean(context,HAS_PRO_VERSION,enabled)
     }
     fun getPro(context: Context): Boolean {
-        return getBoolean(context,HAS_PRO_VERSION,true)
+        return getBoolean(context,HAS_PRO_VERSION,false)
     }
     fun setThemedIcons(context: Context,enabled: Boolean){
         setBoolean(context,THEMED_ICONS,enabled)

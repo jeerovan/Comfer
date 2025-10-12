@@ -1,27 +1,27 @@
 [versions]
 agp = "8.12.3"
 kotlin = "2.2.20"
-coreKtx = "1.15.0"  # ✓ Stable
-lifecycleRuntimeKtx = "2.7.0"  # More proven than 2.8.x
-activityCompose = "1.9.2"  # ✓ Stable
-composeBom = "2024.06.00"  # Battle-tested
+coreKtx = "1.17.0"
+lifecycleRuntimeKtx = "2.9.4"
+activityCompose = "1.11.0"
+composeBom = "2025.10.00"
 
 # Third-party libraries
-accompanistDrawablepainter = "0.36.0"  # ✓ Stable
-coilCompose = "2.7.0"  # ✓ Stable
-reorderable = "3.0.0"  # ✓ Stable
+accompanistDrawablepainter = "0.37.3"
+coilCompose = "2.7.0"
+reorderable = "3.0.0"
 
 # Networking
-ktor = "2.3.12"  # Avoid 3.0.x issues
-ktorClientOkhttp = "2.3.12"
+ktor = "3.3.1"
+ktorClientOkhttp = "3.3.1"
 kotlinxSerializationJson = "1.9.0"
 
 # Background work
-work = "2.9.1"  # ✓ Keep this
+work = "2.10.5"
 
 # Billing & Storage
-billingKtx = "8.0.0"  # ✓ Stable
-documentfile = "1.1.0"  # ✓ Stable
+billingKtx = "8.0.0"
+documentfile = "1.1.0"
 
 # Testing
 junit = "4.13.2"
