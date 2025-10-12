@@ -227,8 +227,6 @@ fun DraggableContainerWithViewModel(
     onEditModeChanged: (Boolean) -> Unit,
     composableContent: @Composable (String, Boolean) -> Unit
 ) {
-    val density = LocalDensity.current
-
     // Edit mode state
     var editMode by remember { mutableStateOf(false) }
 
@@ -1851,7 +1849,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 },
                                 onSwipeLeft = {
                                     val showWidget =
-                                        PreferenceManager.getWidgetsOnSwipe(context, "left");
+                                        PreferenceManager.getWidgetsOnSwipe(context, "left")
                                     if (showWidget) {
                                         onSwipeLeft()
                                     } else {
@@ -1870,7 +1868,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 },
                                 onSwipeRight = {
                                     val showWidget =
-                                        PreferenceManager.getWidgetsOnSwipe(context, "right");
+                                        PreferenceManager.getWidgetsOnSwipe(context, "right")
                                     if (showWidget) {
                                         onSwipeRight()
                                     } else {
@@ -1975,7 +1973,6 @@ fun SearchListOverlay(apps: List<AppInfo>,
     var inputText by remember { mutableStateOf("") }
 
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
-    val guideKeyword = "search_guide_2"
     val filteredApps by remember(inputText, apps) {
         derivedStateOf {
             if(activeTab == SearchTab.APPS) {
@@ -2663,7 +2660,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         derivedStateOf {
             // First, check if notification access is even enabled
             if (!hasNotificationAccess) {
-                emptyList<String>() // Return an empty list if access is not granted
+                emptyList() // Return an empty list if access is not granted
             } else {
                 // If access is granted, proceed with mapping the packages
                 notifications.mapNotNull { sbn ->
@@ -2765,7 +2762,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                     // Check if any column is not found
                     if (idIndex == -1 || nameIndex == -1 || photoUriIndex == -1 || hasPhoneNumberIndex == -1) {
                         // Handle error: a required column is missing
-                        return@withContext emptyList<Contact>()
+                        return@withContext emptyList()
                     }
 
                     while (contactCursor.moveToNext()) {
@@ -3636,12 +3633,9 @@ fun Modifier.detectSwipes(
     onSwipeDown: () -> Unit = {},
     onSwipeLeft: () -> Unit = {},
     onSwipeRight: () -> Unit = {}
-) = composed {
-    // A threshold in pixels to register the gesture as a swipe
-    val density = LocalDensity.current
-    val swipeThreshold = with(density) { 50.dp.toPx() }
-
-    pointerInput(Unit) {
+) : Modifier =
+    this.pointerInput(Unit) {
+        val swipeThreshold = 50.dp.toPx()
         var totalHorizontalDrag = 0f
         var totalVerticalDrag = 0f
 
@@ -3685,7 +3679,7 @@ fun Modifier.detectSwipes(
             }
         )
     }
-}
+
 
 
 @Composable
@@ -3697,7 +3691,6 @@ fun CircularLayout(
     onShowSearch: () -> Unit,
     showThemedIcon: Boolean
 ) {
-    val view = LocalView.current
     // Radius calculated to maintain a 20.dp gap between 56.dp icons.
     val radius =  iconSize * 1.768f
     // Angles in degrees for each app icon, corresponding to the apps list index.
@@ -3749,7 +3742,6 @@ fun FiveColumnLayout(apps:List<AppInfo>,
                      onShowSearch: () -> Unit,
                      showThemedIcon: Boolean
 ) {
-    val view = LocalView.current
     val gap = 20.dp
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -4033,8 +4025,8 @@ fun AnalogClock(
             // Hour Hand
             val hourAngle = (hours + minutes / 60f) * 30f - 90
             val hourHandLength = radius * 0.5f
-            val hourHandEndX = centerX + hourHandLength * kotlin.math.cos(Math.toRadians(hourAngle.toDouble())).toFloat()
-            val hourHandEndY = centerY + hourHandLength * kotlin.math.sin(Math.toRadians(hourAngle.toDouble())).toFloat()
+            val hourHandEndX = centerX + hourHandLength * cos(Math.toRadians(hourAngle.toDouble())).toFloat()
+            val hourHandEndY = centerY + hourHandLength * sin(Math.toRadians(hourAngle.toDouble())).toFloat()
 
             drawLine(
                 color = hourHandColor,
@@ -4047,8 +4039,8 @@ fun AnalogClock(
             // Minute Hand
             val minuteAngle = minutes * 6f - 90
             val minuteHandLength = radius * 0.8f
-            val minuteHandEndX = centerX + minuteHandLength * kotlin.math.cos(Math.toRadians(minuteAngle.toDouble())).toFloat()
-            val minuteHandEndY = centerY + minuteHandLength * kotlin.math.sin(Math.toRadians(minuteAngle.toDouble())).toFloat()
+            val minuteHandEndX = centerX + minuteHandLength * cos(Math.toRadians(minuteAngle.toDouble())).toFloat()
+            val minuteHandEndY = centerY + minuteHandLength * sin(Math.toRadians(minuteAngle.toDouble())).toFloat()
 
             drawLine(
                 color = minuteHandColor,

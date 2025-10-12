@@ -1,42 +1,41 @@
 [versions]
-accompanistDrawablepainter = "0.37.3"
 agp = "8.12.3"
-billingKtx = "8.0.0"
-coilCompose = "2.7.0"
 kotlin = "2.2.20"
-coreKtx = "1.17.0"
+coreKtx = "1.15.0"  # ✓ Stable
+lifecycleRuntimeKtx = "2.7.0"  # More proven than 2.8.x
+activityCompose = "1.9.2"  # ✓ Stable
+composeBom = "2024.06.00"  # Battle-tested
+
+# Third-party libraries
+accompanistDrawablepainter = "0.36.0"  # ✓ Stable
+coilCompose = "2.7.0"  # ✓ Stable
+reorderable = "3.0.0"  # ✓ Stable
+
+# Networking
+ktor = "2.3.12"  # Avoid 3.0.x issues
+ktorClientOkhttp = "2.3.12"
+kotlinxSerializationJson = "1.9.0"
+
+# Background work
+work = "2.9.1"  # ✓ Keep this
+
+# Billing & Storage
+billingKtx = "8.0.0"  # ✓ Stable
+documentfile = "1.1.0"  # ✓ Stable
+
+# Testing
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
-kotlinxSerializationJson = "1.9.0"
-ktorClientOkhttp = "3.3.0"
-lifecycleRuntimeKtx = "2.9.4"
-activityCompose = "1.11.0"
-composeBom = "2025.09.01"
-material = "1.9.2"
-reorderable = "3.0.0"
-uiTextGoogleFonts = "1.9.2"
-work = "2.10.5"
-ktor = "3.3.0"
-animationCore = "1.9.2"
-foundation = "1.9.2"
-uiText = "1.9.2"
-documentfile = "1.1.0"
 
 [libraries]
-accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanistDrawablepainter" }
+# Core AndroidX
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
-androidx-material-icons-extended = { module = "androidx.material:material.icons-extended" }
-androidx-material3-icons = { module = "androidx.compose.material3:material3-icons" }
-androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
-billing-ktx = { module = "com.android.billingclient:billing-ktx", version.ref = "billingKtx" }
-coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
+
+# Compose BOM and libraries (no version needed - managed by BOM)
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
@@ -45,20 +44,39 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-material = { module = "androidx.compose.material:material" }
+androidx-animation-core = { group = "androidx.compose.animation", name = "animation-core" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+androidx-ui-text = { group = "androidx.compose.ui", name = "ui-text" }
+androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts" }
+material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+
+# Background work
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+
+# Billing
+billing-ktx = { module = "com.android.billingclient:billing-ktx", version.ref = "billingKtx" }
+
+# Third-party libraries
+accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanistDrawablepainter" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
+
+# Networking - Ktor
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
-ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClientOkhttp" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
-reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
-androidx-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
-androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
-androidx-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
-androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+
+# Serialization
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+
+# Testing
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 
 
 [plugins]
@@ -66,4 +84,5 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+
 
