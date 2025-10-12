@@ -314,14 +314,13 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                             }
                             Box(
                                 modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)),
+                                    .size(56.dp)
+                                    .clip(CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(settingsState.iconSize.dp / 2) // Adjust preview size
+                                        .size(settingsState.iconSize.dp) // Adjust preview size
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.onSurface)
                                 )
@@ -756,7 +755,7 @@ fun ShapeSelectionDialog(
 @Composable
 fun IconShapePreview(
     shape: Shape,
-    size: Dp = 30.dp,
+    size: Dp = 44.dp,
     borderColor: Color = MaterialTheme.colorScheme.outline
 ) {
     var iconShape = shape
@@ -941,14 +940,14 @@ fun QuickAppsLayoutSettingItem(
                     Icon(
                         painter = painterResource(R.drawable.layout_linear),
                         contentDescription = "Widgets",
-                        modifier = Modifier.size(44.dp)
+                        modifier = Modifier.size(48.dp)
                     )
                 }
                 "circular" -> {
                     Icon(
                         painter = painterResource(R.drawable.layout_circular),
                         contentDescription = "Widgets",
-                        modifier = Modifier.size(44.dp)
+                        modifier = Modifier.size(48.dp)
                     )
                 }
             }
@@ -1019,12 +1018,12 @@ fun SwipeActionSettingItem(
                     Icon(
                         painter = painterResource(R.drawable.outline_widgets_24),
                         contentDescription = "Widgets",
-                        modifier = Modifier.size(iconSize)
+                        modifier = Modifier.size(40.dp)
                     )
                 }
                 // If an app is selected, show its icon
                 selectedApp != null -> {
-                    AppIcon(selectedApp,emptyList(),shape=iconShape,iconSize=iconSize, clickable = false)
+                    AppIcon(selectedApp,emptyList(),shape=iconShape,iconSize=40.dp, clickable = false)
                 }
             }
         },

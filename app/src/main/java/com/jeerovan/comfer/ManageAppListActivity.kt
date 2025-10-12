@@ -1,5 +1,6 @@
 package com.jeerovan.comfer
 
+import android.R
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
@@ -358,10 +359,8 @@ fun AppListColumn(
         LazyColumn(
             state = listState,
             modifier = Modifier
-                .width(76.dp)
                 .fillMaxHeight(),
-            contentPadding = PaddingValues(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
             items(apps.size, key = { index -> apps[index].packageName }) { index ->
                 if(canReOrder) {
@@ -384,9 +383,11 @@ fun AppListColumn(
                                     indication = null
                                 ) { onItemSelect(listName, index) },
                             shadowElevation = elevation,
-
                             ) {
-                            AppCard(app = apps[index], isSelected = isSelected, iconSize, iconShape)
+                            AppCard(app = apps[index],
+                                isSelected = isSelected,
+                                iconSize,
+                                iconShape)
                         }
                     }
                 } else {
@@ -420,45 +421,14 @@ fun AppListColumn(
 
 @Composable
 fun AppCard(app: AppInfo, isSelected: Boolean,iconSize: Dp,iconShape: Shape) {
-    val borderColor = if (isSystemInDarkTheme()) Color.Red else Color.Gray
-    val borderModifier = if (isSelected) {
-        Modifier.border(2.dp, borderColor, iconShape)
-    } else {
-        Modifier
-    }
-    Row(
+
+    Box(
         modifier = Modifier
             .clip(iconShape)
-            .then(borderModifier)
-            .padding(7.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
+            .border(width = if(isSelected)2.dp else 0.dp, MaterialTheme.colorScheme.outline,iconShape),
+        //verticalAlignment = Alignment.CenterVertically,
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(iconSize)
-                .clip(iconShape),
-            contentAlignment = Alignment.Center
-        ) {
-            // Background Layer
-            if (app.background != null) {
-                Image(
-                    painter = rememberDrawablePainter(drawable = app.background),
-                    contentDescription = "${app.label} background",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.FillBounds
-                )
-            }
-
-            // Foreground Layer
-            if (app.foreground != null) {
-                Image(
-                    painter = rememberDrawablePainter(drawable = app.foreground),
-                    contentDescription = app.label.toString(),
-                    modifier = Modifier.fillMaxSize().scale(app.scale), // Let it fill the clipped Box
-                    contentScale = ContentScale.FillBounds
-                )
-            }
-        }
+        AppIcon(app,emptyList(),iconShape,iconSize=iconSize, clickable = false)
     }
 }
