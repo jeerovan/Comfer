@@ -263,7 +263,6 @@ object CommonUtil {
                         applicationContext,
                         R.raw.cacert // Use the name of your certificate file
                     )
-
                     // 2. Define connection specs, including one for compatibility with older devices
                     val connectionSpecs = listOf(
                         ConnectionSpec.MODERN_TLS,

@@ -168,7 +168,6 @@ import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
-import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.provider.AlarmClock
@@ -1042,7 +1041,7 @@ private fun WidgetInstance(
             putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, height)
         }
     }
-
+    var hasError by remember { mutableStateOf(false) }
     Box { // Parent container for the widget and its handles
         // Main widget Box, which is also the repositioning drag area
         Box(
@@ -1111,21 +1110,45 @@ private fun WidgetInstance(
                 },
             contentAlignment = Alignment.Center
         ) {
-            AndroidView(
-                factory = { context ->
-                    val hostView = appWidgetHost.createView(context.applicationContext, widget.widgetId, appWidgetProviderInfo)
-                    hostView.setAppWidget(widget.widgetId, appWidgetProviderInfo)
-                    hostView.updateAppWidgetOptions( getBundleOptionsFromCurrentSize())
-                    hostView
-                },
-                update = { hostView ->
-                    if ( !widgetUpdated) {
-                        widgetUpdated = true
-                        hostView.updateAppWidgetOptions( getBundleOptionsFromCurrentSize())
-                    }
-                },
-                modifier = Modifier.fillMaxSize()
-            )
+            if (hasError) {
+                Text(
+                    text = "Could not load widget",
+                    modifier = Modifier.fillMaxSize(),
+                    textAlign = TextAlign.Center
+                )
+            } else {
+                AndroidView(
+                    factory = { context ->
+                        try {
+                            appWidgetHost.createView(
+                                context.applicationContext,
+                                widget.widgetId,
+                                appWidgetProviderInfo
+                            ).apply {
+                                setAppWidget(widget.widgetId, appWidgetProviderInfo)
+                                updateAppWidgetOptions(getBundleOptionsFromCurrentSize())
+                            }
+                        } catch (_: Exception) {
+                            hasError = true
+                            appWidgetHost.createView(
+                                context.applicationContext,
+                                widget.widgetId,
+                                appWidgetProviderInfo)
+                        }
+                    },
+                    update = { hostView ->
+                        if (!widgetUpdated) {
+                            widgetUpdated = true
+                            try {
+                                hostView.updateAppWidgetOptions(getBundleOptionsFromCurrentSize())
+                            } catch (_: Exception) {
+                                null
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
 
         // --- Edit Mode Controls ---
