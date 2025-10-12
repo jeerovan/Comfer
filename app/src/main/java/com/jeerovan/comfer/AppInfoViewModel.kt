@@ -44,14 +44,14 @@ data class AppInfo(
     val packageName: String
 )
 
-fun getAppInfo(
+suspend fun getAppInfo(
     context: Context,
     packageManager: PackageManager,
     resolveInfo: ResolveInfo,
     packageName: String,
     showThemedIcons: Boolean
-): AppInfo? {
-    return try {
+): AppInfo? = withContext(Dispatchers.Default){
+    try {
         val defaultIcon = packageManager.defaultActivityIcon
         val cachedIcon = AppIconCache.getIcon(packageName)
         val savedIcon = if (cachedIcon == defaultIcon) null else cachedIcon
@@ -59,7 +59,6 @@ fun getAppInfo(
             AppIconCache.cacheIcon(packageName, it)
         }
         val iconDrawable = loadedDrawable.constantState?.newDrawable()?.mutate()
-        if(iconDrawable == null) return null
         var backgroundDrawable: Drawable?
         var foregroundDrawable: Drawable?
         var scale = 0.8f
@@ -108,8 +107,8 @@ fun getAppInfo(
                 }
                 foregroundDrawable = if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     // Apply themed tint to legacy icons on Android 13+
-                    iconDrawable.mutate().apply {
-                        colorFilter = PorterDuffColorFilter(
+                    iconDrawable?.mutate().apply {
+                        this?.colorFilter = PorterDuffColorFilter(
                             getThemedIconColor(context),
                             PorterDuff.Mode.SRC_IN
                         )
@@ -135,7 +134,7 @@ fun getAppInfo(
     }
 }
 
-fun mapPackageNameToAppInfo(
+suspend fun mapPackageNameToAppInfo(
     context: Context,
     packageManager: PackageManager,
     packageName: String?
@@ -178,7 +177,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             try {
                 // All work now happens on a background thread.
-                withContext(Dispatchers.IO) {
+                withContext(Dispatchers.Default) {
                     // --- Stage 1: Determine Package Lists (No Icon Loading) ---
                     val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
                     val allCurrentResolveInfos = packageManager.queryIntentActivities(intent, 0)
@@ -312,12 +311,12 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun createAppInfo(context: Context,
-                      packageManager: PackageManager,
-                      packageName: String,
-                      resolveInfoMap: Map<String,
+    suspend fun createAppInfo(context: Context,
+                              packageManager: PackageManager,
+                              packageName: String,
+                              resolveInfoMap: Map<String,
                               ResolveInfo>,
-                      showThemedIcons: Boolean): AppInfo? {
+                              showThemedIcons: Boolean): AppInfo? {
         val resolveInfo = resolveInfoMap[packageName] ?: return null
         return getAppInfo(context,
             packageManager,

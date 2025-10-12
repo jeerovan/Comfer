@@ -1869,7 +1869,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     if(appOnCircularPattern != null && settings.hasPro) {
                                         val launchIntent: Intent? =
                                             context.packageManager.getLaunchIntentForPackage(
-                                                appOnCircularPattern
+                                                appOnCircularPattern.packageName
                                             )
                                         if (launchIntent != null) {
                                             context.startActivity(launchIntent)
@@ -1881,7 +1881,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     if(patternApp != null && settings.hasPro) {
                                         val launchIntent: Intent? =
                                             context.packageManager.getLaunchIntentForPackage(
-                                                patternApp
+                                                patternApp.packageName
                                             )
                                         if (launchIntent != null) {
                                             context.startActivity(launchIntent)

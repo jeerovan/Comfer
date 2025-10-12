@@ -566,7 +566,6 @@ fun AppsLayout(
     iconShape: androidx.compose.ui.graphics.Shape
 ) {
     val context = LocalContext.current
-    val packageManager = context.packageManager
     val settings by settingsViewModel.uiState.collectAsState()
     val patternApps = settings.patternApps
     val appSelectionLauncher = rememberLauncherForActivityResult(
@@ -595,7 +594,7 @@ fun AppsLayout(
             .align(Alignment.Center)
             .clickable { selectSetApp("Center")}
         ){
-            val centerApp = mapPackageNameToAppInfo(context,packageManager, patternApps["Center"])
+            val centerApp = patternApps["Center"]
             if(centerApp == null) {
                 IconShapePreview(
                     shape = iconShape,
@@ -612,7 +611,7 @@ fun AppsLayout(
                 .offset(x = offsetLength, y = offsetLength)
                 .clickable { selectSetApp("BottomRight")},
         ){
-            val bottomRightApp = mapPackageNameToAppInfo(context,packageManager, patternApps["BottomRight"])
+            val bottomRightApp = patternApps["BottomRight"]
             if(bottomRightApp == null) {
                 IconShapePreview(
                     shape = iconShape,
@@ -628,7 +627,7 @@ fun AppsLayout(
                 .offset(x = -offsetLength, y = offsetLength)
                 .clickable { selectSetApp("BottomLeft")}
         ){
-            val bottomLeftApp = mapPackageNameToAppInfo(context,packageManager, patternApps["BottomLeft"])
+            val bottomLeftApp = patternApps["BottomLeft"]
             if(bottomLeftApp == null) {
                 IconShapePreview(
                     shape = iconShape,
@@ -644,7 +643,7 @@ fun AppsLayout(
                 .offset(x = offsetLength, y = -offsetLength)
                 .clickable { selectSetApp("TopRight")}
         ){
-            val topRightApp = mapPackageNameToAppInfo(context,packageManager, patternApps["TopRight"])
+            val topRightApp = patternApps["TopRight"]
             if(topRightApp == null) {
                 IconShapePreview(
                     shape = iconShape,
@@ -660,7 +659,7 @@ fun AppsLayout(
                 .offset(x = -offsetLength, y = -offsetLength)
                 .clickable { selectSetApp("TopLeft")}
         ){
-            val topLeftApp = mapPackageNameToAppInfo(context,packageManager, patternApps["TopLeft"])
+            val topLeftApp =  patternApps["TopLeft"]
             if(topLeftApp == null) {
                 IconShapePreview(
                     shape = iconShape,
