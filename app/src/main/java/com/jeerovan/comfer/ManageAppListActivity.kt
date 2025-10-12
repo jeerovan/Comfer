@@ -425,7 +425,7 @@ fun AppCard(app: AppInfo, isSelected: Boolean,iconSize: Dp,iconShape: Shape) {
     Box(
         modifier = Modifier
             .clip(iconShape)
-            .border(width = if(isSelected)2.dp else 0.dp, MaterialTheme.colorScheme.outline,iconShape),
+            .border(width = if(isSelected)2.dp else 0.dp, Color.Red,iconShape),
         //verticalAlignment = Alignment.CenterVertically,
         contentAlignment = Alignment.Center
     ) {
