@@ -84,7 +84,7 @@ fun UserGuideScreen() {
             }
             item {
                 // Using more descriptive text for a better user experience
-                GuideStepItem(text = "Swipe up to see the App List.")
+                GuideStepItem(text = "Swipe up to see the App drawer.")
             }
             item {
                 // Using more descriptive text for a better user experience
@@ -107,6 +107,9 @@ fun UserGuideScreen() {
             }
             item {
                 GuideStepItem(text = "Swipe left/right to open desired app or widgets screen.")
+            }
+            item {
+                GuideStepItem(text = "Draw gestures to open apps as set.")
             }
 
             // App List Section
