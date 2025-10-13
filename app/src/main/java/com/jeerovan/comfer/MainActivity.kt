@@ -269,7 +269,7 @@ fun DraggableContainerWithViewModel(
                 containerSize = coordinates.size
             }
             .pointerInput(Unit) {
-                if(hasPro)detectTapGestures(
+                detectTapGestures(
                     onTap = {
                                 if(editMode){
                                     editMode = false

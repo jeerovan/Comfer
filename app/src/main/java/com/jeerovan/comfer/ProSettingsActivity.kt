@@ -1,6 +1,7 @@
 package com.jeerovan.comfer
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -38,6 +39,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -45,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.jeerovan.comfer.utils.CommonUtil.isColorDark
@@ -64,6 +68,7 @@ class ProSettingsActivity : ComponentActivity() {
 
 @Composable
 fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
+    val context = LocalContext.current
     val settingsState by settingsViewModel.uiState.collectAsState()
     var showTimeFontDialog by remember { mutableStateOf(false) }
     var showTimeFontColor by remember { mutableStateOf(false) }
@@ -78,8 +83,6 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
         modifier = Modifier.fillMaxSize(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-        //tonalElevation = 8.dp,
-        //shadowElevation = 4.dp
     ) {
         Column(
             modifier = Modifier
@@ -111,8 +114,15 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
             SettingSection("Time") {
                 SettingSwitch(
                     label = "Analog Clock",
+                    enabled = settingsState.hasPro,
                     checked = settingsState.showAnalog,
-                    onCheckedChange = { settingsViewModel.showAnalog(it) }
+                    onCheckedChange = {
+                        if(settingsState.hasPro){
+                            settingsViewModel.showAnalog(it)
+                        } else {
+                            Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 )
                 if (settingsState.showAnalog) {
                     // Clock Size
@@ -191,6 +201,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                     if (settingsState.timeFormat == "H12") {
                         SettingSwitch(
                             label = "Show AM/PM",
+                            enabled = true,
                             checked = settingsState.showAmPm,
                             onCheckedChange = { settingsViewModel.setShowAmPm(it) }
                         )
@@ -229,9 +240,18 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                                 )
                             )
                         }
-                        Text("Font Style",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface)
+                        Row {
+                            Text("Font Style",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface)
+                            if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
+                                contentDescription = "Paid Feature",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .size(15.dp)
+                                    .offset(x=10.dp,y=2.dp)
+                            )
+                        }
                         Text(
                             text = "12:34 PM",
                             style = MaterialTheme.typography.bodyLarge,
@@ -252,7 +272,11 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                             sampleText = "12:34 PM",
                             onDismissRequest = { showTimeFontDialog = false },
                             onFontSelected = { fontName ->
-                                settingsViewModel.setTimeFontName(fontName)
+                                if(settingsState.hasPro){
+                                    settingsViewModel.setTimeFontName(fontName)
+                                } else {
+                                    Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT).show()
+                                }
                                 showTimeFontDialog = false // Also dismiss dialog after selection
                             }
                         )
@@ -312,9 +336,18 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                             )
                         )
                     }
-                    Text("Font Style",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface)
+                    Row {
+                        Text("Font Style",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface)
+                        if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
+                            contentDescription = "Paid Feature",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(15.dp)
+                                .offset(x=10.dp,y=2.dp)
+                        )
+                    }
                     Text(
                         text = "Sat,Sept 16",
                         style = MaterialTheme.typography.bodyLarge,
@@ -335,7 +368,11 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                         sampleText = "Sat, Sept 16",
                         onDismissRequest = { showDateFontDialog = false },
                         onFontSelected = { fontName ->
-                            settingsViewModel.setDateFontName(fontName)
+                            if(settingsState.hasPro){
+                                settingsViewModel.setDateFontName(fontName)
+                            } else {
+                                Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT).show()
+                            }
                             showDateFontDialog = false // Also dismiss dialog after selection
                         }
                     )
@@ -362,11 +399,13 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
             SettingSection("Battery") {
                 SettingSwitch(
                     label = "Show Battery Icon",
+                    enabled = true,
                     checked = settingsState.showBatteryIcon,
                     onCheckedChange = { settingsViewModel.setShowBatteryIcon(it) }
                 )
                 SettingSwitch(
                     label = "Show Battery Percentage",
+                    enabled = true,
                     checked = settingsState.showBatteryPercentage,
                     onCheckedChange = { settingsViewModel.setShowBatteryPercentage(it) }
                 )
@@ -394,41 +433,42 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                 }
             }
 
-
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 16.dp),
-                thickness = DividerDefaults.Thickness,
-                color = DividerDefaults.color
-            )
-
-            // Notification Settings
-            SettingSection("Notifications") {
-                SettingSwitch(
-                    label = "Show Notification Icons",
-                    checked = settingsState.showNotificationRow,
-                    onCheckedChange = { settingsViewModel.setShowNotificationRow(it) }
+            if(settingsState.hasNotificationAccess) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    thickness = DividerDefaults.Thickness,
+                    color = DividerDefaults.color
                 )
-                SettingSlider(
-                    label = "Size",
-                    value = settingsState.notificationSize,
-                    range = 12f..40f,
-                    onValueChange = { settingsViewModel.setNotificationSize(it) }
-                )
-                if (settingsState.wallpaperDirectory != null) {
-                    ColorPickerSettingItem(
-                        "Notification icons color",
-                        settingsState.notificationColor
-                    ) { showNotificationColor = true }
-                }
-                if (showNotificationColor) {
-                    EnhancedColorPicker(
-                        predefinedColors = settingsViewModel.predefinedColors,
-                        initialColor = settingsState.notificationColor,
-                        onColorSelected = { color ->
-                            settingsViewModel.setNotificationColor(color)
-                        },
-                        onDismissRequest = { showNotificationColor = false }
+                // Notification Settings
+                SettingSection("Notifications") {
+                    SettingSwitch(
+                        label = "Show Notification Icons",
+                        enabled = true,
+                        checked = settingsState.showNotificationRow,
+                        onCheckedChange = { settingsViewModel.setShowNotificationRow(it) }
                     )
+                    SettingSlider(
+                        label = "Size",
+                        value = settingsState.notificationSize,
+                        range = 12f..40f,
+                        onValueChange = { settingsViewModel.setNotificationSize(it) }
+                    )
+                    if (settingsState.wallpaperDirectory != null) {
+                        ColorPickerSettingItem(
+                            "Notification icons color",
+                            settingsState.notificationColor
+                        ) { showNotificationColor = true }
+                    }
+                    if (showNotificationColor) {
+                        EnhancedColorPicker(
+                            predefinedColors = settingsViewModel.predefinedColors,
+                            initialColor = settingsState.notificationColor,
+                            onColorSelected = { color ->
+                                settingsViewModel.setNotificationColor(color)
+                            },
+                            onDismissRequest = { showNotificationColor = false }
+                        )
+                    }
                 }
             }
         }
@@ -438,7 +478,8 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
 // Helper composable for a cleaner settings screen
 
 @Composable
-fun SettingSection(title: String, content: @Composable ColumnScope.() -> Unit) {
+fun SettingSection(title: String,
+                   content: @Composable ColumnScope.() -> Unit) {
     Column {
         Text(
             text = title.uppercase(),
@@ -453,7 +494,10 @@ fun SettingSection(title: String, content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-fun SettingSwitch(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+fun SettingSwitch(label: String,
+                  enabled: Boolean,
+                  checked: Boolean,
+                  onCheckedChange: (Boolean) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -462,11 +506,24 @@ fun SettingSwitch(label: String, checked: Boolean, onCheckedChange: (Boolean) ->
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
+        Row {
+            Text(label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            if(!enabled)Icon(Icons.Filled.Lock,
+                contentDescription = "Paid Feature",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(15.dp)
+                    .offset(x=10.dp,y=2.dp)
+            )
+        }
+        Switch(
+            enabled = enabled,
+            checked = checked,
+            onCheckedChange = onCheckedChange
         )
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 

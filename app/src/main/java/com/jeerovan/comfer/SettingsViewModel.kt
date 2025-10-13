@@ -166,7 +166,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 loadWidgetPosition(id)
             }
             val patternApps = patternIds.associateWith {id -> loadPatternApp(id)}
-            val showAnalog = PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false)
+            val showAnalog = if(hasPro)PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false) else false
             val clockSize = PreferenceManager.getInt(getApplication(),CLOCK_SIZE,150)
             val clockBgColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_BG_COLOR,Color.Black.toArgb()))
             val clockBgAlpha = PreferenceManager.getInt(getApplication(),CLOCK_BG_ALPHA,70) / 100f
@@ -176,7 +176,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val showAmPm = PreferenceManager.getBoolean(getApplication(),SHOW_AM_PM,true)
             val timeFontSize = PreferenceManager.getInt(getApplication(),TIME_FONT_SIZE,60)
             val timeFontColor = Color(PreferenceManager.getInt(getApplication(),TIME_FONT_COLOR,Color.White.toArgb()))
-            val timeFontName = PreferenceManager.getString(getApplication(),TIME_FONT_NAME,"Roboto") ?: "Roboto"
+            val timeFontName = if(hasPro){
+                PreferenceManager.getString(getApplication(),TIME_FONT_NAME,"Iter") ?: "Iter"
+            } else {
+                "Iter"
+            }
             val timeFontFamily = try {
                 FontFamily(
                     Font(
@@ -191,7 +195,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 "Light") ?: "Light"
             val dateFontSize = PreferenceManager.getInt(getApplication(),DATE_FONT_SIZE,20)
             val dateFontColor = Color(PreferenceManager.getInt(getApplication(),DATE_FONT_COLOR,Color.White.toArgb()))
-            val dateFontName = PreferenceManager.getString(getApplication(),DATE_FONT_NAME,"Roboto") ?: "Roboto"
+            val dateFontName = if(hasPro){
+                PreferenceManager.getString(getApplication(),DATE_FONT_NAME,"Iter") ?: "Iter"
+            } else {
+                "Iter"
+            }
             val dateFontFamily = try {
                 FontFamily(
                     Font(
@@ -270,7 +278,42 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setPro(enabled:Boolean){
         viewModelScope.launch {
             PreferenceManager.setPro(getApplication(),enabled)
-            _uiState.update { it.copy(hasPro = enabled) }
+            val showAnalog = if(enabled)PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false) else false
+            val timeFontName = if(enabled){
+                PreferenceManager.getString(getApplication(),TIME_FONT_NAME,"Iter") ?: "Iter"
+            } else {
+                "Iter"
+            }
+            val timeFontFamily = try {
+                FontFamily(
+                    Font(
+                        googleFont = GoogleFont(timeFontName),
+                        fontProvider = fontProvider
+                    )
+                )
+            } catch (_: Exception) {
+                FontFamily.Default
+            }
+            val dateFontName = if(enabled){
+                PreferenceManager.getString(getApplication(),DATE_FONT_NAME,"Iter") ?: "Iter"
+            } else {
+                "Iter"
+            }
+            val dateFontFamily = try {
+                FontFamily(
+                    Font(
+                        googleFont = GoogleFont(dateFontName),
+                        fontProvider = fontProvider
+                    )
+                )
+            } catch (_: Exception) {
+                FontFamily.Default
+            }
+            _uiState.update { it.copy(
+                hasPro = enabled,
+                showAnalog = showAnalog,
+                timeFontFamily = timeFontFamily,
+                dateFontFamily = dateFontFamily) }
         }
     }
     fun setThemedIcons(enabled: Boolean){
@@ -517,7 +560,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     )
                 )
             } catch (e: Exception) {
-                Log.e("SetTimeFontName",e.toString())
+                Log.e("SetTimeFontName", e.toString())
                 FontFamily.Default
             }
 

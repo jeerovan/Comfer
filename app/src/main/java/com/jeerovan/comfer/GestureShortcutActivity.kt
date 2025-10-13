@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -15,6 +16,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -78,6 +81,7 @@ class GestureShortcutActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GestureShortcutScreen(settingsViewModel: SettingsViewModel) {
+    val settingsState by settingsViewModel.uiState.collectAsState()
     val context = LocalContext.current
     val iconSize = PreferenceManager.getIconSize(context).dp
     val iconShape = PreferenceManager.getIconShape(context)
@@ -92,13 +96,24 @@ fun GestureShortcutScreen(settingsViewModel: SettingsViewModel) {
         ) {
             // Top App Bar
             TopAppBar(
-                title = { Text("Gesture Shortcuts") },
+                title = {
+                    Row {
+                        Text("Gesture Shortcuts")
+                        if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
+                            contentDescription = "Paid Feature",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(15.dp)
+                                .offset(x=10.dp,y=7.dp)
+                        )
+                    }
+                        },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                     titleContentColor = MaterialTheme.colorScheme.primary
                 )
             )
-            Text("Tap icon to select app",
+            Text("Tap empty app icon to select app",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.offset(x=20.dp))
@@ -116,6 +131,7 @@ fun GestureShortcutScreen(settingsViewModel: SettingsViewModel) {
                 )
                 AppsLayout(
                     settingsViewModel,
+                    settingsState,
                     circleRadius,
                     lineLength,
                     iconSize,
@@ -560,13 +576,13 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawLShape(
 @Composable
 fun AppsLayout(
     settingsViewModel: SettingsViewModel,
+    settings: SettingsUiState,
     circleRadius: Dp,
     lineLength: Dp,
     iconSize: Dp,
     iconShape: androidx.compose.ui.graphics.Shape
 ) {
     val context = LocalContext.current
-    val settings by settingsViewModel.uiState.collectAsState()
     val patternApps = settings.patternApps
     val appSelectionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -582,10 +598,14 @@ fun AppsLayout(
         }
     }
     fun selectSetApp(pattern:String){
-        val intent = Intent(context, AppSelectionActivity::class.java).apply {
-            putExtra("gesture_pattern", pattern)
+        if(settings.hasPro) {
+            val intent = Intent(context, AppSelectionActivity::class.java).apply {
+                putExtra("gesture_pattern", pattern)
+            }
+            appSelectionLauncher.launch(intent)
+        } else {
+            Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT).show()
         }
-        appSelectionLauncher.launch(intent)
     }
     Box(modifier = Modifier.fillMaxSize()
     ) {
@@ -601,7 +621,11 @@ fun AppsLayout(
                     size = iconSize
                 )
             } else {
-                AppIcon(app = centerApp,iconSize=iconSize,shape=iconShape, notificationPackages = emptyList(), clickable = false)
+                AppIcon(app = centerApp,
+                    iconSize=iconSize,
+                    shape=iconShape,
+                    notificationPackages = emptyList(),
+                    clickable = false)
             }
         }
         val offsetLength = (circleRadius + lineLength/2)

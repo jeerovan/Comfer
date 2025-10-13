@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -47,6 +48,7 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
@@ -211,7 +213,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             item {
                 val context = LocalContext.current
-                val packageName = context.packageName
                 ListItem(
                     headlineContent = { Text("Report an issue") },
                     leadingContent = {
@@ -252,11 +253,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            /*item{
+            item{
                 SelectSetOwnWallpapersDirectory(
+                    enabled = settingsState.hasPro,
                     onSelectDirectory = { directoryUri -> settingsViewModel.setWallpaperDirectory(directoryUri)},
                     selectedDirectory = settingsState.wallpaperDirectory)
-            }*/
+            }
             if(settingsState.wallpaperDirectory != null){
                 item {
                     SelectOptionsWithListItemSettingItem(
@@ -381,10 +383,21 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            /*item { SectionHeader("Home Widgets") }
+            item { SectionHeader("Home Widgets") }
             item {
                 ListItem(
-                    headlineContent = { Text("Custom") },
+                    headlineContent = {
+                        Row {
+                            Text("Custom")
+                            if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
+                                contentDescription = "Paid Feature",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .size(15.dp)
+                                    .offset(x=10.dp,y=5.dp)
+                            )
+                        }
+                                      },
                     supportingContent = { Text("My favorite widgets") },
                     leadingContent = {
                         Icon(
@@ -394,14 +407,19 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     },
                     trailingContent = {
                         Switch(
+                            enabled = settingsState.hasPro,
                             checked = settingsState.hasCustomWidgets,
                             onCheckedChange = { settingsViewModel.setCustomWidgets(it) }
                         )
                     },
-                    modifier = Modifier.clickable { settingsViewModel.setCustomWidgets(!settingsState.hasCustomWidgets) },
+                    modifier = Modifier.clickable {
+                        if(settingsState.hasPro){
+                            settingsViewModel.setCustomWidgets(!settingsState.hasCustomWidgets)
+                        }
+                                                  },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
-            }*/
+            }
             item { SectionHeader("Home Screen") }
             item {
                 QuickAppsLayoutSettingItem(
@@ -459,9 +477,20 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     iconSize = iconSize.dp
                 )
             }
-            /*item {
+            item {
                 ListItem(
-                    headlineContent = { Text("Gestures") },
+                    headlineContent = {
+                        Row {
+                            Text("Gestures")
+                            if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
+                                contentDescription = "Paid Feature",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .size(15.dp)
+                                    .offset(x=10.dp,y=5.dp)
+                            )
+                        }
+                                      },
                     supportingContent = { Text("Magic app shortcuts") },
                     leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
                         contentDescription = "Manage App Lists") },
@@ -476,7 +505,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
-            }*/
+            }
             item { SectionHeader("App Lists") }
             item {
                 ListItem(
@@ -780,6 +809,7 @@ fun IconShapePreview(
 }
 @Composable
 fun SelectSetOwnWallpapersDirectory(
+    enabled: Boolean,
     onSelectDirectory: (directory: String?) -> Unit,
     selectedDirectory: String?
 ) {
@@ -813,7 +843,18 @@ fun SelectSetOwnWallpapersDirectory(
     )
 
     ListItem(
-        headlineContent = { Text("Set own wallpapers") },
+        headlineContent = {
+            Row {
+                Text("Set own wallpapers")
+                if(!enabled)Icon(Icons.Filled.Lock,
+                    contentDescription = "Paid Feature",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(15.dp)
+                        .offset(x=10.dp,y=5.dp)
+                )
+            }
+                          },
         // Use the .path property for a cleaner display string.
         supportingContent = { Text(getUriPath(selectedDirectory) ?: "Tap to select directory") },
         leadingContent = {
@@ -824,6 +865,7 @@ fun SelectSetOwnWallpapersDirectory(
         },
         trailingContent = {
             Switch(
+                enabled = enabled,
                 checked = isChecked, // The UI is driven by the single source of truth.
                 onCheckedChange = { checked ->
                     if (checked) {
@@ -846,8 +888,7 @@ fun SelectSetOwnWallpapersDirectory(
         },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.clickable {
-            // Allow re-picking the directory by tapping anywhere on the row.
-            if (isChecked) {
+            if (enabled && isChecked) {
                 directoryPickerLauncher.launch(null)
             }
         }
