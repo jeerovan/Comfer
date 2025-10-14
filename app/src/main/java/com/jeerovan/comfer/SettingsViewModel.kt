@@ -146,7 +146,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             Log.d("SettingsViewModel","HasPro: $hasPro")
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val wallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(getApplication())
-            val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(getApplication())
+            val wallpaperDirectory = if(hasPro) PreferenceManager.getWallpaperDirectory(getApplication()) else null
             val wallpaperFrequency = PreferenceManager.getWallpaperFrequency(getApplication())
             val iconSize = PreferenceManager.getIconSize(getApplication())
             val iconShapeString  = PreferenceManager.getIconShapeString(getApplication())
@@ -166,7 +166,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val widgetPositions = widgetIds.associateWith { id ->
                 loadWidgetPosition(id)
             }
-            val patternApps = patternIds.associateWith {id -> loadPatternApp(id)}
+            val patternApps = if(hasPro) patternIds.associateWith {id -> loadPatternApp(id)} else emptyMap()
             val showAnalog = if(hasPro)PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false) else false
             val clockSize = PreferenceManager.getInt(getApplication(),CLOCK_SIZE,150)
             val clockBgColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_BG_COLOR,Color.Black.toArgb()))
