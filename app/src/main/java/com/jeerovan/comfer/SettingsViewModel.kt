@@ -143,6 +143,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         logger.setLog("SettingsViewModel","LoadSettings")
         viewModelScope.launch {
             val hasPro = PreferenceManager.getPro(getApplication())
+            Log.d("SettingsViewModel","HasPro: $hasPro")
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val wallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(getApplication())
             val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(getApplication())
@@ -277,6 +278,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     fun setPro(enabled:Boolean){
         viewModelScope.launch {
+            Log.d("SettingsViewModel","SetPro:$enabled")
             PreferenceManager.setPro(getApplication(),enabled)
             val showAnalog = if(enabled)PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false) else false
             val timeFontName = if(enabled){

@@ -9,6 +9,7 @@ composeBom = "2025.10.00"
 # Third-party libraries
 accompanistDrawablepainter = "0.37.3"
 coilCompose = "2.7.0"
+purchases = "9.9.0"
 reorderable = "3.0.0"
 
 # Networking
@@ -50,6 +51,7 @@ androidx-foundation = { group = "androidx.compose.foundation", name = "foundatio
 androidx-ui-text = { group = "androidx.compose.ui", name = "ui-text" }
 androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts" }
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+purchases = { module = "com.revenuecat.purchases:purchases", version.ref = "purchases" }
 ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 
 # Background work

@@ -192,6 +192,26 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 Spacer(Modifier.height(24.dp))
             }
+            item { SectionHeader("Premium")}
+            item {
+                ListItem(
+                    headlineContent = { Text("Pro Access") },
+                    supportingContent = { Text("Subscription") },
+                    leadingContent = {
+                        Icon(painter = painterResource(R.drawable.outline_star_shine_24),
+                            contentDescription = "Subscription") },
+                    trailingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "View"
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        context.startActivity(Intent(context, SubscriptionActivity::class.java))
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
             item { SectionHeader("Support")}
             item {
                 ListItem(
@@ -211,7 +231,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item {
+            if(settingsState.hasPro)item {
                 val context = LocalContext.current
                 ListItem(
                     headlineContent = { Text("Report an issue") },
@@ -219,7 +239,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         Icon(
                             Icons.Filled.Support,
                             contentDescription = "Report Link")
-                                     },
+                    },
                     trailingContent = {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -383,12 +403,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item { SectionHeader("Home Widgets") }
+            item { SectionHeader("Home Screen") }
             item {
                 ListItem(
                     headlineContent = {
                         Row {
-                            Text("Custom")
+                            Text("Custom Widgets")
                             if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
                                 contentDescription = "Paid Feature",
                                 tint = MaterialTheme.colorScheme.primary,
@@ -397,7 +417,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                                     .offset(x=10.dp,y=5.dp)
                             )
                         }
-                                      },
+                    },
                     supportingContent = { Text("My favorite widgets") },
                     leadingContent = {
                         Icon(
@@ -416,11 +436,10 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         if(settingsState.hasPro){
                             settingsViewModel.setCustomWidgets(!settingsState.hasCustomWidgets)
                         }
-                                                  },
+                    },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item { SectionHeader("Home Screen") }
             item {
                 QuickAppsLayoutSettingItem(
                     selectedLayout = quickAppsLayout,

@@ -213,6 +213,12 @@ import androidx.compose.ui.graphics.StrokeCap
 import java.util.Calendar
 
 import androidx.compose.ui.layout.onGloballyPositioned
+import com.revenuecat.purchases.CustomerInfo
+import com.revenuecat.purchases.LogLevel
+import com.revenuecat.purchases.Purchases
+import com.revenuecat.purchases.PurchasesConfiguration
+import com.revenuecat.purchases.getCustomerInfoWith
+import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
 import kotlin.math.atan2
 
 
@@ -439,7 +445,7 @@ data class WidgetProviderGroup(
     val providers: List<AppWidgetProviderInfo>
 )
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
     private val appInfoViewModel: AppInfoViewModel by viewModels()
     private val settingsViewModel:SettingsViewModel by viewModels()
     private val mainViewModel: MainViewModel by viewModels()
@@ -479,6 +485,11 @@ class MainActivity : ComponentActivity() {
         leftSideWidgetHost = AppWidgetHost(applicationContext, LEFT_SIDE_WIDGET_HOST_ID)
         rightSideWidgetHost = AppWidgetHost(applicationContext, RIGHT_SIDE_WIDGET_HOST_ID)
 
+        Purchases.logLevel = LogLevel.DEBUG
+        Purchases.configure(PurchasesConfiguration.Builder(this, "goog_alczWNGIWABONRuXvtRSKpPJFXi").build())
+        Purchases.sharedInstance.updatedCustomerInfoListener = this
+        checkSubscriptionStatus()
+
         setContent {
             ComferTheme {
                 LauncherScreen(appInfoViewModel,
@@ -517,6 +528,27 @@ class MainActivity : ComponentActivity() {
             //delay(1000) // Delay, does not stop main thread
             mainViewModel.loadImageData()
         }
+    }
+
+    override fun onReceived(customerInfo: CustomerInfo) {
+        // This fires whenever CustomerInfo changes
+        updateSubscriptionStatus(customerInfo)
+    }
+
+    private fun checkSubscriptionStatus() {
+        Purchases.sharedInstance.getCustomerInfoWith(
+            onError = { error ->
+                settingsViewModel.setPro(false)
+            },
+            onSuccess = { customerInfo ->
+                updateSubscriptionStatus(customerInfo)
+            }
+        )
+    }
+
+    private fun updateSubscriptionStatus(customerInfo: CustomerInfo) {
+        val isActive = customerInfo.entitlements.active.isNotEmpty()
+        settingsViewModel.setPro(isActive)
     }
 }
 
