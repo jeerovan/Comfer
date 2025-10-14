@@ -1055,15 +1055,13 @@ private fun AppIconWrapper(
                     scaleY = scale
                 }
                 .then(
-                    if (isEditMode) {
-                        Modifier.longPressDraggableHandle()
-                    } else {
-                        Modifier.pointerInput(Unit) {
+                    Modifier
+                        .longPressDraggableHandle()
+                        .pointerInput(Unit) {
                             detectTapGestures(
                                 onTap = { onClick() }
                             )
                         }
-                    }
                 )
         },
         horizontalAlignment = Alignment.CenterHorizontally

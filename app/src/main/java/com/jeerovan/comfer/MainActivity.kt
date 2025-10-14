@@ -485,7 +485,7 @@ class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
         leftSideWidgetHost = AppWidgetHost(applicationContext, LEFT_SIDE_WIDGET_HOST_ID)
         rightSideWidgetHost = AppWidgetHost(applicationContext, RIGHT_SIDE_WIDGET_HOST_ID)
 
-        Purchases.logLevel = LogLevel.DEBUG
+        Purchases.logLevel = LogLevel.ERROR
         Purchases.configure(PurchasesConfiguration.Builder(this, "goog_alczWNGIWABONRuXvtRSKpPJFXi").build())
         Purchases.sharedInstance.updatedCustomerInfoListener = this
         checkSubscriptionStatus()
