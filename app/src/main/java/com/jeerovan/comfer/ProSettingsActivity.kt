@@ -1,66 +1,79 @@
 package com.jeerovan.comfer
 
 import android.os.Bundle
+import android.util.Log
+import android.view.RoundedCorner
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.ui.theme.fontProvider
 import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
-import kotlin.getValue
-
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.jeerovan.comfer.utils.CommonUtil.isColorDark
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyGridState
+import kotlin.getValue
 
 class ProSettingsActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
+    private val appsViewModel: AppInfoViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         setContent {
             // A basic theme wrapper
             ComferTheme {
-                ProSettingsScreen(settingsViewModel)
+                //ProSettingsScreen(settingsViewModel)
+                AppDrawerScreen(appsViewModel)
             }
         }
     }
@@ -838,6 +851,285 @@ fun ColorPickerSettingItem(
             text = title,
             modifier = Modifier.align(Alignment.Center),
             color = if (isColorDark(color)) Color.White else Color.Black
+        )
+    }
+}
+
+// Test Composables
+
+@Composable
+fun AppDrawer(
+    modifier: Modifier = Modifier,
+    apps: List<AppInfo>,
+    onAppsReordered: (List<AppInfo>) -> Unit,
+    onAppClick: (AppInfo) -> Unit = {},
+    initialHeight: Dp = 400.dp,
+    initialOffsetY: Dp = 0.dp,
+    minHeight: Dp = 200.dp,
+    maxHeight: Dp = 800.dp,
+    contentPadding: PaddingValues = PaddingValues(16.dp),
+    horizontalSpacing: Dp = 16.dp,
+    verticalSpacing: Dp = 16.dp,
+    iconSize: Dp = 72.dp,
+    onHeightChanged: (Dp) -> Unit = {},
+    onPositionChanged: (Dp) -> Unit = {}
+) {
+    var isEditMode by remember { mutableStateOf(false) }
+    var drawerHeight by remember { mutableStateOf(initialHeight) }
+    var drawerOffsetY by remember { mutableStateOf(initialOffsetY) }
+
+    val hapticFeedback = LocalHapticFeedback.current
+    val density = LocalDensity.current
+
+    var appsList by remember { mutableStateOf(apps) }
+    val lazyGridState = rememberLazyGridState()
+
+    val totalIconHeight = iconSize + verticalSpacing
+    val verticalPadding = contentPadding.calculateTopPadding() + contentPadding.calculateBottomPadding()
+    val availableHeight = drawerHeight - verticalPadding
+    val numberOfRows = ((availableHeight / totalIconHeight).toInt()).coerceAtLeast(1)
+
+    // Reorderable state for the grid
+    val reorderableLazyGridState = rememberReorderableLazyGridState(lazyGridState) { from, to ->
+        appsList = appsList.toMutableList().apply {
+            add(to.index, removeAt(from.index))
+        }
+        onAppsReordered(appsList)
+        hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
+    }
+
+    // Update apps list when external list changes
+    LaunchedEffect(apps) {
+        appsList = apps
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+    ) {
+        // Main Drawer Container
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset { IntOffset(0, drawerOffsetY.roundToPx()) }
+                .then(
+                    if (isEditMode) {
+                        Modifier.border(2.dp, MaterialTheme.colorScheme.primary)
+                    } else {
+                        Modifier
+                    }
+                )
+                .pointerInput(isEditMode) {
+                    detectTapGestures(
+                        onLongPress = {
+                            isEditMode = !isEditMode
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                        }
+                    )
+                }
+                .then(
+                    if (isEditMode) {
+                        Modifier.pointerInput(Unit) {
+                            detectDragGestures { change, dragAmount ->
+                                change.consume()
+                                val newOffset = drawerOffsetY + with(density) { dragAmount.y.toDp() }
+                                drawerOffsetY = newOffset
+                                onPositionChanged(newOffset)
+                            }
+                        }
+                    } else {
+                        Modifier
+                    }
+                )
+        ) {
+            // App Grid
+            LazyHorizontalGrid(
+                rows = GridCells.Fixed(numberOfRows),
+                state = lazyGridState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(drawerHeight),
+                contentPadding = contentPadding,
+                horizontalArrangement = Arrangement.spacedBy(horizontalSpacing),
+                verticalArrangement = Arrangement.spacedBy(verticalSpacing)
+            ) {
+                items(
+                    count = appsList.size,
+                    key = { index -> appsList[index].packageName }
+                ) { index ->
+                    val app = appsList[index]
+
+                    ReorderableItem(
+                        reorderableLazyGridState,
+                        key = app.packageName
+                    ) { isDragging ->
+                        AppIconWrapper(
+                            app = app,
+                            isEditMode = isEditMode,
+                            isDragging = isDragging,
+                            iconSize = iconSize,
+                            onClick = {
+                                if (!isEditMode) {
+                                    onAppClick(app)
+                                }
+                            },
+                            dragHandle = this
+                        )
+                    }
+                }
+            }
+        }
+
+        // Resize Handle - Circular dot on bottom border
+        AnimatedVisibility(visible = isEditMode) {
+            ResizeHandle(
+                modifier = Modifier
+                    .offset {
+                        IntOffset(
+                            x = 0,
+                            y = (drawerOffsetY + drawerHeight - 7.5.dp).roundToPx()
+                        )
+                    }
+                    .fillMaxWidth(),
+                onDrag = { dragAmount ->
+                    val newHeight = (drawerHeight + dragAmount).coerceIn(minHeight, maxHeight)
+                    drawerHeight = newHeight
+                    onHeightChanged(newHeight)
+                }
+            )
+        }
+    }
+}
+@Composable
+private fun ResizeHandle(
+    modifier: Modifier = Modifier,
+    onDrag: (Dp) -> Unit
+) {
+    val density = LocalDensity.current
+    val hapticFeedback = LocalHapticFeedback.current
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(15.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary)
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                        },
+                        onDragEnd = {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                        }
+                    ) { change, dragAmount ->
+                        change.consume()
+                        onDrag(with(density) { dragAmount.y.toDp() })
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
+                    }
+                }
+        )
+    }
+}
+@Composable
+private fun AppIconWrapper(
+    app: AppInfo,
+    isEditMode: Boolean,
+    isDragging: Boolean,
+    iconSize: Dp,
+    onClick: () -> Unit,
+    dragHandle: sh.calvin.reorderable.ReorderableCollectionItemScope
+) {
+    val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp, label = "elevation")
+    val scale by animateFloatAsState(if (isDragging) 1.1f else 1f, label = "scale")
+
+    Column(
+        modifier = with(dragHandle) {
+            Modifier
+                .size(80.dp)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
+                .then(
+                    if (isEditMode) {
+                        Modifier.longPressDraggableHandle()
+                    } else {
+                        Modifier.pointerInput(Unit) {
+                            detectTapGestures(
+                                onTap = { onClick() }
+                            )
+                        }
+                    }
+                )
+        },
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Surface(
+            modifier = Modifier.size(56.dp),
+            shape = MaterialTheme.shapes.medium,
+            shadowElevation = elevation,
+            tonalElevation = if (isEditMode) 2.dp else 0.dp
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                AppIcon(app,emptyList(), CircleShape, iconSize = iconSize, clickable = false)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = app.label.toString(),
+            style = MaterialTheme.typography.bodySmall,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+        )
+    }
+}
+
+// Usage example
+@Composable
+fun AppDrawerScreen(
+    appsViewModel: AppInfoViewModel
+) {
+    val appsState by appsViewModel.uiState.collectAsState()
+    val apps = appsState.primaryApps
+    var currentApps by remember(apps) { mutableStateOf(apps) }
+
+    var drawerHeight by remember { mutableStateOf(400.dp) }
+    var drawerOffset by remember { mutableStateOf(100.dp) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        AppDrawer(
+            apps = currentApps,
+            onAppsReordered = { reorderedApps ->
+                currentApps = reorderedApps
+                // Persist to preferences/database
+            },
+            onAppClick = { app ->
+                // Launch app
+            },
+            initialHeight = drawerHeight,
+            initialOffsetY = drawerOffset,
+            contentPadding = PaddingValues(16.dp),
+            horizontalSpacing = 16.dp,
+            verticalSpacing = 16.dp,
+            iconSize = 72.dp,
+            onHeightChanged = { newHeight ->
+                drawerHeight = newHeight
+                // Save to preferences
+            },
+            onPositionChanged = { newOffset ->
+                drawerOffset = newOffset
+                // Save to preferences
+            }
         )
     }
 }

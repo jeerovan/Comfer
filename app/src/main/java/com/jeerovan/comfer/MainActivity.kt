@@ -2867,7 +2867,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 detectTapGestures(
                     onLongPress = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        context.startActivity(Intent(context, SettingsActivity::class.java))
+                        context.startActivity(Intent(context, ProSettingsActivity::class.java))
+                        //context.startActivity(Intent(context, SettingsActivity::class.java))
                     },
                     onDoubleTap = {
                         if (isAccessibilityServiceEnabled(
