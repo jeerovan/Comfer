@@ -2933,9 +2933,16 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             enter = layer2Enter,
             exit = layer2Exit
         ) {
-            AppListOverlay(apps = sortedPrimaryApps,
-                notificationPackages,
-                onSwipeDown = { isAppListVisible = false })
+            if (settingInfoUiState.appDrawerLayout == "circular") {
+                AppListOverlay(
+                    apps = sortedPrimaryApps,
+                    notificationPackages,
+                    onSwipeDown = { isAppListVisible = false })
+            } else {
+                AppDrawerScreen(sortedPrimaryApps,
+                    notificationPackages,
+                    onSwipeDown = { isAppListVisible = false})
+            }
         }
 
         // search list
@@ -3197,7 +3204,7 @@ fun AppIcon(app: AppInfo,
             modifier = Modifier
                 .size(iconSize)
                 .clip(iconShape)
-                .pointerInput(Unit) {
+                .pointerInput(clickable) {
                     if(clickable)detectTapGestures(
                         onTap = {
                             view.playSoundEffect(SoundEffectConstants.CLICK)

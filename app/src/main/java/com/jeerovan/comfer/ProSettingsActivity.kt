@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -57,6 +58,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.ui.theme.fontProvider
 import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
@@ -74,8 +78,7 @@ class ProSettingsActivity : ComponentActivity() {
         setContent {
             // A basic theme wrapper
             ComferTheme {
-                //ProSettingsScreen(settingsViewModel)
-                AppDrawerScreen(appsViewModel)
+                ProSettingsScreen(settingsViewModel)
             }
         }
     }
@@ -864,27 +867,46 @@ fun AppDrawer(
     modifier: Modifier = Modifier,
     isEditMode: Boolean,
     apps: List<AppInfo>,
+    notificationPackages: List<String>,
     onAppsReordered: (List<AppInfo>) -> Unit,
     initialHeight: Dp = 400.dp,
     initialOffsetY: Dp = 0.dp,
     contentPadding: PaddingValues = PaddingValues(16.dp),
     horizontalSpacing: Dp = 16.dp,
     verticalSpacing: Dp = 16.dp,
-    iconSize: Dp = 72.dp,
     onHeightChanged: (Dp) -> Unit = {},
     onPositionChanged: (Dp) -> Unit = {}
 ) {
     var drawerHeight by remember { mutableStateOf(initialHeight) }
     var drawerOffsetY by remember { mutableStateOf(initialOffsetY) }
 
+    val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
     val density = LocalDensity.current
+    var iconSize by remember { mutableStateOf(48.dp) }
+    var iconShape: Shape by remember { mutableStateOf(CircleShape) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                iconSize = PreferenceManager.getIconSize(context).dp
+                iconShape = PreferenceManager.getIconShape(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     val maxScreenHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp }
     var appsList by remember { mutableStateOf(apps) }
     val lazyGridState = rememberLazyGridState()
 
-    val totalIconHeight = iconSize + verticalSpacing
+    val cellSize = iconSize + 16.dp
+    val totalIconHeight = cellSize + verticalSpacing
     val verticalPadding = contentPadding.calculateTopPadding() + contentPadding.calculateBottomPadding()
     val availableHeight = drawerHeight - verticalPadding
     val numberOfRows = ((availableHeight / totalIconHeight).toInt()).coerceAtLeast(1)
@@ -965,9 +987,11 @@ fun AppDrawer(
                     ) { isDragging ->
                         AppIconWrapper(
                             app = app,
+                            notificationPackages,
                             isEditMode = isEditMode,
                             isDragging = isDragging,
                             iconSize = iconSize,
+                            iconShape,
                             dragHandle = this
                         )
                     }
@@ -1034,13 +1058,14 @@ private fun ResizeHandle(
 @Composable
 private fun AppIconWrapper(
     app: AppInfo,
+    notificationPackages: List<String>,
     isEditMode: Boolean,
     isDragging: Boolean,
     iconSize: Dp,
+    iconShape: Shape,
     dragHandle: sh.calvin.reorderable.ReorderableCollectionItemScope
 ) {
     val scale by animateFloatAsState(if (isDragging) 1.2f else 1f, label = "scale")
-
     Column(
         modifier = with(dragHandle) {
             Modifier
@@ -1050,16 +1075,21 @@ private fun AppIconWrapper(
                     scaleY = scale
                 }
                 .then(
-                    Modifier
-                        .longPressDraggableHandle()
+                    if(isEditMode) {
+                        Modifier
+                            .longPressDraggableHandle()
+                    } else { Modifier }
                 )
         },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        AppIcon(app,emptyList(), CircleShape, iconSize = iconSize - 16.dp, clickable = false)
+        AppIcon(app,
+            notificationPackages,
+            iconShape,
+            iconSize = iconSize,
+            clickable = !isEditMode)
 
         Spacer(modifier = Modifier.height(4.dp))
-
         Text(
             text = app.label.toString(),
             style = MaterialTheme.typography.bodySmall,
@@ -1071,11 +1101,11 @@ private fun AppIconWrapper(
 // Usage example
 @Composable
 fun AppDrawerScreen(
-    appsViewModel: AppInfoViewModel
+    apps: List<AppInfo>,
+    notificationPackages: List<String>,
+    onSwipeDown: () -> Unit
 ) {
     val hapticFeedback = LocalHapticFeedback.current
-    val appsState by appsViewModel.uiState.collectAsState()
-    val apps = appsState.quickApps + appsState.primaryApps
     var currentApps by remember(apps) { mutableStateOf(apps) }
 
     var drawerHeight by remember { mutableStateOf(400.dp) }
@@ -1085,6 +1115,9 @@ fun AppDrawerScreen(
 
     Box(modifier = Modifier
         .fillMaxSize()
+        .detectGestures(
+            onSwipeDown = onSwipeDown
+        )
         .pointerInput(Unit) {
             detectTapGestures(
                 onLongPress = {
@@ -1097,6 +1130,7 @@ fun AppDrawerScreen(
         AppDrawer(
             isEditMode = isEditMode,
             apps = currentApps,
+            notificationPackages = notificationPackages,
             onAppsReordered = { reorderedApps ->
                 currentApps = reorderedApps
                 // Persist to preferences/database
@@ -1106,7 +1140,6 @@ fun AppDrawerScreen(
             contentPadding = PaddingValues(16.dp),
             horizontalSpacing = 16.dp,
             verticalSpacing = 16.dp,
-            iconSize = 72.dp,
             onHeightChanged = { newHeight ->
                 drawerHeight = newHeight
                 // Save to preferences

@@ -136,7 +136,7 @@ fun GestureShortcutScreen(settingsViewModel: SettingsViewModel) {
                     titleContentColor = MaterialTheme.colorScheme.primary
                 )
             )
-            Text("Tap empty app icon to select app",
+            Text("Tap app icon to select app",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.offset(x=20.dp))
