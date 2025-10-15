@@ -872,7 +872,9 @@ fun AppDrawer(
     onHeightChanged: (Dp) -> Unit = {},
     onPositionChanged: (Dp) -> Unit = {},
     enterEditMode: () -> Unit,
-    exitEditMode: () -> Unit
+    exitEditMode: () -> Unit,
+    iconSize: Dp,
+    iconShape: Shape
 ) {
     val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
@@ -882,24 +884,6 @@ fun AppDrawer(
 
     var drawerHeight by remember { mutableStateOf(initialHeight) }
     var drawerOffsetY by remember { mutableStateOf(initialOffsetY) }
-
-    var iconSize by remember { mutableStateOf(48.dp) }
-    var iconShape: Shape by remember { mutableStateOf(CircleShape) }
-
-    val lifecycleOwner = LocalLifecycleOwner.current
-
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                iconSize = PreferenceManager.getIconSize(context).dp
-                iconShape = PreferenceManager.getIconShape(context)
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
 
     var appsList by remember { mutableStateOf(apps) }
     val lazyGridState = rememberLazyGridState()
@@ -1128,9 +1112,12 @@ private fun AppIconWrapper(
 fun AppDrawerScreen(
     apps: List<AppInfo>,
     notificationPackages: List<String>,
+    settingsViewModel: SettingsViewModel,
     onSwipeDown: () -> Unit
 ) {
     val hapticFeedback = LocalHapticFeedback.current
+    val settings by settingsViewModel.uiState.collectAsState()
+
     var currentApps by remember(apps) { mutableStateOf(apps) }
     val maxScreenHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp }
     val initialHeight = maxScreenHeightDp - 100.dp
@@ -1182,7 +1169,9 @@ fun AppDrawerScreen(
             },
             exitEditMode = {
                 if(isEditMode)isEditMode = false
-            }
+            },
+            iconSize = settings.iconSize.dp,
+            iconShape = settings.iconShape
         )
     }
 }

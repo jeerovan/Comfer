@@ -2941,6 +2941,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             } else {
                 AppDrawerScreen(sortedPrimaryApps,
                     notificationPackages,
+                    settingsViewModel,
                     onSwipeDown = { isAppListVisible = false})
             }
         }
