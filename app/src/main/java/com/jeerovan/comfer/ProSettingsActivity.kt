@@ -53,9 +53,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.ui.theme.fontProvider
 import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
@@ -862,8 +859,9 @@ fun AppDrawer(
     modifier: Modifier = Modifier,
     isEditMode: Boolean,
     apps: List<AppInfo>,
+    canReOrder: Boolean,
     notificationPackages: List<String>,
-    onAppsReordered: (List<AppInfo>) -> Unit,
+    onAppsReordered: (Int,Int) -> Unit,
     initialHeight: Dp,
     initialOffsetY: Dp,
     contentPadding: PaddingValues = PaddingValues(16.dp),
@@ -899,7 +897,7 @@ fun AppDrawer(
         appsList = appsList.toMutableList().apply {
             add(to.index, removeAt(from.index))
         }
-        onAppsReordered(appsList)
+        onAppsReordered(from.index,to.index)
         hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
     }
 
@@ -967,20 +965,23 @@ fun AppDrawer(
                     key = { index -> appsList[index].packageName }
                 ) { index ->
                     val app = appsList[index]
-
-                    ReorderableItem(
-                        reorderableLazyGridState,
-                        key = app.packageName
-                    ) { isDragging ->
-                        AppIconWrapper(
-                            app = app,
-                            notificationPackages,
-                            isEditMode = isEditMode,
-                            isDragging = isDragging,
-                            iconSize = iconSize,
-                            iconShape,
-                            dragHandle = this
-                        )
+                    if(canReOrder) {
+                        ReorderableItem(
+                            reorderableLazyGridState,
+                            key = app.packageName
+                        ) { isDragging ->
+                            AppIconWrapper(
+                                app = app,
+                                notificationPackages,
+                                isEditMode = isEditMode,
+                                isDragging = isDragging,
+                                iconSize = iconSize,
+                                iconShape,
+                                dragHandle = this
+                            )
+                        }
+                    } else {
+                        AppIconWrapperWoDragging(app,notificationPackages,isEditMode,iconSize,iconShape)
                     }
                 }
             }
@@ -1107,19 +1108,49 @@ private fun AppIconWrapper(
         )
     }
 }
+@Composable
+private fun AppIconWrapperWoDragging(
+    app: AppInfo,
+    notificationPackages: List<String>,
+    isEditMode: Boolean,
+    iconSize: Dp,
+    iconShape: Shape,
+) {
+    Column(
+        modifier = Modifier
+            .size(80.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        AppIcon(app,
+            notificationPackages,
+            iconShape,
+            iconSize = iconSize,
+            clickable = !isEditMode)
 
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = app.label.toString(),
+            style = MaterialTheme.typography.bodyMedium,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
 // Usage example
 @Composable
 fun AppDrawerScreen(
-    apps: List<AppInfo>,
     notificationPackages: List<String>,
     settingsViewModel: SettingsViewModel,
+    appInfoViewModel: AppInfoViewModel,
     onSwipeDown: () -> Unit
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val settings by settingsViewModel.uiState.collectAsState()
+    val appsInfo by appInfoViewModel.uiState.collectAsState()
+    val sortedPrimaryApps = if(settings.arrangeInAlphabeticalOrder) appsInfo.primaryApps.sortedBy { it.label.toString() } else appsInfo.primaryApps
 
-    var currentApps by remember(apps) { mutableStateOf(apps) }
+    var currentApps by remember(sortedPrimaryApps) { mutableStateOf(sortedPrimaryApps) }
     val maxScreenHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp }
     val initialHeight = if(settings.drawerHeight > 0) settings.drawerHeight.dp else maxScreenHeightDp - 100.dp
     val initialOffset = if(settings.drawerOffset > 0) settings.drawerOffset.dp else 50.dp
@@ -1148,10 +1179,10 @@ fun AppDrawerScreen(
         AppDrawer(
             isEditMode = isEditMode,
             apps = currentApps,
+            canReOrder = !settings.arrangeInAlphabeticalOrder,
             notificationPackages = notificationPackages,
-            onAppsReordered = { reorderedApps ->
-                currentApps = reorderedApps
-                // Persist to preferences/database
+            onAppsReordered = { from,to ->
+                appInfoViewModel.moveAppInList(AppInfoManager.PRIMARY_APPS_LIST_NAME,from,to)
             },
             initialHeight = drawerHeight,
             initialOffsetY = drawerOffset,
