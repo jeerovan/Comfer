@@ -195,7 +195,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item { SectionHeader("Premium")}
             item {
                 ListItem(
-                    headlineContent = { Text("Pro Access") },
+                    headlineContent = { Text("Pro Features") },
                     supportingContent = { Text("Subscription") },
                     leadingContent = {
                         Icon(painter = painterResource(R.drawable.outline_star_shine_24),
@@ -525,24 +525,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item { SectionHeader("App Lists") }
-            item {
-                ListItem(
-                    headlineContent = { Text("Manage") },
-                    supportingContent = { Text("Organize/Reorder apps in lists") },
-                    leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Manage App Lists") },
-                    trailingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "Go"
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, ManageAppListActivity::class.java))
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
+            item { SectionHeader("App Drawer") }
             item {
                 ListItem(
                     headlineContent = { Text("Alphabetical order") },
@@ -560,6 +543,24 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         )
                     },
                     modifier = Modifier.clickable { settingsViewModel.setCustomWidgets(!settingsState.arrangeInAlphabeticalOrder) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
+            item { SectionHeader("App Lists") }
+            item {
+                ListItem(
+                    headlineContent = { Text("Manage") },
+                    supportingContent = { Text("Organize/Reorder apps in lists") },
+                    leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Manage App Lists") },
+                    trailingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "Go"
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        context.startActivity(Intent(context, ManageAppListActivity::class.java))
+                    },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
