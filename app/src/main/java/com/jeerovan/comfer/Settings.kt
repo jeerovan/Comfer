@@ -15,7 +15,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -77,9 +76,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -89,7 +87,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
-import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import androidx.core.net.toUri
@@ -173,6 +170,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val iconShapeString = settingsState.iconShapeString
 
     val quickAppsLayout = settingsState.quickAppsLayout
+    val appDrawerLayout = settingsState.appDrawerLayout
     var showDisclosure by remember { mutableStateOf(false) }
 
     fun checkShowDiscloseOrPermissionIntent(){
@@ -441,7 +439,15 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
             }
             item {
-                QuickAppsLayoutSettingItem(
+                val layoutOptions:Map<String,Painter> = mapOf(
+                    "linear" to painterResource(R.drawable.layout_linear),
+                    "circular" to painterResource(R.drawable.layout_circular)
+                )
+                AppsLayoutSettingItem(
+                    title = "Quick apps layout",
+                    subtitle = "Arrange apps with style",
+                    leadingPainter = painterResource(R.drawable.outline_apps_24),
+                    layoutOptions = layoutOptions,
                     selectedLayout = quickAppsLayout,
                     onLayoutSelected = { layout -> settingsViewModel.setQuickAppsLayout(layout)}
                 )
@@ -526,6 +532,20 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
             }
             item { SectionHeader("App Drawer") }
+            item {
+                val layoutOptions:Map<String,Painter> = mapOf(
+                    "linear" to painterResource(R.drawable.outline_apps_24),
+                    "circular" to painterResource(R.drawable.layout_comfer)
+                )
+                AppsLayoutSettingItem(
+                    title = "Layout",
+                    subtitle = "Style to explore apps",
+                    leadingPainter = painterResource(R.drawable.outline_apps_24),
+                    layoutOptions = layoutOptions,
+                    selectedLayout = appDrawerLayout,
+                    onLayoutSelected = { layout -> settingsViewModel.setAppDrawerLayout(layout)}
+                )
+            }
             item {
                 ListItem(
                     headlineContent = { Text("Alphabetical order") },
@@ -980,35 +1000,30 @@ fun NotificationServicePermissionDisclosureScreen(
     }
 }
 @Composable
-fun QuickAppsLayoutSettingItem(
+fun AppsLayoutSettingItem(
+    title: String,
+    subtitle: String,
+    leadingPainter: Painter,
+    layoutOptions: Map<String,Painter>,
     selectedLayout: String?,
     onLayoutSelected: (String) -> Unit
 ) {
     var showDialog by remember { mutableStateOf(false) }
 
     ListItem(
-        headlineContent = { Text("Quick apps layout") },
-        supportingContent = { Text("Arrange apps with style") },
+        headlineContent = { Text(title) },
+        supportingContent = { Text(subtitle) },
         leadingContent = { Icon(
-            painter = painterResource(R.drawable.outline_apps_24),
-            contentDescription = "Home apps layout")
+            painter = leadingPainter,
+            contentDescription = "Apps layout")
         },
         trailingContent = {
-            when (selectedLayout) {
-                "linear" -> {
-                    Icon(
-                        painter = painterResource(R.drawable.layout_linear),
-                        contentDescription = "Widgets",
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
-                "circular" -> {
-                    Icon(
-                        painter = painterResource(R.drawable.layout_circular),
-                        contentDescription = "Widgets",
-                        modifier = Modifier.size(48.dp)
-                    )
-                }
+            layoutOptions[selectedLayout]?.let {
+                Icon(
+                    painter = it,
+                    contentDescription = "Widgets",
+                    modifier = Modifier.size(48.dp)
+                )
             }
         },
         modifier = Modifier.clickable { showDialog = true },
@@ -1022,27 +1037,21 @@ fun QuickAppsLayoutSettingItem(
             text = {
                 Column (modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        painter = painterResource(R.drawable.layout_linear),
-                        contentDescription = "Widgets",
-                        modifier = Modifier
-                            .size(76.dp)
-                            .clickable {
-                                showDialog = false
-                                onLayoutSelected("linear")
-                            }
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Icon(
-                        painter = painterResource(R.drawable.layout_circular),
-                        contentDescription = "Widgets",
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clickable {
-                                showDialog = false
-                                onLayoutSelected("circular")
-                            }
-                    )
+                    layoutOptions.forEach { (key, painter) ->
+                        Icon(
+                            painter = painter,
+                            contentDescription = key,
+                            modifier = Modifier
+                                .size(if (key == "linear") 76.dp else 56.dp)
+                                .clickable {
+                                    showDialog = false
+                                    onLayoutSelected(key)
+                                }
+                        )
+                        if (key != layoutOptions.keys.last()) {
+                            Spacer(modifier = Modifier.height(24.dp))
+                        }
+                    }
                 }
             },
             confirmButton = {

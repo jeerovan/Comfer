@@ -26,6 +26,7 @@ object PreferenceManager {
     private const val FEEDBACK_DIALOG = "feedback_dialog"
     private const val WALLPAPER_SET = "wallpaper_set"
     private const val QUICK_APPS_LAYOUT = "quick_apps_layout"
+    private const val APP_DRAWER_LAYOUT = "app_drawer_layout"
     private const val CUSTOM_WIDGETS = "custom_widgets"
     private const val WALLPAPER_DIRECTORY = "wallpaper_directory"
     private const val WALLPAPER_FREQUENCY = "wallpaper_frequency"
@@ -138,7 +139,12 @@ object PreferenceManager {
     fun getQuickAppsLayout(context: Context):String {
         return getString(context,QUICK_APPS_LAYOUT,"linear") ?: "linear"
     }
-
+    fun setAppDrawerLayout(context: Context,layout:String){
+        setString(context,APP_DRAWER_LAYOUT,layout)
+    }
+    fun getAppDrawerLayout(context: Context):String {
+        return getString(context,APP_DRAWER_LAYOUT,"circular") ?: "circular"
+    }
     fun setCustomWidgets(context: Context, enabled: Boolean){
         setBoolean(context,CUSTOM_WIDGETS,enabled)
     }

@@ -40,6 +40,7 @@ data class SettingsUiState(
     val iconShape: Shape = CircleShape,
     val showThemedIcons: Boolean = false,
     val quickAppsLayout: String = "linear",
+    val appDrawerLayout: String = "circular",
     val leftSwipeApp:AppInfo? = null,
     val rightSwipeApp:AppInfo? = null,
     val isLeftSwipeWidgets: Boolean = false,
@@ -153,6 +154,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val iconShape  = PreferenceManager.getIconShape(getApplication())
             val showThemedIcons = PreferenceManager.getThemedIcons(getApplication())
             val quickAppsLayout = PreferenceManager.getQuickAppsLayout(getApplication())
+            val appDrawerLayout = PreferenceManager.getAppDrawerLayout(getApplication())
             val leftSwipeApp = mapPackageNameToAppInfo(
                 getApplication(),
                 packageManager,PreferenceManager.getSwipeApp(getApplication(),"left"))
@@ -235,6 +237,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     iconShape = iconShape,
                     showThemedIcons = showThemedIcons,
                     quickAppsLayout = quickAppsLayout,
+                    appDrawerLayout = appDrawerLayout,
                     iconShapeString =  iconShapeString,
                     leftSwipeApp = leftSwipeApp,
                     rightSwipeApp = rightSwipeApp,
@@ -628,6 +631,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             PreferenceManager.setQuickAppsLayout(getApplication(),layout)
             _uiState.update { it.copy(quickAppsLayout = layout) }
+        }
+    }
+    fun setAppDrawerLayout(layout:String){
+        viewModelScope.launch {
+            PreferenceManager.setAppDrawerLayout(getApplication(),layout)
+            _uiState.update { it.copy(appDrawerLayout = layout) }
         }
     }
     fun setSwipeApp(swipeDirection:String, appName: String){
