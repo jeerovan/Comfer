@@ -1002,6 +1002,7 @@ fun AppDrawer(
                         drawerOffsetY = newOffset
                         drawerHeight = drawerHeight - dragAmount
                         onHeightChanged(drawerHeight)
+                        onPositionChanged(newOffset)
                     }
                 }
             )
@@ -1120,9 +1121,10 @@ fun AppDrawerScreen(
 
     var currentApps by remember(apps) { mutableStateOf(apps) }
     val maxScreenHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp }
-    val initialHeight = maxScreenHeightDp - 100.dp
+    val initialHeight = if(settings.drawerHeight > 0) settings.drawerHeight.dp else maxScreenHeightDp - 100.dp
+    val initialOffset = if(settings.drawerOffset > 0) settings.drawerOffset.dp else 50.dp
     var drawerHeight by remember { mutableStateOf(initialHeight) }
-    var drawerOffset by remember { mutableStateOf(50.dp) }
+    var drawerOffset by remember { mutableStateOf(initialOffset) }
 
     var isEditMode by remember { mutableStateOf(false) }
 
@@ -1158,11 +1160,11 @@ fun AppDrawerScreen(
             verticalSpacing = 16.dp,
             onHeightChanged = { newHeight ->
                 drawerHeight = newHeight
-                // Save to preferences
+                settingsViewModel.setDrawerHeight(newHeight.value.toInt())
             },
             onPositionChanged = { newOffset ->
                 drawerOffset = newOffset
-                // Save to preferences
+                settingsViewModel.setDrawerOffset(newOffset.value.toInt())
             },
             enterEditMode = {
                 if(!isEditMode)isEditMode = true

@@ -41,6 +41,8 @@ data class SettingsUiState(
     val showThemedIcons: Boolean = false,
     val quickAppsLayout: String = "linear",
     val appDrawerLayout: String = "circular",
+    val drawerHeight:Int = 0,
+    val drawerOffset:Int = 0,
     val leftSwipeApp:AppInfo? = null,
     val rightSwipeApp:AppInfo? = null,
     val isLeftSwipeWidgets: Boolean = false,
@@ -110,7 +112,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val NOTIFICATION_COLOR = "notification_color"
     private val SHOW_NOTIFICATIONS_ROW = "show_notifications_row"
     private val NOTIFICATION_SIZE = "notification_size"
-
+    private val DRAWER_HEIGHT = "drawer_height"
+    private val DRAWER_OFFSET = "drawer_offset"
     private var working = false
     val predefinedColors = listOf(
         Color.Red, Color.Green, Color.Blue, Color.Yellow,
@@ -155,6 +158,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val showThemedIcons = PreferenceManager.getThemedIcons(getApplication())
             val quickAppsLayout = PreferenceManager.getQuickAppsLayout(getApplication())
             val appDrawerLayout = PreferenceManager.getAppDrawerLayout(getApplication())
+            val drawerHeight = PreferenceManager.getInt(getApplication(),DRAWER_HEIGHT,0)
+            val drawerOffset = PreferenceManager.getInt(getApplication(),DRAWER_OFFSET,0)
             val leftSwipeApp = mapPackageNameToAppInfo(
                 getApplication(),
                 packageManager,PreferenceManager.getSwipeApp(getApplication(),"left"))
@@ -238,6 +243,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     showThemedIcons = showThemedIcons,
                     quickAppsLayout = quickAppsLayout,
                     appDrawerLayout = appDrawerLayout,
+                    drawerHeight = drawerHeight,
+                    drawerOffset = drawerOffset,
                     iconShapeString =  iconShapeString,
                     leftSwipeApp = leftSwipeApp,
                     rightSwipeApp = rightSwipeApp,
@@ -637,6 +644,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             PreferenceManager.setAppDrawerLayout(getApplication(),layout)
             _uiState.update { it.copy(appDrawerLayout = layout) }
+        }
+    }
+    fun setDrawerHeight(height:Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),DRAWER_HEIGHT,height)
+            _uiState.update { it.copy(drawerHeight = height) }
+        }
+    }
+    fun setDrawerOffset(offset:Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),DRAWER_OFFSET,offset)
+            _uiState.update { it.copy(drawerOffset = offset) }
         }
     }
     fun setSwipeApp(swipeDirection:String, appName: String){
