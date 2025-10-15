@@ -40,8 +40,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -860,13 +862,11 @@ fun ColorPickerSettingItem(
 @Composable
 fun AppDrawer(
     modifier: Modifier = Modifier,
+    isEditMode: Boolean,
     apps: List<AppInfo>,
     onAppsReordered: (List<AppInfo>) -> Unit,
-    onAppClick: (AppInfo) -> Unit = {},
     initialHeight: Dp = 400.dp,
     initialOffsetY: Dp = 0.dp,
-    minHeight: Dp = 200.dp,
-    maxHeight: Dp = 800.dp,
     contentPadding: PaddingValues = PaddingValues(16.dp),
     horizontalSpacing: Dp = 16.dp,
     verticalSpacing: Dp = 16.dp,
@@ -874,13 +874,13 @@ fun AppDrawer(
     onHeightChanged: (Dp) -> Unit = {},
     onPositionChanged: (Dp) -> Unit = {}
 ) {
-    var isEditMode by remember { mutableStateOf(false) }
     var drawerHeight by remember { mutableStateOf(initialHeight) }
     var drawerOffsetY by remember { mutableStateOf(initialOffsetY) }
 
     val hapticFeedback = LocalHapticFeedback.current
     val density = LocalDensity.current
 
+    val maxScreenHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp }
     var appsList by remember { mutableStateOf(apps) }
     val lazyGridState = rememberLazyGridState()
 
@@ -919,28 +919,28 @@ fun AppDrawer(
                         Modifier
                     }
                 )
-                .pointerInput(isEditMode) {
-                    detectTapGestures(
-                        onLongPress = {
-                            isEditMode = !isEditMode
-                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                        }
-                    )
-                }
                 .then(
                     if (isEditMode) {
                         Modifier.pointerInput(Unit) {
                             detectDragGestures { change, dragAmount ->
                                 change.consume()
                                 val newOffset = drawerOffsetY + with(density) { dragAmount.y.toDp() }
-                                drawerOffsetY = newOffset
-                                onPositionChanged(newOffset)
+                                if(newOffset > 50.dp && (newOffset + drawerHeight + 50.dp < maxScreenHeightDp))  {
+                                    drawerOffsetY = newOffset
+                                    onPositionChanged(newOffset)
+                                }
                             }
                         }
                     } else {
                         Modifier
                     }
                 )
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onLongPress = {
+                        }
+                    )
+                }
         ) {
             // App Grid
             LazyHorizontalGrid(
@@ -968,11 +968,6 @@ fun AppDrawer(
                             isEditMode = isEditMode,
                             isDragging = isDragging,
                             iconSize = iconSize,
-                            onClick = {
-                                if (!isEditMode) {
-                                    onAppClick(app)
-                                }
-                            },
                             dragHandle = this
                         )
                     }
@@ -992,9 +987,11 @@ fun AppDrawer(
                     }
                     .fillMaxWidth(),
                 onDrag = { dragAmount ->
-                    val newHeight = (drawerHeight + dragAmount).coerceIn(minHeight, maxHeight)
-                    drawerHeight = newHeight
-                    onHeightChanged(newHeight)
+                    val newHeight = drawerHeight + dragAmount
+                    if(drawerOffsetY + newHeight + 50.dp < maxScreenHeightDp && newHeight > 120.dp) {
+                        drawerHeight = newHeight
+                        onHeightChanged(newHeight)
+                    }
                 }
             )
         }
@@ -1040,11 +1037,9 @@ private fun AppIconWrapper(
     isEditMode: Boolean,
     isDragging: Boolean,
     iconSize: Dp,
-    onClick: () -> Unit,
     dragHandle: sh.calvin.reorderable.ReorderableCollectionItemScope
 ) {
-    val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp, label = "elevation")
-    val scale by animateFloatAsState(if (isDragging) 1.1f else 1f, label = "scale")
+    val scale by animateFloatAsState(if (isDragging) 1.2f else 1f, label = "scale")
 
     Column(
         modifier = with(dragHandle) {
@@ -1057,30 +1052,11 @@ private fun AppIconWrapper(
                 .then(
                     Modifier
                         .longPressDraggableHandle()
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onTap = { onClick() }
-                            )
-                        }
                 )
         },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Surface(
-            modifier = Modifier.size(56.dp),
-            shape = MaterialTheme.shapes.medium,
-            shadowElevation = elevation,
-            tonalElevation = if (isEditMode) 2.dp else 0.dp
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                AppIcon(app,emptyList(), CircleShape, iconSize = iconSize, clickable = false)
-            }
-        }
+        AppIcon(app,emptyList(), CircleShape, iconSize = iconSize - 16.dp, clickable = false)
 
         Spacer(modifier = Modifier.height(4.dp))
 
@@ -1097,22 +1073,33 @@ private fun AppIconWrapper(
 fun AppDrawerScreen(
     appsViewModel: AppInfoViewModel
 ) {
+    val hapticFeedback = LocalHapticFeedback.current
     val appsState by appsViewModel.uiState.collectAsState()
-    val apps = appsState.primaryApps
+    val apps = appsState.quickApps + appsState.primaryApps
     var currentApps by remember(apps) { mutableStateOf(apps) }
 
     var drawerHeight by remember { mutableStateOf(400.dp) }
     var drawerOffset by remember { mutableStateOf(100.dp) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    var isEditMode by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .pointerInput(Unit) {
+            detectTapGestures(
+                onLongPress = {
+                    isEditMode = !isEditMode
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                }
+            )
+        }
+    ) {
         AppDrawer(
+            isEditMode = isEditMode,
             apps = currentApps,
             onAppsReordered = { reorderedApps ->
                 currentApps = reorderedApps
                 // Persist to preferences/database
-            },
-            onAppClick = { app ->
-                // Launch app
             },
             initialHeight = drawerHeight,
             initialOffsetY = drawerOffset,

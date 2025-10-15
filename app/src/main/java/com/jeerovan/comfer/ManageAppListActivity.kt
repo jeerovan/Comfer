@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -52,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -360,11 +362,16 @@ fun AppListColumn(
                             if (isDragging) 4.dp else 0.dp,
                             label = ""
                         )
+                        val scale by animateFloatAsState(if (isDragging) 1.2f else 1f, label = "scale")
                         val isSelected = selectedList == listName && selectedIndices.contains(index)
 
                         Surface(
                             shape = iconShape,
                             modifier = Modifier
+                                .graphicsLayer {
+                                    scaleX = scale
+                                    scaleY = scale
+                                }
                                 .longPressDraggableHandle()
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
