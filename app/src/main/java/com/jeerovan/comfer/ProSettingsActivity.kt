@@ -936,7 +936,7 @@ fun AppDrawer(
                 .offset { IntOffset(0, drawerOffsetY.roundToPx()) }
                 .then(
                     if (isEditMode) {
-                        Modifier.border(2.dp, MaterialTheme.colorScheme.primary)
+                        Modifier.border(1.dp, MaterialTheme.colorScheme.primary)
                     } else {
                         Modifier
                     }
@@ -1112,8 +1112,10 @@ private fun AppIconWrapper(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = app.label.toString(),
-            style = MaterialTheme.typography.bodySmall,
-            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            style = MaterialTheme.typography.bodyMedium,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
         )
     }
 }
