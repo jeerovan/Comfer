@@ -169,7 +169,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val isLeftSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"left")
             val isRightSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"right")
             val isNotificationServiceEnabled = isNotificationServiceEnabled(getApplication())
-            val hasCustomWidgets = PreferenceManager.getCustomWidgets(getApplication())
+            val hasCustomWidgets = if(hasPro)PreferenceManager.getCustomWidgets(getApplication()) else false
             val widgetPositions = widgetIds.associateWith { id ->
                 loadWidgetPosition(id)
             }
