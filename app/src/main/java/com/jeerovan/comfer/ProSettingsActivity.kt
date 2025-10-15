@@ -998,7 +998,27 @@ fun AppDrawer(
                 }
             }
         }
-
+        // Resize Handle - Circular dot on top border
+        AnimatedVisibility(visible = isEditMode) {
+            ResizeHandle(
+                modifier = Modifier
+                    .offset {
+                        IntOffset(
+                            x = 0,
+                            y = (drawerOffsetY - 7.5.dp).roundToPx()
+                        )
+                    }
+                    .fillMaxWidth(),
+                onDrag = { dragAmount ->
+                    val newOffset = drawerOffsetY + dragAmount
+                    if(newOffset > 50.dp)  {
+                        drawerOffsetY = newOffset
+                        drawerHeight = drawerHeight - dragAmount
+                        onHeightChanged(drawerHeight)
+                    }
+                }
+            )
+        }
         // Resize Handle - Circular dot on bottom border
         AnimatedVisibility(visible = isEditMode) {
             ResizeHandle(
