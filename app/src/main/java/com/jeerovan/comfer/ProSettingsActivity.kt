@@ -48,6 +48,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -1101,10 +1103,13 @@ private fun AppIconWrapper(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = app.label.toString(),
-            style = MaterialTheme.typography.bodyMedium,
-            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.labelMedium,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
             color = Color.White,
-            fontWeight = FontWeight.Bold,
+            modifier = Modifier.widthIn(max = 80.dp),
+            lineHeight = 14.sp
         )
     }
 }
@@ -1130,10 +1135,13 @@ private fun AppIconWrapperWoDragging(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = app.label.toString(),
-            style = MaterialTheme.typography.bodyMedium,
-            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.labelMedium,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
             color = Color.White,
-            fontWeight = FontWeight.Bold,
+            modifier = Modifier.widthIn(max = 80.dp),
+            lineHeight = 14.sp
         )
     }
 }
