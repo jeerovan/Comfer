@@ -1,11 +1,13 @@
 package com.jeerovan.comfer
 
 import android.app.Application
+import android.graphics.BitmapFactory
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.jeerovan.comfer.utils.CommonUtil.downloadImage
 import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
+import com.jeerovan.comfer.utils.CommonUtil.setWallpaperThemedColors
 import com.revenuecat.purchases.Purchases
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -69,6 +71,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         }
                     }
                     PreferenceManager.setWallpaperApplied(applicationContext, true)
+                    withContext(Dispatchers.IO){
+                        val bitmap = BitmapFactory.decodeFile(filePath)
+                        setWallpaperThemedColors(applicationContext,bitmap)
+                    }
                 } else {
                     if (_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImage) {
                         PreferenceManager.setWallpaperApplied(applicationContext, true)

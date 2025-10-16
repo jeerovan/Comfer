@@ -35,7 +35,12 @@ data class AppInfoUiState(
     val primaryApps: List<AppInfo> = emptyList(),
     val restApps: List<AppInfo> = emptyList()
 )
-
+data class WallpaperThemeColors(
+    val lightBg: Int,
+    val lightFg: Int,
+    val darkBg: Int,
+    val darkFg: Int,
+)
 data class AppInfo(
     val background: Drawable?,
     val foreground: Drawable?,
@@ -49,7 +54,9 @@ suspend fun getAppInfo(
     packageManager: PackageManager,
     resolveInfo: ResolveInfo,
     packageName: String,
-    showThemedIcons: Boolean
+    showThemedIcons: Boolean,
+    themedColors: WallpaperThemeColors,
+    isLightHour: Boolean
 ): AppInfo? = withContext(Dispatchers.Default){
     try {
         val defaultIcon = packageManager.defaultActivityIcon
@@ -67,16 +74,17 @@ suspend fun getAppInfo(
                 // Check for Material You themed icons on Android 13+
                 if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     val monochromeDrawable = iconDrawable.monochrome
-                    backgroundDrawable = getThemedBackgroundColor(context).toDrawable()
+                    backgroundDrawable = getThemedBackgroundColor(context,themedColors,isLightHour).toDrawable()
                     if (monochromeDrawable != null) {
                         foregroundDrawable = monochromeDrawable.mutate().apply {
-                            setTint(getThemedIconColor(context))
+                            setTint(getThemedIconColor(context,themedColors,
+                                isLightHour))
                         }
                         scale = 1.5f
                     } else {
                         foregroundDrawable = iconDrawable.foreground?.mutate()?.apply {
                             colorFilter = PorterDuffColorFilter(
-                                getThemedIconColor(context),
+                                getThemedIconColor(context,themedColors,isLightHour),
                                 PorterDuff.Mode.SRC_IN
                             )
                         }
@@ -84,10 +92,10 @@ suspend fun getAppInfo(
                     }
                 } else if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     // Android 12 (S) - Themed icons without monochrome support
-                    backgroundDrawable = getThemedBackgroundColor(context).toDrawable()
+                    backgroundDrawable = getThemedBackgroundColor(context,themedColors,isLightHour).toDrawable()
                     foregroundDrawable = iconDrawable.foreground?.mutate()?.apply {
                         colorFilter = PorterDuffColorFilter(
-                            getThemedIconColor(context),
+                            getThemedIconColor(context,themedColors,isLightHour),
                             PorterDuff.Mode.SRC_IN
                         )
                     }
@@ -101,7 +109,7 @@ suspend fun getAppInfo(
             } else {
                 // Non-adaptive icon
                 backgroundDrawable = if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    getThemedBackgroundColor(context).toDrawable()
+                    getThemedBackgroundColor(context,themedColors,isLightHour).toDrawable()
                 } else {
                     getBackgroundColor(context).toArgb().toDrawable()
                 }
@@ -109,7 +117,7 @@ suspend fun getAppInfo(
                     // Apply themed tint to legacy icons on Android 13+
                     iconDrawable?.mutate().apply {
                         this?.colorFilter = PorterDuffColorFilter(
-                            getThemedIconColor(context),
+                            getThemedIconColor(context,themedColors,isLightHour),
                             PorterDuff.Mode.SRC_IN
                         )
                     }
@@ -141,6 +149,8 @@ suspend fun mapPackageNameToAppInfo(
 ): AppInfo? {
     if (packageName == null) return null
     val showThemedIcons = PreferenceManager.getThemedIcons(context)
+    val themedColors = PreferenceManager.getThemedColors(context)
+    val isLightHour = PreferenceManager.isLightModeInHour(context)
     return try {
         packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
             packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
@@ -148,7 +158,9 @@ suspend fun mapPackageNameToAppInfo(
                     packageManager,
                     resolveInfo,
                     packageName,
-                    showThemedIcons)
+                    showThemedIcons,
+                    themedColors,
+                    isLightHour)
             }
         }
     } catch (_: Exception) {
@@ -256,13 +268,17 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     // --- Stage 2: Load App Info Concurrently ---
                     val resolveInfoMap = allCurrentResolveInfos.associateBy { it.activityInfo.packageName }
                     val showThemedIcons = PreferenceManager.getThemedIcons(context)
+                    val themedColors = PreferenceManager.getThemedColors(context)
+                    val isLightHour = PreferenceManager.isLightModeInHour(context)
                     // Load quick apps first and update UI immediately
                     val quickApps = finalQuickPackageNames.map { packageName ->
                         async { createAppInfo(context,
                             packageManager,
                             packageName,
                             resolveInfoMap,
-                            showThemedIcons) }
+                            showThemedIcons,
+                            themedColors,
+                            isLightHour) }
                     }.awaitAll().filterNotNull()
 
                     // **Immediate UI Update**
@@ -278,7 +294,9 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                             packageManager,
                             packageName,
                             resolveInfoMap,
-                            showThemedIcons) }
+                            showThemedIcons,
+                            themedColors,
+                            isLightHour) }
                     }.awaitAll().filterNotNull()
 
                     val quickAndPrimaryPackages = finalQuickPackageNames.toSet() + finalPrimaryPackageNames.toSet()
@@ -289,7 +307,9 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                             packageManager,
                             packageName,
                             resolveInfoMap,
-                            showThemedIcons) }
+                            showThemedIcons,
+                            themedColors,
+                            isLightHour) }
                     }.awaitAll().filterNotNull()
 
                     // **Final UI Update**
@@ -316,13 +336,17 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                               packageName: String,
                               resolveInfoMap: Map<String,
                               ResolveInfo>,
-                              showThemedIcons: Boolean): AppInfo? {
+                              showThemedIcons: Boolean,
+                              themedColors: WallpaperThemeColors,
+                              isLightHour: Boolean): AppInfo? {
         val resolveInfo = resolveInfoMap[packageName] ?: return null
         return getAppInfo(context,
             packageManager,
             resolveInfo,
             packageName,
-            showThemedIcons)
+            showThemedIcons,
+            themedColors,
+            isLightHour)
     }
 
     fun moveAppInList(listName: String, fromIndex: Int, toIndex: Int) {
@@ -467,25 +491,41 @@ fun filterStandardApps(allPackageNames: Set<String>): Set<String> {
 }
 
 @RequiresApi(Build.VERSION_CODES.S)
-fun getThemedIconColor(context: Context): Int {
+fun getThemedIconColor(context: Context,
+                       themeColors: WallpaperThemeColors,
+                       isLightHour: Boolean): Int {
+    return if(isLightHour){
+        themeColors.lightFg
+    } else {
+        themeColors.darkFg
+    }
+    /*
     val isDarkMode = (context.resources.configuration.uiMode and
             Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
     return if (isDarkMode) {
         context.getColor(android.R.color.system_accent1_200)
     } else {
         context.getColor(android.R.color.system_accent1_600)
-    }
+    }*/
 }
 
 @RequiresApi(Build.VERSION_CODES.S)
-fun getThemedBackgroundColor(context: Context): Int {
+fun getThemedBackgroundColor(context: Context,
+                             themeColors: WallpaperThemeColors,
+                             isLightHour: Boolean): Int {
+    return if(isLightHour){
+        themeColors.lightBg
+    } else {
+        themeColors.darkBg
+    }
+    /*
     val isDarkMode = (context.resources.configuration.uiMode and
             Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
     return if (isDarkMode) {
         context.getColor(android.R.color.system_accent1_800)
     } else {
         context.getColor(android.R.color.system_accent1_100)
-    }
+    }*/
 }
 
 fun getBackgroundColor(context:Context):Color {

@@ -2,7 +2,9 @@ package com.jeerovan.comfer
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.edit
 import com.jeerovan.comfer.utils.CommonUtil
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
@@ -35,6 +37,11 @@ object PreferenceManager {
     private const val ALPHABETICAL_ORDER = "alphabetical_order"
     private const val HAS_PRO_VERSION = "has_pro_version"
     private const val THEMED_ICONS = "themed_icons"
+    private const val WALLPAPER_LIGHT_BG = "wallpaper_light_bg"
+    private const val WALLPAPER_LIGHT_FG = "wallpaper_light_fg"
+
+    private const val WALLPAPER_DARK_BG = "wallpaper_dark_bg"
+    private const val WALLPAPER_DARK_FG = "wallpaper_dark_fg"
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun clear(context: Context,key: String){
@@ -93,6 +100,20 @@ object PreferenceManager {
     }
     fun getPro(context: Context): Boolean {
         return getBoolean(context,HAS_PRO_VERSION,false)
+    }
+    fun setThemedColors(context: Context,lightBg:Int,lightFg:Int,darkBg:Int,darkFg:Int){
+        setInt(context,WALLPAPER_LIGHT_FG,lightFg)
+        setInt(context,WALLPAPER_LIGHT_BG,lightBg)
+        setInt(context,WALLPAPER_DARK_FG,darkFg)
+        setInt(context,WALLPAPER_DARK_BG,darkBg)
+    }
+    fun getThemedColors(context: Context): WallpaperThemeColors {
+        return WallpaperThemeColors(
+            getInt(context,WALLPAPER_LIGHT_BG,Color.White.copy(alpha = 0.7f).toArgb()),
+            getInt(context,WALLPAPER_LIGHT_FG,Color.Black.toArgb()),
+            getInt(context,WALLPAPER_DARK_BG,Color.Black.copy(alpha = 0.7f).toArgb()),
+            getInt(context,WALLPAPER_DARK_FG,Color.White.toArgb())
+        )
     }
     fun setThemedIcons(context: Context,enabled: Boolean){
         setBoolean(context,THEMED_ICONS,enabled)
@@ -290,6 +311,12 @@ object PreferenceManager {
     }
     fun setHour(context: Context,hour:Int){
         setInt(context,"now_hour",hour)
+    }
+    fun isLightModeInHour(context: Context): Boolean {
+        /*val calendar = Calendar.getInstance()
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        return hour > 7 && hour < 19*/
+        return false
     }
     fun setCurrentHour(context: Context){
         val calendar = Calendar.getInstance()

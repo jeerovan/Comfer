@@ -1,6 +1,7 @@
 package com.jeerovan.comfer.utils
 
 import FlowerShape
+import android.app.WallpaperColors
 import android.app.WallpaperManager
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -19,6 +20,7 @@ import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -47,6 +49,7 @@ import com.jeerovan.comfer.R
 import okhttp3.ConnectionSpec
 import java.io.IOException
 import androidx.documentfile.provider.DocumentFile
+import androidx.palette.graphics.Palette
 import java.net.URLDecoder
 import java.time.Clock.system
 
@@ -301,6 +304,25 @@ object CommonUtil {
     fun canSetLockScreenWallpaper(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
     }
+    fun setWallpaperThemedColors(context: Context,bitmap: Bitmap){
+        val palette = Palette.from(bitmap).generate()
+        // Light theme colors
+        val lightBg = palette.lightMutedSwatch?.rgb ?: Color.White.copy(alpha = 0.7f).toArgb()
+        val lightFg = palette.lightMutedSwatch?.bodyTextColor
+            ?: palette.darkVibrantSwatch?.rgb
+            ?: Color.Black.toArgb()
+
+        // Dark theme colors
+        val darkBg = palette.darkMutedSwatch?.rgb ?: Color.Black.copy(alpha = 0.7f).toArgb()
+        val darkFg = palette.darkMutedSwatch?.titleTextColor
+            ?: palette.lightVibrantSwatch?.rgb
+            ?: Color.White.toArgb()
+        PreferenceManager.setThemedColors(context,
+            lightBg,
+            lightFg,
+            darkBg,
+            darkFg)
+    }
     suspend fun downloadImage(applicationContext: Context){
         val logger = LoggerManager(applicationContext)
         if (PreferenceManager.newImageAvailable(applicationContext)) {
@@ -346,16 +368,17 @@ object CommonUtil {
         }
     }
     fun setWallpaper(applicationContext: Context){
-        if(isDefaultLauncher(applicationContext)){
-            val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
-            val setWallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(applicationContext)
-            val wallpaperManager =
-                WallpaperManager.getInstance(applicationContext)
-            val bitmap = BitmapFactory.decodeFile(filePath)
-            if(bitmap != null){
+        val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
+        val bitmap = BitmapFactory.decodeFile(filePath)
+        if(bitmap != null) {
+            if (isDefaultLauncher(applicationContext)) {
+                val setWallpaperOnLockScreen =
+                    PreferenceManager.getWallpaperOnLockScreen(applicationContext)
+                val wallpaperManager =
+                    WallpaperManager.getInstance(applicationContext)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     var flag = WallpaperManager.FLAG_SYSTEM
-                    if(setWallpaperOnLockScreen){
+                    if (setWallpaperOnLockScreen) {
                         flag = WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
                     }
                     wallpaperManager.setBitmap(
@@ -368,6 +391,7 @@ object CommonUtil {
                     wallpaperManager.setBitmap(bitmap)
                 }
             }
+            setWallpaperThemedColors(applicationContext, bitmap)
         }
     }
 
