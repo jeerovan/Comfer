@@ -213,6 +213,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import java.util.Calendar
 
 import androidx.compose.ui.layout.onGloballyPositioned
+import com.jeerovan.comfer.utils.CommonUtil.isLightModeInHour
 import com.revenuecat.purchases.CustomerInfo
 import com.revenuecat.purchases.LogLevel
 import com.revenuecat.purchases.Purchases
@@ -488,7 +489,7 @@ class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
         Purchases.logLevel = LogLevel.ERROR
         Purchases.configure(PurchasesConfiguration.Builder(this, "goog_alczWNGIWABONRuXvtRSKpPJFXi").build())
         Purchases.sharedInstance.updatedCustomerInfoListener = this
-        checkSubscriptionStatus()
+        //checkSubscriptionStatus() TODO Enable
 
         setContent {
             ComferTheme {
@@ -548,7 +549,7 @@ class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
 
     private fun updateSubscriptionStatus(customerInfo: CustomerInfo) {
         val isActive = customerInfo.entitlements.active.isNotEmpty()
-        settingsViewModel.setPro(isActive)
+        //settingsViewModel.setPro(isActive) TODO Enable
     }
 }
 
@@ -1776,6 +1777,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
         defaultColor = Color.White
     }
     var showWidgetSettings by remember { mutableStateOf(false) }
+    val themedColors = PreferenceManager.getThemedColors(context)
     Box(modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier) {
             if(settings.hasPro && settings.hasCustomWidgets) {
@@ -1963,7 +1965,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     iconSize,
                                     iconShape,
                                     onShowSearch,
-                                    settings.showThemedIcons
+                                    settings.showThemedIcons,
+                                    themedColors
                                 )
 
                                 "circular" -> CircularLayout(
@@ -1972,7 +1975,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     iconSize,
                                     iconShape,
                                     onShowSearch,
-                                    settings.showThemedIcons
+                                    settings.showThemedIcons,
+                                    themedColors
                                 )
                             }
                         }
@@ -3265,33 +3269,25 @@ fun SearchIcon(
     iconSize: Dp,
     iconShape: Shape,
     onShowSearch: () -> Unit,
-    showThemedIcon: Boolean
+    showThemedIcon: Boolean,
+    themedColors: WallpaperThemeColors
 ){
-    val context = LocalContext.current
-    val isDarkMode = isSystemInDarkTheme()
+    val isLightMode = isLightModeInHour()
     val backgroundColor: Color =
-        if (showThemedIcon && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (isDarkMode) {
-                Color(context.getColor(android.R.color.system_accent1_800))
-            } else {
-                Color(context.getColor(android.R.color.system_accent1_100))
-            }
+        if (showThemedIcon) {
+            Color(getThemedBackgroundColor(themedColors,isLightMode))
         } else {
-            if (isDarkMode){
-                Color.Black.copy(alpha = 0.5f)
-            } else {
-                Color.White.copy(alpha = 0.5f)
-            }
+            getBackgroundColor(isLightMode)
         }
     val foregroundColor: Color =
-        if(showThemedIcon && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (isDarkMode) {
-                Color(context.getColor(android.R.color.system_accent1_200))
-            } else {
-                Color(context.getColor(android.R.color.system_accent1_600))
-            }
+        if(showThemedIcon) {
+            Color(getThemedIconColor(themedColors,isLightMode))
         } else {
-            MaterialTheme.colorScheme.onSurface
+            if(isLightMode){
+                Color.Black
+            } else {
+                Color.White
+            }
         }
     val view = LocalView.current
     Box(
@@ -3722,7 +3718,8 @@ fun CircularLayout(
     iconSize: Dp,
     iconShape: Shape,
     onShowSearch: () -> Unit,
-    showThemedIcon: Boolean
+    showThemedIcon: Boolean,
+    themedColors: WallpaperThemeColors
 ) {
     // Radius calculated to maintain a 20.dp gap between 56.dp icons.
     val radius =  iconSize * 1.768f
@@ -3747,7 +3744,8 @@ fun CircularLayout(
         SearchIcon(iconSize,
             iconShape,
             onShowSearch,
-            showThemedIcon)
+            showThemedIcon,
+            themedColors)
 
         // Place up to 8 app icons in a circle
         apps.take(8).forEachIndexed { index, app ->
@@ -3773,7 +3771,8 @@ fun FiveColumnLayout(apps:List<AppInfo>,
                      iconSize: Dp,
                      iconShape: Shape,
                      onShowSearch: () -> Unit,
-                     showThemedIcon: Boolean
+                     showThemedIcon: Boolean,
+                     themedColors: WallpaperThemeColors
 ) {
     val gap = 20.dp
     Row(
@@ -3799,7 +3798,8 @@ fun FiveColumnLayout(apps:List<AppInfo>,
         SearchIcon(iconSize,
             iconShape,
             onShowSearch,
-            showThemedIcon)
+            showThemedIcon,
+            themedColors)
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
         Column(
             verticalArrangement = Arrangement.spacedBy(gap)

@@ -210,6 +210,26 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
+            item{
+                ListItem(
+                    headlineContent = { Text("Pro Access") },
+                    supportingContent = { Text("Turn on to enable") },
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.outline_star_shine_24),
+                            contentDescription = "Pro Access"
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settingsState.hasPro,
+                            onCheckedChange = { settingsViewModel.setPro(it) }
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.setPro(!settingsState.hasPro) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
             item { SectionHeader("Support")}
             item {
                 ListItem(
@@ -359,27 +379,25 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     }
                 )
             }
-            if ( Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
-                item{
-                    ListItem(
-                        headlineContent = { Text("Themed Icons") },
-                        supportingContent = { Text("Match icons with wallpaper") },
-                        leadingContent = {
-                            Icon(
-                                Icons.Filled.ColorLens,
-                                contentDescription = "Themed Icons"
-                            )
-                        },
-                        trailingContent = {
-                            Switch(
-                                checked = settingsState.showThemedIcons,
-                                onCheckedChange = { settingsViewModel.setThemedIcons(it) }
-                            )
-                        },
-                        modifier = Modifier.clickable { settingsViewModel.setThemedIcons(!settingsState.showThemedIcons) },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                    )
-                }
+            item{
+                ListItem(
+                    headlineContent = { Text("Themed Icons") },
+                    supportingContent = { Text("Match icons with wallpaper") },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.ColorLens,
+                            contentDescription = "Themed Icons"
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settingsState.showThemedIcons,
+                            onCheckedChange = { settingsViewModel.setThemedIcons(it) }
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.setThemedIcons(!settingsState.showThemedIcons) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
             }
             item {
                 ListItem(

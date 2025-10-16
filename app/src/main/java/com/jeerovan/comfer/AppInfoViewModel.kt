@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.jeerovan.comfer.utils.CommonUtil.isLightModeInHour
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -71,53 +72,56 @@ suspend fun getAppInfo(
         var scale = 0.8f
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (iconDrawable is AdaptiveIconDrawable) {
-                // Check for Material You themed icons on Android 13+
-                if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    val monochromeDrawable = iconDrawable.monochrome
-                    backgroundDrawable = getThemedBackgroundColor(context,themedColors,isLightHour).toDrawable()
-                    if (monochromeDrawable != null) {
-                        foregroundDrawable = monochromeDrawable.mutate().apply {
-                            setTint(getThemedIconColor(context,themedColors,
-                                isLightHour))
+                scale = 1.5f
+                if (showThemedIcons){
+                    backgroundDrawable = getThemedBackgroundColor(themedColors,isLightHour).toDrawable()
+                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+                        val monochromeDrawable = iconDrawable.monochrome
+                        if (monochromeDrawable != null) {
+                            foregroundDrawable = monochromeDrawable.mutate().apply {
+                                setTint(getThemedIconColor(themedColors,
+                                    isLightHour))
+                            }
+                        } else {
+                            foregroundDrawable = iconDrawable.foreground?.mutate()?.apply {
+                                colorFilter = PorterDuffColorFilter(
+                                    getThemedIconColor(themedColors,isLightHour),
+                                    PorterDuff.Mode.SRC_IN
+                                )
+                            }
                         }
-                        scale = 1.5f
-                    } else {
+                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        // Android 12 (S) - Themed icons without monochrome support
                         foregroundDrawable = iconDrawable.foreground?.mutate()?.apply {
                             colorFilter = PorterDuffColorFilter(
-                                getThemedIconColor(context,themedColors,isLightHour),
+                                getThemedIconColor(themedColors,isLightHour),
                                 PorterDuff.Mode.SRC_IN
                             )
                         }
-                        scale = 1.2f
+                    } else {
+                        foregroundDrawable = iconDrawable.foreground?.mutate()?.apply {
+                            colorFilter = PorterDuffColorFilter(
+                                getThemedIconColor(themedColors,isLightHour),
+                                PorterDuff.Mode.SRC_IN
+                            )
+                        }
                     }
-                } else if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    // Android 12 (S) - Themed icons without monochrome support
-                    backgroundDrawable = getThemedBackgroundColor(context,themedColors,isLightHour).toDrawable()
-                    foregroundDrawable = iconDrawable.foreground?.mutate()?.apply {
-                        colorFilter = PorterDuffColorFilter(
-                            getThemedIconColor(context,themedColors,isLightHour),
-                            PorterDuff.Mode.SRC_IN
-                        )
-                    }
-                    scale = 1.2f
                 } else {
-                    // Standard adaptive icon
                     backgroundDrawable = iconDrawable.background
                     foregroundDrawable = iconDrawable.foreground
-                    scale = 1.5f
                 }
             } else {
                 // Non-adaptive icon
-                backgroundDrawable = if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    getThemedBackgroundColor(context,themedColors,isLightHour).toDrawable()
+                backgroundDrawable = if (showThemedIcons) {
+                    getThemedBackgroundColor(themedColors,isLightHour).toDrawable()
                 } else {
-                    getBackgroundColor(context).toArgb().toDrawable()
+                    getBackgroundColor(isLightHour).toArgb().toDrawable()
                 }
-                foregroundDrawable = if (showThemedIcons && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                foregroundDrawable = if (showThemedIcons) {
                     // Apply themed tint to legacy icons on Android 13+
                     iconDrawable?.mutate().apply {
                         this?.colorFilter = PorterDuffColorFilter(
-                            getThemedIconColor(context,themedColors,isLightHour),
+                            getThemedIconColor(themedColors,isLightHour),
                             PorterDuff.Mode.SRC_IN
                         )
                     }
@@ -126,8 +130,23 @@ suspend fun getAppInfo(
                 }
             }
         } else {
-            backgroundDrawable = getBackgroundColor(context).toArgb().toDrawable()
-            foregroundDrawable = iconDrawable
+            // Non-adaptive icon
+            backgroundDrawable = if (showThemedIcons) {
+                getThemedBackgroundColor(themedColors,isLightHour).toDrawable()
+            } else {
+                getBackgroundColor(isLightHour).toArgb().toDrawable()
+            }
+            foregroundDrawable = if (showThemedIcons) {
+                // Apply themed tint to legacy icons on Android 13+
+                iconDrawable?.mutate().apply {
+                    this?.colorFilter = PorterDuffColorFilter(
+                        getThemedIconColor(themedColors,isLightHour),
+                        PorterDuff.Mode.SRC_IN
+                    )
+                }
+            } else {
+                iconDrawable
+            }
         }
 
         AppInfo(
@@ -150,7 +169,7 @@ suspend fun mapPackageNameToAppInfo(
     if (packageName == null) return null
     val showThemedIcons = PreferenceManager.getThemedIcons(context)
     val themedColors = PreferenceManager.getThemedColors(context)
-    val isLightHour = PreferenceManager.isLightModeInHour(context)
+    val isLightHour = isLightModeInHour()
     return try {
         packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
             packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
@@ -269,7 +288,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     val resolveInfoMap = allCurrentResolveInfos.associateBy { it.activityInfo.packageName }
                     val showThemedIcons = PreferenceManager.getThemedIcons(context)
                     val themedColors = PreferenceManager.getThemedColors(context)
-                    val isLightHour = PreferenceManager.isLightModeInHour(context)
+                    val isLightHour = isLightModeInHour()
                     // Load quick apps first and update UI immediately
                     val quickApps = finalQuickPackageNames.map { packageName ->
                         async { createAppInfo(context,
@@ -490,8 +509,7 @@ fun filterStandardApps(allPackageNames: Set<String>): Set<String> {
     }.toSet()
 }
 
-@RequiresApi(Build.VERSION_CODES.S)
-fun getThemedIconColor(context: Context,
+fun getThemedIconColor(
                        themeColors: WallpaperThemeColors,
                        isLightHour: Boolean): Int {
     return if(isLightHour){
@@ -499,18 +517,9 @@ fun getThemedIconColor(context: Context,
     } else {
         themeColors.darkFg
     }
-    /*
-    val isDarkMode = (context.resources.configuration.uiMode and
-            Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-    return if (isDarkMode) {
-        context.getColor(android.R.color.system_accent1_200)
-    } else {
-        context.getColor(android.R.color.system_accent1_600)
-    }*/
 }
 
-@RequiresApi(Build.VERSION_CODES.S)
-fun getThemedBackgroundColor(context: Context,
+fun getThemedBackgroundColor(
                              themeColors: WallpaperThemeColors,
                              isLightHour: Boolean): Int {
     return if(isLightHour){
@@ -518,22 +527,12 @@ fun getThemedBackgroundColor(context: Context,
     } else {
         themeColors.darkBg
     }
-    /*
-    val isDarkMode = (context.resources.configuration.uiMode and
-            Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-    return if (isDarkMode) {
-        context.getColor(android.R.color.system_accent1_800)
-    } else {
-        context.getColor(android.R.color.system_accent1_100)
-    }*/
 }
 
-fun getBackgroundColor(context:Context):Color {
-    val isDarkMode = (context.resources.configuration.uiMode and
-            Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-    return if (isDarkMode) {
-        Color.Black.copy(alpha = 0.5f)
-    } else {
+fun getBackgroundColor(isLightHour: Boolean):Color {
+    return if (isLightHour) {
         Color.White.copy(alpha = 0.5f)
+    } else {
+        Color.Black.copy(alpha = 0.5f)
     }
 }

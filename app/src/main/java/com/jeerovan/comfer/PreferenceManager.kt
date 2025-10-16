@@ -312,12 +312,6 @@ object PreferenceManager {
     fun setHour(context: Context,hour:Int){
         setInt(context,"now_hour",hour)
     }
-    fun isLightModeInHour(context: Context): Boolean {
-        /*val calendar = Calendar.getInstance()
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        return hour > 7 && hour < 19*/
-        return false
-    }
     fun setCurrentHour(context: Context){
         val calendar = Calendar.getInstance()
         val hour = calendar.get(Calendar.HOUR_OF_DAY)

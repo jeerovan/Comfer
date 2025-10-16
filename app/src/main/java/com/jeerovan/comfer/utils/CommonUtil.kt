@@ -52,8 +52,14 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.palette.graphics.Palette
 import java.net.URLDecoder
 import java.time.Clock.system
+import java.util.Calendar
 
 object CommonUtil {
+    fun isLightModeInHour(): Boolean {
+        val calendar = Calendar.getInstance()
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        return hour > 7 && hour < 19
+    }
     fun openUrl(url: String,context: Context) {
         try {
             var validUrl = url
