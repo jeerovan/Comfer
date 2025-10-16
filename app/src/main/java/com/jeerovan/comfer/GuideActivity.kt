@@ -109,12 +109,12 @@ fun UserGuideScreen() {
                 GuideStepItem(text = "Swipe left/right to open desired app or widgets screen.")
             }
             item {
-                GuideStepItem(text = "Draw gestures to open apps as set.")
+                GuideStepItem(text = "Draw gestures to open apps as set in Gesture Shortcuts.")
             }
 
-            // App List Section
+            // Circular app drawer
             item {
-                GuideSectionHeader(title = "App Drawer")
+                GuideSectionHeader(title = "Circular App Drawer")
             }
             item {
                 GuideStepItem(text = "Swipe down to go back.")
@@ -131,6 +131,28 @@ fun UserGuideScreen() {
             item {
                 GuideStepItem(text = "Long press on icon to open app info.")
             }
+            // Horizontal app drawer
+            item {
+                GuideSectionHeader(title = "Horizontal App Drawer")
+            }
+            item {
+                GuideStepItem(text = "Swipe down to go back.")
+            }
+            item {
+                GuideStepItem(text = "Swipe left/right to scroll.")
+            }
+            item {
+                GuideStepItem(text = "Long press to manage drawer.")
+            }
+            item {
+                GuideStepItem(text = "Drag-drop icons to re-position in edit mode.")
+            }
+            item {
+                GuideStepItem(text = "Drag drawer in edit mode to reposition vertically.")
+            }
+            item {
+                GuideStepItem(text = "Single tap to exit edit mode.")
+            }
 
             // Search app list
             item {
@@ -146,19 +168,13 @@ fun UserGuideScreen() {
                 GuideStepItem(text = "Swipe left on the keyboard to search apps.")
             }
             item {
-                GuideStepItem(text = "Tap icon to open app.")
+                GuideStepItem(text = "Scroll app list horizontally to view all results.")
             }
             item {
-                GuideStepItem(text = "Long press icon to view details.")
+                GuideStepItem(text = "Scroll either sides of the circular keyboard to scroll contact list.")
             }
             item {
-                GuideStepItem(text = "Scroll app list to view all results.")
-            }
-            item {
-                GuideStepItem(text = "Scroll either sides to scroll contact list.")
-            }
-            item {
-                GuideStepItem(text = "Double tap on either sides to open dialer with number.")
+                GuideStepItem(text = "Double tap on either sides of the circular keyboard to open dialer with highlight contact.")
             }
 
             // Manage app list
@@ -169,7 +185,7 @@ fun UserGuideScreen() {
                 GuideStepItem(text = "Tap to select apps and move to another list.")
             }
             item {
-                GuideStepItem(text = "Long press app icon to drag and re-order within same list.")
+                GuideStepItem(text = "Long press app icon to drag and re-order within same list. Works when not alphabetically sorted.")
             }
         }
 
