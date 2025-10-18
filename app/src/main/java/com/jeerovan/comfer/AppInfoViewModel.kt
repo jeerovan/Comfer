@@ -6,27 +6,19 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
-import android.graphics.BitmapShader
 import android.graphics.Canvas
-import android.graphics.ColorFilter
-import android.graphics.drawable.AdaptiveIconDrawable
-import android.graphics.drawable.Drawable
-import android.os.Build
-import androidx.compose.ui.graphics.Color
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
-import android.graphics.Paint
-import android.graphics.PixelFormat
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
-import android.graphics.PorterDuffXfermode
-import android.graphics.Shader
+import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.VectorDrawable
-import android.util.Log
+import android.graphics.drawable.Drawable
+import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.get
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.jeerovan.comfer.utils.CommonUtil.isLightModeInHour
@@ -40,9 +32,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.max
-import androidx.core.graphics.createBitmap
-import androidx.core.graphics.get
-import kotlin.apply
 import android.graphics.Color as AndroidColor
 
 private const val REST_LIST_NAME = "Rest"
@@ -552,7 +541,8 @@ class ThemedIconProcessor {
         val bitmap = drawableToBitmap(foreground)
         // Check if it has meaningful transparency
         if (hasSignificantTransparency(bitmap)) {
-            return foreground.apply {
+            return foreground
+                .apply {
                 colorFilter = PorterDuffColorFilter(
                     themedColor,
                     PorterDuff.Mode.SRC_IN
@@ -567,7 +557,8 @@ class ThemedIconProcessor {
                                    themedColor: Int): Drawable {
         val bitmap = drawableToBitmap(drawable)
         return if (hasSignificantTransparency(bitmap)) {
-            drawable.apply {
+            drawable
+                .apply {
                 colorFilter = PorterDuffColorFilter(themedColor, PorterDuff.Mode.SRC_IN)
             }
         } else {

@@ -382,7 +382,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item{
                 ListItem(
                     headlineContent = { Text("Themed Icons") },
-                    supportingContent = { Text("Match icons with wallpaper") },
+                    supportingContent = { Text("With wallpaper colors (experimental)") },
                     leadingContent = {
                         Icon(
                             Icons.Filled.ColorLens,
