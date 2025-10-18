@@ -1,3 +1,5 @@
+package com.jeerovan.comfer.utils
+
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline

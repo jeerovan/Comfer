@@ -1,6 +1,6 @@
 package com.jeerovan.comfer
 
-import FlowerShape
+import com.jeerovan.comfer.utils.FlowerShape
 import android.Manifest
 import android.app.Activity
 import android.content.Context
@@ -210,7 +210,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item{
+            /*item{
                 ListItem(
                     headlineContent = { Text("Pro Access") },
                     supportingContent = { Text("Turn on to enable") },
@@ -229,7 +229,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     modifier = Modifier.clickable { settingsViewModel.setPro(!settingsState.hasPro) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
-            }
+            }*/
             item { SectionHeader("Support")}
             item {
                 ListItem(
@@ -491,8 +491,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     onWidgetsSelectionClick = {
                         settingsViewModel.setWidgetsOnSwipe("left")
                     },
-                    iconShape = getShapeFromShape(iconShape, iconSize.dp),
-                    iconSize = iconSize.dp
+                    iconShape = getShapeFromShape(iconShape, iconSize.dp)
                 )
             }
             item {
@@ -516,8 +515,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     onWidgetsSelectionClick = {
                         settingsViewModel.setWidgetsOnSwipe("right")
                     },
-                    iconShape = getShapeFromShape(iconShape, iconSize.dp),
-                    iconSize = iconSize.dp
+                    iconShape = getShapeFromShape(iconShape, iconSize.dp)
                 )
             }
             item {
@@ -1088,8 +1086,7 @@ fun SwipeActionSettingItem(
     isWidgetsSelected: Boolean,
     onAppSelectionClick: () -> Unit,
     onWidgetsSelectionClick: () -> Unit,
-    iconShape: Shape,
-    iconSize: Dp
+    iconShape: Shape
 ) {
     var showDialog by remember { mutableStateOf(false) }
 

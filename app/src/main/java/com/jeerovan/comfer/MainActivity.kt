@@ -489,7 +489,7 @@ class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
         Purchases.logLevel = LogLevel.ERROR
         Purchases.configure(PurchasesConfiguration.Builder(this, "goog_alczWNGIWABONRuXvtRSKpPJFXi").build())
         Purchases.sharedInstance.updatedCustomerInfoListener = this
-        //checkSubscriptionStatus() TODO Enable
+        checkSubscriptionStatus()
 
         setContent {
             ComferTheme {
@@ -549,7 +549,7 @@ class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
 
     private fun updateSubscriptionStatus(customerInfo: CustomerInfo) {
         val isActive = customerInfo.entitlements.active.isNotEmpty()
-        //settingsViewModel.setPro(isActive) TODO Enable
+        settingsViewModel.setPro(isActive)
     }
 }
 

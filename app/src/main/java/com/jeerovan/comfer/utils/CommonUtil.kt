@@ -1,17 +1,13 @@
 package com.jeerovan.comfer.utils
 
-import FlowerShape
 import android.app.WallpaperManager
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.drawable.Drawable
-import android.os.Build
-import androidx.compose.ui.Alignment
-import android.graphics.Canvas
 import android.net.Uri
+import android.os.Build
 import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.compose.foundation.shape.CircleShape
@@ -23,12 +19,16 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.alpha
+import androidx.core.net.toUri
+import androidx.documentfile.provider.DocumentFile
+import androidx.palette.graphics.Palette
 import coil.Coil
 import coil.request.ImageRequest
 import coil.request.ImageResult
 import com.jeerovan.comfer.ImageData
+import com.jeerovan.comfer.LoggerManager
 import com.jeerovan.comfer.PreferenceManager
+import com.jeerovan.comfer.R
 import com.jeerovan.comfer.toBitmap
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -38,18 +38,12 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import okhttp3.ConnectionSpec
 import java.io.File
 import java.io.FileOutputStream
-import java.security.MessageDigest
-import androidx.core.graphics.createBitmap
-import androidx.core.net.toUri
-import com.jeerovan.comfer.LoggerManager
-import com.jeerovan.comfer.R
-import okhttp3.ConnectionSpec
 import java.io.IOException
-import androidx.documentfile.provider.DocumentFile
-import androidx.palette.graphics.Palette
 import java.net.URLDecoder
+import java.security.MessageDigest
 import java.util.Calendar
 
 object CommonUtil {
@@ -197,17 +191,6 @@ object CommonUtil {
             else -> Color.Unspecified // A default or error case
         }
     }
-    fun alignmentFromString(alignmentString:String):Alignment {
-        return when (alignmentString) {
-            "Center" -> Alignment.Center
-            "TopStart" -> Alignment.TopStart
-            "TopCenter" -> Alignment.TopCenter
-            "TopEnd" -> Alignment.TopEnd
-            "CenterStart" -> Alignment.CenterStart
-            "CenterEnd" -> Alignment.CenterEnd
-            else -> Alignment.TopCenter
-        }
-    }
 
     fun isDefaultLauncher(context: Context): Boolean {
         val intent = Intent(Intent.ACTION_MAIN)
@@ -252,7 +235,7 @@ object CommonUtil {
     }
     suspend fun fetchImageData(applicationContext: Context){
         val previousWallpaperApplied = PreferenceManager.getWallpaperApplied(applicationContext)
-        if(!previousWallpaperApplied) return;
+        if(!previousWallpaperApplied) return
         val logger = LoggerManager(applicationContext)
         val hour = PreferenceManager.getHour(applicationContext)
         if (hour > 0) {
@@ -400,47 +383,6 @@ object CommonUtil {
         }
     }
 
-    fun Drawable.toBitmapSafely(width: Int = intrinsicWidth, height: Int = intrinsicHeight): Bitmap? {
-        if (width <= 0 || height <= 0) return null
-        val bitmap = createBitmap(width, height)
-        val canvas = Canvas(bitmap)
-        setBounds(0, 0, canvas.width, canvas.height)
-        draw(canvas)
-        return bitmap
-    }
-    fun findOutermostColor(bitmap: Bitmap, defaultColor: Int): Int {
-        val width = bitmap.width
-        val height = bitmap.height
-
-        // Iterate through each pixel, row by row (y), then column by column (x)
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                // Get the color of the pixel at the current coordinate
-                val pixelColor = bitmap.getPixel(x, y)
-
-                // Check the alpha component of the color.
-                // A value greater than 0 means it is not fully transparent.
-                if (pixelColor.alpha == 255) {
-                    // Found the first non-transparent pixel, return its color immediately.
-                    return pixelColor
-                }
-            }
-        }
-
-        // If the loop completes, all pixels were transparent. Return the default color.
-        return defaultColor
-    }
-
-    @Throws(IOException::class)
-    fun copyUriToInternalStorage(context: Context, uri: Uri, destinationFile: File) {
-        context.contentResolver.openInputStream(uri)?.use { inputStream ->
-            FileOutputStream(destinationFile).use { outputStream ->
-                // Copy the bytes from the input stream to the output stream
-                inputStream.copyTo(outputStream)
-            }
-        } ?: throw IOException("Unable to open input stream from URI: $uri")
-    }
-
     fun getShapeFromString(iconShape:String?="circle"): Shape{
         return when (iconShape) {
             "cloud" -> {
@@ -464,7 +406,7 @@ object CommonUtil {
         }
     }
     fun getShapeFromShape(shape:Shape, size: Dp):Shape{
-        var iconShape = shape;
+        var iconShape = shape
         when (shape) {
             CircleShape -> {
                 iconShape  = shape

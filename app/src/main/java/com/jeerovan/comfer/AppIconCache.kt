@@ -12,7 +12,4 @@ object AppIconCache {
         iconCache[packageName] = icon
     }
 
-    fun invalidateCache(packageName: String) {
-        iconCache.remove(packageName)
-    }
 }

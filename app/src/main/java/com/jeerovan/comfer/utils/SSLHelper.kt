@@ -3,7 +3,6 @@ import android.content.Context
 import java.io.InputStream
 import java.security.KeyStore
 import java.security.cert.CertificateFactory
-import java.security.cert.X509Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.TrustManagerFactory
