@@ -5,15 +5,26 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
-import android.content.res.Configuration
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
+import android.graphics.Bitmap
+import android.graphics.BitmapShader
+import android.graphics.Canvas
+import android.graphics.ColorFilter
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
+import androidx.compose.ui.graphics.Color
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
+import android.graphics.PixelFormat
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.graphics.PorterDuffXfermode
+import android.graphics.Shader
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.VectorDrawable
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.AndroidViewModel
@@ -28,6 +39,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.max
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.get
+import kotlin.apply
+import android.graphics.Color as AndroidColor
 
 private const val REST_LIST_NAME = "Rest"
 
@@ -69,83 +85,60 @@ suspend fun getAppInfo(
         val iconDrawable = loadedDrawable.constantState?.newDrawable()?.mutate()
         var backgroundDrawable: Drawable?
         var foregroundDrawable: Drawable?
-        var scale = 0.8f
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (iconDrawable is AdaptiveIconDrawable) {
-                scale = 1.5f
-                if (showThemedIcons){
-                    backgroundDrawable = getThemedBackgroundColor(themedColors,isLightHour).toDrawable()
-                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
-                        val monochromeDrawable = iconDrawable.monochrome
-                        if (monochromeDrawable != null) {
-                            foregroundDrawable = monochromeDrawable.mutate().apply {
-                                setTint(getThemedIconColor(themedColors,
-                                    isLightHour))
-                            }
-                        } else {
-                            foregroundDrawable = iconDrawable.foreground?.mutate()?.apply {
-                                colorFilter = PorterDuffColorFilter(
-                                    getThemedIconColor(themedColors,isLightHour),
-                                    PorterDuff.Mode.SRC_IN
-                                )
-                            }
+        val appLabel = resolveInfo.loadLabel(packageManager).trim()
+        val foregroundColor = getThemedIconColor(themedColors,isLightHour)
+
+        val iconProcessor = ThemedIconProcessor()
+        // Determine scale and process icon
+        val isAdaptive = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && iconDrawable is AdaptiveIconDrawable
+        val scale = if (isAdaptive) 1.5f else 0.8f
+
+        when {
+            isAdaptive -> {
+                val adaptiveIcon = iconDrawable
+                if (showThemedIcons) {
+                    backgroundDrawable = getThemedBackgroundColor(themedColors, isLightHour).toDrawable()
+
+                    foregroundDrawable = when {
+                        // Android 13+ (Tiramisu): Try monochrome first
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                            adaptiveIcon.monochrome?.mutate()
+                                ?.apply {
+                                setTint(foregroundColor)
+                            } ?: adaptiveIcon.foreground?.mutate()
+                                ?.apply {
+                                colorFilter = PorterDuffColorFilter(foregroundColor, PorterDuff.Mode.SRC_IN)
+                                }
                         }
-                    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        // Android 12 (S) - Themed icons without monochrome support
-                        foregroundDrawable = iconDrawable.foreground?.mutate()?.apply {
-                            colorFilter = PorterDuffColorFilter(
-                                getThemedIconColor(themedColors,isLightHour),
-                                PorterDuff.Mode.SRC_IN
-                            )
-                        }
-                    } else {
-                        foregroundDrawable = iconDrawable.foreground?.mutate()?.apply {
-                            colorFilter = PorterDuffColorFilter(
-                                getThemedIconColor(themedColors,isLightHour),
-                                PorterDuff.Mode.SRC_IN
+                        else -> {
+                            iconProcessor.applyThemedColor(
+                                adaptiveIcon.foreground,
+                                foregroundColor
                             )
                         }
                     }
                 } else {
-                    backgroundDrawable = iconDrawable.background
-                    foregroundDrawable = iconDrawable.foreground
+                    // Original adaptive icon
+                    backgroundDrawable = adaptiveIcon.background
+                    foregroundDrawable = adaptiveIcon.foreground
                 }
-            } else {
-                // Non-adaptive icon
+            }
+
+            else -> {
+                // Non-adaptive / legacy icons
                 backgroundDrawable = if (showThemedIcons) {
-                    getThemedBackgroundColor(themedColors,isLightHour).toDrawable()
+                    getThemedBackgroundColor(themedColors, isLightHour).toDrawable()
                 } else {
                     getBackgroundColor(isLightHour).toArgb().toDrawable()
                 }
+
                 foregroundDrawable = if (showThemedIcons) {
-                    // Apply themed tint to legacy icons on Android 13+
-                    iconDrawable?.mutate().apply {
-                        this?.colorFilter = PorterDuffColorFilter(
-                            getThemedIconColor(themedColors,isLightHour),
-                            PorterDuff.Mode.SRC_IN
-                        )
-                    }
+                    if(iconDrawable != null) iconProcessor.applyThemedColor(
+                        iconDrawable,
+                        foregroundColor) else iconDrawable
                 } else {
                     iconDrawable
                 }
-            }
-        } else {
-            // Non-adaptive icon
-            backgroundDrawable = if (showThemedIcons) {
-                getThemedBackgroundColor(themedColors,isLightHour).toDrawable()
-            } else {
-                getBackgroundColor(isLightHour).toArgb().toDrawable()
-            }
-            foregroundDrawable = if (showThemedIcons) {
-                // Apply themed tint to legacy icons on Android 13+
-                iconDrawable?.mutate().apply {
-                    this?.colorFilter = PorterDuffColorFilter(
-                        getThemedIconColor(themedColors,isLightHour),
-                        PorterDuff.Mode.SRC_IN
-                    )
-                }
-            } else {
-                iconDrawable
             }
         }
 
@@ -153,14 +146,13 @@ suspend fun getAppInfo(
             background = backgroundDrawable,
             foreground = foregroundDrawable,
             scale = scale,
-            label = resolveInfo.loadLabel(packageManager).trim(),
+            label = appLabel,
             packageName = packageName
         )
     } catch (_: Exception) {
         null
     }
 }
-
 suspend fun mapPackageNameToAppInfo(
     context: Context,
     packageManager: PackageManager,
@@ -535,4 +527,135 @@ fun getBackgroundColor(isLightHour: Boolean):Color {
     } else {
         Color.Black.copy(alpha = 0.5f)
     }
+}
+
+class ThemedIconProcessor {
+
+    fun applyThemedColor(drawable: Drawable,
+                         themedColor: Int): Drawable {
+        return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && drawable is AdaptiveIconDrawable){
+            handleAdaptiveIcon(
+                drawable,
+                themedColor)
+        } else {
+            applyColorWithMask(drawable, themedColor)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun handleAdaptiveIcon(
+        adaptiveIcon: AdaptiveIconDrawable,
+        themedColor: Int
+    ): Drawable {
+        val foreground = adaptiveIcon.foreground ?: return adaptiveIcon
+        // Convert to bitmap
+        val bitmap = drawableToBitmap(foreground)
+        // Check if it has meaningful transparency
+        if (hasSignificantTransparency(bitmap)) {
+            return foreground.apply {
+                colorFilter = PorterDuffColorFilter(
+                    themedColor,
+                    PorterDuff.Mode.SRC_IN
+                )
+            }
+        } else {
+            return createThemedIconFromOutline(bitmap, themedColor)
+        }
+    }
+
+    private fun applyColorWithMask(drawable: Drawable,
+                                   themedColor: Int): Drawable {
+        val bitmap = drawableToBitmap(drawable)
+        return if (hasSignificantTransparency(bitmap)) {
+            drawable.apply {
+                colorFilter = PorterDuffColorFilter(themedColor, PorterDuff.Mode.SRC_IN)
+            }
+        } else {
+            createThemedIconFromOutline(bitmap, themedColor)
+        }
+    }
+
+    /**
+     * BEST SOLUTION: Extract icon shape outline
+     */
+    private fun createThemedIconFromOutline(source: Bitmap, themedColor: Int): Drawable {
+        val width = source.width
+        val height = source.height
+        val result = createBitmap(width, height)
+
+        // Copy pixels for processing
+        val pixels = IntArray(width * height)
+        source.getPixels(pixels, 0, width, 0, 0, width, height)
+
+        // Convert Compose Color to Android Color ints (0..255)
+        val iconColor = Color(themedColor)
+        val rColor = (iconColor.red * 255).toInt().coerceIn(0, 255)
+        val gColor = (iconColor.green * 255).toInt().coerceIn(0, 255)
+        val bColor = (iconColor.blue * 255).toInt().coerceIn(0, 255)
+
+        // Loop through all pixels and determine what to keep/ignore
+        for (i in pixels.indices) {
+            val pixel = pixels[i]
+
+            // Extract brightness (perceived luminance)
+            val r = AndroidColor.red(pixel)
+            val g = AndroidColor.green(pixel)
+            val b = AndroidColor.blue(pixel)
+            val brightness = (r + g + b) / 3
+
+            // White or very bright pixels become transparent; others keep themed color
+            val alpha = if (brightness > 160) 0 else 255
+
+            pixels[i] = AndroidColor.argb(alpha, rColor, gColor, bColor)
+        }
+
+        result.setPixels(pixels, 0, width, 0, 0, width, height)
+        val newDrawable = BitmapDrawable(null, result)
+        return newDrawable.apply {
+            colorFilter = PorterDuffColorFilter(themedColor, PorterDuff.Mode.SRC_IN)
+        }
+    }
+
+    /**
+     * Check if bitmap has meaningful transparency
+     */
+    private fun hasSignificantTransparency(bitmap: Bitmap): Boolean {
+        if (!bitmap.hasAlpha()) return false
+
+        val width = bitmap.width
+        val height = bitmap.height
+        val sampleSize = max(1, width / 20) // Sample every 5% of width
+
+        var transparentPixels = 0
+        var totalSampled = 0
+
+        for (x in 0 until width step sampleSize) {
+            for (y in 0 until height step sampleSize) {
+                val pixel = bitmap[x, y]
+                val alpha = android.graphics.Color.alpha(pixel)
+                if (alpha < 250) transparentPixels++
+                totalSampled++
+            }
+        }
+
+        // Consider significant if >80% pixels have some transparency
+        return (transparentPixels.toFloat() / totalSampled) > 0.8f
+    }
+
+    private fun drawableToBitmap(drawable: Drawable): Bitmap {
+        if (drawable is BitmapDrawable) {
+            return drawable.bitmap
+        }
+
+        val width = drawable.intrinsicWidth.coerceAtLeast(1)
+        val height = drawable.intrinsicHeight.coerceAtLeast(1)
+
+        val bitmap = createBitmap(width, height)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, width, height)
+        drawable.draw(canvas)
+
+        return bitmap
+    }
+
 }

@@ -1,7 +1,6 @@
 package com.jeerovan.comfer.utils
 
 import FlowerShape
-import android.app.WallpaperColors
 import android.app.WallpaperManager
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -51,14 +50,14 @@ import java.io.IOException
 import androidx.documentfile.provider.DocumentFile
 import androidx.palette.graphics.Palette
 import java.net.URLDecoder
-import java.time.Clock.system
-import java.util.Calendar
 
 object CommonUtil {
+
     fun isLightModeInHour(): Boolean {
-        val calendar = Calendar.getInstance()
+        return true
+        /*val calendar = Calendar.getInstance()
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        return hour > 7 && hour < 19
+        return hour > 7 && hour < 19*/
     }
     fun openUrl(url: String,context: Context) {
         try {
@@ -68,7 +67,7 @@ object CommonUtil {
             }
             val intent = Intent(Intent.ACTION_VIEW, validUrl.toUri())
             context.startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
+        } catch (_: ActivityNotFoundException) {
             Toast.makeText(context, "No application to open URL", Toast.LENGTH_SHORT).show()
         }
     }
