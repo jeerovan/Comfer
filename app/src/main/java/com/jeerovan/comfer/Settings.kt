@@ -47,11 +47,13 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.InvertColors
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Support
+import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DividerDefaults
@@ -210,7 +212,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            /*item{
+            if(isTesting)item{
                 ListItem(
                     headlineContent = { Text("Pro Access") },
                     supportingContent = { Text("Turn on to enable") },
@@ -229,7 +231,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     modifier = Modifier.clickable { settingsViewModel.setPro(!settingsState.hasPro) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
-            }*/
+            }
             item { SectionHeader("Support")}
             item {
                 ListItem(
@@ -288,6 +290,20 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         )
                     },
                     modifier = Modifier.clickable { settingsViewModel.setWallpaperMotion(!settingsState.wallpaperMotionEnabled) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
+            if(isTesting)item {
+                ListItem(
+                    headlineContent = { Text("Change Wallpaper") },
+                    supportingContent = { Text("For testing") },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.Wallpaper,
+                            contentDescription = "Wallpaper Change"
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.changeWallpaper() },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
@@ -396,6 +412,26 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         )
                     },
                     modifier = Modifier.clickable { settingsViewModel.setThemedIcons(!settingsState.showThemedIcons) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
+            if(isTesting)item{
+                ListItem(
+                    headlineContent = { Text("Dark Mode") },
+                    supportingContent = { Text("Turn on dark mode") },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.InvertColors,
+                            contentDescription = "Dark/Light mode"
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settingsState.isDarkMode,
+                            onCheckedChange = { settingsViewModel.setDarkMode(it) }
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.setDarkMode(!settingsState.isDarkMode) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }

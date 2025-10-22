@@ -213,7 +213,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import java.util.Calendar
 
 import androidx.compose.ui.layout.onGloballyPositioned
-import com.jeerovan.comfer.utils.CommonUtil.isLightModeInHour
 import com.revenuecat.purchases.CustomerInfo
 import com.revenuecat.purchases.LogLevel
 import com.revenuecat.purchases.Purchases
@@ -1966,7 +1965,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     iconShape,
                                     onShowSearch,
                                     settings.showThemedIcons,
-                                    themedColors
+                                    themedColors,
+                                    settings.isDarkMode
                                 )
 
                                 "circular" -> CircularLayout(
@@ -1976,7 +1976,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     iconShape,
                                     onShowSearch,
                                     settings.showThemedIcons,
-                                    themedColors
+                                    themedColors,
+                                    settings.isDarkMode
                                 )
                             }
                         }
@@ -3270,9 +3271,10 @@ fun SearchIcon(
     iconShape: Shape,
     onShowSearch: () -> Unit,
     showThemedIcon: Boolean,
-    themedColors: WallpaperThemeColors
+    themedColors: WallpaperThemeColors,
+    isLightMode: Boolean
 ){
-    val isLightMode = isLightModeInHour()
+    val context = LocalContext.current
     val backgroundColor: Color =
         if (showThemedIcon) {
             Color(getThemedBackgroundColor(themedColors,isLightMode))
@@ -3719,7 +3721,8 @@ fun CircularLayout(
     iconShape: Shape,
     onShowSearch: () -> Unit,
     showThemedIcon: Boolean,
-    themedColors: WallpaperThemeColors
+    themedColors: WallpaperThemeColors,
+    isDarkMode: Boolean
 ) {
     // Radius calculated to maintain a 20.dp gap between 56.dp icons.
     val radius =  iconSize * 1.768f
@@ -3745,7 +3748,8 @@ fun CircularLayout(
             iconShape,
             onShowSearch,
             showThemedIcon,
-            themedColors)
+            themedColors,
+            !isDarkMode)
 
         // Place up to 8 app icons in a circle
         apps.take(8).forEachIndexed { index, app ->
@@ -3772,7 +3776,8 @@ fun FiveColumnLayout(apps:List<AppInfo>,
                      iconShape: Shape,
                      onShowSearch: () -> Unit,
                      showThemedIcon: Boolean,
-                     themedColors: WallpaperThemeColors
+                     themedColors: WallpaperThemeColors,
+                     isDarkMode: Boolean
 ) {
     val gap = 20.dp
     Row(
@@ -3799,7 +3804,8 @@ fun FiveColumnLayout(apps:List<AppInfo>,
             iconShape,
             onShowSearch,
             showThemedIcon,
-            themedColors)
+            themedColors,
+            !isDarkMode)
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
         Column(
             verticalArrangement = Arrangement.spacedBy(gap)

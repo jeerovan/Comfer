@@ -21,7 +21,6 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.get
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.jeerovan.comfer.utils.CommonUtil.isLightModeInHour
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -150,7 +149,7 @@ suspend fun mapPackageNameToAppInfo(
     if (packageName == null) return null
     val showThemedIcons = PreferenceManager.getThemedIcons(context)
     val themedColors = PreferenceManager.getThemedColors(context)
-    val isLightHour = isLightModeInHour()
+    val isLightHour = !PreferenceManager.getDarkMode(context)
     return try {
         packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
             packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
@@ -269,7 +268,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     val resolveInfoMap = allCurrentResolveInfos.associateBy { it.activityInfo.packageName }
                     val showThemedIcons = PreferenceManager.getThemedIcons(context)
                     val themedColors = PreferenceManager.getThemedColors(context)
-                    val isLightHour = isLightModeInHour()
+                    val isLightHour = !PreferenceManager.getDarkMode(context)
                     // Load quick apps first and update UI immediately
                     val quickApps = finalQuickPackageNames.map { packageName ->
                         async { createAppInfo(context,

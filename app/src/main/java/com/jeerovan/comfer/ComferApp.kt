@@ -8,6 +8,7 @@ import com.revenuecat.purchases.PurchasesConfiguration
 import java.util.concurrent.TimeUnit
 
 const val saveCrashes = false
+const val isTesting = true
 class ComferApp : Application() {
 
     override fun onCreate() {

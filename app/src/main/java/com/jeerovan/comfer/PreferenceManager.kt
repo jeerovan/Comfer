@@ -42,6 +42,8 @@ object PreferenceManager {
 
     private const val WALLPAPER_DARK_BG = "wallpaper_dark_bg"
     private const val WALLPAPER_DARK_FG = "wallpaper_dark_fg"
+
+    private const val DARK_MODE = "dark_mode"
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun clear(context: Context,key: String){
@@ -101,6 +103,18 @@ object PreferenceManager {
     fun getPro(context: Context): Boolean {
         return getBoolean(context,HAS_PRO_VERSION,false)
     }
+    fun setDarkMode(context: Context,enabled: Boolean){
+        setBoolean(context,DARK_MODE,enabled)
+    }
+    fun getDarkMode(context: Context): Boolean {
+        if(isTesting) {
+            return getBoolean(context, DARK_MODE, false)
+        } else {
+            val calendar = Calendar.getInstance()
+            val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            return hour > 7 && hour < 19
+        }
+    }
     fun setThemedColors(context: Context,lightBg:Int,lightFg:Int,darkBg:Int,darkFg:Int){
         setInt(context,WALLPAPER_LIGHT_FG,lightFg)
         setInt(context,WALLPAPER_LIGHT_BG,lightBg)
@@ -137,7 +151,6 @@ object PreferenceManager {
         val uriString = getString(context,WALLPAPER_URI,null)
         return uriString?.toUri()
     }
-
     fun setBackgroundImageUri(context: Context, uri: Uri) {
         setString(context,WALLPAPER_URI,uri.toString())
     }
@@ -300,13 +313,22 @@ object PreferenceManager {
     }
 
     fun getHour(context: Context):Int{
-        val calendar = Calendar.getInstance()
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        val existingHour = getInt(context,"now_hour",0)
-        return if(existingHour != hour) {
-            hour
+        if(isTesting){
+            val isDarkMode = getDarkMode(context)
+            return if(isDarkMode){
+                20
+            } else {
+                10
+            }
         } else {
-            0
+            val calendar = Calendar.getInstance()
+            val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            val existingHour = getInt(context, "now_hour", 0)
+            return if (existingHour != hour) {
+                hour
+            } else {
+                0
+            }
         }
     }
     fun setHour(context: Context,hour:Int){
