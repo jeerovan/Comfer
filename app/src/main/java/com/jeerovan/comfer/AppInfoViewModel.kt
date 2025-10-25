@@ -13,9 +13,11 @@ import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.get
@@ -32,6 +34,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.max
 import android.graphics.Color as AndroidColor
+import androidx.core.graphics.scale
 
 private const val REST_LIST_NAME = "Rest"
 
@@ -85,7 +88,8 @@ suspend fun getAppInfo(
             isAdaptive -> {
                 val adaptiveIcon = iconDrawable
                 if (showThemedIcons) {
-                    backgroundDrawable = getThemedBackgroundColor(themedColors, isLightHour).toDrawable()
+                    val backgroundColor = getThemedBackgroundColor(themedColors,isLightHour)
+                    backgroundDrawable = backgroundColor.toDrawable()
 
                     foregroundDrawable = when {
                         // Android 13+ (Tiramisu): Try monochrome first
@@ -101,7 +105,9 @@ suspend fun getAppInfo(
                         else -> {
                             iconProcessor.applyThemedColor(
                                 adaptiveIcon.foreground,
-                                foregroundColor
+                                foregroundColor,
+                                backgroundColor,
+                                isLightHour
                             )
                         }
                     }
@@ -114,16 +120,19 @@ suspend fun getAppInfo(
 
             else -> {
                 // Non-adaptive / legacy icons
-                backgroundDrawable = if (showThemedIcons) {
-                    getThemedBackgroundColor(themedColors, isLightHour).toDrawable()
+                val backgroundColor = if (showThemedIcons) {
+                    getThemedBackgroundColor(themedColors, isLightHour)
                 } else {
-                    getBackgroundColor(isLightHour).toArgb().toDrawable()
+                    getBackgroundColor(isLightHour).toArgb()
                 }
+                backgroundDrawable = backgroundColor.toDrawable()
 
                 foregroundDrawable = if (showThemedIcons) {
                     if(iconDrawable != null) iconProcessor.applyThemedColor(
                         iconDrawable,
-                        foregroundColor) else iconDrawable
+                        foregroundColor,
+                        backgroundColor,
+                        isLightHour) else iconDrawable
                 } else {
                     iconDrawable
                 }
@@ -137,7 +146,8 @@ suspend fun getAppInfo(
             label = appLabel,
             packageName = packageName
         )
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        Log.e("getAppInfo",e.stackTraceToString())
         null
     }
 }
@@ -502,6 +512,7 @@ fun getThemedIconColor(
 fun getThemedBackgroundColor(
                              themeColors: WallpaperThemeColors,
                              isLightHour: Boolean): Int {
+    //return Color.Cyan.toArgb()
     return if(isLightHour){
         themeColors.lightBg
     } else {
@@ -510,6 +521,7 @@ fun getThemedBackgroundColor(
 }
 
 fun getBackgroundColor(isLightHour: Boolean):Color {
+    //return Color.Cyan
     return if (isLightHour) {
         Color.White.copy(alpha = 0.5f)
     } else {
@@ -520,91 +532,155 @@ fun getBackgroundColor(isLightHour: Boolean):Color {
 class ThemedIconProcessor {
 
     fun applyThemedColor(drawable: Drawable,
-                         themedColor: Int): Drawable {
+                         foregroundColor: Int,
+                         backgroundColor: Int,
+                         isLightHour: Boolean): Drawable {
         return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && drawable is AdaptiveIconDrawable){
             handleAdaptiveIcon(
                 drawable,
-                themedColor)
+                foregroundColor,
+                backgroundColor,
+                isLightHour)
         } else {
-            applyColorWithMask(drawable, themedColor)
+            applyColorWithMask(drawable,
+                foregroundColor,
+                backgroundColor,
+                isLightHour)
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun handleAdaptiveIcon(
         adaptiveIcon: AdaptiveIconDrawable,
-        themedColor: Int
+        foregroundColor: Int,
+        backgroundColor: Int,
+        isLightHour: Boolean
     ): Drawable {
         val foreground = adaptiveIcon.foreground ?: return adaptiveIcon
         // Convert to bitmap
         val bitmap = drawableToBitmap(foreground)
         // Check if it has meaningful transparency
-        if (hasSignificantTransparency(bitmap)) {
-            return foreground
+        return if (hasSignificantTransparency(bitmap)) {
+            foreground
                 .apply {
-                colorFilter = PorterDuffColorFilter(
-                    themedColor,
-                    PorterDuff.Mode.SRC_IN
-                )
-            }
+                    colorFilter = PorterDuffColorFilter(
+                        foregroundColor,
+                        PorterDuff.Mode.SRC_IN
+                    )
+                }
         } else {
-            return createThemedIconFromOutline(bitmap, themedColor)
+            getThemedIconWithShades(bitmap,
+                foregroundColor,
+                backgroundColor,
+                isLightHour)
         }
     }
 
     private fun applyColorWithMask(drawable: Drawable,
-                                   themedColor: Int): Drawable {
+                                   foregroundColor: Int,
+                                   backgroundColor: Int,
+                                   isLightHour: Boolean): Drawable {
         val bitmap = drawableToBitmap(drawable)
         return if (hasSignificantTransparency(bitmap)) {
             drawable
                 .apply {
-                colorFilter = PorterDuffColorFilter(themedColor, PorterDuff.Mode.SRC_IN)
+                colorFilter = PorterDuffColorFilter(foregroundColor, PorterDuff.Mode.SRC_IN)
             }
         } else {
-            createThemedIconFromOutline(bitmap, themedColor)
+            getThemedIconWithShades(bitmap,
+                foregroundColor,
+                backgroundColor,
+                isLightHour)
         }
     }
 
-    /**
-     * BEST SOLUTION: Extract icon shape outline
-     */
-    private fun createThemedIconFromOutline(source: Bitmap, themedColor: Int): Drawable {
-        val width = source.width
-        val height = source.height
-        val result = createBitmap(width, height)
-
-        // Copy pixels for processing
+    fun getThemedIconWithShades(icon: Bitmap,
+                                foregroundColor: Int,
+                                backgroundColor: Int,
+                                isLightHour: Boolean
+    ): Drawable {
+        val width = icon.width
+        val height = icon.height
         val pixels = IntArray(width * height)
-        source.getPixels(pixels, 0, width, 0, 0, width, height)
+        icon.getPixels(pixels, 0, width, 0, 0, width, height)
 
-        // Convert Compose Color to Android Color ints (0..255)
-        val iconColor = Color(themedColor)
-        val rColor = (iconColor.red * 255).toInt().coerceIn(0, 255)
-        val gColor = (iconColor.green * 255).toInt().coerceIn(0, 255)
-        val bColor = (iconColor.blue * 255).toInt().coerceIn(0, 255)
+        val fgHsl = FloatArray(3)
+        ColorUtils.colorToHSL(foregroundColor, fgHsl)
+        val bgLuminance = ColorUtils.calculateLuminance(backgroundColor)
 
-        // Loop through all pixels and determine what to keep/ignore
+        val opaqueBackgroundColor = ColorUtils.setAlphaComponent(backgroundColor, 255)
+
+        // Define the luminance range to simulate system theming (avoids pure black/white)
+        val minLuminance = 0.1f
+        val maxLuminance = 0.9f
+
         for (i in pixels.indices) {
             val pixel = pixels[i]
+            val alpha = AndroidColor.alpha(pixel)
 
-            // Extract brightness (perceived luminance)
-            val r = AndroidColor.red(pixel)
-            val g = AndroidColor.green(pixel)
-            val b = AndroidColor.blue(pixel)
-            val brightness = (r + g + b) / 3
+            // Skip fully transparent pixels
+            if (alpha == 0) continue
 
-            // White or very bright pixels become transparent; others keep themed color
-            val alpha = if (brightness > 160) 0 else 255
+            val pixelLuminance = ColorUtils.calculateLuminance(pixel)
 
-            pixels[i] = AndroidColor.argb(alpha, rColor, gColor, bColor)
+            val hsv = FloatArray(3)
+            AndroidColor.colorToHSV(pixel, hsv)
+
+            // 1. Check for and replace the icon's own background plate
+            if (hsv[1] < 0.1) { // Low saturation indicates a grayscale/white/black pixel
+                if (pixelLuminance < 0.1) { // Near-black background
+                    // Replace with a DARK shade of the foreground color
+                    val fghslAlpha = 0.3f
+                    val newHsl = floatArrayOf(fgHsl[0], fgHsl[1], fghslAlpha)
+                    val newColor = ColorUtils.HSLToColor(newHsl)
+                    pixels[i] = AndroidColor.argb(alpha, AndroidColor.red(newColor), AndroidColor.green(newColor), AndroidColor.blue(newColor))
+                    continue // Move to the next pixel
+                } else if (pixelLuminance > 0.90) { // Near-white background
+                    // Replace with a LIGHT shade of the foreground color
+                    val fghslAlpha = 0.7f
+                    val newHsl = floatArrayOf(fgHsl[0], fgHsl[1], fghslAlpha)
+                    val newColor = ColorUtils.HSLToColor(newHsl)
+                    pixels[i] = AndroidColor.argb(alpha, AndroidColor.red(newColor), AndroidColor.green(newColor), AndroidColor.blue(newColor))
+                    continue // Move to the next pixel
+                }
+            }
+
+            // 2. Map original brightness to the constrained luminance range
+            val targetLuminance = minLuminance + (pixelLuminance * (maxLuminance - minLuminance)).toFloat()
+
+            // Create the new HSL color by applying the target luminance to the foreground hue/saturation
+            val newHsl = floatArrayOf(fgHsl[0], fgHsl[1], targetLuminance)
+            var newColor = ColorUtils.HSLToColor(newHsl)
+
+            // 3. Contrast Guarantee: Check contrast against the background and adjust if needed
+            val contrast = ColorUtils.calculateContrast(newColor, opaqueBackgroundColor)
+            if (contrast < 2.0) { // 3.0:1 is a good minimum contrast for icons
+                // If contrast is too low, shift the lightness away from the background's luminance
+                val adjustedLuminance = if (bgLuminance > 0.5) {
+                    (targetLuminance - 0.2f).coerceAtLeast(minLuminance) // Make it darker
+                } else {
+                    (targetLuminance + 0.2f).coerceAtMost(maxLuminance) // Make it lighter
+                }
+                newHsl[2] = adjustedLuminance
+                newColor = ColorUtils.HSLToColor(newHsl)
+            }
+
+            // 4. Alpha Enhancement: Boost alpha for better visibility of semi-transparent edges
+            val scaledAlpha = (alpha + 100).coerceAtMost(255)
+
+            pixels[i] = AndroidColor.argb(
+                scaledAlpha,
+                AndroidColor.red(newColor),
+                AndroidColor.green(newColor),
+                AndroidColor.blue(newColor)
+            )
         }
 
-        result.setPixels(pixels, 0, width, 0, 0, width, height)
-        val newDrawable = BitmapDrawable(null, result)
-        return newDrawable.apply {
-            colorFilter = PorterDuffColorFilter(themedColor, PorterDuff.Mode.SRC_IN)
-        }
+        val themedBitmap = Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888)
+        val themedDrawable = BitmapDrawable(null,themedBitmap)
+        return themedDrawable
     }
+
 
     /**
      * Check if bitmap has meaningful transparency
@@ -628,17 +704,21 @@ class ThemedIconProcessor {
             }
         }
 
-        // Consider significant if >80% pixels have some transparency
-        return (transparentPixels.toFloat() / totalSampled) > 0.8f
+        // Consider significant if > 90% pixels have some transparency
+        return (transparentPixels.toFloat() / totalSampled) > 0.9f
     }
 
     private fun drawableToBitmap(drawable: Drawable): Bitmap {
+        val width = 284
+        val height = 284
+
         if (drawable is BitmapDrawable) {
-            return drawable.bitmap
+            return drawable.bitmap.scale(width = width, height = height)
         }
 
-        val width = drawable.intrinsicWidth.coerceAtLeast(1)
-        val height = drawable.intrinsicHeight.coerceAtLeast(1)
+        //val width = drawable.intrinsicWidth.coerceAtLeast(1)
+        //val height = drawable.intrinsicHeight.coerceAtLeast(1)
+
 
         val bitmap = createBitmap(width, height)
         val canvas = Canvas(bitmap)
@@ -647,5 +727,24 @@ class ThemedIconProcessor {
 
         return bitmap
     }
+    fun resizeBitmapWithAspectRatio(source: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
+        val sourceWidth = source.width
+        val sourceHeight = source.height
 
+        if (sourceHeight <= maxHeight && sourceWidth <= maxWidth) {
+            return source // No need to resize if it's already smaller
+        }
+
+        val ratio = sourceWidth.toFloat() / sourceHeight.toFloat()
+        var targetWidth = maxWidth
+        var targetHeight = maxHeight
+
+        if (ratio > 1) { // Landscape
+            targetHeight = (targetWidth / ratio).toInt()
+        } else { // Portrait or square
+            targetWidth = (targetHeight * ratio).toInt()
+        }
+
+        return source.scale(targetWidth, targetHeight)
+    }
 }

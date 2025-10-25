@@ -16,7 +16,7 @@ class ComferApp : Application() {
         if(saveCrashes) {
             Thread.setDefaultUncaughtExceptionHandler(CrashHandler(this))
         }
-        setupImageWorker()
+        //setupImageWorker() TODO ENABLE IT
        }
 
     private fun setupImageWorker() {
