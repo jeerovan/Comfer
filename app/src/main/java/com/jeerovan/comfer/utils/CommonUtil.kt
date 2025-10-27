@@ -44,10 +44,34 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.net.URLDecoder
 import java.security.MessageDigest
-import java.util.Calendar
 
 object CommonUtil {
-
+    fun handleStartActivity(context:Context, intent:Intent?){
+        try {
+            if (intent != null) {
+                context.startActivity(intent)
+            } else {
+                // Optionally, handle the case where the intent is null
+            }
+        } catch (e: SecurityException) {
+            // The permission was denied by the system.
+            // Inform the user gracefully instead of crashing.
+            e.printStackTrace() // Log the error for debugging
+            Toast.makeText(
+                context,
+                "App could not be launched. Please check your device's App Launch settings.",
+                Toast.LENGTH_LONG
+            ).show()
+        } catch (e: Exception) {
+            // Catch other potential exceptions for robustness
+            e.printStackTrace()
+            Toast.makeText(
+                context,
+                "An unexpected error occurred while launching the app.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
     fun openUrl(url: String,context: Context) {
         try {
             var validUrl = url
@@ -219,7 +243,6 @@ object CommonUtil {
                         newFilePath
                     )
                     PreferenceManager.setWallpaperApplied(context,false)
-                    // delete old file
                     if(oldFilePath != null && oldFilePath != newFilePath) {
                         val oldFile = File(oldFilePath)
                         oldFile.delete()
@@ -229,57 +252,61 @@ object CommonUtil {
         }
     }
     suspend fun fetchImageData(applicationContext: Context){
+        val autoWallpapers = PreferenceManager.getAutoWallpapers(applicationContext)
+        if(!autoWallpapers) return
         val previousWallpaperApplied = PreferenceManager.getWallpaperApplied(applicationContext)
         if(!previousWallpaperApplied) return
         val logger = LoggerManager(applicationContext)
+        val changeFrequency = PreferenceManager.getWallpaperFrequency(applicationContext)
         val hour = PreferenceManager.getHour(applicationContext)
         if (hour > 0) {
             val hasPro = PreferenceManager.getPro(applicationContext)
             val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(applicationContext)
             if(wallpaperDirectory != null && hasPro){
-                val changeFrequency = PreferenceManager.getWallpaperFrequency(applicationContext)
-                if (changeFrequency == "Hourly" || hour == 12){
+                if (changeFrequency == "Hourly" || hour == 1){
                     setBackgroundImageFromImageUri(applicationContext,wallpaperDirectory.toUri())
+                    PreferenceManager.setHour(applicationContext, hour)
                 }
             } else {
-                try {
-                    logger.setLog("FetchImageData", "Fetching")
-                    val name = PreferenceManager.getUsername(applicationContext)
-                    val (sslSocketFactory, trustManager) = SSLHelper.createSslSocketFactory(
-                        applicationContext,
-                        R.raw.cacert // Use the name of your certificate file
-                    )
-                    // 2. Define connection specs, including one for compatibility with older devices
-                    val connectionSpecs = listOf(
-                        ConnectionSpec.MODERN_TLS,
-                        ConnectionSpec.COMPATIBLE_TLS
-                    )
-                    val client = HttpClient(OkHttp) {
-                        engine {
-                            config {
-                                // Attach the custom SSLSocketFactory
-                                sslSocketFactory(sslSocketFactory, trustManager)
+                if(changeFrequency == "Hourly" || hour == 7 || hour == 19) {
+                    try {
+                        val name = PreferenceManager.getUsername(applicationContext)
+                        val (sslSocketFactory, trustManager) = SSLHelper.createSslSocketFactory(
+                            applicationContext,
+                            R.raw.cacert // Use the name of your certificate file
+                        )
+                        // 2. Define connection specs, including one for compatibility with older devices
+                        val connectionSpecs = listOf(
+                            ConnectionSpec.MODERN_TLS,
+                            ConnectionSpec.COMPATIBLE_TLS
+                        )
+                        val client = HttpClient(OkHttp) {
+                            engine {
+                                config {
+                                    // Attach the custom SSLSocketFactory
+                                    sslSocketFactory(sslSocketFactory, trustManager)
 
-                                // Set the compatible connection specifications
-                                connectionSpecs(connectionSpecs)
+                                    // Set the compatible connection specifications
+                                    connectionSpecs(connectionSpecs)
+                                }
+                            }
+                            install(ContentNegotiation) {
+                                json(Json {
+                                    ignoreUnknownKeys = true
+                                })
                             }
                         }
-                        install(ContentNegotiation) {
-                            json(Json {
-                                ignoreUnknownKeys = true
-                            })
-                        }
+                        val response: ImageData = client.get("https://comfer.jeerovan.com/api") {
+                            parameter("name", name)
+                            parameter("hour", hour)
+                        }.body()
+                        logger.setLog("FetchImageData", response.toString())
+                        client.close()
+                        PreferenceManager.saveImageData(applicationContext, response)
+                        PreferenceManager.setHour(applicationContext, hour)
+                    } catch (e: Exception) {
+                        logger.setLog("FetchImageData", e.toString())
                     }
-                    val response: ImageData = client.get("https://comfer.jeerovan.com/api") {
-                        parameter("name", name)
-                        parameter("hour", hour)
-                    }.body()
-                    logger.setLog("FetchImageData", response.toString())
-                    client.close()
-                    PreferenceManager.saveImageData(applicationContext, response)
-                    PreferenceManager.setHour(applicationContext, hour)
-                } catch (e: Exception) {
-                    logger.setLog("FetchImageData", e.toString())
                 }
             }
         }
@@ -351,10 +378,11 @@ object CommonUtil {
         }
     }
     fun setWallpaper(applicationContext: Context){
+        val autoWallpapers = PreferenceManager.getAutoWallpapers(applicationContext)
         val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
         val bitmap = BitmapFactory.decodeFile(filePath)
         if(bitmap != null) {
-            if (isDefaultLauncher(applicationContext)) {
+            if (isDefaultLauncher(applicationContext) && autoWallpapers) {
                 val setWallpaperOnLockScreen =
                     PreferenceManager.getWallpaperOnLockScreen(applicationContext)
                 val wallpaperManager =

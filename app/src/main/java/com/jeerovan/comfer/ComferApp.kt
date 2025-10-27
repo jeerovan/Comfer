@@ -2,21 +2,20 @@ package com.jeerovan.comfer
 
 import android.app.Application
 import androidx.work.*
-import com.revenuecat.purchases.LogLevel
-import com.revenuecat.purchases.Purchases
-import com.revenuecat.purchases.PurchasesConfiguration
+import coil.ImageLoaderFactory
 import java.util.concurrent.TimeUnit
+import coil.ImageLoader
 
 const val saveCrashes = false
-const val isTesting = true
-class ComferApp : Application() {
+const val isTesting = false
+class ComferApp : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
         if(saveCrashes) {
             Thread.setDefaultUncaughtExceptionHandler(CrashHandler(this))
         }
-        //setupImageWorker() TODO ENABLE IT
+            setupImageWorker()
        }
 
     private fun setupImageWorker() {
@@ -33,5 +32,12 @@ class ComferApp : Application() {
             ExistingPeriodicWorkPolicy.REPLACE,
             periodicWorkRequest
         )
+    }
+
+    override fun newImageLoader(): ImageLoader {
+        return ImageLoader.Builder(this)
+            .crossfade(true) // Optional: Add a crossfade animation
+            // Add any other global configurations for Coil here
+            .build()
     }
 }

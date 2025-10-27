@@ -17,7 +17,6 @@ import android.content.Intent
 import android.provider.Settings
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -31,11 +30,11 @@ import com.jeerovan.comfer.ui.theme.fontProvider
 import com.jeerovan.comfer.utils.CommonUtil.downloadImage
 import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
 import com.jeerovan.comfer.utils.CommonUtil.setBackgroundImageFromImageUri
-import com.jeerovan.comfer.utils.CommonUtil.setWallpaperThemedColors
 import kotlinx.coroutines.delay
 
 data class SettingsUiState(
     val hasPro: Boolean = false,
+    val autoWallpapers: Boolean = false,
     val wallpaperMotionEnabled: Boolean = true,
     val wallpaperDirectory: String? = null,
     val wallpaperFrequency:String = "Hourly",
@@ -44,7 +43,7 @@ data class SettingsUiState(
     val iconShapeString: String = "circle",
     val iconShape: Shape = CircleShape,
     val showThemedIcons: Boolean = false,
-    val isDarkMode: Boolean = false,
+    val isLightHour: Boolean = false,
     val quickAppsLayout: String = "linear",
     val appDrawerLayout: String = "circular",
     val drawerHeight:Int = 0,
@@ -153,7 +152,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         logger.setLog("SettingsViewModel","LoadSettings")
         viewModelScope.launch {
             val hasPro = PreferenceManager.getPro(getApplication())
-            Log.d("SettingsViewModel","HasPro: $hasPro")
+            val autoWallpapers = PreferenceManager.getAutoWallpapers(getApplication(),true)
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val wallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(getApplication())
             val wallpaperDirectory = if(hasPro) PreferenceManager.getWallpaperDirectory(getApplication()) else null
@@ -162,7 +161,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val iconShapeString  = PreferenceManager.getIconShapeString(getApplication())
             val iconShape  = PreferenceManager.getIconShape(getApplication())
             val showThemedIcons = PreferenceManager.getThemedIcons(getApplication())
-            val isDarkMode = PreferenceManager.getDarkMode(getApplication())
+            val isLightHour = PreferenceManager.isLightHour(getApplication())
             val quickAppsLayout = PreferenceManager.getQuickAppsLayout(getApplication())
             val appDrawerLayout = PreferenceManager.getAppDrawerLayout(getApplication())
             val drawerHeight = PreferenceManager.getInt(getApplication(),DRAWER_HEIGHT,0)
@@ -241,6 +240,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _uiState.update {
                 it.copy(
                     hasPro = hasPro,
+                    autoWallpapers = autoWallpapers,
                     wallpaperMotionEnabled = wallpaperMotion,
                     wallpaperOnLockScreen = wallpaperOnLockScreen,
                     wallpaperDirectory = wallpaperDirectory,
@@ -248,7 +248,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     iconSize = iconSize,
                     iconShape = iconShape,
                     showThemedIcons = showThemedIcons,
-                    isDarkMode = isDarkMode,
+                    isLightHour = isLightHour,
                     quickAppsLayout = quickAppsLayout,
                     appDrawerLayout = appDrawerLayout,
                     drawerHeight = drawerHeight,
@@ -348,10 +348,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _uiState.update { it.copy(showThemedIcons = enabled, leftSwipeApp = leftSwipeApp, rightSwipeApp = rightSwipeApp) }
         }
     }
-    fun setDarkMode(enabled: Boolean){
+    fun setLightHour(enabled: Boolean){
         viewModelScope.launch {
-            PreferenceManager.setDarkMode(getApplication(),enabled)
-            _uiState.update { it.copy(isDarkMode = enabled) }
+            PreferenceManager.setLightHour(getApplication(),enabled)
+            _uiState.update { it.copy(isLightHour = enabled) }
         }
     }
     fun setAlphabeticalOrder(enabled:Boolean){
@@ -700,7 +700,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-
+    fun setAutoWallpapers(enabled: Boolean) {
+        viewModelScope.launch {
+            PreferenceManager.setAutoWallpapers(getApplication(),enabled)
+            _uiState.update { it.copy(autoWallpapers = enabled) }
+        }
+    }
     fun setWallpaperMotion(enabled: Boolean) {
         viewModelScope.launch {
             PreferenceManager.setWallpaperMotion(getApplication(), enabled)
@@ -756,11 +761,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         isLoadingWallpaper = true
         viewModelScope.launch {
             val context:Context = getApplication()
+            PreferenceManager.setHour(context,1)
             try {
+                delay(100)
                 withContext(Dispatchers.IO) {
                     fetchImageData(context)
                 }
-                delay(500)
+                delay(100)
                 withContext(Dispatchers.IO) {
                     downloadImage(context)
                 }

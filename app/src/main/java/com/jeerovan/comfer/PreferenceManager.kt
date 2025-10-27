@@ -42,8 +42,8 @@ object PreferenceManager {
 
     private const val WALLPAPER_DARK_BG = "wallpaper_dark_bg"
     private const val WALLPAPER_DARK_FG = "wallpaper_dark_fg"
-
-    private const val DARK_MODE = "dark_mode"
+    private const val AUTO_WALLPAPER = "auto_wallpaper"
+    private const val LIGHT_HOUR = "dark_mode"
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun clear(context: Context,key: String){
@@ -103,16 +103,16 @@ object PreferenceManager {
     fun getPro(context: Context): Boolean {
         return getBoolean(context,HAS_PRO_VERSION,false)
     }
-    fun setDarkMode(context: Context,enabled: Boolean){
-        setBoolean(context,DARK_MODE,enabled)
+    fun setLightHour(context: Context, enabled: Boolean){
+        setBoolean(context,LIGHT_HOUR,enabled)
     }
-    fun getDarkMode(context: Context): Boolean {
+    fun isLightHour(context: Context): Boolean {
         if(isTesting) {
-            return getBoolean(context, DARK_MODE, false)
+            return getBoolean(context, LIGHT_HOUR, false)
         } else {
             val calendar = Calendar.getInstance()
             val hour = calendar.get(Calendar.HOUR_OF_DAY)
-            return hour > 7 && hour < 19
+            return hour > 6 && hour < 19
         }
     }
     fun setThemedColors(context: Context,lightBg:Int,lightFg:Int,darkBg:Int,darkFg:Int){
@@ -190,8 +190,12 @@ object PreferenceManager {
     fun setWallpaperMotion(context: Context, enabled: Boolean) {
         setBoolean(context,KEY_WALLPAPER_MOTION,enabled)
     }
-
-    // Example: getWallpaperMotion
+    fun getAutoWallpapers(context: Context, default: Boolean = true): Boolean {
+        return getBoolean(context,AUTO_WALLPAPER,default)
+    }
+    fun setAutoWallpapers(context: Context, enabled: Boolean) {
+        setBoolean(context,AUTO_WALLPAPER,enabled)
+    }
     fun getWallpaperMotion(context: Context, default: Boolean = true): Boolean {
         return getBoolean(context,KEY_WALLPAPER_MOTION,default)
     }
@@ -313,22 +317,13 @@ object PreferenceManager {
     }
 
     fun getHour(context: Context):Int{
-        if(isTesting){
-            val isDarkMode = getDarkMode(context)
-            return if(isDarkMode){
-                20
-            } else {
-                10
-            }
+        val calendar = Calendar.getInstance()
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val existingHour = getInt(context, "now_hour", 0)
+        return if (existingHour != hour) {
+            hour
         } else {
-            val calendar = Calendar.getInstance()
-            val hour = calendar.get(Calendar.HOUR_OF_DAY)
-            val existingHour = getInt(context, "now_hour", 0)
-            return if (existingHour != hour) {
-                hour
-            } else {
-                0
-            }
+            0
         }
     }
     fun setHour(context: Context,hour:Int){

@@ -108,11 +108,7 @@ import kotlinx.coroutines.launch
 import android.text.TextUtils
 import android.view.SoundEffectConstants
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.material3.Button
@@ -169,6 +165,7 @@ import android.content.ComponentName
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.provider.AlarmClock
 import android.service.notification.StatusBarNotification
@@ -191,7 +188,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import androidx.core.content.edit
 import kotlin.text.ifEmpty
-import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -220,7 +216,9 @@ import com.revenuecat.purchases.PurchasesConfiguration
 import com.revenuecat.purchases.getCustomerInfoWith
 import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
 import kotlin.math.atan2
-
+import coil.request.SuccessResult
+import coil.imageLoader
+import com.jeerovan.comfer.utils.CommonUtil.handleStartActivity
 
 @Composable
 fun DraggableContainerWithViewModel(
@@ -1680,7 +1678,7 @@ fun BatteryStatus(
 fun QuickListOverlay(apps: List<AppInfo>,
                      appWidgetManager: AppWidgetManager,
                      mainWidgetHost: AppWidgetHost,
-                     notificationIcons: List<Drawable>,
+                     notificationIcons: List<Icon>,
                      notificationPackages: List<String>,
                      imageData: ImageData?,
                      settingsModel: SettingsViewModel,
@@ -1700,7 +1698,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
 
     fun openDefaultLauncherSettings() {
         val intent = Intent(Settings.ACTION_HOME_SETTINGS)
-        context.startActivity(intent)
+        handleStartActivity(context,intent)
     }
 
     LaunchedEffect(Unit) {
@@ -1731,7 +1729,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
     fun onGuideDismiss(){
         PreferenceManager.setBoolean(context,guideKeyword,true)
         guideShown = true
-        context.startActivity(Intent(context, SettingsActivity::class.java))
+        val intent = Intent(context, SettingsActivity::class.java)
+        handleStartActivity(context,intent)
     }
 
     if(!guideShown && canShowGuide)GuideDialog(
@@ -1772,7 +1771,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
     var defaultColor = imageData?.color?.let { colorName ->
         stringToColor(colorName)
     } ?: Color.White
-    if (!settings.wallpaperMotionEnabled && !isDefault) {
+    if (!settings.autoWallpapers && !isDefault) {
         defaultColor = Color.White
     }
     var showWidgetSettings by remember { mutableStateOf(false) }
@@ -1885,9 +1884,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                                 context.packageManager.getLaunchIntentForPackage(
                                                     swipeLeftPackage
                                                 )
-                                            if (launchIntent != null) {
-                                                context.startActivity(launchIntent)
-                                            }
+                                            handleStartActivity(context,launchIntent)
                                         }
                                     }
                                 },
@@ -1904,9 +1901,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                                 context.packageManager.getLaunchIntentForPackage(
                                                     swipeRightPackage
                                                 )
-                                            if (launchIntent != null) {
-                                                context.startActivity(launchIntent)
-                                            }
+                                            handleStartActivity(context,launchIntent)
                                         }
                                     }
                                 },
@@ -1917,9 +1912,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                             context.packageManager.getLaunchIntentForPackage(
                                                 appOnCircularPattern.packageName
                                             )
-                                        if (launchIntent != null) {
-                                            context.startActivity(launchIntent)
-                                        }
+                                        handleStartActivity(context,launchIntent)
                                     }
                                 },
                                 onLPatternDetected = { pattern ->
@@ -1929,9 +1922,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                             context.packageManager.getLaunchIntentForPackage(
                                                 patternApp.packageName
                                             )
-                                        if (launchIntent != null) {
-                                            context.startActivity(launchIntent)
-                                        }
+                                        handleStartActivity(context,launchIntent)
                                     }
                                 }
                             ),
@@ -1966,7 +1957,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     onShowSearch,
                                     settings.showThemedIcons,
                                     themedColors,
-                                    settings.isDarkMode
+                                    settings.isLightHour
                                 )
 
                                 "circular" -> CircularLayout(
@@ -1977,7 +1968,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     onShowSearch,
                                     settings.showThemedIcons,
                                     themedColors,
-                                    settings.isDarkMode
+                                    settings.isLightHour
                                 )
                             }
                         }
@@ -2058,7 +2049,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
             // Launch the app
             val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(singleApp.packageName)
             if (launchIntent != null) {
-                context.startActivity(launchIntent)
+                handleStartActivity(context,launchIntent)
                 // Optional: Clear the input text after launching
                 inputText = ""
             }
@@ -2890,7 +2881,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         val maxWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
         val maxHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
-        AnimatedBackground(backgroundImage,wallpaperMotionEnabled,maxWidthPx,maxHeightPx)
+        if(settingInfoUiState.autoWallpapers)AnimatedBackground(backgroundImage,wallpaperMotionEnabled,maxWidthPx,maxHeightPx)
 
         // Quick-list layer, goes up and hides, come down and shows up
         AnimatedVisibility(
@@ -3029,24 +3020,35 @@ fun AnimatedBackground(
     maxWidthPx: Float,
     maxHeightPx: Float
 ) {
-    if (backgroundImage != null && wallpaperMotionEnabled) {
-        // 1. Create an infinite transition
-        val infiniteTransition = rememberInfiniteTransition(label = "background-animation")
+    if (backgroundImage != null) {
+        // 1. Use Animatable to hold and animate the angle.
+        // This gives us imperative control over the animation.
+        val angle = remember { Animatable(0f) }
 
-        // 2. Animate the angle from 0 to 2*PI over 60 seconds
-        val angle by infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = (2f * Math.PI).toFloat(),
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 60000, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart
-            ),
-            label = "angle-animation"
-        )
+        // 2. Use LaunchedEffect to start or stop the animation based on the boolean.
+        // This coroutine will re-launch whenever `wallpaperMotionEnabled` changes.
+        LaunchedEffect(wallpaperMotionEnabled) {
+            if (wallpaperMotionEnabled) {
+                // If enabled, launch a coroutine to run the infinite animation.
+                launch {
+                    angle.animateTo(
+                        targetValue = (2f * Math.PI).toFloat(),
+                        animationSpec = tween(
+                            durationMillis = 60000,
+                            easing = LinearEasing
+                        )
+                    )
+                }
+            } else {
+                // If disabled, immediately stop any ongoing animation and reset the angle.
+                angle.snapTo(0f)
+            }
+        }
 
-        // 3. Calculate offsets based on the animated angle
-        val xOffset = cos(angle) * maxWidthPx * 0.08f
-        val yOffset = sin(angle) * maxHeightPx * 0.08f
+        // 3. Calculate offsets based on the animated angle's current value.
+        // This calculation is now driven by a state that only changes when needed.
+        val xOffset = if (wallpaperMotionEnabled) cos(angle.value) * maxWidthPx * 0.08f else 0f
+        val yOffset = if (wallpaperMotionEnabled) sin(angle.value) * maxHeightPx * 0.08f else 0f
 
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
@@ -3056,7 +3058,9 @@ fun AnimatedBackground(
             contentDescription = "Background",
             modifier = Modifier
                 .fillMaxSize()
-                .scale(1.2f)
+                // The scale modifier is applied conditionally
+                .scale(if (wallpaperMotionEnabled) 1.2f else 1f)
+                // graphicsLayer remains the most performant way to apply transformations [32]
                 .graphicsLayer {
                     translationX = xOffset
                     translationY = yOffset
@@ -3217,15 +3221,13 @@ fun AppIcon(app: AppInfo,
                             view.playSoundEffect(SoundEffectConstants.CLICK)
                             val launchIntent: Intent? =
                                 context.packageManager.getLaunchIntentForPackage(app.packageName)
-                            if (launchIntent != null) {
-                                context.startActivity(launchIntent)
-                            }
+                            handleStartActivity(context,launchIntent)
                         },
                         onLongPress = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                             intent.data = "package:${app.packageName}".toUri()
-                            context.startActivity(intent)
+                            handleStartActivity(context,intent)
                         }
                     )
                 },
@@ -3459,7 +3461,7 @@ fun AccessibilityPermissionDisclosureScreen(
 }
 fun requestAccessibilityPermission(context: Context) {
     val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-    context.startActivity(intent)
+    handleStartActivity(context,intent)
 }
 
 @Composable
@@ -3653,7 +3655,7 @@ fun placeCallWithDialer(context: Context, number: String?) {
 
     // Check if there's an app that can handle this intent
     if (intent.resolveActivity(context.packageManager) != null) {
-        context.startActivity(intent)
+        handleStartActivity(context,intent)
     } else {
         Toast.makeText(context, "No app found to handle making phone calls", Toast.LENGTH_SHORT).show()
     }
@@ -3722,7 +3724,7 @@ fun CircularLayout(
     onShowSearch: () -> Unit,
     showThemedIcon: Boolean,
     themedColors: WallpaperThemeColors,
-    isDarkMode: Boolean
+    isLightMode: Boolean
 ) {
     // Radius calculated to maintain a 20.dp gap between 56.dp icons.
     val radius =  iconSize * 1.768f
@@ -3749,7 +3751,7 @@ fun CircularLayout(
             onShowSearch,
             showThemedIcon,
             themedColors,
-            !isDarkMode)
+            isLightMode)
 
         // Place up to 8 app icons in a circle
         apps.take(8).forEachIndexed { index, app ->
@@ -3777,7 +3779,7 @@ fun FiveColumnLayout(apps:List<AppInfo>,
                      onShowSearch: () -> Unit,
                      showThemedIcon: Boolean,
                      themedColors: WallpaperThemeColors,
-                     isDarkMode: Boolean
+                     isLightMode: Boolean
 ) {
     val gap = 20.dp
     Row(
@@ -3805,7 +3807,7 @@ fun FiveColumnLayout(apps:List<AppInfo>,
             onShowSearch,
             showThemedIcon,
             themedColors,
-            !isDarkMode)
+            isLightMode)
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
         Column(
             verticalArrangement = Arrangement.spacedBy(gap)
@@ -3822,16 +3824,39 @@ fun FiveColumnLayout(apps:List<AppInfo>,
         }
     }
 }
+@Composable
+fun rememberIconDrawable(icon: Icon?, context: Context): Drawable? {
+    var drawable by remember(icon) { mutableStateOf<Drawable?>(null) }
 
+    LaunchedEffect(icon) {
+        if (icon == null) {
+            drawable = null
+            return@LaunchedEffect
+        }
+
+        // Perform the potentially blocking drawable loading on the IO dispatcher
+        withContext(Dispatchers.IO) {
+            try {
+                drawable = icon.loadDrawable(context)
+            } catch (e: Exception) {
+                // Log the error if loading fails, but don't crash
+                Log.e("rememberIconDrawable", "Failed to load drawable for icon", e)
+                drawable = null
+            }
+        }
+    }
+    return drawable
+}
 @Composable
 fun NotificationIconRow(
-    notificationIcons: List<Drawable>,
+    notificationIcons: List<Icon>,
     modifier: Modifier = Modifier,
     maxVisibleIcons: Int = 5,
     settings: SettingsUiState,
     defaultColor: Color,
     showBorder: Boolean
 ) {
+    val context = LocalContext.current
     val customWallpaper = settings.wallpaperDirectory != null
     val iconSize = settings.notificationSize.dp
     val iconColor = if(customWallpaper) settings.notificationColor else defaultColor
@@ -3857,9 +3882,10 @@ fun NotificationIconRow(
                     notificationIcons
                 }
 
-                iconsToShow.forEach { drawable ->
-                    Image(
-                        painter = rememberDrawablePainter(drawable = drawable),
+                iconsToShow.forEach { icon ->
+                    val drawable = rememberIconDrawable(icon = icon, context = context)
+                    AsyncImage(
+                        model = drawable,
                         contentDescription = "Notification Icon",
                         // Apply a tint to make the icon visible
                         colorFilter = ColorFilter.tint(iconColor),
@@ -3956,7 +3982,7 @@ fun WidgetClock(
                         // Open Alarms
                         val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
                         if (intent.resolveActivity(context.packageManager) != null) {
-                            context.startActivity(intent)
+                            handleStartActivity(context,intent)
                         }
                     },
                     onLongPress = {
@@ -3967,7 +3993,7 @@ fun WidgetClock(
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK
                         }
                         if (calendarIntent.resolveActivity(context.packageManager) != null) {
-                            context.startActivity(calendarIntent)
+                            handleStartActivity(context,calendarIntent)
                         }
                     }
                 )
@@ -4091,36 +4117,26 @@ fun AnalogClock(
         }
     }
 }
+
 @Composable
 fun rememberNotificationIcons(
     notifications: List<StatusBarNotification>,
     hasNotificationAccess: Boolean,
     context: Context
-): State<List<Drawable>> {
-    val notificationIcons = remember { mutableStateOf<List<Drawable>>(emptyList()) }
+): State<List<Icon>> {
+    val notificationIcons = remember { mutableStateOf<List<Icon>>(emptyList()) }
 
-    // Use LaunchedEffect to perform the background loading.
-    // It will re-run whenever notifications or hasNotificationAccess changes.
+    // This effect is now very fast as it just extracts the Icon object
     LaunchedEffect(notifications, hasNotificationAccess) {
         if (!hasNotificationAccess) {
             notificationIcons.value = emptyList()
             return@LaunchedEffect
         }
 
-        // Switch to the IO dispatcher for background work.
-        val icons = withContext(Dispatchers.IO) {
-            notifications.mapNotNull { sbn ->
-                try {
-                    // Safely load the drawable on a background thread.
-                    sbn.notification.smallIcon?.loadDrawable(context)
-                } catch (_: Exception) {
-                    // Gracefully handle cases where the icon can't be loaded.
-                    null
-                }
-            }
+        val icons = notifications.mapNotNull { sbn ->
+            sbn.notification.smallIcon
         }
 
-        // Update the state with the result on the main thread.
         notificationIcons.value = icons
     }
 

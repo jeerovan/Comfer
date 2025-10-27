@@ -10,6 +10,7 @@ import android.os.Build
 import androidx.compose.ui.graphics.Shape
 import android.os.Bundle
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -275,6 +276,26 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item { SectionHeader("Background") }
             item {
                 ListItem(
+                    headlineContent = { Text("Auto Wallpapers") },
+                    supportingContent = { Text("Change wallpapers automatically") },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.Wallpaper,
+                            contentDescription = "Wallpapers"
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settingsState.autoWallpapers,
+                            onCheckedChange = { settingsViewModel.setAutoWallpapers(it) }
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.setAutoWallpapers(!settingsState.autoWallpapers) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
+            if(settingsState.autoWallpapers)item {
+                ListItem(
                     headlineContent = { Text("Wallpaper Motion") },
                     supportingContent = { Text("Make home screen alive") },
                     leadingContent = {
@@ -293,7 +314,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            if(isTesting)item {
+            if(settingsState.autoWallpapers && isTesting)item {
                 ListItem(
                     headlineContent = { Text("Change Wallpaper") },
                     supportingContent = { Text("For testing") },
@@ -307,17 +328,11 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item{
-                SelectSetOwnWallpapersDirectory(
-                    enabled = settingsState.hasPro,
-                    onSelectDirectory = { directoryUri -> settingsViewModel.setWallpaperDirectory(directoryUri)},
-                    selectedDirectory = settingsState.wallpaperDirectory)
-            }
-            if(settingsState.wallpaperDirectory != null){
+            if(settingsState.autoWallpapers){
                 item {
                     SelectOptionsWithListItemSettingItem(
                         "Change wallpaper",
-                        null,
+                        "With auto day/night mode",
                         {Icon(Icons.Filled.Refresh, contentDescription = "Change frequency")},
                         settingsState.wallpaperFrequency,
                         {option -> settingsViewModel.setWallpaperFrequency(option)},
@@ -325,7 +340,13 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     )
                 }
             }
-            if(isDefaultLauncher(context) && canSetLockScreenWallpaper()){
+            if(settingsState.autoWallpapers)item{
+                SelectSetOwnWallpapersDirectory(
+                    enabled = settingsState.hasPro,
+                    onSelectDirectory = { directoryUri -> settingsViewModel.setWallpaperDirectory(directoryUri)},
+                    selectedDirectory = settingsState.wallpaperDirectory)
+            }
+            if(settingsState.autoWallpapers && isDefaultLauncher(context) && canSetLockScreenWallpaper()){
                 item {
                     ListItem(
                         headlineContent = { Text("Lock Screen") },
@@ -417,8 +438,8 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             if(isTesting)item{
                 ListItem(
-                    headlineContent = { Text("Dark Mode") },
-                    supportingContent = { Text("Turn on dark mode") },
+                    headlineContent = { Text("Light Hours") },
+                    supportingContent = { Text("Turn on light mode") },
                     leadingContent = {
                         Icon(
                             Icons.Filled.InvertColors,
@@ -427,11 +448,11 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     },
                     trailingContent = {
                         Switch(
-                            checked = settingsState.isDarkMode,
-                            onCheckedChange = { settingsViewModel.setDarkMode(it) }
+                            checked = settingsState.isLightHour,
+                            onCheckedChange = { settingsViewModel.setLightHour(it) }
                         )
                     },
-                    modifier = Modifier.clickable { settingsViewModel.setDarkMode(!settingsState.isDarkMode) },
+                    modifier = Modifier.clickable { settingsViewModel.setLightHour(!settingsState.isLightHour) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
@@ -487,6 +508,8 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     modifier = Modifier.clickable {
                         if(settingsState.hasPro){
                             settingsViewModel.setCustomWidgets(!settingsState.hasCustomWidgets)
+                        } else {
+                            Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT).show()
                         }
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
@@ -980,8 +1003,12 @@ fun SelectSetOwnWallpapersDirectory(
         },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.clickable {
-            if (enabled && isChecked) {
-                directoryPickerLauncher.launch(null)
+            if (enabled) {
+                if(isChecked){
+                    directoryPickerLauncher.launch(null)
+                }
+            } else {
+                Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT).show()
             }
         }
     )

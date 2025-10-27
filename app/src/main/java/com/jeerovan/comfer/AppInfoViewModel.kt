@@ -33,7 +33,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.max
-import android.graphics.Color as AndroidColor
 import androidx.core.graphics.scale
 
 private const val REST_LIST_NAME = "Rest"
@@ -159,7 +158,7 @@ suspend fun mapPackageNameToAppInfo(
     if (packageName == null) return null
     val showThemedIcons = PreferenceManager.getThemedIcons(context)
     val themedColors = PreferenceManager.getThemedColors(context)
-    val isLightHour = !PreferenceManager.getDarkMode(context)
+    val isLightHour = PreferenceManager.isLightHour(context)
     return try {
         packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
             packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
@@ -278,7 +277,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     val resolveInfoMap = allCurrentResolveInfos.associateBy { it.activityInfo.packageName }
                     val showThemedIcons = PreferenceManager.getThemedIcons(context)
                     val themedColors = PreferenceManager.getThemedColors(context)
-                    val isLightHour = !PreferenceManager.getDarkMode(context)
+                    val isLightHour = PreferenceManager.isLightHour(context)
                     // Load quick apps first and update UI immediately
                     val quickApps = finalQuickPackageNames.map { packageName ->
                         async { createAppInfo(context,
@@ -616,7 +615,7 @@ class ThemedIconProcessor {
 
         for (i in pixels.indices) {
             val pixel = pixels[i]
-            val alpha = AndroidColor.alpha(pixel)
+            val alpha = android.graphics.Color.alpha(pixel)
 
             // Skip fully transparent pixels
             if (alpha == 0) continue
@@ -624,7 +623,7 @@ class ThemedIconProcessor {
             val pixelLuminance = ColorUtils.calculateLuminance(pixel)
 
             val hsv = FloatArray(3)
-            AndroidColor.colorToHSV(pixel, hsv)
+            android.graphics.Color.colorToHSV(pixel, hsv)
 
             // 1. Check for and replace the icon's own background plate
             if (hsv[1] < 0.1) { // Low saturation indicates a grayscale/white/black pixel
@@ -633,14 +632,14 @@ class ThemedIconProcessor {
                     val fghslAlpha = 0.3f
                     val newHsl = floatArrayOf(fgHsl[0], fgHsl[1], fghslAlpha)
                     val newColor = ColorUtils.HSLToColor(newHsl)
-                    pixels[i] = AndroidColor.argb(alpha, AndroidColor.red(newColor), AndroidColor.green(newColor), AndroidColor.blue(newColor))
+                    pixels[i] = android.graphics.Color.argb(alpha, android.graphics.Color.red(newColor), android.graphics.Color.green(newColor), android.graphics.Color.blue(newColor))
                     continue // Move to the next pixel
                 } else if (pixelLuminance > 0.90) { // Near-white background
                     // Replace with a LIGHT shade of the foreground color
                     val fghslAlpha = 0.7f
                     val newHsl = floatArrayOf(fgHsl[0], fgHsl[1], fghslAlpha)
                     val newColor = ColorUtils.HSLToColor(newHsl)
-                    pixels[i] = AndroidColor.argb(alpha, AndroidColor.red(newColor), AndroidColor.green(newColor), AndroidColor.blue(newColor))
+                    pixels[i] = android.graphics.Color.argb(alpha, android.graphics.Color.red(newColor), android.graphics.Color.green(newColor), android.graphics.Color.blue(newColor))
                     continue // Move to the next pixel
                 }
             }
@@ -668,11 +667,11 @@ class ThemedIconProcessor {
             // 4. Alpha Enhancement: Boost alpha for better visibility of semi-transparent edges
             val scaledAlpha = (alpha + 100).coerceAtMost(255)
 
-            pixels[i] = AndroidColor.argb(
+            pixels[i] = android.graphics.Color.argb(
                 scaledAlpha,
-                AndroidColor.red(newColor),
-                AndroidColor.green(newColor),
-                AndroidColor.blue(newColor)
+                android.graphics.Color.red(newColor),
+                android.graphics.Color.green(newColor),
+                android.graphics.Color.blue(newColor)
             )
         }
 
