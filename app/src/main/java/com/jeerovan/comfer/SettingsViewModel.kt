@@ -703,6 +703,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setAutoWallpapers(enabled: Boolean) {
         viewModelScope.launch {
             PreferenceManager.setAutoWallpapers(getApplication(),enabled)
+            if(!enabled){
+                setThemedIcons(false)
+            }
             _uiState.update { it.copy(autoWallpapers = enabled) }
         }
     }
@@ -712,7 +715,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _uiState.update { it.copy(wallpaperMotionEnabled = enabled) }
         }
     }
-
     fun setWallpaperOnLockScreen(enabled: Boolean) {
         viewModelScope.launch {
             PreferenceManager.setWallpaperOnLockScreen(getApplication(), enabled)

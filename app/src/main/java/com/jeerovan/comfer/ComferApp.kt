@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit
 import coil.ImageLoader
 
 const val saveCrashes = false
-const val isTesting = false
+const val isTesting = true
 class ComferApp : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
