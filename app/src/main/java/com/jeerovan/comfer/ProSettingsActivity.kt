@@ -94,7 +94,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
     ) {
         Column(
             modifier = Modifier

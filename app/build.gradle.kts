@@ -16,8 +16,8 @@ android {
         applicationId = "com.jeerovan.comfer"
         minSdk = 23
         targetSdk = 36
-        versionCode = 20
-        versionName = "20.0"
+        versionCode = 21
+        versionName = "21.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -26,7 +26,6 @@ android {
         release {
             // Enables code-related app optimization.
             isMinifyEnabled = true
-
             // Enables resource shrinking.
             isShrinkResources = true
             proguardFiles(

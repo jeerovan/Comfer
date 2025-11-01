@@ -165,7 +165,6 @@ import android.content.ComponentName
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.Icon
 import android.os.Build
 import android.provider.AlarmClock
 import android.service.notification.StatusBarNotification
@@ -216,8 +215,6 @@ import com.revenuecat.purchases.PurchasesConfiguration
 import com.revenuecat.purchases.getCustomerInfoWith
 import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
 import kotlin.math.atan2
-import coil.request.SuccessResult
-import coil.imageLoader
 import com.jeerovan.comfer.utils.CommonUtil.handleStartActivity
 
 @Composable
@@ -1678,7 +1675,7 @@ fun BatteryStatus(
 fun QuickListOverlay(apps: List<AppInfo>,
                      appWidgetManager: AppWidgetManager,
                      mainWidgetHost: AppWidgetHost,
-                     notificationIcons: List<Icon>,
+                     notificationIcons: List<Pair<String, Drawable>>,
                      notificationPackages: List<String>,
                      imageData: ImageData?,
                      settingsModel: SettingsViewModel,
@@ -2693,7 +2690,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             }
         }
     }
-    val notificationIcons by rememberNotificationIcons(notifications,hasNotificationAccess,LocalContext.current)
+    val notificationIcons by rememberNotificationDrawables(notifications,hasNotificationAccess,LocalContext.current)
     LaunchedEffect(Unit) {
         mainViewModel.backPressEvent.collect {
             if(areLeftWigetsVisible) {
@@ -3825,31 +3822,42 @@ fun FiveColumnLayout(apps:List<AppInfo>,
     }
 }
 @Composable
-fun rememberIconDrawable(icon: Icon?, context: Context): Drawable? {
-    var drawable by remember(icon) { mutableStateOf<Drawable?>(null) }
-
-    LaunchedEffect(icon) {
-        if (icon == null) {
-            drawable = null
-            return@LaunchedEffect
+fun rememberNotificationDrawables(
+    notifications: List<StatusBarNotification>,
+    hasNotificationAccess: Boolean,
+    context: Context
+): State<List<Pair<String, Drawable>>> {
+    // produceState is a cleaner, more concise way to handle this pattern
+    return produceState<List<Pair<String, Drawable>>>(
+        initialValue = emptyList(),
+        notifications,
+        hasNotificationAccess
+    ) {
+        if (!hasNotificationAccess) {
+            value = emptyList()
+            return@produceState
         }
-
-        // Perform the potentially blocking drawable loading on the IO dispatcher
-        withContext(Dispatchers.IO) {
-            try {
-                drawable = icon.loadDrawable(context)
-            } catch (e: Exception) {
-                // Log the error if loading fails, but don't crash
-                Log.e("rememberIconDrawable", "Failed to load drawable for icon", e)
-                drawable = null
+        // The loading logic remains on a background thread
+        value = withContext(Dispatchers.IO) {
+            notifications.mapNotNull { sbn ->
+                // Try to load the drawable and handle exceptions *outside* the final expression.
+                val drawable: Drawable? = try {
+                    sbn.notification.smallIcon.loadDrawable(context)
+                } catch (e: Exception) {
+                    Log.e("rememberDrawables", "Failed to load drawable for ${sbn.key}", e)
+                    null
+                }
+                // Now, work with the nullable `drawable`.
+                // If it's not null, create the Pair. If it is null, this whole expression
+                // evaluates to null, which `mapNotNull` then correctly discards.
+                drawable?.let { sbn.key to it }
             }
         }
     }
-    return drawable
 }
 @Composable
 fun NotificationIconRow(
-    notificationIcons: List<Icon>,
+    notificationIcons: List<Pair<String, Drawable>>,
     modifier: Modifier = Modifier,
     maxVisibleIcons: Int = 5,
     settings: SettingsUiState,
@@ -3870,7 +3878,7 @@ fun NotificationIconRow(
             contentAlignment = Alignment.Center
         )
         {
-            Row(
+            LazyRow(
                 modifier = modifier
                     .padding(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -3882,8 +3890,10 @@ fun NotificationIconRow(
                     notificationIcons
                 }
 
-                iconsToShow.forEach { icon ->
-                    val drawable = rememberIconDrawable(icon = icon, context = context)
+                items(
+                    items = iconsToShow,
+                    key = { (key, _) -> key } // Use the stable key for performance
+                ) { (_, drawable) ->
                     AsyncImage(
                         model = drawable,
                         contentDescription = "Notification Icon",
@@ -3895,19 +3905,21 @@ fun NotificationIconRow(
 
                 // Overflow badge remains the same
                 if (notificationIcons.size > maxVisibleIcons + 1) {
-                    val overflowCount = notificationIcons.size - maxVisibleIcons
-                    Box(
-                        modifier = Modifier
-                            .size(iconSize)
-                            .clip(CircleShape)
-                            .background(iconColor),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "+$overflowCount",
-                            color = if (iconColor == Color.White) Color.Black else Color.White,
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                    item {
+                        val overflowCount = notificationIcons.size - maxVisibleIcons
+                        Box(
+                            modifier = Modifier
+                                .size(iconSize)
+                                .clip(CircleShape)
+                                .background(iconColor),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "+$overflowCount",
+                                color = if (iconColor == Color.White) Color.Black else Color.White,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 }
             }
@@ -4116,31 +4128,6 @@ fun AnalogClock(
             )
         }
     }
-}
-
-@Composable
-fun rememberNotificationIcons(
-    notifications: List<StatusBarNotification>,
-    hasNotificationAccess: Boolean,
-    context: Context
-): State<List<Icon>> {
-    val notificationIcons = remember { mutableStateOf<List<Icon>>(emptyList()) }
-
-    // This effect is now very fast as it just extracts the Icon object
-    LaunchedEffect(notifications, hasNotificationAccess) {
-        if (!hasNotificationAccess) {
-            notificationIcons.value = emptyList()
-            return@LaunchedEffect
-        }
-
-        val icons = notifications.mapNotNull { sbn ->
-            sbn.notification.smallIcon
-        }
-
-        notificationIcons.value = icons
-    }
-
-    return notificationIcons
 }
 
 // Gestures
