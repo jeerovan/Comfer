@@ -156,7 +156,8 @@ suspend fun mapPackageNameToAppInfo(
     packageName: String?
 ): AppInfo? {
     if (packageName == null) return null
-    val showThemedIcons = PreferenceManager.getThemedIcons(context)
+    val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
+    val showThemedIcons = PreferenceManager.getThemedIcons(context) && autoWallpapers
     val themedColors = PreferenceManager.getThemedColors(context)
     val isLightHour = PreferenceManager.isLightHour(context)
     return try {
@@ -275,7 +276,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
                     // --- Stage 2: Load App Info Concurrently ---
                     val resolveInfoMap = allCurrentResolveInfos.associateBy { it.activityInfo.packageName }
-                    val showThemedIcons = PreferenceManager.getThemedIcons(context)
+                    val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
+                    val showThemedIcons = PreferenceManager.getThemedIcons(context) && autoWallpapers
                     val themedColors = PreferenceManager.getThemedColors(context)
                     val isLightHour = PreferenceManager.isLightHour(context)
                     // Load quick apps first and update UI immediately
