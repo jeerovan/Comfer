@@ -1503,12 +1503,18 @@ private fun saveWidgetsToPrefs(prefs: SharedPreferences, widgets: List<BoundWidg
     prefs.edit { putString(BOUND_WIDGETS_KEY, jsonString) }
 }
 
-private fun loadWidgetsFromPrefs(prefs: SharedPreferences, appWidgetManager: AppWidgetManager): List<BoundWidget> {
-    val jsonString = prefs.getString(BOUND_WIDGETS_KEY, null) ?: return emptyList()
-    return try {
+private suspend fun loadWidgetsFromPrefs(
+    prefs: SharedPreferences,
+    appWidgetManager: AppWidgetManager
+): List<BoundWidget> = withContext(Dispatchers.IO) {
+    val jsonString = prefs.getString(BOUND_WIDGETS_KEY, null) ?: return@withContext emptyList()
+    try {
         val persistableList = Json.decodeFromString<List<PersistableBoundWidget>>(jsonString)
+        // This is the slow operation - runs on background thread now
+        val installedProviders = appWidgetManager.installedProviders
+
         persistableList.mapNotNull { persist ->
-            val provider = appWidgetManager.installedProviders.find {
+            val provider = installedProviders.find {
                 it.provider == ComponentName(persist.providerPackage, persist.providerClass)
             }
             if (provider != null) {
@@ -1518,10 +1524,11 @@ private fun loadWidgetsFromPrefs(prefs: SharedPreferences, appWidgetManager: App
             }
         }
     } catch (e: Exception) {
-        Log.e("LoadWidgetsFromPrefs",e.toString())
+        Log.e("LoadWidgetsFromPrefs", e.toString())
         emptyList()
     }
 }
+
 
 private fun findNextAvailableCell(widgets: List<BoundWidget>,
                                   gridColumns: Int,
