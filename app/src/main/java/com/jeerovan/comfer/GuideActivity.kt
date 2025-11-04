@@ -95,6 +95,9 @@ fun UserGuideScreen() {
                 GuideStepItem(text = "Long-press upper half screen to edit widgets.")
             }
             item {
+                GuideStepItem(text = "Tap upper half screen to exit editing widgets.")
+            }
+            item {
                 GuideStepItem(text = "Tap on Date/Time to see alarms.")
             }
             item {
