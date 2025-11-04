@@ -170,6 +170,10 @@ import android.provider.AlarmClock
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import android.view.WindowManager
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -2878,7 +2882,9 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         val maxWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
         val maxHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
-        if(settingInfoUiState.autoWallpapers)AnimatedBackground(backgroundImage,wallpaperMotionEnabled,maxWidthPx,maxHeightPx)
+        if(settingInfoUiState.autoWallpapers){
+            AnimatedBackground(backgroundImage,wallpaperMotionEnabled,maxWidthPx,maxHeightPx)
+        }
 
         // Quick-list layer, goes up and hides, come down and shows up
         AnimatedVisibility(
@@ -3018,34 +3024,27 @@ fun AnimatedBackground(
     maxHeightPx: Float
 ) {
     if (backgroundImage != null) {
-        // 1. Use Animatable to hold and animate the angle.
-        // This gives us imperative control over the animation.
-        val angle = remember { Animatable(0f) }
+        val infiniteTransition = rememberInfiniteTransition(label = "wallpaper_motion")
 
-        // 2. Use LaunchedEffect to start or stop the animation based on the boolean.
-        // This coroutine will re-launch whenever `wallpaperMotionEnabled` changes.
-        LaunchedEffect(wallpaperMotionEnabled) {
-            if (wallpaperMotionEnabled) {
-                // If enabled, launch a coroutine to run the infinite animation.
-                launch {
-                    angle.animateTo(
-                        targetValue = (2f * Math.PI).toFloat(),
-                        animationSpec = tween(
-                            durationMillis = 60000,
-                            easing = LinearEasing
-                        )
-                    )
-                }
-            } else {
-                // If disabled, immediately stop any ongoing animation and reset the angle.
-                angle.snapTo(0f)
-            }
+        val angle by if (wallpaperMotionEnabled) {
+            infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = (2f * Math.PI).toFloat(),
+                animationSpec = infiniteRepeatable(
+                    animation = tween(
+                        durationMillis = 60000,
+                        easing = LinearEasing
+                    ),
+                    repeatMode = RepeatMode.Restart
+                ),
+                label = "angle-animation"
+            )
+        } else {
+            remember { mutableFloatStateOf(0f) }
         }
 
-        // 3. Calculate offsets based on the animated angle's current value.
-        // This calculation is now driven by a state that only changes when needed.
-        val xOffset = if (wallpaperMotionEnabled) cos(angle.value) * maxWidthPx * 0.08f else 0f
-        val yOffset = if (wallpaperMotionEnabled) sin(angle.value) * maxHeightPx * 0.08f else 0f
+        val xOffset = if (wallpaperMotionEnabled) cos(angle) * maxWidthPx * 0.08f else 0f
+        val yOffset = if (wallpaperMotionEnabled) sin(angle) * maxHeightPx * 0.08f else 0f
 
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
