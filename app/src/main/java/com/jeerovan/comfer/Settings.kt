@@ -342,7 +342,8 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             if(settingsState.autoWallpapers)item{
                 SelectSetOwnWallpapersDirectory(
-                    enabled = settingsState.hasPro,
+                    isDefaultLauncher = isDefaultLauncher(context),
+                    hasPro = settingsState.hasPro,
                     onSelectDirectory = { directoryUri -> settingsViewModel.setWallpaperDirectory(directoryUri)},
                     selectedDirectory = settingsState.wallpaperDirectory)
             }
@@ -924,7 +925,8 @@ fun IconShapePreview(
 }
 @Composable
 fun SelectSetOwnWallpapersDirectory(
-    enabled: Boolean,
+    isDefaultLauncher: Boolean,
+    hasPro: Boolean,
     onSelectDirectory: (directory: String?) -> Unit,
     selectedDirectory: String?
 ) {
@@ -961,7 +963,7 @@ fun SelectSetOwnWallpapersDirectory(
         headlineContent = {
             Row {
                 Text("Set own wallpapers")
-                if(!enabled)Icon(Icons.Filled.Lock,
+                if(!hasPro)Icon(Icons.Filled.Lock,
                     contentDescription = "Paid Feature",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
@@ -980,7 +982,7 @@ fun SelectSetOwnWallpapersDirectory(
         },
         trailingContent = {
             Switch(
-                enabled = enabled,
+                enabled = hasPro && isDefaultLauncher,
                 checked = isChecked, // The UI is driven by the single source of truth.
                 onCheckedChange = { checked ->
                     if (checked) {
@@ -1003,7 +1005,10 @@ fun SelectSetOwnWallpapersDirectory(
         },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.clickable {
-            if (enabled) {
+            if (hasPro) {
+                if(!isDefaultLauncher){
+                    Toast.makeText(context, "Set default launcher first", Toast.LENGTH_SHORT).show()
+                }
                 if(isChecked){
                     directoryPickerLauncher.launch(null)
                 }
