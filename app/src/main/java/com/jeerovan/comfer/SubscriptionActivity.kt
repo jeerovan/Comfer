@@ -71,9 +71,11 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.getValue
 import androidx.core.net.toUri
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 
 class SubscriptionActivity : ComponentActivity() {
-    private val viewModel: AppInfoViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -114,35 +116,47 @@ fun SubscriptionScreen(
 
     // Check subscription status on launch
     LaunchedEffect(Unit) {
-        Purchases.sharedInstance.getCustomerInfoWith(
-            onError = { error ->
-                isLoading = false
-                errorMessage = error.message
-            },
-            onSuccess = { info ->
-                customerInfo = info
-                isSubscribed = info.entitlements.active.isNotEmpty()
-
-                // Fetch offerings only if not subscribed
-                if (!isSubscribed) {
-                    Purchases.sharedInstance.getOfferingsWith(
-                        onError = { error ->
-                            isLoading = false
-                            errorMessage = error.message
-                        },
-                        onSuccess = { fetchedOfferings ->
-                            offerings = fetchedOfferings
-                            yearlyPackage = fetchedOfferings.current?.availablePackages?.find {
-                                it.packageType == PackageType.ANNUAL
-                            }
-                            isLoading = false
-                        }
-                    )
-                } else {
-                    isLoading = false
+        try {
+            // Wait up to 10 seconds for SDK initialization
+            withTimeout(10_000L) {
+                while (!Purchases.isConfigured) {
+                    delay(50)
                 }
             }
-        )
+
+            Purchases.sharedInstance.getCustomerInfoWith(
+                onError = { error ->
+                    isLoading = false
+                    errorMessage = error.message
+                },
+                onSuccess = { info ->
+                    customerInfo = info
+                    isSubscribed = info.entitlements.active.isNotEmpty()
+
+                    if (!isSubscribed) {
+                        Purchases.sharedInstance.getOfferingsWith(
+                            onError = { error ->
+                                isLoading = false
+                                errorMessage = error.message
+                            },
+                            onSuccess = { fetchedOfferings ->
+                                offerings = fetchedOfferings
+                                yearlyPackage = fetchedOfferings.current?.availablePackages?.find {
+                                    it.packageType == PackageType.ANNUAL
+                                }
+                                isLoading = false
+                            }
+                        )
+                    } else {
+                        isLoading = false
+                    }
+                }
+            )
+        } catch (e: TimeoutCancellationException) {
+            isLoading = false
+            errorMessage = "Unable to load subscription information. Please check your connection and try again."
+            // Optionally log this error to your crash reporting service
+        }
     }
 
     Box(

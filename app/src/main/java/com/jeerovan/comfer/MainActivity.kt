@@ -220,6 +220,8 @@ import com.revenuecat.purchases.getCustomerInfoWith
 import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
 import kotlin.math.atan2
 import com.jeerovan.comfer.utils.CommonUtil.handleStartActivity
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 
 @Composable
 fun DraggableContainerWithViewModel(
@@ -444,7 +446,7 @@ data class WidgetProviderGroup(
     val providers: List<AppWidgetProviderInfo>
 )
 
-class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
+class MainActivity : ComponentActivity() {
     private val appInfoViewModel: AppInfoViewModel by viewModels()
     private val settingsViewModel:SettingsViewModel by viewModels()
     private val mainViewModel: MainViewModel by viewModels()
@@ -484,11 +486,6 @@ class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
         leftSideWidgetHost = AppWidgetHost(applicationContext, LEFT_SIDE_WIDGET_HOST_ID)
         rightSideWidgetHost = AppWidgetHost(applicationContext, RIGHT_SIDE_WIDGET_HOST_ID)
 
-        Purchases.logLevel = LogLevel.ERROR
-        Purchases.configure(PurchasesConfiguration.Builder(this, "goog_alczWNGIWABONRuXvtRSKpPJFXi").build())
-        Purchases.sharedInstance.updatedCustomerInfoListener = this
-        checkSubscriptionStatus()
-
         setContent {
             ComferTheme {
                 LauncherScreen(appInfoViewModel,
@@ -513,6 +510,7 @@ class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
             appInfoViewModel.loadAppLists()
             settingsViewModel.loadSettings()
             mainViewModel.checkLoadWallpaper()
+            checkSubscriptionStatus()
         }
     }
 
@@ -529,20 +527,29 @@ class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
         }
     }
 
-    override fun onReceived(customerInfo: CustomerInfo) {
-        // This fires whenever CustomerInfo changes
-        updateSubscriptionStatus(customerInfo)
-    }
-
-    private fun checkSubscriptionStatus() {
-        Purchases.sharedInstance.getCustomerInfoWith(
-            onError = { error ->
-                settingsViewModel.setPro(false)
-            },
-            onSuccess = { customerInfo ->
-                updateSubscriptionStatus(customerInfo)
+    private suspend fun checkSubscriptionStatus() {
+        try {
+            // Wait maximum 10 seconds for SDK configuration
+            withTimeout(10_000L) {
+                while (!Purchases.isConfigured) {
+                    delay(50)
+                }
             }
-        )
+
+            Purchases.sharedInstance.getCustomerInfoWith(
+                onError = { error ->
+                    settingsViewModel.setPro(false)
+                    // Log error for debugging
+                },
+                onSuccess = { customerInfo ->
+                    updateSubscriptionStatus(customerInfo)
+                }
+            )
+        } catch (e: TimeoutCancellationException) {
+            // SDK failed to initialize - default to free tier
+            settingsViewModel.setPro(false)
+            // Log this error to crash reporting
+        }
     }
 
     private fun updateSubscriptionStatus(customerInfo: CustomerInfo) {
