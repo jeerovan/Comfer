@@ -1006,11 +1006,22 @@ fun SelectSetOwnWallpapersDirectory(
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.clickable {
             if (hasPro) {
-                if(!isDefaultLauncher){
+                if(isDefaultLauncher){
+                    if(isChecked){
+                        onSelectDirectory(null)
+                    } else {
+                        if (ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.READ_EXTERNAL_STORAGE
+                            ) == PackageManager.PERMISSION_GRANTED
+                        ) {
+                            directoryPickerLauncher.launch(null)
+                        } else {
+                            permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                        }
+                    }
+                } else {
                     Toast.makeText(context, "Set default launcher first", Toast.LENGTH_SHORT).show()
-                }
-                if(isChecked){
-                    directoryPickerLauncher.launch(null)
                 }
             } else {
                 Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT).show()
