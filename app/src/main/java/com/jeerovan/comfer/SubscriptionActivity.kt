@@ -118,7 +118,7 @@ fun SubscriptionScreen(
     LaunchedEffect(Unit) {
         try {
             // Wait up to 10 seconds for SDK initialization
-            withTimeout(10_000L) {
+            withTimeout(6_000L) {
                 while (!Purchases.isConfigured) {
                     delay(50)
                 }
