@@ -53,9 +53,9 @@ object GuideUtil {
                     Column(modifier = Modifier.padding(start = 8.dp)) {
                         steps.forEach { step ->
                             Text(
-                                text = "• $step",
+                                text = "$step",
                                 modifier = Modifier.padding(bottom = 8.dp),
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.bodyLarge
                             )
                         }
                     }

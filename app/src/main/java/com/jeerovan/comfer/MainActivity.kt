@@ -1746,7 +1746,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
         onDismiss = {onGuideDismiss()},
         title = "Welcome to Comfer",
         steps = listOf(
-            "Long press the screen to open menu and checkout how to..."
+            "Long press the screen to open menu and checkout how to guide"
         )
     )
 
