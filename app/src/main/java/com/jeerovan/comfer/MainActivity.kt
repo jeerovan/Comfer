@@ -2002,10 +2002,16 @@ fun SearchListOverlay(apps: List<AppInfo>,
     var inputText by remember { mutableStateOf("") }
 
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
-    val filteredApps by remember(inputText, apps) {
+    val filteredApps by remember(inputText) {
         derivedStateOf {
             if(activeTab == SearchTab.APPS) {
-                searchApps(inputText.trim(), apps)
+                val searchText = inputText.trim()
+                if (searchText.isBlank()) {
+                     apps // Return the full list if search text is empty
+                }
+                apps.filter { app ->
+                    app.label.contains(searchText, ignoreCase = true)
+                }
             } else {
                 apps
             }
@@ -2317,7 +2323,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                             // Add spacing between the items
                             horizontalArrangement = Arrangement.spacedBy(20.dp)
                         ) {
-                            items(filteredApps) { app ->
+                            items(filteredApps,key = { app -> app.packageName }) { app ->
                                 AppIcon(app,
                                     notificationPackages,
                                     iconShape,
@@ -3629,14 +3635,6 @@ fun CircularKeyboard(
                 modifier = Modifier.align(Alignment.Center)
             )
         }
-    }
-}
-fun searchApps(text: String, appList: List<AppInfo>): List<AppInfo> {
-    if (text.isBlank()) {
-        return appList // Return the full list if search text is empty
-    }
-    return appList.filter { app ->
-        app.label.contains(text, ignoreCase = true)
     }
 }
 fun searchContacts(text: String, contactList: List<Contact>): List<Contact> {
