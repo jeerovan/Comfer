@@ -11,6 +11,7 @@ import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import kotlinx.serialization.json.Json
 import java.util.Calendar
 import androidx.core.net.toUri
+import java.io.File
 
 object PreferenceManager {
     private const val PREF_BACKGROUND_IMAGE = "background_image"
@@ -43,6 +44,7 @@ object PreferenceManager {
     private const val WALLPAPER_DARK_BG = "wallpaper_dark_bg"
     private const val WALLPAPER_DARK_FG = "wallpaper_dark_fg"
     private const val AUTO_WALLPAPER = "auto_wallpaper"
+    private const val MONOCHROME = "monochrome"
     private const val LIGHT_HOUR = "dark_mode"
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -186,7 +188,6 @@ object PreferenceManager {
         return getBoolean(context,CUSTOM_WIDGETS,false)
     }
 
-    // Example: setWallpaperMotion
     fun setWallpaperMotion(context: Context, enabled: Boolean) {
         setBoolean(context,KEY_WALLPAPER_MOTION,enabled)
     }
@@ -195,6 +196,12 @@ object PreferenceManager {
     }
     fun setAutoWallpapers(context: Context, enabled: Boolean) {
         setBoolean(context,AUTO_WALLPAPER,enabled)
+    }
+    fun getMonochrome(context: Context, default: Boolean = false): Boolean {
+        return getBoolean(context,MONOCHROME,default)
+    }
+    fun setMonochrome(context: Context, enabled: Boolean) {
+        setBoolean(context,MONOCHROME,enabled)
     }
     fun getWallpaperMotion(context: Context, default: Boolean = true): Boolean {
         return getBoolean(context,KEY_WALLPAPER_MOTION,default)
@@ -229,6 +236,15 @@ object PreferenceManager {
     }
 
     fun getBackgroundImagePath(context: Context): String? {
+        if(getMonochrome(context,false)){
+            val fileBlack = File(context.filesDir, "comfer_black.jpg")
+            val fileWhite = File(context.filesDir, "comfer_white.jpg")
+            if(isLightHour(context)){
+                return fileWhite.absolutePath
+            } else {
+                return fileBlack.absolutePath
+            }
+        }
         return getString(context,PREF_BACKGROUND_IMAGE,null)
     }
 

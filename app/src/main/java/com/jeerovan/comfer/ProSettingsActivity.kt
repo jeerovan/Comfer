@@ -144,7 +144,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                         range = 70f..250f,
                         onValueChange = { settingsViewModel.setClockSize(it) }
                     )
-                    if (settingsState.wallpaperDirectory != null) {
+                    if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
                         // Background Color
                         ColorPickerSettingItem(
                             "Clock background color",
@@ -273,7 +273,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                             fontWeight = getFontWeightFromString(settingsState.timeFontWeight)
                         )
                     }
-                    if (settingsState.wallpaperDirectory != null) {
+                    if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
                         ColorPickerSettingItem(
                             "Time font color",
                             settingsState.timeFontColor
@@ -369,7 +369,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                         fontSize = 24.sp
                     )
                 }
-                if (settingsState.wallpaperDirectory != null) {
+                if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
                     ColorPickerSettingItem(
                         "Date font color",
                         settingsState.dateFontColor
@@ -427,7 +427,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                     range = 12f..40f,
                     onValueChange = { settingsViewModel.setBatterySize(it) }
                 )
-                if (settingsState.wallpaperDirectory != null) {
+                if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
                     ColorPickerSettingItem(
                         "Indicator color",
                         settingsState.batteryColor
@@ -465,7 +465,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                         range = 12f..40f,
                         onValueChange = { settingsViewModel.setNotificationSize(it) }
                     )
-                    if (settingsState.wallpaperDirectory != null) {
+                    if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
                         ColorPickerSettingItem(
                             "Notification icons color",
                             settingsState.notificationColor

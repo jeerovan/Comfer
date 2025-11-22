@@ -20,7 +20,8 @@ import kotlinx.coroutines.withContext
 
 data class MainUiState (
     val imageData: ImageData? = null,
-    val imagePath:String? = null
+    val imagePath:String? = null,
+    val iconVersion:Int = 0,
 )
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val logger = LoggerManager(application)
@@ -46,8 +47,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val applicationContext: Application = getApplication()
                 val imageData = PreferenceManager.getImageData(applicationContext)
-                val backgroundImage = PreferenceManager.getBackgroundImagePath(applicationContext)
-                if (imageData == null || backgroundImage == null) {
+                val backgroundImagePath = PreferenceManager.getBackgroundImagePath(applicationContext)
+                if (imageData == null || backgroundImagePath == null) {
                     withContext(Dispatchers.IO) {
                         fetchImageData(applicationContext)
                     }
@@ -74,16 +75,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         val bitmap = BitmapFactory.decodeFile(filePath)
                         setWallpaperThemedColors(applicationContext,bitmap)
                     }
+                    _uiState.update {
+                        it.copy(
+                            iconVersion = _uiState.value.iconVersion + 1
+                        )
+                    }
                 } else {
-                    if (_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImage) {
+                    if (_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImagePath) {
                         PreferenceManager.setWallpaperApplied(applicationContext, true)
-                        withContext(Dispatchers.IO) {
-                            setWallpaper(applicationContext)
-                        }
                         _uiState.update {
                             it.copy(
                                 imageData = imageData,
-                                imagePath = backgroundImage
+                                imagePath = backgroundImagePath
+                            )
+                        }
+                        withContext(Dispatchers.IO){
+                            setWallpaper(applicationContext)
+                            val bitmap = BitmapFactory.decodeFile(backgroundImagePath)
+                            setWallpaperThemedColors(applicationContext,bitmap)
+                        }
+                        _uiState.update {
+                            it.copy(
+                                iconVersion = _uiState.value.iconVersion + 1
                             )
                         }
                     }
@@ -99,7 +112,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun checkLoadWallpaper(){
         val applyNow = PreferenceManager.getApplyWallpaperNow(getApplication())
-        if(applyNow){
+        val monochrome = PreferenceManager.getMonochrome(getApplication())
+        if(applyNow || monochrome){
             loadImageData()
             PreferenceManager.setApplyWallpaperNow(getApplication(),false)
         }

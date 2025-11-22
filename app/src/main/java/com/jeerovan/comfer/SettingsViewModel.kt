@@ -31,6 +31,10 @@ import com.jeerovan.comfer.utils.CommonUtil.downloadImage
 import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
 import com.jeerovan.comfer.utils.CommonUtil.setBackgroundImageFromImageUri
 import kotlinx.coroutines.delay
+import android.graphics.Bitmap
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 data class SettingsUiState(
     val hasPro: Boolean = false,
@@ -39,6 +43,7 @@ data class SettingsUiState(
     val wallpaperDirectory: String? = null,
     val wallpaperFrequency:String = "Hourly",
     val wallpaperOnLockScreen: Boolean = false,
+    val monochrome: Boolean = false,
     val iconSize: Int = 48,
     val iconShapeString: String = "circle",
     val iconShape: Shape = CircleShape,
@@ -153,6 +158,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val hasPro = PreferenceManager.getPro(getApplication())
             val autoWallpapers = PreferenceManager.getAutoWallpapers(getApplication(),true)
+            val monochrome = PreferenceManager.getMonochrome(getApplication(), default = false)
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val wallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(getApplication())
             val wallpaperDirectory = if(hasPro) PreferenceManager.getWallpaperDirectory(getApplication()) else null
@@ -245,6 +251,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     wallpaperOnLockScreen = wallpaperOnLockScreen,
                     wallpaperDirectory = wallpaperDirectory,
                     wallpaperFrequency = wallpaperFrequency,
+                    monochrome = monochrome,
                     iconSize = iconSize,
                     iconShape = iconShape,
                     showThemedIcons = showThemedIcons,
@@ -703,6 +710,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setAutoWallpapers(enabled: Boolean) {
         viewModelScope.launch {
             PreferenceManager.setAutoWallpapers(getApplication(),enabled)
+            if(enabled){
+                setMonochrome(false)
+                PreferenceManager.setApplyWallpaperNow(getApplication(),true)
+            }
             _uiState.update { it.copy(autoWallpapers = enabled) }
         }
     }
@@ -719,6 +730,17 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             if(enabled){
                 withContext(Dispatchers.IO){
                     setWallpaper(getApplication())
+                }
+            }
+        }
+    }
+    fun setMonochrome(enabled: Boolean) {
+        viewModelScope.launch {
+            PreferenceManager.setMonochrome(getApplication(),enabled)
+            _uiState.update { it.copy(monochrome = enabled) }
+            if(enabled) {
+                withContext(Dispatchers.IO) {
+                    generateSolidColorWallpapers(getApplication())
                 }
             }
         }
@@ -778,5 +800,39 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 isLoadingWallpaper = false
             }
         }
+    }
+    fun generateSolidColorWallpapers(context: Context) {
+        // 1. Define the files
+        val fileBlack = File(context.filesDir, "comfer_black.jpg")
+        val fileWhite = File(context.filesDir, "comfer_white.jpg")
+        if(fileBlack.exists() && fileWhite.exists()) return
+        // 2. Create a helper function to save a solid color
+        // We use 100x100 for efficiency; it scales perfectly as a solid color.
+        fun saveColorToFile(file: File, color: Color) {
+            try {
+                // Create a mutable bitmap
+                val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+
+                // Fill it with the specified color
+                bitmap.eraseColor(color.toArgb())
+
+                // Save to file
+                FileOutputStream(file).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                }
+
+                // Recycle to free native memory immediately
+                bitmap.recycle()
+
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+
+        // 3. Generate and save the Black image
+        saveColorToFile(fileBlack, Color.Black)
+
+        // 4. Generate and save the White image
+        saveColorToFile(fileWhite, Color.White)
     }
 }

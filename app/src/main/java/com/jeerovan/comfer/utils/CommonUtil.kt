@@ -378,11 +378,10 @@ object CommonUtil {
         }
     }
     fun setWallpaper(applicationContext: Context){
-        val autoWallpapers = PreferenceManager.getAutoWallpapers(applicationContext)
         val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
         val bitmap = BitmapFactory.decodeFile(filePath)
         if(bitmap != null) {
-            if (isDefaultLauncher(applicationContext) && autoWallpapers) {
+            if (isDefaultLauncher(applicationContext)) {
                 val setWallpaperOnLockScreen =
                     PreferenceManager.getWallpaperOnLockScreen(applicationContext)
                 val wallpaperManager =
@@ -402,7 +401,6 @@ object CommonUtil {
                     wallpaperManager.setBitmap(bitmap)
                 }
             }
-            setWallpaperThemedColors(applicationContext, bitmap)
         }
     }
 

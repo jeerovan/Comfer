@@ -1599,7 +1599,7 @@ fun BatteryStatus(
     defaultColor: Color,
     showBorder: Boolean
 ) {
-    val customWallpaper = settings.wallpaperDirectory != null
+    val customWallpaper = settings.wallpaperDirectory != null && settings.autoWallpapers
     val themeColor = if(customWallpaper) settings.batteryColor else defaultColor
     val borderColor = if(showBorder) themeColor else Color.Transparent
     val showBatteryIcon = settings.showBatteryIcon
@@ -1780,9 +1780,14 @@ fun QuickListOverlay(apps: List<AppInfo>,
     var defaultColor = imageData?.color?.let { colorName ->
         stringToColor(colorName)
     } ?: Color.White
-    if (!settings.autoWallpapers && !isDefault) {
+    if (!settings.autoWallpapers) {
         defaultColor = Color.White
     }
+    val monochrome = settings.monochrome
+    val isLightHour = PreferenceManager.isLightHour(context)
+    val monoColor = if(isLightHour) Color.Black.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.8f)
+    defaultColor = if(monochrome) monoColor else defaultColor
+
     var showWidgetSettings by remember { mutableStateOf(false) }
     val themedColors = PreferenceManager.getThemedColors(context)
     Box(modifier = Modifier.fillMaxSize()) {
@@ -2688,8 +2693,12 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
 
     val sortedPrimaryApps = if(settingInfoUiState.arrangeInAlphabeticalOrder) primaryApps.sortedBy { it.label.toString() } else primaryApps
 
-    val wallpaperMotionEnabled = settingInfoUiState.wallpaperMotionEnabled
+    val wallpaperMotionEnabled = settingInfoUiState.autoWallpapers && settingInfoUiState.wallpaperMotionEnabled
     val hasNotificationAccess = settingInfoUiState.hasNotificationAccess
+
+    LaunchedEffect(mainUiState.iconVersion) {
+        appInfoViewModel.loadAppLists()
+    }
 
     val notificationPackages by remember(notifications, hasNotificationAccess) {
         derivedStateOf {
@@ -2896,7 +2905,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         val maxWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
         val maxHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
-        if(settingInfoUiState.autoWallpapers){
+        if(settingInfoUiState.autoWallpapers || settingInfoUiState.monochrome){
             AnimatedBackground(backgroundImage,wallpaperMotionEnabled,maxWidthPx,maxHeightPx)
         }
 
@@ -3037,6 +3046,7 @@ fun AnimatedBackground(
     maxWidthPx: Float,
     maxHeightPx: Float
 ) {
+    val context = LocalContext.current
     if (backgroundImage != null) {
         val infiniteTransition = rememberInfiniteTransition(label = "wallpaper_motion")
 
@@ -3061,7 +3071,7 @@ fun AnimatedBackground(
         val yOffset = if (wallpaperMotionEnabled) sin(angle) * maxHeightPx * 0.08f else 0f
 
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
+            model = ImageRequest.Builder(context)
                 .data(backgroundImage)
                 .crossfade(true)
                 .build(),
@@ -3870,7 +3880,7 @@ fun NotificationIconRow(
     showBorder: Boolean
 ) {
     val context = LocalContext.current
-    val customWallpaper = settings.wallpaperDirectory != null
+    val customWallpaper = settings.wallpaperDirectory != null && settings.autoWallpapers
     val iconSize = settings.notificationSize.dp
     val iconColor = if(customWallpaper) settings.notificationColor else defaultColor
     val borderColor = if(showBorder) iconColor else Color.Transparent
@@ -3949,7 +3959,7 @@ fun WidgetDate(
             delay(1000)
         }
     }
-    val customWallpaper = settings.wallpaperDirectory != null
+    val customWallpaper = settings.wallpaperDirectory != null && settings.autoWallpapers
     val borderColor = if(showBorder) {
         if(customWallpaper) settings.dateFontColor else defaultColor
     } else Color.Transparent
@@ -3974,7 +3984,7 @@ fun WidgetClock(
     val context = LocalContext.current
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
-    val customWallpaper = settings.wallpaperDirectory != null
+    val customWallpaper = settings.wallpaperDirectory != null && settings.autoWallpapers
     val timeFormat = remember(settings.timeFormat, settings.showAmPm) {
         // Build your pattern based on the settings
         val pattern = if (settings.timeFormat == "H12") {

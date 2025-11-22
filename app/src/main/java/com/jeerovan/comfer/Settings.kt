@@ -294,6 +294,26 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
+            if(!settingsState.autoWallpapers)item {
+                ListItem(
+                    headlineContent = { Text("Monochrome") },
+                    supportingContent = { Text("Colour-less world") },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.InvertColors,
+                            contentDescription = "Monochrome"
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settingsState.monochrome,
+                            onCheckedChange = { settingsViewModel.setMonochrome(it) }
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.setMonochrome(!settingsState.monochrome) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
             if(settingsState.autoWallpapers)item {
                 ListItem(
                     headlineContent = { Text("Wallpaper Motion") },
