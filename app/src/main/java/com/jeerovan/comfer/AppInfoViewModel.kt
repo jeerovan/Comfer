@@ -193,7 +193,10 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
     fun loadAppLists() {
         // Basic check to avoid launching a coroutine if already working
-        if (isWorking) return
+        if (isWorking) {
+            logger.setLog("LoadAppList","Already Working")
+            return
+        }
         isWorking = true
         logger.setLog("LoadAppLists","Loading")
         viewModelScope.launch {
@@ -281,6 +284,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     val monochrome = PreferenceManager.getMonochrome(context)
                     val showThemedIcons = PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
                     val themedColors = PreferenceManager.getThemedColors(context)
+                    logger.setLog("LoadAppList",themedColors.toString())
                     val isLightHour = PreferenceManager.isLightHour(context)
                     // Load quick apps first and update UI immediately
                     val quickApps = finalQuickPackageNames.map { packageName ->

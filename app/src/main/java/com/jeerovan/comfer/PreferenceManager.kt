@@ -2,6 +2,7 @@ package com.jeerovan.comfer
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toArgb
@@ -118,6 +119,7 @@ object PreferenceManager {
         }
     }
     fun setThemedColors(context: Context,lightBg:Int,lightFg:Int,darkBg:Int,darkFg:Int){
+        LoggerManager(context).setLog("SetThemedColors","$lightFg | $lightBg | $darkBg | $darkFg")
         setInt(context,WALLPAPER_LIGHT_FG,lightFg)
         setInt(context,WALLPAPER_LIGHT_BG,lightBg)
         setInt(context,WALLPAPER_DARK_FG,darkFg)

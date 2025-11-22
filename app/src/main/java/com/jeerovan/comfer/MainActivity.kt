@@ -511,9 +511,9 @@ class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
         leftSideWidgetHost.startListening()
         rightSideWidgetHost.startListening()
         lifecycleScope.launch {
-            appInfoViewModel.loadAppLists()
             settingsViewModel.loadSettings()
             mainViewModel.checkLoadWallpaper()
+            appInfoViewModel.loadAppLists() // required to update installed/uninstalled apps
         }
     }
 
@@ -2697,7 +2697,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val hasNotificationAccess = settingInfoUiState.hasNotificationAccess
 
     LaunchedEffect(mainUiState.iconVersion) {
-        appInfoViewModel.loadAppLists()
+        logger.setLog("LauncherScreen","iconVersion changed, loading app list")
+        appInfoViewModel.loadAppLists() // TODO applist already loading, doesn't run
     }
 
     val notificationPackages by remember(notifications, hasNotificationAccess) {

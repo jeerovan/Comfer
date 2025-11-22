@@ -75,11 +75,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         val bitmap = BitmapFactory.decodeFile(filePath)
                         setWallpaperThemedColors(applicationContext,bitmap)
                     }
-                    _uiState.update {
-                        it.copy(
-                            iconVersion = _uiState.value.iconVersion + 1
-                        )
-                    }
                 } else {
                     if (_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImagePath) {
                         PreferenceManager.setWallpaperApplied(applicationContext, true)
@@ -94,6 +89,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             val bitmap = BitmapFactory.decodeFile(backgroundImagePath)
                             setWallpaperThemedColors(applicationContext,bitmap)
                         }
+                        logger.setLog("MainViewModel","Increasing iconVersion")
                         _uiState.update {
                             it.copy(
                                 iconVersion = _uiState.value.iconVersion + 1
