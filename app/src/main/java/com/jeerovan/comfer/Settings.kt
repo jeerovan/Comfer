@@ -1031,6 +1031,8 @@ fun SelectSetOwnWallpapersDirectory(
                 if(isDefaultLauncher){
                     if(isChecked){
                         onSelectDirectory(null)
+                        // reset image data with white color
+                        PreferenceManager.resetImageDataWithWhiteColor(context)
                     } else {
                         if (ContextCompat.checkSelfPermission(
                                 context,

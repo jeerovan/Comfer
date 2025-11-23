@@ -49,6 +49,7 @@ data class SettingsUiState(
     val showThemedIcons: Boolean = false,
     val isLightHour: Boolean = false,
     val appListsVersion: Int = 0,
+    val imageDataVersion: Int = 0,
     val quickAppsLayout: String = "linear",
     val appDrawerLayout: String = "circular",
     val drawerHeight:Int = 0,
@@ -166,6 +167,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val iconShape  = PreferenceManager.getIconShape(getApplication())
             val showThemedIcons = PreferenceManager.getThemedIcons(getApplication())
             val isLightHour = PreferenceManager.isLightHour(getApplication())
+            val imageDataVersion = PreferenceManager.getImageDataVersion(getApplication())
             val appListVersion = PreferenceManager.getAppListVersion(getApplication())
             val quickAppsLayout = PreferenceManager.getQuickAppsLayout(getApplication())
             val appDrawerLayout = PreferenceManager.getAppDrawerLayout(getApplication())
@@ -255,6 +257,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     iconShape = iconShape,
                     showThemedIcons = showThemedIcons,
                     isLightHour = isLightHour,
+                    imageDataVersion = imageDataVersion,
                     appListsVersion = appListVersion,
                     quickAppsLayout = quickAppsLayout,
                     appDrawerLayout = appDrawerLayout,

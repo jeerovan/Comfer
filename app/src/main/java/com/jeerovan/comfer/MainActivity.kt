@@ -213,15 +213,11 @@ import java.util.Calendar
 
 import androidx.compose.ui.layout.onGloballyPositioned
 import com.revenuecat.purchases.CustomerInfo
-import com.revenuecat.purchases.LogLevel
 import com.revenuecat.purchases.Purchases
-import com.revenuecat.purchases.PurchasesConfiguration
 import com.revenuecat.purchases.getCustomerInfoWith
 import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
 import kotlin.math.atan2
 import com.jeerovan.comfer.utils.CommonUtil.handleStartActivity
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.withTimeout
 
 @Composable
 fun DraggableContainerWithViewModel(
@@ -525,7 +521,7 @@ class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
         rightSideWidgetHost.stopListening()
         lifecycleScope.launch {
             //delay(1000) // Delay, does not stop main thread
-            mainViewModel.loadImageData()
+            mainViewModel.loadBackgroundData()
         }
     }
 
@@ -2701,6 +2697,9 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         settingInfoUiState.autoWallpapers,
         settingInfoUiState.monochrome) {
         appInfoViewModel.reloadList()
+    }
+    LaunchedEffect(settingInfoUiState.imageDataVersion) {
+        mainViewModel.reloadImageData()
     }
 
     val notificationPackages by remember(notifications, hasNotificationAccess) {

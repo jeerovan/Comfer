@@ -41,6 +41,7 @@ object PreferenceManager {
     private const val WALLPAPER_LIGHT_BG = "wallpaper_light_bg"
     private const val WALLPAPER_LIGHT_FG = "wallpaper_light_fg"
     private const val APP_LIST_VERSION = "apps_list_version"
+    private const val IMAGE_DATA_VERSION = "image_data_version"
     private const val WALLPAPER_DARK_BG = "wallpaper_dark_bg"
     private const val WALLPAPER_DARK_FG = "wallpaper_dark_fg"
     private const val AUTO_WALLPAPER = "auto_wallpaper"
@@ -227,6 +228,13 @@ object PreferenceManager {
     fun getAppListVersion(context: Context): Int{
         return getInt(context,APP_LIST_VERSION,0)
     }
+    fun increaseImageDataVersion(context: Context){
+        val currentVersion = getAppListVersion(context)
+        setInt(context,IMAGE_DATA_VERSION,currentVersion + 1)
+    }
+    fun getImageDataVersion(context: Context): Int{
+        return getInt(context,IMAGE_DATA_VERSION,0)
+    }
     fun setIconShape(context: Context, shape: String) {
         setString(context,KEY_ICON_SHAPE,shape)
     }
@@ -331,6 +339,7 @@ object PreferenceManager {
         if(currentData != null) {
             currentData.color = "White";
             saveImageData(context, currentData);
+            increaseImageDataVersion(context)
         }
     }
     fun newImageAvailable(context: Context):Boolean{

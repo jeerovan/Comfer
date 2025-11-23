@@ -37,9 +37,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     init {
-       loadImageData()
+       loadBackgroundData()
     }
-    fun loadImageData(){
+    fun reloadImageData(){
+        viewModelScope.launch {
+            val imageData = PreferenceManager.getImageData(getApplication())
+            _uiState.update {
+                it.copy(imageData = imageData)
+            }
+        }
+    }
+    fun loadBackgroundData(){
         if(isWorking)return
         isWorking = true
         logger.setLog("MainViewModel","LoadImageData")
@@ -109,7 +117,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val applyNow = PreferenceManager.getApplyWallpaperNow(getApplication())
         val monochrome = PreferenceManager.getMonochrome(getApplication())
         if(applyNow || monochrome){
-            loadImageData()
+            loadBackgroundData()
             PreferenceManager.setApplyWallpaperNow(getApplication(),false)
         }
     }
