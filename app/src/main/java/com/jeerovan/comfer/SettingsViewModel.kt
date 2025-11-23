@@ -16,7 +16,6 @@ import kotlinx.coroutines.withContext
 import android.content.Intent
 import android.provider.Settings
 import android.content.Context
-import android.content.pm.PackageManager
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -49,6 +48,7 @@ data class SettingsUiState(
     val iconShape: Shape = CircleShape,
     val showThemedIcons: Boolean = false,
     val isLightHour: Boolean = false,
+    val appListsVersion: Int = 0,
     val quickAppsLayout: String = "linear",
     val appDrawerLayout: String = "circular",
     val drawerHeight:Int = 0,
@@ -96,8 +96,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState = _uiState.asStateFlow()
     var isLoadingWallpaper = false
-    private val packageManager: PackageManager
-        get() = getApplication<Application>().packageManager
     // const
     private val ANALOG_CLOCK = "analog_clock"
     private val CLOCK_BG_COLOR = "clock_bg_color"
@@ -168,16 +166,17 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val iconShape  = PreferenceManager.getIconShape(getApplication())
             val showThemedIcons = PreferenceManager.getThemedIcons(getApplication())
             val isLightHour = PreferenceManager.isLightHour(getApplication())
+            val appListVersion = PreferenceManager.getAppListVersion(getApplication())
             val quickAppsLayout = PreferenceManager.getQuickAppsLayout(getApplication())
             val appDrawerLayout = PreferenceManager.getAppDrawerLayout(getApplication())
             val drawerHeight = PreferenceManager.getInt(getApplication(),DRAWER_HEIGHT,0)
             val drawerOffset = PreferenceManager.getInt(getApplication(),DRAWER_OFFSET,0)
             val leftSwipeApp = mapPackageNameToAppInfo(
                 getApplication(),
-                packageManager,PreferenceManager.getSwipeApp(getApplication(),"left"))
+                PreferenceManager.getSwipeApp(getApplication(),"left"))
             val rightSwipeApp = mapPackageNameToAppInfo(
                 getApplication(),
-                packageManager,PreferenceManager.getSwipeApp(getApplication(),"right"))
+                PreferenceManager.getSwipeApp(getApplication(),"right"))
             val isLeftSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"left")
             val isRightSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"right")
             val isNotificationServiceEnabled = isNotificationServiceEnabled(getApplication())
@@ -256,6 +255,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     iconShape = iconShape,
                     showThemedIcons = showThemedIcons,
                     isLightHour = isLightHour,
+                    appListsVersion = appListVersion,
                     quickAppsLayout = quickAppsLayout,
                     appDrawerLayout = appDrawerLayout,
                     drawerHeight = drawerHeight,
@@ -348,10 +348,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             PreferenceManager.setThemedIcons(getApplication(),enabled)
             val leftSwipeApp = mapPackageNameToAppInfo(
                 getApplication(),
-                packageManager,PreferenceManager.getSwipeApp(getApplication(),"left"))
+                PreferenceManager.getSwipeApp(getApplication(),"left"))
             val rightSwipeApp = mapPackageNameToAppInfo(
                 getApplication(),
-                packageManager,PreferenceManager.getSwipeApp(getApplication(),"right"))
+                PreferenceManager.getSwipeApp(getApplication(),"right"))
             _uiState.update { it.copy(showThemedIcons = enabled, leftSwipeApp = leftSwipeApp, rightSwipeApp = rightSwipeApp) }
         }
     }
@@ -394,7 +394,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val patternKey = "Pattern_$id"
             PreferenceManager.setString(getApplication(),patternKey,app)
             val appInfo = withContext(Dispatchers.Default){
-                mapPackageNameToAppInfo(getApplication(),packageManager,app)
+                mapPackageNameToAppInfo(getApplication(),app)
             }
             _uiState.update { currentState ->
                 val updatedPatternApps = currentState.patternApps.toMutableMap().apply {
@@ -408,7 +408,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         val patternKey = "Pattern_$id"
         val packageName = PreferenceManager.getString(getApplication(),patternKey,null)
         return withContext(Dispatchers.Default){
-            mapPackageNameToAppInfo(getApplication(),packageManager,packageName)
+            mapPackageNameToAppInfo(getApplication(),packageName)
         }
     }
     fun clearAllWidgetPositions() {
@@ -685,7 +685,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             PreferenceManager.setWidgetsOnSwipe(getApplication(),swipeDirection,false)
             val swipeApp = mapPackageNameToAppInfo(
                 getApplication(),
-                packageManager,PreferenceManager.getSwipeApp(getApplication(),swipeDirection))
+                PreferenceManager.getSwipeApp(getApplication(),swipeDirection))
             if( swipeDirection == "left"){
                 _uiState.update { it.copy( leftSwipeApp =  swipeApp, isLeftSwipeWidgets = false) }
             }

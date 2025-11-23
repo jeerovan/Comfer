@@ -2,7 +2,6 @@ package com.jeerovan.comfer
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toArgb
@@ -41,7 +40,7 @@ object PreferenceManager {
     private const val THEMED_ICONS = "themed_icons"
     private const val WALLPAPER_LIGHT_BG = "wallpaper_light_bg"
     private const val WALLPAPER_LIGHT_FG = "wallpaper_light_fg"
-
+    private const val APP_LIST_VERSION = "apps_list_version"
     private const val WALLPAPER_DARK_BG = "wallpaper_dark_bg"
     private const val WALLPAPER_DARK_FG = "wallpaper_dark_fg"
     private const val AUTO_WALLPAPER = "auto_wallpaper"
@@ -218,12 +217,16 @@ object PreferenceManager {
     fun setIconSize(context: Context, size: Int) {
         setInt(context,KEY_ICON_SIZE,size)
     }
-
-    // Example: getIconSize
     fun getIconSize(context: Context, default: Int = 48): Int {
         return getInt(context,KEY_ICON_SIZE,default)
     }
-
+    fun increaseAppListVersion(context: Context){
+        val currentVersion = getAppListVersion(context)
+        setInt(context,APP_LIST_VERSION,currentVersion + 1)
+    }
+    fun getAppListVersion(context: Context): Int{
+        return getInt(context,APP_LIST_VERSION,0)
+    }
     fun setIconShape(context: Context, shape: String) {
         setString(context,KEY_ICON_SHAPE,shape)
     }
@@ -323,7 +326,13 @@ object PreferenceManager {
         setString(context,KEY_TEMP_IMAGE_DATA,jsonString)
         setBoolean(context,IMAGE_AVAILABLE,true)
     }
-
+    fun resetImageDataWithWhiteColor(context: Context) {
+        val currentData = getImageData(context)
+        if(currentData != null) {
+            currentData.color = "White";
+            saveImageData(context, currentData);
+        }
+    }
     fun newImageAvailable(context: Context):Boolean{
         return getBoolean(context,IMAGE_AVAILABLE,false)
     }

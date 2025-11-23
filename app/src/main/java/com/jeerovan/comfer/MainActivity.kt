@@ -513,7 +513,6 @@ class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
         lifecycleScope.launch {
             settingsViewModel.loadSettings()
             mainViewModel.checkLoadWallpaper()
-            appInfoViewModel.loadAppLists() // required to update installed/uninstalled apps
         }
     }
 
@@ -2696,9 +2695,12 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val wallpaperMotionEnabled = settingInfoUiState.autoWallpapers && settingInfoUiState.wallpaperMotionEnabled
     val hasNotificationAccess = settingInfoUiState.hasNotificationAccess
 
-    LaunchedEffect(mainUiState.iconVersion) {
-        logger.setLog("LauncherScreen","iconVersion changed, loading app list")
-        appInfoViewModel.loadAppLists() // TODO applist already loading, doesn't run
+    LaunchedEffect(mainUiState.iconVersion,
+        settingInfoUiState.appListsVersion,
+        settingInfoUiState.showThemedIcons,
+        settingInfoUiState.autoWallpapers,
+        settingInfoUiState.monochrome) {
+        appInfoViewModel.reloadList()
     }
 
     val notificationPackages by remember(notifications, hasNotificationAccess) {

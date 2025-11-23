@@ -35,12 +35,26 @@ import kotlinx.coroutines.withContext
 import kotlin.math.max
 import androidx.core.graphics.scale
 
+import android.content.ComponentName
+import android.content.pm.LauncherActivityInfo
+import android.content.pm.LauncherApps
+import android.os.UserHandle
+import android.os.UserManager
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+
 private const val REST_LIST_NAME = "Rest"
 
 data class AppInfoUiState(
     val quickApps: List<AppInfo> = emptyList(),
     val primaryApps: List<AppInfo> = emptyList(),
-    val restApps: List<AppInfo> = emptyList()
+    val restApps: List<AppInfo> = emptyList(),
 )
 data class WallpaperThemeColors(
     val lightBg: Int,
@@ -51,59 +65,72 @@ data class WallpaperThemeColors(
 data class AppInfo(
     val background: Drawable?,
     val foreground: Drawable?,
-    val label: CharSequence,
+    val label: String,
     val scale: Float,
-    val packageName: String
+    val packageName: String,
+    val icon: Drawable,
+    val componentName: ComponentName,
+    val user: UserHandle // Important for work profiles
 )
 
+/**
+ * Main function to process app info.
+ * Now accepts LauncherActivityInfo instead of ResolveInfo.
+ */
 suspend fun getAppInfo(
     context: Context,
-    packageManager: PackageManager,
-    resolveInfo: ResolveInfo,
-    packageName: String,
+    info: LauncherActivityInfo,
     showThemedIcons: Boolean,
     themedColors: WallpaperThemeColors,
     isLightHour: Boolean
-): AppInfo? = withContext(Dispatchers.Default){
+): AppInfo? = withContext(Dispatchers.Default) {
     try {
-        val defaultIcon = packageManager.defaultActivityIcon
-        val cachedIcon = AppIconCache.getIcon(packageName)
-        val savedIcon = if (cachedIcon == defaultIcon) null else cachedIcon
-        val loadedDrawable = savedIcon ?: resolveInfo.loadIcon(packageManager).also {
-            AppIconCache.cacheIcon(packageName, it)
+        val packageName = info.componentName.packageName
+        val user = info.user
+
+        // NOTE: If you support Work Profiles, your Cache Key should ideally be "packageName + userId"
+        // because the Work version might have a different badge than the Personal version.
+        val cacheKey = "$packageName"
+
+        val cachedIcon = AppIconCache.getIcon(cacheKey)
+
+        // Load the icon. getBadgedIcon automatically adds the "Briefcase" for work apps
+        val loadedDrawable = cachedIcon ?: info.getBadgedIcon(0).also {
+            AppIconCache.cacheIcon(cacheKey, it)
         }
+
         val iconDrawable = loadedDrawable.constantState?.newDrawable()?.mutate()
         var backgroundDrawable: Drawable?
         var foregroundDrawable: Drawable?
-        val appLabel = resolveInfo.loadLabel(packageManager).trim()
-        val foregroundColor = getThemedIconColor(themedColors,isLightHour)
+
+        // LauncherActivityInfo loads labels faster/cleaner
+        val appLabel = info.label.toString().trim()
+        val foregroundColor = getThemedIconColor(themedColors, isLightHour)
 
         val iconProcessor = ThemedIconProcessor()
+
         // Determine scale and process icon
         val isAdaptive = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && iconDrawable is AdaptiveIconDrawable
         val scale = if (isAdaptive) 1.5f else 0.8f
 
         when {
-            isAdaptive -> {
-                val adaptiveIcon = iconDrawable
+            isAdaptive && iconDrawable is AdaptiveIconDrawable -> {
                 if (showThemedIcons) {
-                    val backgroundColor = getThemedBackgroundColor(themedColors,isLightHour)
+                    val backgroundColor = getThemedBackgroundColor(themedColors, isLightHour)
                     backgroundDrawable = backgroundColor.toDrawable()
 
                     foregroundDrawable = when {
                         // Android 13+ (Tiramisu): Try monochrome first
                         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
-                            adaptiveIcon.monochrome?.mutate()
-                                ?.apply {
+                            iconDrawable.monochrome?.mutate()?.apply {
                                 setTint(foregroundColor)
-                            } ?: adaptiveIcon.foreground?.mutate()
-                                ?.apply {
+                            } ?: iconDrawable.foreground?.mutate()?.apply {
                                 colorFilter = PorterDuffColorFilter(foregroundColor, PorterDuff.Mode.SRC_IN)
-                                }
+                            }
                         }
                         else -> {
                             iconProcessor.applyThemedColor(
-                                adaptiveIcon.foreground,
+                                iconDrawable.foreground,
                                 foregroundColor,
                                 backgroundColor,
                                 isLightHour
@@ -112,13 +139,12 @@ suspend fun getAppInfo(
                     }
                 } else {
                     // Original adaptive icon
-                    backgroundDrawable = adaptiveIcon.background
-                    foregroundDrawable = adaptiveIcon.foreground
+                    backgroundDrawable = iconDrawable.background
+                    foregroundDrawable = iconDrawable.foreground
                 }
             }
-
             else -> {
-                // Non-adaptive / legacy icons
+                // Non-adaptive / legacy icons / Badged icons that wrap adaptive icons
                 val backgroundColor = if (showThemedIcons) {
                     getThemedBackgroundColor(themedColors, isLightHour)
                 } else {
@@ -127,11 +153,12 @@ suspend fun getAppInfo(
                 backgroundDrawable = backgroundColor.toDrawable()
 
                 foregroundDrawable = if (showThemedIcons) {
-                    if(iconDrawable != null) iconProcessor.applyThemedColor(
+                    if (iconDrawable != null) iconProcessor.applyThemedColor(
                         iconDrawable,
                         foregroundColor,
                         backgroundColor,
-                        isLightHour) else iconDrawable
+                        isLightHour
+                    ) else iconDrawable
                 } else {
                     iconDrawable
                 }
@@ -143,226 +170,244 @@ suspend fun getAppInfo(
             foreground = foregroundDrawable,
             scale = scale,
             label = appLabel,
-            packageName = packageName
+            packageName = packageName,
+            icon = loadedDrawable, // Keeps the badged icon for standard display
+            componentName = info.componentName,
+            user = user
         )
     } catch (e: Exception) {
-        Log.e("getAppInfo",e.stackTraceToString())
+        Log.e("getAppInfo", e.stackTraceToString())
         null
     }
 }
+
+/**
+ * Legacy helper: Tries to find an app by string package name.
+ * Defaults to the CURRENT user only.
+ */
 suspend fun mapPackageNameToAppInfo(
     context: Context,
-    packageManager: PackageManager,
     packageName: String?
 ): AppInfo? {
     if (packageName == null) return null
+
     val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
     val monochrome = PreferenceManager.getMonochrome(context)
     val showThemedIcons = PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
     val themedColors = PreferenceManager.getThemedColors(context)
     val isLightHour = PreferenceManager.isLightHour(context)
+
     return try {
-        packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
-            packageManager.resolveActivity(launchIntent, 0)?.let { resolveInfo ->
-                getAppInfo(context,
-                    packageManager,
-                    resolveInfo,
-                    packageName,
-                    showThemedIcons,
-                    themedColors,
-                    isLightHour)
-            }
+        val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+        // process.myUserHandle() ensures we look for the app in the current profile
+        // Note: This won't find the app if it ONLY exists in the Work Profile.
+        // To find Work Profile apps, you must iterate userManager.userProfiles as done in the ViewModel.
+        val activityList = launcherApps.getActivityList(null, android.os.Process.myUserHandle())
+
+        val activityInfo = activityList.find { it.componentName.packageName == packageName }
+
+        if (activityInfo != null) {
+            getAppInfo(
+                context,
+                activityInfo,
+                showThemedIcons,
+                themedColors,
+                isLightHour
+            )
+        } else {
+            null
         }
     } catch (_: Exception) {
         null
     }
 }
-
 class AppInfoViewModel(application: Application) : AndroidViewModel(application) {
     private val logger = LoggerManager(application)
     private val _uiState = MutableStateFlow(AppInfoUiState())
     val uiState: StateFlow<AppInfoUiState> = _uiState.asStateFlow()
-    private val packageManager: PackageManager
-        get() = getApplication<Application>().packageManager
+
+    // System Services for modern launcher tracking
+    private val launcherApps = application.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+    private val userManager = application.getSystemService(Context.USER_SERVICE) as UserManager
 
     init {
-        loadAppLists()
+        // Start observing system changes immediately
+        observePackageChanges()
+    }
+    private fun observePackageChanges() {
+        viewModelScope.launch {
+            callbackFlow {
+                val callback = object : LauncherApps.Callback() {
+                    override fun onPackageAdded(packageName: String, user: UserHandle) { trySend(Unit) }
+                    override fun onPackageRemoved(packageName: String, user: UserHandle) { trySend(Unit) }
+                    override fun onPackageChanged(packageName: String, user: UserHandle) { trySend(Unit) }
+                    override fun onPackagesAvailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) { trySend(Unit) }
+                    override fun onPackagesUnavailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) { trySend(Unit) }
+                }
+
+                // 1. Registration MUST happen on a thread with a Looper (Main)
+                launcherApps.registerCallback(callback)
+
+                trySend(Unit) // Initial load
+
+                awaitClose {
+                    // Unregister is safe to call here
+                    launcherApps.unregisterCallback(callback)
+                }
+            }
+                // 2. Remove .flowOn(Dispatchers.IO) here!
+                // callbackFlow block runs on the collector's context (Main, since launched in viewModelScope).
+                // This allows registerCallback to succeed.
+                .collectLatest {
+                    // 3. Move the background thread switch inside refreshAppLists()
+                    // or use flowOn just for the collection part if needed, but simpler is:
+                    refreshAppLists()
+                }
+        }
     }
 
-    private var isWorking = false
-
-    fun loadAppLists() {
-        // Basic check to avoid launching a coroutine if already working
-        if (isWorking) {
-            logger.setLog("LoadAppList","Already Working")
-            return
-        }
-        isWorking = true
-        logger.setLog("LoadAppLists","Loading")
+    fun reloadList() {
         viewModelScope.launch {
-            try {
-                // All work now happens on a background thread.
-                withContext(Dispatchers.Default) {
-                    // --- Stage 1: Determine Package Lists (No Icon Loading) ---
-                    val intent = Intent(Intent.ACTION_MAIN, null).addCategory(Intent.CATEGORY_LAUNCHER)
-                    val allCurrentResolveInfos = packageManager.queryIntentActivities(intent, 0)
-                    val allCurrentPackageNames = allCurrentResolveInfos.map { it.activityInfo.packageName }.toSet()
-                    val context: Application = getApplication()
-                    val savedQuickPackageNames = AppInfoManager.getAppPackageNames(
-                        context,
-                        AppInfoManager.QUICK_APPS_LIST_NAME
-                    ) ?: emptyList()
-                    val savedPrimaryPackageNames = AppInfoManager.getAppPackageNames(
-                        context,
-                        AppInfoManager.PRIMARY_APPS_LIST_NAME
-                    ) ?: emptyList()
-                    val savedAllPackageNames = AppInfoManager.getAppPackageNames(
-                        context,
-                        AppInfoManager.ALL_APPS_LIST_NAME
-                    )?.toSet() ?: emptySet()
-                    val isFirstLaunch = savedAllPackageNames.isEmpty()
+            refreshAppLists()
+        }
+    }
+    private suspend fun refreshAppLists() = withContext(Dispatchers.Default) {
+        try {
+            logger.setLog("LoadAppLists", "Loading started")
 
-                    val finalQuickPackageNames: List<String>
-                    val finalPrimaryPackageNames: List<String>
+            // --- Stage 1: Fetch All Launchable Activities (Personal + Work) ---
+            val allActivitiesMap = mutableMapOf<String, LauncherActivityInfo>()
 
-                    if (isFirstLaunch) {
-                        PreferenceManager.onFirstOpen(context)
-                        val allStandardApps = filterStandardApps(allCurrentPackageNames).toList()
-                        var eightStandardApps = allStandardApps.take(8)
-                        if(eightStandardApps.size < 8){
-                            val remainingSpace = 8 - eightStandardApps.size
-                            val remainingPackageNames = allCurrentPackageNames.filter { it !in eightStandardApps}
-                            eightStandardApps = eightStandardApps + remainingPackageNames.take(remainingSpace)
-                        }
-                        finalQuickPackageNames = eightStandardApps
-                        finalPrimaryPackageNames =
-                            allCurrentPackageNames.filter { it !in finalQuickPackageNames }
-                    } else {
-                        val addedPackages = allCurrentPackageNames - savedAllPackageNames
-                        val removedPackages = savedAllPackageNames - allCurrentPackageNames
-
-                        var currentQuickPackages =
-                            savedQuickPackageNames.filter { it !in removedPackages }
-                        var currentPrimaryPackages =
-                            savedPrimaryPackageNames.filter { it !in removedPackages }
-
-                        if (addedPackages.isNotEmpty()) {
-                            val quickAppsCapacity = 8
-                            val quickAppsSpace = quickAppsCapacity - currentQuickPackages.size
-                            if (quickAppsSpace > 0) {
-                                currentQuickPackages =
-                                    currentQuickPackages + addedPackages.take(quickAppsSpace)
-                            }
-                            currentPrimaryPackages =
-                                currentPrimaryPackages + addedPackages.drop(quickAppsSpace)
-                        }
-
-                        finalQuickPackageNames = currentQuickPackages
-                        finalPrimaryPackageNames = currentPrimaryPackages
+            val profiles = userManager.userProfiles
+            for (user in profiles) {
+                val activities = launcherApps.getActivityList(null, user)
+                for (info in activities) {
+                    val pkg = info.componentName.packageName
+                    if (!allActivitiesMap.containsKey(pkg)) {
+                        allActivitiesMap[pkg] = info
                     }
+                    //Original allActivitiesMap[pkg]?.add(info) not adding multiple
+                }
+            }
 
-                    // 2. Save the updated package name lists
-                    AppInfoManager.saveAppPackageNames(
-                        getApplication(),
-                        AppInfoManager.QUICK_APPS_LIST_NAME,
-                        finalQuickPackageNames
-                    )
-                    AppInfoManager.saveAppPackageNames(
-                        getApplication(),
-                        AppInfoManager.PRIMARY_APPS_LIST_NAME,
-                        finalPrimaryPackageNames
-                    )
-                    AppInfoManager.saveAppPackageNames(
-                        getApplication(),
-                        AppInfoManager.ALL_APPS_LIST_NAME,
-                        allCurrentPackageNames.toList()
-                    )
+            val allCurrentPackageNames = allActivitiesMap.keys.toSet()
+            val context: Application = getApplication()
 
-                    // --- Stage 2: Load App Info Concurrently ---
-                    val resolveInfoMap = allCurrentResolveInfos.associateBy { it.activityInfo.packageName }
-                    val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
-                    val monochrome = PreferenceManager.getMonochrome(context)
-                    val showThemedIcons = PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
-                    val themedColors = PreferenceManager.getThemedColors(context)
-                    logger.setLog("LoadAppList",themedColors.toString())
-                    val isLightHour = PreferenceManager.isLightHour(context)
-                    // Load quick apps first and update UI immediately
-                    val quickApps = finalQuickPackageNames.map { packageName ->
-                        async { createAppInfo(context,
-                            packageManager,
-                            packageName,
-                            resolveInfoMap,
-                            showThemedIcons,
-                            themedColors,
-                            isLightHour) }
-                    }.awaitAll().filterNotNull()
+            // --- Stage 2: List Management (Quick/Primary/Rest) ---
+            val savedQuickPackageNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME) ?: emptyList()
+            val savedPrimaryPackageNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME) ?: emptyList()
+            val savedAllPackageNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.ALL_APPS_LIST_NAME)?.toSet() ?: emptySet()
 
-                    // **Immediate UI Update**
-                    withContext(Dispatchers.Main) {
-                        _uiState.update {
-                            it.copy(quickApps = quickApps)
-                        }
+            val isFirstLaunch = savedAllPackageNames.isEmpty()
+            val finalQuickPackageNames: List<String>
+            val finalPrimaryPackageNames: List<String>
+
+            if (isFirstLaunch) {
+                PreferenceManager.onFirstOpen(context)
+                val allStandardApps = filterStandardApps(allCurrentPackageNames).toList()
+                var eightStandardApps = allStandardApps.take(8)
+
+                if (eightStandardApps.size < 8) {
+                    val remainingSpace = 8 - eightStandardApps.size
+                    val remainingPackageNames = allCurrentPackageNames.filter { it !in eightStandardApps }
+                    eightStandardApps = eightStandardApps + remainingPackageNames.take(remainingSpace)
+                }
+                finalQuickPackageNames = eightStandardApps
+                finalPrimaryPackageNames = allCurrentPackageNames.filter { it !in finalQuickPackageNames }
+            } else {
+                val addedPackages = allCurrentPackageNames - savedAllPackageNames
+                val removedPackages = savedAllPackageNames - allCurrentPackageNames
+
+                var currentQuickPackages = savedQuickPackageNames.filter { it !in removedPackages }
+                var currentPrimaryPackages = savedPrimaryPackageNames.filter { it !in removedPackages }
+
+                if (addedPackages.isNotEmpty()) {
+                    val quickAppsCapacity = 8
+                    val quickAppsSpace = quickAppsCapacity - currentQuickPackages.size
+                    if (quickAppsSpace > 0) {
+                        currentQuickPackages = currentQuickPackages + addedPackages.take(quickAppsSpace)
                     }
+                    currentPrimaryPackages = currentPrimaryPackages + addedPackages.drop(quickAppsSpace)
+                }
+                finalQuickPackageNames = currentQuickPackages
+                finalPrimaryPackageNames = currentPrimaryPackages
+            }
+            // Save updated lists
+            AppInfoManager.saveAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME, finalQuickPackageNames.toSet())
+            AppInfoManager.saveAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME, finalPrimaryPackageNames.toSet())
+            AppInfoManager.saveAppPackageNames(context, AppInfoManager.ALL_APPS_LIST_NAME, allCurrentPackageNames.toSet())
 
-                    // Now load the rest of the apps in parallel
-                    val primaryApps = finalPrimaryPackageNames.map { packageName ->
-                        async { createAppInfo(context,
-                            packageManager,
-                            packageName,
-                            resolveInfoMap,
+            // --- Stage 3: Load App Info / Icons Concurrently ---
+            val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
+            val monochrome = PreferenceManager.getMonochrome(context)
+            val showThemedIcons = PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
+            val themedColors = PreferenceManager.getThemedColors(context)
+            val isLightHour = PreferenceManager.isLightHour(context)
+
+            // Function to map package names to your UI models
+            // NOTE: This handles if a package exists on multiple profiles (Work + Personal)
+            suspend fun mapPackagesToAppInfo(packageNames: List<String>): List<AppInfo> {
+                return packageNames.map { packageName ->
+                    async {
+                        // 1. Get list of activities (Personal, Work, etc.) or return empty list if none
+                        val activityInfo = allActivitiesMap[packageName] ?: return@async null
+
+                        // 2. Process each activity (e.g. Personal Gmail, Work Gmail)
+                        createAppInfo(
+                            context,
+                            activityInfo,
                             showThemedIcons,
                             themedColors,
-                            isLightHour) }
-                    }.awaitAll().filterNotNull()
-
-                    val quickAndPrimaryPackages = finalQuickPackageNames.toSet() + finalPrimaryPackageNames.toSet()
-                    val restPackages = allCurrentPackageNames - quickAndPrimaryPackages
-
-                    val restApps = restPackages.map { packageName ->
-                        async { createAppInfo(context,
-                            packageManager,
-                            packageName,
-                            resolveInfoMap,
-                            showThemedIcons,
-                            themedColors,
-                            isLightHour) }
-                    }.awaitAll().filterNotNull()
-
-                    // **Final UI Update**
-                    withContext(Dispatchers.Main) {
-                        _uiState.update {
-                            it.copy(
-                                primaryApps = primaryApps,
-                                restApps = restApps,
-                            )
-                        }
+                            isLightHour
+                        )
                     }
                 }
-            } catch (e: Exception) {
-                logger.setLog("AppInfoViewModel", e.toString())
-            } finally {
-                // Release the lock and reset the flag
-                isWorking = false
+                    .awaitAll()
+                    .filterNotNull()
             }
+
+
+            // 1. Quick Apps - Update Immediately
+            val quickApps = mapPackagesToAppInfo(finalQuickPackageNames.toSet().toList())
+
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(quickApps = quickApps) }
+            }
+
+            // 2. Primary Apps
+            val primaryApps = mapPackagesToAppInfo(finalPrimaryPackageNames.toSet().toList())
+
+            // 3. Rest Apps
+            val quickAndPrimaryPackages = finalQuickPackageNames.toSet() + finalPrimaryPackageNames.toSet()
+            val restPackages = allCurrentPackageNames - quickAndPrimaryPackages
+            val restApps = mapPackagesToAppInfo(restPackages.toList())
+
+            // Final UI Update
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(primaryApps = primaryApps, restApps = restApps)
+                }
+            }
+
+        } catch (e: Exception) {
+            logger.setLog("AppInfoViewModel", e.toString())
         }
     }
 
-    suspend fun createAppInfo(context: Context,
-                              packageManager: PackageManager,
-                              packageName: String,
-                              resolveInfoMap: Map<String,
-                              ResolveInfo>,
-                              showThemedIcons: Boolean,
-                              themedColors: WallpaperThemeColors,
-                              isLightHour: Boolean): AppInfo? {
-        val resolveInfo = resolveInfoMap[packageName] ?: return null
-        return getAppInfo(context,
-            packageManager,
-            resolveInfo,
-            packageName,
+    suspend fun createAppInfo(
+        context: Context,
+        info: LauncherActivityInfo, // CHANGED input type
+        showThemedIcons: Boolean,
+        themedColors: WallpaperThemeColors,
+        isLightHour: Boolean
+    ): AppInfo? {
+        return getAppInfo(
+            context,
+            info,
             showThemedIcons,
             themedColors,
-            isLightHour)
+            isLightHour
+        )
     }
 
     fun moveAppInList(listName: String, fromIndex: Int, toIndex: Int) {
@@ -393,6 +438,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     _uiState.update { it.copy(restApps = currentList) }
                 }
             }
+            PreferenceManager.increaseAppListVersion(getApplication()) // triggers UI update
         }
     }
 
@@ -450,9 +496,10 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 it.copy(
                     quickApps = newQuickApps,
                     primaryApps = newPrimaryApps,
-                    restApps = newRestApps
+                    restApps = newRestApps,
                 )
             }
+            PreferenceManager.increaseAppListVersion(getApplication()) // triggers UI update
         }
     }
 }

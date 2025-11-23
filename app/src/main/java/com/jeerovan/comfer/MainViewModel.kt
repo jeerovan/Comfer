@@ -89,7 +89,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             val bitmap = BitmapFactory.decodeFile(backgroundImagePath)
                             setWallpaperThemedColors(applicationContext,bitmap)
                         }
-                        logger.setLog("MainViewModel","Increasing iconVersion")
                         _uiState.update {
                             it.copy(
                                 iconVersion = _uiState.value.iconVersion + 1

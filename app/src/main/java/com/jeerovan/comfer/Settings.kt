@@ -1019,6 +1019,8 @@ fun SelectSetOwnWallpapersDirectory(
                     } else {
                         // When user turns the switch OFF, clear the directory.
                         onSelectDirectory(null)
+                        // reset image data with white color
+                        PreferenceManager.resetImageDataWithWhiteColor(context)
                     }
                 }
             )

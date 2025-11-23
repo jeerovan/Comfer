@@ -104,6 +104,7 @@ class ManageAppListActivity : ComponentActivity() {
 fun ManageLayersScreen(viewModel: AppInfoViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val logger = LoggerManager(context)
     val quickListState = rememberLazyListState()
     val primaryListState = rememberLazyListState()
     val restListState = rememberLazyListState()
@@ -120,7 +121,6 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
         )
     }
     val primaryApps = if(alphabeticalOrder) uiState.primaryApps.sortedBy { it.label.toString() } else uiState.primaryApps
-
     var selectedList by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedIndices by rememberSaveable { mutableStateOf(emptySet<Int>()) }
 
