@@ -137,6 +137,7 @@ class SettingsActivity : ComponentActivity() {
         val logger = LoggerManager(applicationContext)
         logger.setLog("SettingsActivity","Resumed")
         lifecycleScope.launch {
+            // required to load notification change settings (example)
             settingsViewModel.loadSettings()
         }
     }

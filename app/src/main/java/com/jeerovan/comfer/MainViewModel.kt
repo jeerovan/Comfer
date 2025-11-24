@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 data class MainUiState (
     val imageData: ImageData? = null,
@@ -80,8 +81,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     PreferenceManager.setWallpaperApplied(applicationContext, true)
                     withContext(Dispatchers.IO){
-                        val bitmap = BitmapFactory.decodeFile(filePath)
-                        setWallpaperThemedColors(applicationContext,bitmap)
+                        setWallpaperThemedColors(applicationContext, File(filePath))
                     }
                 } else {
                     if (_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImagePath) {
@@ -89,18 +89,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         _uiState.update {
                             it.copy(
                                 imageData = imageData,
-                                imagePath = backgroundImagePath
+                                imagePath = backgroundImagePath,
+                                iconVersion = _uiState.value.iconVersion + 1
                             )
                         }
                         withContext(Dispatchers.IO){
                             setWallpaper(applicationContext)
-                            val bitmap = BitmapFactory.decodeFile(backgroundImagePath)
-                            setWallpaperThemedColors(applicationContext,bitmap)
-                        }
-                        _uiState.update {
-                            it.copy(
-                                iconVersion = _uiState.value.iconVersion + 1
-                            )
                         }
                     }
                 }

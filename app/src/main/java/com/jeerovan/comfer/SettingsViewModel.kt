@@ -128,7 +128,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val NOTIFICATION_SIZE = "notification_size"
     private val DRAWER_HEIGHT = "drawer_height"
     private val DRAWER_OFFSET = "drawer_offset"
-    private var working = false
     val predefinedColors = listOf(
         Color.Red, Color.Green, Color.Blue, Color.Yellow,
         Color.Cyan, Color.Magenta, Color.Black, Color.Gray,
@@ -158,8 +157,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         checkSubscriptionStatus()
     }
     fun loadSettings() {
-        if(working)return
-        working = true
         logger.setLog("SettingsViewModel","LoadSettings")
         viewModelScope.launch {
             val hasPro = PreferenceManager.getPro(getApplication())
@@ -310,7 +307,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     shouldAppUpdatePromptUserCounter = shouldAppUpdatePromptUserCounter
                 )
             }
-            working = false
         }
     }
     private fun setupPurchaseListener() {
@@ -322,14 +318,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
     fun checkSubscriptionStatus() {
         Purchases.sharedInstance.getCustomerInfoWith(
-            onError = { setPro(false) },
+            onError = { if(!isTesting)setPro(false) },
             onSuccess = { processCustomerInfo(it) }
         )
     }
 
     private fun processCustomerInfo(info: CustomerInfo) {
         val isPro = info.entitlements.active.isNotEmpty()
-        setPro(isPro)
+        if(!isTesting)setPro(isPro)
     }
 
     override fun onCleared() {

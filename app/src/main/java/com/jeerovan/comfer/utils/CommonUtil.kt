@@ -37,6 +37,8 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.ConnectionSpec
 import java.io.File
@@ -217,7 +219,7 @@ object CommonUtil {
         val resolveInfo = context.packageManager.resolveActivity(intent, 0)
         return resolveInfo?.activityInfo?.packageName == context.packageName
     }
-    fun setBackgroundImageFromImageUri(context:Context,wallpaperDirectory:Uri) {
+    suspend fun setBackgroundImageFromImageUri(context:Context, wallpaperDirectory:Uri) {
         val currentWallpaperImageUri = PreferenceManager.getBackgroundImageUri(context)
         val nextLocalImageUri = getNextWallpaperImageUri(
             context,
@@ -247,6 +249,7 @@ object CommonUtil {
                         val oldFile = File(oldFilePath)
                         oldFile.delete()
                     }
+                    setWallpaperThemedColors(context, File(newFilePath))
                 }
             }
         }
@@ -314,24 +317,51 @@ object CommonUtil {
     fun canSetLockScreenWallpaper(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
     }
-    fun setWallpaperThemedColors(context: Context,bitmap: Bitmap){
-        val palette = Palette.from(bitmap).generate()
-        // Light theme colors
-        val lightBg = palette.lightMutedSwatch?.rgb ?: Color.White.copy(alpha = 0.7f).toArgb()
-        val lightFg = palette.lightMutedSwatch?.bodyTextColor
-            ?: palette.darkVibrantSwatch?.rgb
-            ?: Color.Black.toArgb()
+    suspend fun setWallpaperThemedColors(context: Context, file: File){
+        withContext(Dispatchers.IO) {
+            if (!file.exists()) return@withContext null
 
-        // Dark theme colors
-        val darkBg = palette.darkMutedSwatch?.rgb ?: Color.Black.copy(alpha = 0.7f).toArgb()
-        val darkFg = palette.darkMutedSwatch?.titleTextColor
-            ?: palette.lightVibrantSwatch?.rgb
-            ?: Color.White.toArgb()
-        PreferenceManager.setThemedColors(context,
-            lightBg,
-            lightFg,
-            darkBg,
-            darkFg)
+            // 1. Calculate dimensions without loading the whole image into memory
+            val options = BitmapFactory.Options().apply {
+                inJustDecodeBounds = true
+            }
+            BitmapFactory.decodeFile(file.absolutePath, options)
+
+            // 2. Calculate optimal inSampleSize
+            // Target size ~512px is more than enough for accurate color extraction
+            // Palette internally resizes to ~100px-200px anyway
+            options.inSampleSize = calculateInSampleSize(options, 512, 512)
+
+            // 3. Decode the downsampled bitmap
+            options.inJustDecodeBounds = false
+            val bitmap = BitmapFactory.decodeFile(file.absolutePath, options) ?: return@withContext null
+            try {
+                // Optional: resizeBitmapArea is the internal limiter (default is usually fine)
+                // but since we already downsampled, we can just generate.
+                val palette = Palette.from(bitmap).generate()
+                // Light theme colors
+                val lightBg = palette.lightMutedSwatch?.rgb ?: Color.White.copy(alpha = 0.7f).toArgb()
+                val lightFg = palette.lightMutedSwatch?.bodyTextColor
+                    ?: palette.darkVibrantSwatch?.rgb
+                    ?: Color.Black.toArgb()
+
+                // Dark theme colors
+                val darkBg = palette.darkMutedSwatch?.rgb ?: Color.Black.copy(alpha = 0.7f).toArgb()
+                val darkFg = palette.darkMutedSwatch?.titleTextColor
+                    ?: palette.lightVibrantSwatch?.rgb
+                    ?: Color.White.toArgb()
+                PreferenceManager.setThemedColors(
+                    context,
+                    lightBg,
+                    lightFg,
+                    darkBg,
+                    darkFg
+                )
+            } finally {
+                // 5. Important: Recycle the bitmap immediately as we only needed it for colors
+                bitmap.recycle()
+            }
+        }
     }
     suspend fun downloadImage(applicationContext: Context){
         val logger = LoggerManager(applicationContext)
@@ -372,6 +402,7 @@ object CommonUtil {
                             oldFile.delete()
                             logger.setLog("DownloadImage","Deleted: $oldFilePath")
                         }
+                        setWallpaperThemedColors(applicationContext, file)
                     }
                 }
             }
@@ -443,6 +474,22 @@ object CommonUtil {
             }
         }
         return iconShape
+    }
+    fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+        val (height: Int, width: Int) = options.run { outHeight to outWidth }
+        var inSampleSize = 1
+
+        if (height > reqHeight || width > reqWidth) {
+            val halfHeight: Int = height / 2
+            val halfWidth: Int = width / 2
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+        return inSampleSize
     }
 }
 

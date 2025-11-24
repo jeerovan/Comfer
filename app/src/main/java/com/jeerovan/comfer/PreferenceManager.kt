@@ -131,18 +131,26 @@ object PreferenceManager {
         }
     }
     fun setThemedColors(context: Context,lightBg:Int,lightFg:Int,darkBg:Int,darkFg:Int){
-        LoggerManager(context).setLog("SetThemedColors","$lightFg | $lightBg | $darkBg | $darkFg")
+        LoggerManager(context).setLog("SetThemedColors","$lightBg | $lightFg | $darkBg | $darkFg")
         setInt(context,WALLPAPER_LIGHT_FG,lightFg)
         setInt(context,WALLPAPER_LIGHT_BG,lightBg)
         setInt(context,WALLPAPER_DARK_FG,darkFg)
         setInt(context,WALLPAPER_DARK_BG,darkBg)
     }
     fun getThemedColors(context: Context): WallpaperThemeColors {
+        if(getMonochrome(context)){
+            return getMonoThemedColors(context)
+        }
         return WallpaperThemeColors(
             getInt(context,WALLPAPER_LIGHT_BG,Color.White.copy(alpha = 0.7f).toArgb()),
             getInt(context,WALLPAPER_LIGHT_FG,Color.Black.toArgb()),
             getInt(context,WALLPAPER_DARK_BG,Color.Black.copy(alpha = 0.7f).toArgb()),
             getInt(context,WALLPAPER_DARK_FG,Color.White.toArgb())
+        )
+    }
+    fun getMonoThemedColors(context: Context) : WallpaperThemeColors {
+        return WallpaperThemeColors(
+            -1275068417,-16777216 ,  -1291845632 , -1
         )
     }
     fun getAppUpdatePromptUserCounter(context: Context): Int {
