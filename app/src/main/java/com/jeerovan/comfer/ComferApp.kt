@@ -10,7 +10,7 @@ import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.PurchasesConfiguration
 
 const val saveCrashes = false
-const val isTesting = true
+const val isTesting = false
 class ComferApp : Application(), ImageLoaderFactory {
 
     override fun onCreate() {

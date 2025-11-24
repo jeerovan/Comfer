@@ -16,8 +16,8 @@ android {
         applicationId = "com.jeerovan.comfer"
         minSdk = 23
         targetSdk = 36
-        versionCode = 22
-        versionName = "22.0"
+        versionCode = 23
+        versionName = "23.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
