@@ -502,7 +502,7 @@ class MainActivity : ComponentActivity() {
         widgetHosts.startListening()
         lifecycleScope.launch {
             settingsViewModel.loadSettings()
-            mainViewModel.checkLoadWallpaper()
+            mainViewModel.loadBackgroundData()
         }
     }
 
@@ -510,10 +510,6 @@ class MainActivity : ComponentActivity() {
         super.onStop()
         LoggerManager(applicationContext).setLog("MainActivity", "Stopped")
         widgetHosts.stopListening()
-        lifecycleScope.launch {
-            //delay(1000) // Delay, does not stop main thread
-            mainViewModel.loadBackgroundData()
-        }
     }
 }
 

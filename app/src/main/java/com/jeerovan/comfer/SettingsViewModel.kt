@@ -778,6 +778,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 withContext(Dispatchers.IO) {
                     generateSolidColorWallpapers(getApplication())
                 }
+            } else {
+                PreferenceManager.resetImageDataWithWhiteColor(getApplication())
             }
         }
     }
