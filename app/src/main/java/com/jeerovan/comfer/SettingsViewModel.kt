@@ -31,6 +31,10 @@ import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
 import com.jeerovan.comfer.utils.CommonUtil.setBackgroundImageFromImageUri
 import kotlinx.coroutines.delay
 import android.graphics.Bitmap
+import com.revenuecat.purchases.CustomerInfo
+import com.revenuecat.purchases.Purchases
+import com.revenuecat.purchases.getCustomerInfoWith
+import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -48,8 +52,8 @@ data class SettingsUiState(
     val iconShape: Shape = CircleShape,
     val showThemedIcons: Boolean = false,
     val isLightHour: Boolean = false,
-    val appListsVersion: Int = 0,
-    val imageDataVersion: Int = 0,
+    val appListsUpdateCounter: Int = 0,
+    val imageDataUpdateCounter: Int = 0,
     val quickAppsLayout: String = "linear",
     val appDrawerLayout: String = "circular",
     val drawerHeight:Int = 0,
@@ -89,7 +93,8 @@ data class SettingsUiState(
     val showNotificationRow : Boolean = true,
     val notificationColor: Color = Color.White,
     val notificationSize: Int = 18,
-    val arrangeInAlphabeticalOrder: Boolean = false
+    val arrangeInAlphabeticalOrder: Boolean = false,
+    val shouldAppUpdatePromptUserCounter: Int = 0,
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -149,6 +154,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     init {
         loadSettings()
+        setupPurchaseListener()
+        checkSubscriptionStatus()
     }
     fun loadSettings() {
         if(working)return
@@ -167,8 +174,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val iconShape  = PreferenceManager.getIconShape(getApplication())
             val showThemedIcons = PreferenceManager.getThemedIcons(getApplication())
             val isLightHour = PreferenceManager.isLightHour(getApplication())
-            val imageDataVersion = PreferenceManager.getImageDataVersion(getApplication())
-            val appListVersion = PreferenceManager.getAppListVersion(getApplication())
+            val imageDataUpdateCounter = PreferenceManager.getImageDataUpdateCounter(getApplication())
+            val appListUpdateCounter = PreferenceManager.getAppListUpdateCounter(getApplication())
             val quickAppsLayout = PreferenceManager.getQuickAppsLayout(getApplication())
             val appDrawerLayout = PreferenceManager.getAppDrawerLayout(getApplication())
             val drawerHeight = PreferenceManager.getInt(getApplication(),DRAWER_HEIGHT,0)
@@ -244,6 +251,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 isNotificationServiceEnabled,
                 showNotificationRow)
             val alphabeticalOrder = PreferenceManager.getAlphabeticalOrder(getApplication())
+            val shouldAppUpdatePromptUserCounter = PreferenceManager.getAppUpdatePromptUserCounter(getApplication())
             _uiState.update {
                 it.copy(
                     hasPro = hasPro,
@@ -257,8 +265,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     iconShape = iconShape,
                     showThemedIcons = showThemedIcons,
                     isLightHour = isLightHour,
-                    imageDataVersion = imageDataVersion,
-                    appListsVersion = appListVersion,
+                    imageDataUpdateCounter = imageDataUpdateCounter,
+                    appListsUpdateCounter = appListUpdateCounter,
                     quickAppsLayout = quickAppsLayout,
                     appDrawerLayout = appDrawerLayout,
                     drawerHeight = drawerHeight,
@@ -298,11 +306,36 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     showNotificationRow = showNotificationRow,
                     notificationColor = notificationColor,
                     notificationSize = notificationSize,
-                    arrangeInAlphabeticalOrder = alphabeticalOrder
+                    arrangeInAlphabeticalOrder = alphabeticalOrder,
+                    shouldAppUpdatePromptUserCounter = shouldAppUpdatePromptUserCounter
                 )
             }
             working = false
         }
+    }
+    private fun setupPurchaseListener() {
+        Purchases.sharedInstance.updatedCustomerInfoListener =
+            UpdatedCustomerInfoListener { customerInfo ->
+                processCustomerInfo(customerInfo)
+            }
+    }
+
+    fun checkSubscriptionStatus() {
+        Purchases.sharedInstance.getCustomerInfoWith(
+            onError = { setPro(false) },
+            onSuccess = { processCustomerInfo(it) }
+        )
+    }
+
+    private fun processCustomerInfo(info: CustomerInfo) {
+        val isPro = info.entitlements.active.isNotEmpty()
+        setPro(isPro)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Prevent memory leaks by removing listener
+        Purchases.sharedInstance.updatedCustomerInfoListener = null
     }
     fun setPro(enabled:Boolean){
         viewModelScope.launch {

@@ -2,9 +2,6 @@ package com.jeerovan.comfer
 
 import android.app.Application
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.PorterDuff
@@ -41,13 +38,8 @@ import android.content.pm.LauncherApps
 import android.os.UserHandle
 import android.os.UserManager
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
 private const val REST_LIST_NAME = "Rest"
 
@@ -438,7 +430,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     _uiState.update { it.copy(restApps = currentList) }
                 }
             }
-            PreferenceManager.increaseAppListVersion(getApplication()) // triggers UI update
+            PreferenceManager.increaseAppListUpdateCounter(getApplication()) // triggers UI update
         }
     }
 
@@ -499,7 +491,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     restApps = newRestApps,
                 )
             }
-            PreferenceManager.increaseAppListVersion(getApplication()) // triggers UI update
+            PreferenceManager.increaseAppListUpdateCounter(getApplication()) // triggers UI update
         }
     }
 }

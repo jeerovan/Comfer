@@ -40,13 +40,16 @@ object PreferenceManager {
     private const val THEMED_ICONS = "themed_icons"
     private const val WALLPAPER_LIGHT_BG = "wallpaper_light_bg"
     private const val WALLPAPER_LIGHT_FG = "wallpaper_light_fg"
-    private const val APP_LIST_VERSION = "apps_list_version"
-    private const val IMAGE_DATA_VERSION = "image_data_version"
+    private const val APP_LIST_UPDATE_COUNTER = "apps_list_update_counter"
+    private const val IMAGE_DATA_UPDATE_COUNTER = "image_data_update_counter"
     private const val WALLPAPER_DARK_BG = "wallpaper_dark_bg"
     private const val WALLPAPER_DARK_FG = "wallpaper_dark_fg"
     private const val AUTO_WALLPAPER = "auto_wallpaper"
     private const val MONOCHROME = "monochrome"
     private const val LIGHT_HOUR = "dark_mode"
+    private const val APP_UPDATE_PROMPT_TIME = "app_update_prompt_time"
+    private const val APP_UPDATE_PROMPT_COUNTER = "app_update_prompt_counter"
+
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun clear(context: Context,key: String){
@@ -71,6 +74,15 @@ object PreferenceManager {
     fun setFloat(context: Context,key:String,value:Float) {
         getPrefs(context).edit {
             putFloat(key,value)
+        }
+    }
+    fun getLong(context: Context,key:String,default: Long): Long {
+        val prefValue = getPrefs(context).getLong(key,default)
+        return prefValue
+    }
+    fun setLong(context: Context,key:String,value:Long) {
+        getPrefs(context).edit {
+            putLong(key,value)
         }
     }
     fun setString(context: Context,key:String,string: String?) {
@@ -132,6 +144,22 @@ object PreferenceManager {
             getInt(context,WALLPAPER_DARK_BG,Color.Black.copy(alpha = 0.7f).toArgb()),
             getInt(context,WALLPAPER_DARK_FG,Color.White.toArgb())
         )
+    }
+    fun getAppUpdatePromptUserCounter(context: Context): Int {
+        var currentCounter = getInt(context,APP_UPDATE_PROMPT_COUNTER,0)
+        if(shouldAppUpdatePromptUser(context)){
+            currentCounter += 1
+            setInt(context,APP_UPDATE_PROMPT_COUNTER,currentCounter)
+        }
+        return currentCounter
+    }
+    fun shouldAppUpdatePromptUser(context: Context): Boolean {
+        val lastPromptTime = getLong(context,APP_UPDATE_PROMPT_TIME, default = 0L)
+        val fortyEightHoursInMillis = 48 * 60 * 60 * 1000
+        return (System.currentTimeMillis() - lastPromptTime) > fortyEightHoursInMillis
+    }
+    fun setAppUpdatePromptTime(context: Context, time: Long) {
+        setLong(context,APP_UPDATE_PROMPT_TIME,time)
     }
     fun setThemedIcons(context: Context,enabled: Boolean){
         setBoolean(context,THEMED_ICONS,enabled)
@@ -221,19 +249,19 @@ object PreferenceManager {
     fun getIconSize(context: Context, default: Int = 48): Int {
         return getInt(context,KEY_ICON_SIZE,default)
     }
-    fun increaseAppListVersion(context: Context){
-        val currentVersion = getAppListVersion(context)
-        setInt(context,APP_LIST_VERSION,currentVersion + 1)
+    fun increaseAppListUpdateCounter(context: Context){
+        val currentVersion = getAppListUpdateCounter(context)
+        setInt(context,APP_LIST_UPDATE_COUNTER,currentVersion + 1)
     }
-    fun getAppListVersion(context: Context): Int{
-        return getInt(context,APP_LIST_VERSION,0)
+    fun getAppListUpdateCounter(context: Context): Int{
+        return getInt(context,APP_LIST_UPDATE_COUNTER,0)
     }
-    fun increaseImageDataVersion(context: Context){
-        val currentVersion = getAppListVersion(context)
-        setInt(context,IMAGE_DATA_VERSION,currentVersion + 1)
+    fun increaseImageDataUpdateCounter(context: Context){
+        val currentVersion = getAppListUpdateCounter(context)
+        setInt(context,IMAGE_DATA_UPDATE_COUNTER,currentVersion + 1)
     }
-    fun getImageDataVersion(context: Context): Int{
-        return getInt(context,IMAGE_DATA_VERSION,0)
+    fun getImageDataUpdateCounter(context: Context): Int{
+        return getInt(context,IMAGE_DATA_UPDATE_COUNTER,0)
     }
     fun setIconShape(context: Context, shape: String) {
         setString(context,KEY_ICON_SHAPE,shape)
@@ -339,7 +367,7 @@ object PreferenceManager {
         if(currentData != null) {
             currentData.color = "White";
             saveImageData(context, currentData);
-            increaseImageDataVersion(context)
+            increaseImageDataUpdateCounter(context)
         }
     }
     fun newImageAvailable(context: Context):Boolean{

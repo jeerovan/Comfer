@@ -219,6 +219,12 @@ import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
 import kotlin.math.atan2
 import com.jeerovan.comfer.utils.CommonUtil.handleStartActivity
 
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import com.google.android.play.core.appupdate.testing.FakeAppUpdateManager
+import com.google.android.play.core.install.model.InstallStatus
+
 @Composable
 fun DraggableContainerWithViewModel(
     modifier: Modifier = Modifier,
@@ -274,11 +280,11 @@ fun DraggableContainerWithViewModel(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                                if(editMode){
-                                    editMode = false
-                                    onEditModeChanged(false)
-                                }
-                            },
+                        if (editMode) {
+                            editMode = false
+                            onEditModeChanged(false)
+                        }
+                    },
                     onDoubleTap = {},
                     onLongPress = {
                         editMode = !editMode
@@ -442,19 +448,20 @@ data class WidgetProviderGroup(
     val providers: List<AppWidgetProviderInfo>
 )
 
-class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
+class MainActivity : ComponentActivity() {
     private val appInfoViewModel: AppInfoViewModel by viewModels()
     private val settingsViewModel:SettingsViewModel by viewModels()
     private val mainViewModel: MainViewModel by viewModels()
 
     // Widgets
-    private lateinit var mainWidgetHost: AppWidgetHost
-    private lateinit var leftSideWidgetHost: AppWidgetHost
-    private lateinit var rightSideWidgetHost: AppWidgetHost
-    private lateinit var appWidgetManager: AppWidgetManager
+    private lateinit var widgetHosts: WidgetHostManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Consolidated Widget Host Management
+        widgetHosts = WidgetHostManager(applicationContext).apply {
+            initHosts()
+        }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 mainViewModel.onBackButtonPressed()
@@ -477,35 +484,22 @@ class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
         windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
 
-        appWidgetManager = AppWidgetManager.getInstance(applicationContext)
-        mainWidgetHost = AppWidgetHost(applicationContext, MAIN_WIDGET_HOST_ID)
-        leftSideWidgetHost = AppWidgetHost(applicationContext, LEFT_SIDE_WIDGET_HOST_ID)
-        rightSideWidgetHost = AppWidgetHost(applicationContext, RIGHT_SIDE_WIDGET_HOST_ID)
-
-        Purchases.sharedInstance.updatedCustomerInfoListener = this
-        lifecycleScope.launch {
-            checkSubscriptionStatus()
-        }
         setContent {
             ComferTheme {
-                LauncherScreen(appInfoViewModel,
+                LauncherScreen(
+                    appInfoViewModel,
                     settingsViewModel,
                     mainViewModel,
-                    appWidgetManager,
-                    mainWidgetHost,
-                    leftSideWidgetHost,
-                    rightSideWidgetHost)
+                    widgetHosts = widgetHosts
+                )
             }
         }
     }
 
     override fun onStart() {
         super.onStart()
-        val logger = LoggerManager(applicationContext)
-        logger.setLog("MainActivity","Started")
-        mainWidgetHost.startListening()
-        leftSideWidgetHost.startListening()
-        rightSideWidgetHost.startListening()
+        LoggerManager(applicationContext).setLog("MainActivity", "Started")
+        widgetHosts.startListening()
         lifecycleScope.launch {
             settingsViewModel.loadSettings()
             mainViewModel.checkLoadWallpaper()
@@ -514,36 +508,12 @@ class MainActivity : ComponentActivity(), UpdatedCustomerInfoListener {
 
     override fun onStop(){
         super.onStop()
-        val logger = LoggerManager(applicationContext)
-        logger.setLog("MainActivity","Stopped")
-        mainWidgetHost.stopListening()
-        leftSideWidgetHost.stopListening()
-        rightSideWidgetHost.stopListening()
+        LoggerManager(applicationContext).setLog("MainActivity", "Stopped")
+        widgetHosts.stopListening()
         lifecycleScope.launch {
             //delay(1000) // Delay, does not stop main thread
             mainViewModel.loadBackgroundData()
         }
-    }
-
-    override fun onReceived(customerInfo: CustomerInfo) {
-        // This fires whenever CustomerInfo changes
-        updateSubscriptionStatus(customerInfo)
-    }
-    private fun checkSubscriptionStatus() {
-        Purchases.sharedInstance.getCustomerInfoWith(
-            onError = { error ->
-                settingsViewModel.setPro(false)
-                // Log error for debugging
-            },
-            onSuccess = { customerInfo ->
-                updateSubscriptionStatus(customerInfo)
-            }
-        )
-    }
-
-    private fun updateSubscriptionStatus(customerInfo: CustomerInfo) {
-        val isActive = customerInfo.entitlements.active.isNotEmpty()
-        settingsViewModel.setPro(isActive)
     }
 }
 
@@ -2661,13 +2631,11 @@ private enum class DragAxis { HORIZONTAL, VERTICAL }
 fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                    settingsViewModel: SettingsViewModel,
                    mainViewModel: MainViewModel,
-                   appWidgetManager: AppWidgetManager,
-                   mainWidgetHost: AppWidgetHost,
-                   leftSideWidgetHost: AppWidgetHost,
-                   rightSideWidgetHost: AppWidgetHost) {
+                   widgetHosts: WidgetHostManager) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     val logger = LoggerManager(context)
 
     var isAppListVisible by remember { mutableStateOf(false) }
@@ -2682,6 +2650,9 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val mainUiState by mainViewModel.uiState.collectAsState()
     val notifications by MyNotificationListenerService.activeNotifications.collectAsState()
 
+
+    logger.setLog("LauncherScreen","ShouldPromptUserCounter: ${settingInfoUiState.shouldAppUpdatePromptUserCounter}")
+
     val quickApps = appInfoUiState.quickApps
     val primaryApps = appInfoUiState.primaryApps
     val hiddenApps = appInfoUiState.restApps
@@ -2692,13 +2663,13 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val hasNotificationAccess = settingInfoUiState.hasNotificationAccess
 
     LaunchedEffect(mainUiState.iconVersion,
-        settingInfoUiState.appListsVersion,
+        settingInfoUiState.appListsUpdateCounter,
         settingInfoUiState.showThemedIcons,
         settingInfoUiState.autoWallpapers,
         settingInfoUiState.monochrome) {
         appInfoViewModel.reloadList()
     }
-    LaunchedEffect(settingInfoUiState.imageDataVersion) {
+    LaunchedEffect(settingInfoUiState.imageDataUpdateCounter) {
         mainViewModel.reloadImageData()
     }
 
@@ -2918,8 +2889,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             exit = exitTransition
         ) {
             QuickListOverlay(apps = quickApps,
-                appWidgetManager,
-                mainWidgetHost,
+                widgetHosts.appWidgetManager,
+                widgetHosts.mainHost,
                 notificationIcons = notificationIcons,
                 notificationPackages = notificationPackages,
                 imageData = imageData,
@@ -2993,8 +2964,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
         ) {
             WidgetHostScreen(
-                appWidgetManager,
-                leftSideWidgetHost,
+                widgetHosts.appWidgetManager,
+                widgetHosts.leftHost,
                 "widgets_prefs_left",
                 gridColumns = 7,
                 fullScreen = true,
@@ -3010,8 +2981,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
         ) {
             WidgetHostScreen(
-                appWidgetManager,
-                rightSideWidgetHost,
+                widgetHosts.appWidgetManager,
+                widgetHosts.rightHost,
                 "widgets_prefs_right",
                 gridColumns = 7,
                 fullScreen = true,
@@ -3034,6 +3005,16 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 }
             )
         }
+
+        AutoUpdateManager(snackbarHostState,settingInfoUiState.shouldAppUpdatePromptUserCounter)
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                // detailed padding ensures it doesn't overlap with navigation gestures/bars
+                .navigationBarsPadding()
+                .padding(16.dp)
+        )
     }
 }
 
@@ -4147,6 +4128,82 @@ fun AnalogClock(
     }
 }
 
+@Composable
+fun AutoUpdateManager(
+    snackbarHostState: SnackbarHostState,
+    shouldPromptUserCounter: Int
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val updateHandler = remember { AppUpdateHandler(context) }
+
+    // Handle "Update" button click from Prompt 1
+    val updateLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode != Activity.RESULT_OK) {
+            updateHandler.saveLastPromptTime()
+        }
+    }
+
+    // 1. Check availability on trigger
+    LaunchedEffect(shouldPromptUserCounter) {
+        updateHandler.checkForUpdate(
+            onUpdateAvailable = { updateInfo ->
+                scope.launch {
+                    val result = snackbarHostState.showSnackbar(
+                        message = "Comfer update available.",
+                        actionLabel = "Update",
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Indefinite
+                    )
+                    when (result) {
+                        SnackbarResult.ActionPerformed -> {
+                            updateHandler.startUpdate(updateLauncher, updateInfo)
+                        }
+                        SnackbarResult.Dismissed -> {
+                            updateHandler.saveLastPromptTime()
+                        }
+                    }
+                }
+            },
+            onUpdateDownloaded = {
+                scope.launch {
+                    val result = snackbarHostState.showSnackbar(
+                        message = "Update downloaded. Ready to install.",
+                        actionLabel = "Reload",
+                        duration = SnackbarDuration.Indefinite
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        updateHandler.completeUpdate()
+                    }
+                }
+            }
+        )
+    }
+
+    // 2. Listen for background download progress
+    LaunchedEffect(Unit) {
+        updateHandler.registerDownloadListener().collect { status ->
+            if (status == InstallStatus.DOWNLOADED) {
+                // FIX: Launch in scope to prevent blocking the flow collector
+                scope.launch {
+                    // Standard behavior: showSnackbar cancels any existing snackbar
+                    val result = snackbarHostState.showSnackbar(
+                        message = "Update downloaded. Ready to install.",
+                        actionLabel = "Reload",
+                        duration = SnackbarDuration.Indefinite
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        updateHandler.completeUpdate()
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 // Gestures
 enum class LPatternType {
     DOWN_RIGHT,  // ↓→ Original L: down then right
@@ -4374,3 +4431,28 @@ private fun detectSimpleSwipe(
         }
     }
 }
+class WidgetHostManager(private val context: Context) {
+    val appWidgetManager: AppWidgetManager = AppWidgetManager.getInstance(context)
+    lateinit var mainHost: AppWidgetHost
+    lateinit var leftHost: AppWidgetHost
+    lateinit var rightHost: AppWidgetHost
+
+    fun initHosts() {
+        mainHost = AppWidgetHost(context, MAIN_WIDGET_HOST_ID)
+        leftHost = AppWidgetHost(context, LEFT_SIDE_WIDGET_HOST_ID)
+        rightHost = AppWidgetHost(context, RIGHT_SIDE_WIDGET_HOST_ID)
+    }
+
+    fun startListening() {
+        mainHost.startListening()
+        leftHost.startListening()
+        rightHost.startListening()
+    }
+
+    fun stopListening() {
+        mainHost.stopListening()
+        leftHost.stopListening()
+        rightHost.stopListening()
+    }
+}
+
