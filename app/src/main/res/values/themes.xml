@@ -4,5 +4,11 @@
     <style name="Theme.Comfer" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowShowWallpaper">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
+        <!-- Apply a custom animation style -->
+        <item name="android:windowAnimationStyle">@style/LauncherReappearOnAppExit</item>
+    </style>
+
+    <style name="LauncherReappearOnAppExit" parent="@android:style/Animation.Activity">
+        <item name="android:taskCloseEnterAnimation">@null</item>
     </style>
 </resources>

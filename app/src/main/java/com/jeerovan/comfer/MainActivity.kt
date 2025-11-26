@@ -222,6 +222,8 @@ import com.jeerovan.comfer.utils.CommonUtil.handleStartActivity
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.positionInWindow
 import com.google.android.play.core.appupdate.testing.FakeAppUpdateManager
 import com.google.android.play.core.install.model.InstallStatus
 
@@ -1686,7 +1688,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
 
     fun openDefaultLauncherSettings() {
         val intent = Intent(Settings.ACTION_HOME_SETTINGS)
-        handleStartActivity(context,intent)
+        handleStartActivity(context,intent,null)
     }
 
     LaunchedEffect(Unit) {
@@ -1718,7 +1720,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
         PreferenceManager.setBoolean(context,guideKeyword,true)
         guideShown = true
         val intent = Intent(context, SettingsActivity::class.java)
-        handleStartActivity(context,intent)
+        handleStartActivity(context,intent,null)
     }
 
     if(!guideShown && canShowGuide)GuideDialog(
@@ -1877,7 +1879,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                                 context.packageManager.getLaunchIntentForPackage(
                                                     swipeLeftPackage
                                                 )
-                                            handleStartActivity(context,launchIntent)
+                                            handleStartActivity(context,launchIntent,null)
                                         }
                                     }
                                 },
@@ -1894,7 +1896,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                                 context.packageManager.getLaunchIntentForPackage(
                                                     swipeRightPackage
                                                 )
-                                            handleStartActivity(context,launchIntent)
+                                            handleStartActivity(context,launchIntent,null)
                                         }
                                     }
                                 },
@@ -1905,7 +1907,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                             context.packageManager.getLaunchIntentForPackage(
                                                 appOnCircularPattern.packageName
                                             )
-                                        handleStartActivity(context,launchIntent)
+                                        handleStartActivity(context,launchIntent,null)
                                     }
                                 },
                                 onLPatternDetected = { pattern ->
@@ -1915,7 +1917,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                             context.packageManager.getLaunchIntentForPackage(
                                                 patternApp.packageName
                                             )
-                                        handleStartActivity(context,launchIntent)
+                                        handleStartActivity(context,launchIntent,null)
                                     }
                                 }
                             ),
@@ -2048,7 +2050,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
             // Launch the app
             val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(singleApp.packageName)
             if (launchIntent != null) {
-                handleStartActivity(context,launchIntent)
+                handleStartActivity(context,launchIntent,null)
                 // Optional: Clear the input text after launching
                 inputText = ""
             }
@@ -3224,6 +3226,7 @@ fun AppIcon(app: AppInfo,
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
     val iconShape = getShapeFromShape(shape,iconSize)
+    var iconBounds by remember { mutableStateOf(Rect.Zero) }
     Box (modifier = Modifier
         .offset(x = x, y = y),
         contentAlignment = Alignment.Center
@@ -3232,19 +3235,45 @@ fun AppIcon(app: AppInfo,
             modifier = Modifier
                 .size(iconSize)
                 .clip(iconShape)
+                .onGloballyPositioned { coordinates ->
+                    // Capture the position of the icon on the screen
+                    val position = coordinates.positionInWindow()
+                    val size = coordinates.size
+                    iconBounds = Rect(
+                        position.x,
+                        position.y,
+                        position.x + size.width,
+                        position.y + size.height
+                    )
+                }
                 .pointerInput(clickable) {
+
                     if(clickable)detectTapGestures(
                         onTap = {
                             view.playSoundEffect(SoundEffectConstants.CLICK)
-                            val launchIntent: Intent? =
+                            val intent: Intent? =
                                 context.packageManager.getLaunchIntentForPackage(app.packageName)
-                            handleStartActivity(context,launchIntent)
+                            val options = ActivityOptions.makeClipRevealAnimation(
+                                view,
+                                iconBounds.left.toInt(),
+                                iconBounds.top.toInt(),
+                                iconBounds.width.toInt(),
+                                iconBounds.height.toInt()
+                            )
+                            handleStartActivity(context,intent,options)
                         },
                         onLongPress = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                             intent.data = "package:${app.packageName}".toUri()
-                            handleStartActivity(context,intent)
+                            val options = ActivityOptions.makeClipRevealAnimation(
+                                view,
+                                iconBounds.left.toInt(),
+                                iconBounds.top.toInt(),
+                                iconBounds.width.toInt(),
+                                iconBounds.height.toInt()
+                            )
+                            handleStartActivity(context,intent,options)
                         }
                     )
                 },
@@ -3478,7 +3507,7 @@ fun AccessibilityPermissionDisclosureScreen(
 }
 fun requestAccessibilityPermission(context: Context) {
     val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-    handleStartActivity(context,intent)
+    handleStartActivity(context,intent,null)
 }
 
 @Composable
@@ -3664,7 +3693,7 @@ fun placeCallWithDialer(context: Context, number: String?) {
 
     // Check if there's an app that can handle this intent
     if (intent.resolveActivity(context.packageManager) != null) {
-        handleStartActivity(context,intent)
+        handleStartActivity(context,intent,null)
     } else {
         Toast.makeText(context, "No app found to handle making phone calls", Toast.LENGTH_SHORT).show()
     }
@@ -4006,7 +4035,7 @@ fun WidgetClock(
                         // Open Alarms
                         val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
                         if (intent.resolveActivity(context.packageManager) != null) {
-                            handleStartActivity(context,intent)
+                            handleStartActivity(context,intent,null)
                         }
                     },
                     onLongPress = {
@@ -4017,7 +4046,7 @@ fun WidgetClock(
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK
                         }
                         if (calendarIntent.resolveActivity(context.packageManager) != null) {
-                            handleStartActivity(context,calendarIntent)
+                            handleStartActivity(context,calendarIntent,null)
                         }
                     }
                 )

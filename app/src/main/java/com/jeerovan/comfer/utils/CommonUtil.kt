@@ -1,5 +1,6 @@
 package com.jeerovan.comfer.utils
 
+import android.app.ActivityOptions
 import android.app.WallpaperManager
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -48,10 +49,15 @@ import java.net.URLDecoder
 import java.security.MessageDigest
 
 object CommonUtil {
-    fun handleStartActivity(context:Context, intent:Intent?){
+    fun handleStartActivity(context:Context, intent:Intent?, options: ActivityOptions?){
         try {
             if (intent != null) {
-                context.startActivity(intent)
+                //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                if (options != null){
+                    context.startActivity(intent,options.toBundle())
+                } else {
+                    context.startActivity(intent)
+                }
             } else {
                 // Optionally, handle the case where the intent is null
             }
