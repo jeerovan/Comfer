@@ -1438,31 +1438,36 @@ fun WidgetPickerFullScreen(
 
 
 // --- Utility & Persistence Functions ---
+private suspend fun getGroupedWidgetProviders(context: Context): List<WidgetProviderGroup> = withContext(Dispatchers.IO) {
+    try {
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        val packageManager = context.packageManager
 
-private fun getGroupedWidgetProviders(context: Context): List<WidgetProviderGroup> {
-    val appWidgetManager = AppWidgetManager.getInstance(context)
-    val packageManager = context.packageManager
-    return appWidgetManager.installedProviders.groupBy { it.provider.packageName }
-        .map { (packageName, providers) ->
-            try {
-                val appInfo = packageManager.getApplicationInfo(packageName, 0)
-                WidgetProviderGroup(
-                    appName = appInfo.loadLabel(packageManager).toString(),
-                    appIcon = appInfo.loadIcon(packageManager),
-                    providers = providers
-                )
-            } catch (_: Exception) {
-                null // App might have been uninstalled
-            }
-        }.filterNotNull()
-}
+        // SAFEGUARD: This IPC call is where the DeadSystemException happens
+        val installedProviders = try {
+            appWidgetManager.installedProviders
+        } catch (e: RuntimeException) {
+            return@withContext emptyList()
+        }
 
-private fun saveWidgetsToPrefs(prefs: SharedPreferences, widgets: List<BoundWidget>) {
-    val persistableList = widgets.map {
-        PersistableBoundWidget(it.widgetId, it.providerInfo.provider.packageName, it.providerInfo.provider.className, it.gridX, it.gridY, it.spanX, it.spanY)
+        installedProviders.groupBy { it.provider.packageName }
+            .map { (packageName, providers) ->
+                try {
+                    val appInfo = packageManager.getApplicationInfo(packageName, 0)
+                    WidgetProviderGroup(
+                        appName = appInfo.loadLabel(packageManager).toString(),
+                        appIcon = appInfo.loadIcon(packageManager),
+                        providers = providers
+                    )
+                } catch (_: Exception) {
+                    null // App might have been uninstalled
+                }
+            }.filterNotNull()
+
+    } catch (e: Exception) {
+        // Catch-all for other unexpected errors during mapping
+        emptyList()
     }
-    val jsonString = Json.encodeToString(persistableList)
-    prefs.edit { putString(BOUND_WIDGETS_KEY, jsonString) }
 }
 
 private suspend fun loadWidgetsFromPrefs(
@@ -1470,10 +1475,16 @@ private suspend fun loadWidgetsFromPrefs(
     appWidgetManager: AppWidgetManager
 ): List<BoundWidget> = withContext(Dispatchers.IO) {
     val jsonString = prefs.getString(BOUND_WIDGETS_KEY, null) ?: return@withContext emptyList()
+
     try {
         val persistableList = Json.decodeFromString<List<PersistableBoundWidget>>(jsonString)
-        // This is the slow operation - runs on background thread now
-        val installedProviders = appWidgetManager.installedProviders
+
+        // SAFEGUARD: Isolate the risky IPC call
+        val installedProviders = try {
+            appWidgetManager.installedProviders
+        } catch (e: RuntimeException) {
+            return@withContext emptyList()
+        }
 
         persistableList.mapNotNull { persist ->
             val provider = installedProviders.find {
@@ -1486,12 +1497,19 @@ private suspend fun loadWidgetsFromPrefs(
             }
         }
     } catch (e: Exception) {
-        Log.e("LoadWidgetsFromPrefs", e.toString())
+        Log.e("LoadWidgetsFromPrefs", "Error loading widgets", e)
         emptyList()
     }
 }
 
 
+private fun saveWidgetsToPrefs(prefs: SharedPreferences, widgets: List<BoundWidget>) {
+    val persistableList = widgets.map {
+        PersistableBoundWidget(it.widgetId, it.providerInfo.provider.packageName, it.providerInfo.provider.className, it.gridX, it.gridY, it.spanX, it.spanY)
+    }
+    val jsonString = Json.encodeToString(persistableList)
+    prefs.edit { putString(BOUND_WIDGETS_KEY, jsonString) }
+}
 private fun findNextAvailableCell(widgets: List<BoundWidget>,
                                   gridColumns: Int,
                                   gridRows: Int): Pair<Int, Int>? {
