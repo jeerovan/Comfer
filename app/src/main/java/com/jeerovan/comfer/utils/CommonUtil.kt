@@ -30,6 +30,7 @@ import com.jeerovan.comfer.ImageData
 import com.jeerovan.comfer.LoggerManager
 import com.jeerovan.comfer.PreferenceManager
 import com.jeerovan.comfer.R
+import com.jeerovan.comfer.isTesting
 import com.jeerovan.comfer.toBitmap
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -52,7 +53,8 @@ object CommonUtil {
     fun handleStartActivity(context:Context, intent:Intent?, options: ActivityOptions?){
         try {
             if (intent != null) {
-                //intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                intent.addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
                 if (options != null){
                     context.startActivity(intent,options.toBundle())
                 } else {
@@ -268,7 +270,7 @@ object CommonUtil {
         val logger = LoggerManager(applicationContext)
         val changeFrequency = PreferenceManager.getWallpaperFrequency(applicationContext)
         val hour = PreferenceManager.getHour(applicationContext)
-        if (hour > 0) {
+        if (hour > 0 || isTesting) {
             val hasPro = PreferenceManager.getPro(applicationContext)
             val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(applicationContext)
             if(wallpaperDirectory != null && hasPro){

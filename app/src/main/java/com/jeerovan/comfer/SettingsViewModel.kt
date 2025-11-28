@@ -51,6 +51,7 @@ data class SettingsUiState(
     val iconShapeString: String = "circle",
     val iconShape: Shape = CircleShape,
     val showThemedIcons: Boolean = false,
+    val themedColors: WallpaperThemeColors? = null,
     val isLightHour: Boolean = false,
     val appListsUpdateCounter: Int = 0,
     val imageDataUpdateCounter: Int = 0,
@@ -153,6 +154,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     init {
         loadSettings()
+        loadThemedColors()
         setupPurchaseListener()
         checkSubscriptionStatus()
     }
@@ -385,6 +387,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 getApplication(),
                 PreferenceManager.getSwipeApp(getApplication(),"right"))
             _uiState.update { it.copy(showThemedIcons = enabled, leftSwipeApp = leftSwipeApp, rightSwipeApp = rightSwipeApp) }
+        }
+    }
+    fun loadThemedColors() {
+        viewModelScope.launch {
+            val themedColors = PreferenceManager.getThemedColors(getApplication())
+            _uiState.update { it.copy(themedColors = themedColors) }
         }
     }
     fun setLightHour(enabled: Boolean){
@@ -772,7 +780,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _uiState.update { it.copy(monochrome = enabled) }
             if(enabled) {
                 withContext(Dispatchers.IO) {
-                    generateSolidColorWallpapers(getApplication())
+                    generateMonochromeColorWallpapers(getApplication())
                 }
             } else {
                 PreferenceManager.resetImageDataWithWhiteColor(getApplication())
@@ -816,7 +824,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         isLoadingWallpaper = true
         viewModelScope.launch {
             val context:Context = getApplication()
-            PreferenceManager.setHour(context,1)
             try {
                 delay(100)
                 withContext(Dispatchers.IO) {
@@ -835,7 +842,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-    fun generateSolidColorWallpapers(context: Context) {
+    fun generateMonochromeColorWallpapers(context: Context) {
         // 1. Define the files
         val fileBlack = File(context.filesDir, "comfer_black.jpg")
         val fileWhite = File(context.filesDir, "comfer_white.jpg")

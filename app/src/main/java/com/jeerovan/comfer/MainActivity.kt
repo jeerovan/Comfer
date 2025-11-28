@@ -166,6 +166,7 @@ import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.os.PowerManager
 import android.provider.AlarmClock
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -212,10 +213,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import java.util.Calendar
 
 import androidx.compose.ui.layout.onGloballyPositioned
-import com.revenuecat.purchases.CustomerInfo
-import com.revenuecat.purchases.Purchases
-import com.revenuecat.purchases.getCustomerInfoWith
-import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
 import kotlin.math.atan2
 import com.jeerovan.comfer.utils.CommonUtil.handleStartActivity
 
@@ -224,7 +221,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.positionInWindow
-import com.google.android.play.core.appupdate.testing.FakeAppUpdateManager
 import com.google.android.play.core.install.model.InstallStatus
 
 @Composable
@@ -504,7 +500,7 @@ class MainActivity : ComponentActivity() {
         widgetHosts.startListening()
         lifecycleScope.launch {
             settingsViewModel.loadSettings()
-            mainViewModel.loadBackgroundData()
+            mainViewModel.checkLoadWallpaper() // to immediately apply custom wallpaper or monochrome setting
         }
     }
 
@@ -512,6 +508,13 @@ class MainActivity : ComponentActivity() {
         super.onStop()
         LoggerManager(applicationContext).setLog("MainActivity", "Stopped")
         widgetHosts.stopListening()
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        // Check if the screen is ON or OFF
+        if (powerManager.isInteractive) {
+            lifecycleScope.launch {
+                mainViewModel.loadBackgroundData() // to apply new wallpaper
+            }
+        }
     }
 }
 
@@ -1770,7 +1773,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
     defaultColor = if(monochrome) monoColor else defaultColor
 
     var showWidgetSettings by remember { mutableStateOf(false) }
-    val themedColors = PreferenceManager.getThemedColors(context)
+    val themedColors = settings.themedColors
+    val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
     Box(modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier) {
             if(settings.hasPro && settings.hasCustomWidgets) {
@@ -1950,7 +1954,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     iconSize,
                                     iconShape,
                                     onShowSearch,
-                                    settings.showThemedIcons,
+                                    showThemedIcon,
                                     themedColors,
                                     settings.isLightHour
                                 )
@@ -1961,7 +1965,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     iconSize,
                                     iconShape,
                                     onShowSearch,
-                                    settings.showThemedIcons,
+                                    showThemedIcon,
                                     themedColors,
                                     settings.isLightHour
                                 )
@@ -2495,7 +2499,7 @@ fun AppListOverlay(apps: List<AppInfo>,
                                 val launchIntent =
                                     packageManager.getLaunchIntentForPackage(app.packageName)
                                 if (launchIntent != null) {
-                                    val opts = ActivityOptions.makeScaleUpAnimation(
+                                    val opts = ActivityOptions.makeClipRevealAnimation(
                                         view,
                                         centerIconX.toInt(),
                                         centerIconY.toInt(),
@@ -2678,11 +2682,12 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val wallpaperMotionEnabled = settingInfoUiState.autoWallpapers && settingInfoUiState.wallpaperMotionEnabled
     val hasNotificationAccess = settingInfoUiState.hasNotificationAccess
 
-    LaunchedEffect(mainUiState.iconVersion,
-        settingInfoUiState.appListsUpdateCounter,
+    LaunchedEffect(mainUiState.iconVersion, // after changing background, update app icons.
+        settingInfoUiState.appListsUpdateCounter, // after modifying app list: quick list <-> primary list (in or between)
         settingInfoUiState.showThemedIcons,
         settingInfoUiState.autoWallpapers,
         settingInfoUiState.monochrome) {
+        settingsViewModel.loadThemedColors()
         appInfoViewModel.reloadList()
     }
     LaunchedEffect(settingInfoUiState.imageDataUpdateCounter) {
@@ -3247,12 +3252,20 @@ fun AppIcon(app: AppInfo,
                     )
                 }
                 .pointerInput(clickable) {
-
                     if(clickable)detectTapGestures(
                         onTap = {
                             view.playSoundEffect(SoundEffectConstants.CLICK)
                             val intent: Intent? =
                                 context.packageManager.getLaunchIntentForPackage(app.packageName)
+                            if(intent != null){
+                                val boundedRect = android.graphics.Rect(
+                                    iconBounds.left.toInt(),
+                                    iconBounds.top.toInt(),
+                                    iconBounds.right.toInt(),
+                                    iconBounds.bottom.toInt()
+                                )
+                                intent.sourceBounds = boundedRect
+                            }
                             val options = ActivityOptions.makeClipRevealAnimation(
                                 view,
                                 iconBounds.left.toInt(),
@@ -3266,14 +3279,7 @@ fun AppIcon(app: AppInfo,
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                             intent.data = "package:${app.packageName}".toUri()
-                            val options = ActivityOptions.makeClipRevealAnimation(
-                                view,
-                                iconBounds.left.toInt(),
-                                iconBounds.top.toInt(),
-                                iconBounds.width.toInt(),
-                                iconBounds.height.toInt()
-                            )
-                            handleStartActivity(context,intent,options)
+                            handleStartActivity(context,intent,null)
                         }
                     )
                 },
@@ -3319,18 +3325,18 @@ fun SearchIcon(
     iconShape: Shape,
     onShowSearch: () -> Unit,
     showThemedIcon: Boolean,
-    themedColors: WallpaperThemeColors,
+    themedColors: WallpaperThemeColors?,
     isLightMode: Boolean
 ){
     val context = LocalContext.current
     val backgroundColor: Color =
-        if (showThemedIcon) {
+        if (showThemedIcon && themedColors != null) {
             Color(getThemedBackgroundColor(themedColors,isLightMode))
         } else {
             getBackgroundColor(isLightMode)
         }
     val foregroundColor: Color =
-        if(showThemedIcon) {
+        if(showThemedIcon && themedColors != null) {
             Color(getThemedIconColor(themedColors,isLightMode))
         } else {
             if(isLightMode){
@@ -3761,7 +3767,7 @@ fun CircularLayout(
     iconShape: Shape,
     onShowSearch: () -> Unit,
     showThemedIcon: Boolean,
-    themedColors: WallpaperThemeColors,
+    themedColors: WallpaperThemeColors?,
     isLightMode: Boolean
 ) {
     // Radius calculated to maintain a 20.dp gap between 56.dp icons.
@@ -3816,7 +3822,7 @@ fun FiveColumnLayout(apps:List<AppInfo>,
                      iconShape: Shape,
                      onShowSearch: () -> Unit,
                      showThemedIcon: Boolean,
-                     themedColors: WallpaperThemeColors,
+                     themedColors: WallpaperThemeColors?,
                      isLightMode: Boolean
 ) {
     val gap = 20.dp

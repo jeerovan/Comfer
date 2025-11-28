@@ -34,7 +34,7 @@ class ComferApp : Application(), ImageLoaderFactory {
 
         WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
             "ImageWorker",
-            ExistingPeriodicWorkPolicy.REPLACE,
+            ExistingPeriodicWorkPolicy.KEEP,
             periodicWorkRequest
         )
     }

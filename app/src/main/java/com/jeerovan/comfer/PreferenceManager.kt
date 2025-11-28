@@ -131,7 +131,6 @@ object PreferenceManager {
         }
     }
     fun setThemedColors(context: Context,lightBg:Int,lightFg:Int,darkBg:Int,darkFg:Int){
-        LoggerManager(context).setLog("SetThemedColors","$lightBg | $lightFg | $darkBg | $darkFg")
         setInt(context,WALLPAPER_LIGHT_FG,lightFg)
         setInt(context,WALLPAPER_LIGHT_BG,lightBg)
         setInt(context,WALLPAPER_DARK_FG,darkFg)

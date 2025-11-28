@@ -79,7 +79,6 @@ suspend fun getAppInfo(
     try {
         val packageName = info.componentName.packageName
         val user = info.user
-
         // NOTE: If you support Work Profiles, your Cache Key should ideally be "packageName + userId"
         // because the Work version might have a different badge than the Personal version.
         val cacheKey = "$packageName"
@@ -576,7 +575,6 @@ fun getBackgroundColor(isLightHour: Boolean):Color {
 }
 
 class ThemedIconProcessor {
-
     fun applyThemedColor(drawable: Drawable,
                          foregroundColor: Int,
                          backgroundColor: Int,
