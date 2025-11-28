@@ -500,7 +500,8 @@ class MainActivity : ComponentActivity() {
         widgetHosts.startListening()
         lifecycleScope.launch {
             settingsViewModel.loadSettings()
-            mainViewModel.checkLoadWallpaper() // to immediately apply custom wallpaper or monochrome setting
+            //mainViewModel.checkLoadWallpaper() // to immediately apply custom wallpaper or monochrome setting
+            mainViewModel.loadBackgroundData() // to apply new wallpaper
         }
     }
 
@@ -508,13 +509,13 @@ class MainActivity : ComponentActivity() {
         super.onStop()
         LoggerManager(applicationContext).setLog("MainActivity", "Stopped")
         widgetHosts.stopListening()
-        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        /*val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         // Check if the screen is ON or OFF
         if (powerManager.isInteractive) {
             lifecycleScope.launch {
-                mainViewModel.loadBackgroundData() // to apply new wallpaper
+                // Setting system wallpaper with background task
             }
-        }
+        }*/
     }
 }
 
@@ -1773,7 +1774,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
     defaultColor = if(monochrome) monoColor else defaultColor
 
     var showWidgetSettings by remember { mutableStateOf(false) }
-    val themedColors = settings.themedColors
+    val themedColors = PreferenceManager.getThemedColors(context)
     val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
     Box(modifier = Modifier.fillMaxSize()) {
         Column (modifier = Modifier) {
@@ -2687,7 +2688,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         settingInfoUiState.showThemedIcons,
         settingInfoUiState.autoWallpapers,
         settingInfoUiState.monochrome) {
-        settingsViewModel.loadThemedColors()
         appInfoViewModel.reloadList()
     }
     LaunchedEffect(settingInfoUiState.imageDataUpdateCounter) {

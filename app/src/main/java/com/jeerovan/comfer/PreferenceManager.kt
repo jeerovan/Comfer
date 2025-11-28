@@ -210,7 +210,7 @@ object PreferenceManager {
         setString(context,QUICK_APPS_LAYOUT,layout)
     }
     fun getQuickAppsLayout(context: Context):String {
-        return getString(context,QUICK_APPS_LAYOUT,"linear") ?: "linear"
+        return getString(context,QUICK_APPS_LAYOUT,"circular") ?: "circular"
     }
     fun setAppDrawerLayout(context: Context,layout:String){
         setString(context,APP_DRAWER_LAYOUT,layout)
@@ -400,11 +400,6 @@ object PreferenceManager {
     fun setHour(context: Context,hour:Int){
         setInt(context,"now_hour",hour)
     }
-    fun setCurrentHour(context: Context){
-        val calendar = Calendar.getInstance()
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        setInt(context,"now_hour",hour)
-    }
     fun getFeedbackDialogShown(context: Context):Boolean {
         return getBoolean(context,FEEDBACK_DIALOG,false)
     }
@@ -417,6 +412,5 @@ object PreferenceManager {
     }
     fun setWallpaperApplied(context: Context,applied : Boolean){
         setBoolean(context,WALLPAPER_SET,applied)
-        setCurrentHour(context)
     }
 }

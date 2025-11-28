@@ -335,20 +335,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            if(settingsState.autoWallpapers && isTesting)item {
-                ListItem(
-                    headlineContent = { Text("Change Wallpaper") },
-                    supportingContent = { Text("For testing") },
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.Wallpaper,
-                            contentDescription = "Wallpaper Change"
-                        )
-                    },
-                    modifier = Modifier.clickable { settingsViewModel.changeWallpaper() },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
             if(settingsState.autoWallpapers){
                 item {
                     SelectOptionsWithListItemSettingItem(

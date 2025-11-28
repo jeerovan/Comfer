@@ -93,9 +93,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                                 iconVersion = _uiState.value.iconVersion + 1
                             )
                         }
-                        withContext(Dispatchers.IO){
-                            setWallpaper(applicationContext)
-                        }
                     }
                 }
             }

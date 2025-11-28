@@ -51,11 +51,10 @@ data class SettingsUiState(
     val iconShapeString: String = "circle",
     val iconShape: Shape = CircleShape,
     val showThemedIcons: Boolean = false,
-    val themedColors: WallpaperThemeColors? = null,
     val isLightHour: Boolean = false,
     val appListsUpdateCounter: Int = 0,
     val imageDataUpdateCounter: Int = 0,
-    val quickAppsLayout: String = "linear",
+    val quickAppsLayout: String = "circular",
     val appDrawerLayout: String = "circular",
     val drawerHeight:Int = 0,
     val drawerOffset:Int = 0,
@@ -102,7 +101,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val logger = LoggerManager(application)
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState = _uiState.asStateFlow()
-    var isLoadingWallpaper = false
     // const
     private val ANALOG_CLOCK = "analog_clock"
     private val CLOCK_BG_COLOR = "clock_bg_color"
@@ -154,7 +152,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     init {
         loadSettings()
-        loadThemedColors()
         setupPurchaseListener()
         checkSubscriptionStatus()
     }
@@ -387,12 +384,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 getApplication(),
                 PreferenceManager.getSwipeApp(getApplication(),"right"))
             _uiState.update { it.copy(showThemedIcons = enabled, leftSwipeApp = leftSwipeApp, rightSwipeApp = rightSwipeApp) }
-        }
-    }
-    fun loadThemedColors() {
-        viewModelScope.launch {
-            val themedColors = PreferenceManager.getThemedColors(getApplication())
-            _uiState.update { it.copy(themedColors = themedColors) }
         }
     }
     fun setLightHour(enabled: Boolean){
@@ -818,29 +809,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun requestNotificationPermission(context: Context) {
         val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
         context.startActivity(intent)
-    }
-    fun changeWallpaper(){
-        if(isLoadingWallpaper)return
-        isLoadingWallpaper = true
-        viewModelScope.launch {
-            val context:Context = getApplication()
-            try {
-                delay(100)
-                withContext(Dispatchers.IO) {
-                    fetchImageData(context)
-                }
-                delay(100)
-                withContext(Dispatchers.IO) {
-                    downloadImage(context)
-                }
-            }
-            catch (e: Exception){
-                logger.setLog("SettingsViewModel",e.toString())
-            }
-            finally {
-                isLoadingWallpaper = false
-            }
-        }
     }
     fun generateMonochromeColorWallpapers(context: Context) {
         // 1. Define the files

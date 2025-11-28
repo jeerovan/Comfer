@@ -258,6 +258,9 @@ object CommonUtil {
                         oldFile.delete()
                     }
                     setWallpaperThemedColors(context, File(newFilePath))
+                    withContext(Dispatchers.IO){
+                        setWallpaper(context)
+                    }
                 }
             }
         }
@@ -411,6 +414,9 @@ object CommonUtil {
                             logger.setLog("DownloadImage","Deleted: $oldFilePath")
                         }
                         setWallpaperThemedColors(applicationContext, file)
+                        withContext(Dispatchers.IO){
+                            setWallpaper(applicationContext)
+                        }
                     }
                 }
             }
