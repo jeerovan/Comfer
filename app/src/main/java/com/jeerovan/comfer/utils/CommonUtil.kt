@@ -270,6 +270,8 @@ object CommonUtil {
         if(!autoWallpapers) return
         val previousWallpaperApplied = PreferenceManager.getWallpaperApplied(applicationContext)
         if(!previousWallpaperApplied) return
+        val previousWallpaperAppliedAt = PreferenceManager.getWallpaperAppliedAt(applicationContext)
+        if(System.currentTimeMillis() - previousWallpaperAppliedAt < 10 * 60 * 1000) return
         val logger = LoggerManager(applicationContext)
         val changeFrequency = PreferenceManager.getWallpaperFrequency(applicationContext)
         val hour = PreferenceManager.getHour(applicationContext)

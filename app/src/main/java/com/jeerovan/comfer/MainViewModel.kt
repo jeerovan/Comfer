@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.jeerovan.comfer.utils.CommonUtil.downloadImage
 import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
+import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaperThemedColors
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +24,7 @@ data class MainUiState (
     val imageData: ImageData? = null,
     val imagePath:String? = null,
     val iconVersion:Int = 0,
+    val isDefaultLauncher: Boolean = false,
 )
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val logger = LoggerManager(application)
@@ -94,6 +96,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             )
                         }
                     }
+                }
+                val isDefaultLauncher = isDefaultLauncher(applicationContext)
+                _uiState.update {
+                    it.copy(isDefaultLauncher = isDefaultLauncher)
                 }
             }
             catch (e: Exception){

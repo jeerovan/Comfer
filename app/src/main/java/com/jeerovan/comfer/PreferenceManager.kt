@@ -28,6 +28,7 @@ object PreferenceManager {
     private const val IMAGE_AVAILABLE = "image_available"
     private const val FEEDBACK_DIALOG = "feedback_dialog"
     private const val WALLPAPER_SET = "wallpaper_set"
+    private const val WALLPAPER_SET_AT = "wallpaper_set_at"
     private const val QUICK_APPS_LAYOUT = "quick_apps_layout"
     private const val APP_DRAWER_LAYOUT = "app_drawer_layout"
     private const val CUSTOM_WIDGETS = "custom_widgets"
@@ -412,5 +413,9 @@ object PreferenceManager {
     }
     fun setWallpaperApplied(context: Context,applied : Boolean){
         setBoolean(context,WALLPAPER_SET,applied)
+        setLong(context,WALLPAPER_SET_AT,System.currentTimeMillis())
+    }
+    fun getWallpaperAppliedAt(context: Context): Long {
+        return getLong(context,WALLPAPER_SET_AT,0L)
     }
 }
