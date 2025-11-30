@@ -28,14 +28,12 @@ object PreferenceManager {
     private const val IMAGE_AVAILABLE = "image_available"
     private const val FEEDBACK_DIALOG = "feedback_dialog"
     private const val WALLPAPER_SET = "wallpaper_set"
-    private const val WALLPAPER_SET_AT = "wallpaper_set_at"
     private const val QUICK_APPS_LAYOUT = "quick_apps_layout"
     private const val APP_DRAWER_LAYOUT = "app_drawer_layout"
     private const val CUSTOM_WIDGETS = "custom_widgets"
     private const val WALLPAPER_DIRECTORY = "wallpaper_directory"
     private const val WALLPAPER_FREQUENCY = "wallpaper_frequency"
     private const val WALLPAPER_URI = "wallpaper_uri"
-    private const val WALLPAPER_NOW = "wallpaper_now"
     private const val ALPHABETICAL_ORDER = "alphabetical_order"
     private const val HAS_PRO_VERSION = "has_pro_version"
     private const val THEMED_ICONS = "themed_icons"
@@ -180,12 +178,6 @@ object PreferenceManager {
     }
     fun getAlphabeticalOrder(context: Context):Boolean{
         return getBoolean(context,ALPHABETICAL_ORDER,false)
-    }
-    fun setApplyWallpaperNow(context: Context,apply: Boolean){
-        setBoolean(context,WALLPAPER_NOW,apply)
-    }
-    fun getApplyWallpaperNow(context: Context):Boolean {
-        return getBoolean(context,WALLPAPER_NOW,false)
     }
     fun getBackgroundImageUri(context: Context): Uri? {
         val uriString = getString(context,WALLPAPER_URI,null)
@@ -413,9 +405,5 @@ object PreferenceManager {
     }
     fun setWallpaperApplied(context: Context,applied : Boolean){
         setBoolean(context,WALLPAPER_SET,applied)
-        setLong(context,WALLPAPER_SET_AT,System.currentTimeMillis())
-    }
-    fun getWallpaperAppliedAt(context: Context): Long {
-        return getLong(context,WALLPAPER_SET_AT,0L)
     }
 }

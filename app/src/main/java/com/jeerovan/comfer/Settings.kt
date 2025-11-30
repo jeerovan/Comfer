@@ -335,10 +335,24 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
+            if(settingsState.autoWallpapers)item {
+                ListItem(
+                    headlineContent = { Text("Change Wallpaper") },
+                    supportingContent = { Text("Tap to update now") },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.Wallpaper,
+                            contentDescription = "Wallpaper Change"
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.changeWallpaper() },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
             if(settingsState.autoWallpapers){
                 item {
                     SelectOptionsWithListItemSettingItem(
-                        "Change wallpaper",
+                        "Update frequency",
                         "With auto day/night mode",
                         {Icon(Icons.Filled.Refresh, contentDescription = "Change frequency")},
                         settingsState.wallpaperFrequency,
@@ -645,7 +659,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                             onCheckedChange = { settingsViewModel.setAlphabeticalOrder(it) }
                         )
                     },
-                    modifier = Modifier.clickable { settingsViewModel.setCustomWidgets(!settingsState.arrangeInAlphabeticalOrder) },
+                    modifier = Modifier.clickable { settingsViewModel.setAlphabeticalOrder(!settingsState.arrangeInAlphabeticalOrder) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }

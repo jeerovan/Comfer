@@ -1,7 +1,9 @@
 package com.jeerovan.comfer
 
 import android.app.Application
+import android.content.Context
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.jeerovan.comfer.utils.CommonUtil.downloadImage
@@ -13,8 +15,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -24,23 +31,44 @@ data class MainUiState (
     val imageData: ImageData? = null,
     val imagePath:String? = null,
     val iconVersion:Int = 0,
-    val isDefaultLauncher: Boolean = false,
+    val isDefaultLauncher: Boolean = false
 )
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val logger = LoggerManager(application)
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState = _uiState.asStateFlow()
     private var isWorking = false
+    private var isLoadingWallpaper = false
     private val _backPressEvent = MutableSharedFlow<Unit>()
     val backPressEvent = _backPressEvent.asSharedFlow()
-
     fun onBackButtonPressed() {
         viewModelScope.launch {
             _backPressEvent.emit(Unit)
         }
     }
+
     init {
-       loadBackgroundData()
+        // Observer for Wallpaper Updates
+        viewModelScope.launch {
+            application.dataStore.data
+                .map { it[PreferenceKeys.WALLPAPER_UPDATE] ?: 0L }
+                .distinctUntilChanged() // Critical: ignore unrelated DataStore updates
+                .collect { timestamp ->
+                    Log.d("MainViewModel", "Wallpaper Updated At: $timestamp")
+                    loadBackgroundData()
+                }
+        }
+
+        // Observer for Wallpaper Changes
+        viewModelScope.launch {
+            application.dataStore.data
+                .map { it[PreferenceKeys.WALLPAPER_CHANGE] ?: 0L }
+                .distinctUntilChanged() // Critical: ignore unrelated DataStore updates
+                .collect { timestamp ->
+                    Log.d("MainViewModel", "Wallpaper Changed At: $timestamp")
+                    changeWallpaper()
+                }
+        }
     }
     fun reloadImageData(){
         viewModelScope.launch {
@@ -53,7 +81,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun loadBackgroundData(){
         if(isWorking)return
         isWorking = true
-        logger.setLog("MainViewModel","LoadImageData")
         viewModelScope.launch {
             try {
                 val applicationContext: Application = getApplication()
@@ -110,12 +137,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-    fun checkLoadWallpaper(){
-        val applyNow = PreferenceManager.getApplyWallpaperNow(getApplication())
-        val monochrome = PreferenceManager.getMonochrome(getApplication())
-        if(applyNow || monochrome){
-            loadBackgroundData()
-            PreferenceManager.setApplyWallpaperNow(getApplication(),false)
+    fun changeWallpaper(){
+        if(isLoadingWallpaper)return
+        isLoadingWallpaper = true
+        viewModelScope.launch {
+            val context:Context = getApplication()
+            try {
+                delay(100)
+                withContext(Dispatchers.IO) {
+                    fetchImageData(context, manualChange = true)
+                }
+                delay(100)
+                withContext(Dispatchers.IO) {
+                    downloadImage(context)
+                }
+            }
+            catch (e: Exception){
+                logger.setLog("MainViewModel",e.toString())
+            }
+            finally {
+                isLoadingWallpaper = false
+            }
         }
     }
 }

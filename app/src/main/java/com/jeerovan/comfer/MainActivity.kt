@@ -221,185 +221,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.positionInWindow
+import com.google.android.datatransport.Priority
 import com.google.android.play.core.install.model.InstallStatus
 
-@Composable
-fun DraggableContainerWithViewModel(
-    modifier: Modifier = Modifier,
-    topColumnHeight: Dp,
-    widgetIds: List<String>,
-    widgetPositions: Map<String, Offset?>,
-    hasPro: Boolean,
-    onPositionChanged: (String, Offset) -> Unit,
-    onEditModeChanged: (Boolean) -> Unit,
-    composableContent: @Composable (String, Boolean) -> Unit
-) {
-    // Edit mode state
-    var editMode by remember { mutableStateOf(false) }
-
-    // Container dimensions
-    var containerSize by remember { mutableStateOf(IntSize.Zero) }
-
-    // Track measured sizes for initial column layout calculation
-    val measuredSizes = remember { mutableStateMapOf<String, IntSize>() }
-
-    // Calculate initial positions when all sizes are measured
-    val initialPositions = remember { mutableStateMapOf<String, Offset>() }
-
-    // Calculate centered column positions once container and all children are measured
-    fun setInitialSizes(){
-        if (containerSize.width > 0) {
-            // Calculate positions for centered column layout
-            val totalHeight = measuredSizes.filterKeys { it in widgetIds }.values.sumOf { it.height }
-            var currentY = (containerSize.height - totalHeight) / 2f
-
-            widgetIds.forEach { id ->
-                if (widgetPositions[id] == null) {
-                    val size = measuredSizes[id] ?: IntSize.Zero
-                    val centerX = (containerSize.width - size.width) / 2f
-
-                    initialPositions[id] = Offset(centerX, currentY)
-                    currentY += size.height
-                }
-            }
-        }
-    }
-    LaunchedEffect(widgetPositions.size,containerSize, measuredSizes.size) {
-        setInitialSizes()
-    }
-    Box(
-        modifier = modifier
-            //.border(width = 1.dp, Color.Cyan)
-            .fillMaxWidth()
-            .height(topColumnHeight)
-            .onGloballyPositioned { coordinates ->
-                containerSize = coordinates.size
-            }
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = {
-                        if (editMode) {
-                            editMode = false
-                            onEditModeChanged(false)
-                        }
-                    },
-                    onDoubleTap = {},
-                    onLongPress = {
-                        editMode = !editMode
-                        onEditModeChanged(editMode)
-                    }
-                )
-            }
-    ) {
-        widgetIds.forEach { id ->
-            key(id,widgetPositions[id]) {
-                DraggableComposableWithViewModel(
-                    id = id,
-                    editMode = editMode,
-                    containerSize = containerSize,
-                    savedPosition = widgetPositions[id],
-                    initialPosition = initialPositions[id],
-                    onPositionChanged = onPositionChanged,
-                    onSizeMeasured = { size ->
-                        measuredSizes[id] = size
-                        setInitialSizes()
-                    },
-                    content = { composableContent(id, editMode) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun DraggableComposableWithViewModel(
-    id: String,
-    editMode: Boolean,
-    containerSize: IntSize,
-    savedPosition: Offset?,
-    initialPosition: Offset?,
-    onPositionChanged: (String, Offset) -> Unit,
-    onSizeMeasured: (IntSize) -> Unit,
-    content: @Composable () -> Unit
-) {
-    var currentOffset by remember {
-        mutableStateOf(savedPosition ?: initialPosition ?: Offset.Zero)
-    }
-
-    // Update offset when saved position changes
-    LaunchedEffect(savedPosition) {
-        if (savedPosition != null) {
-            currentOffset = savedPosition
-        }
-    }
-
-    // Update offset when initial position is calculated
-    LaunchedEffect(initialPosition) {
-        if (savedPosition == null && initialPosition != null) {
-            currentOffset = initialPosition
-        }
-    }
-
-    // Track child composable size dynamically
-    var composableSize by remember { mutableStateOf(IntSize.Zero) }
-
-    Box(
-        modifier = Modifier
-            .offset {
-                IntOffset(
-                    currentOffset.x.roundToInt(),
-                    currentOffset.y.roundToInt()
-                )
-            }
-            .onGloballyPositioned { coordinates ->
-                val newSize = coordinates.size
-                if (composableSize != newSize) {
-                    composableSize = newSize
-                    onSizeMeasured(newSize)
-                }
-            }
-            .pointerInput(editMode) {
-                if (editMode) {
-                    detectDragGestures(
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-
-                            val newOffset = Offset(
-                                x = currentOffset.x + dragAmount.x,
-                                y = currentOffset.y + dragAmount.y
-                            )
-
-                            currentOffset = constrainToBoundary(
-                                offset = newOffset,
-                                composableSize = composableSize,
-                                containerSize = containerSize
-                            )
-                        },
-                        onDragEnd = {
-                            onPositionChanged(id, currentOffset)
-                        }
-                    )
-                }
-            }
-    ) {
-        content()
-    }
-}
-
-// Constrain offset to stay within container boundaries
-private fun constrainToBoundary(
-    offset: Offset,
-    composableSize: IntSize,
-    containerSize: IntSize
-): Offset {
-    val maxX = (containerSize.width - composableSize.width).toFloat()
-    val maxY = (containerSize.height - composableSize.height).toFloat()
-
-    return Offset(
-        x = offset.x.coerceIn(0f, maxX.coerceAtLeast(0f)),
-        y = offset.y.coerceIn(0f, maxY.coerceAtLeast(0f))
-    )
-}
 
 data class Contact(
     val id: Long,
@@ -496,18 +320,14 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        LoggerManager(applicationContext).setLog("MainActivity", "Started")
         widgetHosts.startListening()
         lifecycleScope.launch {
             settingsViewModel.loadSettings()
-            //mainViewModel.checkLoadWallpaper() // to immediately apply custom wallpaper or monochrome setting
-            mainViewModel.loadBackgroundData() // to apply new wallpaper
-        }
+            }
     }
 
     override fun onStop(){
         super.onStop()
-        LoggerManager(applicationContext).setLog("MainActivity", "Stopped")
         widgetHosts.stopListening()
         /*val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         // Check if the screen is ON or OFF
@@ -2663,16 +2483,13 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     var isSearchListVisible by remember { mutableStateOf(false) }
     var areLeftWigetsVisible by remember { mutableStateOf(false) }
     var areRightWigetsVisible by remember { mutableStateOf(false) }
-    var backgroundImage by remember { mutableStateOf<String?>(null) }
+    //var backgroundImage by remember { mutableStateOf<String?>(null) }
     var showDisclosure by remember { mutableStateOf(false) }
 
     val appInfoUiState by appInfoViewModel.uiState.collectAsState()
     val settingInfoUiState by settingsViewModel.uiState.collectAsState()
     val mainUiState by mainViewModel.uiState.collectAsState()
     val notifications by MyNotificationListenerService.activeNotifications.collectAsState()
-
-
-    logger.setLog("LauncherScreen","ShouldPromptUserCounter: ${settingInfoUiState.shouldAppUpdatePromptUserCounter}")
 
     val quickApps = appInfoUiState.quickApps
     val primaryApps = appInfoUiState.primaryApps
@@ -2749,7 +2566,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val layer2Exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
 
     val imageData = mainUiState.imageData
-    val cachedImagePath = mainUiState.imagePath
+    val backgroundImage = mainUiState.imagePath
 
     val contacts = remember {
         mutableStateListOf<Contact>()
@@ -2863,7 +2680,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         }
     }
     val haptic = LocalHapticFeedback.current
-    if (cachedImagePath != null){
+    /*if (cachedImagePath != null){
         if(File(cachedImagePath).exists()) {
             backgroundImage = cachedImagePath
         } else {
@@ -2871,7 +2688,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         }
     } else {
         logger.setLog("LauncherScreen","cachedImagepath is NULL")
-    }
+    }*/
 
     Box(
         modifier = Modifier
@@ -3078,7 +2895,7 @@ fun AnimatedBackground(
         AsyncImage(
             model = ImageRequest.Builder(context)
                 .data(backgroundImage)
-                .crossfade(true)
+                //.crossfade(true)
                 .build(),
             contentDescription = "Background",
             modifier = Modifier
@@ -4506,3 +4323,180 @@ class WidgetHostManager(private val context: Context) {
     }
 }
 
+@Composable
+fun DraggableContainerWithViewModel(
+    modifier: Modifier = Modifier,
+    topColumnHeight: Dp,
+    widgetIds: List<String>,
+    widgetPositions: Map<String, Offset?>,
+    hasPro: Boolean,
+    onPositionChanged: (String, Offset) -> Unit,
+    onEditModeChanged: (Boolean) -> Unit,
+    composableContent: @Composable (String, Boolean) -> Unit
+) {
+    // Edit mode state
+    var editMode by remember { mutableStateOf(false) }
+
+    // Container dimensions
+    var containerSize by remember { mutableStateOf(IntSize.Zero) }
+
+    // Track measured sizes for initial column layout calculation
+    val measuredSizes = remember { mutableStateMapOf<String, IntSize>() }
+
+    // Calculate initial positions when all sizes are measured
+    val initialPositions = remember { mutableStateMapOf<String, Offset>() }
+
+    // Calculate centered column positions once container and all children are measured
+    fun setInitialSizes(){
+        if (containerSize.width > 0) {
+            // Calculate positions for centered column layout
+            val totalHeight = measuredSizes.filterKeys { it in widgetIds }.values.sumOf { it.height }
+            var currentY = (containerSize.height - totalHeight) / 2f
+
+            widgetIds.forEach { id ->
+                if (widgetPositions[id] == null) {
+                    val size = measuredSizes[id] ?: IntSize.Zero
+                    val centerX = (containerSize.width - size.width) / 2f
+
+                    initialPositions[id] = Offset(centerX, currentY)
+                    currentY += size.height
+                }
+            }
+        }
+    }
+    LaunchedEffect(widgetPositions.size,containerSize, measuredSizes.size) {
+        setInitialSizes()
+    }
+    Box(
+        modifier = modifier
+            //.border(width = 1.dp, Color.Cyan)
+            .fillMaxWidth()
+            .height(topColumnHeight)
+            .onGloballyPositioned { coordinates ->
+                containerSize = coordinates.size
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {
+                        if (editMode) {
+                            editMode = false
+                            onEditModeChanged(false)
+                        }
+                    },
+                    onDoubleTap = {},
+                    onLongPress = {
+                        editMode = !editMode
+                        onEditModeChanged(editMode)
+                    }
+                )
+            }
+    ) {
+        widgetIds.forEach { id ->
+            key(id,widgetPositions[id]) {
+                DraggableComposableWithViewModel(
+                    id = id,
+                    editMode = editMode,
+                    containerSize = containerSize,
+                    savedPosition = widgetPositions[id],
+                    initialPosition = initialPositions[id],
+                    onPositionChanged = onPositionChanged,
+                    onSizeMeasured = { size ->
+                        measuredSizes[id] = size
+                        setInitialSizes()
+                    },
+                    content = { composableContent(id, editMode) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DraggableComposableWithViewModel(
+    id: String,
+    editMode: Boolean,
+    containerSize: IntSize,
+    savedPosition: Offset?,
+    initialPosition: Offset?,
+    onPositionChanged: (String, Offset) -> Unit,
+    onSizeMeasured: (IntSize) -> Unit,
+    content: @Composable () -> Unit
+) {
+    var currentOffset by remember {
+        mutableStateOf(savedPosition ?: initialPosition ?: Offset.Zero)
+    }
+
+    // Update offset when saved position changes
+    LaunchedEffect(savedPosition) {
+        if (savedPosition != null) {
+            currentOffset = savedPosition
+        }
+    }
+
+    // Update offset when initial position is calculated
+    LaunchedEffect(initialPosition) {
+        if (savedPosition == null && initialPosition != null) {
+            currentOffset = initialPosition
+        }
+    }
+
+    // Track child composable size dynamically
+    var composableSize by remember { mutableStateOf(IntSize.Zero) }
+
+    Box(
+        modifier = Modifier
+            .offset {
+                IntOffset(
+                    currentOffset.x.roundToInt(),
+                    currentOffset.y.roundToInt()
+                )
+            }
+            .onGloballyPositioned { coordinates ->
+                val newSize = coordinates.size
+                if (composableSize != newSize) {
+                    composableSize = newSize
+                    onSizeMeasured(newSize)
+                }
+            }
+            .pointerInput(editMode) {
+                if (editMode) {
+                    detectDragGestures(
+                        onDrag = { change, dragAmount ->
+                            change.consume()
+
+                            val newOffset = Offset(
+                                x = currentOffset.x + dragAmount.x,
+                                y = currentOffset.y + dragAmount.y
+                            )
+
+                            currentOffset = constrainToBoundary(
+                                offset = newOffset,
+                                composableSize = composableSize,
+                                containerSize = containerSize
+                            )
+                        },
+                        onDragEnd = {
+                            onPositionChanged(id, currentOffset)
+                        }
+                    )
+                }
+            }
+    ) {
+        content()
+    }
+}
+
+// Constrain offset to stay within container boundaries
+private fun constrainToBoundary(
+    offset: Offset,
+    composableSize: IntSize,
+    containerSize: IntSize
+): Offset {
+    val maxX = (containerSize.width - composableSize.width).toFloat()
+    val maxY = (containerSize.height - composableSize.height).toFloat()
+
+    return Offset(
+        x = offset.x.coerceIn(0f, maxX.coerceAtLeast(0f)),
+        y = offset.y.coerceIn(0f, maxY.coerceAtLeast(0f))
+    )
+}

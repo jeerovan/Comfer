@@ -31,6 +31,7 @@ import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
 import com.jeerovan.comfer.utils.CommonUtil.setBackgroundImageFromImageUri
 import kotlinx.coroutines.delay
 import android.graphics.Bitmap
+import androidx.datastore.preferences.core.edit
 import com.revenuecat.purchases.CustomerInfo
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.getCustomerInfoWith
@@ -507,7 +508,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 withContext(Dispatchers.IO) {
                     setBackgroundImageFromImageUri(getApplication(),directoryUri.toUri())
                 }
-                PreferenceManager.setApplyWallpaperNow(getApplication(),true)
             }
         }
     }
@@ -743,7 +743,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             PreferenceManager.setAutoWallpapers(getApplication(),enabled)
             if(enabled){
                 setMonochrome(false)
-                PreferenceManager.setApplyWallpaperNow(getApplication(),true)
             }
             _uiState.update { it.copy(autoWallpapers = enabled) }
         }
@@ -767,14 +766,19 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     fun setMonochrome(enabled: Boolean) {
         viewModelScope.launch {
-            PreferenceManager.setMonochrome(getApplication(),enabled)
+            val context:Context = getApplication()
+            PreferenceManager.setMonochrome(context,enabled)
             _uiState.update { it.copy(monochrome = enabled) }
             if(enabled) {
                 withContext(Dispatchers.IO) {
-                    generateMonochromeColorWallpapers(getApplication())
+                    generateMonochromeColorWallpapers(context)
                 }
             } else {
-                PreferenceManager.resetImageDataWithWhiteColor(getApplication())
+                PreferenceManager.resetImageDataWithWhiteColor(context)
+            }
+            // signal to loadBackgroundData
+            context.dataStore.edit { preferences ->
+                preferences[PreferenceKeys.WALLPAPER_UPDATE] = System.currentTimeMillis()
             }
         }
     }
@@ -809,6 +813,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun requestNotificationPermission(context: Context) {
         val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
         context.startActivity(intent)
+    }
+    fun changeWallpaper(){
+        viewModelScope.launch {
+            val context:Context = getApplication()
+            context.dataStore.edit { preferences ->
+                preferences[PreferenceKeys.WALLPAPER_CHANGE] = System.currentTimeMillis()
+            }
+        }
     }
     fun generateMonochromeColorWallpapers(context: Context) {
         // 1. Define the files

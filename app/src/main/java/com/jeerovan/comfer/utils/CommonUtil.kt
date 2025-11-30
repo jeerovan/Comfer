@@ -21,15 +21,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.datastore.preferences.core.edit
 import androidx.documentfile.provider.DocumentFile
 import androidx.palette.graphics.Palette
 import coil.Coil
+import coil.imageLoader
 import coil.request.ImageRequest
 import coil.request.ImageResult
+import coil.size.ViewSizeResolver
 import com.jeerovan.comfer.ImageData
 import com.jeerovan.comfer.LoggerManager
+import com.jeerovan.comfer.PreferenceKeys
 import com.jeerovan.comfer.PreferenceManager
 import com.jeerovan.comfer.R
+import com.jeerovan.comfer.dataStore
 import com.jeerovan.comfer.isTesting
 import com.jeerovan.comfer.toBitmap
 import io.ktor.client.HttpClient
@@ -265,17 +270,15 @@ object CommonUtil {
             }
         }
     }
-    suspend fun fetchImageData(applicationContext: Context){
+    suspend fun fetchImageData(applicationContext: Context,manualChange: Boolean = false){
+        val logger = LoggerManager(applicationContext)
         val autoWallpapers = PreferenceManager.getAutoWallpapers(applicationContext)
         if(!autoWallpapers) return
         val previousWallpaperApplied = PreferenceManager.getWallpaperApplied(applicationContext)
         if(!previousWallpaperApplied) return
-        val previousWallpaperAppliedAt = PreferenceManager.getWallpaperAppliedAt(applicationContext)
-        if(System.currentTimeMillis() - previousWallpaperAppliedAt < 10 * 60 * 1000) return
-        val logger = LoggerManager(applicationContext)
         val changeFrequency = PreferenceManager.getWallpaperFrequency(applicationContext)
         val hour = PreferenceManager.getHour(applicationContext)
-        if (hour > 0 || isTesting) {
+        if (hour > 0 || manualChange) {
             val hasPro = PreferenceManager.getPro(applicationContext)
             val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(applicationContext)
             if(wallpaperDirectory != null && hasPro){
@@ -370,6 +373,9 @@ object CommonUtil {
                     darkBg,
                     darkFg
                 )
+                context.dataStore.edit { preferences ->
+                    preferences[PreferenceKeys.WALLPAPER_UPDATE] = System.currentTimeMillis()
+                }
             } finally {
                 // 5. Important: Recycle the bitmap immediately as we only needed it for colors
                 bitmap.recycle()
