@@ -37,10 +37,10 @@ class MyNotificationListenerService : NotificationListenerService() {
     private fun updateActiveNotifications() {
         serviceScope.launch(Dispatchers.IO) {
             try {
-                val notifications = activeNotifications
+                val newNotifications = activeNotifications
                     .groupBy { it.packageName }
                     .map { it.value.first() }
-                _activeNotifications.value = notifications
+                _activeNotifications.value = newNotifications
             } catch (e: Exception) {
                 // Handle potential SecurityException or other errors
             }

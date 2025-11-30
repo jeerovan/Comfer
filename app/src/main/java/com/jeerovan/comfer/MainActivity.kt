@@ -171,6 +171,7 @@ import android.provider.AlarmClock
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import android.view.WindowManager
+import android.widget.ImageView
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -220,6 +221,9 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.positionInWindow
 import com.google.android.datatransport.Priority
 import com.google.android.play.core.install.model.InstallStatus
@@ -2529,6 +2533,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         }
     }
     val notificationIcons by rememberNotificationDrawables(notifications,hasNotificationAccess,LocalContext.current)
+
     LaunchedEffect(Unit) {
         mainViewModel.backPressEvent.collect {
             if(areLeftWigetsVisible) {
@@ -2680,15 +2685,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         }
     }
     val haptic = LocalHapticFeedback.current
-    /*if (cachedImagePath != null){
-        if(File(cachedImagePath).exists()) {
-            backgroundImage = cachedImagePath
-        } else {
-            logger.setLog("LauncherScreen","$cachedImagePath does not exist")
-        }
-    } else {
-        logger.setLog("LauncherScreen","cachedImagepath is NULL")
-    }*/
 
     Box(
         modifier = Modifier
@@ -3759,11 +3755,17 @@ fun NotificationIconRow(
                     items = iconsToShow,
                     key = { (key, _) -> key } // Use the stable key for performance
                 ) { (_, drawable) ->
-                    AsyncImage(
-                        model = drawable,
-                        contentDescription = "Notification Icon",
-                        // Apply a tint to make the icon visible
-                        colorFilter = ColorFilter.tint(iconColor),
+                    AndroidView(
+                        factory = { ctx ->
+                            ImageView(ctx).apply {
+                                setImageDrawable(drawable)
+                                scaleType = ImageView.ScaleType.FIT_CENTER
+                            }
+                        },
+                        update = { view ->
+                            view.setImageDrawable(drawable)
+                            view.setColorFilter(iconColor.toArgb())
+                        },
                         modifier = Modifier.size(iconSize)
                     )
                 }
