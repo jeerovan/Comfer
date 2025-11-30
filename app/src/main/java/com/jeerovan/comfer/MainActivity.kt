@@ -95,7 +95,6 @@ import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import com.jeerovan.comfer.utils.GuideUtil.GuideDialog
-import java.io.File
 import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.asin
@@ -124,7 +123,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.*
 import androidx.compose.ui.text.style.TextAlign
 import coil.compose.AsyncImage
-import kotlin.math.min
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.graphics.Shape
@@ -166,7 +164,6 @@ import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.os.Build
-import android.os.PowerManager
 import android.provider.AlarmClock
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -177,6 +174,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -193,7 +191,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import androidx.core.content.edit
 import kotlin.text.ifEmpty
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.TextUnit
@@ -221,12 +218,12 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.positionInWindow
-import com.google.android.datatransport.Priority
+import androidx.compose.ui.window.Dialog
 import com.google.android.play.core.install.model.InstallStatus
+import com.jeerovan.comfer.utils.KeyboardLayoutEngine
+import com.jeerovan.comfer.utils.KeyboardLocale
 
 
 data class Contact(
@@ -597,15 +594,18 @@ fun WidgetHostScreen(
             Toast.makeText(context, "Widget binding cancelled", Toast.LENGTH_SHORT).show()
         }
     }
-    val sizeModifier = if(fullScreen) Modifier.fillMaxSize() else Modifier.fillMaxWidth().height(windowHeightDp)
+    val sizeModifier = if(fullScreen) Modifier.fillMaxSize() else Modifier
+        .fillMaxWidth()
+        .height(windowHeightDp)
     Box(
             modifier = sizeModifier
                 //.border(width=1.dp,Color.White)
                 .detectSwipes(
                     onSwipeLeft = onSwipeLeft,
                     onSwipeRight = onSwipeRight
-                ).pointerInput(Unit){
-                    detectTapGestures (
+                )
+                .pointerInput(Unit) {
+                    detectTapGestures(
                         onTap = {
                             if (editMode) {
                                 editMode = false
@@ -790,8 +790,8 @@ fun WidgetAddButton(
                 shape = RoundedCornerShape(16.dp)
             )
             .fillMaxSize()
-            .pointerInput(Unit){
-                detectTapGestures (
+            .pointerInput(Unit) {
+                detectTapGestures(
                     onTap = {
                         view.playSoundEffect(SoundEffectConstants.CLICK)
                         onAddClick()
@@ -1427,7 +1427,7 @@ fun BatteryStatus(
     val iconWidth = iconHeight * 2 // Maintain a 2:1 aspect ratio
 
     Row(modifier = Modifier
-        .border(width = 2.dp,color = borderColor,shape = RoundedCornerShape(8.dp))
+        .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp))
         .padding(4.dp),
         verticalAlignment = Alignment.CenterVertically) {
         if (showBatteryIcon) Box(
@@ -1708,7 +1708,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                                 context.packageManager.getLaunchIntentForPackage(
                                                     swipeLeftPackage
                                                 )
-                                            handleStartActivity(context,launchIntent,null)
+                                            handleStartActivity(context, launchIntent, null)
                                         }
                                     }
                                 },
@@ -1725,28 +1725,28 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                                 context.packageManager.getLaunchIntentForPackage(
                                                     swipeRightPackage
                                                 )
-                                            handleStartActivity(context,launchIntent,null)
+                                            handleStartActivity(context, launchIntent, null)
                                         }
                                     }
                                 },
                                 onCircular = {
                                     val appOnCircularPattern = settings.patternApps["Center"]
-                                    if(appOnCircularPattern != null && settings.hasPro) {
+                                    if (appOnCircularPattern != null && settings.hasPro) {
                                         val launchIntent: Intent? =
                                             context.packageManager.getLaunchIntentForPackage(
                                                 appOnCircularPattern.packageName
                                             )
-                                        handleStartActivity(context,launchIntent,null)
+                                        handleStartActivity(context, launchIntent, null)
                                     }
                                 },
                                 onLPatternDetected = { pattern ->
                                     val patternApp = settings.patternApps[pattern]
-                                    if(patternApp != null && settings.hasPro) {
+                                    if (patternApp != null && settings.hasPro) {
                                         val launchIntent: Intent? =
                                             context.packageManager.getLaunchIntentForPackage(
                                                 patternApp.packageName
                                             )
-                                        handleStartActivity(context,launchIntent,null)
+                                        handleStartActivity(context, launchIntent, null)
                                     }
                                 }
                             ),
@@ -1922,6 +1922,16 @@ fun SearchListOverlay(apps: List<AppInfo>,
 
     var dragAccumulator by remember { mutableFloatStateOf(0f) }
     val scrollThreshold = 50f // The number of pixels to drag before the index changes
+
+    var showLocaleSelection by remember { mutableStateOf(false)}
+    var localeLanguage by remember { mutableStateOf("English") }
+    fun onLocaleSelected(language:String) {
+        localeLanguage = language
+        showLocaleSelection = false
+    }
+    fun onLocaleSelection(){
+        showLocaleSelection = true
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -2100,6 +2110,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                 }
                 // Circular Keyboard
                 CircularKeyboard(
+                    language = localeLanguage,
                     onChar = { char ->
                         inputText += char
                     },
@@ -2108,6 +2119,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                             inputText = inputText.dropLast(1)
                         }
                     },
+                    {onLocaleSelection()},
                     onSwipeDown = onSwipeDown,
                     onSwipeRight = { swipeRightOnKeyboard() },
                     onSwipeLeft = { swipeLeftOnKeyboard() }
@@ -2134,7 +2146,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                         LazyRow(
                             Modifier.height(iconSize + 20.dp),
                             // Add some padding around the content
-                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
+                            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
                             // Add spacing between the items
                             horizontalArrangement = Arrangement.spacedBy(20.dp)
                         ) {
@@ -2147,8 +2159,12 @@ fun SearchListOverlay(apps: List<AppInfo>,
                         }
                     }
                 }
-
-
+                if(showLocaleSelection){
+                    LocaleSelectionDialog(
+                        { showLocaleSelection = false},
+                        { language -> onLocaleSelected(language) }
+                    )
+                }
             }
         }
 }
@@ -2362,11 +2378,12 @@ fun AppListOverlay(apps: List<AppInfo>,
                         // Lock the drag axis after a small initial movement
                         if (dragAxis == null) {
                             if (dragAmount.x.absoluteValue > 4f || dragAmount.y.absoluteValue > 4f) {
-                                dragAxis = if (dragAmount.x.absoluteValue > dragAmount.y.absoluteValue) {
-                                    DragAxis.HORIZONTAL
-                                } else {
-                                    DragAxis.VERTICAL
-                                }
+                                dragAxis =
+                                    if (dragAmount.x.absoluteValue > dragAmount.y.absoluteValue) {
+                                        DragAxis.HORIZONTAL
+                                    } else {
+                                        DragAxis.VERTICAL
+                                    }
                             }
                         }
 
@@ -2379,7 +2396,8 @@ fun AppListOverlay(apps: List<AppInfo>,
 
                                 // Launching a coroutine is necessary to call the suspend function `snapTo`.
                                 scope.launch {
-                                    val newPosition = (scrollAnimatable.value + increment).wrap(totalScrollWidth)
+                                    val newPosition =
+                                        (scrollAnimatable.value + increment).wrap(totalScrollWidth)
                                     scrollAnimatable.snapTo(newPosition)
                                 }
                             }
@@ -2391,12 +2409,14 @@ fun AppListOverlay(apps: List<AppInfo>,
                                     // Trigger the action once the threshold is passed.
                                     if (verticalDragAmount > 80f) {
                                         onSwipeDown()
-                                        isSwipeDownTriggered = true // Prevents repeated calls in this gesture.
+                                        isSwipeDownTriggered =
+                                            true // Prevents repeated calls in this gesture.
                                     }
                                 }
                             }
 
-                            null -> { /* Wait for axis to be locked */ }
+                            null -> { /* Wait for axis to be locked */
+                            }
                         }
                     },
                     onDragEnd = {
@@ -2404,7 +2424,8 @@ fun AppListOverlay(apps: List<AppInfo>,
                             val velocity = velocityTracker.calculateVelocity().x * 0.3f
                             scope.launch {
                                 // Animate the fling with the calculated velocity.
-                                val result = scrollAnimatable.animateDecay(velocity, exponentialDecay())
+                                val result =
+                                    scrollAnimatable.animateDecay(velocity, exponentialDecay())
 
                                 // After the decay animation, ensure the final value is wrapped correctly.
                                 if (result.endReason == AnimationEndReason.Finished) {
@@ -3066,12 +3087,12 @@ fun AppIcon(app: AppInfo,
                     )
                 }
                 .pointerInput(clickable) {
-                    if(clickable)detectTapGestures(
+                    if (clickable) detectTapGestures(
                         onTap = {
                             view.playSoundEffect(SoundEffectConstants.CLICK)
                             val intent: Intent? =
                                 context.packageManager.getLaunchIntentForPackage(app.packageName)
-                            if(intent != null){
+                            if (intent != null) {
                                 val boundedRect = android.graphics.Rect(
                                     iconBounds.left.toInt(),
                                     iconBounds.top.toInt(),
@@ -3087,13 +3108,13 @@ fun AppIcon(app: AppInfo,
                                 iconBounds.width.toInt(),
                                 iconBounds.height.toInt()
                             )
-                            handleStartActivity(context,intent,options)
+                            handleStartActivity(context, intent, options)
                         },
                         onLongPress = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                             intent.data = "package:${app.packageName}".toUri()
-                            handleStartActivity(context,intent,null)
+                            handleStartActivity(context, intent, null)
                         }
                     )
                 },
@@ -3163,7 +3184,7 @@ fun SearchIcon(
     Box(
         modifier = Modifier
             .clip(getShapeFromShape(iconShape, iconSize))
-            .background(color=backgroundColor)
+            .background(color = backgroundColor)
             .size(iconSize)
             .scale(0.8f)
             .pointerInput(Unit) {
@@ -3333,8 +3354,9 @@ fun requestAccessibilityPermission(context: Context) {
 @Composable
 fun CircularButton(
     onClick: () -> Unit,
+    showLocaleSelection: () -> Unit,
     modifier: Modifier = Modifier,
-    char: Char? = null,
+    char: String? = null,
     size: Dp
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -3373,22 +3395,35 @@ fun CircularButton(
             .clip(CircleShape)
             .background(buttonColor)
             .background(gradient) // Subtle gradient for a "sheen" effect
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null, // Disable default ripple to use our custom feedback
-                onClick = {
+            .pointerInput(Unit) {
+            detectTapGestures(
+                onTap = {
+                    // Handle Click
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     view.playSoundEffect(SoundEffectConstants.CLICK)
                     onClick()
+                },
+                onLongPress = {
+                    // Handle Long Press
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    showLocaleSelection()
+                },
+                onPress = { press ->
+                    // Handle Press state for animation manually
+                    val pressInteraction = PressInteraction.Press(press)
+                    interactionSource.emit(pressInteraction)
+                    tryAwaitRelease()
+                    interactionSource.emit(PressInteraction.Release(pressInteraction))
                 }
-            ),
+            )
+        },
         contentAlignment = Alignment.Center
     ) {
         if (char != null) {
             Text(
-                text = char.toString().uppercase(),
+                text = char.uppercase(),
                 color = Color.White,
-                fontSize = (size.value / 2.5).sp, // Slightly smaller font for better padding
+                fontSize = (size.value / 1.5).sp, // Slightly smaller font for better padding
                 fontWeight = FontWeight.W300 // A lighter font weight can look more modern
             )
         } else {
@@ -3403,96 +3438,87 @@ fun CircularButton(
 }
 @Composable
 fun CircularKeyboard(
-    onChar: (Char) -> Unit,
+    language: String,
+    onChar: (String) -> Unit,
     onBackspace: () -> Unit,
+    showLocaleSelection: () -> Unit,
     onSwipeDown: () -> Unit,
     onSwipeLeft: () -> Unit,
     onSwipeRight: () -> Unit
 ) {
-    val layer1Chars = charArrayOf('g','h','j','k','m','n','z','s','d','f').toList()
-    val layer2Chars = charArrayOf('t','y','u','i','o','p','l','b','v','c','x','a','q','w','e','r').toList()
+    val availableChars = KeyboardLocale.getCharsFromLanguage(language)
 
-    Box (
+    val layers = remember(availableChars) {
+        KeyboardLayoutEngine.distributeCharsToLayers(availableChars)
+    }
+
+    Box(
         modifier = Modifier
             .wrapContentSize(Alignment.Center)
             .pointerInput(Unit) {
-                detectTapGestures(
-                    onDoubleTap = {
-                        // This tap is handled and consumed here, so it won't propagate
-                        // to the parent Box.
-                    }
-                )
+                detectTapGestures(onDoubleTap = { })
             }
             .detectSwipes(
-                {},
-                onSwipeDown,
-                onSwipeLeft,
-                onSwipeRight
+                onSwipeUp = {},
+                onSwipeDown = onSwipeDown,
+                onSwipeLeft = onSwipeLeft,
+                onSwipeRight = onSwipeRight
             ),
         contentAlignment = Alignment.Center
     ) {
-
-        val maxWidth = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp }
-        val maxHeight = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp }
-
-        val maxDiameter = min(maxWidth, maxHeight)
-        val keyboardDiameter = (maxDiameter * 0.7f).dp
+        // 2. Calculate the total size of the keyboard to reserve space
+        // Radius = CenterHalf + (NumLayers * (ButtonSize + Gap)) + Padding
+        val numLayers = layers.size
+        val totalRadius = (KeyboardLayoutEngine.CenterButtonSize / 2) +
+                (KeyboardLayoutEngine.KeyButtonSize + KeyboardLayoutEngine.Spacing) * numLayers +
+                KeyboardLayoutEngine.KeyButtonSize / 2 // Add half button for outer edge
 
         Box(
-            modifier = Modifier.size(keyboardDiameter),
+            modifier = Modifier.size(totalRadius * 2),
             contentAlignment = Alignment.Center
         ) {
-            // Define sizes relative to the available space for responsiveness
-            val buttonSize = (keyboardDiameter / 7)
-            val centerButtonSize = buttonSize * 1.3f
+            // --- Render Layers (Inner to Outer) ---
+            layers.forEachIndexed { layerIndex, charsInLayer ->
 
-            // Define layer radii
-            val radiusLayer2 = centerButtonSize * 0.9f + buttonSize + buttonSize / 2
-            val radiusLayer1 = centerButtonSize * 0.9f + buttonSize / 2
+                // Calculate precise radius for this layer
+                val radius = (KeyboardLayoutEngine.CenterButtonSize / 2) +
+                        KeyboardLayoutEngine.Spacing +
+                        (KeyboardLayoutEngine.KeyButtonSize / 2) +
+                        ((KeyboardLayoutEngine.KeyButtonSize + KeyboardLayoutEngine.Spacing) * layerIndex)
 
-            // Layer 2 (Outer Ring - 16 characters)
-            val angleStep2 = 2 * Math.PI / layer2Chars.size
-            layer2Chars.forEachIndexed { index, char ->
-                val angle = angleStep2 * index - (Math.PI / 2) // Start from top
-                val x = (radiusLayer2.value * cos(angle)).dp
-                val y = (radiusLayer2.value * sin(angle)).dp
+                val angleStep = (2 * Math.PI) / charsInLayer.size
 
-                CircularButton(
-                    onClick = { onChar(char) },
-                    char = char,
-                    size = buttonSize,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .offset(x = x, y = y)
-                )
+                charsInLayer.forEachIndexed { charIndex, char ->
+                    // Distribute from top (-PI/2)
+                    val angle = angleStep * charIndex - (Math.PI / 2)
+
+                    val x = (radius.value * cos(angle)).dp
+                    val y = (radius.value * sin(angle)).dp
+
+                    CircularButton(
+                        onClick = { onChar(char) },
+                        showLocaleSelection = {},
+                        char = char,
+                        size = KeyboardLayoutEngine.KeyButtonSize, // Fixed optimal size
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .offset(x = x, y = y)
+                    )
+                }
             }
 
-            // Layer 1 (Inner Ring - 10 characters)
-            val angleStep1 = 2 * Math.PI / layer1Chars.size
-            layer1Chars.forEachIndexed { index, char ->
-                val angle = angleStep1 * index - (Math.PI / 2) // Start from top
-                val x = (radiusLayer1.value * cos(angle)).dp
-                val y = (radiusLayer1.value * sin(angle)).dp
-
-                CircularButton(
-                    onClick = { onChar(char) },
-                    char = char,
-                    size = buttonSize,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .offset(x = x, y = y)
-                )
-            }
-
-            // Center Backspace Button
+            // --- Render Center Backspace Button ---
+            // Placed last to ensure it's on top or distinct (though minimal overlap due to math)
             CircularButton(
                 onClick = onBackspace,
-                size = centerButtonSize,
+                showLocaleSelection,
+                size = KeyboardLayoutEngine.CenterButtonSize, // Fixed largest size
                 modifier = Modifier.align(Alignment.Center)
             )
         }
     }
 }
+
 fun searchContacts(text: String, contactList: List<Contact>): List<Contact> {
     if (text.isBlank()) {
         return contactList // Return the full list if search text is empty
@@ -3816,7 +3842,7 @@ fun WidgetDate(
         if(customWallpaper) settings.dateFontColor else defaultColor
     } else Color.Transparent
     Box(modifier = Modifier
-        .border(width = 2.dp,color = borderColor,shape = RoundedCornerShape(8.dp))
+        .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp))
         .padding(4.dp)){
         Text(
             text = date,
@@ -3852,16 +3878,16 @@ fun WidgetClock(
         } else defaultColor
     } else Color.Transparent
     Box(modifier = Modifier
-        .border(width = 2.dp,color = borderColor,shape = RoundedCornerShape(8.dp))
+        .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp))
         .pointerInput(editMode) {
-            if(!editMode) {
+            if (!editMode) {
                 detectTapGestures(
                     onTap = {
                         view.playSoundEffect(SoundEffectConstants.CLICK)
                         // Open Alarms
                         val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
                         if (intent.resolveActivity(context.packageManager) != null) {
-                            handleStartActivity(context,intent,null)
+                            handleStartActivity(context, intent, null)
                         }
                     },
                     onLongPress = {
@@ -3872,7 +3898,7 @@ fun WidgetClock(
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK
                         }
                         if (calendarIntent.resolveActivity(context.packageManager) != null) {
-                            handleStartActivity(context,calendarIntent,null)
+                            handleStartActivity(context, calendarIntent, null)
                         }
                     }
                 )
@@ -4501,4 +4527,43 @@ private fun constrainToBoundary(
         x = offset.x.coerceIn(0f, maxX.coerceAtLeast(0f)),
         y = offset.y.coerceIn(0f, maxY.coerceAtLeast(0f))
     )
+}
+
+@Composable
+fun LocaleSelectionDialog(
+    onDismissRequest: () -> Unit,
+    onLocaleSelected: (String) -> Unit
+) {
+    val locales = KeyboardLocale.getLanguages()
+    Dialog(onDismissRequest = onDismissRequest) {
+        // A Surface to provide a background and shape for the dialog
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            tonalElevation = 8.dp
+        ) {
+            LazyColumn(modifier = Modifier.padding(vertical = 16.dp)) {
+                items(locales) { language ->
+
+                    // A list item that is clickable to select
+                    ListItem(
+                        headlineContent = {
+                            Text(
+                                text = language,
+                                fontSize = 30.sp
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            onLocaleSelected(language)
+                            onDismissRequest() // Close the dialog on selection
+                        }
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        thickness = DividerDefaults.Thickness,
+                        color = DividerDefaults.color
+                    )
+                }
+            }
+        }
+    }
 }

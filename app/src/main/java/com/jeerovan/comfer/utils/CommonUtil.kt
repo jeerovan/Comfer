@@ -25,17 +25,14 @@ import androidx.datastore.preferences.core.edit
 import androidx.documentfile.provider.DocumentFile
 import androidx.palette.graphics.Palette
 import coil.Coil
-import coil.imageLoader
 import coil.request.ImageRequest
 import coil.request.ImageResult
-import coil.size.ViewSizeResolver
 import com.jeerovan.comfer.ImageData
 import com.jeerovan.comfer.LoggerManager
 import com.jeerovan.comfer.PreferenceKeys
 import com.jeerovan.comfer.PreferenceManager
 import com.jeerovan.comfer.R
 import com.jeerovan.comfer.dataStore
-import com.jeerovan.comfer.isTesting
 import com.jeerovan.comfer.toBitmap
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -74,7 +71,7 @@ object CommonUtil {
             e.printStackTrace() // Log the error for debugging
             Toast.makeText(
                 context,
-                "App could not be launched. Please check your device's App Launch settings.",
+                "App could not be launched. Please check your device App Launch settings.",
                 Toast.LENGTH_LONG
             ).show()
         } catch (e: Exception) {
@@ -158,7 +155,7 @@ object CommonUtil {
 
         // List files, filter for images, and sort them
         val imageFiles = directory.listFiles()
-            .filter { it.isFile && it.name?.substringAfterLast('.')?.lowercase() in imageExtensions }
+            .filter { it.isFile && it.name?.substringAfterLast(".")?.lowercase() in imageExtensions }
             .sortedBy { it.name }
 
         // If there are no image files, return null
@@ -246,7 +243,7 @@ object CommonUtil {
             //copy file to app files
             val filename = getFileNameFromUri(context, nextLocalImageUri)
             if (filename != null) {
-                // 2. Create a destination file in your app's private storage
+                // 2. Create a destination file in your app"s private storage
                 val destinationFile = File(context.filesDir, filename)
                 // 3. Copy the file
                 val success = copyFileFromUri(context, nextLocalImageUri, destinationFile)
