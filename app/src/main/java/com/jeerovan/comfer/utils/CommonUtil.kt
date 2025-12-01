@@ -50,6 +50,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.net.URLDecoder
 import java.security.MessageDigest
+import java.text.Normalizer
 
 object CommonUtil {
     fun handleStartActivity(context:Context, intent:Intent?, options: ActivityOptions?){
@@ -222,7 +223,17 @@ object CommonUtil {
             else -> Color.Unspecified // A default or error case
         }
     }
-
+    fun String.removeAccents(): String {
+        val normalized = Normalizer.normalize(this, Normalizer.Form.NFD)
+        return normalized.replace(Regex("\\p{Mn}+"), "") // Remove non-spacing marks
+    }
+    fun doesMatchSearch(query: String, text: String?): Boolean {
+        if (query.isBlank()) return true
+        if (text == null) return false
+        val cleanQuery = query.removeAccents()
+        val cleanText = text.removeAccents()
+        return cleanText.contains(cleanQuery, ignoreCase = true)
+    }
     fun isDefaultLauncher(context: Context): Boolean {
         val intent = Intent(Intent.ACTION_MAIN)
         intent.addCategory(Intent.CATEGORY_HOME)

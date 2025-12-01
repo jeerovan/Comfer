@@ -114,7 +114,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 } else {
                     if (_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImagePath) {
-                        PreferenceManager.setWallpaperApplied(applicationContext, true)
                         _uiState.update {
                             it.copy(
                                 imageData = imageData,

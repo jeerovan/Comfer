@@ -12,6 +12,7 @@ import kotlinx.serialization.json.Json
 import java.util.Calendar
 import androidx.core.net.toUri
 import java.io.File
+import java.util.Locale
 
 object PreferenceManager {
     private const val PREF_BACKGROUND_IMAGE = "background_image"
@@ -48,6 +49,7 @@ object PreferenceManager {
     private const val LIGHT_HOUR = "dark_mode"
     private const val APP_UPDATE_PROMPT_TIME = "app_update_prompt_time"
     private const val APP_UPDATE_PROMPT_COUNTER = "app_update_prompt_counter"
+    private const val KEYBOARD_LOCALE = "keyboard_locale"
 
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -405,5 +407,11 @@ object PreferenceManager {
     }
     fun setWallpaperApplied(context: Context,applied : Boolean){
         setBoolean(context,WALLPAPER_SET,applied)
+    }
+    fun getKeyboardLocale(context: Context): Locale {
+        return Locale.forLanguageTag(getString(context,KEYBOARD_LOCALE,"en"))
+    }
+    fun setKeyboardLocale(context: Context,locale: Locale) {
+        setString(context,KEYBOARD_LOCALE,locale.toLanguageTag())
     }
 }

@@ -222,6 +222,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.window.Dialog
 import com.google.android.play.core.install.model.InstallStatus
+import com.jeerovan.comfer.utils.CommonUtil.doesMatchSearch
 import com.jeerovan.comfer.utils.KeyboardLayoutEngine
 import com.jeerovan.comfer.utils.KeyboardLocale
 
@@ -324,19 +325,13 @@ class MainActivity : ComponentActivity() {
         widgetHosts.startListening()
         lifecycleScope.launch {
             settingsViewModel.loadSettings()
+            PreferenceManager.setWallpaperApplied(applicationContext, true)
             }
     }
 
     override fun onStop(){
         super.onStop()
         widgetHosts.stopListening()
-        /*val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        // Check if the screen is ON or OFF
-        if (powerManager.isInteractive) {
-            lifecycleScope.launch {
-                // Setting system wallpaper with background task
-            }
-        }*/
     }
 }
 
@@ -1826,7 +1821,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                      apps // Return the full list if search text is empty
                 }
                 apps.filter { app ->
-                    app.label.contains(searchText, ignoreCase = true)
+                    doesMatchSearch(searchText,app.label)
                 }
             } else {
                 apps
@@ -1925,9 +1920,11 @@ fun SearchListOverlay(apps: List<AppInfo>,
     val scrollThreshold = 50f // The number of pixels to drag before the index changes
 
     var showLocaleSelection by remember { mutableStateOf(false)}
-    var localeLanguage by remember { mutableStateOf("English") }
+    var keyboardLocale by remember { mutableStateOf(PreferenceManager.getKeyboardLocale(context)) }
     fun onLocaleSelected(language:String) {
-        localeLanguage = language
+        val newKeyboardLocale = KeyboardLocale.getLocaleFromLanguage(language)
+        keyboardLocale = newKeyboardLocale
+        PreferenceManager.setKeyboardLocale(context,newKeyboardLocale)
         showLocaleSelection = false
     }
     fun onLocaleSelection(){
@@ -2111,7 +2108,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                 }
                 // Circular Keyboard
                 CircularKeyboard(
-                    language = localeLanguage,
+                    locale = keyboardLocale,
                     onChar = { char ->
                         inputText += char
                     },
@@ -3439,7 +3436,7 @@ fun CircularButton(
 }
 @Composable
 fun CircularKeyboard(
-    language: String,
+    locale: Locale,
     onChar: (String) -> Unit,
     onBackspace: () -> Unit,
     showLocaleSelection: () -> Unit,
@@ -3447,10 +3444,10 @@ fun CircularKeyboard(
     onSwipeLeft: () -> Unit,
     onSwipeRight: () -> Unit
 ) {
-    val availableListOfChars by rememberUpdatedState(KeyboardLocale.getCharsForLanguage(language))
+    val availableListOfChars by rememberUpdatedState(KeyboardLocale.getCharsForLocale(locale))
 
     // [LOG 1] Check if state is resetting or persisting correctly
-    var charsListIndex by remember(language) {
+    var charsListIndex by remember(locale) {
         mutableIntStateOf(0)
     }
 
@@ -3475,7 +3472,7 @@ fun CircularKeyboard(
                 detectTapGestures(onDoubleTap = { })
             }
             .detectSwipes(
-                language,
+                locale,
                 onSwipeUp = {onSwipeUp()},
                 onSwipeDown = onSwipeDown,
                 onSwipeLeft = onSwipeLeft,
@@ -3534,12 +3531,12 @@ fun CircularKeyboard(
     }
 }
 
-fun searchContacts(text: String, contactList: List<Contact>): List<Contact> {
-    if (text.isBlank()) {
+fun searchContacts(query: String, contactList: List<Contact>): List<Contact> {
+    if (query.isBlank()) {
         return contactList // Return the full list if search text is empty
     }
-    return contactList.filter { contact ->
-        contact.name?.contains(text, ignoreCase = true) ?: false
+    return contactList.filter {
+        contact -> doesMatchSearch(query,contact.name)
     }
 }
 fun placeCallWithDialer(context: Context, number: String?) {

@@ -175,7 +175,7 @@ object KeyboardLocale {
         "हिन्दी"
         )
     }
-    fun getLocaleTagFromLanguage(language:String): Locale {
+    fun getLocaleFromLanguage(language:String): Locale {
         val localeTag = when (language) {
             "English"      -> "en"
             "Español"      -> "es"
@@ -194,7 +194,7 @@ object KeyboardLocale {
         return Locale.forLanguageTag(localeTag)
     }
     fun getCharsForLanguage(language: String): List<List<String>> {
-        val locale = getLocaleTagFromLanguage(language)
+        val locale = getLocaleFromLanguage(language)
         return getCharsForLocale(locale)
     }
     fun getCharsForLocale(locale: Locale): List<List<String>> {

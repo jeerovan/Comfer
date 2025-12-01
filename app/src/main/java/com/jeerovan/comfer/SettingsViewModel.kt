@@ -502,12 +502,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     fun setWallpaperDirectory(directoryUri: String?){
         viewModelScope.launch {
-            PreferenceManager.setWallpaperDirectory(getApplication(),directoryUri)
+            val context: Context = getApplication()
+            PreferenceManager.setWallpaperDirectory(context,directoryUri)
             _uiState.update { it.copy(wallpaperDirectory = directoryUri) }
             if(directoryUri != null) {
-                withContext(Dispatchers.IO) {
-                    setBackgroundImageFromImageUri(getApplication(),directoryUri.toUri())
-                }
+                changeWallpaper()
             }
         }
     }
@@ -755,12 +754,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     fun setWallpaperOnLockScreen(enabled: Boolean) {
         viewModelScope.launch {
-            PreferenceManager.setWallpaperOnLockScreen(getApplication(), enabled)
+            val context: Context = getApplication()
+            PreferenceManager.setWallpaperOnLockScreen(context, enabled)
             _uiState.update { it.copy(wallpaperOnLockScreen = enabled) }
             if(enabled){
-                withContext(Dispatchers.IO){
-                    setWallpaper(getApplication())
-                }
+                changeWallpaper()
             }
         }
     }
