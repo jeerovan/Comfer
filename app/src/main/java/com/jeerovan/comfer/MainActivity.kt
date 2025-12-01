@@ -601,6 +601,7 @@ fun WidgetHostScreen(
             modifier = sizeModifier
                 //.border(width=1.dp,Color.White)
                 .detectSwipes(
+                    Unit,
                     onSwipeLeft = onSwipeLeft,
                     onSwipeRight = onSwipeRight
                 )
@@ -3446,12 +3447,27 @@ fun CircularKeyboard(
     onSwipeLeft: () -> Unit,
     onSwipeRight: () -> Unit
 ) {
-    val availableChars = KeyboardLocale.getCharsFromLanguage(language)
+    val availableListOfChars by rememberUpdatedState(KeyboardLocale.getCharsForLanguage(language))
 
-    val layers = remember(availableChars) {
-        KeyboardLayoutEngine.distributeCharsToLayers(availableChars)
+    // [LOG 1] Check if state is resetting or persisting correctly
+    var charsListIndex by remember(language) {
+        mutableIntStateOf(0)
     }
 
+    // Calculate list based on index
+    val charsList = availableListOfChars.getOrElse(charsListIndex) {
+        availableListOfChars.firstOrNull() ?: emptyList()
+    }
+
+    val layers = remember(charsList) {
+        KeyboardLayoutEngine.distributeCharsToLayers(charsList)
+    }
+
+    fun onSwipeUp() {
+        if (availableListOfChars.size > 1) {
+            charsListIndex = (charsListIndex + 1) % availableListOfChars.size
+        }
+    }
     Box(
         modifier = Modifier
             .wrapContentSize(Alignment.Center)
@@ -3459,15 +3475,14 @@ fun CircularKeyboard(
                 detectTapGestures(onDoubleTap = { })
             }
             .detectSwipes(
-                onSwipeUp = {},
+                language,
+                onSwipeUp = {onSwipeUp()},
                 onSwipeDown = onSwipeDown,
                 onSwipeLeft = onSwipeLeft,
                 onSwipeRight = onSwipeRight
             ),
         contentAlignment = Alignment.Center
     ) {
-        // 2. Calculate the total size of the keyboard to reserve space
-        // Radius = CenterHalf + (NumLayers * (ButtonSize + Gap)) + Padding
         val numLayers = layers.size
         val totalRadius = (KeyboardLayoutEngine.CenterButtonSize / 2) +
                 (KeyboardLayoutEngine.KeyButtonSize + KeyboardLayoutEngine.Spacing) * numLayers +
@@ -3546,12 +3561,13 @@ fun placeCallWithDialer(context: Context, number: String?) {
 }
 
 fun Modifier.detectSwipes(
+    updateOn: Any,
     onSwipeUp: () -> Unit = {},
     onSwipeDown: () -> Unit = {},
     onSwipeLeft: () -> Unit = {},
     onSwipeRight: () -> Unit = {}
 ) : Modifier =
-    this.pointerInput(Unit) {
+    this.pointerInput(updateOn) {
         val swipeThreshold = 50.dp.toPx()
         var totalHorizontalDrag = 0f
         var totalVerticalDrag = 0f
