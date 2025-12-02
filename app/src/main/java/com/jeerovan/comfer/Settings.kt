@@ -1127,7 +1127,7 @@ fun NotificationServicePermissionDisclosureScreen(
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = stringResource(R.string.what_nofitication_permission_do_not_title),
+                text = stringResource(R.string.what_notification_permission_do_not_title),
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
