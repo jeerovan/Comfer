@@ -16,6 +16,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -54,6 +55,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Support
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -83,6 +85,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -93,6 +96,7 @@ import androidx.core.content.ContextCompat
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import androidx.core.net.toUri
+import androidx.core.os.LocaleListCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.jeerovan.comfer.utils.CommonUtil.canSetLockScreenWallpaper
@@ -101,6 +105,7 @@ import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import com.jeerovan.comfer.utils.CommonUtil.getUriPath
 import com.jeerovan.comfer.utils.CommonUtil.openUrl
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class SettingsActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
@@ -176,6 +181,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val quickAppsLayout = settingsState.quickAppsLayout
     val appDrawerLayout = settingsState.appDrawerLayout
     var showDisclosure by remember { mutableStateOf(false) }
+    var showLocaleSelection by remember {mutableStateOf(false)}
 
     fun checkShowDiscloseOrPermissionIntent(){
         if(settingsState.hasNotificationAccess){
@@ -183,6 +189,11 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         } else {
             showDisclosure = true
         }
+    }
+    fun changeAppLanguage(locale:Locale){
+        val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(locale.toLanguageTag())
+        AppCompatDelegate.setApplicationLocales(appLocale)
+        showLocaleSelection = false
     }
     Box( modifier = Modifier
         .fillMaxSize()
@@ -194,18 +205,18 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 Spacer(Modifier.height(24.dp))
             }
-            item { SectionHeader("Premium")}
+            item { SectionHeader(stringResource(R.string.title_premium))}
             item {
                 ListItem(
-                    headlineContent = { Text("Pro Features") },
-                    supportingContent = { Text("Subscription") },
+                    headlineContent = { Text(stringResource(R.string.title_pro_features)) },
+                    supportingContent = { Text(stringResource(R.string.title_subscription)) },
                     leadingContent = {
                         Icon(painter = painterResource(R.drawable.outline_star_shine_24),
-                            contentDescription = "Subscription") },
+                            contentDescription = stringResource(R.string.title_subscription)) },
                     trailingContent = {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "View"
+                            contentDescription = stringResource(R.string.go_to_page)
                         )
                     },
                     modifier = Modifier.clickable {
@@ -234,17 +245,17 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item { SectionHeader("Support")}
+            item { SectionHeader(stringResource(R.string.title_support))}
             item {
                 ListItem(
-                    headlineContent = { Text("How to...") },
-                    supportingContent = { Text("Navigation guide") },
+                    headlineContent = { Text(stringResource(R.string.title_how_to)) },
+                    supportingContent = { Text(stringResource(R.string.title_app_guide)) },
                     leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
-                        contentDescription = "Manage App Lists") },
+                        contentDescription = stringResource(R.string.icon_how_to_guide)) },
                     trailingContent = {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "Go"
+                            contentDescription = stringResource(R.string.icon_arrow_right)
                         )
                     },
                     modifier = Modifier.clickable {
@@ -256,16 +267,16 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             if(settingsState.hasPro)item {
                 val context = LocalContext.current
                 ListItem(
-                    headlineContent = { Text("Report an issue") },
+                    headlineContent = { Text(stringResource(R.string.title_report_issue)) },
                     leadingContent = {
                         Icon(
                             Icons.Filled.Support,
-                            contentDescription = "Report Link")
+                            contentDescription = stringResource(R.string.icon_support))
                     },
                     trailingContent = {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "Go"
+                            contentDescription = stringResource(R.string.icon_arrow_right)
                         )
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
@@ -274,15 +285,15 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     }
                 )
             }
-            item { SectionHeader("Background") }
+            item { SectionHeader(stringResource(R.string.title_wallpapers)) }
             item {
                 ListItem(
-                    headlineContent = { Text("Auto Wallpapers") },
-                    supportingContent = { Text("Change wallpapers automatically") },
+                    headlineContent = { Text(stringResource(R.string.title_auto_wallpapers)) },
+                    supportingContent = { Text(stringResource(R.string.auto_wallpaper_text)) },
                     leadingContent = {
                         Icon(
                             Icons.Filled.Wallpaper,
-                            contentDescription = "Wallpapers"
+                            contentDescription = stringResource(R.string.icon_wallpaper)
                         )
                     },
                     trailingContent = {
@@ -297,12 +308,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             if(!settingsState.autoWallpapers)item {
                 ListItem(
-                    headlineContent = { Text("Monochrome") },
-                    supportingContent = { Text("Colour-less world") },
+                    headlineContent = { Text(stringResource(R.string.title_monochrome)) },
+                    supportingContent = { Text(stringResource(R.string.title_color_less_world)) },
                     leadingContent = {
                         Icon(
                             Icons.Filled.InvertColors,
-                            contentDescription = "Monochrome"
+                            contentDescription = stringResource(R.string.icon_monochrome)
                         )
                     },
                     trailingContent = {
@@ -317,12 +328,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             if(settingsState.autoWallpapers)item {
                 ListItem(
-                    headlineContent = { Text("Wallpaper Motion") },
-                    supportingContent = { Text("Make home screen alive") },
+                    headlineContent = { Text(stringResource(R.string.title_wallpaper_motion)) },
+                    supportingContent = { Text(stringResource(R.string.wallpaper_motion_text)) },
                     leadingContent = {
                         Icon(
                             painter = painterResource(R.drawable.outline_motion_mode_24),
-                            contentDescription = "Wallpaper Motion"
+                            contentDescription = stringResource(R.string.icon_wallpaper_motion)
                         )
                     },
                     trailingContent = {
@@ -337,12 +348,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             if(settingsState.autoWallpapers)item {
                 ListItem(
-                    headlineContent = { Text("Change Wallpaper") },
-                    supportingContent = { Text("Tap to update now") },
+                    headlineContent = { Text(stringResource(R.string.title_change_wallpaper)) },
+                    supportingContent = { Text(stringResource(R.string.change_wallpaper_text)) },
                     leadingContent = {
                         Icon(
                             Icons.Filled.Wallpaper,
-                            contentDescription = "Wallpaper Change"
+                            contentDescription = stringResource(R.string.icon_wallpaper_change)
                         )
                     },
                     modifier = Modifier.clickable { settingsViewModel.changeWallpaper() },
@@ -352,9 +363,9 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             if(settingsState.autoWallpapers){
                 item {
                     SelectOptionsWithListItemSettingItem(
-                        "Update frequency",
-                        "With auto day/night mode",
-                        {Icon(Icons.Filled.Refresh, contentDescription = "Change frequency")},
+                        stringResource(R.string.title_wallpaper_frequency),
+                        stringResource(R.string.wallpaper_frequency_text),
+                        {Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.icon_wallpaper_frequency))},
                         settingsState.wallpaperFrequency,
                         {option -> settingsViewModel.setWallpaperFrequency(option)},
                         arrayOf("Hourly","Daily")
@@ -371,12 +382,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             if(settingsState.autoWallpapers && isDefaultLauncher(context) && canSetLockScreenWallpaper()){
                 item {
                     ListItem(
-                        headlineContent = { Text("Lock Screen") },
-                        supportingContent = { Text("Set wallpaper on lock screen also") },
+                        headlineContent = { Text(stringResource(R.string.title_lock_screen)) },
+                        supportingContent = { Text(stringResource(R.string.lock_screen_wallpaper_text)) },
                         leadingContent = {
                             Icon(
                                 painter = painterResource(R.drawable.outline_mobile_lock_portrait_24),
-                                contentDescription = "Wallpaper on lock screen"
+                                contentDescription = stringResource(R.string.icon_lock_screen_wallpaper)
                             )
                         },
                         trailingContent = {
@@ -390,15 +401,15 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     )
                 }
             }
-            item { SectionHeader("Icons") }
+            item { SectionHeader(stringResource(R.string.title_app_icons)) }
             item {
                 ListItem(
-                    headlineContent = { Text("Icon Size") },
+                    headlineContent = { Text(stringResource(R.string.title_app_icon_size)) },
                     supportingContent = { Text("${settingsState.iconSize} dp") },
                     leadingContent = {
                         Icon(
                             painter = painterResource(R.drawable.outline_photo_size_select_small_24),
-                            contentDescription = "Icon Size"
+                            contentDescription = stringResource(R.string.icon_app_icon_size)
                         )
                     },
                     trailingContent = {
@@ -406,7 +417,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                             IconButton(onClick = { settingsViewModel.changeIconSize(increase = false) }) {
                                 Icon(
                                     painter = painterResource(R.drawable.outline_remove_24),
-                                    contentDescription = "Decrease icon size"
+                                    contentDescription = stringResource(R.string.button_decrease_app_icon_size)
                                 )
                             }
                             Box(
@@ -423,7 +434,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                                 )
                             }
                             IconButton(onClick = { settingsViewModel.changeIconSize(increase = true) }) {
-                                Icon(Icons.Default.Add, contentDescription = "Increase icon size")
+                                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.button_increase_app_icon_size))
                             }
                         }
                     },
@@ -440,12 +451,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             item{
                 ListItem(
-                    headlineContent = { Text("Themed Icons") },
-                    supportingContent = { Text("With wallpaper colors (experimental)") },
+                    headlineContent = { Text(stringResource(R.string.title_themed_icons)) },
+                    supportingContent = { Text(stringResource(R.string.themed_icons_text)) },
                     leadingContent = {
                         Icon(
                             Icons.Filled.ColorLens,
-                            contentDescription = "Themed Icons"
+                            contentDescription = stringResource(R.string.icon_themed_icons)
                         )
                     },
                     trailingContent = {
@@ -480,12 +491,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             item {
                 ListItem(
-                    headlineContent = { Text("Notification + Badges") },
-                    supportingContent = { Text("Requires notification permission") },
+                    headlineContent = { Text(stringResource(R.string.title_notification_badges)) },
+                    supportingContent = { Text(stringResource(R.string.requires_notification_permission)) },
                     leadingContent = {
                         Icon(
                             painter = painterResource(R.drawable.outline_notifications_unread_24),
-                            contentDescription = "Notification and badges"
+                            contentDescription = stringResource(R.string.icon_notification_badges)
                         )
                     },
                     trailingContent = {
@@ -498,14 +509,14 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item { SectionHeader("Home Screen") }
+            item { SectionHeader(stringResource(R.string.title_home_screen)) }
             item {
                 ListItem(
                     headlineContent = {
                         Row {
-                            Text("Custom Widgets")
+                            Text(stringResource(R.string.title_custom_widgets))
                             if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
-                                contentDescription = "Paid Feature",
+                                contentDescription = stringResource(R.string.paid_feature_title),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
                                     .size(15.dp)
@@ -513,11 +524,11 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                             )
                         }
                     },
-                    supportingContent = { Text("My favorite widgets") },
+                    supportingContent = { Text(stringResource(R.string.custom_widgets_text)) },
                     leadingContent = {
                         Icon(
                             painter = painterResource(R.drawable.outline_custom_widgets_24),
-                            contentDescription = "Custom Widgets"
+                            contentDescription = stringResource(R.string.icon_custom_widgets)
                         )
                     },
                     trailingContent = {
@@ -531,7 +542,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         if(settingsState.hasPro){
                             settingsViewModel.setCustomWidgets(!settingsState.hasCustomWidgets)
                         } else {
-                            Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT).show()
                         }
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
@@ -543,8 +554,8 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     "circular" to painterResource(R.drawable.layout_circular)
                 )
                 AppsLayoutSettingItem(
-                    title = "Quick apps layout",
-                    subtitle = "Arrange apps with style",
+                    title = stringResource(R.string.title_quick_apps_layout),
+                    subtitle = stringResource(R.string.quick_apps_layout_text),
                     leadingPainter = painterResource(R.drawable.outline_apps_24),
                     layoutOptions = layoutOptions,
                     selectedLayout = quickAppsLayout,
@@ -556,11 +567,11 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     putExtra("swipe_direction", "left")
                 }
                 SwipeActionSettingItem(
-                    headline = "Left Swipe Action",
+                    headline = stringResource(R.string.title_left_swipe_action),
                     icon = {
                         Icon(
                             Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = "Left Swipe"
+                            contentDescription = stringResource(R.string.icon_left_swipe_action)
                         )
                     },
                     selectedApp = leftSwipeApp, // Your state variable
@@ -580,11 +591,11 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     putExtra("swipe_direction", "right")
                 }
                 SwipeActionSettingItem(
-                    headline = "Right Swipe Action",
+                    headline = stringResource(R.string.title_right_swipe_action),
                     icon = {
                         Icon(
                             Icons.AutoMirrored.Default.ArrowForward,
-                            contentDescription = "Right Swipe"
+                            contentDescription = stringResource(R.string.icon_right_swipe_action)
                         )
                     },
                     selectedApp = rightSwipeApp, // Your state variable
@@ -603,9 +614,9 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 ListItem(
                     headlineContent = {
                         Row {
-                            Text("Gestures")
+                            Text(stringResource(R.string.title_swipe_gestures))
                             if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
-                                contentDescription = "Paid Feature",
+                                contentDescription = stringResource(R.string.paid_feature_title),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
                                     .size(15.dp)
@@ -613,13 +624,13 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                             )
                         }
                                       },
-                    supportingContent = { Text("Magic app shortcuts") },
+                    supportingContent = { Text(stringResource(R.string.swipe_gestures_text)) },
                     leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
-                        contentDescription = "Manage App Lists") },
+                        contentDescription = stringResource(R.string.icon_swipe_gestures)) },
                     trailingContent = {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "Go"
+                            contentDescription = stringResource(R.string.icon_arrow_right)
                         )
                     },
                     modifier = Modifier.clickable {
@@ -628,15 +639,15 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item { SectionHeader("App Drawer") }
+            item { SectionHeader(stringResource(R.string.title_app_drawer)) }
             item {
                 val layoutOptions:Map<String,Painter> = mapOf(
                     "linear" to painterResource(R.drawable.outline_apps_24),
                     "circular" to painterResource(R.drawable.layout_comfer)
                 )
                 AppsLayoutSettingItem(
-                    title = "Layout",
-                    subtitle = "Style to explore apps",
+                    title = stringResource(R.string.title_app_drawer_layouts),
+                    subtitle = stringResource(R.string.app_drawer_layouts_text),
                     leadingPainter = painterResource(R.drawable.outline_apps_24),
                     layoutOptions = layoutOptions,
                     selectedLayout = appDrawerLayout,
@@ -645,12 +656,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             item {
                 ListItem(
-                    headlineContent = { Text("Alphabetical order") },
-                    supportingContent = { Text("Arrange apps in A-Z") },
+                    headlineContent = { Text(stringResource(R.string.title_alphabetical_order)) },
+                    supportingContent = { Text(stringResource(R.string.alphabetical_order_text)) },
                     leadingContent = {
                         Icon(
                             Icons.AutoMirrored.Filled.Sort,
-                            contentDescription = "Sorted app list"
+                            contentDescription = stringResource(R.string.icon_alphabetical_order)
                         )
                     },
                     trailingContent = {
@@ -663,16 +674,16 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item { SectionHeader("App Lists") }
+            item { SectionHeader(stringResource(R.string.title_apps_list)) }
             item {
                 ListItem(
-                    headlineContent = { Text("Manage") },
-                    supportingContent = { Text("Organize/Reorder apps in lists") },
-                    leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Manage App Lists") },
+                    headlineContent = { Text(stringResource(R.string.title_manage_app_list)) },
+                    supportingContent = { Text(stringResource(R.string.manage_app_list_text)) },
+                    leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.icon_manage_app_list)) },
                     trailingContent = {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "Go"
+                            contentDescription = stringResource(R.string.icon_arrow_right)
                         )
                     },
                     modifier = Modifier.clickable {
@@ -689,11 +700,22 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
             }
             item {
+                ListItem(
+                    headlineContent = {Text(stringResource(R.string.title_app_language))},
+                    supportingContent = { Text(stringResource(R.string.app_language_text))},
+                    leadingContent = { Icon(Icons.Default.Translate, contentDescription = stringResource(R.string.icon_app_language))},
+                    modifier = Modifier.clickable {
+                        showLocaleSelection = true
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                )
+            }
+            item {
                 val context = LocalContext.current
                 val packageName = context.packageName
                 ListItem(
-                    headlineContent = { Text("Feedback") },
-                    leadingContent = { Icon(painter = painterResource(R.drawable.outline_star_rate_24), contentDescription = "Rate Icon") },
+                    headlineContent = { Text(stringResource(R.string.title_feedback)) },
+                    leadingContent = { Icon(painter = painterResource(R.drawable.outline_star_rate_24), contentDescription = stringResource(R.string.icon_feedback)) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     modifier = Modifier.clickable {
                         try {
@@ -713,9 +735,11 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 val context = LocalContext.current
                 val packageName = context.packageName
+                val playStoreUrl = "https://play.google.com/store/apps/details?id=$packageName"
+                val shareText = stringResource(R.string.share_app_text)
                 ListItem(
-                    headlineContent = { Text("Share App") },
-                    leadingContent = { Icon(Icons.Default.Share, contentDescription = "Share Icon") },
+                    headlineContent = { Text(stringResource(R.string.title_share_app)) },
+                    leadingContent = { Icon(Icons.Default.Share, contentDescription = stringResource(R.string.icon_share_app)) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     modifier = Modifier.clickable {
                         // Create a share intent
@@ -723,19 +747,19 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                             type = "text/plain"
                             putExtra(
                                 Intent.EXTRA_TEXT,
-                                "Try the new interesting launcher: https://play.google.com/store/apps/details?id=$packageName"
+                                "$shareText $playStoreUrl"
                             )
                         }
                         // Use a chooser to show the Android share sheet
-                        context.startActivity(Intent.createChooser(shareIntent, "Share via"))
+                        context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.title_share_with)))
                     }
                 )
             }
             item {
                 ListItem(
-                    headlineContent = { Text("Version") },
-                    supportingContent = { Text(getAppVersion(context) ?: "N/A") },
-                    leadingContent = { Icon(Icons.Default.Info, contentDescription = "Version") },
+                    headlineContent = { Text(stringResource(R.string.title_app_version)) },
+                    supportingContent = { Text(getAppVersion(context) ?: "") },
+                    leadingContent = { Icon(Icons.Default.Info, contentDescription = stringResource(R.string.icon_app_version)) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
@@ -792,6 +816,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
         )
     }
+    if(showLocaleSelection) {
+        LocaleSelectionDialog(
+            onDismissRequest = { showLocaleSelection = false},
+            onLocaleSelected = { locale -> changeAppLanguage(locale)}
+        )
+    }
 }
 @Composable
 fun IconShapeSettingItem(
@@ -803,12 +833,12 @@ fun IconShapeSettingItem(
 
     ListItem(
         modifier = Modifier.clickable { showDialog = true },
-        headlineContent = { Text("Icon Shape") },
-        supportingContent = { Text("Set unique style") },
+        headlineContent = { Text(stringResource(R.string.title_icon_shapes)) },
+        supportingContent = { Text(stringResource(R.string.icon_shapes_text)) },
         leadingContent = {
             Icon(
                 painter = painterResource(R.drawable.outline_blur_circular_24),
-                contentDescription = "Icon Appearance"
+                contentDescription = stringResource(R.string.icon_icon_shapes)
             )
         },
         trailingContent = {
@@ -864,7 +894,7 @@ fun ShapeSelectionDialog(
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text("Select Icon Shape") },
+        title = { Text(stringResource(R.string.title_select_icon_shape)) },
         text = {
             Column {
                 Row(
@@ -910,7 +940,7 @@ fun ShapeSelectionDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismissRequest) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel_text))
             }
         },
         properties = DialogProperties()
@@ -983,9 +1013,9 @@ fun SelectSetOwnWallpapersDirectory(
     ListItem(
         headlineContent = {
             Row {
-                Text("Set own wallpapers")
+                Text(stringResource(R.string.title_own_wallpapers))
                 if(!hasPro)Icon(Icons.Filled.Lock,
-                    contentDescription = "Paid Feature",
+                    contentDescription = stringResource(R.string.paid_feature_title),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .size(15.dp)
@@ -994,11 +1024,11 @@ fun SelectSetOwnWallpapersDirectory(
             }
                           },
         // Use the .path property for a cleaner display string.
-        supportingContent = { Text(getUriPath(selectedDirectory) ?: "Tap to select directory") },
+        supportingContent = { Text(getUriPath(selectedDirectory) ?: stringResource(R.string.wallpaper_directory_select)) },
         leadingContent = {
             Icon(
                 painter = painterResource(R.drawable.outline_wallpaper_directory),
-                contentDescription = "Wallpaper Directory"
+                contentDescription = stringResource(R.string.icon_wallpaper_directory)
             )
         },
         trailingContent = {
@@ -1046,10 +1076,10 @@ fun SelectSetOwnWallpapersDirectory(
                         }
                     }
                 } else {
-                    Toast.makeText(context, "Set default launcher first", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.set_launcher_first), Toast.LENGTH_SHORT).show()
                 }
             } else {
-                Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT).show()
             }
         }
     )
@@ -1073,47 +1103,47 @@ fun NotificationServicePermissionDisclosureScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Permission Required",
+                text = stringResource(R.string.permission_required),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "To show notification icons on Home screen and badges on app icons, this launcher requires notification service access.",
+                text = stringResource(R.string.notification_permission_text),
                 textAlign = TextAlign.Center,
                 fontSize = 16.sp
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = "What this service does:",
+                text = stringResource(R.string.what_notification_permission_do_title),
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Text(
-                text = "• Access notification apps from service and show icons and badges as required.",
+                text = stringResource(R.string.what_notification_permission_do_text),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 8.dp)
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = "This service does NOT:",
+                text = stringResource(R.string.what_nofitication_permission_do_not_title),
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Text(
-                text = "• Collect any personal data.",
+                text = stringResource(R.string.what_notification_permission_do_not_text),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 8.dp)
             )
             Spacer(modifier = Modifier.height(32.dp))
             Row {
                 Button(onClick = onContinue) {
-                    Text("Continue")
+                    Text(stringResource(R.string.continue_text))
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 OutlinedButton(onClick = onCancel) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel_text))
                 }
             }
         }
@@ -1135,13 +1165,13 @@ fun AppsLayoutSettingItem(
         supportingContent = { Text(subtitle) },
         leadingContent = { Icon(
             painter = leadingPainter,
-            contentDescription = "Apps layout")
+            contentDescription = stringResource(R.string.icon_apps_layout))
         },
         trailingContent = {
             layoutOptions[selectedLayout]?.let {
                 Icon(
                     painter = it,
-                    contentDescription = "Widgets",
+                    contentDescription = stringResource(R.string.icon_apps_layout),
                     modifier = Modifier.size(48.dp)
                 )
             }
@@ -1153,7 +1183,7 @@ fun AppsLayoutSettingItem(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Choose Layout") },
+            title = { Text(stringResource(R.string.title_choose_layout)) },
             text = {
                 Column (modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1176,7 +1206,7 @@ fun AppsLayoutSettingItem(
             },
             confirmButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel_text))
                 }
             }
         )
@@ -1196,7 +1226,7 @@ fun SwipeActionSettingItem(
 
     ListItem(
         headlineContent = { Text(headline) },
-        supportingContent = { Text("An app or Widgets screen") },
+        supportingContent = { Text(stringResource(R.string.swipe_action_selection)) },
         leadingContent = { icon() },
         trailingContent = {
             when {
@@ -1204,7 +1234,7 @@ fun SwipeActionSettingItem(
                 isWidgetsSelected -> {
                     Icon(
                         painter = painterResource(R.drawable.outline_widgets_24),
-                        contentDescription = "Widgets",
+                        contentDescription = stringResource(R.string.icon_custom_widgets),
                         modifier = Modifier.size(40.dp)
                     )
                 }
@@ -1221,7 +1251,7 @@ fun SwipeActionSettingItem(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Choose Option") },
+            title = { Text(stringResource(R.string.title_choose_options)) },
             text = {
                 Column {
                     TextButton(
@@ -1230,7 +1260,7 @@ fun SwipeActionSettingItem(
                             onAppSelectionClick()
                         }
                     ) {
-                        Text("Select App")
+                        Text(stringResource(R.string.title_select_app))
                     }
                     TextButton(
                         onClick = {
@@ -1238,13 +1268,13 @@ fun SwipeActionSettingItem(
                             onWidgetsSelectionClick()
                         }
                     ) {
-                        Text("Widgets Screen")
+                        Text(stringResource(R.string.title_widgets_screen))
                     }
                 }
             },
             confirmButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel_text))
                 }
             }
         )
@@ -1276,7 +1306,7 @@ fun SelectOptionsWithListItemSettingItem(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Choose Action") },
+            title = { Text(stringResource(R.string.title_choose_action)) },
             text = {
                 LazyColumn {
                     items(options) {
@@ -1295,7 +1325,7 @@ fun SelectOptionsWithListItemSettingItem(
             },
             confirmButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel_text))
                 }
             }
         )

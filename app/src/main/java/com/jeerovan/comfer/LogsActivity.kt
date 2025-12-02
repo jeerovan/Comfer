@@ -143,16 +143,3 @@ fun LogItem(log: LogEntry) {
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun LogItemPreview() {
-    val log = LogEntry(
-        System.currentTimeMillis(),
-        "SampleModule",
-        "java.lang.NullPointerException: Attempt to invoke virtual method..."
-    )
-    YourAppTheme {
-        LogItem(log = log)
-    }
-}

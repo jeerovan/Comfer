@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -75,118 +76,123 @@ fun UserGuideScreen() {
                 Spacer(Modifier.height(24.dp))
             }
             item {
-                GuideSectionHeader(title = "Home Screen")
+                GuideSectionHeader(title = stringResource(R.string.title_home_screen))
             }
             item {
                 // Using more descriptive text for a better user experience
-                GuideStepItem(text = "Swipe up to see the App drawer.")
+                GuideStepItem(text = stringResource(R.string.guide_home_swipe_up))
             }
             item {
                 // Using more descriptive text for a better user experience
-                GuideStepItem(text = "Swipe down to see notifications.")
+                GuideStepItem(text = stringResource(R.string.guide_home_swipe_down))
             }
             item {
-                GuideStepItem(text = "Double tap screen to open recents.")
+                GuideStepItem(text = stringResource(R.string.guide_home_double_tap))
             }
             item {
-                GuideStepItem(text = "Long-press lower half screen to open settings.")
+                GuideStepItem(text = stringResource(R.string.guide_home_long_press_lower))
             }
             item {
-                GuideStepItem(text = "Long-press upper half screen to edit widgets.")
+                GuideStepItem(text = stringResource(R.string.guide_home_long_press_upper))
             }
             item {
-                GuideStepItem(text = "Tap upper half screen to exit editing widgets.")
+                GuideStepItem(text = stringResource(R.string.guide_home_tap_upper_half))
             }
             item {
-                GuideStepItem(text = "Tap on Date/Time to see alarms.")
+                GuideStepItem(text = stringResource(R.string.guide_home_tap_date_time))
             }
             item {
-                GuideStepItem(text = "Long-press on Date/Time to see calendar.")
+                GuideStepItem(text = stringResource(R.string.guide_home_long_press_date_time))
             }
             item {
-                GuideStepItem(text = "Swipe left/right to open desired app or widgets screen.")
+                GuideStepItem(text = stringResource(R.string.guide_home_swipe_left_right))
             }
             item {
-                GuideStepItem(text = "Draw gestures to open apps as set in Gesture Shortcuts.")
+                GuideStepItem(text = stringResource(R.string.guide_home_gestures))
             }
 
             // Circular app drawer
             item {
-                GuideSectionHeader(title = "Circular App Drawer")
+                GuideSectionHeader(title = stringResource(R.string.guide_circular_app_drawer))
             }
             item {
-                GuideStepItem(text = "Swipe down to go back.")
+                GuideStepItem(text = stringResource(R.string.guide_circular_app_drawer_swipe_down))
             }
             item {
-                GuideStepItem(text = "Double tap to open app in the middle.")
+                GuideStepItem(text = stringResource(R.string.guide_circular_app_drawer_double_tap))
             }
             item {
-                GuideStepItem(text = "Swipe left/right to scroll.")
+                GuideStepItem(text = stringResource(R.string.guide_circular_app_drawer_swipe_left_right))
             }
             item {
-                GuideStepItem(text = "Tap on icon to open app.")
+                GuideStepItem(text = stringResource(R.string.guide_circular_app_drawer_tap_icon))
             }
             item {
-                GuideStepItem(text = "Long press on icon to open app info.")
+                GuideStepItem(text = stringResource(R.string.guide_circular_app_drawer_long_press_icon))
             }
             // Horizontal app drawer
             item {
-                GuideSectionHeader(title = "Horizontal App Drawer")
+                GuideSectionHeader(title = stringResource(R.string.guide_horizontal_app_drawer))
             }
             item {
-                GuideStepItem(text = "Swipe down to go back.")
+                GuideStepItem(text = stringResource(R.string.guide_horizontal_app_drawer_swipe_down))
             }
             item {
-                GuideStepItem(text = "Swipe left/right to scroll.")
+                GuideStepItem(text = stringResource(R.string.guide_horizontal_app_drawer_swipe_left_right))
             }
             item {
-                GuideStepItem(text = "Long press to manage drawer.")
+                GuideStepItem(text = stringResource(R.string.guide_horizontal_app_drawer_long_press))
             }
             item {
-                GuideStepItem(text = "Drag-drop icons to re-position in edit mode.")
+                GuideStepItem(text = stringResource(R.string.guide_horizontal_app_drawer_drag_drop))
             }
             item {
-                GuideStepItem(text = "Drag drawer in edit mode to reposition vertically.")
+                GuideStepItem(text = stringResource(R.string.guide_horizontal_app_drawer_drag))
             }
             item {
-                GuideStepItem(text = "Single tap to exit edit mode.")
+                GuideStepItem(text = stringResource(R.string.guide_horizontal_app_drawer_single_tap))
             }
 
             // Search app list
             item {
-                GuideSectionHeader(title = "Search apps/contacts")
+                GuideSectionHeader(title = stringResource(R.string.guide_search))
             }
             item {
-                GuideStepItem(text = "Swipe down on the keyboard to go back.")
+                GuideStepItem(text = stringResource(R.string.guide_search_swipe_down))
             }
             item {
-                GuideStepItem(text = "Swipe right on the keyboard to search contacts.")
+                GuideStepItem(text = stringResource(R.string.guide_search_swipe_right))
             }
             item {
-                GuideStepItem(text = "Swipe left on the keyboard to search apps.")
+                GuideStepItem(text = stringResource(R.string.guide_search_swipe_left))
             }
             item {
-                GuideStepItem(text = "Scroll app list horizontally to view all results.")
+                GuideStepItem(text = stringResource(R.string.guide_search_swipe_up))
             }
             item {
-                GuideStepItem(text = "Scroll either sides of the circular keyboard to scroll contact list.")
+                GuideStepItem(text = stringResource(R.string.guide_search_long_press))
             }
             item {
-                GuideStepItem(text = "Double tap on either sides of the circular keyboard to open dialer with highlight contact.")
+                GuideStepItem(text = stringResource(R.string.guide_search_scroll_list))
+            }
+            item {
+                GuideStepItem(text = stringResource(R.string.guide_search_scroll_sides))
+            }
+            item {
+                GuideStepItem(text = stringResource(R.string.guide_search_double_tap_sides))
             }
 
             // Manage app list
             item {
-                GuideSectionHeader(title = "Manage app list")
+                GuideSectionHeader(title = stringResource(R.string.guide_manage_apps))
             }
             item {
-                GuideStepItem(text = "Tap to select apps and move to another list.")
+                GuideStepItem(text = stringResource(R.string.guide_manage_apps_tap))
             }
             item {
-                GuideStepItem(text = "Long press app icon to drag and re-order within same list. Works when not alphabetically sorted.")
+                GuideStepItem(text = stringResource(R.string.guide_manage_apps_long_press))
             }
         }
-
 }
 
 /**
@@ -238,34 +244,3 @@ fun GuideStepItem(text: String) {
     }
 }
 
-
-// --- PREVIEWS for Light and Dark Themes ---
-
-// Add a theme wrapper if your project has one, otherwise this is a simple placeholder.
-@Composable
-fun YourAppTheme(darkTheme: Boolean = false, content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = if (darkTheme) androidx.compose.material3.darkColorScheme() else androidx.compose.material3.lightColorScheme(),
-        content = content
-    )
-}
-
-@Preview(name = "User Guide Light Theme", showBackground = true)
-@Composable
-fun UserGuideScreenPreviewLight() {
-    YourAppTheme(darkTheme = false) {
-        Surface {
-            UserGuideScreen()
-        }
-    }
-}
-
-@Preview(name = "User Guide Dark Theme", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun UserGuideScreenPreviewDark() {
-    YourAppTheme(darkTheme = true) {
-        Surface {
-            UserGuideScreen()
-        }
-    }
-}

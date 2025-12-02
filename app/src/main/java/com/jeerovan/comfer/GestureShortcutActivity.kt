@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -121,9 +122,9 @@ fun GestureShortcutScreen(settingsViewModel: SettingsViewModel) {
             TopAppBar(
                 title = {
                     Row {
-                        Text("Gesture Shortcuts")
+                        Text(stringResource(R.string.gesture_shortcuts_title))
                         if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
-                            contentDescription = "Paid Feature",
+                            contentDescription = stringResource(R.string.paid_feature_title),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .size(15.dp)
@@ -136,7 +137,7 @@ fun GestureShortcutScreen(settingsViewModel: SettingsViewModel) {
                     titleContentColor = MaterialTheme.colorScheme.primary
                 )
             )
-            Text("Tap app icon to select app",
+            Text(stringResource(R.string.tap_icon_to_select_app),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.offset(x=20.dp))
@@ -627,7 +628,7 @@ fun AppsLayout(
             }
             appSelectionLauncher.launch(intent)
         } else {
-            Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT).show()
         }
     }
     Box(modifier = Modifier.fillMaxSize()

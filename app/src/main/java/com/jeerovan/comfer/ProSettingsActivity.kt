@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -103,7 +104,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                 .padding(16.dp,)
                 .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
-            SettingSection("Widgets") {
+            SettingSection(stringResource(R.string.title_widgets)) {
                 Box(modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
@@ -111,7 +112,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                         settingsViewModel.clearAllWidgetPositions()
                     }
                 ) {
-                    Text("Reset positions",
+                    Text(stringResource(R.string.rest_widget_positions),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -123,9 +124,9 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                 color = DividerDefaults.color
             )
             // Time Settings
-            SettingSection("Time") {
+            SettingSection(stringResource(R.string.title_time)) {
                 SettingSwitch(
-                    label = "Analog Clock",
+                    label = stringResource(R.string.title_analog_clock),
                     enabled = settingsState.hasPro,
                     checked = settingsState.showAnalog,
                     onCheckedChange = {
@@ -139,7 +140,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                 if (settingsState.showAnalog) {
                     // Clock Size
                     SettingSlider(
-                        label = "Clock Size",
+                        label = stringResource(R.string.title_clock_size),
                         value = settingsState.clockSize,
                         range = 70f..250f,
                         onValueChange = { settingsViewModel.setClockSize(it) }
@@ -147,25 +148,25 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                     if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
                         // Background Color
                         ColorPickerSettingItem(
-                            "Clock background color",
+                            stringResource(R.string.clock_background_color),
                             settingsState.clockBgColor
                         ) { showClockBgPicker = true }
                         // Background Alpha
                         SettingSlider(
-                            label = "Background Transparency",
+                            label = stringResource(R.string.background_transparency),
                             value = (settingsState.clockBgAlpha * 100f).toInt(),
                             range = 0f..100f,
                             onValueChange = { settingsViewModel.setClockBgAlpha(it) }
                         )
                         // Hour Color
                         ColorPickerSettingItem(
-                            "Hour hand color",
+                            stringResource(R.string.hour_hand_color),
                             settingsState.clockHourColor
                         ) { showClockHourPicker = true }
                         Spacer(modifier = Modifier.height(8.dp))
                         // Minute Color
                         ColorPickerSettingItem(
-                            "Minute hand color",
+                            stringResource(R.string.minute_hand_color),
                             settingsState.clockMinuteColor
                         ) { showClockMinutePicker = true }
                     }
@@ -202,7 +203,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                 } else {
                     // Time Format
                     SettingDropdown(
-                        label = "Time Format",
+                        label = stringResource(R.string.title_time_format),
                         selectedValue = settingsState.timeFormat,
                         options = arrayOf("H12", "H24").map { it },
                         onValueChange = {
@@ -212,7 +213,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                     // Show AM/PM
                     if (settingsState.timeFormat == "H12") {
                         SettingSwitch(
-                            label = "Show AM/PM",
+                            label = stringResource(R.string.title_show_am_pm),
                             enabled = true,
                             checked = settingsState.showAmPm,
                             onCheckedChange = { settingsViewModel.setShowAmPm(it) }
@@ -220,7 +221,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                     }
                     // Time Font Size
                     SettingSlider(
-                        label = "Font Size",
+                        label = stringResource(R.string.title_font_size),
                         value = settingsState.timeFontSize,
                         range = 20f..100f,
                         onValueChange = { settingsViewModel.setTimeFontSize(it) }
@@ -228,7 +229,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
 
                     // Time Text Style
                     SettingDropdown(
-                        label = "Font Weight",
+                        label = stringResource(R.string.title_font_weight),
                         selectedValue = settingsState.timeFontWeight,
                         options = arrayOf("Light", "Normal", "Bold").map { it },
                         onValueChange = {
@@ -253,7 +254,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                             )
                         }
                         Row {
-                            Text("Font Style",
+                            Text(stringResource(R.string.title_font_style),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurface)
                             if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
@@ -275,7 +276,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                     }
                     if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
                         ColorPickerSettingItem(
-                            "Time font color",
+                            stringResource(R.string.title_time_font_color),
                             settingsState.timeFontColor
                         ) { showTimeFontColor = true }
                     }
@@ -287,7 +288,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                                 if(settingsState.hasPro){
                                     settingsViewModel.setTimeFontName(fontName)
                                 } else {
-                                    Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT).show()
                                 }
                                 showTimeFontDialog = false // Also dismiss dialog after selection
                             }
@@ -313,10 +314,10 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
             )
 
             // Date Settings
-            SettingSection("Date") {
+            SettingSection(stringResource(R.string.title_date)) {
                 // Date Font Size
                 SettingSlider(
-                    label = "Font Size",
+                    label = stringResource(R.string.title_font_size),
                     value = settingsState.dateFontSize,
                     range = 12f..40f,
                     onValueChange = { settingsViewModel.setDateFontSize(it) }
@@ -324,7 +325,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
 
                 // Date Text Style
                 SettingDropdown(
-                    label = "Font Weight",
+                    label = stringResource(R.string.title_font_weight),
                     selectedValue = settingsState.dateFontWeight,
                     options = arrayOf("Light", "Normal", "Bold").map { it },
                     onValueChange = {
@@ -349,11 +350,11 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                         )
                     }
                     Row {
-                        Text("Font Style",
+                        Text(stringResource(R.string.title_font_style),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface)
                         if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
-                            contentDescription = "Paid Feature",
+                            contentDescription = stringResource(R.string.paid_feature_title),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .size(15.dp)
@@ -361,7 +362,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                         )
                     }
                     Text(
-                        text = "Sat,Sept 16",
+                        text = stringResource(R.string.date_example),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.primary,
                         fontFamily = fontFamily,
@@ -371,19 +372,19 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                 }
                 if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
                     ColorPickerSettingItem(
-                        "Date font color",
+                        stringResource(R.string.date_font_color),
                         settingsState.dateFontColor
                     ) { showDateFontColor = true }
                 }
                 if (showDateFontDialog) {
                     FontSelectionDialog(
-                        sampleText = "Sat, Sept 16",
+                        sampleText = stringResource(R.string.date_example),
                         onDismissRequest = { showDateFontDialog = false },
                         onFontSelected = { fontName ->
                             if(settingsState.hasPro){
                                 settingsViewModel.setDateFontName(fontName)
                             } else {
-                                Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT).show()
                             }
                             showDateFontDialog = false // Also dismiss dialog after selection
                         }
@@ -408,28 +409,28 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
             )
 
             // Battery Settings
-            SettingSection("Battery") {
+            SettingSection(stringResource(R.string.title_battery)) {
                 SettingSwitch(
-                    label = "Show Battery Icon",
+                    label = stringResource(R.string.show_battery_icon),
                     enabled = true,
                     checked = settingsState.showBatteryIcon,
                     onCheckedChange = { settingsViewModel.setShowBatteryIcon(it) }
                 )
                 SettingSwitch(
-                    label = "Show Battery Percentage",
+                    label = stringResource(R.string.show_battery_percentage),
                     enabled = true,
                     checked = settingsState.showBatteryPercentage,
                     onCheckedChange = { settingsViewModel.setShowBatteryPercentage(it) }
                 )
                 SettingSlider(
-                    label = "Size",
+                    label = stringResource(R.string.title_font_size),
                     value = settingsState.batterySize,
                     range = 12f..40f,
                     onValueChange = { settingsViewModel.setBatterySize(it) }
                 )
                 if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
                     ColorPickerSettingItem(
-                        "Indicator color",
+                        stringResource(R.string.battery_indicator_color),
                         settingsState.batteryColor
                     ) { showBatteryColor = true }
                 }
@@ -452,22 +453,22 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                     color = DividerDefaults.color
                 )
                 // Notification Settings
-                SettingSection("Notifications") {
+                SettingSection(stringResource(R.string.title_notifications)) {
                     SettingSwitch(
-                        label = "Show Notification Icons",
+                        label = stringResource(R.string.show_notification_icons),
                         enabled = true,
                         checked = settingsState.showNotificationRow,
                         onCheckedChange = { settingsViewModel.setShowNotificationRow(it) }
                     )
                     SettingSlider(
-                        label = "Size",
+                        label = stringResource(R.string.title_size),
                         value = settingsState.notificationSize,
                         range = 12f..40f,
                         onValueChange = { settingsViewModel.setNotificationSize(it) }
                     )
                     if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
                         ColorPickerSettingItem(
-                            "Notification icons color",
+                            stringResource(R.string.title_color),
                             settingsState.notificationColor
                         ) { showNotificationColor = true }
                     }
@@ -524,7 +525,7 @@ fun SettingSwitch(label: String,
                 color = MaterialTheme.colorScheme.onSurface
             )
             if(!enabled)Icon(Icons.Filled.Lock,
-                contentDescription = "Paid Feature",
+                contentDescription = stringResource(R.string.paid_feature_title),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .size(15.dp)
@@ -778,7 +779,7 @@ fun EnhancedColorPicker(
                     .background(selectedColor, RoundedCornerShape(8.dp))
             ) {
                 Text(
-                    text = "Selected Color",
+                    text = stringResource(R.string.title_selected_color),
                     modifier = Modifier.align(Alignment.Center),
                     color = if (isColorDark(selectedColor)) Color.White else Color.Black
                 )
@@ -821,13 +822,13 @@ fun EnhancedColorPicker(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 TextButton(onClick = onDismissRequest) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel_text))
                 }
                 TextButton(onClick = {
                     onColorSelected(selectedColor)
                     onDismissRequest()
                 }) {
-                    Text("Set")
+                    Text(stringResource(R.string.button_text_save))
                 }
             }
         }
@@ -1134,7 +1135,7 @@ private fun AppIconWrapperWoDragging(
 
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = app.label.toString(),
+            text = app.label,
             style = MaterialTheme.typography.labelMedium,
             textAlign = TextAlign.Center,
             maxLines = 2,

@@ -13,7 +13,6 @@ import android.content.res.Resources
 import android.os.BatteryManager
 import android.os.Bundle
 import android.provider.Settings
-import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -169,6 +168,7 @@ import android.service.notification.StatusBarNotification
 import android.util.Log
 import android.view.WindowManager
 import android.widget.ImageView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -220,6 +220,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import com.google.android.play.core.install.model.InstallStatus
 import com.jeerovan.comfer.utils.CommonUtil.doesMatchSearch
@@ -272,7 +273,7 @@ data class WidgetProviderGroup(
     val providers: List<AppWidgetProviderInfo>
 )
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private val appInfoViewModel: AppInfoViewModel by viewModels()
     private val settingsViewModel:SettingsViewModel by viewModels()
     private val mainViewModel: MainViewModel by viewModels()
@@ -537,7 +538,7 @@ fun WidgetHostScreen(
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                 appWidgetHost.deleteAppWidgetId(appWidgetId)
             }
-            Toast.makeText(context, "Widget binding cancelled", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.widget_binding_cancelled), Toast.LENGTH_SHORT).show()
         }
     }
     fun checkConfigureWidget(provider: AppWidgetProviderInfo,appWidgetId:Int) {
@@ -586,7 +587,7 @@ fun WidgetHostScreen(
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                 appWidgetHost.deleteAppWidgetId(appWidgetId)
             }
-            Toast.makeText(context, "Widget binding cancelled", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.widget_binding_cancelled), Toast.LENGTH_SHORT).show()
         }
     }
     val sizeModifier = if(fullScreen) Modifier.fillMaxSize() else Modifier
@@ -626,7 +627,7 @@ fun WidgetHostScreen(
                     contentAlignment = Alignment.Center, // Center the Text inside the Box
                 ) {
                     Text(
-                        text = "Long press to add/edit widgets",
+                        text = stringResource(R.string.long_press_to_add_edit_widgets),
                         color = Color.White.copy(alpha = 0.8f),
                         fontSize = 20.sp,
                         textAlign = TextAlign.Center, // Ensure placeholder text is centered
@@ -805,7 +806,7 @@ fun WidgetAddButton(
         ) {
             Icon(
                 Icons.Filled.Add,
-                "Add Widget")
+                stringResource(R.string.add_widget))
         }
     }
 }
@@ -929,7 +930,7 @@ private fun WidgetInstance(
         ) {
             if (hasError) {
                 Text(
-                    text = "Could not load widget",
+                    text = stringResource(R.string.could_not_load_widget),
                     modifier = Modifier.fillMaxSize(),
                     textAlign = TextAlign.Center
                 )
@@ -1148,7 +1149,7 @@ private fun WidgetInstance(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Delete,
-                        contentDescription = "Remove"
+                        contentDescription = stringResource(R.string.remove_widget)
                     )
                 }
             }
@@ -1255,7 +1256,7 @@ fun WidgetPickerFullScreen(
             ) {
                 Icon(
                     imageVector = Icons.Filled.Close,
-                    contentDescription = "Close",
+                    contentDescription = stringResource(R.string.close),
                 )
             }
         }
@@ -1549,9 +1550,9 @@ fun QuickListOverlay(apps: List<AppInfo>,
 
     if(!guideShown && canShowGuide)GuideDialog(
         onDismiss = {onGuideDismiss()},
-        title = "Welcome to Comfer",
+        title = stringResource(R.string.welcome),
         steps = listOf(
-            "Long press the screen to open menu and checkout how to guide"
+            stringResource(R.string.checkout_how_to_guide)
         )
     )
 
@@ -1762,7 +1763,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     )
                                 ) {
                                     Text(
-                                        "Set default launcher",
+                                        stringResource(R.string.set_default_launcher),
                                         fontSize = 18.sp,
                                         color = Color.White
                                     )
@@ -1921,10 +1922,9 @@ fun SearchListOverlay(apps: List<AppInfo>,
 
     var showLocaleSelection by remember { mutableStateOf(false)}
     var keyboardLocale by remember { mutableStateOf(PreferenceManager.getKeyboardLocale(context)) }
-    fun onLocaleSelected(language:String) {
-        val newKeyboardLocale = KeyboardLocale.getLocaleFromLanguage(language)
-        keyboardLocale = newKeyboardLocale
-        PreferenceManager.setKeyboardLocale(context,newKeyboardLocale)
+    fun onLocaleSelected(locale:Locale) {
+        keyboardLocale = locale
+        PreferenceManager.setKeyboardLocale(context,locale)
         showLocaleSelection = false
     }
     fun onLocaleSelection(){
@@ -2026,7 +2026,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                     Tab(
                         selected = activeTab == SearchTab.APPS,
                         onClick = { onTabSelected(SearchTab.APPS) },
-                        text = { Text("Apps") },
+                        text = { Text(stringResource(R.string.applications)) },
                         // Let the Tab itself handle color changes based on its 'selected' state
                         selectedContentColor = MaterialTheme.colorScheme.primary,
                         unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -2036,7 +2036,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                     Tab(
                         selected = activeTab == SearchTab.CONTACTS,
                         onClick = { onTabSelected(SearchTab.CONTACTS) },
-                        text = { Text("Contacts") },
+                        text = { Text(stringResource(R.string.contacts)) },
                         selectedContentColor = MaterialTheme.colorScheme.primary,
                         unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -2099,7 +2099,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                     contentAlignment = Alignment.Center // Center the Text inside the Box
                 ) {
                     Text(
-                        text = inputText.ifEmpty { "Type text" },
+                        text = inputText.ifEmpty { stringResource(R.string.search) },
                         color = Color.White.copy(alpha = 0.8f),
                         fontSize = 20.sp,
                         textAlign = TextAlign.Center, // Ensure placeholder text is centered
@@ -2160,7 +2160,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                 if(showLocaleSelection){
                     LocaleSelectionDialog(
                         { showLocaleSelection = false},
-                        { language -> onLocaleSelected(language) }
+                        { locale -> onLocaleSelected(locale) }
                     )
                 }
             }
@@ -2251,14 +2251,14 @@ fun PermissionRequestView(onRequestPermission: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "This feature requires permission to access your contacts.",
+                text = stringResource(R.string.requires_contact_permission),
                 textAlign = TextAlign.Center
             )
             Button(onClick = onRequestPermission) {
-                Text("Grant Permission")
+                Text(stringResource(R.string.grant_permission))
             }
             Text(
-                text = "We respect your privacy and do not collect any of your data. Tap here to read our privacy policy.",
+                text = stringResource(R.string.privacy_policy_text),
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center,
                         modifier = Modifier.clickable {
@@ -2912,7 +2912,7 @@ fun AnimatedBackground(
                 .data(backgroundImage)
                 //.crossfade(true)
                 .build(),
-            contentDescription = "Background",
+            contentDescription = stringResource(R.string.background_image),
             modifier = Modifier
                 .fillMaxSize()
                 // The scale modifier is applied conditionally
@@ -3132,7 +3132,7 @@ fun AppIcon(app: AppInfo,
             if (app.foreground != null) {
                 Image(
                     painter = rememberDrawablePainter(drawable = app.foreground),
-                    contentDescription = app.label.toString(),
+                    contentDescription = app.label,
                     modifier = Modifier
                         .fillMaxSize()
                         .scale(app.scale),
@@ -3195,7 +3195,7 @@ fun SearchIcon(
     ) {
         Icon(
             painter = painterResource(R.drawable.outline_search_24),
-            contentDescription = "Search",
+            contentDescription = stringResource(R.string.search),
             modifier = Modifier.size(iconSize),
             tint = foregroundColor
         )
@@ -3241,13 +3241,13 @@ fun isAccessibilityServiceEnabled(context: Context, serviceClass: Class<*>): Boo
 fun FeedbackDialog(
     onDismissRequest: () -> Unit,
     onConfirmation: () -> Unit,
-    dialogTitle: String = "Enjoying Comfer?",
-    dialogText: String = "This app will never have ads.",
+    dialogTitle: String = stringResource(R.string.feedback),
+    dialogText: String = stringResource(R.string.feedback_text),
     icon: ImageVector = Icons.Outlined.Star
 ) {
     AlertDialog(
         icon = {
-            Icon(icon, contentDescription = "Dialog Icon")
+            Icon(icon, contentDescription = stringResource(R.string.feedback_icon))
         },
         title = {
             Text(text = dialogTitle, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
@@ -3265,7 +3265,7 @@ fun FeedbackDialog(
                     onConfirmation()
                 }
             ) {
-                Text("Rate It")
+                Text(stringResource(R.string.rate_comfer))
             }
         },
         dismissButton = {
@@ -3275,7 +3275,7 @@ fun FeedbackDialog(
                     onDismissRequest()
                 }
             ) {
-                Text("Later")
+                Text(stringResource(R.string.not_now))
             }
         }
     )
@@ -3298,47 +3298,47 @@ fun AccessibilityPermissionDisclosureScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Permission Required",
+                text = stringResource(R.string.permission_required),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "To enable the 'Recent Apps' shortcut, this launcher needs you to activate its Accessibility Service.",
+                text = stringResource(R.string.recent_apps_permission_title),
                 textAlign = TextAlign.Center,
                 fontSize = 16.sp
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = "What this service does:",
+                text = stringResource(R.string.what_recent_apps_short_do_title),
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Text(
-                text = "• Triggers the system's 'Recent Apps' screen.",
+                text = stringResource(R.string.what_recent_apps_short_do_content),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 8.dp)
             )
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = "This service does NOT:",
+                text = stringResource(R.string.what_recent_apps_short_do_not_title),
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Text(
-                text = "• Collect any personal data.\n• Monitor your actions or text you type.\n• Read your screen content.",
+                text = stringResource(R.string.what_recent_apps_short_do_not_content),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = 8.dp)
             )
             Spacer(modifier = Modifier.height(32.dp))
             Row {
                 Button(onClick = onContinue) {
-                    Text("Continue")
+                    Text(stringResource(R.string.continue_text))
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 OutlinedButton(onClick = onCancel) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel_text))
                 }
             }
         }
@@ -3427,7 +3427,7 @@ fun CircularButton(
         } else {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Backspace",
+                contentDescription = stringResource(R.string.backspace_key),
                 tint = Color.White,
                 modifier = Modifier.size(size * 0.45f) // Adjust icon size
             )
@@ -3541,7 +3541,7 @@ fun searchContacts(query: String, contactList: List<Contact>): List<Contact> {
 }
 fun placeCallWithDialer(context: Context, number: String?) {
     if (number.isNullOrBlank()) {
-        Toast.makeText(context, "Contact number is not available", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.contact_number_not_available), Toast.LENGTH_SHORT).show()
         return
     }
 
@@ -3553,7 +3553,7 @@ fun placeCallWithDialer(context: Context, number: String?) {
     if (intent.resolveActivity(context.packageManager) != null) {
         handleStartActivity(context,intent,null)
     } else {
-        Toast.makeText(context, "No app found to handle making phone calls", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.no_app_to_place_calls), Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -4053,15 +4053,18 @@ fun AutoUpdateManager(
             updateHandler.saveLastPromptTime()
         }
     }
-
+    val updateMessage = stringResource(R.string.update_available)
+    val updateAction = stringResource(R.string.update_action)
+    val updateDownloaded = stringResource(R.string.update_downloaded)
+    val updateInstall = stringResource(R.string.update_install)
     // 1. Check availability on trigger
     LaunchedEffect(shouldPromptUserCounter) {
         updateHandler.checkForUpdate(
             onUpdateAvailable = { updateInfo ->
                 scope.launch {
                     val result = snackbarHostState.showSnackbar(
-                        message = "Comfer update available.",
-                        actionLabel = "Update",
+                        message = updateMessage,
+                        actionLabel = updateAction,
                         withDismissAction = true,
                         duration = SnackbarDuration.Indefinite
                     )
@@ -4078,8 +4081,8 @@ fun AutoUpdateManager(
             onUpdateDownloaded = {
                 scope.launch {
                     val result = snackbarHostState.showSnackbar(
-                        message = "Update downloaded. Ready to install.",
-                        actionLabel = "Reload",
+                        message = updateDownloaded,
+                        actionLabel = updateInstall,
                         duration = SnackbarDuration.Indefinite
                     )
                     if (result == SnackbarResult.ActionPerformed) {
@@ -4098,8 +4101,8 @@ fun AutoUpdateManager(
                 scope.launch {
                     // Standard behavior: showSnackbar cancels any existing snackbar
                     val result = snackbarHostState.showSnackbar(
-                        message = "Update downloaded. Ready to install.",
-                        actionLabel = "Reload",
+                        message = updateDownloaded,
+                        actionLabel = updateInstall,
                         duration = SnackbarDuration.Indefinite
                     )
                     if (result == SnackbarResult.ActionPerformed) {
@@ -4545,9 +4548,9 @@ private fun constrainToBoundary(
 @Composable
 fun LocaleSelectionDialog(
     onDismissRequest: () -> Unit,
-    onLocaleSelected: (String) -> Unit
+    onLocaleSelected: (Locale) -> Unit
 ) {
-    val locales = KeyboardLocale.getLanguages()
+    val locales = KeyboardLocale.getSupportedLocales()
     Dialog(onDismissRequest = onDismissRequest) {
         // A Surface to provide a background and shape for the dialog
         Surface(
@@ -4555,18 +4558,18 @@ fun LocaleSelectionDialog(
             tonalElevation = 8.dp
         ) {
             LazyColumn(modifier = Modifier.padding(vertical = 16.dp)) {
-                items(locales) { language ->
+                items(locales) { locale ->
 
                     // A list item that is clickable to select
                     ListItem(
                         headlineContent = {
                             Text(
-                                text = language,
+                                text = locale.getDisplayName(locale),
                                 fontSize = 30.sp
                             )
                         },
                         modifier = Modifier.clickable {
-                            onLocaleSelected(language)
+                            onLocaleSelected(locale)
                             onDismissRequest() // Close the dialog on selection
                         }
                     )

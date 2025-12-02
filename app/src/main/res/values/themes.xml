@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Comfer" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.Comfer" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowShowWallpaper">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <!-- Apply a custom animation style -->

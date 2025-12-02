@@ -57,6 +57,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -196,7 +197,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Move to Quick",
+                            contentDescription = stringResource(R.string.button_to_move_app_to_quick_app_list),
                         )
                     }
                 }
@@ -219,7 +220,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "Move to Primary"
+                            contentDescription = stringResource(R.string.button_to_move_app_to_primary_app_list)
                         )
                     }
                 }
@@ -258,7 +259,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Move to Primary",
+                            contentDescription = stringResource(R.string.button_to_move_app_to_primary_app_list),
                         )
                     }
                 }
@@ -281,7 +282,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = "Move to Ghost"
+                            contentDescription = stringResource(R.string.button_to_move_app_to_ghost_app_list)
                         )
                     }
                 }

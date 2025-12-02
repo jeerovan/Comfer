@@ -157,45 +157,8 @@ object KeyboardLocale {
         )
     )
 
-    // Fallback
-    private val Fallback = English
-    fun getLanguages(): List<String> {
-        return listOf(
-            "English"    ,
-        "Español"   ,
-        "Français"  ,
-        "Deutsch"  ,
-        "Português" ,
-        "Italiano"  ,
-        "Русский"  ,
-        "Українська"  ,
-        "Ελληνικά"   ,
-        "العربية"   ,
-        "עברית" ,
-        "हिन्दी"
-        )
-    }
-    fun getLocaleFromLanguage(language:String): Locale {
-        val localeTag = when (language) {
-            "English"      -> "en"
-            "Español"      -> "es"
-            "Français"     -> "fr"
-            "Deutsch"      -> "de"
-            "Português"    -> "pt"
-            "Italiano"     -> "it"
-            "Русский"      -> "ru"
-            "Українська"   -> "uk"
-            "Ελληνικά"     -> "el"
-            "العربية"      -> "ar"
-            "עברית"        -> "he"
-            "हिन्दी"        -> "hi"
-            else           -> "en"
-        }
-        return Locale.forLanguageTag(localeTag)
-    }
-    fun getCharsForLanguage(language: String): List<List<String>> {
-        val locale = getLocaleFromLanguage(language)
-        return getCharsForLocale(locale)
+    fun getSupportedLocales(): List<Locale> {
+        return listOf("en","es","fr","de","pt","it","ru","uk","el","ar","he","hi").map{Locale.forLanguageTag(it)}
     }
     fun getCharsForLocale(locale: Locale): List<List<String>> {
         return when (locale.language) {
@@ -211,7 +174,7 @@ object KeyboardLocale {
             "ar" -> Arabic
             "he", "iw" -> Hebrew // "iw" is legacy code for Hebrew
             "hi" -> Hindi
-            else -> Fallback
+            else -> English
         }
     }
 }

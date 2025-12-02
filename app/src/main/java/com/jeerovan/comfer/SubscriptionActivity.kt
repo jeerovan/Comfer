@@ -51,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -107,6 +108,7 @@ class SubscriptionActivity : ComponentActivity() {
 fun SubscriptionScreen(
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
     var offerings by remember { mutableStateOf<Offerings?>(null) }
     var customerInfo by remember { mutableStateOf<CustomerInfo?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -154,7 +156,7 @@ fun SubscriptionScreen(
             )
         } catch (e: TimeoutCancellationException) {
             isLoading = false
-            errorMessage = "Unable to load subscription information. Please check your connection and try again."
+            errorMessage = context.getString(R.string.unable_to_load_subscriptions)
             // Optionally log this error to your crash reporting service
         }
     }
@@ -179,7 +181,7 @@ fun SubscriptionScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Failed to load subscription",
+                        text = stringResource(R.string.unable_to_load_subscriptions_title),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -216,7 +218,7 @@ fun SubscriptionScreen(
 
             else -> {
                 Text(
-                    text = "No subscription available",
+                    text = stringResource(R.string.no_subscription_available),
                     modifier = Modifier.align(Alignment.Center),
                     style = MaterialTheme.typography.bodyLarge
                 )
@@ -268,7 +270,7 @@ private fun SubscribedContent(
             shape = RoundedCornerShape(20.dp)
         ) {
             Text(
-                text = "ACTIVE SUBSCRIPTION",
+                text = stringResource(R.string.title_active_subscription),
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
@@ -281,11 +283,13 @@ private fun SubscribedContent(
         // Subscription info
         expirationDate?.let { date ->
             val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+            val renewOnPrefix = stringResource(R.string.subscription_renews_on)
+            val expiresOnPrefix = stringResource(R.string.subscription_expires_on)
             Text(
                 text = if (activeEntitlement.willRenew) {
-                    "Renews on ${dateFormat.format(date)}"
+                    "$renewOnPrefix  ${dateFormat.format(date)}"
                 } else {
-                    "Expires on ${dateFormat.format(date)}"
+                    "$expiresOnPrefix ${dateFormat.format(date)}"
                 },
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -309,10 +313,10 @@ private fun SubscribedContent(
                     .fillMaxWidth()
                     .padding(24.dp)
             ) {
-                BenefitItem("Set your own dynamic wallpapers")
-                BenefitItem("Set your favorite widgets on home screen")
-                BenefitItem("Customize default widgets on home screen")
-                BenefitItem("Magic gestures to open apps quickly")
+                BenefitItem(stringResource(R.string.subscription_benefit_one))
+                BenefitItem(stringResource(R.string.subscription_benefit_two))
+                BenefitItem(stringResource(R.string.subscription_benefit_three))
+                BenefitItem(stringResource(R.string.subscription_benefit_four))
             }
         }
 
@@ -352,7 +356,7 @@ private fun SubscribedContent(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Manage Subscription",
+                text = stringResource(R.string.title_manage_your_subscription),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -380,9 +384,10 @@ private fun SubscriptionContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        val yearSuffix = stringResource(R.string.title_year)
         // Title
         Text(
-            text = "Pro Access",
+            text = stringResource(R.string.title_pro_access),
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
@@ -399,7 +404,7 @@ private fun SubscriptionContent(
         )
 
         Text(
-            text = "/year",
+            text = "/$yearSuffix",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -425,10 +430,10 @@ private fun SubscriptionContent(
                     .fillMaxWidth()
                     .padding(24.dp)
             ) {
-                BenefitItem("Set your own dynamic wallpapers")
-                BenefitItem("Set your favorite widgets on home screen")
-                BenefitItem("Customize default widgets on home screen")
-                BenefitItem("Magic gestures to open apps quickly")
+                BenefitItem(stringResource(R.string.subscription_benefit_one))
+                BenefitItem(stringResource(R.string.subscription_benefit_two))
+                BenefitItem(stringResource(R.string.subscription_benefit_three))
+                BenefitItem(stringResource(R.string.subscription_benefit_four))
             }
         }
 
@@ -443,18 +448,20 @@ private fun SubscriptionContent(
                     onError = { error, userCancelled ->
                         isPurchasing = false
                         if (!userCancelled) {
+                            val subscriptionFailedPrefix = context.getString(R.string.subscription_failed_prefix)
                             Toast.makeText(
                                 context,
-                                "Purchase failed: ${error.message}",
+                                "$subscriptionFailedPrefix : ${error.message}",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
                     },
                     onSuccess = { _, customerInfo ->
                         isPurchasing = false
+                        val subscriptionSuccessfulPrefix = context.getString(R.string.subscription_successful_prefix)
                         Toast.makeText(
                             context,
-                            "Successfully subscribed!",
+                            "$subscriptionSuccessfulPrefix !",
                             Toast.LENGTH_SHORT
                         ).show()
                         onSubscriptionSuccess(customerInfo)
@@ -478,7 +485,7 @@ private fun SubscriptionContent(
                 )
             } else {
                 Text(
-                    text = "Subscribe Now",
+                    text = stringResource(R.string.title_subscribe_now),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -495,25 +502,28 @@ private fun SubscriptionContent(
                 Purchases.sharedInstance.restorePurchasesWith(
                     onError = { error ->
                         isRestoring = false
+                        val restoreFailedPrefix = context.getString(R.string.subscription_restore_failed_prefix)
                         Toast.makeText(
                             context,
-                            "Restore failed: ${error.message}",
+                            "$restoreFailedPrefix : ${error.message}",
                             Toast.LENGTH_SHORT
                         ).show()
                     },
                     onSuccess = { customerInfo ->
                         isRestoring = false
                         if (customerInfo.entitlements.active.isNotEmpty()) {
+                            val restoredSuccessfulPrefix = context.getString(R.string.subscription_restore_successful_prefix)
                             Toast.makeText(
                                 context,
-                                "Purchases restored successfully!",
+                                restoredSuccessfulPrefix,
                                 Toast.LENGTH_SHORT
                             ).show()
                             onRestoreSuccess(customerInfo)
                         } else {
+                            val noSubscriptionFound = context.getString(R.string.subscription_not_found_to_restore)
                             Toast.makeText(
                                 context,
-                                "No purchases found to restore",
+                                noSubscriptionFound,
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -529,7 +539,7 @@ private fun SubscriptionContent(
                 )
             } else {
                 Text(
-                    text = "Restore Purchase",
+                    text = stringResource(R.string.title_restore_subscription),
                     style = MaterialTheme.typography.bodyLarge,
                     textDecoration = TextDecoration.Underline,
                     color = MaterialTheme.colorScheme.primary
