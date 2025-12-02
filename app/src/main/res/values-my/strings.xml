@@ -308,7 +308,7 @@
     <string name="guide_horizontal_app_drawer_swipe_down">နောက်သို့ ပြန်ရန် အောက်သို့ swipe လုပ်ပါ။</string>
     <string name="guide_horizontal_app_drawer_swipe_left_right">လှိမ့်ကြည့်ရန် ဘယ်/ညာ swipe လုပ်ပါ။</string>
     <string name="guide_horizontal_app_drawer_long_press">App drawer ကို စီမံခန့်ခွဲရန် ရှည်နှိပ်ပါ။</string>
-    <string name="guide_horizontal_app_drawer_drag_drop">Edit mode ထဲတွင် icons များကို drag &amp; drop လုပ်ကာ တည်နေရာ ပြောင်းလဲနိုင်သည်။</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">Edit mode ထဲတွင် icons များကို drag - drop လုပ်ကာ တည်နေရာ ပြောင်းလဲနိုင်သည်။</string>
     <string name="guide_horizontal_app_drawer_drag">Edit mode ထဲတွင် drawer ကို အပေါ်/အောက် လှုပ်ရှားရန် drag လုပ်ပါ။</string>
     <string name="guide_horizontal_app_drawer_single_tap">Edit mode မှ ထွက်ရန် တစ်ကြိမ် တို့တ်ပါ။</string>
 

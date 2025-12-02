@@ -180,7 +180,7 @@
     <string name="themed_icons_text">Phối màu biểu tượng theo hình nền (thử nghiệm)</string>
     <string name="icon_themed_icons">Biểu tượng "icon theo chủ đề"</string>
 
-    <string name="title_notification_badges">Thông báo &amp; chấm trên biểu tượng</string>
+    <string name="title_notification_badges">Thông báo - chấm trên biểu tượng</string>
     <string name="requires_notification_permission">Cần quyền truy cập thông báo</string>
     <string name="icon_notification_badges">Biểu tượng chấm thông báo</string>
 
@@ -308,7 +308,7 @@
     <string name="guide_horizontal_app_drawer_swipe_down">Vuốt xuống để quay lại.</string>
     <string name="guide_horizontal_app_drawer_swipe_left_right">Vuốt trái/phải để cuộn.</string>
     <string name="guide_horizontal_app_drawer_long_press">Nhấn giữ để quản lý ngăn ứng dụng.</string>
-    <string name="guide_horizontal_app_drawer_drag_drop">Trong chế độ chỉnh sửa, kéo &amp; thả biểu tượng để đổi vị trí.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">Trong chế độ chỉnh sửa, kéo - thả biểu tượng để đổi vị trí.</string>
     <string name="guide_horizontal_app_drawer_drag">Trong chế độ chỉnh sửa, kéo cả ngăn ứng dụng để di chuyển theo chiều dọc.</string>
     <string name="guide_horizontal_app_drawer_single_tap">Chạm một lần để thoát chế độ chỉnh sửa.</string>
 

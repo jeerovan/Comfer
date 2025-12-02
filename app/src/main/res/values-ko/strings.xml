@@ -308,7 +308,7 @@
     <string name="guide_horizontal_app_drawer_swipe_down">아래로 스와이프하여 뒤로 돌아갑니다.</string>
     <string name="guide_horizontal_app_drawer_swipe_left_right">왼쪽/오른쪽으로 스와이프하여 스크롤합니다.</string>
     <string name="guide_horizontal_app_drawer_long_press">길게 눌러 서랍을 관리합니다.</string>
-    <string name="guide_horizontal_app_drawer_drag_drop">편집 모드에서 아이콘을 드래그&amp;드롭하여 위치를 변경합니다.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">편집 모드에서 아이콘을 드래그-드롭하여 위치를 변경합니다.</string>
     <string name="guide_horizontal_app_drawer_drag">편집 모드에서 서랍을 드래그하여 위/아래로 이동합니다.</string>
     <string name="guide_horizontal_app_drawer_single_tap">한 번 탭하여 편집 모드를 종료합니다.</string>
 
