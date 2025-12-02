@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">Hoş geldiňiz</string>
+
+    <string name="checkout_how_to_guide">
+        Baş ekranyň (Home screen) islendik ýerine uzak basyp menyuny açyň we "How-to" gollanmasyny görüň.\n
+        Bildiriş: Käbir terjimeler awtomatiki döredilen bolup biler. Nädogry ýa-da düşnüksiz tekst görseňiz, haýyş edýäris, e-poçta arkaly bize habar beriň.
+    </string>
+
+    <string name="accessibility_service_description">
+        Bu hyzmat ulgamdaky "Recent Apps" (Soňky aplikasiýalar) ekranlaryny açmak üçin gerek. Comfer bu rugsady diňe şu shortcut-y taýýarlamak üçin ulanýar we hiç hili şahsy maglumatlaryňyzy ýygnamaýar ýa-da gözegçilik etmeýär.
+    </string>
+
+    <string name="set_default_launcher">Esasy launcher hökmünde sazla</string>
+    <string name="widget_binding_cancelled">Widget sazlamasy ýatyryldy</string>
+    <string name="long_press_to_add_edit_widgets">Widget goşmak ýa-da üýtgetmek üçin uzak basyň</string>
+
+    <string name="add_widget">Widget goş</string>
+    <string name="could_not_load_widget">Widget ýüklenmedi</string>
+    <string name="remove_widget">Widget poz</string>
+
+    <string name="close">Ýap</string>
+    <string name="applications">Aplikasiýalar</string>
+    <string name="contacts">Kontaktlar</string>
+    <string name="search">Gözleg</string>
+
+    <string name="requires_contact_permission">
+        Kontaktlary gözlemek we jaň etmek üçin kontaktlara rugsat (contact permission) gerek.
+    </string>
+
+    <string name="grant_permission">Rugsat ber</string>
+
+    <string name="privacy_policy_text">
+        Biz siziň şahsyýetiňizi hormatlaýarys. Comfer hiç hili şahsy maglumaty ýygnamaýar ýa-da saklamaýar. Gizlinlik syýasatymyzy okaýyş üçin şu ýere basyň.
+    </string>
+
+    <string name="background_image">Arka surat</string>
+    <string name="feedback">Teswir</string>
+    <string name="feedback_text">Tejribäňizi paýlaşyň we Comfer-i has gowy etmäge kömek ediň.</string>
+    <string name="feedback_icon">Teswir ikonkasy</string>
+
+    <string name="rate_comfer">Comfer-e baha ber</string>
+    <string name="not_now">Häzir däl</string>
+
+    <string name="permission_required">Rugsat gerek</string>
+
+    <string name="recent_apps_permission_title">
+        "Recent Apps" shortcut-yny işledip bilmek üçin Comfer-e Accessibility Service rugsady gerek.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">Bu hyzmat şulary edýär:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • Ulgamyň "Recent Apps" ekranlaryny açýar.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">Bu hyzmat şulary etmeýär:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • Şahsy maglumat ýygnamaýar.\n
+        • Edýän hereketleriňize ýa-da ýazýan tekstiňize gözegçilik etmeýär.\n
+        • Ekranyň mazmunyny okaýan däldir.
+    </string>
+
+    <string name="continue_text">Dowam et</string>
+    <string name="cancel_text">Ýatyr</string>
+    <string name="backspace_key">Backspace düwmesi</string>
+
+    <string name="contact_number_not_available">Bu kontakt üçin telefon belgisi ýok</string>
+    <string name="no_app_to_place_calls">Jaň etmek üçin programma tapylmady</string>
+
+    <string name="update_available">Täze täzeleme (update) bar.</string>
+    <string name="update_action">Täzele</string>
+    <string name="update_downloaded">Täzelemegiňiz gurmaga taýýar.</string>
+    <string name="update_install">Gur</string>
+
+    <string name="select_an_application">Aplikasiýa saýlaň</string>
+
+    <string name="gesture_shortcuts_title">Gesture shortcuts</string>
+    <string name="paid_feature_title">Tölegli mümkinçilik</string>
+
+    <string name="tap_icon_to_select_app">Aplikasiýa saýlamak üçin ikonanyň üstüne basyň</string>
+
+    <string name="requires_subscription">Abuna (subscription) gerek</string>
+
+    <string name="button_to_move_app_to_quick_app_list">Home Apps sanawyna geçir</string>
+    <string name="button_to_move_app_to_primary_app_list">App drawer sanawyna geçir</string>
+    <string name="button_to_move_app_to_ghost_app_list">Gizlin aplikasyonlar sanawyna geçir</string>
+
+    <string name="title_widgets">Widgets</string>
+    <string name="title_time">Wagt</string>
+    <string name="rest_widget_positions">Widget pozisiýalaryny täzeden goý</string>
+
+    <string name="title_analog_clock">Analog sagat</string>
+    <string name="title_clock_size">Sagadyň ölçegi</string>
+    <string name="clock_background_color">Sagadyň arka reňki</string>
+    <string name="background_transparency">Arka fonuň läbikligi</string>
+    <string name="hour_hand_color">Sagat görkezijisiniň reňki</string>
+    <string name="minute_hand_color">Minut görkezijisiniň reňki</string>
+
+    <string name="title_time_format">Wagt formaty</string>
+    <string name="title_show_am_pm">AM/PM görkez</string>
+    <string name="title_font_size">Şriftiň ölçegi</string>
+    <string name="title_font_weight">Şriftiň inçeligi/galynlygy</string>
+    <string name="title_font_style">Şrift stili</string>
+    <string name="title_time_font_color">Wagt şrift reňki</string>
+
+    <string name="title_date">Sene</string>
+    <string name="date_example">Şen, Sen 16</string>
+    <string name="date_font_color">Sene şrift reňki</string>
+
+    <string name="title_battery">Batareýa</string>
+    <string name="show_battery_icon">Batareýa ikonkasyny görkez</string>
+    <string name="show_battery_percentage">Batareýanyň göterimini görkez</string>
+    <string name="battery_indicator_color">Indikatoryň reňki</string>
+
+    <string name="title_notifications">Bildirişler</string>
+    <string name="show_notification_icons">Bildiriş ikonkalaryny görkez</string>
+
+    <string name="title_size">Ölçegi</string>
+    <string name="title_color">Reňk</string>
+    <string name="title_selected_color">Saýlanan reňk</string>
+
+    <string name="button_text_save">Sakla</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">Pro aýratynlyklar</string>
+    <string name="title_subscription">Subscription</string>
+    <string name="go_to_page">Sahypany aç</string>
+
+    <string name="title_support">Goldaw</string>
+    <string name="title_how_to">Näme edip bolýar</string>
+    <string name="title_app_guide">Aplikasiýa navigasiýa gollanmasy</string>
+
+    <string name="icon_how_to_guide">"How-to" gollanma ikonasy</string>
+    <string name="icon_arrow_right">Saga ok ikonasy</string>
+
+    <string name="title_report_issue">Nätärelligi habar ber</string>
+    <string name="icon_support">Goldaw ikonasy</string>
+
+    <string name="title_wallpapers">Wallpapers</string>
+    <string name="title_auto_wallpapers">Auto wallpapers</string>
+    <string name="auto_wallpaper_text">Wallpapers awtomatiki çalşylsyn</string>
+    <string name="icon_wallpaper">Wallpaper ikonasy</string>
+
+    <string name="title_monochrome">Monochrome fon</string>
+    <string name="title_color_less_world">Reňksiz (color-less) režim</string>
+    <string name="icon_monochrome">Monochrome ikonasy</string>
+
+    <string name="title_wallpaper_motion">Wallpaper motion</string>
+    <string name="wallpaper_motion_text">Baş ekrany has janly et</string>
+    <string name="icon_wallpaper_motion">Wallpaper motion ikonasy</string>
+
+    <string name="title_change_wallpaper">Wallpaper çalyş</string>
+    <string name="change_wallpaper_text">Şu wagt wallpaper çalyşmak üçin basyň</string>
+    <string name="icon_wallpaper_change">Wallpaper çalyş ikonasy</string>
+
+    <string name="title_wallpaper_frequency">Çalyşylýan ýygylyk</string>
+    <string name="wallpaper_frequency_text">Awtomatiki gün/gece režimi bilen</string>
+    <string name="icon_wallpaper_frequency">Wallpaper ýygylyk ikonasy</string>
+
+    <string name="title_own_wallpapers">Öz wallpapers-leriňizi goýuň</string>
+    <string name="wallpaper_directory_select">Papka saýlamak üçin basyň</string>
+    <string name="icon_wallpaper_directory">Wallpaper papka ikonasy</string>
+
+    <string name="set_launcher_first">Ilki bilen Comfer-i deslapky launcher hökmünde sazlanyň</string>
+
+    <string name="title_lock_screen">Lock screen</string>
+    <string name="lock_screen_wallpaper_text">Şu wallpaper-i lock screen-de hem ulan</string>
+    <string name="icon_lock_screen_wallpaper">Lock screen wallpaper ikonasy</string>
+
+    <string name="title_app_icons">Aplikasiýa ikonkalary</string>
+    <string name="title_app_icon_size">Ikonkanyň ölçegi</string>
+    <string name="icon_app_icon_size">App icon size ikonasy</string>
+    <string name="button_decrease_app_icon_size">Ikonkany kiçelt</string>
+    <string name="button_increase_app_icon_size">Ikonkany ulalt</string>
+
+    <string name="title_themed_icons">Themed icons</string>
+    <string name="themed_icons_text">Ikonka reňklerini wallpaper reňkleri bilen utgaşdyr (synagdaky)</string>
+    <string name="icon_themed_icons">Themed icons ikonasy</string>
+
+    <string name="title_notification_badges">Bildiriş we ikon badge-ler</string>
+    <string name="requires_notification_permission">Notification rugsady gerek</string>
+    <string name="icon_notification_badges">Notification badges ikonasy</string>
+
+    <string name="title_home_screen">Baş ekran (Home screen)</string>
+    <string name="title_custom_widgets">Custom widgets</string>
+    <string name="custom_widgets_text">Halaýan widgets-leriňiz</string>
+    <string name="icon_custom_widgets">Custom widgets ikonasy</string>
+
+    <string name="title_quick_apps_layout">Home Apps layout</string>
+    <string name="quick_apps_layout_text">Aplikasiýalary tertipli görnüşde ýerleşdiriň</string>
+    <string name="icon_apps_layout">Home Apps layout ikonasy</string>
+
+    <string name="title_left_swipe_action">Çep Swipe hereketi</string>
+    <string name="icon_left_swipe_action">Çep swipe ikonasy</string>
+
+    <string name="title_right_swipe_action">Saga Swipe hereketi</string>
+    <string name="icon_right_swipe_action">Saga swipe ikonasy</string>
+
+    <string name="title_swipe_gestures">Swipe gestures</string>
+    <string name="swipe_gestures_text">Aplikasiýa shortcut-lary üçin gesture ulanyň</string>
+    <string name="icon_swipe_gestures">Swipe gestures ikonasy</string>
+
+    <string name="title_app_drawer">App drawer</string>
+    <string name="title_app_drawer_layouts">Layouts</string>
+    <string name="app_drawer_layouts_text">Aplikasiýalary gözlemek üçin dürli stiller</string>
+
+    <string name="title_alphabetical_order">Elipbiý tertibi</string>
+    <string name="alphabetical_order_text">Aplikasiýalary elipbiý boýunça tertipleşdir</string>
+    <string name="icon_alphabetical_order">Alphabetical order ikonasy</string>
+
+    <string name="title_apps_list">Apps sanawlary</string>
+    <string name="title_manage_app_list">Aplikasiýalary dolandyr</string>
+    <string name="manage_app_list_text">Aplikasiýalary sanawlarda tertipleşdir ýa-da tertibini üýtget</string>
+    <string name="icon_manage_app_list">Manage app list ikonasy</string>
+
+    <string name="title_feedback">Teswir</string>
+    <string name="icon_feedback">Feedback ikonasy</string>
+
+    <string name="title_share_app">Aplikasiýany paýlaş</string>
+    <string name="icon_share_app">Share app ikonasy</string>
+    <string name="share_app_text">Şu täze launcher-i synap görüň:</string>
+
+    <string name="title_share_with">Paýlaşmak üçin</string>
+
+    <string name="title_app_version">Aplikasiýanyň wersiýasy</string>
+    <string name="icon_app_version">App version ikonasy</string>
+
+    <string name="title_icon_shapes">Ikonka şekilleri</string>
+    <string name="icon_shapes_text">App ikonkasynyň şeklini saýlaň</string>
+    <string name="icon_icon_shapes">Icon shapes ikonasy</string>
+
+    <string name="title_select_icon_shape">Ikonka şeklini saýla</string>
+
+    <string name="notification_permission_text">
+        Home screen-de bildiriş ikonkalaryny hem-de app ikonkalarynda badge-leri görkezmek üçin Comfer-e notification access gerek.
+    </string>
+
+    <string name="what_notification_permission_do_title">Bu hyzmat şulary edýär:</string>
+
+    <string name="what_notification_permission_do_text">
+        • Bildirişleriň ýagdaýyny okaýar we zerurlykda ikonka we badge-leri görkezýär.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">Bu hyzmat şulary etmeýär:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • Şahsy maglumat ýygnamaýar.
+    </string>
+
+    <string name="title_choose_layout">Layout saýla</string>
+    <string name="swipe_action_selection">Aplikasiýa ýa-da Widgets screen saýla</string>
+    <string name="title_choose_options">Sazlama saýla</string>
+    <string name="title_select_app">App saýla</string>
+    <string name="title_widgets_screen">Widgets screen</string>
+    <string name="title_choose_action">Hereket saýla</string>
+
+    <string name="unable_to_load_subscriptions">
+        Subscription maglumaty ýüklenmedi. Internet birikmäňizi barlap gaýtadan synanyşyň.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">Subscription ýüklenmedi</string>
+    <string name="no_subscription_available">Hiç hili subscription ýok</string>
+
+    <string name="title_active_subscription">Işjeň subscription</string>
+    <string name="subscription_renews_on">Täzelenjek senesi</string>
+    <string name="subscription_expires_on">Möhleti gutarjak senesi</string>
+
+    <string name="subscription_benefit_one">Özüňiziň dynamic wallpapers-leriňizi goýuň</string>
+    <string name="subscription_benefit_two">Halaýan widgets-leriňizi Baş ekrana goşuň</string>
+    <string name="subscription_benefit_three">Baş ekrandaky default widgets-leri özüňize görä sazlaň</string>
+    <string name="subscription_benefit_four">Aplikasiýalary gesture arkaly çalt açyň</string>
+
+    <string name="title_manage_your_subscription">Subscription-laryňyzy dolandyryň</string>
+    <string name="title_pro_access">Pro access</string>
+    <string name="title_year">ýyl</string>
+
+    <string name="subscription_failed_prefix">Subscription şowsuz boldy</string>
+    <string name="subscription_successful_prefix">Subscription üstünlikli</string>
+    <string name="title_subscribe_now">Häzir subscribe et</string>
+
+    <string name="subscription_restore_failed_prefix">Subscription dikeltmek şowsuz boldy</string>
+    <string name="subscription_restore_successful_prefix">Subscription üstünlikli dikeldildi</string>
+    <string name="subscription_not_found_to_restore">Dikeltmek üçin subscription tapylmady</string>
+    <string name="title_restore_subscription">Subscription dikelt</string>
+
+    <string name="guide_home_swipe_up">App drawer açmak üçin ýokarlyga swipe ediň.</string>
+    <string name="guide_home_swipe_down">Bildirişleri görmek üçin aşaklygyna swipe ediň.</string>
+    <string name="guide_home_double_tap">"Recent Apps" açmak üçin ekrana iki sapar basyň.</string>
+    <string name="guide_home_long_press_lower">Settings açmak üçin ekrananyň aşaky ýarymyna uzak basyň.</string>
+    <string name="guide_home_long_press_upper">Widgets redaktirlemek üçin ekrananyň ýokarky ýarymyna uzak basyň.</string>
+    <string name="guide_home_tap_upper_half">Widget redaktirleme režiminden çykmak üçin ekrananyň ýokarky ýarymyna basyň.</string>
+    <string name="guide_home_tap_date_time">Alarm-lary görmek üçin sene/wagt bölüminiň üstüne basyň.</string>
+    <string name="guide_home_long_press_date_time">Kalendar açmak üçin sene/wagt bölüminiň üstüne uzak basyň.</string>
+    <string name="guide_home_swipe_left_right">Saýlanan app ýa-da Widgets screen açmak üçin çepe/saga swipe ediň.</string>
+    <string name="guide_home_gestures">"Gesture Shortcuts" bölüminde bellenen gestures-leri çekip app açyň.</string>
+
+    <string name="guide_circular_app_drawer">Tegelek App drawer</string>
+    <string name="guide_circular_app_drawer_swipe_down">Yza gaýtmak üçin aşaklygyna swipe ediň.</string>
+    <string name="guide_circular_app_drawer_double_tap">Ortandaky app-i açmak üçin iki sapar basyň.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">Scroll etmek üçin çepe/saga swipe ediň.</string>
+    <string name="guide_circular_app_drawer_tap_icon">App açmak üçin ikonanyň üstüne basyň.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">App maglumatlaryny (app info) açmak üçin ikonanyň üstüne uzak basyň.</string>
+
+    <string name="guide_horizontal_app_drawer">Ýatyrlygyna (horizontal) App drawer</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">Yza gaýtmak üçin aşaklygyna swipe ediň.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">Scroll üçin çepe/saga swipe ediň.</string>
+    <string name="guide_horizontal_app_drawer_long_press">App drawer dolandyrmak üçin uzak basyň.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">Edit režiminde ikonkalary drag - drop edip ýerini üýtgediň.</string>
+    <string name="guide_horizontal_app_drawer_drag">Edit režiminde drawer-i ýokarlyga/aşaklygyna süýşürip dik pozisiýasyny üýtgediň.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">Edit režiminden çykmak üçin bir sapar basyň.</string>
+
+    <string name="guide_search">Aplikasiýalary ýa-da kontaktlary gözläň.</string>
+    <string name="guide_search_swipe_down">Yza gaýtmak üçin klawiaturada aşaklygyna swipe ediň.</string>
+    <string name="guide_search_swipe_right">Kontaktlary gözlemek üçin klawiaturada saga swipe ediň.</string>
+    <string name="guide_search_swipe_left">Aplikasiýalary gözlemek üçin klawiaturada çepe swipe ediň.</string>
+    <string name="guide_search_swipe_up">Has köp belgini görmek üçin klawiaturada ýokarlyga swipe ediň.</string>
+    <string name="guide_search_long_press">Dil saýlamak üçin merkezdäki back okuna uzak basyň.</string>
+    <string name="guide_search_scroll_list">Netijeleriň hemmesini görmek üçin app sanawyny ýatyrlygyna scroll ediň.</string>
+    <string name="guide_search_scroll_sides">Kontakt sanawyny scroll etmek üçin tegelek klawiaturanyň gapdaly bilen scroll ediň.</string>
+    <string name="guide_search_double_tap_sides">Belligi goýlan kontakt bilen dialer açmak üçin tegelek klawiaturanyň islendik gapdalyna iki sapar basyň.</string>
+
+    <string name="guide_manage_apps">Apps sanawyny dolandyr</string>
+    <string name="guide_manage_apps_tap">App saýlap ony başga sanawa geçirmek üçin basyň.</string>
+    <string name="guide_manage_apps_long_press">
+        Şol bir sanawdaky tertibi üýtgetmek üçin app ikonkasyna uzak basyň we süýşüriň. Bu diňe sanaw elipbiý boýunça tertiplenmedik bolsa işleýär.
+    </string>
+
+    <string name="title_app_language">App dili</string>
+    <string name="app_language_text">App dilini üýtgetmek üçin basyň</string>
+    <string name="icon_app_language">App language ikonasy</string>
+</resources>

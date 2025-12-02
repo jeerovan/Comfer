@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">ຍິນດີຕ້ອນຮັບ</string>
+
+    <string name="checkout_how_to_guide">
+        ກົດຄ້າງໃນຈຸດໃດກໍໄດ້ໃນໜ້າ Home screen ເພື່ອເປີດເມນູ ແລະເບິ່ງຄູ່ມື "How-to".\n
+        ໝາຍເຫດ: ຂໍ້ຄວາມບາງສ່ວນອາດຖືກແປໂດຍອັດຕະໂນມັດ. ຖ້າທ່ານເຫັນຂໍ້ຄວາມບໍ່ຖືກຕ້ອງ ກະລຸນາຕິດຕໍ່ພວກເຮົາທາງ email.
+    </string>
+
+    <string name="accessibility_service_description">
+        ບໍລິການນີ້ຈໍາເປັນສໍາລັບການເປີດໜ້າ "Recent Apps" ຂອງລະບົບ. Comfer ໃຊ້ສິດນີ້ພຽງເພື່ອສ້າງ shortcut ນີ້ເທົ່ານັ້ນ ແລະບໍ່ເກັບກໍາ ຫຼື ຕິດຕາມຂໍ້ມູນສ່ວນຕົວຂອງທ່ານ.
+    </string>
+
+    <string name="set_default_launcher">ຕັ້ງເປັນ Launcher ຄ່າເລີ່ມຕົ້ນ</string>
+    <string name="widget_binding_cancelled">ຍົກເລີກການຕັ້ງຄ່າ widget</string>
+    <string name="long_press_to_add_edit_widgets">ກົດຄ້າງເພື່ອເພີ່ມ ຫຼືແກ້ໄຂ widget</string>
+
+    <string name="add_widget">ເພີ່ມ widget</string>
+    <string name="could_not_load_widget">ບໍ່ສາມາດໂຫຼດ widget ໄດ້</string>
+    <string name="remove_widget">ລຶບ widget</string>
+
+    <string name="close">ປິດ</string>
+    <string name="applications">ແອັບ</string>
+    <string name="contacts">ລາຍຊື່ຕິດຕໍ່</string>
+    <string name="search">ຄົ້ນຫາ</string>
+
+    <string name="requires_contact_permission">
+        ຈໍາເປັນຕ້ອງໄດ້ຮັບສິດເຂົ້າເຖິງລາຍຊື່ຕິດຕໍ່ ເພື່ອຄົ້ນຫາແລະໂທຫາພວກເຂົາ.
+    </string>
+
+    <string name="grant_permission">ອະນຸຍາດ</string>
+
+    <string name="privacy_policy_text">
+        ພວກເຮົາເຄົາລົບສິດຄວາມເປັນສ່ວນຕົວຂອງທ່ານ. Comfer ບໍ່ເກັບກໍາ ຫຼື ເກັບຮັກສາຂໍ້ມູນສ່ວນຕົວ. ກົດເພື່ອອ່ານນະໂຍບາຍຄວາມເປັນສ່ວນຕົວ.
+    </string>
+
+    <string name="background_image">ຮູບພາບພື້ນຫຼັງ</string>
+    <string name="feedback">ຄໍາຕິຊົມ</string>
+    <string name="feedback_text">ແບ່ງປັນປະສົບການຂອງທ່ານ ແລະຊ່ວຍໃຫ້ Comfer ດີຂຶ້ນ.</string>
+    <string name="feedback_icon">ໄອຄອນຄໍາຕິຊົມ</string>
+
+    <string name="rate_comfer">ໃຫ້ຄະແນນ Comfer</string>
+    <string name="not_now">ບໍ່ໃຊ່ຕອນນີ້</string>
+
+    <string name="permission_required">ຕ້ອງການສິດ</string>
+
+    <string name="recent_apps_permission_title">
+        ເພື່ອໃຫ້ shortcut "Recent Apps" ເຮັດວຽກໄດ້ Comfer ຕ້ອງໄດ້ຮັບສິດໃຊ້ Accessibility Service.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">ບໍລິການນີ້ເຮັດຫຍັງໄດ້:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • ເປີດໜ້າ "Recent Apps" ຂອງລະບົບ.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">ບໍລິການນີ້ບໍ່ເຮັດຫຍັງບໍ່ໄດ້:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • ບໍ່ເກັບກໍາຂໍ້ມູນສ່ວນຕົວ.\n
+        • ບໍ່ຕິດຕາມການກົດ ຫຼື ຂໍ້ຄວາມທີ່ທ່ານພິມ.\n
+        • ບໍ່ອ່ານເນື້ອຫາໃນຫນ້າຈໍ.
+    </string>
+
+    <string name="continue_text">ສືບຕໍ່</string>
+    <string name="cancel_text">ຍົກເລີກ</string>
+    <string name="backspace_key">ປຸ່ມ Backspace</string>
+
+    <string name="contact_number_not_available">ບໍ່ມີເບີໂທສໍາລັບລາຍຊື່ນີ້</string>
+    <string name="no_app_to_place_calls">ບໍ່ພົບແອັບສໍາລັບໂທອອກ</string>
+
+    <string name="update_available">ມີອັບເດດໃໝ່.</string>
+    <string name="update_action">ອັບເດດ</string>
+    <string name="update_downloaded">ອັບເດດພ້ອມສໍາລັບການຕິດຕັ້ງແລ້ວ.</string>
+    <string name="update_install">ຕິດຕັ້ງ</string>
+
+    <string name="select_an_application">ເລືອກແອັບ</string>
+
+    <string name="gesture_shortcuts_title">Gesture shortcuts</string>
+    <string name="paid_feature_title">ຟີຈເຈີມີຄ່າ</string>
+
+    <string name="tap_icon_to_select_app">ແຕະໄອຄອນເພື່ອເລືອກແອັບ</string>
+
+    <string name="requires_subscription">ຕ້ອງການ subscription</string>
+
+    <string name="button_to_move_app_to_quick_app_list">ຍ້າຍໄປ Apps ໜ້າຫຼັກ</string>
+    <string name="button_to_move_app_to_primary_app_list">ຍ້າຍໄປ App drawer</string>
+    <string name="button_to_move_app_to_ghost_app_list">ຍ້າຍໄປ Apps ທີ່ຊ່ອນໄວ້</string>
+
+    <string name="title_widgets">Widgets</string>
+    <string name="title_time">ເວລາ</string>
+    <string name="rest_widget_positions">ຣີເຊັດຕໍາແຫນ່ງ widget</string>
+
+    <string name="title_analog_clock">ນາລິກາ analog</string>
+    <string name="title_clock_size">ຂະໜາດນາລິກາ</string>
+    <string name="clock_background_color">ສີພື້ນຫຼັງນາລິກາ</string>
+    <string name="background_transparency">ຄວາມໂປ່ງໃສຂອງພື້ນຫຼັງ</string>
+    <string name="hour_hand_color">ສີເຂັມຊົ່ວໂມງ</string>
+    <string name="minute_hand_color">ສີເຂັມນາທີ</string>
+
+    <string name="title_time_format">ຮູບແບບເວລາ</string>
+    <string name="title_show_am_pm">ສະແດງ AM/PM</string>
+    <string name="title_font_size">ຂະໜາດຟອນ</string>
+    <string name="title_font_weight">ນ້ໍາໜັກຟອນ</string>
+    <string name="title_font_style">ຮູບແບບຟອນ</string>
+    <string name="title_time_font_color">ສີຟອນເວລາ</string>
+
+    <string name="title_date">ວັນທີ</string>
+    <string name="date_example">ວັນເສົາ, 16 ກັນຍາ</string>
+    <string name="date_font_color">ສີຟອນວັນທີ</string>
+
+    <string name="title_battery">ແບັດເຕີຣີ</string>
+    <string name="show_battery_icon">ສະແດງໄອຄອນແບັດເຕີຣີ</string>
+    <string name="show_battery_percentage">ສະແດງເປີເຊັນແບັດເຕີຣີ</string>
+    <string name="battery_indicator_color">ສີແຖບສະແດງແບັດເຕີຣີ</string>
+
+    <string name="title_notifications">ແຈ້ງເຕືອນ</string>
+    <string name="show_notification_icons">ສະແດງໄອຄອນແຈ້ງເຕືອນ</string>
+
+    <string name="title_size">ຂະໜາດ</string>
+    <string name="title_color">ສີ</string>
+    <string name="title_selected_color">ສີທີ່ເລືອກ</string>
+
+    <string name="button_text_save">ບັນທຶກ</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">ຟີຈເຈີ Pro</string>
+    <string name="title_subscription">Subscription</string>
+    <string name="go_to_page">ເປີດໜ້າ</string>
+
+    <string name="title_support">ຊ່ວຍເຫຼືອ</string>
+    <string name="title_how_to">ວິທີໃຊ້</string>
+    <string name="title_app_guide">ຄູ່ມືນໍາທາງໃນແອັບ</string>
+
+    <string name="icon_how_to_guide">ໄອຄອນຄູ່ມື "How-to"</string>
+    <string name="icon_arrow_right">ໄອຄອນລູກສອນຊ້າຍ</string>
+
+    <string name="title_report_issue">ລາຍງານບັນຫາ</string>
+    <string name="icon_support">ໄອຄອນຊ່ວຍເຫຼືອ</string>
+
+    <string name="title_wallpapers">Wallpapers</string>
+    <string name="title_auto_wallpapers">Auto wallpapers</string>
+    <string name="auto_wallpaper_text">ປ່ຽນ wallpaper ອັດຕະໂນມັດ</string>
+    <string name="icon_wallpaper">ໄອຄອນ wallpaper</string>
+
+    <string name="title_monochrome">ພື້ນຫຼັງສີດຽວ (Monochrome)</string>
+    <string name="title_color_less_world">ໂໝດສີນ້ອຍ</string>
+    <string name="icon_monochrome">ໄອຄອນ Monochrome</string>
+
+    <string name="title_wallpaper_motion">Wallpaper motion</string>
+    <string name="wallpaper_motion_text">ເຮັດໃຫ້ Home screen ມີຊີວິດຊີວາ</string>
+    <string name="icon_wallpaper_motion">ໄອຄອນ wallpaper motion</string>
+
+    <string name="title_change_wallpaper">ປ່ຽນ wallpaper</string>
+    <string name="change_wallpaper_text">ແຕະເພື່ອປ່ຽນ wallpaper ດຽວນີ້</string>
+    <string name="icon_wallpaper_change">ໄອຄອນປ່ຽນ wallpaper</string>
+
+    <string name="title_wallpaper_frequency">ຄວາມຖີ່ການປ່ຽນ</string>
+    <string name="wallpaper_frequency_text">ຮ່ວມກັບໂໝດກາງເວັນ/ກາງຄືນອັດຕະໂນມັດ</string>
+    <string name="icon_wallpaper_frequency">ໄອຄອນຄວາມຖີ່ wallpaper</string>
+
+    <string name="title_own_wallpapers">ຕັ້ງ wallpaper ຂອງຕົວເອງ</string>
+    <string name="wallpaper_directory_select">ແຕະເພື່ອເລືອກໂຟນເດີ</string>
+    <string name="icon_wallpaper_directory">ໄອຄອນໂຟນເດີ wallpaper</string>
+
+    <string name="set_launcher_first">ກະລຸນາຕັ້ງ Comfer ເປັນ launcher ຄ່າເລີ່ມຕົ້ນກ່ອນ</string>
+
+    <string name="title_lock_screen">Lock screen</string>
+    <string name="lock_screen_wallpaper_text">ນໍາ wallpaper ໄປໃຊ້ກັບ lock screen ດ້ວຍ</string>
+    <string name="icon_lock_screen_wallpaper">ໄອຄອນ wallpaper lock screen</string>
+
+    <string name="title_app_icons">ຮູບໄອຄອນແອັບ</string>
+    <string name="title_app_icon_size">ຂະໜາດໄອຄອນ</string>
+    <string name="icon_app_icon_size">ໄອຄອນຂະໜາດໄອຄອນແອັບ</string>
+    <string name="button_decrease_app_icon_size">ຫຼຸດຂະໜາດໄອຄອນ</string>
+    <string name="button_increase_app_icon_size">ເພີ່ມຂະໜາດໄອຄອນ</string>
+
+    <string name="title_themed_icons">Themed icons</string>
+    <string name="themed_icons_text">ໃຫ້ສີໄອຄອນກົງກັບສີ wallpaper (ທົດລອງ)</string>
+    <string name="icon_themed_icons">ໄອຄອນ Themed icons</string>
+
+    <string name="title_notification_badges">ແຈ້ງເຕືອນ ແລະ icon badges</string>
+    <string name="requires_notification_permission">ຕ້ອງການສິດແຈ້ງເຕືອນ</string>
+    <string name="icon_notification_badges">ໄອຄອນ notification badges</string>
+
+    <string name="title_home_screen">Home screen</string>
+    <string name="title_custom_widgets">Custom widgets</string>
+    <string name="custom_widgets_text">widgets ທີ່ທ່ານມັກ</string>
+    <string name="icon_custom_widgets">ໄອຄອນ custom widgets</string>
+
+    <string name="title_quick_apps_layout">ບໍລິບົດຮູບແບບ Home apps</string>
+    <string name="quick_apps_layout_text">ຈັດຮຽງ apps ໃຫ້ເປັນລະບຽບສວຍງາມ</string>
+    <string name="icon_apps_layout">ໄອຄອນ Home apps layout</string>
+
+    <string name="title_left_swipe_action">ການກວາດໄປຊ້າຍ</string>
+    <string name="icon_left_swipe_action">ໄອຄອນ swipe ຊ້າຍ</string>
+
+    <string name="title_right_swipe_action">ການກວາດໄປຂວາ</string>
+    <string name="icon_right_swipe_action">ໄອຄອນ swipe ຂວາ</string>
+
+    <string name="title_swipe_gestures">Swipe gestures</string>
+    <string name="swipe_gestures_text">ໃຊ້ gestures ເພື່ອເປັນທາງລັດເປີດ apps</string>
+    <string name="icon_swipe_gestures">ໄອຄອນ swipe gestures</string>
+
+    <string name="title_app_drawer">App drawer</string>
+    <string name="title_app_drawer_layouts">Layouts</string>
+    <string name="app_drawer_layouts_text">ຮູບແບບສໍາລັບການຄົ້ນຫາ apps</string>
+
+    <string name="title_alphabetical_order">ຮຽງຕາມຕົວອັກສອນ</string>
+    <string name="alphabetical_order_text">ຮຽງ apps ຕາມຕົວອັກສອນ</string>
+    <string name="icon_alphabetical_order">ໄອຄອນ alphabetical order</string>
+
+    <string name="title_apps_list">App lists</string>
+    <string name="title_manage_app_list">ຈັດການ apps</string>
+    <string name="manage_app_list_text">ຈັດລຳດັບ / ຈັດກຸ່ມ apps ໃນລາຍຊື່</string>
+    <string name="icon_manage_app_list">ໄອຄອນ manage app list</string>
+
+    <string name="title_feedback">ຄໍາຕິຊົມ</string>
+    <string name="icon_feedback">ໄອຄອນ feedback</string>
+
+    <string name="title_share_app">ແບ່ງປັນແອັບ</string>
+    <string name="icon_share_app">ໄອຄອນ share app</string>
+    <string name="share_app_text">ລອງໃຊ້ launcher ໃໝ່ນີ້ເບິ່ງ:</string>
+
+    <string name="title_share_with">ແບ່ງປັນຜ່ານ</string>
+
+    <string name="title_app_version">ເວີຊັນແອັບ</string>
+    <string name="icon_app_version">ໄອຄອນ app version</string>
+
+    <string name="title_icon_shapes">ຮູບຮ່າງໄອຄອນ</string>
+    <string name="icon_shapes_text">ຕັ້ງຮູບຮ່າງໄອຄອນແອັບ</string>
+    <string name="icon_icon_shapes">ໄອຄອນ icon shapes</string>
+
+    <string name="title_select_icon_shape">ເລືອກຮູບຮ່າງໄອຄອນ</string>
+
+    <string name="notification_permission_text">
+        ເພື່ອສະແດງໄອຄອນແຈ້ງເຕືອນໃນ Home screen ແລະ badge ໃນ app icons, Comfer ຕ້ອງການ notification access.
+    </string>
+
+    <string name="what_notification_permission_do_title">ບໍລິການນີ້ເຮັດຫຍັງໄດ້:</string>
+
+    <string name="what_notification_permission_do_text">
+        • ອ່ານສະຖານະການແຈ້ງເຕືອນ ແລະສະແດງໄອຄອນ ແລະ badges ເມື່ອຈໍາເປັນ.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">ບໍລິການນີ້ບໍ່ເຮັດຫຍັງບໍ່ໄດ້:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • ບໍ່ເກັບກໍາຂໍ້ມູນສ່ວນຕົວ.
+    </string>
+
+    <string name="title_choose_layout">ເລືອກ layout</string>
+    <string name="swipe_action_selection">ເລືອກ app ຫຼື widgets screen</string>
+    <string name="title_choose_options">ເລືອກຕົວເລືອກ</string>
+    <string name="title_select_app">ເລືອກ app</string>
+    <string name="title_widgets_screen">ໜ້າ widgets</string>
+    <string name="title_choose_action">ເລືອກການກະທໍາ</string>
+
+    <string name="unable_to_load_subscriptions">
+        ບໍ່ສາມາດໂຫຼດຂໍ້ມູນ subscription ໄດ້. ກະລຸນາກວດກາການເຊື່ອມຕໍ່ ແລະລອງໃໝ່.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">ໂຫຼດ subscription ບໍ່ສໍາເລັດ</string>
+    <string name="no_subscription_available">ບໍ່ມີ subscription</string>
+
+    <string name="title_active_subscription">subscription ກໍາລັງໃຊ້ງານ</string>
+    <string name="subscription_renews_on">ຕໍ່ອາຍຸໃນວັນທີ</string>
+    <string name="subscription_expires_on">ໝົດອາຍຸໃນວັນທີ</string>
+
+    <string name="subscription_benefit_one">ຕັ້ງ dynamic wallpapers ຂອງຕົນເອງ</string>
+    <string name="subscription_benefit_two">ເພີ່ມ widgets ທີ່ມັກໃສ່ Home screen</string>
+    <string name="subscription_benefit_three">ປັບແຕ່ງ default widgets ໃນ Home screen</string>
+    <string name="subscription_benefit_four">ເປີດ apps ໄວໆດ້ວຍ gestures</string>
+
+    <string name="title_manage_your_subscription">ຈັດການ subscription ຂອງທ່ານ</string>
+    <string name="title_pro_access">Pro access</string>
+    <string name="title_year">ປີ</string>
+
+    <string name="subscription_failed_prefix">subscription ລ້ມເຫຼວ</string>
+    <string name="subscription_successful_prefix">subscription ສໍາເລັດ</string>
+    <string name="title_subscribe_now">Subscribe ດຽວນີ້</string>
+
+    <string name="subscription_restore_failed_prefix">ການກູ້ຄືນ subscription ລ້ມເຫຼວ</string>
+    <string name="subscription_restore_successful_prefix">ກູ້ຄືນ subscription ສໍາເລັດ</string>
+    <string name="subscription_not_found_to_restore">ບໍ່ພົບ subscription ສໍາລັບການກູ້ຄືນ</string>
+    <string name="title_restore_subscription">ກູ້ຄືນ subscription</string>
+
+    <string name="guide_home_swipe_up">ກວາດຂຶ້ນເພື່ອເປີດ App drawer.</string>
+    <string name="guide_home_swipe_down">ກວາດລົງເພື່ອເບິ່ງແຈ້ງເຕືອນ.</string>
+    <string name="guide_home_double_tap">ແຕະຫນ້າຈໍ 2 ຄັ້ງເພື່ອເປີດ "Recent Apps".</string>
+    <string name="guide_home_long_press_lower">ກົດຄ້າງທີ່ຄຶ່ງລຸ່ມຂອງຫນ້າຈໍເພື່ອເປີດ Settings.</string>
+    <string name="guide_home_long_press_upper">ກົດຄ້າງທີ່ຄຶ່ງເທິງເພື່ອແກ້ໄຂ widgets.</string>
+    <string name="guide_home_tap_upper_half">ແຕະຄຶ່ງເທິງເພື່ອອອກຈາກ widget edit mode.</string>
+    <string name="guide_home_tap_date_time">ແຕະວັນທີ/ເວລາເພື່ອເບິ່ງ alarms.</string>
+    <string name="guide_home_long_press_date_time">ກົດຄ້າງທີ່ວັນທີ/ເວລາເພື່ອເປີດປະຕິທິນ.</string>
+    <string name="guide_home_swipe_left_right">ກວາດຊ້າຍ/ຂວາເພື່ອເປີດ app ທີ່ເລືອກ ຫຼື widgets screen.</string>
+    <string name="guide_home_gestures">ວາດ gestures ທີ່ຕັ້ງໃນ "Gesture Shortcuts" ເພື່ອເປີດ apps.</string>
+
+    <string name="guide_circular_app_drawer">Circular App drawer</string>
+    <string name="guide_circular_app_drawer_swipe_down">ກວາດລົງເພື່ອກັບຄືນ.</string>
+    <string name="guide_circular_app_drawer_double_tap">ແຕະ 2 ຄັ້ງເພື່ອເປີດ app ກາງວົງ.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">ກວາດຊ້າຍ/ຂວາເພື່ອ scroll.</string>
+    <string name="guide_circular_app_drawer_tap_icon">ແຕະໄອຄອນເພື່ອເປີດ app.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">ກົດຄ້າງເພື່ອເປີດ app info.</string>
+
+    <string name="guide_horizontal_app_drawer">Horizontal App drawer</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">ກວາດລົງເພື່ອກັບຄືນ.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">ກວາດຊ້າຍ/ຂວາເພື່ອ scroll.</string>
+    <string name="guide_horizontal_app_drawer_long_press">ກົດຄ້າງເພື່ອຈັດການ app drawer.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">ໃນ edit mode ອອກ drag - drop ໄອຄອນເພື່ອຍ້າຍ.</string>
+    <string name="guide_horizontal_app_drawer_drag">ໃນ edit mode ກວາດ drawer ຂື້ນ/ລົງເພື່ອປ່ຽນຕໍາແຫນ່ງຕັ້ງ.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">ແຕະຄັ້ງດຽວເພື່ອອອກຈາກ edit mode.</string>
+
+    <string name="guide_search">ຄົ້ນຫາ apps ຫຼື ລາຍຊື່ຕິດຕໍ່.</string>
+    <string name="guide_search_swipe_down">ກວາດລົງໃສ່ keyboard ເພື່ອກັບຄືນ.</string>
+    <string name="guide_search_swipe_right">ກວາດຂວາໃສ່ keyboard ເພື່ອຄົ້ນຫາ contacts.</string>
+    <string name="guide_search_swipe_left">ກວາດຊ້າຍໃສ່ keyboard ເພື່ອຄົ້ນຫາ apps.</string>
+    <string name="guide_search_swipe_up">ກວາດຂື້ນໃສ່ keyboard ເພື່ອເບິ່ງຕົວອັກສອນເພີ່ມ.</string>
+    <string name="guide_search_long_press">ກົດຄ້າງໃສ່ລູກສອນຍ້ອນກັບກາງວົງເພື່ອເລືອກພາສາ.</string>
+    <string name="guide_search_scroll_list">scroll ລາຍຊື່ apps ແນວນອນເພື່ອເບິ່ງຜົນທັງໝົດ.</string>
+    <string name="guide_search_scroll_sides">scroll ຂ້າງຂອງ keyboard ວົງມົນເພື່ອ scroll ລາຍຊື່ contacts.</string>
+    <string name="guide_search_double_tap_sides">ແຕະ 2 ຄັ້ງທີ່ຂ້າງໃດກໍໄດ້ຂອງ keyboard ວົງມົນເພື່ອເປີດ dialer ກັບ contact ທີ່ຖືກ highlight.</string>
+
+    <string name="guide_manage_apps">ຈັດການລາຍຊື່ apps</string>
+    <string name="guide_manage_apps_tap">ແຕະເພື່ອຄັດເລືອກ apps ແລະຍ້າຍໄປລາຍຊື່ອື່ນ.</string>
+    <string name="guide_manage_apps_long_press">
+        ກົດຄ້າງໃສ່ app icon ແລ້ວ drag ເພື່ອປ່ຽນລໍາດັບໃນລາຍຊື່ດຽວກັນ. ໃຊ້ໄດ້ເມື່ອບໍ່ຮຽງຕາມຕົວອັກສອນ.
+    </string>
+
+    <string name="title_app_language">ພາສາແອັບ</string>
+    <string name="app_language_text">ແຕະເພື່ອປ່ຽນພາສາຂອງແອັບ</string>
+    <string name="icon_app_language">ໄອຄອນ app language</string>
+</resources>

@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">Хуш омадед</string>
+
+    <string name="checkout_how_to_guide">
+        Барои кушодани меню ва дидани дастури "How-to" ангушти худро дар ҳар ҷои экрани асосӣ (Home screen) дароз нигоҳ доред.\n
+        Огоҳӣ: Баъзе тарҷумаҳо мумкин аст ба таври худкор тавлид шуда бошанд. Агар матни нодуруст ё номуфаҳм бинед, лутфан тавассути почтаи электронӣ бо мо тамос гиред.
+    </string>
+
+    <string name="accessibility_service_description">
+        Ин сервис барои кушодани экрани "Recent Apps" – и система лозим аст. Comfer ин иҷозатро фақат барои таъмин кардани ин shortcut истифода мебарад ва ҳеҷ гуна маълумоти шахсии шуморо ҷамъоварӣ ё назорат намекунад.
+    </string>
+
+    <string name="set_default_launcher">Ҳамчун лаунчери асосӣ танзим кардан</string>
+    <string name="widget_binding_cancelled">Танзими widget бекор карда шуд</string>
+    <string name="long_press_to_add_edit_widgets">Барои илова ё таҳрир кардани widgets ангуштро дароз нигоҳ доред</string>
+
+    <string name="add_widget">Иловаи widget</string>
+    <string name="could_not_load_widget">Widget бор карда нашуд</string>
+    <string name="remove_widget">Ҳазфи widget</string>
+
+    <string name="close">Пӯшидан</string>
+    <string name="applications">Барномаҳо</string>
+    <string name="contacts">Тамосҳо</string>
+    <string name="search">Ҷустуҷӯ</string>
+
+    <string name="requires_contact_permission">
+        Барои ҷустуҷӯ ва занг задан ба тамосҳо иҷозати дастрасӣ ба Contacts лозим аст.
+    </string>
+
+    <string name="grant_permission">Иҷозат додан</string>
+
+    <string name="privacy_policy_text">
+        Мо махфияти шуморо эҳтиром мекунем. Comfer ҳеҷ гуна маълумоти шахсиро ҷамъоварӣ ё нигоҳдорӣ намекунад. Барои хондани сиёсати махфият ин ҷо зер кунед.
+    </string>
+
+    <string name="background_image">Тасвири пасзамина</string>
+    <string name="feedback">Бозхурд</string>
+    <string name="feedback_text">Таҷрибаи худро мубодила кунед ва ба беҳтар шудани Comfer кумак намоед.</string>
+    <string name="feedback_icon">Иконаи бозхурд</string>
+
+    <string name="rate_comfer">Ба Comfer баҳогузорӣ кунед</string>
+    <string name="not_now">Ҳоло не</string>
+
+    <string name="permission_required">Иҷозат лозим аст</string>
+
+    <string name="recent_apps_permission_title">
+        Барои фаъол кардани shortcut -и "Recent Apps" ба Comfer иҷозати дастрасӣ ба Accessibility Service лозим аст.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">Ин сервис чӣ кор мекунад:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • Экрани "Recent Apps"–и системаро мекушояд.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">Ин сервис чӣ кор намекунад:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • Ҳеҷ гуна маълумоти шахсиро ҷамъоварӣ намекунад.\n
+        • Амалҳо ё матни аз ҷониби шумо чопшударо назорат намекунад.\n
+        • Мазмуни экранро намехонад.
+    </string>
+
+    <string name="continue_text">Идома додан</string>
+    <string name="cancel_text">Бекор кардан</string>
+    <string name="backspace_key">Тугмаи Backspace</string>
+
+    <string name="contact_number_not_available">Барои ин тамос рақами телефон дастрас нест</string>
+    <string name="no_app_to_place_calls">Барои занг задан барнома ёфт нашуд</string>
+
+    <string name="update_available">Навсозии нав дастрас аст.</string>
+    <string name="update_action">Навсозӣ</string>
+    <string name="update_downloaded">Навсозӣ барои насб омода аст.</string>
+    <string name="update_install">Насб кардан</string>
+
+    <string name="select_an_application">Интихоби барнома</string>
+
+    <string name="gesture_shortcuts_title">Shortcut–ҳои gesture</string>
+    <string name="paid_feature_title">Функсияи пулакӣ</string>
+
+    <string name="tap_icon_to_select_app">Барои интихоб кардани барнома иконаи онро зер кунед</string>
+
+    <string name="requires_subscription">Обуна (subscription) лозим аст</string>
+
+    <string name="button_to_move_app_to_quick_app_list">Ба Home Apps интиқол додан</string>
+    <string name="button_to_move_app_to_primary_app_list">Ба App drawer интиқол додан</string>
+    <string name="button_to_move_app_to_ghost_app_list">Ба Барномаҳои пинҳонӣ интиқол додан</string>
+
+    <string name="title_widgets">Widgets</string>
+    <string name="title_time">Вақт</string>
+    <string name="rest_widget_positions">Ҷойгиршавии widgets-ро аз нав танзим кардан</string>
+
+    <string name="title_analog_clock">Соати analog</string>
+    <string name="title_clock_size">Андозаи соат</string>
+    <string name="clock_background_color">Ранги пасзаминаи соат</string>
+    <string name="background_transparency">Шаффофияти пасзамина</string>
+    <string name="hour_hand_color">Ранги тирчаи соат (соатӣ)</string>
+    <string name="minute_hand_color">Ранги тирчаи дақиқа</string>
+
+    <string name="title_time_format">Формати вақт</string>
+    <string name="title_show_am_pm">AM/PM-ро нишон додан</string>
+    <string name="title_font_size">Андозаи шрифт</string>
+    <string name="title_font_weight">Ғафсии шрифт</string>
+    <string name="title_font_style">Услуби шрифт</string>
+    <string name="title_time_font_color">Ранги шрифти вақт</string>
+
+    <string name="title_date">Сана</string>
+    <string name="date_example">Шб, 16 Сен</string>
+    <string name="date_font_color">Ранги шрифти сана</string>
+
+    <string name="title_battery">Батарея</string>
+    <string name="show_battery_icon">Иконаи батареяро нишон додан</string>
+    <string name="show_battery_percentage">Фоизи батареяро нишон додан</string>
+    <string name="battery_indicator_color">Ранги индикатор</string>
+
+    <string name="title_notifications">Огоҳномаҳо</string>
+    <string name="show_notification_icons">Иконаҳои огоҳномаҳоро нишон додан</string>
+
+    <string name="title_size">Андоза</string>
+    <string name="title_color">Ранг</string>
+    <string name="title_selected_color">Ранги интихобшуда</string>
+
+    <string name="button_text_save">Захира кардан</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">Функсияҳои Pro</string>
+    <string name="title_subscription">Subscription</string>
+    <string name="go_to_page">Саҳифаро кушодан</string>
+
+    <string name="title_support">Дастгирӣ</string>
+    <string name="title_how_to">Чӣ гуна истифода бурдан</string>
+    <string name="title_app_guide">Дастури паймоиши барнома</string>
+
+    <string name="icon_how_to_guide">Иконаи дастури "How-to"</string>
+    <string name="icon_arrow_right">Иконаи тирчаи рост</string>
+
+    <string name="title_report_issue">Гузориш додани мушкилот</string>
+    <string name="icon_support">Иконаи дастгирӣ</string>
+
+    <string name="title_wallpapers">Wallpapers</string>
+    <string name="title_auto_wallpapers">Auto wallpapers</string>
+    <string name="auto_wallpaper_text">Wallpapers-ро ба таври худкор иваз кардан</string>
+    <string name="icon_wallpaper">Иконаи wallpaper</string>
+
+    <string name="title_monochrome">Пасзаминаи monochrome</string>
+    <string name="title_color_less_world">Ҳолати камранг</string>
+    <string name="icon_monochrome">Иконаи monochrome</string>
+
+    <string name="title_wallpaper_motion">Wallpaper motion</string>
+    <string name="wallpaper_motion_text">Home screen-ро зинда ва ҳаракатнок намоед</string>
+    <string name="icon_wallpaper_motion">Иконаи wallpaper motion</string>
+
+    <string name="title_change_wallpaper">Иваз кардани wallpaper</string>
+    <string name="change_wallpaper_text">Барои иваз кардани wallpaper ҳозир зер кунед</string>
+    <string name="icon_wallpaper_change">Иконаи иваз кардани wallpaper</string>
+
+    <string name="title_wallpaper_frequency">Қарори (frequency) ивазкунӣ</string>
+    <string name="wallpaper_frequency_text">Бо режими шабурӯзии худкор (day/night)</string>
+    <string name="icon_wallpaper_frequency">Иконаи wallpaper frequency</string>
+
+    <string name="title_own_wallpapers">Wallpapers-и шахсии худро танзим кунед</string>
+    <string name="wallpaper_directory_select">Барои интихоб кардани папка зер кунед</string>
+    <string name="icon_wallpaper_directory">Иконаи папкаи wallpaper</string>
+
+    <string name="set_launcher_first">Аввал Comfer-ро ҳамчун лаунчери асосӣ танзим намоед</string>
+
+    <string name="title_lock_screen">Lock screen</string>
+    <string name="lock_screen_wallpaper_text">Ин wallpaper-ро дар lock screen низ истифода баред</string>
+    <string name="icon_lock_screen_wallpaper">Иконаи wallpaper-и lock screen</string>
+
+    <string name="title_app_icons">Иконаҳои барнома</string>
+    <string name="title_app_icon_size">Андозаи икона</string>
+    <string name="icon_app_icon_size">Иконаи андозаи иконаи барнома</string>
+    <string name="button_decrease_app_icon_size">Андозаи иконаи барномаро кам кардан</string>
+    <string name="button_increase_app_icon_size">Андозаи иконаи барномаро зиёд кардан</string>
+
+    <string name="title_themed_icons">Иконаҳои themed</string>
+    <string name="themed_icons_text">Ранги иконаҳоро бо ранги wallpaper мутобиқ созед (эксперименталӣ)</string>
+    <string name="icon_themed_icons">Иконаи themed icons</string>
+
+    <string name="title_notification_badges">Огоҳнома ва icon badges</string>
+    <string name="requires_notification_permission">Иҷозати notification лозим аст</string>
+    <string name="icon_notification_badges">Иконаи notification badges</string>
+
+    <string name="title_home_screen">Home screen</string>
+    <string name="title_custom_widgets">Custom widgets</string>
+    <string name="custom_widgets_text">Widgets–ҳои дӯстдоштаи шумо</string>
+    <string name="icon_custom_widgets">Иконаи custom widgets</string>
+
+    <string name="title_quick_apps_layout">Home Apps layout</string>
+    <string name="quick_apps_layout_text">Барномаҳоятонро бо услуби зебо ҷойгир намоед</string>
+    <string name="icon_apps_layout">Иконаи Home Apps layout</string>
+
+    <string name="title_left_swipe_action">Амалиёти swipe ба чап</string>
+    <string name="icon_left_swipe_action">Иконаи left swipe</string>
+
+    <string name="title_right_swipe_action">Амалиёти swipe ба рост</string>
+    <string name="icon_right_swipe_action">Иконаи right swipe</string>
+
+    <string name="title_swipe_gestures">Swipe gestures</string>
+    <string name="swipe_gestures_text">Gesture-ҳоро ҳамчун shortcut-и барномаҳо истифода баред</string>
+    <string name="icon_swipe_gestures">Иконаи swipe gestures</string>
+
+    <string name="title_app_drawer">App drawer</string>
+    <string name="title_app_drawer_layouts">Layouts</string>
+    <string name="app_drawer_layouts_text">Услубҳои гуногун барои тамошои барномаҳо</string>
+
+    <string name="title_alphabetical_order">Тартиби алифбо</string>
+    <string name="alphabetical_order_text">Барномаҳо
+ро мувофиқи алифбо ҷобаҷо кунед</string>
+    <string name="icon_alphabetical_order">Иконаи alphabetical order</string>
+
+    <string name="title_apps_list">Рӯйхатҳо
+и барномаҳо</string>
+    <string name="title_manage_app_list">Идора кардани барномаҳо</string>
+    <string name="manage_app_list_text">Барномаҳоро дар рӯйхатҳо ташкил ё аз нав тартиб диҳед</string>
+    <string name="icon_manage_app_list">Иконаи manage app list</string>
+
+    <string name="title_feedback">Бозхурд</string>
+    <string name="icon_feedback">Иконаи feedback</string>
+
+    <string name="title_share_app">Мубодила кардани барнома</string>
+    <string name="icon_share_app">Иконаи share app</string>
+    <string name="share_app_text">Ин launcher-и навро санҷида бинед:</string>
+
+    <string name="title_share_with">Мубодила бо</string>
+
+    <string name="title_app_version">Версияи барнома</string>
+    <string name="icon_app_version">Иконаи app version</string>
+
+    <string name="title_icon_shapes">Шаклҳои икона</string>
+    <string name="icon_shapes_text">Шакли иконаи барномаро танзим кунед</string>
+    <string name="icon_icon_shapes">Иконаи icon shapes</string>
+
+    <string name="title_select_icon_shape">Интихоби шакли икона</string>
+
+    <string name="notification_permission_text">
+        Барои намоиш додани иконаҳои огоҳӣ дар Home screen ва badges дар иконаҳои барнома, Comfer ба notification access ниёз дорад.
+    </string>
+
+    <string name="what_notification_permission_do_title">Ин сервис чӣ кор мекунад:</string>
+
+    <string name="what_notification_permission_do_text">
+        • Ҳолати огоҳиномаро мехонад ва ҳангоми зарурат иконаҳо ва badge–ҳоро нишон медиҳад.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">Ин сервис чӣ кор намекунад:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • Ҳеҷ гуна маълумоти шахсиро ҷамъоварӣ намекунад.
+    </string>
+
+    <string name="title_choose_layout">Интихоби layout</string>
+    <string name="swipe_action_selection">Интихоби барнома ё Widgets screen</string>
+    <string name="title_choose_options">Интихоби опсия</string>
+    <string name="title_select_app">Интихоби барнома</string>
+    <string name="title_widgets_screen">Widgets screen</string>
+    <string name="title_choose_action">Интихоби амал</string>
+
+    <string name="unable_to_load_subscriptions">
+        Маълумоти subscription бор нашуд. Лутфан пайвасти интернети худро санҷед ва дубора кӯшиш кунед.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">Боркунии subscription ноком шуд</string>
+    <string name="no_subscription_available">Ҳеҷ subscription дастрас нест</string>
+
+    <string name="title_active_subscription">Subscription-и фаъол</string>
+    <string name="subscription_renews_on">Нав карда мешавад рӯзи</string>
+    <string name="subscription_expires_on">Мӯҳлат тамом мешавад рӯзи</string>
+
+    <string name="subscription_benefit_one">Wallpapers-и динамикии шахсии худро танзим кунед</string>
+    <string name="subscription_benefit_two">Widgets–ҳои дӯстдоштаи худро ба Home screen илова кунед</string>
+    <string name="subscription_benefit_three">Widgets–ҳои пешфарзро дар Home screen фарқкунандаи худ созед</string>
+    <string name="subscription_benefit_four">Барномаҳо
+ро бо gestures зуд кушоед</string>
+
+    <string name="title_manage_your_subscription">Subscription-и худро идора кунед</string>
+    <string name="title_pro_access">Pro access</string>
+    <string name="title_year">сол</string>
+
+    <string name="subscription_failed_prefix">Subscription ноком шуд</string>
+    <string name="subscription_successful_prefix">Subscription бомуваффақият анҷом ёфт</string>
+    <string name="title_subscribe_now">Ҳозир subscribe кунед</string>
+
+    <string name="subscription_restore_failed_prefix">Барқароркунии subscription ноком шуд</string>
+    <string name="subscription_restore_successful_prefix">Subscription бомуваффақият барқарор шуд</string>
+    <string name="subscription_not_found_to_restore">Барои барқароркунӣ ягон subscription ёфт нашуд</string>
+    <string name="title_restore_subscription">Барқарор кардани subscription</string>
+
+    <string name="guide_home_swipe_up">Барои кушодани App drawer ба боло swipe кунед.</string>
+    <string name="guide_home_swipe_down">Барои дидани огоҳномаҳо ба поён swipe кунед.</string>
+    <string name="guide_home_double_tap">Барои кушодани "Recent Apps" экранро ду маротиба зер кунед.</string>
+    <string name="guide_home_long_press_lower">Барои кушодани Settings қисми поёнии экранро дароз пахш кунед.</string>
+    <string name="guide_home_long_press_upper">Барои таҳрири widgets қисми болоии экранро дароз пахш кунед.</string>
+    <string name="guide_home_tap_upper_half">Барои баромадан аз ҳолати таҳрири widgets қисми болоии экранро зер кунед.</string>
+    <string name="guide_home_tap_date_time">Барои дидани alarm–ҳо сана/вақтро зер кунед.</string>
+    <string name="guide_home_long_press_date_time">Барои кушодани календар сана/вақтро дароз пахш кунед.</string>
+    <string name="guide_home_swipe_left_right">Барои кушодани барномаи интихобшуда ё Widgets screen ба чап/рост swipe кунед.</string>
+    <string name="guide_home_gestures">Барои кушодани барномаҳои танзимшуда дар "Gesture Shortcuts" gestures-ро кашед.</string>
+
+    <string name="guide_circular_app_drawer">App drawer-и даврашакл</string>
+    <string name="guide_circular_app_drawer_swipe_down">Барои баргаштан ба поён swipe кунед.</string>
+    <string name="guide_circular_app_drawer_double_tap">Барои кушодани барномаи миёна ду маротиба зер кунед.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">Барои scroll ба чап ё рост swipe кунед.</string>
+    <string name="guide_circular_app_drawer_tap_icon">Барои кушодани барнома иконаи онро зер кунед.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">Барои кушодани маълумоти барнома иконаи онро дароз пахш кунед.</string>
+
+    <string name="guide_horizontal_app_drawer">App drawer-и уфуқӣ</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">Барои баргаштан ба поён swipe кунед.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">Барои scroll ба чап/рост swipe кунед.</string>
+    <string name="guide_horizontal_app_drawer_long_press">Барои идора кардани app drawer дароз пахш кунед.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">Дар ҳолати таҳрир иконаҳоро кашида (drag - drop) ҷойи онҳоро иваз кунед.</string>
+    <string name="guide_horizontal_app_drawer_drag">Дар ҳолати таҳрир drawer–ро боло/поён кашида ҷойгиршавии амудиро иваз кунед.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">Барои баромадан аз ҳолати таҳрир як маротиба зер кунед.</string>
+
+    <string name="guide_search">Ҷустуҷӯи барномаҳо ё тамосҳо.</string>
+    <string name="guide_search_swipe_down">Барои баргаштан дар keyboard ба поён swipe кунед.</string>
+    <string name="guide_search_swipe_right">Барои ҷустуҷӯи тамосҳо дар keyboard ба рост swipe кунед.</string>
+    <string name="guide_search_swipe_left">Барои ҷустуҷӯи барномаҳо дар keyboard ба чап swipe кунед.</string>
+    <string name="guide_search_swipe_up">Барои дидани ҳарфҳои бештар дар keyboard ба боло swipe кунед.</string>
+    <string name="guide_search_long_press">Барои интихоби забон тирчаи back дар марказро дароз пахш кунед.</string>
+    <string name="guide_search_scroll_list">Барои дидани тамоми натиҷаҳо рӯйхати барномаҳоро уфуқӣ scroll кунед.</string>
+    <string name="guide_search_scroll_sides">Барои scroll кардани рӯйхати тамосҳо канорҳои keyboard-и даврашаклро scroll кунед.</string>
+    <string name="guide_search_double_tap_sides">Барои кушодани dialer бо тамоси интихобшуда ба ҳар ду тарафи keyboard–и даврашакл ду маротиба зер кунед.</string>
+
+    <string name="guide_manage_apps">Идора кардани рӯйхати барномаҳо</string>
+    <string name="guide_manage_apps_tap">Барои интихоби барнома ва интиқол ба рӯйхати дигар зер кунед.</string>
+    <string name="guide_manage_apps_long_press">
+        Барои иваз кардани тартиб дар ҳамон рӯйхат, иконаи барномаро дароз пахш карда кашед. Ин танҳо вақте кор мекунад, ки рӯйхат аз рӯи алифбо ҷобаҷо нашуда бошад.
+    </string>
+
+    <string name="title_app_language">Забони барнома</string>
+    <string name="app_language_text">Барои иваз кардани забони барнома зер кунед</string>
+    <string name="icon_app_language">Иконаи забони барнома</string>
+</resources>

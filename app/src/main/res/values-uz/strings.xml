@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">Xush kelibsiz</string>
+
+    <string name="checkout_how_to_guide">
+        Home ekranning istalgan joyiga uzoq bosib menyuni oching va "How-to" qo‘llanmasini ko‘ring.\n
+        Ogohlantirish: Baʼzi tarjimalar avtomatik tarzda yaratilgan bo‘lishi mumkin. Agar noto‘g‘ri yoki tushunarsiz matnni ko‘rsangiz, iltimos, bizga elektron pochta orqali yozing.
+    </string>
+
+    <string name="accessibility_service_description">
+        Bu xizmat tizimning "Recent Apps" ekranini ochish uchun kerak bo‘ladi. Comfer bu ruxsatni faqat shu yorliqni (shortcut) taʼminlash uchun ishlatadi va hech qanday shaxsiy maʼlumotlaringizni yig‘maydi yoki kuzatmaydi.
+    </string>
+
+    <string name="set_default_launcher">Asosiy launcher sifatida o‘rnatish</string>
+    <string name="widget_binding_cancelled">Vidjet sozlamasi bekor qilindi</string>
+    <string name="long_press_to_add_edit_widgets">Vidjet qo‘shish yoki tahrirlash uchun uzoq bosing</string>
+
+    <string name="add_widget">Vidjet qo‘shish</string>
+    <string name="could_not_load_widget">Vidjet yuklab bo‘lmadi</string>
+    <string name="remove_widget">Vidjetni olib tashlash</string>
+
+    <string name="close">Yopish</string>
+    <string name="applications">Ilovalar</string>
+    <string name="contacts">Kontaktlar</string>
+    <string name="search">Qidirish</string>
+
+    <string name="requires_contact_permission">
+        Kontaktlarni qidirish va ularga qo‘ng‘iroq qilish uchun kontaktlarga ruxsat (contact permission) kerak.
+    </string>
+
+    <string name="grant_permission">Ruxsat berish</string>
+
+    <string name="privacy_policy_text">
+        Biz sizning shaxsiy hayotingizni hurmat qilamiz. Comfer hech qanday shaxsiy maʼlumotni yig‘maydi va saqlamaydi. Maxfiylik siyosatimizni o‘qish uchun shu yerga bosing.
+    </string>
+
+    <string name="background_image">Fon rasmi</string>
+    <string name="feedback">Fikr-mulohaza</string>
+    <string name="feedback_text">Tajribaingizni bo‘lishing va Comfer’ni yanada yaxshilashga yordam bering.</string>
+    <string name="feedback_icon">Fikr-mulohaza ikonkasi</string>
+
+    <string name="rate_comfer">Comfer’ga baho bering</string>
+    <string name="not_now">Hozir emas</string>
+
+    <string name="permission_required">Ruxsat kerak</string>
+
+    <string name="recent_apps_permission_title">
+        "Recent Apps" yorlig‘ini ishga tushirish uchun Comfer’ga Accessibility Service ruxsati kerak.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">Bu xizmat nimalarni qiladi:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • Tizimning "Recent Apps" ekranini ochadi.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">Bu xizmat nimalarni qilmaydi:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • Shaxsiy maʼlumotlarni yig‘maydi.\n
+        • Amallaringiz yoki kiritgan matningizni kuzatmaydi.\n
+        • Ekrandagi kontentni o‘qimaydi.
+    </string>
+
+    <string name="continue_text">Davom etish</string>
+    <string name="cancel_text">Bekor qilish</string>
+    <string name="backspace_key">Backspace tugmasi</string>
+
+    <string name="contact_number_not_available">Bu kontakt uchun telefon raqami mavjud emas</string>
+    <string name="no_app_to_place_calls">Qo‘ng‘iroq qilish uchun ilova topilmadi</string>
+
+    <string name="update_available">Yangi yangilanish mavjud.</string>
+    <string name="update_action">Yangilash</string>
+    <string name="update_downloaded">Yangilanish o‘rnatishga tayyor.</string>
+    <string name="update_install">O‘rnatish</string>
+
+    <string name="select_an_application">Ilova tanlang</string>
+
+    <string name="gesture_shortcuts_title">Gesture shortcuts</string>
+    <string name="paid_feature_title">Pullik funksiya</string>
+
+    <string name="tap_icon_to_select_app">Ilova tanlash uchun ikonkaga bosing</string>
+
+    <string name="requires_subscription">Obuna (subscription) talab etiladi</string>
+
+    <string name="button_to_move_app_to_quick_app_list">Asosiy ilovalar (Home Apps) ro‘yxatiga o‘tkazish</string>
+    <string name="button_to_move_app_to_primary_app_list">App drawer ro‘yxatiga o‘tkazish</string>
+    <string name="button_to_move_app_to_ghost_app_list">Yashirin ilovalar ro‘yxatiga o‘tkazish</string>
+
+    <string name="title_widgets">Vidjetlar</string>
+    <string name="title_time">Vaqt</string>
+    <string name="rest_widget_positions">Vidjet joylashuvlarini tiklash</string>
+
+    <string name="title_analog_clock">Analog soat</string>
+    <string name="title_clock_size">Soat o‘lchami</string>
+    <string name="clock_background_color">Soat foni rangi</string>
+    <string name="background_transparency">Fonning shaffofligi</string>
+    <string name="hour_hand_color">Soat strelkasi rangi</string>
+    <string name="minute_hand_color">Daqiqa strelkasi rangi</string>
+
+    <string name="title_time_format">Vaqt formati</string>
+    <string name="title_show_am_pm">AM/PM ni ko‘rsatish</string>
+    <string name="title_font_size">Shrift o‘lchami</string>
+    <string name="title_font_weight">Shrift qalinligi</string>
+    <string name="title_font_style">Shrift uslubi</string>
+    <string name="title_time_font_color">Vaqt shrift rangi</string>
+
+    <string name="title_date">Sana</string>
+    <string name="date_example">Shan, 16-sentyabr</string>
+    <string name="date_font_color">Sana shrift rangi</string>
+
+    <string name="title_battery">Batareya</string>
+    <string name="show_battery_icon">Batareya ikonkasi ko‘rsatilsin</string>
+    <string name="show_battery_percentage">Batareya foizi ko‘rsatilsin</string>
+    <string name="battery_indicator_color">Indikator rangi</string>
+
+    <string name="title_notifications">Bildirishnomalar</string>
+    <string name="show_notification_icons">Bildirishnoma ikonkalari ko‘rsatilsin</string>
+
+    <string name="title_size">O‘lcham</string>
+    <string name="title_color">Rang</string>
+    <string name="title_selected_color">Tanlangan rang</string>
+
+    <string name="button_text_save">Saqlash</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">Pro funksiyalar</string>
+    <string name="title_subscription">Subscription</string>
+    <string name="go_to_page">Sahifani ochish</string>
+
+    <string name="title_support">Qo‘llab-quvvatlash</string>
+    <string name="title_how_to">Qanday ishlatish</string>
+    <string name="title_app_guide">Ilova bo‘ylab navigatsiya qo‘llanmasi</string>
+
+    <string name="icon_how_to_guide">"How-to" qo‘llanma ikonasi</string>
+    <string name="icon_arrow_right">O‘ngga ko‘rsatkich (strelka) ikonasi</string>
+
+    <string name="title_report_issue">Muammo haqida xabar berish</string>
+    <string name="icon_support">Qo‘llab-quvvatlash ikonasi</string>
+
+    <string name="title_wallpapers">Wallpapers</string>
+    <string name="title_auto_wallpapers">Auto wallpapers</string>
+    <string name="auto_wallpaper_text">Wallpapers avtomatik ravishda almashtirilsin</string>
+    <string name="icon_wallpaper">Wallpaper ikonasi</string>
+
+    <string name="title_monochrome">Monoxrom fon</string>
+    <string name="title_color_less_world">Kamsimon rang rejimi</string>
+    <string name="icon_monochrome">Monochrome ikonasi</string>
+
+    <string name="title_wallpaper_motion">Wallpaper motion</string>
+    <string name="wallpaper_motion_text">Home ekranni yanada jonli qiling</string>
+    <string name="icon_wallpaper_motion">Wallpaper motion ikonasi</string>
+
+    <string name="title_change_wallpaper">Wallpaperni almashtirish</string>
+    <string name="change_wallpaper_text">Hozir wallpaperni almashtirish uchun bosing</string>
+    <string name="icon_wallpaper_change">Wallpaper almashtirish ikonasi</string>
+
+    <string name="title_wallpaper_frequency">Almashtirish chastotasi</string>
+    <string name="wallpaper_frequency_text">Avtomatik kun/tun rejimi bilan</string>
+    <string name="icon_wallpaper_frequency">Wallpaper chastotasi ikonasi</string>
+
+    <string name="title_own_wallpapers">O‘z wallpapers-ingizni o‘rnatish</string>
+    <string name="wallpaper_directory_select">Papka tanlash uchun bosing</string>
+    <string name="icon_wallpaper_directory">Wallpaper papka ikonasi</string>
+
+    <string name="set_launcher_first">Avval Comfer’ni asosiy launcher sifatida o‘rnating</string>
+
+    <string name="title_lock_screen">Lock screen</string>
+    <string name="lock_screen_wallpaper_text">Ushbu devor qog‘ozini (wallpaper) lock screen da ham qo‘llash</string>
+    <string name="icon_lock_screen_wallpaper">Lock screen wallpaper ikonasi</string>
+
+    <string name="title_app_icons">Ilova ikonkalar</string>
+    <string name="title_app_icon_size">Ikonka o‘lchami</string>
+    <string name="icon_app_icon_size">Ilova ikonka o‘lchami ikonasi</string>
+    <string name="button_decrease_app_icon_size">Ikonka o‘lchamini kichraytirish</string>
+    <string name="button_increase_app_icon_size">Ikonka o‘lchamini kattalashtirish</string>
+
+    <string name="title_themed_icons">Themed icons</string>
+    <string name="themed_icons_text">Ikonka ranglarini wallpaper ranglari bilan moslashtirish (tajribaviy)</string>
+    <string name="icon_themed_icons">Themed icons ikonasi</string>
+
+    <string name="title_notification_badges">Bildirishnoma va ikonka badge-lari</string>
+    <string name="requires_notification_permission">Bildirishnomalar uchun ruxsat kerak</string>
+    <string name="icon_notification_badges">Notification badges ikonasi</string>
+
+    <string name="title_home_screen">Home ekran</string>
+    <string name="title_custom_widgets">Custom widgets</string>
+    <string name="custom_widgets_text">Sevimli vidjetlaringiz</string>
+    <string name="icon_custom_widgets">Custom widgets ikonasi</string>
+
+    <string name="title_quick_apps_layout">Home Apps layout</string>
+    <string name="quick_apps_layout_text">Ilovalarni chiroyli tartibda joylashtirish</string>
+    <string name="icon_apps_layout">Home Apps layout ikonasi</string>
+
+    <string name="title_left_swipe_action">Chapga swipe harakati</string>
+    <string name="icon_left_swipe_action">Chapga swipe ikonasi</string>
+
+    <string name="title_right_swipe_action">O‘ngga swipe harakati</string>
+    <string name="icon_right_swipe_action">O‘ngga swipe ikonasi</string>
+
+    <string name="title_swipe_gestures">Swipe gestures</string>
+    <string name="swipe_gestures_text">Ilova yorliqlari uchun gesture’lardan foydalaning</string>
+    <string name="icon_swipe_gestures">Swipe gestures ikonasi</string>
+
+    <string name="title_app_drawer">App drawer</string>
+    <string name="title_app_drawer_layouts">Layouts</string>
+    <string name="app_drawer_layouts_text">Ilovalarni ko‘rish uchun turli uslublar</string>
+
+    <string name="title_alphabetical_order">Alifbo tartibi</string>
+    <string name="alphabetical_order_text">Ilovalarni alifbo bo‘yicha tartiblash</string>
+    <string name="icon_alphabetical_order">Alphabetical order ikonasi</string>
+
+    <string name="title_apps_list">Ilovalar ro‘yxatlari</string>
+    <string name="title_manage_app_list">Ilovalarni boshqarish</string>
+    <string name="manage_app_list_text">Ilovalarni ro‘yxatlar bo‘yicha tartiblang yoki qayta joylashtiring</string>
+    <string name="icon_manage_app_list">Manage app list ikonasi</string>
+
+    <string name="title_feedback">Fikr-mulohaza</string>
+    <string name="icon_feedback">Feedback ikonasi</string>
+
+    <string name="title_share_app">Ilovani ulashish</string>
+    <string name="icon_share_app">Share app ikonasi</string>
+    <string name="share_app_text">Ushbu yangi launcher’ni sinab ko‘ring:</string>
+
+    <string name="title_share_with">Qayerga ulashish</string>
+
+    <string name="title_app_version">Ilova versiyasi</string>
+    <string name="icon_app_version">App version ikonasi</string>
+
+    <string name="title_icon_shapes">Ikonka shakllari</string>
+    <string name="icon_shapes_text">Ilova ikonka shaklini tanlash</string>
+    <string name="icon_icon_shapes">Icon shapes ikonasi</string>
+
+    <string name="title_select_icon_shape">Ikonka shaklini tanlang</string>
+
+    <string name="notification_permission_text">
+        Home ekranda bildirishnoma ikonkalarini va ilova ikonkalari ustida badge’larni ko‘rsatish uchun Comfer’ga notification access kerak.
+    </string>
+
+    <string name="what_notification_permission_do_title">Bu xizmat nimalarni qiladi:</string>
+
+    <string name="what_notification_permission_do_text">
+        • Bildirishnomalar holatini o‘qiydi va kerak bo‘lganda ikonka hamda badge’larni ko‘rsatadi.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">Bu xizmat nimalarni qilmaydi:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • Hech qanday shaxsiy maʼlumotni yig‘maydi.
+    </string>
+
+    <string name="title_choose_layout">Layout tanlash</string>
+    <string name="swipe_action_selection">Ilova yoki Widgets screen tanlash</string>
+    <string name="title_choose_options">Variant tanlash</string>
+    <string name="title_select_app">Ilova tanlash</string>
+    <string name="title_widgets_screen">Widgets screen</string>
+    <string name="title_choose_action">Amalni tanlash</string>
+
+    <string name="unable_to_load_subscriptions">
+        Subscription maʼlumotlarini yuklab bo‘lmadi. Iltimos, internet ulanishini tekshirib, qayta urinib ko‘ring.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">Subscription yuklash muvaffaqiyatsiz</string>
+    <string name="no_subscription_available">Hech qanday subscription mavjud emas</string>
+
+    <string name="title_active_subscription">Faol subscription</string>
+    <string name="subscription_renews_on">Qayta yangilanadi</string>
+    <string name="subscription_expires_on">Tugash sanasi</string>
+
+    <string name="subscription_benefit_one">O‘zingizning dinamik wallpapers’laringizni o‘rnating</string>
+    <string name="subscription_benefit_two">Sevimli vidjetlaringizni Home ekranga qo‘shing</string>
+    <string name="subscription_benefit_three">Home ekrandagi standart vidjetlarni moslashtiring</string>
+    <string name="subscription_benefit_four">Ilovalarni gesture yordamida tez oching</string>
+
+    <string name="title_manage_your_subscription">Subscription’ingizni boshqaring</string>
+    <string name="title_pro_access">Pro access</string>
+    <string name="title_year">yil</string>
+
+    <string name="subscription_failed_prefix">Subscription amalga oshmadi</string>
+    <string name="subscription_successful_prefix">Subscription muvaffaqiyatli</string>
+    <string name="title_subscribe_now">Hozir obuna bo‘lish</string>
+
+    <string name="subscription_restore_failed_prefix">Subscription’ni tiklash muvaffaqiyatsiz</string>
+    <string name="subscription_restore_successful_prefix">Subscription muvaffaqiyatli tiklandi</string>
+    <string name="subscription_not_found_to_restore">Tiklash uchun subscription topilmadi</string>
+    <string name="title_restore_subscription">Subscription’ni tiklash</string>
+
+    <string name="guide_home_swipe_up">App drawer’ni ochish uchun yuqoriga swipe qiling.</string>
+    <string name="guide_home_swipe_down">Bildirishnomalarni ko‘rish uchun pastga swipe qiling.</string>
+    <string name="guide_home_double_tap">"Recent Apps" ni ochish uchun ekranga ikki marta bosing.</string>
+    <string name="guide_home_long_press_lower">Sozlamalarni (Settings) ochish uchun ekranning pastki yarmiga uzoq bosing.</string>
+    <string name="guide_home_long_press_upper">Vidjetlarni tahrirlash uchun ekranning yuqori yarmiga uzoq bosing.</string>
+    <string name="guide_home_tap_upper_half">Vidjet tahrirlash rejimidan chiqish uchun ekranning yuqori yarmiga bosing.</string>
+    <string name="guide_home_tap_date_time">Budilniklarni ko‘rish uchun sana/vaqtga bosing.</string>
+    <string name="guide_home_long_press_date_time">Kalendarni ochish uchun sana/vaqtga uzoq bosing.</string>
+    <string name="guide_home_swipe_left_right">Tanlangan ilova yoki Widgets screen’ni ochish uchun chapga yoki o‘ngga swipe qiling.</string>
+    <string name="guide_home_gestures">"Gesture Shortcuts" bo‘limida belgilangan gestures’ni chizib ilovalarni oching.</string>
+
+    <string name="guide_circular_app_drawer">Dumaloq App drawer</string>
+    <string name="guide_circular_app_drawer_swipe_down">Ortga qaytish uchun pastga swipe qiling.</string>
+    <string name="guide_circular_app_drawer_double_tap">Markazdagi ilovani ochish uchun ikki marta bosing.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">Scroll qilish uchun chapga/o‘ngga swipe qiling.</string>
+    <string name="guide_circular_app_drawer_tap_icon">Ilovani ochish uchun ikonkaga bosing.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">Ilova maʼlumotlarini (App info) ochish uchun ikonkani uzoq bosing.</string>
+
+    <string name="guide_horizontal_app_drawer">Gorizontal App drawer</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">Ortga qaytish uchun pastga swipe qiling.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">Scroll qilish uchun chapga/o‘ngga swipe qiling.</string>
+    <string name="guide_horizontal_app_drawer_long_press">App drawer’ni boshqarish uchun uzoq bosing.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">Tahrirlash (edit) rejimida ikonkalarning joyini o‘zgartirish uchun ularni drag - drop qiling.</string>
+    <string name="guide_horizontal_app_drawer_drag">Tahrirlash rejimida drawer’ni yuqoriga/pastga surib vertikal joylashuvini o‘zgartiring.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">Edit rejimidan chiqish uchun bir marta bosing.</string>
+
+    <string name="guide_search">Ilovalar yoki kontaktlarni qidiring.</string>
+    <string name="guide_search_swipe_down">Ortga qaytish uchun klaviaturada pastga swipe qiling.</string>
+    <string name="guide_search_swipe_right">Kontaktlar ichida qidirish uchun klaviaturada o‘ngga swipe qiling.</string>
+    <string name="guide_search_swipe_left">Ilovalar ichida qidirish uchun klaviaturada chapga swipe qiling.</string>
+    <string name="guide_search_swipe_up">Ko‘proq belgilarni ko‘rish uchun klaviaturada yuqoriga swipe qiling.</string>
+    <string name="guide_search_long_press">Tilni tanlash uchun markazdagi orqaga o‘q (back arrow) ni uzoq bosing.</string>
+    <string name="guide_search_scroll_list">Barcha natijalarni ko‘rish uchun ilovalar ro‘yxatini gorizontal scroll qiling.</string>
+    <string name="guide_search_scroll_sides">Kontaktlar ro‘yxatini scroll qilish uchun dumaloq klaviaturaning yon tomonlarini scroll qiling.</string>
+    <string name="guide_search_double_tap_sides">Ajratib ko‘rsatilgan kontakt bilan dialer’ni ochish uchun dumaloq klaviaturaning istalgan yon tomoniga ikki marta bosing.</string>
+
+    <string name="guide_manage_apps">Ilovalar ro‘yxatini boshqarish</string>
+    <string name="guide_manage_apps_tap">Ilovani tanlab uni boshqa ro‘yxatga o‘tkazish uchun bosing.</string>
+    <string name="guide_manage_apps_long_press">
+        Bir xil ro‘yxat ichida tartibni o‘zgartirish uchun ilova ikonkasi ustiga uzoq bosib, uni sudrab (drag) joyini o‘zgartiring. Bu faqat ro‘yxat alifbo bo‘yicha tartiblanmagan bo‘lsa ishlaydi.
+    </string>
+
+    <string name="title_app_language">Ilova tili</string>
+    <string name="app_language_text">Ilova tilini o‘zgartirish uchun bosing</string>
+    <string name="icon_app_language">App language ikonasi</string>
+</resources>

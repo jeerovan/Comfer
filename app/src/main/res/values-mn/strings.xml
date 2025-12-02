@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">Тавтай морилно уу</string>
+
+    <string name="checkout_how_to_guide">
+        Home screen дээрх дурын газарт удаан дараад цэсийг нээж "How-to" зааврыг үзнэ үү.\n
+        Анхааруулга: Зарим орчуулга автоматаар үүссэн байж магадгүй. Хэрэв буруу эсвэл ойлгомжгүй текст анзаарвал имэйлээр бидэнд мэдэгдэнэ үү.
+    </string>
+
+    <string name="accessibility_service_description">
+        Энэ үйлчилгээ нь системийн "Recent Apps" дэлгэцийг нээхэд шаардлагатай. Comfer нь энэ зөвшөөрлийг зөвхөн энэ товчлолыг (shortcut) ажиллуулахад ашигладаг бөгөөд таны хувийн мэдээллийг цуглуулах, хянах үйлдэл огт хийдэггүй.
+    </string>
+
+    <string name="set_default_launcher">Үндсэн launcher болгож тохируулах</string>
+    <string name="widget_binding_cancelled">Widget тохируулгыг цуцалсан</string>
+    <string name="long_press_to_add_edit_widgets">Widget нэмэх эсвэл засахын тулд удаан дарах</string>
+
+    <string name="add_widget">Widget нэмэх</string>
+    <string name="could_not_load_widget">Widget ачаалагдсангүй</string>
+    <string name="remove_widget">Widget устгах</string>
+
+    <string name="close">Хаах</string>
+    <string name="applications">Апп-ууд</string>
+    <string name="contacts">Харилцагчид</string>
+    <string name="search">Хайх</string>
+
+    <string name="requires_contact_permission">
+        Харилцагчдыг хайх болон залгахын тулд Contacts эрх шаардлагатай.
+    </string>
+
+    <string name="grant_permission">Зөвшөөрөх</string>
+
+    <string name="privacy_policy_text">
+        Бид таны нууцлалыг хүндэлдэг. Comfer нь ямар ч хувийн мэдээлэл цуглуулах, хадгалахгүй. Нууцлалын бодлогыг уншихын тулд энд дарна уу.
+    </string>
+
+    <string name="background_image">Арын зураг</string>
+    <string name="feedback">Сэтгэгдэл</string>
+    <string name="feedback_text">Туршлагаа хуваалцаж, Comfer-ийг улам сайжруулахад туслаарай.</string>
+    <string name="feedback_icon">Сэтгэгдлийн icon</string>
+
+    <string name="rate_comfer">Comfer-ийг үнэлэх</string>
+    <string name="not_now">Одоохондоо үгүй</string>
+
+    <string name="permission_required">Зөвшөөрөл шаардлагатай</string>
+
+    <string name="recent_apps_permission_title">
+        "Recent Apps" товчлолыг идэвхжүүлэхийн тулд Comfer-д Accessibility Service-ийн эрх хэрэгтэй.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">Энэ үйлчилгээ дараахыг хийнэ:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • Системийн "Recent Apps" дэлгэцийг нээнэ.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">Энэ үйлчилгээ дараахыг хийхгүй:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • Хувийн мэдээлэл цуглуулахгүй.\n
+        • Таны үйлдэл, бичиж буй текстийг хянахгүй.\n
+        • Дэлгэцийн агуулгыг уншихгүй.
+    </string>
+
+    <string name="continue_text">Үргэлжлүүлэх</string>
+    <string name="cancel_text">Цуцлах</string>
+    <string name="backspace_key">Backspace товч</string>
+
+    <string name="contact_number_not_available">Энэ харилцагчийн утасны дугаар байхгүй байна</string>
+    <string name="no_app_to_place_calls">Дуудлага хийх апп олдсонгүй</string>
+
+    <string name="update_available">Шинэ шинэчлэлт гарсан байна.</string>
+    <string name="update_action">Шинэчлэх</string>
+    <string name="update_downloaded">Шинэчлэлт суулгахад бэлэн боллоо.</string>
+    <string name="update_install">Суулгах</string>
+
+    <string name="select_an_application">Апп сонгох</string>
+
+    <string name="gesture_shortcuts_title">Gesture shortcuts</string>
+    <string name="paid_feature_title">Төлбөртэй боломж</string>
+
+    <string name="tap_icon_to_select_app">Апп сонгохын тулд icon дээр товшино уу</string>
+
+    <string name="requires_subscription">Subscription шаардлагатай</string>
+
+    <string name="button_to_move_app_to_quick_app_list">Home Apps руу зөөх</string>
+    <string name="button_to_move_app_to_primary_app_list">App drawer руу зөөх</string>
+    <string name="button_to_move_app_to_ghost_app_list">Нууц Apps руу зөөх</string>
+
+    <string name="title_widgets">Widgets</string>
+    <string name="title_time">Цаг</string>
+    <string name="rest_widget_positions">Байршлуудыг дахин тохируулах</string>
+
+    <string name="title_analog_clock">Analog цаг</string>
+    <string name="title_clock_size">Цагийн хэмжээ</string>
+    <string name="clock_background_color">Цагийн арын өнгө</string>
+    <string name="background_transparency">Арын ил тод байдал</string>
+    <string name="hour_hand_color">Цагийн заагчийн өнгө</string>
+    <string name="minute_hand_color">Минутын заагчийн өнгө</string>
+
+    <string name="title_time_format">Цагийн формат</string>
+    <string name="title_show_am_pm">AM/PM харуулах</string>
+    <string name="title_font_size">Фонтын хэмжээ</string>
+    <string name="title_font_weight">Фонтын зузаан</string>
+    <string name="title_font_style">Фонтын хэв маяг</string>
+    <string name="title_time_font_color">Цагийн фонтын өнгө</string>
+
+    <string name="title_date">Огноо</string>
+    <string name="date_example">Бям, 9-р сарын 16</string>
+    <string name="date_font_color">Огнооны фонтын өнгө</string>
+
+    <string name="title_battery">Батерей</string>
+    <string name="show_battery_icon">Батерейн icon харуулах</string>
+    <string name="show_battery_percentage">Батерейн хувь харуулах</string>
+    <string name="battery_indicator_color">Заагчийн өнгө</string>
+
+    <string name="title_notifications">Мэдэгдлүүд</string>
+    <string name="show_notification_icons">Мэдэгдлийн icon-уудыг харуулах</string>
+
+    <string name="title_size">Хэмжээ</string>
+    <string name="title_color">Өнгө</string>
+    <string name="title_selected_color">Сонгосон өнгө</string>
+
+    <string name="button_text_save">Хадгалах</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">Pro боломжууд</string>
+    <string name="title_subscription">Subscription</string>
+    <string name="go_to_page">Хуудас нээх</string>
+
+    <string name="title_support">Тусламж</string>
+    <string name="title_how_to">How-to</string>
+    <string name="title_app_guide">Апп доторх navigation заавар</string>
+
+    <string name="icon_how_to_guide">"How-to" зааврын icon</string>
+    <string name="icon_arrow_right">Баруун сумны icon</string>
+
+    <string name="title_report_issue">Алдаа/асуудал мэдээлэх</string>
+    <string name="icon_support">Тусламжийн icon</string>
+
+    <string name="title_wallpapers">Wallpapers</string>
+    <string name="title_auto_wallpapers">Auto wallpapers</string>
+    <string name="auto_wallpaper_text">Wallpapers-ийг автоматаар сольж байх</string>
+    <string name="icon_wallpaper">Wallpaper icon</string>
+
+    <string name="title_monochrome">Monochrome арын дэвсгэр</string>
+    <string name="title_color_less_world">Өнгө багатай горим</string>
+    <string name="icon_monochrome">Monochrome icon</string>
+
+    <string name="title_wallpaper_motion">Wallpaper motion</string>
+    <string name="wallpaper_motion_text">Home screen-ийг илүү "амьд" болгох</string>
+    <string name="icon_wallpaper_motion">Wallpaper motion icon</string>
+
+    <string name="title_change_wallpaper">Wallpaper солих</string>
+    <string name="change_wallpaper_text">Одоо wallpaper солихын тулд товшино уу</string>
+    <string name="icon_wallpaper_change">Wallpaper солих icon</string>
+
+    <string name="title_wallpaper_frequency">Солигдох давтамж</string>
+    <string name="wallpaper_frequency_text">Автомат өдөр/шөнийн горимтой</string>
+    <string name="icon_wallpaper_frequency">Wallpaper frequency icon</string>
+
+    <string name="title_own_wallpapers">Өөрийн wallpapers тохируулах</string>
+    <string name="wallpaper_directory_select">Folder сонгохын тулд товшино уу</string>
+    <string name="icon_wallpaper_directory">Wallpaper folder icon</string>
+
+    <string name="set_launcher_first">Эхлээд Comfer-ийг үндсэн launcher болгож тохируулна уу</string>
+
+    <string name="title_lock_screen">Lock screen</string>
+    <string name="lock_screen_wallpaper_text">Ижил wallpaper-ийг lock screen дээр бас тавих</string>
+    <string name="icon_lock_screen_wallpaper">Lock screen wallpaper icon</string>
+
+    <string name="title_app_icons">Апп icon-ууд</string>
+    <string name="title_app_icon_size">Icon-ы хэмжээ</string>
+    <string name="icon_app_icon_size">App icon size icon</string>
+    <string name="button_decrease_app_icon_size">Icon-ы хэмжээг багасгах</string>
+    <string name="button_increase_app_icon_size">Icon-ы хэмжээг нэмэх</string>
+
+    <string name="title_themed_icons">Themed icons</string>
+    <string name="themed_icons_text">Icon-уудын өнгийг wallpaper-ийн өнгөтэй тааруулах (туршилтын)</string>
+    <string name="icon_themed_icons">Themed icons icon</string>
+
+    <string name="title_notification_badges">Мэдэгдэл ба icon badges</string>
+    <string name="requires_notification_permission">Notification зөвшөөрөл шаардлагатай</string>
+    <string name="icon_notification_badges">Notification badges icon</string>
+
+    <string name="title_home_screen">Home screen</string>
+    <string name="title_custom_widgets">Custom widgets</string>
+    <string name="custom_widgets_text">Таны дуртай widgets</string>
+    <string name="icon_custom_widgets">Custom widgets icon</string>
+
+    <string name="title_quick_apps_layout">Home Apps layout</string>
+    <string name="quick_apps_layout_text">Апп-уудыг загвартайгаар эрэмбэлэх</string>
+    <string name="icon_apps_layout">Home Apps layout icon</string>
+
+    <string name="title_left_swipe_action">Зүүн swipe үйлдэл</string>
+    <string name="icon_left_swipe_action">Зүүн swipe icon</string>
+
+    <string name="title_right_swipe_action">Баруун swipe үйлдэл</string>
+    <string name="icon_right_swipe_action">Баруун swipe icon</string>
+
+    <string name="title_swipe_gestures">Swipe gestures</string>
+    <string name="swipe_gestures_text">Аппын товчлолд gesture ашиглах</string>
+    <string name="icon_swipe_gestures">Swipe gestures icon</string>
+
+    <string name="title_app_drawer">App drawer</string>
+    <string name="title_app_drawer_layouts">Layouts</string>
+    <string name="app_drawer_layouts_text">Апп хайж үзэх янз бүрийн загварууд</string>
+
+    <string name="title_alphabetical_order">Үсгийн дарааллаар</string>
+    <string name="alphabetical_order_text">Апп-уудыг үсгийн дарааллаар эрэмбэлэх</string>
+    <string name="icon_alphabetical_order">Alphabetical order icon</string>
+
+    <string name="title_apps_list">Apps жагсаалтууд</string>
+    <string name="title_manage_app_list">Apps удирдах</string>
+    <string name="manage_app_list_text">Апп-уудыг жагсаалтаар бүлэглэж, эрэмбэлэх</string>
+    <string name="icon_manage_app_list">Manage app list icon</string>
+
+    <string name="title_feedback">Сэтгэгдэл</string>
+    <string name="icon_feedback">Feedback icon</string>
+
+    <string name="title_share_app">Апп хуваалцах</string>
+    <string name="icon_share_app">Share app icon</string>
+    <string name="share_app_text">Энэ шинэ launcher-ийг туршаад үзээрэй:</string>
+
+    <string name="title_share_with">Юутай хуваалцах</string>
+
+    <string name="title_app_version">Аппын хувилбар</string>
+    <string name="icon_app_version">App version icon</string>
+
+    <string name="title_icon_shapes">Icon shapes</string>
+    <string name="icon_shapes_text">Апп icon-ы хэлбэрийг сонгох</string>
+    <string name="icon_icon_shapes">Icon shapes icon</string>
+
+    <string name="title_select_icon_shape">Icon shape сонгох</string>
+
+    <string name="notification_permission_text">
+        Home screen дээр notification icon-ууд болон app icon дээр badges харуулахын тулд Comfer-т notification access шаардлагатай.
+    </string>
+
+    <string name="what_notification_permission_do_title">Энэ үйлчилгээ дараахыг хийнэ:</string>
+
+    <string name="what_notification_permission_do_text">
+        • Notification-ийн төлөвийг уншаад, шаардлагатай үед icon болон badge-уудыг харуулна.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">Энэ үйлчилгээ дараахыг хийхгүй:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • Хувийн мэдээлэл цуглуулахгүй.
+    </string>
+
+    <string name="title_choose_layout">Layout сонгох</string>
+    <string name="swipe_action_selection">Апп эсвэл Widgets screen сонгох</string>
+    <string name="title_choose_options">Сонголт сонгох</string>
+    <string name="title_select_app">Апп сонгох</string>
+    <string name="title_widgets_screen">Widgets screen</string>
+    <string name="title_choose_action">Үйлдэл сонгох</string>
+
+    <string name="unable_to_load_subscriptions">
+        Subscription-ийн мэдээллийг ачаалж чадсангүй. Интернет холболтоо шалгаад дахин оролдоно уу.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">Subscription ачаалж чадсангүй</string>
+    <string name="no_subscription_available">Идэвхтэй subscription алга</string>
+
+    <string name="title_active_subscription">Идэвхтэй subscription</string>
+    <string name="subscription_renews_on">Дахин сунгах өдөр</string>
+    <string name="subscription_expires_on">Дуусах өдөр</string>
+
+    <string name="subscription_benefit_one">Өөрийн dynamic wallpapers тохируулах</string>
+    <string name="subscription_benefit_two">Дуртай widgets-ээ Home screen дээр нэмэх</string>
+    <string name="subscription_benefit_three">Home screen-ийн default widgets-ийг өөрчлөн тохируулах</string>
+    <string name="subscription_benefit_four">Апп-уудыг gesture ашиглан хурдан нээх</string>
+
+    <string name="title_manage_your_subscription">Subscription-ээ удирдах</string>
+    <string name="title_pro_access">Pro access</string>
+    <string name="title_year">жил</string>
+
+    <string name="subscription_failed_prefix">Subscription амжилтгүй боллоо</string>
+    <string name="subscription_successful_prefix">Subscription амжилттай</string>
+    <string name="title_subscribe_now">Одоо subscribe хийх</string>
+
+    <string name="subscription_restore_failed_prefix">Subscription сэргээхэд амжилтгүй</string>
+    <string name="subscription_restore_successful_prefix">Subscription амжилттай сэргэж дууслаа</string>
+    <string name="subscription_not_found_to_restore">Сэргээх subscription олдсонгүй</string>
+    <string name="title_restore_subscription">Subscription сэргээх</string>
+
+    <string name="guide_home_swipe_up">App drawer нээхийн тулд дээш swipe хийнэ.</string>
+    <string name="guide_home_swipe_down">Мэдэгдлүүд харахын тулд доош swipe хийнэ.</string>
+    <string name="guide_home_double_tap">"Recent Apps" нээхийн тулд дэлгэц дээр хоёр удаа товшино уу.</string>
+    <string name="guide_home_long_press_lower">Settings нээхийн тулд дэлгэцийн доод хагаст удаан дарна.</string>
+    <string name="guide_home_long_press_upper">Widgets засахын тулд дэлгэцийн дээд хагаст удаан дарна.</string>
+    <string name="guide_home_tap_upper_half">Widget засах горимоос гарахын тулд дэлгэцийн дээд хагаст товшино уу.</string>
+    <string name="guide_home_tap_date_time">Alarm-уудыг харахын тулд огноо/цаг дээр товшино уу.</string>
+    <string name="guide_home_long_press_date_time">Календарь нээхийн тулд огноо/цаг дээр удаан дарна.</string>
+    <string name="guide_home_swipe_left_right">Сонгосон апп эсвэл Widgets screen нээхийн тулд зүүн/баруун тийш swipe хийнэ.</string>
+    <string name="guide_home_gestures">"Gesture Shortcuts" дээр тохируулсан gestures-ийг зурж апп нээнэ.</string>
+
+    <string name="guide_circular_app_drawer">Дугуй хэлбэртэй App drawer</string>
+    <string name="guide_circular_app_drawer_swipe_down">Буцаж очихын тулд доош swipe хийнэ.</string>
+    <string name="guide_circular_app_drawer_double_tap">Гол дахь аппыг нээхийн тулд хоёр удаа товшино уу.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">Scroll хийхийн тулд зүүн/баруун тийш swipe хийнэ.</string>
+    <string name="guide_circular_app_drawer_tap_icon">Апп нээхийн тулд icon дээр товшино уу.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">Аппын мэдээлэл (App info) нээхийн тулд icon дээр удаан дарна.</string>
+
+    <string name="guide_horizontal_app_drawer">Хэвтээ App drawer</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">Буцахын тулд доош swipe хийнэ.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">Scroll хийхийн тулд зүүн/баруун тийш swipe хийнэ.</string>
+    <string name="guide_horizontal_app_drawer_long_press">App drawer удирдахын тулд удаан дарна.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">Edit горимд icon-уудыг drag - drop хийж байрлалыг нь өөрчилнө.</string>
+    <string name="guide_horizontal_app_drawer_drag">Edit горимд drawer-ийг дээш/доош чирж босоо байрлалыг өөрчилнө.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">Edit горимоос гарахын тулд нэг удаа товшино уу.</string>
+
+    <string name="guide_search">Апп эсвэл харилцагч хайх.</string>
+    <string name="guide_search_swipe_down">Буцахын тулд keyboard дээр доош swipe хийнэ.</string>
+    <string name="guide_search_swipe_right">Contacts дундаас хайхын тулд keyboard дээр баруун тийш swipe хийнэ.</string>
+    <string name="guide_search_swipe_left">Apps дундаас хайхын тулд keyboard дээр зүүн тийш swipe хийнэ.</string>
+    <string name="guide_search_swipe_up">Дараагийн тэмдэгтүүдийг харахын тулд keyboard дээр дээш swipe хийнэ.</string>
+    <string name="guide_search_long_press">Хэл сонгохын тулд төв дэх back сумыг удаан дарна.</string>
+    <string name="guide_search_scroll_list">Бүх үр дүнг харахын тулд аппын жагсаалтыг хөндлөн scroll хийнэ.</string>
+    <string name="guide_search_scroll_sides">Харилцагчдын жагсаалтыг scroll хийхийн тулд дугуй keyboard-ийн хоёр талаар scroll хийнэ.</string>
+    <string name="guide_search_double_tap_sides">Тодруулсан харилцагчтайгаар dialer нээхийн тулд дугуй keyboard-ийн аль ч тал дээр хоёр удаа товшино уу.</string>
+
+    <string name="guide_manage_apps">Аппын жагсаалт удирдах</string>
+    <string name="guide_manage_apps_tap">Апп сонгож өөр жагсаалт руу зөөхийн тулд товшино уу.</string>
+    <string name="guide_manage_apps_long_press">
+        Нэг жагсаалтын доторх дарааллыг өөрчлөхийн тулд аппын icon дээр удаан дарж чирнэ. Жагсаалт үсгийн дарааллаар эрэмбэлэгдээгүй үед ажиллана.
+    </string>
+
+    <string name="title_app_language">Аппын хэл</string>
+    <string name="app_language_text">Аппын хэлийг солихын тулд товшино уу</string>
+    <string name="icon_app_language">App language icon</string>
+</resources>

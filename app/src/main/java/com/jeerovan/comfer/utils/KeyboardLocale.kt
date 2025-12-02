@@ -178,7 +178,14 @@ object KeyboardLocale {
             "vi",
             "th",
             "ro",
-            "my"
+            "my",
+            "az",
+            "km",
+            "lo",
+            "mn",
+            "tg",
+            "tk",
+            "uz"
         ).map{Locale.forLanguageTag(it)}
     }
     fun getCharsForLocale(locale: Locale): List<List<String>> {
