@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">ကြိုဆိုပါသည်</string>
+
+    <string name="checkout_how_to_guide">
+        ပင်မ မျက်နှာပြင် (Home screen) ပေါ်ရှိ မည်သည့်နေရာမဆို မာ့ခ်ရှည်နှိပ်၍ မီနူးကို ဖွင့်ပြီး "အသုံးပြုပုံ" (How-to) လမ်းညွှန်ကို ကြည့်ရှုနိုင်ပါသည်။\n
+        အကြောင်းကြားချက် - သတိပေးချက်။ စကားပုံအချို့ကို စနစ်မှ အလိုအလျောက် ဘာသာပြန်ထားခဲ့နိုင်သည်။ မှားယွင်းနေသည့် စာသားများကို သတိပြုလျှင် ကျေးဇူးပြု၍ အီးမေးလ်ဖြင့် ကူညီ အသိပေးပါ။
+    </string>
+
+    <string name="accessibility_service_description">
+        စနစ်၏ "မကြာသေးမီတွင် သုံးခဲ့သော အပ်များ" (Recent Apps) စာမျက်နှာကို ဖွင့်ရန် အောက်ပါ service သည် လိုအပ်ပါသည်။ Comfer သည် ဤခွင့်ပြုချက်ကို ဤ shortcut အတွက်သာ အသုံးပြုပြီး သင်၏ ကိုယ်ရေးအချက်အလက်များကို လုံးဝ မပြုံစုံသည့်အပြင် မကြည့်ရှု/မကြီးကြပ်ပါ။
+    </string>
+
+    <string name="set_default_launcher">မူလ Launcher အဖြစ် သတ်မှတ်ရန်</string>
+    <string name="widget_binding_cancelled">Widget ပြင်ဆင်ခြင်းကို ရပ်ဆိုင်းလိုက်ပါသည်</string>
+    <string name="long_press_to_add_edit_widgets">Widget များကို ထည့်ရန် သို့မဟုတ် ပြင်ဆင်ရန် ရှည်နှိပ်ပါ</string>
+
+    <string name="add_widget">Widget ထည့်ရန်</string>
+    <string name="could_not_load_widget">Widget ကို ဖွင့်လို့ မရနိုင်ခဲ့ပါ</string>
+    <string name="remove_widget">Widget ဖယ်ရှားရန်</string>
+
+    <string name="close">ပိတ်ရန်</string>
+    <string name="applications">အပ်များ</string>
+    <string name="contacts">အဆက်အသွယ်များ</string>
+    <string name="search">ရှာဖွေရန်</string>
+
+    <string name="requires_contact_permission">
+        အဆက်အသွယ်များကို ရှာဖွေပြီး ဖုန်းခေါ်ရန်အတွက် အဆက်အသွယ် (Contacts) ခွင့်ပြုချက် လိုအပ်ပါသည်။
+    </string>
+
+    <string name="grant_permission">ခွင့်ပြုရန်</string>
+
+    <string name="privacy_policy_text">
+        ကျွန်ုပ်တို့သည် သင်၏ ကိုယ်ရေးခွင့်ကို လေးစားပါသည်။ Comfer သည် ကိုယ်ရေးအချက်အလက် မည်သည့်အရာမျှ မစုဆောင်း/မသိုလှောင်ပါ။ သင့်၏ ကိုယ်ရေးလုံခြုံမှု မူဝါদ (Privacy policy) ကိုဖတ်ရှုရန် တို့တ်နှိပ်ပါ။
+    </string>
+
+    <string name="background_image">နောက်ခံပုံ</string>
+    <string name="feedback">မှတ်ချက်ပေးရန်</string>
+    <string name="feedback_text">သင့်အသုံးပြုမှု အတွေ့အကြုံကို မျှဝေကာ Comfer ကို ပိုမိုကောင်းမွန်စေရန် ကူညီပေးပါ။</string>
+    <string name="feedback_icon">Feedback အိုင်ကွန်</string>
+
+    <string name="rate_comfer">Comfer ကို အဆင့်သတ်မှတ်ရန်</string>
+    <string name="not_now">နောက်တစ်ခါ</string>
+
+    <string name="permission_required">ခွင့်ပြုချက် လိုအပ်သည်</string>
+
+    <string name="recent_apps_permission_title">
+        "Recent Apps" shortcut ကို အသုံးပြုနိုင်ရန် Comfer တွင် Accessibility Service ခွင့်ပြုချက် လိုအပ်ပါသည်။
+    </string>
+
+    <string name="what_recent_apps_short_do_title">ဤ service သည် ပြုလုပ်နိုင်သော အရာများ:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • စနစ်၏ "Recent Apps" စာမျက်နှာကို ဖွင့်ပေးပါသည်။
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">ဤ service သည် မပြုလုပ်သော အရာများ:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • ကိုယ်ရေးအချက်အလက်များ မစုဆောင်းပါ။\n
+        • သင်ပြုလုပ်သော လှုပ်ရှားမှုများ သို့မဟုတ် ရိုက်နှိပ်သည့် စာသားများကို မကြီးကြပ်ပါ။\n
+        • မျက်နှာပြင်ပါ အကြောင်းအရာများကို မဖတ်ရှုပါ။
+    </string>
+
+    <string name="continue_text">ရှေ့သို့ ဆက်လက်လုပ်ဆောင်ရန်</string>
+    <string name="cancel_text">မလုပ်တော့ပါ</string>
+    <string name="backspace_key">Backspace ခလုတ်</string>
+
+    <string name="contact_number_not_available">ဤအဆက်အသွယ်တွင် ဖုန်းနံပါတ် မရှိပါ</string>
+    <string name="no_app_to_place_calls">ဖုန်းခေါ်ရန် အသုံးပြုနိုင်မည့် အပ် မတွေ့ရှိပါ</string>
+
+    <string name="update_available">Update အသစ် တစ်ခု ရရှိနေပါသည်။</string>
+    <string name="update_action">Update လုပ်ရန်</string>
+    <string name="update_downloaded">Update ကို ထည့်သွင်းရန် အသင့်ဖြစ်နေပါပြီ။</string>
+    <string name="update_install">Install လုပ်ရန်</string>
+
+    <string name="select_an_application">အပ်တစ်ခု ကို ရွေးချယ်ပါ</string>
+
+    <string name="gesture_shortcuts_title">လက်حر حر (Gesture) shortcut များ</string>
+    <string name="paid_feature_title">အခကြေးငွေဖြင့် အသုံးပြုသည့်လုပ်ဆောင်ချက်</string>
+
+    <string name="tap_icon_to_select_app">အပ်ကို ရွေးချယ်ရန် အိုင်ကွန်ကို တို့တ်နှိပ်ပါ</string>
+
+    <string name="requires_subscription">Subscription လိုအပ်နေပါသည်</string>
+
+    <string name="button_to_move_app_to_quick_app_list">အသုံးများသော Home Apps သို႔ ရွှေ့ရန်</string>
+    <string name="button_to_move_app_to_primary_app_list">App drawer ထဲသို့ ရွှေ့ရန်</string>
+    <string name="button_to_move_app_to_ghost_app_list">ဝှက်ထားသော Apps သို့ ရွှေ့ရန်</string>
+
+    <string name="title_widgets">Widget များ</string>
+    <string name="title_time">အချိန်</string>
+    <string name="rest_widget_positions">တည်နေရာများ Reset လုပ်ရန်</string>
+
+    <string name="title_analog_clock">Analog နာရီ</string>
+    <string name="title_clock_size">နာရီ အရွယ်အစား</string>
+    <string name="clock_background_color">နာရီ နောက်ခံအရောင်</string>
+    <string name="background_transparency">နောက်ခံ တိပ်ညောင်းမှု</string>
+    <string name="hour_hand_color">နာရီ ဆွဲကြိုး (hour hand) အရောင်</string>
+    <string name="minute_hand_color">မိနစ် ဆွဲကြိုး (minute hand) အရောင်</string>
+
+    <string name="title_time_format">အချိန်ဖော်ပြပုံ</string>
+    <string name="title_show_am_pm">AM/PM ကို ပြရန်</string>
+    <string name="title_font_size">ဖောင့် အရွယ်အစား</string>
+    <string name="title_font_weight">ဖောင့် ထူလေးမှု</string>
+    <string name="title_font_style">ဖောင့် စတိုင်</string>
+    <string name="title_time_font_color">အချိန် ဖောင့်အရောင်</string>
+
+    <string name="title_date">ရက်စွဲ</string>
+    <string name="date_example">စနေနေ့၊ စက် ၁၆</string>
+    <string name="date_font_color">ရက်စွဲ ဖောင့်အရောင်</string>
+
+    <string name="title_battery">ဘက်ထရီ</string>
+    <string name="show_battery_icon">ဘက်ထရီ အိုင်ကွန် ပြရန်</string>
+    <string name="show_battery_percentage">ဘက်ထရီ ရာခိုင်နှုန်း ပြရန်</string>
+    <string name="battery_indicator_color">ဘက်ထရီ ပြညွှန်း အရောင်</string>
+
+    <string name="title_notifications">အကြောင်းကြားစာများ</string>
+    <string name="show_notification_icons">Notification အိုင်ကွန်များ ပြရန်</string>
+
+    <string name="title_size">အရွယ်အစား</string>
+    <string name="title_color">အရောင်</string>
+    <string name="title_selected_color">ရွေးချယ်ထားသော အရောင်</string>
+
+    <string name="button_text_save">သိမ်းဆည်းရန်</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">Pro လုပ်ဆောင်ချက်များ</string>
+    <string name="title_subscription">Subscription</string>
+    <string name="go_to_page">စာမျက်နှာဖွင့်ရန်</string>
+
+    <string name="title_support">အကူအညီ</string>
+    <string name="title_how_to">အသုံးပြုပုံ</string>
+    <string name="title_app_guide">အပ္ လမ်းညွှန်/Navigation Guide</string>
+
+    <string name="icon_how_to_guide">"အသုံးပြုပုံ" လမ်းညွှန် အိုင်ကွန်</string>
+    <string name="icon_arrow_right">ညာဘက် မြှားအိုင်ကွန်</string>
+
+    <string name="title_report_issue">ပြဿနာ သတင်းပို့ရန်</string>
+    <string name="icon_support">Support အိုင်ကွန်</string>
+
+    <string name="title_wallpapers">နောက်ခံပုံများ (Wallpapers)</string>
+    <string name="title_auto_wallpapers">Auto Wallpapers</string>
+    <string name="auto_wallpaper_text">နောက်ခံပုံများကို အလိုအလျောက် ပြောင်းပေးမည်</string>
+    <string name="icon_wallpaper">Wallpaper အိုင်ကွန်</string>
+
+    <string name="title_monochrome">Monochrome နောက်ခံ</string>
+    <string name="title_color_less_world">အရောင်နည်း Mode</string>
+    <string name="icon_monochrome">Monochrome အိုင်ကွန်</string>
+
+    <string name="title_wallpaper_motion">Wallpaper Motion</string>
+    <string name="wallpaper_motion_text">Home screen ကို ပိုမို အသက်ဝင်စေပါ</string>
+    <string name="icon_wallpaper_motion">Wallpaper Motion အိုင်ကွန်</string>
+
+    <string name="title_change_wallpaper">နောက်ခံပုံ ပြောင်းရန်</string>
+    <string name="change_wallpaper_text">ယခု နောက်ခံပုံ ပြောင်းရန် တို့တ်နှိပ်ပါ</string>
+    <string name="icon_wallpaper_change">Wallpaper ပြောင်း အိုင်ကွန်</string>
+
+    <string name="title_wallpaper_frequency">ပြောင်းလဲမှု အကြိမ်ဖြစ်နှုန်း</string>
+    <string name="wallpaper_frequency_text">အလိုအလျောက် နေ/ည mode နှင့် အသုံးပြုနိုင်</string>
+    <string name="icon_wallpaper_frequency">Wallpaper Frequency အိုင်ကွန်</string>
+
+    <string name="title_own_wallpapers">ကိုယ်ပိုင် နောက်ခံပုံများ သတ်မှတ်ရန်</string>
+    <string name="wallpaper_directory_select">ဖိုလ်ဒါ ရွေးချယ်ရန် တို့တ်နှိပ်ပါ</string>
+    <string name="icon_wallpaper_directory">Wallpaper ဖိုလ်ဒါ အိုင်ကွန်</string>
+
+    <string name="set_launcher_first">မှတ်ချက် - အရင်ဆုံး Comfer ကို မူလ Launcher အဖြစ် သတ်မှတ်ပေးရပါမည်</string>
+
+    <string name="title_lock_screen">Lock Screen</string>
+    <string name="lock_screen_wallpaper_text">Lock screen ပေါ်တွင်လည်း Wallpaper ကို သတ်မှတ်မည်</string>
+    <string name="icon_lock_screen_wallpaper">Lock Screen Wallpaper အိုင်ကွန်</string>
+
+    <string name="title_app_icons">App Icons</string>
+    <string name="title_app_icon_size">Icon အရွယ်အစား</string>
+    <string name="icon_app_icon_size">App Icon Size အိုင်ကွန်</string>
+    <string name="button_decrease_app_icon_size">Icon အရွယ်အစား လျှော့ချရန်</string>
+    <string name="button_increase_app_icon_size">Icon အရွယ်အစား ကြီးစေရန်</string>
+
+    <string name="title_themed_icons">Themed Icons</string>
+    <string name="themed_icons_text">Wallpaper အရောင်နှင့် Icon အရောင် ကိုက်ညီစေခြင်း (စမ်းသပ် mode)</string>
+    <string name="icon_themed_icons">Themed Icons အိုင်ကွန်</string>
+
+    <string name="title_notification_badges">Notification နှင့် Icon Badge များ</string>
+    <string name="requires_notification_permission">Notification ခွင့်ပြုချက် လိုအပ်ပါသည်</string>
+    <string name="icon_notification_badges">Notification Badge အိုင်ကွန်</string>
+
+    <string name="title_home_screen">Home Screen</string>
+    <string name="title_custom_widgets">Custom Widgets</string>
+    <string name="custom_widgets_text">သင့်အကြိုက်ဆုံး Widgets</string>
+    <string name="icon_custom_widgets">Custom Widgets အိုင်ကွန်</string>
+
+    <string name="title_quick_apps_layout">Home Apps Layout</string>
+    <string name="quick_apps_layout_text">Apps များကို လှပစွာ စီနင်းထားရန်</string>
+    <string name="icon_apps_layout">Home Apps Layout အိုင်ကွန်</string>
+
+    <string name="title_left_swipe_action">ဘယ်ဘက် လက်ရာ (Swipe) လုပ်ဆောင်ချက်</string>
+    <string name="icon_left_swipe_action">Left Swipe အိုင်ကွန်</string>
+
+    <string name="title_right_swipe_action">ညာဘက် လက်ရာ လုပ်ဆောင်ချက်</string>
+    <string name="icon_right_swipe_action">Right Swipe အိုင်ကွန်</string>
+
+    <string name="title_swipe_gestures">Swipe Gestures</string>
+    <string name="swipe_gestures_text">App shortcut အဖြစ် Gestures ကို အသုံးပြုပါ</string>
+    <string name="icon_swipe_gestures">Swipe Gesture အိုင်ကွန်</string>
+
+    <string name="title_app_drawer">App Drawer</string>
+    <string name="title_app_drawer_layouts">Layouts</string>
+    <string name="app_drawer_layouts_text">Apps များကို လိုလိုက် Browsing လုပ်ရန် စတိုင်များ</string>
+
+    <string name="title_alphabetical_order">Alphabetical အစီအစဉ်</string>
+    <string name="alphabetical_order_text">Apps များကို အက္ခရာ အလိုက် စီစဉ်ရန်</string>
+    <string name="icon_alphabetical_order">Alphabetical Order အိုင်ကွန်</string>
+
+    <string name="title_apps_list">App Lists</string>
+    <string name="title_manage_app_list">Apps များကို စီမံခန့်ခွဲရန်</string>
+    <string name="manage_app_list_text">Apps များကို List များအတွင်း စုစည်း/စာရင်းပြန်စီစဉ်ပါ</string>
+    <string name="icon_manage_app_list">Manage App List အိုင်ကွန်</string>
+
+    <string name="title_feedback">မှတ်ချက်ပေးရန်</string>
+    <string name="icon_feedback">Feedback အိုင်ကွန်</string>
+
+    <string name="title_share_app">App ကို မျှဝေရန်</string>
+    <string name="icon_share_app">Share App အိုင်ကွန်</string>
+    <string name="share_app_text">ဒီ launcher အသစ်ကို တစ်ခေါက် စမ်းကြည့်ပါ:</string>
+
+    <string name="title_share_with">မျှဝေရန် ရွေးချယ်မည့် App</string>
+
+    <string name="title_app_version">App Version</string>
+    <string name="icon_app_version">App Version အိုင်ကွန်</string>
+
+    <string name="title_icon_shapes">Icon Shapes</string>
+    <string name="icon_shapes_text">App icon အရုပ်အစား (Shape) ကို သတ်မှတ်ရန်</string>
+    <string name="icon_icon_shapes">Icon Shapes အိုင်ကွန်</string>
+
+    <string name="title_select_icon_shape">Icon Shape ကို ရွေးချယ်ရန်</string>
+
+    <string name="notification_permission_text">
+        Home screen ပေါ်တွင် Notification icons များနှင့် App icon များအပေါ် badge များ ကို ပြသရန် Comfer သည် notification access ခွင့်ပြုချက် လိုအပ်ပါသည်။
+    </string>
+
+    <string name="what_notification_permission_do_title">ဤ service သည် ပြုလုပ်နိုင်သော အရာများ:</string>
+
+    <string name="what_notification_permission_do_text">
+        • Notification အခြေအနေကို ဖတ်ရှုကာ လိုအပ်သလို icon နှင့် badge များကို ပြသပေးပါသည်။
+    </string>
+
+    <string name="what_notification_permission_do_not_title">ဤ service သည် မပြုလုပ်သော အရာများ:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • ကိုယ်ရေးအချက်အလက် မစုဆောင်းပါ။
+    </string>
+
+    <string name="title_choose_layout">Layout ကို ရွေးချယ်ရန်</string>
+    <string name="swipe_action_selection">App သို့မဟုတ် Widgets Screen ကို ရွေးချယ်ရန်</string>
+    <string name="title_choose_options">Option ကို ရွေးချယ်ရန်</string>
+    <string name="title_select_app">App ကို ရွေးချယ်ရန်</string>
+    <string name="title_widgets_screen">Widgets Screen</string>
+    <string name="title_choose_action">လုပ်ဆောင်ချက်ကို ရွေးချယ်ရန်</string>
+
+    <string name="unable_to_load_subscriptions">
+        Subscription အချက်အလက်များကို မဖွင့်နိုင်ပါ။ သင့်ကွန်နက်ရှင်ကို စစ်ဆေးပြီး ထပ်မံကြိုးစားပါ။
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">Subscription ဖွင့်ရာတွင် ချို့ယွင်းမူ ဖြစ်ပွားနေသည်</string>
+    <string name="no_subscription_available">အသုံးပြုရန် Subscription မရှိပါ</string>
+
+    <string name="title_active_subscription">Subscription လက်ရှိ သက်ဝင်နေဆဲ</string>
+    <string name="subscription_renews_on">သက်တမ်း သစ်တိုးမည့် ရက်စွဲ</string>
+    <string name="subscription_expires_on">သက်တမ်း ကုန်ဆုံးမည့် ရက်စွဲ</string>
+
+    <string name="subscription_benefit_one">ကိုယ်ပိုင် Dynamic Wallpapers များကို သတ်မှတ်နိုင်သည်</string>
+    <string name="subscription_benefit_two">သင်နှစ်သက်သော Widgets များကို Home screen ထဲသို့ ထည့်သွင်းနိုင်သည်</string>
+    <string name="subscription_benefit_three">Home screen ပေါ်ရှိ default Widgets များကို ပြင်ဆင် ကွဲပြားစွာ သတ်မှတ်နိုင်သည်</string>
+    <string name="subscription_benefit_four">Apps များကို လက်ရာ (Gestures) အသုံးပြုပြီး မြန်ဆန်စွာ ဖွင့်နိုင်သည်</string>
+
+    <string name="title_manage_your_subscription">သင့် Subscription ကို စီမံခန့်ခွဲရန်</string>
+    <string name="title_pro_access">Pro Access</string>
+    <string name="title_year">နှစ်</string>
+
+    <string name="subscription_failed_prefix">Subscription မအောင်မြင်ခဲ့ပါ</string>
+    <string name="subscription_successful_prefix">Subscription အောင်မြင်ခဲ့ပါပြီ</string>
+    <string name="title_subscribe_now">ယခု Subscribe လုပ်ရန်</string>
+
+    <string name="subscription_restore_failed_prefix">Subscription Restore မအောင်မြင်ခဲ့ပါ</string>
+    <string name="subscription_restore_successful_prefix">Subscription ကို ပြန်လည် ရရှိသည်</string>
+    <string name="subscription_not_found_to_restore">Restore ပြန်ရန် Subscription မတွေ့ရှိပါ</string>
+    <string name="title_restore_subscription">Subscription Restore ပြန်လုပ်ရန်</string>
+
+    <string name="guide_home_swipe_up">App drawer ကို ဖွင့်ရန် အပေါ်သို့ swipe လုပ်ပါ။</string>
+    <string name="guide_home_swipe_down">Notifications များကို ကြည့်ရန် အောက်သို့ swipe လုပ်ပါ။</string>
+    <string name="guide_home_double_tap">"Recent Apps" ကို ဖွင့်ရန် မျက်နှာပြင်ကို နှစ်ကြိမ် တို့တ်နှိပ်ပါ။</string>
+    <string name="guide_home_long_press_lower">Settings ကို ဖွင့်ရန် မျက်နှာပြင် အောက်ပိုင်းတွင် ရှည်နှိပ်ပါ။</string>
+    <string name="guide_home_long_press_upper">Widgets များကို ပြင်ဆင်ရန် မျက်နှာပြင် အပေါ်ပိုင်းတွင် ရှည်နှိပ်ပါ။</string>
+    <string name="guide_home_tap_upper_half">Widget ပြင်ဆင်သူ mode မှ ထွက်ရန် မျက်နှာပြင် အပေါ်ပိုင်းကို တို့တ်ပါ။</string>
+    <string name="guide_home_tap_date_time">Alarms များကို ကြည့်ရန် Date/Time ကို တို့တ်ပါ။</string>
+    <string name="guide_home_long_press_date_time">Calendar ကို ဖွင့်ရန် Date/Time တွင် ရှည်နှိပ်ပါ။</string>
+    <string name="guide_home_swipe_left_right">ရွေးထားသော App သို့မဟုတ် Widgets screen ကို ဖွင့်ရန် ဘယ်/ညာ swipe လုပ်ပါ။</string>
+    <string name="guide_home_gestures">"Gesture Shortcuts" တွင် သတ်မှတ်ထားသော လက်ရာများကို ရေးဆွဲကာ Apps များ ဖွင့်ပါ။</string>
+
+    <string name="guide_circular_app_drawer">အဝိုင်း App Drawer</string>
+    <string name="guide_circular_app_drawer_swipe_down">နောက်သို့ ပြန်ဖို့ အောက်သို့ swipe လုပ်ပါ။</string>
+    <string name="guide_circular_app_drawer_double_tap">အလယ်ရှိ App ကို ဖွင့်ရန် နှစ်ကြိမ် တို့တ်ပါ။</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">လှိမ့်ကြည့်ရန် ဘယ်/ညာ swipe လုပ်ပါ။</string>
+    <string name="guide_circular_app_drawer_tap_icon">App ကို ဖွင့်ရန် icon ကို တို့တ်ပါ။</string>
+    <string name="guide_circular_app_drawer_long_press_icon">App info ကို ဖွင့်ရန် icon ပေါ်တွင် ရှည်နှိပ်ပါ။</string>
+
+    <string name="guide_horizontal_app_drawer">အလျားလိုက် App Drawer</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">နောက်သို့ ပြန်ရန် အောက်သို့ swipe လုပ်ပါ။</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">လှိမ့်ကြည့်ရန် ဘယ်/ညာ swipe လုပ်ပါ။</string>
+    <string name="guide_horizontal_app_drawer_long_press">App drawer ကို စီမံခန့်ခွဲရန် ရှည်နှိပ်ပါ။</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">Edit mode ထဲတွင် icons များကို drag &amp; drop လုပ်ကာ တည်နေရာ ပြောင်းလဲနိုင်သည်။</string>
+    <string name="guide_horizontal_app_drawer_drag">Edit mode ထဲတွင် drawer ကို အပေါ်/အောက် လှုပ်ရှားရန် drag လုပ်ပါ။</string>
+    <string name="guide_horizontal_app_drawer_single_tap">Edit mode မှ ထွက်ရန် တစ်ကြိမ် တို့တ်ပါ။</string>
+
+    <string name="guide_search">Apps သို့မဟုတ် Contacts ကို ရှာဖွေပါ။</string>
+    <string name="guide_search_swipe_down">နောက်သို့ ပြန်ရန် ကီးဘုတ်အပေါ်တွင် အောက်သို့ swipe လုပ်ပါ။</string>
+    <string name="guide_search_swipe_right">Contacts ရှာဖွေရန် ကီးဘုတ်အပေါ်တွင် ညာဘက်သို့ swipe လုပ်ပါ။</string>
+    <string name="guide_search_swipe_left">Apps ရှာဖွေရန် ကီးဘုတ်အပေါ်တွင် ဘယ်ဘက်သို့ swipe လုပ်ပါ။</string>
+    <string name="guide_search_swipe_up">နောက်ထပ် အက္ခရာများကို ကြည့်ရှုရန် ကီးဘုတ်အပေါ်တွင် အပေါ်သို့ swipe လုပ်ပါ။</string>
+    <string name="guide_search_long_press">ဘာသာစကား ရွေးချယ်ရန် အလယ်မှ back arrow ကို ရှည်နှိပ်ပါ။</string>
+    <string name="guide_search_scroll_list">App စာရင်းကို တန်းဖြတ် အလျားလိုက် လှိမ့်ကြည့်ကာ ရလဒ်အပြည့်အစုံကို ကြည့်ပါ။</string>
+    <string name="guide_search_scroll_sides">Contacts စာရင်းကို လှိမ့်ကြည့်ရန် ဝိုင်းကီးဘုတ်၏ ဘေးဖက်နှစ်ဖက်ကို လှိမ့်ကြည့်ပါ။</string>
+    <string name="guide_search_double_tap_sides">Highlight ဖြစ်နေသော contact ဖြင့် dialer ကို ဖွင့်ရန် ဝိုင်းကီးဘုတ် ဘေးဖက် တစ်ဖက်ခုနစ်ကို နှစ်ကြိမ် တို့တ်ပါ။</string>
+
+    <string name="guide_manage_apps">App စာရင်းကို စီမံခန့်ခွဲရန်</string>
+    <string name="guide_manage_apps_tap">Apps များကို ရွေးချယ်ပြီး အခြား list သို့ ရွှေ့ရန် တို့တ်ပါ။</string>
+    <string name="guide_manage_apps_long_press">
+        အတူတူ စာရင်းအတွင်းတွင် အစီအစဉ်ပြန်စီရန် app icon ကို ရှည်နှိပ်ပြီး drag လုပ်ပါ။ စာရင်းကို Alphabetical အစီအစဉ်ဖြင့် 정렬မထားသည့်အခါတွင်သာ လုပ်ဆောင်နိုင်သည်။
+    </string>
+
+    <string name="title_app_language">App ဘာသာစကား</string>
+    <string name="app_language_text">App language ကို ပြောင်းလဲရန် တို့တ်ပါ</string>
+    <string name="icon_app_language">App Language အိုင်ကွန်</string>
+</resources>

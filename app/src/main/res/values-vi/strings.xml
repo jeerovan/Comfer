@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">Chào mừng</string>
+
+    <string name="checkout_how_to_guide">
+        Nhấn giữ bất kỳ vị trí nào trên Màn hình chính để mở menu và xem mục "Hướng dẫn sử dụng".\n
+        Lưu ý: Một số bản dịch có thể được tạo tự động. Nếu bạn thấy nội dung chưa chính xác, vui lòng liên hệ với chúng tôi qua email.
+    </string>
+
+    <string name="accessibility_service_description">
+        Dịch vụ này cần thiết để mở màn hình "Ứng dụng gần đây" của hệ thống. Comfer chỉ sử dụng quyền này để cung cấp lối tắt đó và không thu thập hay theo dõi bất kỳ dữ liệu cá nhân nào.
+    </string>
+
+    <string name="set_default_launcher">Đặt làm launcher mặc định</string>
+    <string name="widget_binding_cancelled">Đã hủy thiết lập widget</string>
+    <string name="long_press_to_add_edit_widgets">Nhấn giữ để thêm hoặc chỉnh sửa widget</string>
+
+    <string name="add_widget">Thêm widget</string>
+    <string name="could_not_load_widget">Không thể tải widget</string>
+    <string name="remove_widget">Xóa widget</string>
+
+    <string name="close">Đóng</string>
+    <string name="applications">Ứng dụng</string>
+    <string name="contacts">Danh bạ</string>
+    <string name="search">Tìm kiếm</string>
+
+    <string name="requires_contact_permission">
+        Cần quyền truy cập Danh bạ để tìm kiếm và gọi cho liên hệ.
+    </string>
+
+    <string name="grant_permission">Cấp quyền</string>
+
+    <string name="privacy_policy_text">
+        Chúng tôi tôn trọng quyền riêng tư của bạn. Comfer không thu thập hay lưu trữ dữ liệu cá nhân. Chạm để đọc chính sách quyền riêng tư.
+    </string>
+
+    <string name="background_image">Ảnh nền</string>
+    <string name="feedback">Phản hồi</string>
+    <string name="feedback_text">Chia sẻ trải nghiệm của bạn và giúp Comfer tốt hơn.</string>
+    <string name="feedback_icon">Biểu tượng phản hồi</string>
+
+    <string name="rate_comfer">Đánh giá Comfer</string>
+    <string name="not_now">Để sau</string>
+
+    <string name="permission_required">Cần cấp quyền</string>
+
+    <string name="recent_apps_permission_title">
+        Để bật lối tắt "Ứng dụng gần đây", Comfer cần quyền truy cập Dịch vụ hỗ trợ tiếp cận (Accessibility).
+    </string>
+
+    <string name="what_recent_apps_short_do_title">Dịch vụ này cho phép:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • Mở màn hình "Ứng dụng gần đây" của hệ thống.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">Dịch vụ này không làm những việc sau:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • Không thu thập dữ liệu cá nhân.\n
+        • Không theo dõi thao tác hoặc nội dung bạn nhập.\n
+        • Không đọc nội dung trên màn hình.
+    </string>
+
+    <string name="continue_text">Tiếp tục</string>
+    <string name="cancel_text">Hủy</string>
+    <string name="backspace_key">Phím Backspace</string>
+
+    <string name="contact_number_not_available">Liên hệ này không có số điện thoại</string>
+    <string name="no_app_to_place_calls">Không tìm thấy ứng dụng để thực hiện cuộc gọi</string>
+
+    <string name="update_available">Có bản cập nhật mới.</string>
+    <string name="update_action">Cập nhật</string>
+    <string name="update_downloaded">Bản cập nhật đã sẵn sàng để cài đặt.</string>
+    <string name="update_install">Cài đặt</string>
+
+    <string name="select_an_application">Chọn ứng dụng</string>
+
+    <string name="gesture_shortcuts_title">Lối tắt bằng cử chỉ</string>
+    <string name="paid_feature_title">Tính năng trả phí</string>
+
+    <string name="tap_icon_to_select_app">Chạm vào biểu tượng để chọn ứng dụng</string>
+
+    <string name="requires_subscription">Cần đăng ký gói</string>
+
+    <string name="button_to_move_app_to_quick_app_list">Chuyển vào ứng dụng Màn hình chính</string>
+    <string name="button_to_move_app_to_primary_app_list">Chuyển vào ngăn ứng dụng</string>
+    <string name="button_to_move_app_to_ghost_app_list">Chuyển vào ứng dụng ẩn</string>
+
+    <string name="title_widgets">Widget</string>
+    <string name="title_time">Thời gian</string>
+    <string name="rest_widget_positions">Đặt lại vị trí</string>
+
+    <string name="title_analog_clock">Đồng hồ kim</string>
+    <string name="title_clock_size">Kích thước đồng hồ</string>
+    <string name="clock_background_color">Màu nền đồng hồ</string>
+    <string name="background_transparency">Độ trong suốt nền</string>
+    <string name="hour_hand_color">Màu kim giờ</string>
+    <string name="minute_hand_color">Màu kim phút</string>
+
+    <string name="title_time_format">Định dạng thời gian</string>
+    <string name="title_show_am_pm">Hiển thị AM/PM</string>
+    <string name="title_font_size">Cỡ chữ</string>
+    <string name="title_font_weight">Độ đậm chữ</string>
+    <string name="title_font_style">Kiểu chữ</string>
+    <string name="title_time_font_color">Màu chữ thời gian</string>
+
+    <string name="title_date">Ngày</string>
+    <string name="date_example">Th 7, 16 Thg 9</string>
+    <string name="date_font_color">Màu chữ ngày</string>
+
+    <string name="title_battery">Pin</string>
+    <string name="show_battery_icon">Hiển thị biểu tượng pin</string>
+    <string name="show_battery_percentage">Hiển thị phần trăm pin</string>
+    <string name="battery_indicator_color">Màu thanh chỉ báo</string>
+
+    <string name="title_notifications">Thông báo</string>
+    <string name="show_notification_icons">Hiển thị biểu tượng thông báo</string>
+
+    <string name="title_size">Kích thước</string>
+    <string name="title_color">Màu sắc</string>
+    <string name="title_selected_color">Màu đã chọn</string>
+
+    <string name="button_text_save">Lưu</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">Tính năng Pro</string>
+    <string name="title_subscription">Gói đăng ký</string>
+    <string name="go_to_page">Mở trang</string>
+
+    <string name="title_support">Hỗ trợ</string>
+    <string name="title_how_to">Hướng dẫn</string>
+    <string name="title_app_guide">Hướng dẫn điều hướng ứng dụng</string>
+
+    <string name="icon_how_to_guide">Biểu tượng "Hướng dẫn"</string>
+    <string name="icon_arrow_right">Biểu tượng mũi tên sang phải</string>
+
+    <string name="title_report_issue">Báo lỗi / góp ý</string>
+    <string name="icon_support">Biểu tượng hỗ trợ</string>
+
+    <string name="title_wallpapers">Hình nền</string>
+    <string name="title_auto_wallpapers">Tự động đổi hình nền</string>
+    <string name="auto_wallpaper_text">Tự động thay đổi hình nền</string>
+    <string name="icon_wallpaper">Biểu tượng hình nền</string>
+
+    <string name="title_monochrome">Nền đơn sắc</string>
+    <string name="title_color_less_world">Chế độ ít màu</string>
+    <string name="icon_monochrome">Biểu tượng đơn sắc</string>
+
+    <string name="title_wallpaper_motion">Chuyển động hình nền</string>
+    <string name="wallpaper_motion_text">Làm Màn hình chính sống động hơn</string>
+    <string name="icon_wallpaper_motion">Biểu tượng chuyển động hình nền</string>
+
+    <string name="title_change_wallpaper">Đổi hình nền</string>
+    <string name="change_wallpaper_text">Chạm để đổi hình nền ngay bây giờ</string>
+    <string name="icon_wallpaper_change">Biểu tượng đổi hình nền</string>
+
+    <string name="title_wallpaper_frequency">Tần suất thay đổi</string>
+    <string name="wallpaper_frequency_text">Kèm chế độ ngày/đêm tự động</string>
+    <string name="icon_wallpaper_frequency">Biểu tượng tần suất hình nền</string>
+
+    <string name="title_own_wallpapers">Dùng hình nền riêng</string>
+    <string name="wallpaper_directory_select">Chạm để chọn thư mục</string>
+    <string name="icon_wallpaper_directory">Biểu tượng thư mục hình nền</string>
+
+    <string name="set_launcher_first">Hãy đặt Comfer làm launcher mặc định trước</string>
+
+    <string name="title_lock_screen">Màn hình khóa</string>
+    <string name="lock_screen_wallpaper_text">Áp dụng hình nền cho cả Màn hình khóa</string>
+    <string name="icon_lock_screen_wallpaper">Biểu tượng hình nền màn hình khóa</string>
+
+    <string name="title_app_icons">Biểu tượng ứng dụng</string>
+    <string name="title_app_icon_size">Kích thước biểu tượng</string>
+    <string name="icon_app_icon_size">Biểu tượng kích thước biểu tượng ứng dụng</string>
+    <string name="button_decrease_app_icon_size">Giảm kích thước biểu tượng</string>
+    <string name="button_increase_app_icon_size">Tăng kích thước biểu tượng</string>
+
+    <string name="title_themed_icons">Biểu tượng theo chủ đề</string>
+    <string name="themed_icons_text">Phối màu biểu tượng theo hình nền (thử nghiệm)</string>
+    <string name="icon_themed_icons">Biểu tượng "icon theo chủ đề"</string>
+
+    <string name="title_notification_badges">Thông báo &amp; chấm trên biểu tượng</string>
+    <string name="requires_notification_permission">Cần quyền truy cập thông báo</string>
+    <string name="icon_notification_badges">Biểu tượng chấm thông báo</string>
+
+    <string name="title_home_screen">Màn hình chính</string>
+    <string name="title_custom_widgets">Widget tùy chỉnh</string>
+    <string name="custom_widgets_text">Widget yêu thích của bạn</string>
+    <string name="icon_custom_widgets">Biểu tượng widget tùy chỉnh</string>
+
+    <string name="title_quick_apps_layout">Bố cục ứng dụng Màn hình chính</string>
+    <string name="quick_apps_layout_text">Sắp xếp ứng dụng một cách gọn gàng</string>
+    <string name="icon_apps_layout">Biểu tượng bố cục ứng dụng Màn hình chính</string>
+
+    <string name="title_left_swipe_action">Thao tác vuốt trái</string>
+    <string name="icon_left_swipe_action">Biểu tượng vuốt trái</string>
+
+    <string name="title_right_swipe_action">Thao tác vuốt phải</string>
+    <string name="icon_right_swipe_action">Biểu tượng vuốt phải</string>
+
+    <string name="title_swipe_gestures">Cử chỉ vuốt</string>
+    <string name="swipe_gestures_text">Dùng cử chỉ làm lối tắt mở ứng dụng</string>
+    <string name="icon_swipe_gestures">Biểu tượng cử chỉ vuốt</string>
+
+    <string name="title_app_drawer">Ngăn ứng dụng</string>
+    <string name="title_app_drawer_layouts">Bố cục</string>
+    <string name="app_drawer_layouts_text">Các kiểu hiển thị ứng dụng</string>
+
+    <string name="title_alphabetical_order">Thứ tự chữ cái</string>
+    <string name="alphabetical_order_text">Sắp xếp ứng dụng theo alphabet</string>
+    <string name="icon_alphabetical_order">Biểu tượng sắp xếp theo chữ cái</string>
+
+    <string name="title_apps_list">Danh sách ứng dụng</string>
+    <string name="title_manage_app_list">Quản lý ứng dụng</string>
+    <string name="manage_app_list_text">Tổ chức và sắp xếp lại ứng dụng trong danh sách</string>
+    <string name="icon_manage_app_list">Biểu tượng quản lý danh sách ứng dụng</string>
+
+    <string name="title_feedback">Phản hồi</string>
+    <string name="icon_feedback">Biểu tượng phản hồi</string>
+
+    <string name="title_share_app">Chia sẻ ứng dụng</string>
+    <string name="icon_share_app">Biểu tượng chia sẻ ứng dụng</string>
+    <string name="share_app_text">Hãy thử launcher mới này:</string>
+
+    <string name="title_share_with">Chia sẻ qua</string>
+
+    <string name="title_app_version">Phiên bản ứng dụng</string>
+    <string name="icon_app_version">Biểu tượng phiên bản ứng dụng</string>
+
+    <string name="title_icon_shapes">Hình dạng biểu tượng</string>
+    <string name="icon_shapes_text">Chọn hình dạng biểu tượng ứng dụng</string>
+    <string name="icon_icon_shapes">Biểu tượng "hình dạng icon"</string>
+
+    <string name="title_select_icon_shape">Chọn hình dạng biểu tượng</string>
+
+    <string name="notification_permission_text">
+        Để hiển thị biểu tượng thông báo trên Màn hình chính và chấm trên biểu tượng ứng dụng, Comfer cần quyền truy cập thông báo.
+    </string>
+
+    <string name="what_notification_permission_do_title">Dịch vụ này cho phép:</string>
+
+    <string name="what_notification_permission_do_text">
+        • Đọc trạng thái thông báo và hiển thị biểu tượng, chấm thông báo khi cần.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">Dịch vụ này không làm những việc sau:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • Không thu thập dữ liệu cá nhân.
+    </string>
+
+    <string name="title_choose_layout">Chọn bố cục</string>
+    <string name="swipe_action_selection">Chọn một ứng dụng hoặc Màn hình widget</string>
+    <string name="title_choose_options">Chọn tùy chọn</string>
+    <string name="title_select_app">Chọn ứng dụng</string>
+    <string name="title_widgets_screen">Màn hình widget</string>
+    <string name="title_choose_action">Chọn thao tác</string>
+
+    <string name="unable_to_load_subscriptions">
+        Không tải được thông tin gói đăng ký. Vui lòng kiểm tra kết nối và thử lại.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">Không tải được gói đăng ký</string>
+    <string name="no_subscription_available">Không có gói đăng ký nào</string>
+
+    <string name="title_active_subscription">Gói đăng ký đang hoạt động</string>
+    <string name="subscription_renews_on">Gia hạn vào</string>
+    <string name="subscription_expires_on">Hết hạn vào</string>
+
+    <string name="subscription_benefit_one">Đặt hình nền động của riêng bạn</string>
+    <string name="subscription_benefit_two">Thêm widget yêu thích lên Màn hình chính</string>
+    <string name="subscription_benefit_three">Tùy chỉnh widget mặc định trên Màn hình chính</string>
+    <string name="subscription_benefit_four">Dùng cử chỉ để mở ứng dụng nhanh hơn</string>
+
+    <string name="title_manage_your_subscription">Quản lý gói đăng ký</string>
+    <string name="title_pro_access">Quyền truy cập Pro</string>
+    <string name="title_year">năm</string>
+
+    <string name="subscription_failed_prefix">Đăng ký không thành công</string>
+    <string name="subscription_successful_prefix">Đăng ký thành công</string>
+    <string name="title_subscribe_now">Đăng ký ngay</string>
+
+    <string name="subscription_restore_failed_prefix">Khôi phục đăng ký không thành công</string>
+    <string name="subscription_restore_successful_prefix">Khôi phục đăng ký thành công</string>
+    <string name="subscription_not_found_to_restore">Không tìm thấy đăng ký để khôi phục</string>
+    <string name="title_restore_subscription">Khôi phục đăng ký</string>
+
+    <string name="guide_home_swipe_up">Vuốt lên để mở Ngăn ứng dụng.</string>
+    <string name="guide_home_swipe_down">Vuốt xuống để xem thông báo.</string>
+    <string name="guide_home_double_tap">Chạm đúp màn hình để mở "Ứng dụng gần đây".</string>
+    <string name="guide_home_long_press_lower">Nhấn giữ nửa dưới màn hình để mở Cài đặt.</string>
+    <string name="guide_home_long_press_upper">Nhấn giữ nửa trên màn hình để chỉnh sửa widget.</string>
+    <string name="guide_home_tap_upper_half">Chạm vào nửa trên màn hình để thoát chế độ chỉnh sửa widget.</string>
+    <string name="guide_home_tap_date_time">Chạm vào Ngày/Giờ để xem báo thức.</string>
+    <string name="guide_home_long_press_date_time">Nhấn giữ Ngày/Giờ để mở lịch.</string>
+    <string name="guide_home_swipe_left_right">Vuốt sang trái hoặc phải để mở ứng dụng đã chọn hoặc Màn hình widget.</string>
+    <string name="guide_home_gestures">Vẽ cử chỉ để mở ứng dụng đã thiết lập trong "Lối tắt bằng cử chỉ".</string>
+
+    <string name="guide_circular_app_drawer">Ngăn ứng dụng hình tròn</string>
+    <string name="guide_circular_app_drawer_swipe_down">Vuốt xuống để quay lại.</string>
+    <string name="guide_circular_app_drawer_double_tap">Chạm đúp để mở ứng dụng ở giữa.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">Vuốt trái/phải để cuộn.</string>
+    <string name="guide_circular_app_drawer_tap_icon">Chạm vào biểu tượng để mở ứng dụng.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">Nhấn giữ biểu tượng để mở thông tin ứng dụng.</string>
+
+    <string name="guide_horizontal_app_drawer">Ngăn ứng dụng nằm ngang</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">Vuốt xuống để quay lại.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">Vuốt trái/phải để cuộn.</string>
+    <string name="guide_horizontal_app_drawer_long_press">Nhấn giữ để quản lý ngăn ứng dụng.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">Trong chế độ chỉnh sửa, kéo &amp; thả biểu tượng để đổi vị trí.</string>
+    <string name="guide_horizontal_app_drawer_drag">Trong chế độ chỉnh sửa, kéo cả ngăn ứng dụng để di chuyển theo chiều dọc.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">Chạm một lần để thoát chế độ chỉnh sửa.</string>
+
+    <string name="guide_search">Tìm kiếm ứng dụng hoặc danh bạ.</string>
+    <string name="guide_search_swipe_down">Vuốt xuống trên bàn phím để quay lại.</string>
+    <string name="guide_search_swipe_right">Vuốt sang phải trên bàn phím để tìm trong Danh bạ.</string>
+    <string name="guide_search_swipe_left">Vuốt sang trái trên bàn phím để tìm trong Ứng dụng.</string>
+    <string name="guide_search_swipe_up">Vuốt lên trên bàn phím để xem thêm ký tự.</string>
+    <string name="guide_search_long_press">Nhấn giữ mũi tên quay lại ở giữa để chọn ngôn ngữ.</string>
+    <string name="guide_search_scroll_list">Cuộn danh sách ứng dụng theo chiều ngang để xem tất cả kết quả.</string>
+    <string name="guide_search_scroll_sides">Cuộn hai bên của bàn phím tròn để cuộn danh sách danh bạ.</string>
+    <string name="guide_search_double_tap_sides">Chạm đúp một trong hai bên bàn phím tròn để mở trình quay số với liên hệ đang được chọn.</string>
+
+    <string name="guide_manage_apps">Quản lý danh sách ứng dụng</string>
+    <string name="guide_manage_apps_tap">Chạm để chọn ứng dụng và chuyển sang danh sách khác.</string>
+    <string name="guide_manage_apps_long_press">
+        Nhấn giữ biểu tượng ứng dụng rồi kéo để thay đổi thứ tự trong cùng một danh sách. Chỉ hoạt động khi danh sách không sắp xếp theo alphabet.
+    </string>
+
+    <string name="title_app_language">Ngôn ngữ ứng dụng</string>
+    <string name="app_language_text">Chạm để thay đổi ngôn ngữ ứng dụng</string>
+    <string name="icon_app_language">Biểu tượng ngôn ngữ ứng dụng</string>
+</resources>

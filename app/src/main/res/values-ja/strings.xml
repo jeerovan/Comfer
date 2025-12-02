@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">ようこそ</string>
+
+    <string name="checkout_how_to_guide">
+        ホーム画面の任意の場所を長押しするとメニューが開き、「使い方」ガイドを表示できます。\n
+        免責事項：一部の翻訳は自動生成されています。誤った表現に気付いた場合は、メールでご連絡ください。
+    </string>
+
+    <string name="accessibility_service_description">
+        このサービスは、システムの「最近使用したアプリ」画面を開くために必要です。Comfer はこの権限をショートカットの提供のみに使用し、いかなる個人情報も収集・監視しません。
+    </string>
+
+    <string name="set_default_launcher">デフォルトのホームアプリとして設定</string>
+    <string name="widget_binding_cancelled">ウィジェットの設定をキャンセルしました</string>
+    <string name="long_press_to_add_edit_widgets">長押ししてウィジェットを追加・編集</string>
+
+    <string name="add_widget">ウィジェットを追加</string>
+    <string name="could_not_load_widget">ウィジェットを読み込めませんでした</string>
+    <string name="remove_widget">ウィジェットを削除</string>
+
+    <string name="close">閉じる</string>
+    <string name="applications">アプリ</string>
+    <string name="contacts">連絡先</string>
+    <string name="search">検索</string>
+
+    <string name="requires_contact_permission">
+        連絡先を検索したり電話をかけたりするには、連絡先へのアクセス権限が必要です。
+    </string>
+
+    <string name="grant_permission">権限を許可</string>
+
+    <string name="privacy_policy_text">
+        私たちはお客様のプライバシーを尊重します。Comfer は個人データを収集または保存しません。プライバシーポリシーを読むにはタップしてください。
+    </string>
+
+    <string name="background_image">背景画像</string>
+    <string name="feedback">フィードバック</string>
+    <string name="feedback_text">ご利用体験を共有していただき、Comfer の改善にご協力ください。</string>
+    <string name="feedback_icon">フィードバックアイコン</string>
+
+    <string name="rate_comfer">Comfer を評価</string>
+    <string name="not_now">あとで</string>
+
+    <string name="permission_required">権限が必要です</string>
+
+    <string name="recent_apps_permission_title">
+        「最近使用したアプリ」のショートカットを有効にするには、Comfer にユーザー補助サービスへのアクセス権限が必要です。
+    </string>
+
+    <string name="what_recent_apps_short_do_title">このサービスでできること：</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • システムの「最近使用したアプリ」画面を開きます。
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">このサービスで行わないこと：</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • 個人データを収集しません。\n
+        • あなたの操作や入力したテキストを監視しません。\n
+        • 画面の内容を読み取りません。
+    </string>
+
+    <string name="continue_text">続行</string>
+    <string name="cancel_text">キャンセル</string>
+    <string name="backspace_key">バックスペースキー</string>
+
+    <string name="contact_number_not_available">この連絡先には電話番号が登録されていません</string>
+    <string name="no_app_to_place_calls">通話に使用できるアプリが見つかりませんでした</string>
+
+    <string name="update_available">新しいアップデートが利用可能です。</string>
+    <string name="update_action">アップデート</string>
+    <string name="update_downloaded">アップデートのインストール準備が完了しました。</string>
+    <string name="update_install">インストール</string>
+
+    <string name="select_an_application">アプリを選択</string>
+
+    <string name="gesture_shortcuts_title">ジェスチャーショートカット</string>
+    <string name="paid_feature_title">有料機能</string>
+
+    <string name="tap_icon_to_select_app">アイコンをタップしてアプリを選択</string>
+
+    <string name="requires_subscription">サブスクリプションが必要です</string>
+
+    <string name="button_to_move_app_to_quick_app_list">ホームアプリに移動</string>
+    <string name="button_to_move_app_to_primary_app_list">ドロワーのアプリに移動</string>
+    <string name="button_to_move_app_to_ghost_app_list">非表示アプリに移動</string>
+
+    <string name="title_widgets">ウィジェット</string>
+    <string name="title_time">時刻</string>
+    <string name="rest_widget_positions">位置をリセット</string>
+
+    <string name="title_analog_clock">アナログ時計</string>
+    <string name="title_clock_size">時計のサイズ</string>
+    <string name="clock_background_color">時計の背景色</string>
+    <string name="background_transparency">背景の透明度</string>
+    <string name="hour_hand_color">時針の色</string>
+    <string name="minute_hand_color">分針の色</string>
+
+    <string name="title_time_format">時刻の形式</string>
+    <string name="title_show_am_pm">AM/PM を表示</string>
+    <string name="title_font_size">フォントサイズ</string>
+    <string name="title_font_weight">フォントの太さ</string>
+    <string name="title_font_style">フォントスタイル</string>
+    <string name="title_time_font_color">時刻のフォント色</string>
+
+    <string name="title_date">日付</string>
+    <string name="date_example">土, 9月16日</string>
+    <string name="date_font_color">日付のフォント色</string>
+
+    <string name="title_battery">バッテリー</string>
+    <string name="show_battery_icon">バッテリーアイコンを表示</string>
+    <string name="show_battery_percentage">バッテリー残量（％）を表示</string>
+    <string name="battery_indicator_color">インジケーターの色</string>
+
+    <string name="title_notifications">通知</string>
+    <string name="show_notification_icons">通知アイコンを表示</string>
+
+    <string name="title_size">サイズ</string>
+    <string name="title_color">色</string>
+    <string name="title_selected_color">選択された色</string>
+
+    <string name="button_text_save">保存</string>
+
+    <string name="title_premium">プレミアム</string>
+    <string name="title_pro_features">Pro 機能</string>
+    <string name="title_subscription">サブスクリプション</string>
+    <string name="go_to_page">ページを開く</string>
+
+    <string name="title_support">サポート</string>
+    <string name="title_how_to">使い方ガイド</string>
+    <string name="title_app_guide">アプリ操作ガイド</string>
+
+    <string name="icon_how_to_guide">「使い方ガイド」アイコン</string>
+    <string name="icon_arrow_right">右矢印アイコン</string>
+
+    <string name="title_report_issue">不具合を報告</string>
+    <string name="icon_support">サポートアイコン</string>
+
+    <string name="title_wallpapers">壁紙</string>
+    <string name="title_auto_wallpapers">自動壁紙</string>
+    <string name="auto_wallpaper_text">壁紙を自動的に切り替え</string>
+    <string name="icon_wallpaper">壁紙アイコン</string>
+
+    <string name="title_monochrome">モノクロ背景</string>
+    <string name="title_color_less_world">カラーなしモード</string>
+    <string name="icon_monochrome">モノクロアイコン</string>
+
+    <string name="title_wallpaper_motion">壁紙モーション</string>
+    <string name="wallpaper_motion_text">ホーム画面を生き生きと見せる</string>
+    <string name="icon_wallpaper_motion">壁紙モーションアイコン</string>
+
+    <string name="title_change_wallpaper">壁紙を変更</string>
+    <string name="change_wallpaper_text">タップして今すぐ壁紙を変更</string>
+    <string name="icon_wallpaper_change">壁紙変更アイコン</string>
+
+    <string name="title_wallpaper_frequency">変更頻度</string>
+    <string name="wallpaper_frequency_text">自動の昼/夜モードに対応</string>
+    <string name="icon_wallpaper_frequency">壁紙頻度アイコン</string>
+
+    <string name="title_own_wallpapers">自分の壁紙を使用</string>
+    <string name="wallpaper_directory_select">タップしてフォルダを選択</string>
+    <string name="icon_wallpaper_directory">壁紙フォルダアイコン</string>
+
+    <string name="set_launcher_first">先に Comfer をデフォルトのホームアプリに設定してください</string>
+
+    <string name="title_lock_screen">ロック画面</string>
+    <string name="lock_screen_wallpaper_text">ロック画面にも壁紙を適用</string>
+    <string name="icon_lock_screen_wallpaper">ロック画面壁紙アイコン</string>
+
+    <string name="title_app_icons">アプリアイコン</string>
+    <string name="title_app_icon_size">アイコンサイズ</string>
+    <string name="icon_app_icon_size">アプリアイコンサイズアイコン</string>
+    <string name="button_decrease_app_icon_size">アイコンサイズを小さく</string>
+    <string name="button_increase_app_icon_size">アイコンサイズを大きく</string>
+
+    <string name="title_themed_icons">テーマ付きアイコン</string>
+    <string name="themed_icons_text">壁紙の色に合わせてアイコンカラーを変更（実験的）</string>
+    <string name="icon_themed_icons">テーマアイコンのアイコン</string>
+
+    <string name="title_notification_badges">通知とアイコンバッジ</string>
+    <string name="requires_notification_permission">通知権限が必要です</string>
+    <string name="icon_notification_badges">通知バッジアイコン</string>
+
+    <string name="title_home_screen">ホーム画面</string>
+    <string name="title_custom_widgets">カスタムウィジェット</string>
+    <string name="custom_widgets_text">お気に入りのウィジェット</string>
+    <string name="icon_custom_widgets">カスタムウィジェットアイコン</string>
+
+    <string name="title_quick_apps_layout">ホームアプリのレイアウト</string>
+    <string name="quick_apps_layout_text">アプリをスタイリッシュに配置</string>
+    <string name="icon_apps_layout">ホームアプリレイアウトアイコン</string>
+
+    <string name="title_left_swipe_action">左スワイプの動作</string>
+    <string name="icon_left_swipe_action">左スワイプ動作アイコン</string>
+
+    <string name="title_right_swipe_action">右スワイプの動作</string>
+    <string name="icon_right_swipe_action">右スワイプ動作アイコン</string>
+
+    <string name="title_swipe_gestures">スワイプジェスチャー</string>
+    <string name="swipe_gestures_text">アプリのショートカットとしてジェスチャーを使用</string>
+    <string name="icon_swipe_gestures">スワイプジェスチャーアイコン</string>
+
+    <string name="title_app_drawer">アプリドロワー</string>
+    <string name="title_app_drawer_layouts">レイアウト</string>
+    <string name="app_drawer_layouts_text">アプリを閲覧するスタイル</string>
+
+    <string name="title_alphabetical_order">アルファベット順</string>
+    <string name="alphabetical_order_text">アプリをアルファベット順に並べ替え</string>
+    <string name="icon_alphabetical_order">アルファベット順アイコン</string>
+
+    <string name="title_apps_list">アプリリスト</string>
+    <string name="title_manage_app_list">アプリを管理</string>
+    <string name="manage_app_list_text">リスト内のアプリを整理・並べ替え</string>
+    <string name="icon_manage_app_list">アプリリスト管理アイコン</string>
+
+    <string name="title_feedback">フィードバック</string>
+    <string name="icon_feedback">フィードバックアイコン</string>
+
+    <string name="title_share_app">アプリを共有</string>
+    <string name="icon_share_app">アプリ共有アイコン</string>
+    <string name="share_app_text">この新しいランチャーを試してみてください：</string>
+
+    <string name="title_share_with">共有先を選択</string>
+
+    <string name="title_app_version">アプリのバージョン</string>
+    <string name="icon_app_version">アプリバージョンアイコン</string>
+
+    <string name="title_icon_shapes">アイコンの形</string>
+    <string name="icon_shapes_text">アプリアイコンの形を設定</string>
+    <string name="icon_icon_shapes">アイコン形状アイコン</string>
+
+    <string name="title_select_icon_shape">アイコンの形を選択</string>
+
+    <string name="notification_permission_text">
+        ホーム画面に通知アイコンを表示し、アプリアイコンにバッジを付けるには、Comfer に通知アクセス権限が必要です。
+    </string>
+
+    <string name="what_notification_permission_do_title">このサービスでできること：</string>
+
+    <string name="what_notification_permission_do_text">
+        • 通知の状態を読み取り、必要に応じてアイコンやバッジを表示します。
+    </string>
+
+    <string name="what_notification_permission_do_not_title">このサービスで行わないこと：</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • 個人データを収集しません。
+    </string>
+
+    <string name="title_choose_layout">レイアウトを選択</string>
+    <string name="swipe_action_selection">アプリまたはウィジェット画面を選択</string>
+    <string name="title_choose_options">オプションを選択</string>
+    <string name="title_select_app">アプリを選択</string>
+    <string name="title_widgets_screen">ウィジェット画面</string>
+    <string name="title_choose_action">動作を選択</string>
+
+    <string name="unable_to_load_subscriptions">
+        サブスクリプション情報を読み込めませんでした。ネットワーク接続を確認して、もう一度お試しください。
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">サブスクリプションの読み込みに失敗しました</string>
+    <string name="no_subscription_available">利用可能なサブスクリプションはありません</string>
+
+    <string name="title_active_subscription">有効なサブスクリプション</string>
+    <string name="subscription_renews_on">更新日</string>
+    <string name="subscription_expires_on">有効期限</string>
+
+    <string name="subscription_benefit_one">自分だけの動的壁紙を設定</string>
+    <string name="subscription_benefit_two">お気に入りのウィジェットをホーム画面に追加</string>
+    <string name="subscription_benefit_three">ホーム画面のデフォルトウィジェットをカスタマイズ</string>
+    <string name="subscription_benefit_four">ジェスチャーでアプリを素早く起動</string>
+
+    <string name="title_manage_your_subscription">サブスクリプションを管理</string>
+    <string name="title_pro_access">Pro アクセス</string>
+    <string name="title_year">年</string>
+
+    <string name="subscription_failed_prefix">サブスクリプションに失敗しました</string>
+    <string name="subscription_successful_prefix">サブスクリプションが完了しました</string>
+    <string name="title_subscribe_now">今すぐ購読</string>
+
+    <string name="subscription_restore_failed_prefix">サブスクリプションの復元に失敗しました</string>
+    <string name="subscription_restore_successful_prefix">サブスクリプションが正常に復元されました</string>
+    <string name="subscription_not_found_to_restore">復元できるサブスクリプションが見つかりません</string>
+    <string name="title_restore_subscription">サブスクリプションを復元</string>
+
+    <string name="guide_home_swipe_up">上にスワイプしてアプリドロワーを開きます。</string>
+    <string name="guide_home_swipe_down">下にスワイプして通知を表示します。</string>
+    <string name="guide_home_double_tap">画面をダブルタップすると「最近使用したアプリ」を開きます。</string>
+    <string name="guide_home_long_press_lower">画面下半分を長押しして設定を開きます。</string>
+    <string name="guide_home_long_press_upper">画面上半分を長押ししてウィジェットを編集します。</string>
+    <string name="guide_home_tap_upper_half">画面上半分をタップするとウィジェット編集を終了します。</string>
+    <string name="guide_home_tap_date_time">日付/時刻をタップしてアラームを表示します。</string>
+    <string name="guide_home_long_press_date_time">日付/時刻を長押ししてカレンダーを開きます。</string>
+    <string name="guide_home_swipe_left_right">左または右にスワイプして、選択したアプリまたはウィジェット画面を開きます。</string>
+    <string name="guide_home_gestures">「ジェスチャーショートカット」で設定したパターンを描いてアプリを起動します。</string>
+
+    <string name="guide_circular_app_drawer">円形アプリドロワー</string>
+    <string name="guide_circular_app_drawer_swipe_down">下にスワイプして戻ります。</string>
+    <string name="guide_circular_app_drawer_double_tap">中央のアプリを開くにはダブルタップします。</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">左右にスワイプしてスクロールします。</string>
+    <string name="guide_circular_app_drawer_tap_icon">アイコンをタップしてアプリを開きます。</string>
+    <string name="guide_circular_app_drawer_long_press_icon">アイコンを長押ししてアプリ情報を表示します。</string>
+
+    <string name="guide_horizontal_app_drawer">横方向アプリドロワー</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">下にスワイプして戻ります。</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">左右にスワイプしてスクロールします。</string>
+    <string name="guide_horizontal_app_drawer_long_press">長押ししてドロワーを編集します。</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">編集モードでアイコンをドラッグ＆ドロップして位置を変更します。</string>
+    <string name="guide_horizontal_app_drawer_drag">編集モードでドロワーをドラッグして上下に移動します。</string>
+    <string name="guide_horizontal_app_drawer_single_tap">1 回タップして編集モードを終了します。</string>
+
+    <string name="guide_search">アプリや連絡先を検索します。</string>
+    <string name="guide_search_swipe_down">キーボード上で下にスワイプして戻ります。</string>
+    <string name="guide_search_swipe_right">キーボード上で右にスワイプして連絡先を検索します。</string>
+    <string name="guide_search_swipe_left">キーボード上で左にスワイプしてアプリを検索します。</string>
+    <string name="guide_search_swipe_up">キーボード上で上にスワイプして、さらに多くの文字を表示します。</string>
+    <string name="guide_search_long_press">中央の戻る矢印を長押しして言語を選択します。</string>
+    <string name="guide_search_scroll_list">アプリ一覧を左右にスクロールして、すべての結果を表示します。</string>
+    <string name="guide_search_scroll_sides">円形キーボードの左右をスクロールして連絡先リストをスクロールします。</string>
+    <string name="guide_search_double_tap_sides">円形キーボードの左右どちらかをダブルタップして、選択中の連絡先をダイヤラーで開きます。</string>
+
+    <string name="guide_manage_apps">アプリリストを管理</string>
+    <string name="guide_manage_apps_tap">タップしてアプリを選択し、別のリストへ移動します。</string>
+    <string name="guide_manage_apps_long_press">
+        同じリスト内で順序を変更するには、アプリアイコンを長押ししてドラッグします。アルファベット順に並べ替えられている場合は機能しません。
+    </string>
+
+    <string name="title_app_language">アプリの言語</string>
+    <string name="app_language_text">タップしてアプリの表示言語を変更</string>
+    <string name="icon_app_language">アプリ言語アイコン</string>
+</resources>

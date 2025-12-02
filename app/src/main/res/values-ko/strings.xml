@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">환영합니다</string>
+
+    <string name="checkout_how_to_guide">
+        홈 화면의 아무 곳이나 길게 누르면 메뉴가 열리고 "사용 방법" 안내를 볼 수 있습니다.\n
+        면책 조항: 일부 번역은 자동으로 생성되었을 수 있습니다. 잘못된 문구를 발견하시면 이메일로 알려 주세요.
+    </string>
+
+    <string name="accessibility_service_description">
+        이 서비스는 시스템의 "최근 앱" 화면을 열기 위해 필요합니다. Comfer는 이 권한을 이 바로가기를 제공하는 데에만 사용하며, 어떠한 개인 정보도 수집하거나 모니터링하지 않습니다.
+    </string>
+
+    <string name="set_default_launcher">기본 런처로 설정</string>
+    <string name="widget_binding_cancelled">위젯 설정이 취소되었습니다</string>
+    <string name="long_press_to_add_edit_widgets">길게 눌러 위젯을 추가하거나 편집하세요</string>
+
+    <string name="add_widget">위젯 추가</string>
+    <string name="could_not_load_widget">위젯을 불러올 수 없습니다</string>
+    <string name="remove_widget">위젯 제거</string>
+
+    <string name="close">닫기</string>
+    <string name="applications">앱</string>
+    <string name="contacts">연락처</string>
+    <string name="search">검색</string>
+
+    <string name="requires_contact_permission">
+        연락처를 검색하고 전화하기 위해서는 연락처 접근 권한이 필요합니다.
+    </string>
+
+    <string name="grant_permission">권한 허용</string>
+
+    <string name="privacy_policy_text">
+        Comfer는 사용자의 프라이버시를 존중합니다. 어떤 개인 데이터도 수집하거나 저장하지 않습니다. 개인정보 보호정책을 읽으려면 탭하세요.
+    </string>
+
+    <string name="background_image">배경 이미지</string>
+    <string name="feedback">피드백</string>
+    <string name="feedback_text">사용 경험을 공유하고 Comfer 개선에 도움을 주세요.</string>
+    <string name="feedback_icon">피드백 아이콘</string>
+
+    <string name="rate_comfer">Comfer 평가하기</string>
+    <string name="not_now">나중에</string>
+
+    <string name="permission_required">권한이 필요합니다</string>
+
+    <string name="recent_apps_permission_title">
+        "최근 앱" 바로가기를 사용하려면 Comfer에 접근성 서비스 권한이 필요합니다.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">이 서비스는 다음을 수행합니다:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • 시스템 "최근 앱" 화면을 엽니다.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">이 서비스는 다음을 수행하지 않습니다:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • 개인 데이터를 수집하지 않습니다.\n
+        • 사용자의 동작이나 입력한 텍스트를 모니터링하지 않습니다.\n
+        • 화면의 내용을 읽지 않습니다.
+    </string>
+
+    <string name="continue_text">계속</string>
+    <string name="cancel_text">취소</string>
+    <string name="backspace_key">백스페이스 키</string>
+
+    <string name="contact_number_not_available">이 연락처에는 전화번호가 없습니다</string>
+    <string name="no_app_to_place_calls">통화를 할 수 있는 앱을 찾을 수 없습니다</string>
+
+    <string name="update_available">새로운 업데이트가 있습니다.</string>
+    <string name="update_action">업데이트</string>
+    <string name="update_downloaded">업데이트 설치 준비가 완료되었습니다.</string>
+    <string name="update_install">설치</string>
+
+    <string name="select_an_application">앱 선택</string>
+
+    <string name="gesture_shortcuts_title">제스처 바로가기</string>
+    <string name="paid_feature_title">유료 기능</string>
+
+    <string name="tap_icon_to_select_app">아이콘을 탭하여 앱을 선택하세요</string>
+
+    <string name="requires_subscription">구독이 필요합니다</string>
+
+    <string name="button_to_move_app_to_quick_app_list">홈 앱으로 이동</string>
+    <string name="button_to_move_app_to_primary_app_list">앱 서랍(드로어)으로 이동</string>
+    <string name="button_to_move_app_to_ghost_app_list">숨긴 앱으로 이동</string>
+
+    <string name="title_widgets">위젯</string>
+    <string name="title_time">시간</string>
+    <string name="rest_widget_positions">위치 초기화</string>
+
+    <string name="title_analog_clock">아날로그 시계</string>
+    <string name="title_clock_size">시계 크기</string>
+    <string name="clock_background_color">시계 배경 색상</string>
+    <string name="background_transparency">배경 투명도</string>
+    <string name="hour_hand_color">시침 색상</string>
+    <string name="minute_hand_color">분침 색상</string>
+
+    <string name="title_time_format">시간 형식</string>
+    <string name="title_show_am_pm">AM/PM 표시</string>
+    <string name="title_font_size">글꼴 크기</string>
+    <string name="title_font_weight">글꼴 두께</string>
+    <string name="title_font_style">글꼴 스타일</string>
+    <string name="title_time_font_color">시간 글꼴 색상</string>
+
+    <string name="title_date">날짜</string>
+    <string name="date_example">토, 9월 16일</string>
+    <string name="date_font_color">날짜 글꼴 색상</string>
+
+    <string name="title_battery">배터리</string>
+    <string name="show_battery_icon">배터리 아이콘 표시</string>
+    <string name="show_battery_percentage">배터리 잔량(%) 표시</string>
+    <string name="battery_indicator_color">인디케이터 색상</string>
+
+    <string name="title_notifications">알림</string>
+    <string name="show_notification_icons">알림 아이콘 표시</string>
+
+    <string name="title_size">크기</string>
+    <string name="title_color">색상</string>
+    <string name="title_selected_color">선택된 색상</string>
+
+    <string name="button_text_save">저장</string>
+
+    <string name="title_premium">프리미엄</string>
+    <string name="title_pro_features">Pro 기능</string>
+    <string name="title_subscription">구독</string>
+    <string name="go_to_page">페이지 열기</string>
+
+    <string name="title_support">지원</string>
+    <string name="title_how_to">사용 방법</string>
+    <string name="title_app_guide">앱 내비게이션 가이드</string>
+
+    <string name="icon_how_to_guide">"사용 방법" 가이드 아이콘</string>
+    <string name="icon_arrow_right">오른쪽 화살표 아이콘</string>
+
+    <string name="title_report_issue">문제 보고</string>
+    <string name="icon_support">지원 아이콘</string>
+
+    <string name="title_wallpapers">배경화면</string>
+    <string name="title_auto_wallpapers">자동 배경화면</string>
+    <string name="auto_wallpaper_text">배경화면을 자동으로 변경</string>
+    <string name="icon_wallpaper">배경화면 아이콘</string>
+
+    <string name="title_monochrome">단색 배경</string>
+    <string name="title_color_less_world">무채색 모드</string>
+    <string name="icon_monochrome">단색 아이콘</string>
+
+    <string name="title_wallpaper_motion">배경화면 모션</string>
+    <string name="wallpaper_motion_text">홈 화면을 더 생동감 있게 만들기</string>
+    <string name="icon_wallpaper_motion">배경화면 모션 아이콘</string>
+
+    <string name="title_change_wallpaper">배경화면 변경</string>
+    <string name="change_wallpaper_text">지금 배경화면을 변경하려면 탭하세요</string>
+    <string name="icon_wallpaper_change">배경화면 변경 아이콘</string>
+
+    <string name="title_wallpaper_frequency">변경 빈도</string>
+    <string name="wallpaper_frequency_text">자동 낮/밤 모드와 함께</string>
+    <string name="icon_wallpaper_frequency">배경화면 빈도 아이콘</string>
+
+    <string name="title_own_wallpapers">내 배경화면 사용</string>
+    <string name="wallpaper_directory_select">탭하여 폴더 선택</string>
+    <string name="icon_wallpaper_directory">배경화면 폴더 아이콘</string>
+
+    <string name="set_launcher_first">먼저 Comfer를 기본 런처로 설정하세요</string>
+
+    <string name="title_lock_screen">잠금 화면</string>
+    <string name="lock_screen_wallpaper_text">잠금 화면에도 배경화면 적용</string>
+    <string name="icon_lock_screen_wallpaper">잠금 화면 배경화면 아이콘</string>
+
+    <string name="title_app_icons">앱 아이콘</string>
+    <string name="title_app_icon_size">아이콘 크기</string>
+    <string name="icon_app_icon_size">앱 아이콘 크기 아이콘</string>
+    <string name="button_decrease_app_icon_size">아이콘 크기 줄이기</string>
+    <string name="button_increase_app_icon_size">아이콘 크기 키우기</string>
+
+    <string name="title_themed_icons">테마 아이콘</string>
+    <string name="themed_icons_text">배경화면 색상과 아이콘 색상 맞추기(실험 기능)</string>
+    <string name="icon_themed_icons">테마 아이콘 아이콘</string>
+
+    <string name="title_notification_badges">알림 및 아이콘 배지</string>
+    <string name="requires_notification_permission">알림 권한이 필요합니다</string>
+    <string name="icon_notification_badges">알림 배지 아이콘</string>
+
+    <string name="title_home_screen">홈 화면</string>
+    <string name="title_custom_widgets">사용자 지정 위젯</string>
+    <string name="custom_widgets_text">자주 사용하는 위젯</string>
+    <string name="icon_custom_widgets">사용자 지정 위젯 아이콘</string>
+
+    <string name="title_quick_apps_layout">홈 앱 레이아웃</string>
+    <string name="quick_apps_layout_text">앱을 보기 좋게 정렬</string>
+    <string name="icon_apps_layout">홈 앱 레이아웃 아이콘</string>
+
+    <string name="title_left_swipe_action">왼쪽 스와이프 동작</string>
+    <string name="icon_left_swipe_action">왼쪽 스와이프 동작 아이콘</string>
+
+    <string name="title_right_swipe_action">오른쪽 스와이프 동작</string>
+    <string name="icon_right_swipe_action">오른쪽 스와이프 동작 아이콘</string>
+
+    <string name="title_swipe_gestures">스와이프 제스처</string>
+    <string name="swipe_gestures_text">앱 바로가기로 제스처 사용</string>
+    <string name="icon_swipe_gestures">스와이프 제스처 아이콘</string>
+
+    <string name="title_app_drawer">앱 서랍</string>
+    <string name="title_app_drawer_layouts">레이아웃</string>
+    <string name="app_drawer_layouts_text">앱을 탐색하는 다양한 스타일</string>
+
+    <string name="title_alphabetical_order">가나다/알파벳 순</string>
+    <string name="alphabetical_order_text">앱을 이름 순으로 정렬</string>
+    <string name="icon_alphabetical_order">가나다/알파벳 정렬 아이콘</string>
+
+    <string name="title_apps_list">앱 목록</string>
+    <string name="title_manage_app_list">앱 관리</string>
+    <string name="manage_app_list_text">목록의 앱을 정리하거나 순서를 다시 지정</string>
+    <string name="icon_manage_app_list">앱 목록 관리 아이콘</string>
+
+    <string name="title_feedback">피드백</string>
+    <string name="icon_feedback">피드백 아이콘</string>
+
+    <string name="title_share_app">앱 공유</string>
+    <string name="icon_share_app">앱 공유 아이콘</string>
+    <string name="share_app_text">이 새로운 런처를 한 번 사용해 보세요:</string>
+
+    <string name="title_share_with">공유 대상</string>
+
+    <string name="title_app_version">앱 버전</string>
+    <string name="icon_app_version">앱 버전 아이콘</string>
+
+    <string name="title_icon_shapes">아이콘 모양</string>
+    <string name="icon_shapes_text">앱 아이콘의 모양 설정</string>
+    <string name="icon_icon_shapes">아이콘 모양 아이콘</string>
+
+    <string name="title_select_icon_shape">아이콘 모양 선택</string>
+
+    <string name="notification_permission_text">
+        홈 화면에 알림 아이콘을 표시하고 앱 아이콘에 배지를 표시하려면 Comfer에 알림 접근 권한이 필요합니다.
+    </string>
+
+    <string name="what_notification_permission_do_title">이 서비스는 다음을 수행합니다:</string>
+
+    <string name="what_notification_permission_do_text">
+        • 알림 상태를 읽고 필요에 따라 아이콘과 배지를 표시합니다.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">이 서비스는 다음을 수행하지 않습니다:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • 개인 데이터를 수집하지 않습니다.
+    </string>
+
+    <string name="title_choose_layout">레이아웃 선택</string>
+    <string name="swipe_action_selection">앱 또는 위젯 화면 선택</string>
+    <string name="title_choose_options">옵션 선택</string>
+    <string name="title_select_app">앱 선택</string>
+    <string name="title_widgets_screen">위젯 화면</string>
+    <string name="title_choose_action">동작 선택</string>
+
+    <string name="unable_to_load_subscriptions">
+        구독 정보를 불러올 수 없습니다. 네트워크 연결을 확인한 후 다시 시도하세요.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">구독 정보 로드 실패</string>
+    <string name="no_subscription_available">사용 가능한 구독이 없습니다</string>
+
+    <string name="title_active_subscription">활성 구독</string>
+    <string name="subscription_renews_on">다음 갱신일</string>
+    <string name="subscription_expires_on">만료일</string>
+
+    <string name="subscription_benefit_one">나만의 동적 배경화면 설정</string>
+    <string name="subscription_benefit_two">즐겨 사용하는 위젯을 홈 화면에 추가</string>
+    <string name="subscription_benefit_three">홈 화면 기본 위젯 사용자 지정</string>
+    <string name="subscription_benefit_four">제스처로 앱을 더 빠르게 열기</string>
+
+    <string name="title_manage_your_subscription">구독 관리</string>
+    <string name="title_pro_access">Pro 액세스</string>
+    <string name="title_year">년</string>
+
+    <string name="subscription_failed_prefix">구독 실패</string>
+    <string name="subscription_successful_prefix">구독 성공</string>
+    <string name="title_subscribe_now">지금 구독하기</string>
+
+    <string name="subscription_restore_failed_prefix">구독 복원 실패</string>
+    <string name="subscription_restore_successful_prefix">구독이 성공적으로 복원되었습니다</string>
+    <string name="subscription_not_found_to_restore">복원할 구독을 찾을 수 없습니다</string>
+    <string name="title_restore_subscription">구독 복원</string>
+
+    <string name="guide_home_swipe_up">위로 스와이프하여 앱 서랍을 엽니다.</string>
+    <string name="guide_home_swipe_down">아래로 스와이프하여 알림을 확인합니다.</string>
+    <string name="guide_home_double_tap">화면을 두 번 탭하면 "최근 앱"이 열립니다.</string>
+    <string name="guide_home_long_press_lower">화면 하단을 길게 눌러 설정을 엽니다.</string>
+    <string name="guide_home_long_press_upper">화면 상단을 길게 눌러 위젯을 편집합니다.</string>
+    <string name="guide_home_tap_upper_half">화면 상단을 탭하여 위젯 편집을 종료합니다.</string>
+    <string name="guide_home_tap_date_time">날짜/시간을 탭하여 알람을 확인합니다.</string>
+    <string name="guide_home_long_press_date_time">날짜/시간을 길게 눌러 캘린더를 엽니다.</string>
+    <string name="guide_home_swipe_left_right">왼쪽이나 오른쪽으로 스와이프하여 선택한 앱 또는 위젯 화면을 엽니다.</string>
+    <string name="guide_home_gestures">"제스처 바로가기"에 설정된 제스처를 그려 앱을 실행합니다.</string>
+
+    <string name="guide_circular_app_drawer">원형 앱 서랍</string>
+    <string name="guide_circular_app_drawer_swipe_down">아래로 스와이프하여 뒤로 돌아갑니다.</string>
+    <string name="guide_circular_app_drawer_double_tap">가운데 앱을 열려면 두 번 탭하세요.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">왼쪽/오른쪽으로 스와이프하여 스크롤합니다.</string>
+    <string name="guide_circular_app_drawer_tap_icon">아이콘을 탭하여 앱을 엽니다.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">아이콘을 길게 눌러 앱 정보를 엽니다.</string>
+
+    <string name="guide_horizontal_app_drawer">가로 앱 서랍</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">아래로 스와이프하여 뒤로 돌아갑니다.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">왼쪽/오른쪽으로 스와이프하여 스크롤합니다.</string>
+    <string name="guide_horizontal_app_drawer_long_press">길게 눌러 서랍을 관리합니다.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">편집 모드에서 아이콘을 드래그&amp;드롭하여 위치를 변경합니다.</string>
+    <string name="guide_horizontal_app_drawer_drag">편집 모드에서 서랍을 드래그하여 위/아래로 이동합니다.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">한 번 탭하여 편집 모드를 종료합니다.</string>
+
+    <string name="guide_search">앱 또는 연락처를 검색합니다.</string>
+    <string name="guide_search_swipe_down">키보드에서 아래로 스와이프하여 뒤로 돌아갑니다.</string>
+    <string name="guide_search_swipe_right">키보드에서 오른쪽으로 스와이프하여 연락처를 검색합니다.</string>
+    <string name="guide_search_swipe_left">키보드에서 왼쪽으로 스와이프하여 앱을 검색합니다.</string>
+    <string name="guide_search_swipe_up">키보드에서 위로 스와이프하여 더 많은 문자를 표시합니다.</string>
+    <string name="guide_search_long_press">가운데의 뒤로 화살표를 길게 눌러 언어를 선택합니다.</string>
+    <string name="guide_search_scroll_list">앱 목록을 좌우로 스크롤하여 모든 결과를 확인합니다.</string>
+    <string name="guide_search_scroll_sides">원형 키보드 양쪽을 스크롤하여 연락처 목록을 이동합니다.</string>
+    <string name="guide_search_double_tap_sides">원형 키보드 양쪽 중 한 곳을 두 번 탭하여 선택된 연락처로 다이얼러를 엽니다.</string>
+
+    <string name="guide_manage_apps">앱 목록 관리</string>
+    <string name="guide_manage_apps_tap">앱을 선택하여 다른 목록으로 이동하려면 탭하세요.</string>
+    <string name="guide_manage_apps_long_press">
+        같은 목록에서 순서를 변경하려면 앱 아이콘을 길게 누른 후 드래그하세요. 목록이 이름 순으로 정렬되어 있을 때는 동작하지 않습니다.
+    </string>
+
+    <string name="title_app_language">앱 언어</string>
+    <string name="app_language_text">탭하여 앱 언어를 변경합니다</string>
+    <string name="icon_app_language">앱 언어 아이콘</string>
+</resources>

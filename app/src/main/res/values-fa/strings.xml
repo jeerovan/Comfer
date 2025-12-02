@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">خوش آمدید</string>
+
+    <string name="checkout_how_to_guide">
+        برای باز کردن منو و دیدن راهنمای "نحوه استفاده" (How-to)، هر جایی از صفحهٔ اصلی را لمس کرده و نگه دارید.\n
+        سلب مسئولیت: بعضی ترجمه‌ها ممکن است به‌صورت خودکار تولید شده باشند. اگر متنی را نادرست دیدید، لطفاً از طریق ایمیل با ما تماس بگیرید.
+    </string>
+
+    <string name="accessibility_service_description">
+        این سرویس برای باز کردن صفحهٔ "برنامه‌های اخیر" سیستم لازم است. Comfer از این مجوز فقط برای فراهم کردن این میان‌بُر استفاده می‌کند و هیچ دادهٔ شخصی‌ای را جمع‌آوری یا پایش نمی‌کند.
+    </string>
+
+    <string name="set_default_launcher">تنظیم به‌عنوان لانچر پیش‌فرض</string>
+    <string name="widget_binding_cancelled">راه‌اندازی ویجت لغو شد</string>
+    <string name="long_press_to_add_edit_widgets">برای افزودن یا ویرایش ویجت‌ها، لمس طولانی انجام دهید</string>
+
+    <string name="add_widget">افزودن ویجت</string>
+    <string name="could_not_load_widget">بارگذاری ویجت ممکن نشد</string>
+    <string name="remove_widget">حذف ویجت</string>
+
+    <string name="close">بستن</string>
+    <string name="applications">برنامه‌ها</string>
+    <string name="contacts">مخاطبین</string>
+    <string name="search">جستجو</string>
+
+    <string name="requires_contact_permission">
+        برای جستجو و تماس با مخاطبین، نیاز به دسترسی به مخاطبین دارید.
+    </string>
+
+    <string name="grant_permission">اعطای مجوز</string>
+
+    <string name="privacy_policy_text">
+        ما به حریم خصوصی شما احترام می‌گذاریم. Comfer هیچ دادهٔ شخصی‌ای را جمع‌آوری یا ذخیره نمی‌کند. برای خواندن خط‌مشی حریم خصوصی، اینجا را لمس کنید.
+    </string>
+
+    <string name="background_image">تصویر پس‌زمینه</string>
+    <string name="feedback">بازخورد</string>
+    <string name="feedback_text">تجربهٔ خود را با ما به اشتراک بگذارید و به بهتر شدن Comfer کمک کنید.</string>
+    <string name="feedback_icon">آیکون بازخورد</string>
+
+    <string name="rate_comfer">امتیاز دادن به Comfer</string>
+    <string name="not_now">فعلاً نه</string>
+
+    <string name="permission_required">مجوز لازم است</string>
+
+    <string name="recent_apps_permission_title">
+        برای فعال کردن میان‌بُر "برنامه‌های اخیر"، Comfer به دسترسی سرویس دسترسی‌پذیری نیاز دارد.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">این سرویس چه کار می‌کند:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • صفحهٔ "برنامه‌های اخیر" سیستم را باز می‌کند.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">این سرویس چه کار نمی‌کند:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • هیچ دادهٔ شخصی‌ای جمع‌آوری نمی‌کند.\n
+        • کارهای شما یا متنی که می‌نویسید را پایش نمی‌کند.\n
+        • محتوای صفحه را نمی‌خواند.
+    </string>
+
+    <string name="continue_text">ادامه</string>
+    <string name="cancel_text">لغو</string>
+    <string name="backspace_key">کلید Backspace</string>
+
+    <string name="contact_number_not_available">برای این مخاطب هیچ شمارهٔ تلفنی موجود نیست</string>
+    <string name="no_app_to_place_calls">هیچ برنامه‌ای برای برقراری تماس پیدا نشد</string>
+
+    <string name="update_available">به‌روزرسانی جدیدی در دسترس است.</string>
+    <string name="update_action">به‌روزرسانی</string>
+    <string name="update_downloaded">به‌روزرسانی آمادهٔ نصب است.</string>
+    <string name="update_install">نصب</string>
+
+    <string name="select_an_application">یک برنامه انتخاب کنید</string>
+
+    <string name="gesture_shortcuts_title">میان‌بُرهای حرکتی</string>
+    <string name="paid_feature_title">امکان پولی</string>
+
+    <string name="tap_icon_to_select_app">برای انتخاب برنامه، روی آیکون آن ضربه بزنید</string>
+
+    <string name="requires_subscription">نیاز به اشتراک</string>
+
+    <string name="button_to_move_app_to_quick_app_list">انتقال به برنامه‌های صفحهٔ اصلی</string>
+    <string name="button_to_move_app_to_primary_app_list">انتقال به کشوی برنامه‌ها</string>
+    <string name="button_to_move_app_to_ghost_app_list">انتقال به برنامه‌های مخفی</string>
+
+    <string name="title_widgets">ویجت‌ها</string>
+    <string name="title_time">زمان</string>
+    <string name="rest_widget_positions">بازنشانی موقعیت‌ها</string>
+
+    <string name="title_analog_clock">ساعت آنالوگ</string>
+    <string name="title_clock_size">اندازهٔ ساعت</string>
+    <string name="clock_background_color">رنگ پس‌زمینهٔ ساعت</string>
+    <string name="background_transparency">شفافیت پس‌زمینه</string>
+    <string name="hour_hand_color">رنگ عقربهٔ ساعت</string>
+    <string name="minute_hand_color">رنگ عقربهٔ دقیقه</string>
+
+    <string name="title_time_format">فرمت زمان</string>
+    <string name="title_show_am_pm">نمایش AM/PM</string>
+    <string name="title_font_size">اندازهٔ فونت</string>
+    <string name="title_font_weight">ضخامت فونت</string>
+    <string name="title_font_style">سبک فونت</string>
+    <string name="title_time_font_color">رنگ فونت زمان</string>
+
+    <string name="title_date">تاریخ</string>
+    <string name="date_example">شنبه، ۱۶ سپتامبر</string>
+    <string name="date_font_color">رنگ فونت تاریخ</string>
+
+    <string name="title_battery">باتری</string>
+    <string name="show_battery_icon">نمایش آیکون باتری</string>
+    <string name="show_battery_percentage">نمایش درصد باتری</string>
+    <string name="battery_indicator_color">رنگ نشانگر</string>
+
+    <string name="title_notifications">اعلان‌ها</string>
+    <string name="show_notification_icons">نمایش آیکون‌های اعلان</string>
+
+    <string name="title_size">اندازه</string>
+    <string name="title_color">رنگ</string>
+    <string name="title_selected_color">رنگ انتخاب‌شده</string>
+
+    <string name="button_text_save">ذخیره</string>
+
+    <string name="title_premium">پرمیوم</string>
+    <string name="title_pro_features">امکانات Pro</string>
+    <string name="title_subscription">اشتراک</string>
+    <string name="go_to_page">باز کردن صفحه</string>
+
+    <string name="title_support">پشتیبانی</string>
+    <string name="title_how_to">نحوهٔ استفاده</string>
+    <string name="title_app_guide">راهنمای پیمایش در برنامه</string>
+
+    <string name="icon_how_to_guide">آیکون راهنمای "نحوهٔ استفاده"</string>
+    <string name="icon_arrow_right">آیکون پیکان به راست</string>
+
+    <string name="title_report_issue">گزارش مشکل</string>
+    <string name="icon_support">آیکون پشتیبانی</string>
+
+    <string name="title_wallpapers">والپیپرها</string>
+    <string name="title_auto_wallpapers">والپیپر خودکار</string>
+    <string name="auto_wallpaper_text">تغییر خودکار والپیپرها</string>
+    <string name="icon_wallpaper">آیکون والپیپر</string>
+
+    <string name="title_monochrome">پس‌زمینهٔ تک‌رنگ</string>
+    <string name="title_color_less_world">حالت بدون رنگ</string>
+    <string name="icon_monochrome">آیکون تک‌رنگ</string>
+
+    <string name="title_wallpaper_motion">حرکت والپیپر</string>
+    <string name="wallpaper_motion_text">صفحهٔ اصلی را زنده‌تر کنید</string>
+    <string name="icon_wallpaper_motion">آیکون حرکت والپیپر</string>
+
+    <string name="title_change_wallpaper">تغییر والپیپر</string>
+    <string name="change_wallpaper_text">برای تغییر والپیپر همین حالا، ضربه بزنید</string>
+    <string name="icon_wallpaper_change">آیکون تغییر والپیپر</string>
+
+    <string name="title_wallpaper_frequency">بازهٔ تغییر</string>
+    <string name="wallpaper_frequency_text">همراه با حالت خودکار روز/شب</string>
+    <string name="icon_wallpaper_frequency">آیکون بازهٔ تغییر والپیپر</string>
+
+    <string name="title_own_wallpapers">تنظیم والپیپرهای خودتان</string>
+    <string name="wallpaper_directory_select">برای انتخاب پوشه، ضربه بزنید</string>
+    <string name="icon_wallpaper_directory">آیکون پوشهٔ والپیپر</string>
+
+    <string name="set_launcher_first">ابتدا Comfer را به‌عنوان لانچر پیش‌فرض تنظیم کنید</string>
+
+    <string name="title_lock_screen">صفحهٔ قفل</string>
+    <string name="lock_screen_wallpaper_text">والپیپر را روی صفحهٔ قفل هم اعمال کن</string>
+    <string name="icon_lock_screen_wallpaper">آیکون والپیپر صفحهٔ قفل</string>
+
+    <string name="title_app_icons">آیکون‌های برنامه</string>
+    <string name="title_app_icon_size">اندازهٔ آیکون</string>
+    <string name="icon_app_icon_size">آیکون اندازهٔ آیکون برنامه</string>
+    <string name="button_decrease_app_icon_size">کوچک کردن اندازهٔ آیکون</string>
+    <string name="button_increase_app_icon_size">بزرگ کردن اندازهٔ آیکون</string>
+
+    <string name="title_themed_icons">آیکون‌های تم‌دار</string>
+    <string name="themed_icons_text">هماهنگ کردن رنگ آیکون‌ها با والپیپر (آزمایشی)</string>
+    <string name="icon_themed_icons">آیکون آیکون‌های تم‌دار</string>
+
+    <string name="title_notification_badges">اعلان‌ها و نشان‌های آیکون</string>
+    <string name="requires_notification_permission">نیاز به مجوز اعلان</string>
+    <string name="icon_notification_badges">آیکون نشان اعلان</string>
+
+    <string name="title_home_screen">صفحهٔ اصلی</string>
+    <string name="title_custom_widgets">ویجت‌های سفارشی</string>
+    <string name="custom_widgets_text">ویجت‌های مورد علاقهٔ شما</string>
+    <string name="icon_custom_widgets">آیکون ویجت‌های سفارشی</string>
+
+    <string name="title_quick_apps_layout">چیدمان برنامه‌های صفحهٔ اصلی</string>
+    <string name="quick_apps_layout_text">برنامه‌ها را با استایل مرتب کنید</string>
+    <string name="icon_apps_layout">آیکون چیدمان برنامه‌های صفحهٔ اصلی</string>
+
+    <string name="title_left_swipe_action">عمل اسلاید به چپ</string>
+    <string name="icon_left_swipe_action">آیکون عمل اسلاید به چپ</string>
+
+    <string name="title_right_swipe_action">عمل اسلاید به راست</string>
+    <string name="icon_right_swipe_action">آیکون عمل اسلاید به راست</string>
+
+    <string name="title_swipe_gestures">ژست‌های اسلاید</string>
+    <string name="swipe_gestures_text">استفاده از ژست‌ها به‌عنوان میان‌بُر برنامه‌ها</string>
+    <string name="icon_swipe_gestures">آیکون ژست‌های اسلاید</string>
+
+    <string name="title_app_drawer">کشوی برنامه‌ها</string>
+    <string name="title_app_drawer_layouts">چیدمان‌ها</string>
+    <string name="app_drawer_layouts_text">استایل‌های مختلف برای مرور برنامه‌ها</string>
+
+    <string name="title_alphabetical_order">ترتیب الفبایی</string>
+    <string name="alphabetical_order_text">چیدمان برنامه‌ها به‌ترتیب الفبایی</string>
+    <string name="icon_alphabetical_order">آیکون ترتیب الفبایی</string>
+
+    <string name="title_apps_list">فهرست‌های برنامه</string>
+    <string name="title_manage_app_list">مدیریت برنامه‌ها</string>
+    <string name="manage_app_list_text">سازمان‌دهی یا تغییر ترتیب برنامه‌ها در فهرست‌ها</string>
+    <string name="icon_manage_app_list">آیکون مدیریت فهرست برنامه‌ها</string>
+
+    <string name="title_feedback">بازخورد</string>
+    <string name="icon_feedback">آیکون بازخورد</string>
+
+    <string name="title_share_app">اشتراک‌گذاری برنامه</string>
+    <string name="icon_share_app">آیکون اشتراک‌گذاری برنامه</string>
+    <string name="share_app_text">این لانچر جدید را امتحان کنید:</string>
+
+    <string name="title_share_with">اشتراک‌گذاری با</string>
+
+    <string name="title_app_version">نسخهٔ برنامه</string>
+    <string name="icon_app_version">آیکون نسخهٔ برنامه</string>
+
+    <string name="title_icon_shapes">شکل آیکون‌ها</string>
+    <string name="icon_shapes_text">تنظیم شکل آیکون برنامه‌ها</string>
+    <string name="icon_icon_shapes">آیکون شکل آیکون‌ها</string>
+
+    <string name="title_select_icon_shape">انتخاب شکل آیکون</string>
+
+    <string name="notification_permission_text">
+        برای نمایش آیکون‌های اعلان روی صفحهٔ اصلی و نشان روی آیکون برنامه‌ها، Comfer به دسترسی اعلان نیاز دارد.
+    </string>
+
+    <string name="what_notification_permission_do_title">این سرویس چه کار می‌کند:</string>
+
+    <string name="what_notification_permission_do_text">
+        • وضعیت اعلان‌ها را می‌خواند و در صورت نیاز آیکون‌ها و نشان‌ها را نمایش می‌دهد.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">این سرویس چه کار نمی‌کند:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • هیچ دادهٔ شخصی‌ای جمع‌آوری نمی‌کند.
+    </string>
+
+    <string name="title_choose_layout">انتخاب چیدمان</string>
+    <string name="swipe_action_selection">انتخاب یک برنامه یا صفحهٔ ویجت‌ها</string>
+    <string name="title_choose_options">انتخاب گزینه</string>
+    <string name="title_select_app">انتخاب برنامه</string>
+    <string name="title_widgets_screen">صفحهٔ ویجت‌ها</string>
+    <string name="title_choose_action">انتخاب عمل</string>
+
+    <string name="unable_to_load_subscriptions">
+        بارگذاری اطلاعات اشتراک ممکن نشد. لطفاً اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">خطا در بارگذاری اشتراک</string>
+    <string name="no_subscription_available">هیچ اشتراکی در دسترس نیست</string>
+
+    <string name="title_active_subscription">اشتراک فعال</string>
+    <string name="subscription_renews_on">تمدید در</string>
+    <string name="subscription_expires_on">اتمام در</string>
+
+    <string name="subscription_benefit_one">تنظیم والپیپرهای پویا و دلخواه خود</string>
+    <string name="subscription_benefit_two">افزودن ویجت‌های محبوب به صفحهٔ اصلی</string>
+    <string name="subscription_benefit_three">سفارشی‌سازی ویجت‌های پیش‌فرض صفحهٔ اصلی</string>
+    <string name="subscription_benefit_four">باز کردن سریع برنامه‌ها با ژست‌ها</string>
+
+    <string name="title_manage_your_subscription">مدیریت اشتراک</string>
+    <string name="title_pro_access">دسترسی Pro</string>
+    <string name="title_year">سال</string>
+
+    <string name="subscription_failed_prefix">اشتراک ناموفق بود</string>
+    <string name="subscription_successful_prefix">اشتراک با موفقیت انجام شد</string>
+    <string name="title_subscribe_now">هم‌اکنون اشتراک بگیر</string>
+
+    <string name="subscription_restore_failed_prefix">بازیابی اشتراک ناموفق بود</string>
+    <string name="subscription_restore_successful_prefix">اشتراک با موفقیت بازیابی شد</string>
+    <string name="subscription_not_found_to_restore">هیچ اشتراکی برای بازیابی پیدا نشد</string>
+    <string name="title_restore_subscription">بازیابی اشتراک</string>
+
+    <string name="guide_home_swipe_up">برای باز کردن کشوی برنامه‌ها، به سمت بالا اسلاید کنید.</string>
+    <string name="guide_home_swipe_down">برای دیدن اعلان‌ها، به سمت پایین اسلاید کنید.</string>
+    <string name="guide_home_double_tap">برای باز کردن "برنامه‌های اخیر"، روی صفحه دوبار ضربه بزنید.</string>
+    <string name="guide_home_long_press_lower">برای باز کردن تنظیمات، نیمهٔ پایین صفحه را لمس طولانی کنید.</string>
+    <string name="guide_home_long_press_upper">برای ویرایش ویجت‌ها، نیمهٔ بالای صفحه را لمس طولانی کنید.</string>
+    <string name="guide_home_tap_upper_half">برای خروج از ویرایش ویجت‌ها، روی نیمهٔ بالای صفحه ضربه بزنید.</string>
+    <string name="guide_home_tap_date_time">برای دیدن آلارم‌ها، روی تاریخ/زمان ضربه بزنید.</string>
+    <string name="guide_home_long_press_date_time">برای باز کردن تقویم، روی تاریخ/زمان لمس طولانی کنید.</string>
+    <string name="guide_home_swipe_left_right">برای باز کردن برنامهٔ انتخاب‌شده یا صفحهٔ ویجت‌ها، به چپ/راست اسلاید کنید.</string>
+    <string name="guide_home_gestures">برای باز کردن برنامه‌های تنظیم‌شده در "میان‌بُرهای حرکتی"، ژست‌ها را رسم کنید.</string>
+
+    <string name="guide_circular_app_drawer">کشوی دایره‌ای برنامه‌ها</string>
+    <string name="guide_circular_app_drawer_swipe_down">برای بازگشت، به سمت پایین اسلاید کنید.</string>
+    <string name="guide_circular_app_drawer_double_tap">برای باز کردن برنامهٔ وسط، دوبار ضربه بزنید.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">برای اسکرول، به چپ/راست اسلاید کنید.</string>
+    <string name="guide_circular_app_drawer_tap_icon">برای باز کردن برنامه، روی آیکون آن ضربه بزنید.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">برای باز کردن اطلاعات برنامه، روی آیکون لمس طولانی کنید.</string>
+
+    <string name="guide_horizontal_app_drawer">کشوی افقی برنامه‌ها</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">برای بازگشت، به سمت پایین اسلاید کنید.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">برای اسکرول، به چپ/راست اسلاید کنید.</string>
+    <string name="guide_horizontal_app_drawer_long_press">برای مدیریت کشو، لمس طولانی کنید.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">در حالت ویرایش، با درَگ و دراپ آیکون‌ها موقعیتشان را تغییر دهید.</string>
+    <string name="guide_horizontal_app_drawer_drag">در حالت ویرایش، برای جابه‌جایی عمودی کشو، آن را درَگ کنید.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">برای خروج از حالت ویرایش، یک‌بار ضربه بزنید.</string>
+
+    <string name="guide_search">برنامه‌ها یا مخاطبین را جستجو کنید.</string>
+    <string name="guide_search_swipe_down">برای بازگشت، روی کیبورد به سمت پایین اسلاید کنید.</string>
+    <string name="guide_search_swipe_right">برای جستجو در مخاطبین، روی کیبورد به سمت راست اسلاید کنید.</string>
+    <string name="guide_search_swipe_left">برای جستجو در برنامه‌ها، روی کیبورد به سمت چپ اسلاید کنید.</string>
+    <string name="guide_search_swipe_up">برای دیدن حروف بیشتر، روی کیبورد به سمت بالا اسلاید کنید.</string>
+    <string name="guide_search_long_press">برای انتخاب زبان، فلش برگشت وسط را لمس طولانی کنید.</string>
+    <string name="guide_search_scroll_list">برای دیدن همهٔ نتایج، فهرست برنامه‌ها را به صورت افقی اسکرول کنید.</string>
+    <string name="guide_search_scroll_sides">برای اسکرول فهرست مخاطبین، کناره‌های کیبورد دایره‌ای را اسکرول کنید.</string>
+    <string name="guide_search_double_tap_sides">برای باز کردن شماره‌گیر با مخاطب انتخاب‌شده، روی هر کدام از کناره‌های کیبورد دایره‌ای دوبار ضربه بزنید.</string>
+
+    <string name="guide_manage_apps">مدیریت فهرست برنامه‌ها</string>
+    <string name="guide_manage_apps_tap">برای انتخاب برنامه‌ها و انتقال آن‌ها به فهرست دیگر، ضربه بزنید.</string>
+    <string name="guide_manage_apps_long_press">
+        برای تغییر ترتیب برنامه‌ها در همان فهرست، آیکون برنامه را لمس طولانی کرده و درَگ کنید. این کار فقط زمانی عمل می‌کند که فهرست به‌صورت الفبایی مرتب نشده باشد.
+    </string>
+
+    <string name="title_app_language">زبان برنامه</string>
+    <string name="app_language_text">برای تغییر زبان برنامه، ضربه بزنید</string>
+    <string name="icon_app_language">آیکون زبان برنامه</string>
+</resources>

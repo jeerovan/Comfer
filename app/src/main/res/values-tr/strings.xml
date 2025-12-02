@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">Hoş geldiniz</string>
+
+    <string name="checkout_how_to_guide">
+        Ana ekranın herhangi bir yerinde uzun basarak menüyü açın ve "Nasıl yapılır" rehberini görüntüleyin.\n
+        Feragatname: Bazı çeviriler otomatik olarak oluşturulmuş olabilir. Hatalı bir metin fark ederseniz lütfen bize e-posta ile ulaşın.
+    </string>
+
+    <string name="accessibility_service_description">
+        Bu hizmet, sistemin "Son uygulamalar" ekranını açmak için gereklidir. Comfer bu izni yalnızca bu kısayolu sağlamak için kullanır; hiçbir kişisel veriyi toplamaz veya izlemez.
+    </string>
+
+    <string name="set_default_launcher">Varsayılan başlatıcı olarak ayarla</string>
+    <string name="widget_binding_cancelled">Widget kurulumu iptal edildi</string>
+    <string name="long_press_to_add_edit_widgets">Widget eklemek veya düzenlemek için uzun basın</string>
+
+    <string name="add_widget">Widget ekle</string>
+    <string name="could_not_load_widget">Widget yüklenemedi</string>
+    <string name="remove_widget">Widget kaldır</string>
+
+    <string name="close">Kapat</string>
+    <string name="applications">Uygulamalar</string>
+    <string name="contacts">Kişiler</string>
+    <string name="search">Ara</string>
+
+    <string name="requires_contact_permission">
+        Kişileri aramak ve onları arayabilmek için kişi izinlerine ihtiyaç vardır.
+    </string>
+
+    <string name="grant_permission">İzin ver</string>
+
+    <string name="privacy_policy_text">
+        Gizliliğinize saygı duyuyoruz. Comfer hiçbir kişisel veriyi toplamaz veya saklamaz. Gizlilik politikamızı okumak için dokunun.
+    </string>
+
+    <string name="background_image">Arka plan resmi</string>
+    <string name="feedback">Geri bildirim</string>
+    <string name="feedback_text">Deneyiminizi paylaşın ve Comfer\'in gelişmesine yardımcı olun.</string>
+    <string name="feedback_icon">Geri bildirim simgesi</string>
+
+    <string name="rate_comfer">Comfer\'i değerlendirin</string>
+    <string name="not_now">Şimdi değil</string>
+
+    <string name="permission_required">İzin gerekli</string>
+
+    <string name="recent_apps_permission_title">
+        "Son uygulamalar" kısayolunu etkinleştirmek için Comfer\'in Erişilebilirlik Hizmeti erişimine ihtiyacı var.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">Bu hizmet şunları yapar:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • Sistem "Son uygulamalar" ekranını açar.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">Bu hizmet şunları yapmaz:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • Kişisel veri toplamaz.\n
+        • İşlemlerinizi veya yazdığınız metni izlemez.\n
+        • Ekran içeriğini okumaz.
+    </string>
+
+    <string name="continue_text">Devam et</string>
+    <string name="cancel_text">İptal</string>
+    <string name="backspace_key">Geri silme tuşu</string>
+
+    <string name="contact_number_not_available">Bu kişi için kayıtlı bir telefon numarası yok</string>
+    <string name="no_app_to_place_calls">Arama yapmak için kullanılacak bir uygulama bulunamadı</string>
+
+    <string name="update_available">Yeni bir güncelleme mevcut.</string>
+    <string name="update_action">Güncelle</string>
+    <string name="update_downloaded">Güncelleme kurulmaya hazır.</string>
+    <string name="update_install">Yükle</string>
+
+    <string name="select_an_application">Bir uygulama seçin</string>
+
+    <string name="gesture_shortcuts_title">Hareket kısayolları</string>
+    <string name="paid_feature_title">Ücretli özellik</string>
+
+    <string name="tap_icon_to_select_app">Bir uygulama seçmek için simgeye dokunun</string>
+
+    <string name="requires_subscription">Abonelik gerektirir</string>
+
+    <string name="button_to_move_app_to_quick_app_list">Ana ekran uygulamalarına taşı</string>
+    <string name="button_to_move_app_to_primary_app_list">Uygulama çekmecesine taşı</string>
+    <string name="button_to_move_app_to_ghost_app_list">Gizli uygulamalara taşı</string>
+
+    <string name="title_widgets">Widget\'lar</string>
+    <string name="title_time">Saat</string>
+    <string name="rest_widget_positions">Konumları sıfırla</string>
+
+    <string name="title_analog_clock">Analog saat</string>
+    <string name="title_clock_size">Saat boyutu</string>
+    <string name="clock_background_color">Saat arka plan rengi</string>
+    <string name="background_transparency">Arka plan saydamlığı</string>
+    <string name="hour_hand_color">Saat ibresi rengi</string>
+    <string name="minute_hand_color">Dakika ibresi rengi</string>
+
+    <string name="title_time_format">Saat biçimi</string>
+    <string name="title_show_am_pm">ÖÖ/ÖS göster</string>
+    <string name="title_font_size">Yazı tipi boyutu</string>
+    <string name="title_font_weight">Yazı tipi kalınlığı</string>
+    <string name="title_font_style">Yazı tipi stili</string>
+    <string name="title_time_font_color">Saat yazı tipi rengi</string>
+
+    <string name="title_date">Tarih</string>
+    <string name="date_example">Cmt, Eyl 16</string>
+    <string name="date_font_color">Tarih yazı tipi rengi</string>
+
+    <string name="title_battery">Pil</string>
+    <string name="show_battery_icon">Pil simgesini göster</string>
+    <string name="show_battery_percentage">Pil yüzdesini göster</string>
+    <string name="battery_indicator_color">Gösterge rengi</string>
+
+    <string name="title_notifications">Bildirimler</string>
+    <string name="show_notification_icons">Bildirim simgelerini göster</string>
+
+    <string name="title_size">Boyut</string>
+    <string name="title_color">Renk</string>
+    <string name="title_selected_color">Seçilen renk</string>
+
+    <string name="button_text_save">Kaydet</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">Pro özellikler</string>
+    <string name="title_subscription">Abonelik</string>
+    <string name="go_to_page">Sayfayı aç</string>
+
+    <string name="title_support">Destek</string>
+    <string name="title_how_to">Nasıl yapılır</string>
+    <string name="title_app_guide">Uygulama gezinme rehberi</string>
+
+    <string name="icon_how_to_guide">"Nasıl yapılır" rehberi simgesi</string>
+    <string name="icon_arrow_right">Sağ ok simgesi</string>
+
+    <string name="title_report_issue">Sorun bildir</string>
+    <string name="icon_support">Destek simgesi</string>
+
+    <string name="title_wallpapers">Duvar kâğıtları</string>
+    <string name="title_auto_wallpapers">Otomatik duvar kâğıtları</string>
+    <string name="auto_wallpaper_text">Duvar kâğıtlarını otomatik olarak değiştir</string>
+    <string name="icon_wallpaper">Duvar kâğıdı simgesi</string>
+
+    <string name="title_monochrome">Tek renkli arka plan</string>
+    <string name="title_color_less_world">Renksiz mod</string>
+    <string name="icon_monochrome">Tek renkli simge</string>
+
+    <string name="title_wallpaper_motion">Duvar kâğıdı hareketi</string>
+    <string name="wallpaper_motion_text">Ana ekranı daha canlı hâle getir</string>
+    <string name="icon_wallpaper_motion">Duvar kâğıdı hareket simgesi</string>
+
+    <string name="title_change_wallpaper">Duvar kâğıdını değiştir</string>
+    <string name="change_wallpaper_text">Şimdi duvar kâğıdını değiştirmek için dokunun</string>
+    <string name="icon_wallpaper_change">Duvar kâğıdı değiştirme simgesi</string>
+
+    <string name="title_wallpaper_frequency">Değiştirme sıklığı</string>
+    <string name="wallpaper_frequency_text">Otomatik gündüz/gece modu ile</string>
+    <string name="icon_wallpaper_frequency">Duvar kâğıdı sıklığı simgesi</string>
+
+    <string name="title_own_wallpapers">Kendi duvar kâğıtlarını ayarla</string>
+    <string name="wallpaper_directory_select">Klasör seçmek için dokunun</string>
+    <string name="icon_wallpaper_directory">Duvar kâğıdı klasörü simgesi</string>
+
+    <string name="set_launcher_first">Önce Comfer\'i varsayılan başlatıcı olarak ayarlayın</string>
+
+    <string name="title_lock_screen">Kilit ekranı</string>
+    <string name="lock_screen_wallpaper_text">Duvar kâğıdını kilit ekranına da uygula</string>
+    <string name="icon_lock_screen_wallpaper">Kilit ekranı duvar kâğıdı simgesi</string>
+
+    <string name="title_app_icons">Uygulama simgeleri</string>
+    <string name="title_app_icon_size">Simge boyutu</string>
+    <string name="icon_app_icon_size">Uygulama simge boyutu simgesi</string>
+    <string name="button_decrease_app_icon_size">Simge boyutunu küçült</string>
+    <string name="button_increase_app_icon_size">Simge boyutunu büyüt</string>
+
+    <string name="title_themed_icons">Temalı simgeler</string>
+    <string name="themed_icons_text">Simge renklerini duvar kâğıdıyla eşleştir (deneysel)</string>
+    <string name="icon_themed_icons">Temalı simgeler simgesi</string>
+
+    <string name="title_notification_badges">Bildirim ve simge rozetleri</string>
+    <string name="requires_notification_permission">Bildirim izni gerekli</string>
+    <string name="icon_notification_badges">Bildirim rozeti simgesi</string>
+
+    <string name="title_home_screen">Ana ekran</string>
+    <string name="title_custom_widgets">Özel widget\'lar</string>
+    <string name="custom_widgets_text">Favori widget\'larınız</string>
+    <string name="icon_custom_widgets">Özel widget simgesi</string>
+
+    <string name="title_quick_apps_layout">Ana ekran uygulama düzeni</string>
+    <string name="quick_apps_layout_text">Uygulamaları şık bir şekilde düzenle</string>
+    <string name="icon_apps_layout">Ana ekran uygulama düzeni simgesi</string>
+
+    <string name="title_left_swipe_action">Sola kaydırma eylemi</string>
+    <string name="icon_left_swipe_action">Sola kaydırma simgesi</string>
+
+    <string name="title_right_swipe_action">Sağa kaydırma eylemi</string>
+    <string name="icon_right_swipe_action">Sağa kaydırma simgesi</string>
+
+    <string name="title_swipe_gestures">Kaydırma hareketleri</string>
+    <string name="swipe_gestures_text">Hareketleri uygulama kısayolu olarak kullanın</string>
+    <string name="icon_swipe_gestures">Kaydırma hareketi simgesi</string>
+
+    <string name="title_app_drawer">Uygulama çekmecesi</string>
+    <string name="title_app_drawer_layouts">Düzenler</string>
+    <string name="app_drawer_layouts_text">Uygulamaları keşfetmek için stiller</string>
+
+    <string name="title_alphabetical_order">Alfabetik sıra</string>
+    <string name="alphabetical_order_text">Uygulamaları alfabetik olarak sırala</string>
+    <string name="icon_alphabetical_order">Alfabetik sıra simgesi</string>
+
+    <string name="title_apps_list">Uygulama listeleri</string>
+    <string name="title_manage_app_list">Uygulamaları yönet</string>
+    <string name="manage_app_list_text">Uygulamaları listeler içinde düzenle veya yeniden sırala</string>
+    <string name="icon_manage_app_list">Uygulama listesi yönetim simgesi</string>
+
+    <string name="title_feedback">Geri bildirim</string>
+    <string name="icon_feedback">Geri bildirim simgesi</string>
+
+    <string name="title_share_app">Uygulamayı paylaş</string>
+    <string name="icon_share_app">Uygulama paylaşım simgesi</string>
+    <string name="share_app_text">Bu yeni başlatıcıyı deneyin:</string>
+
+    <string name="title_share_with">Şununla paylaş</string>
+
+    <string name="title_app_version">Uygulama sürümü</string>
+    <string name="icon_app_version">Uygulama sürümü simgesi</string>
+
+    <string name="title_icon_shapes">Simge şekilleri</string>
+    <string name="icon_shapes_text">Uygulama simge şekillerini ayarla</string>
+    <string name="icon_icon_shapes">Simge şekilleri simgesi</string>
+
+    <string name="title_select_icon_shape">Simge şekli seç</string>
+
+    <string name="notification_permission_text">
+        Ana ekranda bildirim simgeleri ve uygulama simgelerinde rozet göstermek için Comfer\'in bildirim erişimine ihtiyacı var.
+    </string>
+
+    <string name="what_notification_permission_do_title">Bu hizmet şunları yapar:</string>
+
+    <string name="what_notification_permission_do_text">
+        • Bildirim durumunu okur ve gerektiğinde simge ve rozetleri gösterir.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">Bu hizmet şunları yapmaz:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • Kişisel veri toplamaz.
+    </string>
+
+    <string name="title_choose_layout">Düzen seçin</string>
+    <string name="swipe_action_selection">Bir uygulama veya Widget ekranı</string>
+    <string name="title_choose_options">Seçenek seçin</string>
+    <string name="title_select_app">Uygulama seçin</string>
+    <string name="title_widgets_screen">Widget ekranı</string>
+    <string name="title_choose_action">Eylem seçin</string>
+
+    <string name="unable_to_load_subscriptions">
+        Abonelik bilgileri yüklenemedi. Lütfen bağlantınızı kontrol edip tekrar deneyin.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">Abonelik yüklenemedi</string>
+    <string name="no_subscription_available">Kullanılabilir abonelik yok</string>
+
+    <string name="title_active_subscription">Aktif abonelik</string>
+    <string name="subscription_renews_on">Yenilenme tarihi</string>
+    <string name="subscription_expires_on">Bitiş tarihi</string>
+
+    <string name="subscription_benefit_one">Kendi dinamik duvar kâğıtlarınızı ayarlayın</string>
+    <string name="subscription_benefit_two">Favori widget\'larınızı ana ekrana ekleyin</string>
+    <string name="subscription_benefit_three">Ana ekrandaki varsayılan widget\'ları özelleştirin</string>
+    <string name="subscription_benefit_four">Uygulamaları hızlı açmak için hareketleri kullanın</string>
+
+    <string name="title_manage_your_subscription">Aboneliğinizi yönetin</string>
+    <string name="title_pro_access">Pro erişim</string>
+    <string name="title_year">yıl</string>
+
+    <string name="subscription_failed_prefix">Abonelik başarısız</string>
+    <string name="subscription_successful_prefix">Abonelik başarılı</string>
+    <string name="title_subscribe_now">Şimdi abone ol</string>
+
+    <string name="subscription_restore_failed_prefix">Abonelik geri yükleme başarısız</string>
+    <string name="subscription_restore_successful_prefix">Abonelik başarıyla geri yüklendi</string>
+    <string name="subscription_not_found_to_restore">Geri yüklenecek abonelik bulunamadı</string>
+    <string name="title_restore_subscription">Aboneliği geri yükle</string>
+
+    <string name="guide_home_swipe_up">Uygulama çekmecesini açmak için yukarı kaydırın.</string>
+    <string name="guide_home_swipe_down">Bildirimleri görmek için aşağı kaydırın.</string>
+    <string name="guide_home_double_tap">"Son uygulamalar"ı açmak için ekrana iki kez dokunun.</string>
+    <string name="guide_home_long_press_lower">Ayarları açmak için ekranın alt yarısına uzun basın.</string>
+    <string name="guide_home_long_press_upper">Widget\'ları düzenlemek için ekranın üst yarısına uzun basın.</string>
+    <string name="guide_home_tap_upper_half">Widget düzenlemeden çıkmak için ekranın üst yarısına dokunun.</string>
+    <string name="guide_home_tap_date_time">Alarmları görmek için tarih/saat üzerine dokunun.</string>
+    <string name="guide_home_long_press_date_time">Takvimi açmak için tarih/saat üzerine uzun basın.</string>
+    <string name="guide_home_swipe_left_right">Seçili uygulamayı veya Widget ekranını açmak için sola/sağa kaydırın.</string>
+    <string name="guide_home_gestures">"Hareket kısayolları"nda ayarladığınız jestleri çizerek uygulamaları açın.</string>
+
+    <string name="guide_circular_app_drawer">Dairesel uygulama çekmecesi</string>
+    <string name="guide_circular_app_drawer_swipe_down">Geri dönmek için aşağı kaydırın.</string>
+    <string name="guide_circular_app_drawer_double_tap">Ortadaki uygulamayı açmak için iki kez dokunun.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">Kaydırmak için sola/sağa kaydırın.</string>
+    <string name="guide_circular_app_drawer_tap_icon">Uygulamayı açmak için simgeye dokunun.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">Uygulama bilgilerini açmak için simgeye uzun basın.</string>
+
+    <string name="guide_horizontal_app_drawer">Yatay uygulama çekmecesi</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">Geri dönmek için aşağı kaydırın.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">Kaydırmak için sola/sağa kaydırın.</string>
+    <string name="guide_horizontal_app_drawer_long_press">Çekmeceyi yönetmek için uzun basın.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">Düzenleme modunda simgeleri sürükleyip bırakarak konumlarını değiştirin.</string>
+    <string name="guide_horizontal_app_drawer_drag">Düzenleme modunda çekmeceyi sürükleyerek dikey konumunu değiştirin.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">Düzenleme modundan çıkmak için bir kez dokunun.</string>
+
+    <string name="guide_search">Uygulamaları veya kişileri arayın.</string>
+    <string name="guide_search_swipe_down">Geri dönmek için klavyede aşağı kaydırın.</string>
+    <string name="guide_search_swipe_right">Kişilerde arama yapmak için klavyede sağa kaydırın.</string>
+    <string name="guide_search_swipe_left">Uygulamalarda arama yapmak için klavyede sola kaydırın.</string>
+    <string name="guide_search_swipe_up">Daha fazla karakter görmek için klavyede yukarı kaydırın.</string>
+    <string name="guide_search_long_press">Dil seçmek için ortadaki geri okuna uzun basın.</string>
+    <string name="guide_search_scroll_list">Tüm sonuçları görmek için uygulama listesini yatay kaydırın.</string>
+    <string name="guide_search_scroll_sides">Kişi listesini kaydırmak için dairesel klavyenin kenarlarını kaydırın.</string>
+    <string name="guide_search_double_tap_sides">Vurgulanan kişiyle arama ekranını açmak için dairesel klavyenin herhangi bir kenarına iki kez dokunun.</string>
+
+    <string name="guide_manage_apps">Uygulama listesini yönet</string>
+    <string name="guide_manage_apps_tap">Uygulamaları seçip başka bir listeye taşımak için dokunun.</string>
+    <string name="guide_manage_apps_long_press">
+        Aynı listede sıralamayı değiştirmek için uygulama simgesine uzun basıp sürükleyin. Yalnızca liste alfabetik olarak sıralı değilse çalışır.
+    </string>
+
+    <string name="title_app_language">Uygulama dili</string>
+    <string name="app_language_text">Uygulama dilini değiştirmek için dokunun</string>
+    <string name="icon_app_language">Uygulama dili simgesi</string>
+</resources>

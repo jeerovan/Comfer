@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">Bun venit</string>
+
+    <string name="checkout_how_to_guide">
+        Apasă lung oriunde pe Ecranul principal pentru a deschide meniul și a vedea ghidul "Cum se utilizează".\n
+        Notă: Unele traduceri pot fi generate automat. Dacă observi un text incorect, te rugăm să ne contactezi prin e-mail.
+    </string>
+
+    <string name="accessibility_service_description">
+        Acest serviciu este necesar pentru a deschide ecranul de sistem "Aplicații recente". Comfer folosește această permisiune doar pentru a oferi acest shortcut și nu colectează sau monitorizează niciun fel de date personale.
+    </string>
+
+    <string name="set_default_launcher">Setează ca launcher implicit</string>
+    <string name="widget_binding_cancelled">Configurarea widgetului a fost anulată</string>
+    <string name="long_press_to_add_edit_widgets">Apasă lung pentru a adăuga sau edita widgeturi</string>
+
+    <string name="add_widget">Adaugă widget</string>
+    <string name="could_not_load_widget">Widgetul nu a putut fi încărcat</string>
+    <string name="remove_widget">Elimină widget</string>
+
+    <string name="close">Închide</string>
+    <string name="applications">Aplicații</string>
+    <string name="contacts">Contacte</string>
+    <string name="search">Căutare</string>
+
+    <string name="requires_contact_permission">
+        Este necesară permisiunea pentru acces la contacte ca să le poți căuta și apela.
+    </string>
+
+    <string name="grant_permission">Acordă permisiunea</string>
+
+    <string name="privacy_policy_text">
+        Respectăm confidențialitatea ta. Comfer nu colectează și nu stochează date personale. Atinge pentru a citi politica noastră de confidențialitate.
+    </string>
+
+    <string name="background_image">Imagine de fundal</string>
+    <string name="feedback">Feedback</string>
+    <string name="feedback_text">Spune-ne ce părere ai și ajută-ne să îmbunătățim Comfer.</string>
+    <string name="feedback_icon">Pictogramă feedback</string>
+
+    <string name="rate_comfer">Evaluează Comfer</string>
+    <string name="not_now">Nu acum</string>
+
+    <string name="permission_required">Permisiune necesară</string>
+
+    <string name="recent_apps_permission_title">
+        Pentru a activa shortcutul "Aplicații recente", Comfer are nevoie de acces la Serviciul de accesibilitate.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">Acest serviciu permite:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • Deschiderea ecranului de sistem "Aplicații recente".
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">Acest serviciu NU face:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • Nu colectează date personale.\n
+        • Nu monitorizează acțiunile tale sau textul tastat.\n
+        • Nu citește conținutul ecranului.
+    </string>
+
+    <string name="continue_text">Continuă</string>
+    <string name="cancel_text">Anulează</string>
+    <string name="backspace_key">Tasta Backspace</string>
+
+    <string name="contact_number_not_available">Acest contact nu are un număr de telefon disponibil</string>
+    <string name="no_app_to_place_calls">Nu a fost găsită nicio aplicație pentru apeluri</string>
+
+    <string name="update_available">Este disponibil un nou update.</string>
+    <string name="update_action">Actualizează</string>
+    <string name="update_downloaded">Update-ul este gata de instalare.</string>
+    <string name="update_install">Instalează</string>
+
+    <string name="select_an_application">Selectează o aplicație</string>
+
+    <string name="gesture_shortcuts_title">Shortcuturi prin gesturi</string>
+    <string name="paid_feature_title">Funcție Premium</string>
+
+    <string name="tap_icon_to_select_app">Atinge o pictogramă pentru a selecta aplicația</string>
+
+    <string name="requires_subscription">Necesită abonament</string>
+
+    <string name="button_to_move_app_to_quick_app_list">Mută la Aplicații principale (Acasă)</string>
+    <string name="button_to_move_app_to_primary_app_list">Mută la Aplicațiile din sertar</string>
+    <string name="button_to_move_app_to_ghost_app_list">Mută la Aplicații ascunse</string>
+
+    <string name="title_widgets">Widgeturi</string>
+    <string name="title_time">Ora</string>
+    <string name="rest_widget_positions">Resetează pozițiile</string>
+
+    <string name="title_analog_clock">Ceas analog</string>
+    <string name="title_clock_size">Dimensiune ceas</string>
+    <string name="clock_background_color">Culoarea fundalului ceasului</string>
+    <string name="background_transparency">Transparența fundalului</string>
+    <string name="hour_hand_color">Culoarea limbii orare</string>
+    <string name="minute_hand_color">Culoarea limbii minutare</string>
+
+    <string name="title_time_format">Format oră</string>
+    <string name="title_show_am_pm">Afișează AM/PM</string>
+    <string name="title_font_size">Mărime font</string>
+    <string name="title_font_weight">Grosime font</string>
+    <string name="title_font_style">Stil font</string>
+    <string name="title_time_font_color">Culoare font pentru oră</string>
+
+    <string name="title_date">Dată</string>
+    <string name="date_example">Sâm, 16 sept</string>
+    <string name="date_font_color">Culoare font pentru dată</string>
+
+    <string name="title_battery">Baterie</string>
+    <string name="show_battery_icon">Afișează pictograma bateriei</string>
+    <string name="show_battery_percentage">Afișează procentul bateriei</string>
+    <string name="battery_indicator_color">Culoare indicator</string>
+
+    <string name="title_notifications">Notificări</string>
+    <string name="show_notification_icons">Afișează pictogramele notificărilor</string>
+
+    <string name="title_size">Dimensiune</string>
+    <string name="title_color">Culoare</string>
+    <string name="title_selected_color">Culoare selectată</string>
+
+    <string name="button_text_save">Salvează</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">Funcții Pro</string>
+    <string name="title_subscription">Abonament</string>
+    <string name="go_to_page">Deschide pagina</string>
+
+    <string name="title_support">Asistență</string>
+    <string name="title_how_to">Cum se utilizează</string>
+    <string name="title_app_guide">Ghid de navigare în aplicație</string>
+
+    <string name="icon_how_to_guide">Pictograma ghid "Cum se utilizează"</string>
+    <string name="icon_arrow_right">Pictogramă săgeată dreapta</string>
+
+    <string name="title_report_issue">Raportează o problemă</string>
+    <string name="icon_support">Pictogramă asistență</string>
+
+    <string name="title_wallpapers">Wallpaper-uri</string>
+    <string name="title_auto_wallpapers">Wallpaper-uri automate</string>
+    <string name="auto_wallpaper_text">Schimbă automat wallpaper-urile</string>
+    <string name="icon_wallpaper">Pictogramă wallpaper</string>
+
+    <string name="title_monochrome">Fundal monocrom</string>
+    <string name="title_color_less_world">Mod fără culori</string>
+    <string name="icon_monochrome">Pictogramă monocrom</string>
+
+    <string name="title_wallpaper_motion">Mișcare wallpaper</string>
+    <string name="wallpaper_motion_text">Fă ecranul principal mai dinamic</string>
+    <string name="icon_wallpaper_motion">Pictogramă mișcare wallpaper</string>
+
+    <string name="title_change_wallpaper">Schimbă wallpaper</string>
+    <string name="change_wallpaper_text">Atinge pentru a schimba wallpaper-ul acum</string>
+    <string name="icon_wallpaper_change">Pictogramă schimbare wallpaper</string>
+
+    <string name="title_wallpaper_frequency">Frecvența schimbării</string>
+    <string name="wallpaper_frequency_text">Cu mod automat Zi/Noapte</string>
+    <string name="icon_wallpaper_frequency">Pictogramă frecvență wallpaper</string>
+
+    <string name="title_own_wallpapers">Setează propriile wallpaper-uri</string>
+    <string name="wallpaper_directory_select">Atinge pentru a selecta folderul</string>
+    <string name="icon_wallpaper_directory">Pictogramă folder wallpaper</string>
+
+    <string name="set_launcher_first">Mai întâi setează Comfer ca launcher implicit</string>
+
+    <string name="title_lock_screen">Ecran de blocare</string>
+    <string name="lock_screen_wallpaper_text">Aplică wallpaper-ul și pe ecranul de blocare</string>
+    <string name="icon_lock_screen_wallpaper">Pictogramă wallpaper ecran de blocare</string>
+
+    <string name="title_app_icons">Pictograme aplicații</string>
+    <string name="title_app_icon_size">Dimensiune pictogramă</string>
+    <string name="icon_app_icon_size">Pictogramă dimensiune pictograme</string>
+    <string name="button_decrease_app_icon_size">Micșorează pictogramele</string>
+    <string name="button_increase_app_icon_size">Mărește pictogramele</string>
+
+    <string name="title_themed_icons">Pictograme tematice</string>
+    <string name="themed_icons_text">Potrivește culorile pictogramelor cu wallpaper-ul (experimental)</string>
+    <string name="icon_themed_icons">Pictogramă pictograme tematice</string>
+
+    <string name="title_notification_badges">Notificări și insigne pe pictograme</string>
+    <string name="requires_notification_permission">Este necesară permisiunea pentru notificări</string>
+    <string name="icon_notification_badges">Pictogramă insigne notificare</string>
+
+    <string name="title_home_screen">Ecran principal</string>
+    <string name="title_custom_widgets">Widgeturi personalizate</string>
+    <string name="custom_widgets_text">Widgeturile tale preferate</string>
+    <string name="icon_custom_widgets">Pictogramă widgeturi personalizate</string>
+
+    <string name="title_quick_apps_layout">Layout Aplicații principale</string>
+    <string name="quick_apps_layout_text">Aranjează aplicațiile cu stil</string>
+    <string name="icon_apps_layout">Pictogramă layout Aplicații principale</string>
+
+    <string name="title_left_swipe_action">Acțiune swipe stânga</string>
+    <string name="icon_left_swipe_action">Pictogramă swipe stânga</string>
+
+    <string name="title_right_swipe_action">Acțiune swipe dreapta</string>
+    <string name="icon_right_swipe_action">Pictogramă swipe dreapta</string>
+
+    <string name="title_swipe_gestures">Gesturi de swipe</string>
+    <string name="swipe_gestures_text">Folosește gesturile ca shortcuturi pentru aplicații</string>
+    <string name="icon_swipe_gestures">Pictogramă gesturi de swipe</string>
+
+    <string name="title_app_drawer">Sertar de aplicații</string>
+    <string name="title_app_drawer_layouts">Layout-uri</string>
+    <string name="app_drawer_layouts_text">Stiluri pentru a răsfoi aplicațiile</string>
+
+    <string name="title_alphabetical_order">Ordine alfabetică</string>
+    <string name="alphabetical_order_text">Sortează aplicațiile alfabetic</string>
+    <string name="icon_alphabetical_order">Pictogramă ordine alfabetică</string>
+
+    <string name="title_apps_list">Liste de aplicații</string>
+    <string name="title_manage_app_list">Gestionează aplicațiile</string>
+    <string name="manage_app_list_text">Organizează sau reordonează aplicațiile în liste</string>
+    <string name="icon_manage_app_list">Pictogramă gestionare liste aplicații</string>
+
+    <string name="title_feedback">Feedback</string>
+    <string name="icon_feedback">Pictogramă feedback</string>
+
+    <string name="title_share_app">Partajează aplicația</string>
+    <string name="icon_share_app">Pictogramă partajare aplicație</string>
+    <string name="share_app_text">Încearcă acest launcher nou:</string>
+
+    <string name="title_share_with">Partajează cu</string>
+
+    <string name="title_app_version">Versiune aplicație</string>
+    <string name="icon_app_version">Pictogramă versiune aplicație</string>
+
+    <string name="title_icon_shapes">Forme pictograme</string>
+    <string name="icon_shapes_text">Setează forma pictogramelor aplicațiilor</string>
+    <string name="icon_icon_shapes">Pictogramă forme pictograme</string>
+
+    <string name="title_select_icon_shape">Selectează forma pictogramelor</string>
+
+    <string name="notification_permission_text">
+        Pentru a afișa pictogramele notificărilor pe Ecranul principal și insigne pe pictogramele aplicațiilor, Comfer are nevoie de acces la notificări.
+    </string>
+
+    <string name="what_notification_permission_do_title">Acest serviciu permite:</string>
+
+    <string name="what_notification_permission_do_text">
+        • Citiți starea notificărilor și afișați pictogramele și insignele atunci când este necesar.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">Acest serviciu NU face:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • Nu colectează date personale.
+    </string>
+
+    <string name="title_choose_layout">Alege layout</string>
+    <string name="swipe_action_selection">O aplicație sau ecranul de widgeturi</string>
+    <string name="title_choose_options">Alege opțiunea</string>
+    <string name="title_select_app">Selectează aplicația</string>
+    <string name="title_widgets_screen">Ecran widgeturi</string>
+    <string name="title_choose_action">Alege acțiunea</string>
+
+    <string name="unable_to_load_subscriptions">
+        Nu s-au putut încărca informațiile despre abonament. Verifică conexiunea la internet și încearcă din nou.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">Încărcarea abonamentului a eșuat</string>
+    <string name="no_subscription_available">Niciun abonament disponibil</string>
+
+    <string name="title_active_subscription">Abonament activ</string>
+    <string name="subscription_renews_on">Se reînnoiește la</string>
+    <string name="subscription_expires_on">Expiră la</string>
+
+    <string name="subscription_benefit_one">Setează propriile wallpaper-uri dinamice</string>
+    <string name="subscription_benefit_two">Adaugă pe Ecranul principal widgeturile preferate</string>
+    <string name="subscription_benefit_three">Personalizează widgeturile implicite de pe Ecranul principal</string>
+    <string name="subscription_benefit_four">Folosește gesturi pentru a deschide rapid aplicațiile</string>
+
+    <string name="title_manage_your_subscription">Gestionează abonamentul</string>
+    <string name="title_pro_access">Acces Pro</string>
+    <string name="title_year">an</string>
+
+    <string name="subscription_failed_prefix">Abonare eșuată</string>
+    <string name="subscription_successful_prefix">Abonare reușită</string>
+    <string name="title_subscribe_now">Abonează-te acum</string>
+
+    <string name="subscription_restore_failed_prefix">Restaurarea abonamentului a eșuat</string>
+    <string name="subscription_restore_successful_prefix">Abonament restaurat cu succes</string>
+    <string name="subscription_not_found_to_restore">Nu a fost găsit niciun abonament de restaurat</string>
+    <string name="title_restore_subscription">Restaurează abonamentul</string>
+
+    <string name="guide_home_swipe_up">Glisează în sus pentru a deschide sertarul de aplicații.</string>
+    <string name="guide_home_swipe_down">Glisează în jos pentru a vedea notificările.</string>
+    <string name="guide_home_double_tap">Atinge de două ori ecranul pentru a deschide "Aplicații recente".</string>
+    <string name="guide_home_long_press_lower">Apasă lung pe jumătatea inferioară a ecranului pentru a deschide Setările.</string>
+    <string name="guide_home_long_press_upper">Apasă lung pe jumătatea superioară a ecranului pentru a edita widgeturile.</string>
+    <string name="guide_home_tap_upper_half">Atinge jumătatea superioară a ecranului pentru a ieși din modul de editare a widgeturilor.</string>
+    <string name="guide_home_tap_date_time">Atinge data/ora pentru a vedea alarmele.</string>
+    <string name="guide_home_long_press_date_time">Apasă lung pe data/ora pentru a deschide calendarul.</string>
+    <string name="guide_home_swipe_left_right">Glisează la stânga sau la dreapta pentru a deschide aplicația selectată sau ecranul de widgeturi.</string>
+    <string name="guide_home_gestures">Desenează gesturile setate în "Shortcuturi prin gesturi" pentru a deschide aplicațiile.</string>
+
+    <string name="guide_circular_app_drawer">Sertar de aplicații circular</string>
+    <string name="guide_circular_app_drawer_swipe_down">Glisează în jos pentru a reveni.</string>
+    <string name="guide_circular_app_drawer_double_tap">Atinge de două ori pentru a deschide aplicația din centru.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">Glisează la stânga/dreapta pentru a derula.</string>
+    <string name="guide_circular_app_drawer_tap_icon">Atinge o pictogramă pentru a deschide aplicația.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">Apasă lung pe pictogramă pentru a deschide informațiile aplicației.</string>
+
+    <string name="guide_horizontal_app_drawer">Sertar de aplicații orizontal</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">Glisează în jos pentru a reveni.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">Glisează la stânga/dreapta pentru a derula.</string>
+    <string name="guide_horizontal_app_drawer_long_press">Apasă lung pentru a gestiona sertarul de aplicații.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">În modul de editare, trage și plasează pictogramele pentru a le repoziționa.</string>
+    <string name="guide_horizontal_app_drawer_drag">În modul de editare, trage sertarul pentru a-l muta pe verticală.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">Atinge o dată pentru a ieși din modul de editare.</string>
+
+    <string name="guide_search">Caută aplicații sau contacte.</string>
+    <string name="guide_search_swipe_down">Glisează în jos pe tastatură pentru a reveni.</string>
+    <string name="guide_search_swipe_right">Glisează la dreapta pe tastatură pentru a căuta în contacte.</string>
+    <string name="guide_search_swipe_left">Glisează la stânga pe tastatură pentru a căuta în aplicații.</string>
+    <string name="guide_search_swipe_up">Glisează în sus pe tastatură pentru a vedea mai multe caractere.</string>
+    <string name="guide_search_long_press">Apasă lung săgeata Înapoi din centru pentru a selecta limba.</string>
+    <string name="guide_search_scroll_list">Derulează orizontal lista de aplicații pentru a vedea toate rezultatele.</string>
+    <string name="guide_search_scroll_sides">Derulează pe marginile tastaturii circulare pentru a derula lista de contacte.</string>
+    <string name="guide_search_double_tap_sides">Atinge de două ori pe una dintre laturile tastaturii circulare pentru a deschide dialer-ul cu contactul evidențiat.</string>
+
+    <string name="guide_manage_apps">Gestionează lista de aplicații</string>
+    <string name="guide_manage_apps_tap">Atinge pentru a selecta aplicații și a le muta într-o altă listă.</string>
+    <string name="guide_manage_apps_long_press">
+        Apasă lung pe pictograma unei aplicații pentru a o trage și reordona în aceeași listă. Funcționează doar când lista nu este sortată alfabetic.
+    </string>
+
+    <string name="title_app_language">Limba aplicației</string>
+    <string name="app_language_text">Atinge pentru a schimba limba aplicației</string>
+    <string name="icon_app_language">Pictogramă limbă aplicație</string>
+</resources>

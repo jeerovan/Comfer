@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">ยินดีต้อนรับ</string>
+
+    <string name="checkout_how_to_guide">
+        แตะค้างที่จุดใดก็ได้บนหน้าจอหลักเพื่อเปิดเมนูและดูคู่มือ "วิธีใช้งาน".\n
+        ข้อสงวนสิทธิ์: ข้อความบางส่วนอาจแปลโดยอัตโนมัติ หากคุณพบว่าข้อความใดไม่ถูกต้อง กรุณาติดต่อเราทางอีเมล
+    </string>
+
+    <string name="accessibility_service_description">
+        บริการนี้จำเป็นสำหรับการเปิดหน้าจอ "แอปล่าสุด" ของระบบ Comfer ใช้สิทธิ์นี้เฉพาะเพื่อสร้างทางลัดเท่านั้น และจะไม่เก็บรวบรวมหรือเฝ้าดูข้อมูลส่วนตัวใด ๆ ของคุณ
+    </string>
+
+    <string name="set_default_launcher">ตั้งเป็น Launcher เริ่มต้น</string>
+    <string name="widget_binding_cancelled">ยกเลิกการตั้งค่า Widget แล้ว</string>
+    <string name="long_press_to_add_edit_widgets">แตะค้างเพื่อเพิ่มหรือตั้งค่า Widget</string>
+
+    <string name="add_widget">เพิ่ม Widget</string>
+    <string name="could_not_load_widget">ไม่สามารถโหลด Widget ได้</string>
+    <string name="remove_widget">ลบ Widget</string>
+
+    <string name="close">ปิด</string>
+    <string name="applications">แอป</string>
+    <string name="contacts">รายชื่อ</string>
+    <string name="search">ค้นหา</string>
+
+    <string name="requires_contact_permission">
+        ต้องใช้สิทธิ์เข้าถึงรายชื่อเพื่อค้นหาและโทรออกไปยังรายชื่อของคุณ
+    </string>
+
+    <string name="grant_permission">ให้สิทธิ์</string>
+
+    <string name="privacy_policy_text">
+        เราให้ความสำคัญกับความเป็นส่วนตัวของคุณ Comfer จะไม่เก็บหรือจัดเก็บข้อมูลส่วนบุคคลใด ๆ แตะเพื่ออ่านนโยบายความเป็นส่วนตัวของเรา
+    </string>
+
+    <string name="background_image">ภาพพื้นหลัง</string>
+    <string name="feedback">คำติชม</string>
+    <string name="feedback_text">แบ่งปันประสบการณ์ของคุณและช่วยให้ Comfer ดีขึ้น</string>
+    <string name="feedback_icon">ไอคอนคำติชม</string>
+
+    <string name="rate_comfer">ให้คะแนน Comfer</string>
+    <string name="not_now">ไม่ใช่ตอนนี้</string>
+
+    <string name="permission_required">ต้องใช้สิทธิ์</string>
+
+    <string name="recent_apps_permission_title">
+        หากต้องการใช้ทางลัด "แอปล่าสุด" Comfer ต้องการการเข้าถึงบริการการช่วยการเข้าถึง (Accessibility Service)
+    </string>
+
+    <string name="what_recent_apps_short_do_title">บริการนี้สามารถทำได้:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • เปิดหน้าจอ "แอปล่าสุด" ของระบบ
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">บริการนี้จะไม่ทำสิ่งต่อไปนี้:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • ไม่เก็บรวบรวมข้อมูลส่วนบุคคลใด ๆ.\n
+        • ไม่เฝ้าดูการกระทำหรือข้อความที่คุณพิมพ์.\n
+        • ไม่อ่านเนื้อหาบนหน้าจอ
+    </string>
+
+    <string name="continue_text">ดำเนินการต่อ</string>
+    <string name="cancel_text">ยกเลิก</string>
+    <string name="backspace_key">ปุ่ม Backspace</string>
+
+    <string name="contact_number_not_available">ไม่มีหมายเลขโทรศัพท์สำหรับรายชื่อนี้</string>
+    <string name="no_app_to_place_calls">ไม่พบแอปสำหรับโทรออก</string>
+
+    <string name="update_available">มีอัปเดตใหม่พร้อมใช้งาน</string>
+    <string name="update_action">อัปเดต</string>
+    <string name="update_downloaded">อัปเดตพร้อมสำหรับการติดตั้ง</string>
+    <string name="update_install">ติดตั้ง</string>
+
+    <string name="select_an_application">เลือกแอป</string>
+
+    <string name="gesture_shortcuts_title">ทางลัดด้วยท่าทาง (Gesture)</string>
+    <string name="paid_feature_title">ฟีเจอร์แบบชำระเงิน</string>
+
+    <string name="tap_icon_to_select_app">แตะไอคอนเพื่อเลือกแอป</string>
+
+    <string name="requires_subscription">ต้องมีการสมัครสมาชิก</string>
+
+    <string name="button_to_move_app_to_quick_app_list">ย้ายไปยังแอปหน้าจอหลัก</string>
+    <string name="button_to_move_app_to_primary_app_list">ย้ายไปยังถาดแอป (App drawer)</string>
+    <string name="button_to_move_app_to_ghost_app_list">ย้ายไปยังแอปที่ซ่อนอยู่</string>
+
+    <string name="title_widgets">Widget</string>
+    <string name="title_time">เวลา</string>
+    <string name="rest_widget_positions">รีเซ็ตตำแหน่ง</string>
+
+    <string name="title_analog_clock">นาฬิกาเข็ม</string>
+    <string name="title_clock_size">ขนาดนาฬิกา</string>
+    <string name="clock_background_color">สีพื้นหลังนาฬิกา</string>
+    <string name="background_transparency">ความโปร่งใสของพื้นหลัง</string>
+    <string name="hour_hand_color">สีเข็มชั่วโมง</string>
+    <string name="minute_hand_color">สีเข็มนาที</string>
+
+    <string name="title_time_format">รูปแบบเวลา</string>
+    <string name="title_show_am_pm">แสดง AM/PM</string>
+    <string name="title_font_size">ขนาดฟอนต์</string>
+    <string name="title_font_weight">น้ำหนักฟอนต์</string>
+    <string name="title_font_style">สไตล์ฟอนต์</string>
+    <string name="title_time_font_color">สีฟอนต์ของเวลา</string>
+
+    <string name="title_date">วันที่</string>
+    <string name="date_example">ส., 16 ก.ย.</string>
+    <string name="date_font_color">สีฟอนต์ของวันที่</string>
+
+    <string name="title_battery">แบตเตอรี่</string>
+    <string name="show_battery_icon">แสดงไอคอนแบตเตอรี่</string>
+    <string name="show_battery_percentage">แสดงเปอร์เซ็นต์แบตเตอรี่</string>
+    <string name="battery_indicator_color">สีแถบแสดงสถานะแบตเตอรี่</string>
+
+    <string name="title_notifications">การแจ้งเตือน</string>
+    <string name="show_notification_icons">แสดงไอคอนการแจ้งเตือน</string>
+
+    <string name="title_size">ขนาด</string>
+    <string name="title_color">สี</string>
+    <string name="title_selected_color">สีที่เลือก</string>
+
+    <string name="button_text_save">บันทึก</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">ฟีเจอร์ Pro</string>
+    <string name="title_subscription">การสมัครสมาชิก</string>
+    <string name="go_to_page">เปิดหน้า</string>
+
+    <string name="title_support">การสนับสนุน</string>
+    <string name="title_how_to">วิธีใช้งาน</string>
+    <string name="title_app_guide">คู่มือการใช้งานแอป</string>
+
+    <string name="icon_how_to_guide">ไอคอนคู่มือ "วิธีใช้งาน"</string>
+    <string name="icon_arrow_right">ไอคอนลูกศรขวา</string>
+
+    <string name="title_report_issue">รายงานปัญหา</string>
+    <string name="icon_support">ไอคอนการสนับสนุน</string>
+
+    <string name="title_wallpapers">วอลเปเปอร์</string>
+    <string name="title_auto_wallpapers">วอลเปเปอร์ตั้งอัตโนมัติ</string>
+    <string name="auto_wallpaper_text">เปลี่ยนวอลเปเปอร์โดยอัตโนมัติ</string>
+    <string name="icon_wallpaper">ไอคอนวอลเปเปอร์</string>
+
+    <string name="title_monochrome">พื้นหลังโมโนโครม</string>
+    <string name="title_color_less_world">โหมดแบบไร้สี</string>
+    <string name="icon_monochrome">ไอคอนโมโนโครม</string>
+
+    <string name="title_wallpaper_motion">เอฟเฟกต์วอลเปเปอร์</string>
+    <string name="wallpaper_motion_text">ทำให้หน้าจอหลักดูมีชีวิตชีวามากขึ้น</string>
+    <string name="icon_wallpaper_motion">ไอคอนเอฟเฟกต์วอลเปเปอร์</string>
+
+    <string name="title_change_wallpaper">เปลี่ยนวอลเปเปอร์</string>
+    <string name="change_wallpaper_text">แตะเพื่อเปลี่ยนวอลเปเปอร์ตอนนี้</string>
+    <string name="icon_wallpaper_change">ไอคอนเปลี่ยนวอลเปเปอร์</string>
+
+    <string name="title_wallpaper_frequency">ความถี่ในการเปลี่ยน</string>
+    <string name="wallpaper_frequency_text">ทำงานร่วมกับโหมดกลางวัน/กลางคืนอัตโนมัติ</string>
+    <string name="icon_wallpaper_frequency">ไอคอนความถี่การเปลี่ยนวอลเปเปอร์</string>
+
+    <string name="title_own_wallpapers">ใช้วอลเปเปอร์ของฉันเอง</string>
+    <string name="wallpaper_directory_select">แตะเพื่อเลือกโฟลเดอร์</string>
+    <string name="icon_wallpaper_directory">ไอคอนโฟลเดอร์วอลเปเปอร์</string>
+
+    <string name="set_launcher_first">กรุณาตั้ง Comfer เป็น Launcher เริ่มต้นก่อน</string>
+
+    <string name="title_lock_screen">หน้าจอล็อก</string>
+    <string name="lock_screen_wallpaper_text">ใช้วอลเปเปอร์กับหน้าจอล็อกด้วย</string>
+    <string name="icon_lock_screen_wallpaper">ไอคอนวอลเปเปอร์หน้าจอล็อก</string>
+
+    <string name="title_app_icons">ไอคอนแอป</string>
+    <string name="title_app_icon_size">ขนาดไอคอน</string>
+    <string name="icon_app_icon_size">ไอคอนขนาดไอคอนแอป</string>
+    <string name="button_decrease_app_icon_size">ลดขนาดไอคอน</string>
+    <string name="button_increase_app_icon_size">เพิ่มขนาดไอคอน</string>
+
+    <string name="title_themed_icons">ไอคอนตามธีม</string>
+    <string name="themed_icons_text">ให้สีของไอคอนเข้ากับวอลเปเปอร์ (ทดลอง)</string>
+    <string name="icon_themed_icons">ไอคอนไอคอนตามธีม</string>
+
+    <string name="title_notification_badges">การแจ้งเตือนและจุดบนไอคอน</string>
+    <string name="requires_notification_permission">ต้องใช้สิทธิ์การแจ้งเตือน</string>
+    <string name="icon_notification_badges">ไอคอนจุดแจ้งเตือน</string>
+
+    <string name="title_home_screen">หน้าจอหลัก</string>
+    <string name="title_custom_widgets">Widget แบบกำหนดเอง</string>
+    <string name="custom_widgets_text">Widget ตัวโปรดของคุณ</string>
+    <string name="icon_custom_widgets">ไอคอน Widget แบบกำหนดเอง</string>
+
+    <string name="title_quick_apps_layout">เลย์เอาต์แอปหน้าจอหลัก</string>
+    <string name="quick_apps_layout_text">จัดเรียงแอปให้ดูเป็นระเบียบสวยงาม</string>
+    <string name="icon_apps_layout">ไอคอนเลย์เอาต์แอปหน้าจอหลัก</string>
+
+    <string name="title_left_swipe_action">การปัดซ้าย</string>
+    <string name="icon_left_swipe_action">ไอคอนการปัดซ้าย</string>
+
+    <string name="title_right_swipe_action">การปัดขวา</string>
+    <string name="icon_right_swipe_action">ไอคอนการปัดขวา</string>
+
+    <string name="title_swipe_gestures">ท่าทางการปัด (Swipe Gestures)</string>
+    <string name="swipe_gestures_text">ใช้ท่าทางเป็นทางลัดเปิดแอป</string>
+    <string name="icon_swipe_gestures">ไอคอนท่าทางการปัด</string>
+
+    <string name="title_app_drawer">ถาดแอป (App drawer)</string>
+    <string name="title_app_drawer_layouts">เลย์เอาต์</string>
+    <string name="app_drawer_layouts_text">รูปแบบการแสดงแอป</string>
+
+    <string name="title_alphabetical_order">เรียงตามตัวอักษร</string>
+    <string name="alphabetical_order_text">เรียงลำดับแอปตามตัวอักษร</string>
+    <string name="icon_alphabetical_order">ไอคอนเรียงตามตัวอักษร</string>
+
+    <string name="title_apps_list">รายการแอป</string>
+    <string name="title_manage_app_list">จัดการแอป</string>
+    <string name="manage_app_list_text">จัดระเบียบหรือจัดลำดับใหม่ของแอปในรายการ</string>
+    <string name="icon_manage_app_list">ไอคอนจัดการรายการแอป</string>
+
+    <string name="title_feedback">คำติชม</string>
+    <string name="icon_feedback">ไอคอนคำติชม</string>
+
+    <string name="title_share_app">แชร์แอป</string>
+    <string name="icon_share_app">ไอคอนแชร์แอป</string>
+    <string name="share_app_text">ลองใช้ Launcher ใหม่นี้ดูสิ:</string>
+
+    <string name="title_share_with">แชร์ผ่าน</string>
+
+    <string name="title_app_version">เวอร์ชันแอป</string>
+    <string name="icon_app_version">ไอคอนเวอร์ชันแอป</string>
+
+    <string name="title_icon_shapes">รูปร่างไอคอน</string>
+    <string name="icon_shapes_text">เลือกรูปร่างไอคอนของแอป</string>
+    <string name="icon_icon_shapes">ไอคอนรูปร่างไอคอน</string>
+
+    <string name="title_select_icon_shape">เลือกรูปร่างไอคอน</string>
+
+    <string name="notification_permission_text">
+        หากต้องการแสดงไอคอนการแจ้งเตือนบนหน้าจอหลักและจุดแจ้งเตือนบนไอคอนแอป Comfer ต้องการการเข้าถึงการแจ้งเตือน
+    </string>
+
+    <string name="what_notification_permission_do_title">บริการนี้สามารถทำได้:</string>
+
+    <string name="what_notification_permission_do_text">
+        • อ่านสถานะการแจ้งเตือนและแสดงไอคอนหรือจุดแจ้งเตือนเมื่อจำเป็น
+    </string>
+
+    <string name="what_notification_permission_do_not_title">บริการนี้จะไม่ทำสิ่งต่อไปนี้:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • ไม่เก็บรวบรวมข้อมูลส่วนบุคคลใด ๆ
+    </string>
+
+    <string name="title_choose_layout">เลือกเลย์เอาต์</string>
+    <string name="swipe_action_selection">เลือกแอปหรือหน้าจอ Widget</string>
+    <string name="title_choose_options">เลือกตัวเลือก</string>
+    <string name="title_select_app">เลือกแอป</string>
+    <string name="title_widgets_screen">หน้าจอ Widget</string>
+    <string name="title_choose_action">เลือกการทำงาน</string>
+
+    <string name="unable_to_load_subscriptions">
+        ไม่สามารถโหลดข้อมูลการสมัครสมาชิกได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองอีกครั้ง
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">ไม่สามารถโหลดข้อมูลการสมัครสมาชิก</string>
+    <string name="no_subscription_available">ไม่มีการสมัครสมาชิกที่ใช้งานได้</string>
+
+    <string name="title_active_subscription">การสมัครสมาชิกที่ใช้งานอยู่</string>
+    <string name="subscription_renews_on">ต่ออายุวันที่</string>
+    <string name="subscription_expires_on">หมดอายุวันที่</string>
+
+    <string name="subscription_benefit_one">ตั้งค่าวอลเปเปอร์แบบไดนามิกของคุณเอง</string>
+    <string name="subscription_benefit_two">เพิ่ม Widget ที่คุณชอบไปยังหน้าจอหลัก</string>
+    <string name="subscription_benefit_three">ปรับแต่ง Widget เริ่มต้นบนหน้าจอหลัก</string>
+    <string name="subscription_benefit_four">ใช้ Gesture เพื่อเปิดแอปได้อย่างรวดเร็ว</string>
+
+    <string name="title_manage_your_subscription">จัดการการสมัครสมาชิกของคุณ</string>
+    <string name="title_pro_access">การเข้าถึงแบบ Pro</string>
+    <string name="title_year">ปี</string>
+
+    <string name="subscription_failed_prefix">การสมัครสมาชิกล้มเหลว</string>
+    <string name="subscription_successful_prefix">สมัครสมาชิกสำเร็จ</string>
+    <string name="title_subscribe_now">สมัครตอนนี้</string>
+
+    <string name="subscription_restore_failed_prefix">กู้คืนการสมัครสมาชิกล้มเหลว</string>
+    <string name="subscription_restore_successful_prefix">กู้คืนการสมัครสมาชิกสำเร็จ</string>
+    <string name="subscription_not_found_to_restore">ไม่พบการสมัครสมาชิกสำหรับกู้คืน</string>
+    <string name="title_restore_subscription">กู้คืนการสมัครสมาชิก</string>
+
+    <string name="guide_home_swipe_up">ปัดขึ้นเพื่อเปิดถาดแอป (App drawer)</string>
+    <string name="guide_home_swipe_down">ปัดลงเพื่อดูการแจ้งเตือน</string>
+    <string name="guide_home_double_tap">แตะหน้าจอสองครั้งเพื่อเปิด "แอปล่าสุด"</string>
+    <string name="guide_home_long_press_lower">แตะค้างที่ครึ่งล่างของหน้าจอเพื่อเปิดการตั้งค่า</string>
+    <string name="guide_home_long_press_upper">แตะค้างที่ครึ่งบนของหน้าจอเพื่อแก้ไข Widget</string>
+    <string name="guide_home_tap_upper_half">แตะครึ่งบนของหน้าจอเพื่อออกจากโหมดแก้ไข Widget</string>
+    <string name="guide_home_tap_date_time">แตะวันที่/เวลาเพื่อดูนาฬิกาปลุก</string>
+    <string name="guide_home_long_press_date_time">แตะค้างที่วันที่/เวลาเพื่อเปิดปฏิทิน</string>
+    <string name="guide_home_swipe_left_right">ปัดซ้ายหรือขวาเพื่อเปิดแอปที่เลือกหรือหน้าจอ Widget</string>
+    <string name="guide_home_gestures">วาด Gesture ตามที่ตั้งค่าไว้ใน "ทางลัดด้วยท่าทาง" เพื่อเปิดแอป</string>
+
+    <string name="guide_circular_app_drawer">ถาดแอปแบบวงกลม</string>
+    <string name="guide_circular_app_drawer_swipe_down">ปัดลงเพื่อย้อนกลับ</string>
+    <string name="guide_circular_app_drawer_double_tap">แตะสองครั้งเพื่อเปิดแอปตรงกลาง</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">ปัดซ้าย/ขวาเพื่อเลื่อนดู</string>
+    <string name="guide_circular_app_drawer_tap_icon">แตะไอคอนเพื่อเปิดแอป</string>
+    <string name="guide_circular_app_drawer_long_press_icon">แตะค้างที่ไอคอนเพื่อเปิดข้อมูลแอป</string>
+
+    <string name="guide_horizontal_app_drawer">ถาดแอปแนวนอน</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">ปัดลงเพื่อย้อนกลับ</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">ปัดซ้าย/ขวาเพื่อเลื่อนดู</string>
+    <string name="guide_horizontal_app_drawer_long_press">แตะค้างเพื่อจัดการถาดแอป</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">ในโหมดแก้ไข ลากและวางไอคอนเพื่อเปลี่ยนตำแหน่ง</string>
+    <string name="guide_horizontal_app_drawer_drag">ในโหมดแก้ไข ลากถาดแอปเพื่อเลื่อนขึ้นลง</string>
+    <string name="guide_horizontal_app_drawer_single_tap">แตะหนึ่งครั้งเพื่อออกจากโหมดแก้ไข</string>
+
+    <string name="guide_search">ค้นหาแอปหรือรายชื่อ</string>
+    <string name="guide_search_swipe_down">ปัดลงบนคีย์บอร์ดเพื่อย้อนกลับ</string>
+    <string name="guide_search_swipe_right">ปัดขวาบนคีย์บอร์ดเพื่อค้นหารายชื่อ</string>
+    <string name="guide_search_swipe_left">ปัดซ้ายบนคีย์บอร์ดเพื่อค้นหาแอป</string>
+    <string name="guide_search_swipe_up">ปัดขึ้นบนคีย์บอร์ดเพื่อดูตัวอักษรเพิ่มเติม</string>
+    <string name="guide_search_long_press">แตะค้างที่ปุ่มลูกศรถอยหลังตรงกลางเพื่อเลือกภาษา</string>
+    <string name="guide_search_scroll_list">เลื่อนรายการแอปในแนวนอนเพื่อดูผลลัพธ์ทั้งหมด</string>
+    <string name="guide_search_scroll_sides">เลื่อนที่ด้านข้างของคีย์บอร์ดวงกลมเพื่อเลื่อนรายชื่อ</string>
+    <string name="guide_search_double_tap_sides">แตะสองครั้งที่ด้านใดด้านหนึ่งของคีย์บอร์ดวงกลมเพื่อเปิดหน้ากดหมายเลขพร้อมรายชื่อที่ไฮไลต์</string>
+
+    <string name="guide_manage_apps">จัดการรายการแอป</string>
+    <string name="guide_manage_apps_tap">แตะเพื่อเลือกแอปและย้ายไปยังรายการอื่น</string>
+    <string name="guide_manage_apps_long_press">
+        แตะค้างที่ไอคอนแอปแล้วลากเพื่อเปลี่ยนลำดับภายในรายการเดียวกัน ใช้ได้เมื่อยังไม่ได้เรียงตามตัวอักษร
+    </string>
+
+    <string name="title_app_language">ภาษาของแอป</string>
+    <string name="app_language_text">แตะเพื่อเปลี่ยนภาษาของแอป</string>
+    <string name="icon_app_language">ไอคอนภาษาของแอป</string>
+</resources>

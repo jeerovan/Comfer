@@ -158,7 +158,28 @@ object KeyboardLocale {
     )
 
     fun getSupportedLocales(): List<Locale> {
-        return listOf("en","es","fr","de","pt","it","ru","uk","el","ar","he","hi").map{Locale.forLanguageTag(it)}
+        return listOf("en",
+            "es",
+            "fr",
+            "de",
+            "pt",
+            "it",
+            "ru",
+            "uk",
+            "el",
+            "ar",
+            "he",
+            "hi",
+            "zh-CN",
+            "ja",
+            "ko",
+            "tr",
+            "fa",
+            "vi",
+            "th",
+            "ro",
+            "my"
+        ).map{Locale.forLanguageTag(it)}
     }
     fun getCharsForLocale(locale: Locale): List<List<String>> {
         return when (locale.language) {

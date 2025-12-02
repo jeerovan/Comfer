@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">欢迎</string>
+
+    <string name="checkout_how_to_guide">
+        在主屏幕的任意位置长按即可打开菜单并查看“使用指南”。\n
+        免责声明：部分翻译可能由系统自动生成，如发现不准确的文字，请通过电子邮件联系我们。
+    </string>
+
+    <string name="accessibility_service_description">
+        此服务用于打开系统的“最近应用”界面。Comfer 只将该权限用于提供此快捷方式，不会收集或监控任何个人数据。
+    </string>
+
+    <string name="set_default_launcher">设为默认启动器</string>
+    <string name="widget_binding_cancelled">小部件设置已取消</string>
+    <string name="long_press_to_add_edit_widgets">长按以添加或编辑小部件</string>
+
+    <string name="add_widget">添加小部件</string>
+    <string name="could_not_load_widget">无法加载小部件</string>
+    <string name="remove_widget">移除小部件</string>
+
+    <string name="close">关闭</string>
+    <string name="applications">应用</string>
+    <string name="contacts">联系人</string>
+    <string name="search">搜索</string>
+
+    <string name="requires_contact_permission">
+        搜索和拨打联系人需要通讯录访问权限。
+    </string>
+
+    <string name="grant_permission">授予权限</string>
+
+    <string name="privacy_policy_text">
+        我们重视您的隐私。Comfer 不会收集或存储任何个人数据。点此阅读我们的隐私政策。
+    </string>
+
+    <string name="background_image">背景图片</string>
+    <string name="feedback">反馈</string>
+    <string name="feedback_text">分享您的使用体验，帮助我们改进 Comfer。</string>
+    <string name="feedback_icon">反馈图标</string>
+
+    <string name="rate_comfer">为 Comfer 评分</string>
+    <string name="not_now">暂不</string>
+
+    <string name="permission_required">需要权限</string>
+
+    <string name="recent_apps_permission_title">
+        若要启用“最近应用”快捷方式，Comfer 需要辅助功能服务的访问权限。
+    </string>
+
+    <string name="what_recent_apps_short_do_title">此服务可以：</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • 打开系统的“最近应用”界面。
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">此服务不会：</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • 收集任何个人数据。\n
+        • 监控您的操作或键入的内容。\n
+        • 读取屏幕上的具体内容。
+    </string>
+
+    <string name="continue_text">继续</string>
+    <string name="cancel_text">取消</string>
+    <string name="backspace_key">退格键</string>
+
+    <string name="contact_number_not_available">此联系人的电话号码不可用</string>
+    <string name="no_app_to_place_calls">未找到可用于拨号的应用</string>
+
+    <string name="update_available">有新版本可用。</string>
+    <string name="update_action">更新</string>
+    <string name="update_downloaded">更新已准备好安装。</string>
+    <string name="update_install">安装</string>
+
+    <string name="select_an_application">选择应用</string>
+
+    <string name="gesture_shortcuts_title">手势快捷方式</string>
+    <string name="paid_feature_title">付费功能</string>
+
+    <string name="tap_icon_to_select_app">点击图标以选择应用</string>
+
+    <string name="requires_subscription">需要订阅</string>
+
+    <string name="button_to_move_app_to_quick_app_list">移动到主屏应用</string>
+    <string name="button_to_move_app_to_primary_app_list">移动到应用抽屉</string>
+    <string name="button_to_move_app_to_ghost_app_list">移动到隐藏应用</string>
+
+    <string name="title_widgets">小部件</string>
+    <string name="title_time">时间</string>
+    <string name="rest_widget_positions">重置位置</string>
+
+    <string name="title_analog_clock">指针时钟</string>
+    <string name="title_clock_size">时钟大小</string>
+    <string name="clock_background_color">时钟背景颜色</string>
+    <string name="background_transparency">背景透明度</string>
+    <string name="hour_hand_color">时针颜色</string>
+    <string name="minute_hand_color">分针颜色</string>
+
+    <string name="title_time_format">时间格式</string>
+    <string name="title_show_am_pm">显示 AM/PM</string>
+    <string name="title_font_size">字体大小</string>
+    <string name="title_font_weight">字体粗细</string>
+    <string name="title_font_style">字体样式</string>
+    <string name="title_time_font_color">时间字体颜色</string>
+
+    <string name="title_date">日期</string>
+    <string name="date_example">周六, 9 月 16 日</string>
+    <string name="date_font_color">日期字体颜色</string>
+
+    <string name="title_battery">电量</string>
+    <string name="show_battery_icon">显示电池图标</string>
+    <string name="show_battery_percentage">显示电量百分比</string>
+    <string name="battery_indicator_color">指示条颜色</string>
+
+    <string name="title_notifications">通知</string>
+    <string name="show_notification_icons">显示通知图标</string>
+
+    <string name="title_size">大小</string>
+    <string name="title_color">颜色</string>
+    <string name="title_selected_color">选中颜色</string>
+
+    <string name="button_text_save">保存</string>
+
+    <string name="title_premium">高级版</string>
+    <string name="title_pro_features">Pro 功能</string>
+    <string name="title_subscription">订阅</string>
+    <string name="go_to_page">打开页面</string>
+
+    <string name="title_support">支持</string>
+    <string name="title_how_to">使用指南</string>
+    <string name="title_app_guide">应用导航指南</string>
+
+    <string name="icon_how_to_guide">“使用指南”图标</string>
+    <string name="icon_arrow_right">右箭头图标</string>
+
+    <string name="title_report_issue">报告问题</string>
+    <string name="icon_support">支持图标</string>
+
+    <string name="title_wallpapers">壁纸</string>
+    <string name="title_auto_wallpapers">自动壁纸</string>
+    <string name="auto_wallpaper_text">自动更换壁纸</string>
+    <string name="icon_wallpaper">壁纸图标</string>
+
+    <string name="title_monochrome">单色背景</string>
+    <string name="title_color_less_world">无色模式</string>
+    <string name="icon_monochrome">单色图标</string>
+
+    <string name="title_wallpaper_motion">壁纸动效</string>
+    <string name="wallpaper_motion_text">让主屏幕更有生气</string>
+    <string name="icon_wallpaper_motion">壁纸动效图标</string>
+
+    <string name="title_change_wallpaper">更换壁纸</string>
+    <string name="change_wallpaper_text">点按立即更换壁纸</string>
+    <string name="icon_wallpaper_change">更换壁纸图标</string>
+
+    <string name="title_wallpaper_frequency">更换频率</string>
+    <string name="wallpaper_frequency_text">支持自动日/夜模式</string>
+    <string name="icon_wallpaper_frequency">壁纸频率图标</string>
+
+    <string name="title_own_wallpapers">使用自定义壁纸</string>
+    <string name="wallpaper_directory_select">点按选择文件夹</string>
+    <string name="icon_wallpaper_directory">壁纸文件夹图标</string>
+
+    <string name="set_launcher_first">请先将 Comfer 设为默认启动器</string>
+
+    <string name="title_lock_screen">锁屏</string>
+    <string name="lock_screen_wallpaper_text">同时应用到锁屏壁纸</string>
+    <string name="icon_lock_screen_wallpaper">锁屏壁纸图标</string>
+
+    <string name="title_app_icons">应用图标</string>
+    <string name="title_app_icon_size">图标大小</string>
+    <string name="icon_app_icon_size">应用图标大小图标</string>
+    <string name="button_decrease_app_icon_size">减小图标大小</string>
+    <string name="button_increase_app_icon_size">增大图标大小</string>
+
+    <string name="title_themed_icons">主题图标</string>
+    <string name="themed_icons_text">让图标颜色与壁纸匹配（实验功能）</string>
+    <string name="icon_themed_icons">主题图标图标</string>
+
+    <string name="title_notification_badges">通知与角标</string>
+    <string name="requires_notification_permission">需要通知权限</string>
+    <string name="icon_notification_badges">通知角标图标</string>
+
+    <string name="title_home_screen">主屏幕</string>
+    <string name="title_custom_widgets">自定义小部件</string>
+    <string name="custom_widgets_text">您最喜爱的小部件</string>
+    <string name="icon_custom_widgets">自定义小部件图标</string>
+
+    <string name="title_quick_apps_layout">主屏应用布局</string>
+    <string name="quick_apps_layout_text">有条理地展示应用</string>
+    <string name="icon_apps_layout">主屏应用布局图标</string>
+
+    <string name="title_left_swipe_action">左滑动作</string>
+    <string name="icon_left_swipe_action">左滑动作图标</string>
+
+    <string name="title_right_swipe_action">右滑动作</string>
+    <string name="icon_right_swipe_action">右滑动作图标</string>
+
+    <string name="title_swipe_gestures">滑动手势</string>
+    <string name="swipe_gestures_text">使用手势作为应用快捷方式</string>
+    <string name="icon_swipe_gestures">滑动手势图标</string>
+
+    <string name="title_app_drawer">应用抽屉</string>
+    <string name="title_app_drawer_layouts">布局</string>
+    <string name="app_drawer_layouts_text">浏览应用的不同样式</string>
+
+    <string name="title_alphabetical_order">按字母顺序</string>
+    <string name="alphabetical_order_text">按字母顺序排序应用</string>
+    <string name="icon_alphabetical_order">字母排序图标</string>
+
+    <string name="title_apps_list">应用列表</string>
+    <string name="title_manage_app_list">管理应用</string>
+    <string name="manage_app_list_text">整理或重新排序列表中的应用</string>
+    <string name="icon_manage_app_list">应用列表管理图标</string>
+
+    <string name="title_feedback">反馈</string>
+    <string name="icon_feedback">反馈图标</string>
+
+    <string name="title_share_app">分享应用</string>
+    <string name="icon_share_app">分享应用图标</string>
+    <string name="share_app_text">试试这款新的启动器：</string>
+
+    <string name="title_share_with">分享到</string>
+
+    <string name="title_app_version">应用版本</string>
+    <string name="icon_app_version">应用版本图标</string>
+
+    <string name="title_icon_shapes">图标形状</string>
+    <string name="icon_shapes_text">设置应用图标的形状</string>
+    <string name="icon_icon_shapes">图标形状图标</string>
+
+    <string name="title_select_icon_shape">选择图标形状</string>
+
+    <string name="notification_permission_text">
+        若要在主屏幕显示通知图标并在应用图标上显示角标，Comfer 需要通知访问权限。
+    </string>
+
+    <string name="what_notification_permission_do_title">此服务可以：</string>
+
+    <string name="what_notification_permission_do_text">
+        • 读取通知状态，并在需要时显示相应图标和角标。
+    </string>
+
+    <string name="what_notification_permission_do_not_title">此服务不会：</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • 收集任何个人数据。
+    </string>
+
+    <string name="title_choose_layout">选择布局</string>
+    <string name="swipe_action_selection">选择一个应用或小部件屏幕</string>
+    <string name="title_choose_options">选择选项</string>
+    <string name="title_select_app">选择应用</string>
+    <string name="title_widgets_screen">小部件屏幕</string>
+    <string name="title_choose_action">选择操作</string>
+
+    <string name="unable_to_load_subscriptions">
+        无法加载订阅信息。请检查网络连接后重试。
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">订阅加载失败</string>
+    <string name="no_subscription_available">暂无可用订阅</string>
+
+    <string name="title_active_subscription">当前订阅</string>
+    <string name="subscription_renews_on">续订日期</string>
+    <string name="subscription_expires_on">到期日期</string>
+
+    <string name="subscription_benefit_one">设置您自己的动态壁纸</string>
+    <string name="subscription_benefit_two">将喜爱的小部件添加到主屏幕</string>
+    <string name="subscription_benefit_three">自定义主屏幕的默认小部件</string>
+    <string name="subscription_benefit_four">使用手势快速打开应用</string>
+
+    <string name="title_manage_your_subscription">管理订阅</string>
+    <string name="title_pro_access">Pro 访问权限</string>
+    <string name="title_year">年</string>
+
+    <string name="subscription_failed_prefix">订阅失败</string>
+    <string name="subscription_successful_prefix">订阅成功</string>
+    <string name="title_subscribe_now">立即订阅</string>
+
+    <string name="subscription_restore_failed_prefix">恢复订阅失败</string>
+    <string name="subscription_restore_successful_prefix">订阅已成功恢复</string>
+    <string name="subscription_not_found_to_restore">未找到可恢复的订阅</string>
+    <string name="title_restore_subscription">恢复订阅</string>
+
+    <string name="guide_home_swipe_up">向上滑动以打开应用抽屉。</string>
+    <string name="guide_home_swipe_down">向下滑动以查看通知。</string>
+    <string name="guide_home_double_tap">在屏幕上双击以打开“最近应用”。</string>
+    <string name="guide_home_long_press_lower">长按屏幕下半部分以打开设置。</string>
+    <string name="guide_home_long_press_upper">长按屏幕上半部分以编辑小部件。</string>
+    <string name="guide_home_tap_upper_half">点击屏幕上半部分以退出小部件编辑。</string>
+    <string name="guide_home_tap_date_time">点击日期/时间以查看闹钟。</string>
+    <string name="guide_home_long_press_date_time">长按日期/时间以打开日历。</string>
+    <string name="guide_home_swipe_left_right">向左或向右滑动以打开选定应用或小部件屏幕。</string>
+    <string name="guide_home_gestures">按照“手势快捷方式”中设置的方式绘制手势以打开应用。</string>
+
+    <string name="guide_circular_app_drawer">圆形应用抽屉</string>
+    <string name="guide_circular_app_drawer_swipe_down">向下滑动以返回。</string>
+    <string name="guide_circular_app_drawer_double_tap">双击以打开中央的应用。</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">向左或向右滑动以滚动。</string>
+    <string name="guide_circular_app_drawer_tap_icon">点击图标以打开应用。</string>
+    <string name="guide_circular_app_drawer_long_press_icon">长按图标以打开应用信息。</string>
+
+    <string name="guide_horizontal_app_drawer">水平应用抽屉</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">向下滑动以返回。</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">向左或向右滑动以滚动。</string>
+    <string name="guide_horizontal_app_drawer_long_press">长按以管理应用抽屉。</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">在编辑模式下拖放图标以重新排列位置。</string>
+    <string name="guide_horizontal_app_drawer_drag">在编辑模式下拖动抽屉以垂直移动。</string>
+    <string name="guide_horizontal_app_drawer_single_tap">单击一次以退出编辑模式。</string>
+
+    <string name="guide_search">搜索应用或联系人。</string>
+    <string name="guide_search_swipe_down">在键盘上向下滑动以返回。</string>
+    <string name="guide_search_swipe_right">在键盘上向右滑动以搜索联系人。</string>
+    <string name="guide_search_swipe_left">在键盘上向左滑动以搜索应用。</string>
+    <string name="guide_search_swipe_up">在键盘上向上滑动以查看更多字符。</string>
+    <string name="guide_search_long_press">长按中间的返回箭头以选择语言。</string>
+    <string name="guide_search_scroll_list">水平滚动应用列表以查看所有结果。</string>
+    <string name="guide_search_scroll_sides">在圆形键盘两侧滑动以滚动联系人列表。</string>
+    <string name="guide_search_double_tap_sides">在圆形键盘任一侧双击以在拨号界面中打开高亮联系人。</string>
+
+    <string name="guide_manage_apps">管理应用列表</string>
+    <string name="guide_manage_apps_tap">点按以选择应用并将其移动到其他列表。</string>
+    <string name="guide_manage_apps_long_press">
+        长按应用图标以拖动并在同一列表中重新排序。仅在未按字母排序时有效。
+    </string>
+
+    <string name="title_app_language">应用语言</string>
+    <string name="app_language_text">点按以更改应用语言</string>
+    <string name="icon_app_language">应用语言图标</string>
+</resources>
