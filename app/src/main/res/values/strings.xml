@@ -82,8 +82,8 @@
 
     <string name="requires_subscription">Requires subscription</string>
 
-    <string name="button_to_move_app_to_quick_app_list">Move to Quick Apps</string>
-    <string name="button_to_move_app_to_primary_app_list">Move to Primary Apps</string>
+    <string name="button_to_move_app_to_quick_app_list">Move to Home Apps</string>
+    <string name="button_to_move_app_to_primary_app_list">Move to Drawer Apps</string>
     <string name="button_to_move_app_to_ghost_app_list">Move to Hidden Apps</string>
 
     <string name="title_widgets">Widgets</string>
@@ -198,7 +198,7 @@
     <string name="icon_right_swipe_action">Right swipe action icon</string>
 
     <string name="title_swipe_gestures">Swipe gestures</string>
-    <string name="swipe_gestures_text">Use gestures for quick shortcuts</string>
+    <string name="swipe_gestures_text">Use gestures for app shortcuts</string>
     <string name="icon_swipe_gestures">Swipe gestures icon</string>
 
     <string name="title_app_drawer">App drawer</string>

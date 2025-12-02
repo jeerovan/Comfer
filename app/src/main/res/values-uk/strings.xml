@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">Ласкаво просимо</string>
+
+    <string name="checkout_how_to_guide">
+        Довго натисніть будь-де на головному екрані, щоб відкрити меню та переглянути інструкцію "Як користуватися".
+    </string>
+
+    <string name="accessibility_service_description">
+        Ця служба потрібна, щоб відкривати системний екран "Нещодавні додатки". Comfer використовує цей дозвіл лише для цього ярлика і не збирає та не відстежує жодні особисті дані.
+    </string>
+
+    <string name="set_default_launcher">Встановити як лаунчер за замовчуванням</string>
+    <string name="widget_binding_cancelled">Налаштування віджета скасовано</string>
+    <string name="long_press_to_add_edit_widgets">Довго натисніть, щоб додати або змінити віджети</string>
+
+    <string name="add_widget">Додати віджет</string>
+    <string name="could_not_load_widget">Не вдалося завантажити віджет</string>
+    <string name="remove_widget">Видалити віджет</string>
+
+    <string name="close">Закрити</string>
+    <string name="applications">Додатки</string>
+    <string name="contacts">Контакти</string>
+    <string name="search">Пошук</string>
+
+    <string name="requires_contact_permission">
+        Для пошуку й дзвінків контактам потрібен доступ до ваших контактів.
+    </string>
+
+    <string name="grant_permission">Надати дозвіл</string>
+
+    <string name="privacy_policy_text">
+        Ми поважаємо вашу приватність. Comfer не збирає і не зберігає особисті дані. Натисніть, щоб прочитати нашу політику конфіденційності.
+    </string>
+
+    <string name="background_image">Фонове зображення</string>
+    <string name="feedback">Відгук</string>
+    <string name="feedback_text">Поділіться своїм досвідом і допоможіть покращити Comfer.</string>
+    <string name="feedback_icon">Іконка відгуку</string>
+
+    <string name="rate_comfer">Оцінити Comfer</string>
+    <string name="not_now">Не зараз</string>
+
+    <string name="permission_required">Потрібен дозвіл</string>
+
+    <string name="recent_apps_permission_title">
+        Щоб увімкнути ярлик "Нещодавні додатки", Comfer потрібен доступ до служби спеціальних можливостей.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">Ця служба дозволяє:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • Відкривати системний екран "Нещодавні додатки".
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">Ця служба не робить:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • Не збирає особисті дані.\n
+        • Не відстежує ваші дії чи текст, який ви вводите.\n
+        • Не читає вміст екрана.
+    </string>
+
+    <string name="continue_text">Продовжити</string>
+    <string name="cancel_text">Скасувати</string>
+    <string name="backspace_key">Клавіша Backspace</string>
+
+    <string name="contact_number_not_available">Для цього контакту немає доступного номера телефону</string>
+    <string name="no_app_to_place_calls">Не знайдено додатка для здійснення дзвінків</string>
+
+    <string name="update_available">Доступне нове оновлення.</string>
+    <string name="update_action">Оновити</string>
+    <string name="update_downloaded">Оновлення готове до встановлення.</string>
+    <string name="update_install">Встановити</string>
+
+    <string name="select_an_application">Виберіть додаток</string>
+
+    <string name="gesture_shortcuts_title">Жести-ярлики</string>
+    <string name="paid_feature_title">Платна функція</string>
+
+    <string name="tap_icon_to_select_app">Натисніть на іконку, щоб вибрати додаток</string>
+
+    <string name="requires_subscription">Потрібна підписка</string>
+
+    <string name="button_to_move_app_to_quick_app_list">Перемістити до додатків головного екрана</string>
+    <string name="button_to_move_app_to_primary_app_list">Перемістити до додатків панелі</string>
+    <string name="button_to_move_app_to_ghost_app_list">Перемістити до прихованих додатків</string>
+
+    <string name="title_widgets">Віджети</string>
+    <string name="title_time">Час</string>
+    <string name="rest_widget_positions">Скинути позиції</string>
+
+    <string name="title_analog_clock">Аналоговий годинник</string>
+    <string name="title_clock_size">Розмір годинника</string>
+    <string name="clock_background_color">Колір фону годинника</string>
+    <string name="background_transparency">Прозорість фону</string>
+    <string name="hour_hand_color">Колір стрілки годин</string>
+    <string name="minute_hand_color">Колір стрілки хвилин</string>
+
+    <string name="title_time_format">Формат часу</string>
+    <string name="title_show_am_pm">Показувати AM/PM</string>
+    <string name="title_font_size">Розмір шрифту</string>
+    <string name="title_font_weight">Товщина шрифту</string>
+    <string name="title_font_style">Стиль шрифту</string>
+    <string name="title_time_font_color">Колір шрифту часу</string>
+
+    <string name="title_date">Дата</string>
+    <string name="date_example">Сб, вер 16</string>
+    <string name="date_font_color">Колір шрифту дати</string>
+
+    <string name="title_battery">Батарея</string>
+    <string name="show_battery_icon">Показувати іконку батареї</string>
+    <string name="show_battery_percentage">Показувати відсоток заряду</string>
+    <string name="battery_indicator_color">Колір індикатора</string>
+
+    <string name="title_notifications">Сповіщення</string>
+    <string name="show_notification_icons">Показувати іконки сповіщень</string>
+
+    <string name="title_size">Розмір</string>
+    <string name="title_color">Колір</string>
+    <string name="title_selected_color">Обраний колір</string>
+
+    <string name="button_text_save">Зберегти</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">Функції Pro</string>
+    <string name="title_subscription">Підписка</string>
+    <string name="go_to_page">Відкрити сторінку</string>
+
+    <string name="title_support">Підтримка</string>
+    <string name="title_how_to">Як користуватися</string>
+    <string name="title_app_guide">Посібник з навігації в додатку</string>
+
+    <string name="icon_how_to_guide">Іконка інструкції "Як користуватися"</string>
+    <string name="icon_arrow_right">Іконка стрілки вправо</string>
+
+    <string name="title_report_issue">Повідомити про проблему</string>
+    <string name="icon_support">Іконка підтримки</string>
+
+    <string name="title_wallpapers">Шпалери</string>
+    <string name="title_auto_wallpapers">Автошпалери</string>
+    <string name="auto_wallpaper_text">Автоматично змінювати шпалери</string>
+    <string name="icon_wallpaper">Іконка шпалер</string>
+
+    <string name="title_monochrome">Монохромний фон</string>
+    <string name="title_color_less_world">Режим без кольору</string>
+    <string name="icon_monochrome">Монохромна іконка</string>
+
+    <string name="title_wallpaper_motion">Рух шпалер</string>
+    <string name="wallpaper_motion_text">Зробіть головний екран більш живим</string>
+    <string name="icon_wallpaper_motion">Іконка руху шпалер</string>
+
+    <string name="title_change_wallpaper">Змінити шпалери</string>
+    <string name="change_wallpaper_text">Натисніть, щоб змінити шпалери зараз</string>
+    <string name="icon_wallpaper_change">Іконка зміни шпалер</string>
+
+    <string name="title_wallpaper_frequency">Частота зміни</string>
+    <string name="wallpaper_frequency_text">З автоматичним денним/нічним режимом</string>
+    <string name="icon_wallpaper_frequency">Іконка частоти зміни шпалер</string>
+
+    <string name="title_own_wallpapers">Використовувати власні шпалери</string>
+    <string name="wallpaper_directory_select">Натисніть, щоб вибрати теку</string>
+    <string name="icon_wallpaper_directory">Іконка теки зі шпалерами</string>
+
+    <string name="set_launcher_first">Спочатку встановіть Comfer як лаунчер за замовчуванням</string>
+
+    <string name="title_lock_screen">Екран блокування</string>
+    <string name="lock_screen_wallpaper_text">Застосувати шпалери також на екрані блокування</string>
+    <string name="icon_lock_screen_wallpaper">Іконка шпалер екрана блокування</string>
+
+    <string name="title_app_icons">Іконки додатків</string>
+    <string name="title_app_icon_size">Розмір іконок</string>
+    <string name="icon_app_icon_size">Іконка розміру іконок додатків</string>
+    <string name="button_decrease_app_icon_size">Зменшити розмір іконок</string>
+    <string name="button_increase_app_icon_size">Збільшити розмір іконок</string>
+
+    <string name="title_themed_icons">Іконки в стилі теми</string>
+    <string name="themed_icons_text">Підібрати кольори іконок до шпалер (експериментально)</string>
+    <string name="icon_themed_icons">Іконка тематичних іконок</string>
+
+    <string name="title_notification_badges">Значки сповіщень і іконок</string>
+    <string name="requires_notification_permission">Потрібен дозвіл на сповіщення</string>
+    <string name="icon_notification_badges">Іконка значків сповіщень</string>
+
+    <string name="title_home_screen">Головний екран</string>
+    <string name="title_custom_widgets">Користувацькі віджети</string>
+    <string name="custom_widgets_text">Ваші улюблені віджети</string>
+    <string name="icon_custom_widgets">Іконка користувацьких віджетів</string>
+
+    <string name="title_quick_apps_layout">Макет швидких додатків</string>
+    <string name="quick_apps_layout_text">Розташуйте додатки зі стилем</string>
+    <string name="icon_apps_layout">Іконка макета швидких додатків</string>
+
+    <string name="title_left_swipe_action">Дія свайпу вліво</string>
+    <string name="icon_left_swipe_action">Іконка дії свайпу вліво</string>
+
+    <string name="title_right_swipe_action">Дія свайпу вправо</string>
+    <string name="icon_right_swipe_action">Іконка дії свайпу вправо</string>
+
+    <string name="title_swipe_gestures">Жести свайпу</string>
+    <string name="swipe_gestures_text">Використовуйте жести як ярлики додатків</string>
+    <string name="icon_swipe_gestures">Іконка жестів свайпу</string>
+
+    <string name="title_app_drawer">Панель додатків</string>
+    <string name="title_app_drawer_layouts">Макети</string>
+    <string name="app_drawer_layouts_text">Способи перегляду додатків</string>
+
+    <string name="title_alphabetical_order">Абетковий порядок</string>
+    <string name="alphabetical_order_text">Сортувати додатки за абеткою</string>
+    <string name="icon_alphabetical_order">Іконка абеткового сортування</string>
+
+    <string name="title_apps_list">Списки додатків</string>
+    <string name="title_manage_app_list">Керування додатками</string>
+    <string name="manage_app_list_text">Упорядковуйте або змінюйте порядок додатків у списках</string>
+    <string name="icon_manage_app_list">Іконка керування списком додатків</string>
+
+    <string name="title_feedback">Відгук</string>
+    <string name="icon_feedback">Іконка відгуку</string>
+
+    <string name="title_share_app">Поділитися додатком</string>
+    <string name="icon_share_app">Іконка "Поділитися додатком"</string>
+    <string name="share_app_text">Спробуйте цей новий лаунчер:</string>
+
+    <string name="title_share_with">Поділитися через</string>
+
+    <string name="title_app_version">Версія додатка</string>
+    <string name="icon_app_version">Іконка версії додатка</string>
+
+    <string name="title_icon_shapes">Форми іконок</string>
+    <string name="icon_shapes_text">Виберіть форму іконок додатків</string>
+    <string name="icon_icon_shapes">Іконка форм іконок</string>
+
+    <string name="title_select_icon_shape">Виберіть форму іконки</string>
+
+    <string name="notification_permission_text">
+        Щоб показувати іконки сповіщень на головному екрані та значки на іконках додатків, Comfer потрібен доступ до сповіщень.
+    </string>
+
+    <string name="what_notification_permission_do_title">Ця служба дозволяє:</string>
+
+    <string name="what_notification_permission_do_text">
+        • Читати стан сповіщень і показувати іконки та значки за потреби.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">Ця служба не робить:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • Не збирає особисті дані.
+    </string>
+
+    <string name="title_choose_layout">Вибір макета</string>
+    <string name="swipe_action_selection">Виберіть додаток або екран віджетів</string>
+    <string name="title_choose_options">Виберіть опцію</string>
+    <string name="title_select_app">Виберіть додаток</string>
+    <string name="title_widgets_screen">Екран віджетів</string>
+    <string name="title_choose_action">Виберіть дію</string>
+
+    <string name="unable_to_load_subscriptions">
+        Не вдалося завантажити інформацію про підписку. Перевірте з’єднання з Інтернетом і спробуйте ще раз.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">Не вдалося завантажити підписку</string>
+    <string name="no_subscription_available">Немає доступних підписок</string>
+
+    <string name="title_active_subscription">Активна підписка</string>
+    <string name="subscription_renews_on">Поновлюється</string>
+    <string name="subscription_expires_on">Закінчується</string>
+
+    <string name="subscription_benefit_one">Налаштовуйте власні динамічні шпалери</string>
+    <string name="subscription_benefit_two">Додавайте улюблені віджети на головний екран</string>
+    <string name="subscription_benefit_three">Налаштовуйте стандартні віджети на головному екрані</string>
+    <string name="subscription_benefit_four">Використовуйте жести для швидкого відкриття додатків</string>
+
+    <string name="title_manage_your_subscription">Керування підпискою</string>
+    <string name="title_pro_access">Доступ Pro</string>
+    <string name="title_year">рік</string>
+
+    <string name="subscription_failed_prefix">Помилка підписки</string>
+    <string name="subscription_successful_prefix">Підписку оформлено</string>
+    <string name="title_subscribe_now">Оформити підписку</string>
+
+    <string name="subscription_restore_failed_prefix">Помилка відновлення підписки</string>
+    <string name="subscription_restore_successful_prefix">Підписку успішно відновлено</string>
+    <string name="subscription_not_found_to_restore">Не знайдено підписки для відновлення</string>
+    <string name="title_restore_subscription">Відновити підписку</string>
+
+    <string name="guide_home_swipe_up">Проведіть вгору, щоб відкрити панель додатків.</string>
+    <string name="guide_home_swipe_down">Проведіть вниз, щоб переглянути сповіщення.</string>
+    <string name="guide_home_double_tap">Двічі натисніть на екран, щоб відкрити "Нещодавні додатки".</string>
+    <string name="guide_home_long_press_lower">Довго натисніть на нижню половину екрана, щоб відкрити налаштування.</string>
+    <string name="guide_home_long_press_upper">Довго натисніть на верхню половину екрана, щоб редагувати віджети.</string>
+    <string name="guide_home_tap_upper_half">Натисніть на верхню половину екрана, щоб вийти з режиму редагування віджетів.</string>
+    <string name="guide_home_tap_date_time">Натисніть на дату/час, щоб переглянути будильники.</string>
+    <string name="guide_home_long_press_date_time">Довго натисніть на дату/час, щоб відкрити календар.</string>
+    <string name="guide_home_swipe_left_right">Проведіть ліворуч або праворуч, щоб відкрити вибраний додаток або екран віджетів.</string>
+    <string name="guide_home_gestures">Малюйте жести, щоб відкривати додатки, вказані в "Жести-ярлики".</string>
+
+    <string name="guide_circular_app_drawer">Кругова панель додатків</string>
+    <string name="guide_circular_app_drawer_swipe_down">Проведіть вниз, щоб повернутися назад.</string>
+    <string name="guide_circular_app_drawer_double_tap">Двічі натисніть, щоб відкрити додаток у центрі.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">Проведіть ліворуч або праворуч, щоб прокрутити.</string>
+    <string name="guide_circular_app_drawer_tap_icon">Натисніть на іконку, щоб відкрити додаток.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">Довго натисніть на іконку, щоб відкрити інформацію про додаток.</string>
+
+    <string name="guide_horizontal_app_drawer">Горизонтальна панель додатків</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">Проведіть вниз, щоб повернутися назад.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">Проведіть ліворуч або праворуч, щоб прокрутити.</string>
+    <string name="guide_horizontal_app_drawer_long_press">Довго натисніть, щоб керувати панеллю.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">У режимі редагування перетягуйте іконки, щоб змінювати їхнє розташування.</string>
+    <string name="guide_horizontal_app_drawer_drag">У режимі редагування перетягуйте панель, щоб рухати її вертикально.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">Натисніть один раз, щоб вийти з режиму редагування.</string>
+
+    <string name="guide_search">Шукайте додатки або контакти.</string>
+    <string name="guide_search_swipe_down">Проведіть вниз по клавіатурі, щоб повернутися назад.</string>
+    <string name="guide_search_swipe_right">Проведіть вправо по клавіатурі, щоб шукати серед контактів.</string>
+    <string name="guide_search_swipe_left">Проведіть вліво по клавіатурі, щоб шукати серед додатків.</string>
+    <string name="guide_search_swipe_up">Проведіть вгору по клавіатурі, щоб побачити більше символів.</string>
+    <string name="guide_search_long_press">Довго натисніть на стрілку назад у центрі, щоб вибрати мову.</string>
+    <string name="guide_search_scroll_list">Гортайте список додатків горизонтально, щоб переглянути всі результати.</string>
+    <string name="guide_search_scroll_sides">Гортайте бокові частини кругової клавіатури, щоб прокручувати список контактів.</string>
+    <string name="guide_search_double_tap_sides">Двічі натисніть на будь-який бік кругової клавіатури, щоб відкрити номеронабирач із виділеним контактом.</string>
+
+    <string name="guide_manage_apps">Керування списком додатків</string>
+    <string name="guide_manage_apps_tap">Натисніть, щоб вибрати додатки та перемістити їх до іншого списку.</string>
+    <string name="guide_manage_apps_long_press">
+        Довго натисніть на іконку додатка, щоб перетягнути її та змінити порядок у тому самому списку. Працює лише тоді, коли список не відсортований за абеткою.
+    </string>
+
+    <string name="title_app_language">Мова додатка</string>
+    <string name="app_language_text">Натисніть, щоб змінити мову додатка</string>
+    <string name="icon_app_language">Іконка мови додатка</string>
+</resources>

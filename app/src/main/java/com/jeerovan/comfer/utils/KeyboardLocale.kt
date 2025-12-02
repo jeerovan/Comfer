@@ -182,8 +182,8 @@ object KeyboardLocale {
 object KeyboardLayoutEngine {
 
     // Configuration for "Optimal Usability"
-    val CenterButtonSize = 50.dp
-    val KeyButtonSize = 40.dp
+    val CenterButtonSize = 45.dp
+    val KeyButtonSize = 35.dp
     val Spacing = 2.dp
 
     /**

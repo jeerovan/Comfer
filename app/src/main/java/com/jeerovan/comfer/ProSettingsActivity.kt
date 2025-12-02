@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -64,7 +65,7 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyGridState
 import kotlin.getValue
 
-class ProSettingsActivity : ComponentActivity() {
+class ProSettingsActivity : AppCompatActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
     private val appsViewModel: AppInfoViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {

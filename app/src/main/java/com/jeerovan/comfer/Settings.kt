@@ -16,6 +16,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -107,7 +108,7 @@ import com.jeerovan.comfer.utils.CommonUtil.openUrl
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-class SettingsActivity : ComponentActivity() {
+class SettingsActivity : AppCompatActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -911,8 +912,6 @@ fun ShapeSelectionDialog(
                                 size = 56.dp,
                                 borderColor = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(Modifier.height(8.dp))
-                            Text(name.replaceFirstChar { it.uppercase() })
                         }
                     }
                 }
@@ -931,8 +930,6 @@ fun ShapeSelectionDialog(
                                 size = 56.dp,
                                 borderColor = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(Modifier.height(8.dp))
-                            Text(name.replaceFirstChar { it.uppercase() })
                         }
                     }
                 }

@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">Bienvenido</string>
+
+    <string name="checkout_how_to_guide">
+        Mantén pulsado en cualquier lugar de la pantalla de inicio para abrir el menú y ver la guía "Cómo usar".
+    </string>
+
+    <string name="accessibility_service_description">
+        Este servicio es necesario para abrir la pantalla "Apps recientes" del sistema. Comfer usa este permiso solo para proporcionar este acceso directo y no recopila ni supervisa ningún dato personal.
+    </string>
+
+    <string name="set_default_launcher">Establecer como lanzador predeterminado</string>
+    <string name="widget_binding_cancelled">Configuración del widget cancelada</string>
+    <string name="long_press_to_add_edit_widgets">Mantén pulsado para añadir o editar widgets</string>
+
+    <string name="add_widget">Añadir widget</string>
+    <string name="could_not_load_widget">No se pudo cargar el widget</string>
+    <string name="remove_widget">Eliminar widget</string>
+
+    <string name="close">Cerrar</string>
+    <string name="applications">Aplicaciones</string>
+    <string name="contacts">Contactos</string>
+    <string name="search">Buscar</string>
+
+    <string name="requires_contact_permission">
+        Para buscar y llamar contactos se necesita acceso a tus contactos.
+    </string>
+
+    <string name="grant_permission">Conceder permiso</string>
+
+    <string name="privacy_policy_text">
+        Respetamos tu privacidad. Comfer no recopila ni almacena datos personales. Toca para leer nuestra política de privacidad.
+    </string>
+
+    <string name="background_image">Imagen de fondo</string>
+    <string name="feedback">Comentarios</string>
+    <string name="feedback_text">Comparte tu experiencia y ayuda a mejorar Comfer.</string>
+    <string name="feedback_icon">Icono de comentarios</string>
+
+    <string name="rate_comfer">Valorar Comfer</string>
+    <string name="not_now">Ahora no</string>
+
+    <string name="permission_required">Permiso requerido</string>
+
+    <string name="recent_apps_permission_title">
+        Para activar el acceso directo a "Apps recientes", Comfer necesita acceso al Servicio de accesibilidad.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">Este servicio permite:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • Abrir la pantalla "Apps recientes" del sistema.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">Este servicio no hace lo siguiente:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • No recopila datos personales.\n
+        • No supervisa tus acciones ni el texto que escribes.\n
+        • No lee el contenido de la pantalla.
+    </string>
+
+    <string name="continue_text">Continuar</string>
+    <string name="cancel_text">Cancelar</string>
+    <string name="backspace_key">Tecla de retroceso</string>
+
+    <string name="contact_number_not_available">No hay número de teléfono disponible para este contacto</string>
+    <string name="no_app_to_place_calls">No se encontró ninguna app para realizar llamadas</string>
+
+    <string name="update_available">Hay una nueva actualización disponible.</string>
+    <string name="update_action">Actualizar</string>
+    <string name="update_downloaded">La actualización está lista para instalarse.</string>
+    <string name="update_install">Instalar</string>
+
+    <string name="select_an_application">Seleccionar una app</string>
+
+    <string name="gesture_shortcuts_title">Atajos por gestos</string>
+    <string name="paid_feature_title">Función de pago</string>
+
+    <string name="tap_icon_to_select_app">Toca un icono para seleccionar una app</string>
+
+    <string name="requires_subscription">Requiere suscripción</string>
+
+    <string name="button_to_move_app_to_quick_app_list">Mover a apps de inicio</string>
+    <string name="button_to_move_app_to_primary_app_list">Mover a apps del cajón</string>
+    <string name="button_to_move_app_to_ghost_app_list">Mover a apps ocultas</string>
+
+    <string name="title_widgets">Widgets</string>
+    <string name="title_time">Hora</string>
+    <string name="rest_widget_positions">Restablecer posiciones</string>
+
+    <string name="title_analog_clock">Reloj analógico</string>
+    <string name="title_clock_size">Tamaño del reloj</string>
+    <string name="clock_background_color">Color de fondo del reloj</string>
+    <string name="background_transparency">Transparencia del fondo</string>
+    <string name="hour_hand_color">Color de la aguja de horas</string>
+    <string name="minute_hand_color">Color de la aguja de minutos</string>
+
+    <string name="title_time_format">Formato de hora</string>
+    <string name="title_show_am_pm">Mostrar AM/PM</string>
+    <string name="title_font_size">Tamaño de fuente</string>
+    <string name="title_font_weight">Grosor de fuente</string>
+    <string name="title_font_style">Estilo de fuente</string>
+    <string name="title_time_font_color">Color de fuente de la hora</string>
+
+    <string name="title_date">Fecha</string>
+    <string name="date_example">Sáb., sept. 16</string>
+    <string name="date_font_color">Color de fuente de la fecha</string>
+
+    <string name="title_battery">Batería</string>
+    <string name="show_battery_icon">Mostrar icono de batería</string>
+    <string name="show_battery_percentage">Mostrar porcentaje de batería</string>
+    <string name="battery_indicator_color">Color del indicador</string>
+
+    <string name="title_notifications">Notificaciones</string>
+    <string name="show_notification_icons">Mostrar iconos de notificación</string>
+
+    <string name="title_size">Tamaño</string>
+    <string name="title_color">Color</string>
+    <string name="title_selected_color">Color seleccionado</string>
+
+    <string name="button_text_save">Guardar</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">Funciones Pro</string>
+    <string name="title_subscription">Suscripción</string>
+    <string name="go_to_page">Abrir página</string>
+
+    <string name="title_support">Soporte</string>
+    <string name="title_how_to">Cómo usar</string>
+    <string name="title_app_guide">Guía de navegación de la app</string>
+
+    <string name="icon_how_to_guide">Icono de la guía "Cómo usar"</string>
+    <string name="icon_arrow_right">Icono de flecha hacia la derecha</string>
+
+    <string name="title_report_issue">Informar de un problema</string>
+    <string name="icon_support">Icono de soporte</string>
+
+    <string name="title_wallpapers">Fondos de pantalla</string>
+    <string name="title_auto_wallpapers">Fondos automáticos</string>
+    <string name="auto_wallpaper_text">Cambiar los fondos automáticamente</string>
+    <string name="icon_wallpaper">Icono de fondo de pantalla</string>
+
+    <string name="title_monochrome">Fondo monocromático</string>
+    <string name="title_color_less_world">Modo sin color</string>
+    <string name="icon_monochrome">Icono monocromático</string>
+
+    <string name="title_wallpaper_motion">Movimiento del fondo</string>
+    <string name="wallpaper_motion_text">Haz que la pantalla de inicio cobre vida</string>
+    <string name="icon_wallpaper_motion">Icono de movimiento del fondo</string>
+
+    <string name="title_change_wallpaper">Cambiar fondo</string>
+    <string name="change_wallpaper_text">Toca para cambiar el fondo ahora</string>
+    <string name="icon_wallpaper_change">Icono para cambiar fondo</string>
+
+    <string name="title_wallpaper_frequency">Frecuencia de cambio</string>
+    <string name="wallpaper_frequency_text">Con modo automático día/noche</string>
+    <string name="icon_wallpaper_frequency">Icono de frecuencia del fondo</string>
+
+    <string name="title_own_wallpapers">Usar tus propios fondos</string>
+    <string name="wallpaper_directory_select">Toca para seleccionar una carpeta</string>
+    <string name="icon_wallpaper_directory">Icono de carpeta de fondos</string>
+
+    <string name="set_launcher_first">Primero establece Comfer como lanzador predeterminado</string>
+
+    <string name="title_lock_screen">Pantalla de bloqueo</string>
+    <string name="lock_screen_wallpaper_text">Aplicar también el fondo en la pantalla de bloqueo</string>
+    <string name="icon_lock_screen_wallpaper">Icono de fondo de pantalla de bloqueo</string>
+
+    <string name="title_app_icons">Iconos de apps</string>
+    <string name="title_app_icon_size">Tamaño de icono</string>
+    <string name="icon_app_icon_size">Icono de tamaño de icono de app</string>
+    <string name="button_decrease_app_icon_size">Reducir tamaño de icono</string>
+    <string name="button_increase_app_icon_size">Aumentar tamaño de icono</string>
+
+    <string name="title_themed_icons">Iconos con tema</string>
+    <string name="themed_icons_text">Ajustar colores de iconos al fondo (experimental)</string>
+    <string name="icon_themed_icons">Icono de iconos con tema</string>
+
+    <string name="title_notification_badges">Insignias de notificación e iconos</string>
+    <string name="requires_notification_permission">Permiso de notificaciones requerido</string>
+    <string name="icon_notification_badges">Icono de insignias de notificación</string>
+
+    <string name="title_home_screen">Pantalla de inicio</string>
+    <string name="title_custom_widgets">Widgets personalizados</string>
+    <string name="custom_widgets_text">Tus widgets favoritos</string>
+    <string name="icon_custom_widgets">Icono de widgets personalizados</string>
+
+    <string name="title_quick_apps_layout">Diseño de apps de inicio</string>
+    <string name="quick_apps_layout_text">Organiza las apps con estilo</string>
+    <string name="icon_apps_layout">Icono de diseño de apps de inicio</string>
+
+    <string name="title_left_swipe_action">Acción al deslizar a la izquierda</string>
+    <string name="icon_left_swipe_action">Icono de acción al deslizar a la izquierda</string>
+
+    <string name="title_right_swipe_action">Acción al deslizar a la derecha</string>
+    <string name="icon_right_swipe_action">Icono de acción al deslizar a la derecha</string>
+
+    <string name="title_swipe_gestures">Gestos de deslizamiento</string>
+    <string name="swipe_gestures_text">Usa gestos como atajos de apps</string>
+    <string name="icon_swipe_gestures">Icono de gestos de deslizamiento</string>
+
+    <string name="title_app_drawer">Cajón de aplicaciones</string>
+    <string name="title_app_drawer_layouts">Diseños</string>
+    <string name="app_drawer_layouts_text">Formas de explorar las aplicaciones</string>
+
+    <string name="title_alphabetical_order">Orden alfabético</string>
+    <string name="alphabetical_order_text">Ordenar las apps alfabéticamente</string>
+    <string name="icon_alphabetical_order">Icono de orden alfabético</string>
+
+    <string name="title_apps_list">Listas de apps</string>
+    <string name="title_manage_app_list">Gestionar apps</string>
+    <string name="manage_app_list_text">Organizar o reordenar apps en listas</string>
+    <string name="icon_manage_app_list">Icono de gestión de listas de apps</string>
+
+    <string name="title_feedback">Comentarios</string>
+    <string name="icon_feedback">Icono de comentarios</string>
+
+    <string name="title_share_app">Compartir app</string>
+    <string name="icon_share_app">Icono de compartir app</string>
+    <string name="share_app_text">Prueba este nuevo lanzador:</string>
+
+    <string name="title_share_with">Compartir con</string>
+
+    <string name="title_app_version">Versión de la app</string>
+    <string name="icon_app_version">Icono de versión de la app</string>
+
+    <string name="title_icon_shapes">Formas de iconos</string>
+    <string name="icon_shapes_text">Elegir la forma de los iconos de las apps</string>
+    <string name="icon_icon_shapes">Icono de formas de iconos</string>
+
+    <string name="title_select_icon_shape">Seleccionar forma de icono</string>
+
+    <string name="notification_permission_text">
+        Para mostrar iconos de notificación en la pantalla de inicio y distintivos en los iconos de las apps, Comfer necesita acceso a las notificaciones.
+    </string>
+
+    <string name="what_notification_permission_do_title">Este servicio permite:</string>
+
+    <string name="what_notification_permission_do_text">
+        • Leer el estado de las notificaciones y mostrar iconos y distintivos cuando sea necesario.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">Este servicio no hace lo siguiente:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • No recopila datos personales.
+    </string>
+
+    <string name="title_choose_layout">Elegir diseño</string>
+    <string name="swipe_action_selection">Elegir una app o la pantalla de widgets</string>
+    <string name="title_choose_options">Elegir opción</string>
+    <string name="title_select_app">Seleccionar app</string>
+    <string name="title_widgets_screen">Pantalla de widgets</string>
+    <string name="title_choose_action">Elegir acción</string>
+
+    <string name="unable_to_load_subscriptions">
+        No se pudo cargar la información de la suscripción. Comprueba tu conexión e inténtalo de nuevo.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">Error al cargar la suscripción</string>
+    <string name="no_subscription_available">No hay suscripciones disponibles</string>
+
+    <string name="title_active_subscription">Suscripción activa</string>
+    <string name="subscription_renews_on">Se renueva el</string>
+    <string name="subscription_expires_on">Expira el</string>
+
+    <string name="subscription_benefit_one">Configura tus propios fondos dinámicos</string>
+    <string name="subscription_benefit_two">Añade tus widgets favoritos a la pantalla de inicio</string>
+    <string name="subscription_benefit_three">Personaliza los widgets predeterminados de la pantalla de inicio</string>
+    <string name="subscription_benefit_four">Usa gestos para abrir apps rápidamente</string>
+
+    <string name="title_manage_your_subscription">Gestionar suscripción</string>
+    <string name="title_pro_access">Acceso Pro</string>
+    <string name="title_year">año</string>
+
+    <string name="subscription_failed_prefix">Fallo en la suscripción</string>
+    <string name="subscription_successful_prefix">Suscripción correcta</string>
+    <string name="title_subscribe_now">Suscribirse ahora</string>
+
+    <string name="subscription_restore_failed_prefix">Error al restaurar la suscripción</string>
+    <string name="subscription_restore_successful_prefix">Suscripción restaurada correctamente</string>
+    <string name="subscription_not_found_to_restore">No se encontró ninguna suscripción para restaurar</string>
+    <string name="title_restore_subscription">Restaurar suscripción</string>
+
+    <string name="guide_home_swipe_up">Desliza hacia arriba para abrir el cajón de aplicaciones.</string>
+    <string name="guide_home_swipe_down">Desliza hacia abajo para ver las notificaciones.</string>
+    <string name="guide_home_double_tap">Toca dos veces la pantalla para abrir "Apps recientes".</string>
+    <string name="guide_home_long_press_lower">Mantén pulsada la mitad inferior de la pantalla para abrir Ajustes.</string>
+    <string name="guide_home_long_press_upper">Mantén pulsada la mitad superior de la pantalla para editar widgets.</string>
+    <string name="guide_home_tap_upper_half">Toca la mitad superior de la pantalla para salir del modo de edición de widgets.</string>
+    <string name="guide_home_tap_date_time">Toca la fecha/hora para ver las alarmas.</string>
+    <string name="guide_home_long_press_date_time">Mantén pulsada la fecha/hora para abrir el calendario.</string>
+    <string name="guide_home_swipe_left_right">Desliza a la izquierda o derecha para abrir la app seleccionada o la pantalla de widgets.</string>
+    <string name="guide_home_gestures">Dibuja gestos para abrir apps configuradas en Atajos de gestos.</string>
+
+    <string name="guide_circular_app_drawer">Cajón de aplicaciones circular</string>
+    <string name="guide_circular_app_drawer_swipe_down">Desliza hacia abajo para volver.</string>
+    <string name="guide_circular_app_drawer_double_tap">Toca dos veces para abrir la app del centro.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">Desliza a la izquierda o derecha para desplazarte.</string>
+    <string name="guide_circular_app_drawer_tap_icon">Toca un icono para abrir la app.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">Mantén pulsado un icono para abrir la información de la app.</string>
+
+    <string name="guide_horizontal_app_drawer">Cajón de aplicaciones horizontal</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">Desliza hacia abajo para volver.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">Desliza a la izquierda o derecha para desplazarte.</string>
+    <string name="guide_horizontal_app_drawer_long_press">Mantén pulsado para gestionar el cajón.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">En modo edición, arrastra y suelta iconos para cambiar su posición.</string>
+    <string name="guide_horizontal_app_drawer_drag">En modo edición, arrastra el cajón para moverlo verticalmente.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">Toca una vez para salir del modo edición.</string>
+
+    <string name="guide_search">Busca apps o contactos.</string>
+    <string name="guide_search_swipe_down">Desliza hacia abajo sobre el teclado para volver.</string>
+    <string name="guide_search_swipe_right">Desliza hacia la derecha sobre el teclado para buscar contactos.</string>
+    <string name="guide_search_swipe_left">Desliza hacia la izquierda sobre el teclado para buscar apps.</string>
+    <string name="guide_search_swipe_up">Desliza hacia arriba sobre el teclado para ver más caracteres.</string>
+    <string name="guide_search_long_press">Mantén pulsada la flecha de retroceso del centro para seleccionar el idioma.</string>
+    <string name="guide_search_scroll_list">Desplaza horizontalmente la lista de apps para ver todos los resultados.</string>
+    <string name="guide_search_scroll_sides">Desplaza los lados del teclado circular para mover la lista de contactos.</string>
+    <string name="guide_search_double_tap_sides">Toca dos veces en cualquiera de los lados del teclado circular para abrir el marcador con el contacto resaltado.</string>
+
+    <string name="guide_manage_apps">Gestionar lista de apps</string>
+    <string name="guide_manage_apps_tap">Toca para seleccionar apps y moverlas a otra lista.</string>
+    <string name="guide_manage_apps_long_press">
+        Mantén pulsado un icono de app para arrastrarlo y reordenarlo en la misma lista. Solo funciona si la lista no está ordenada alfabéticamente.
+    </string>
+
+    <string name="title_app_language">Idioma de la app</string>
+    <string name="app_language_text">Toca para cambiar el idioma de la app</string>
+    <string name="icon_app_language">Icono de idioma de la app</string>
+</resources>

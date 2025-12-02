@@ -6,6 +6,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.border
@@ -71,7 +72,7 @@ import kotlin.math.min
 private const val REST_LIST_NAME = "Rest"
 private const val MAX_QUICK_APPS = 8
 
-class ManageAppListActivity : ComponentActivity() {
+class ManageAppListActivity : AppCompatActivity() {
     private val viewModel: AppInfoViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">ברוך הבא</string>
+
+    <string name="checkout_how_to_guide">
+        לחץ לחיצה ארוכה בכל מקום במסך הבית כדי לפתוח את התפריט ולראות את מדריך "כיצד להשתמש".
+    </string>
+
+    <string name="accessibility_service_description">
+        שירות זה נדרש כדי לפתוח את מסך "האפליקציות האחרונות" של המערכת. Comfer משתמש בהרשאה זו רק כדי לספק קיצור דרך זה, ואינו אוסף או עוקב אחרי שום מידע אישי.
+    </string>
+
+    <string name="set_default_launcher">הגדרה כמשגר ברירת מחדל</string>
+    <string name="widget_binding_cancelled">הגדרת הווידג׳ט בוטלה</string>
+    <string name="long_press_to_add_edit_widgets">לחץ לחיצה ארוכה כדי להוסיף או לערוך ווידג׳טים</string>
+
+    <string name="add_widget">הוספת ווידג׳ט</string>
+    <string name="could_not_load_widget">לא ניתן לטעון את הווידג׳ט</string>
+    <string name="remove_widget">הסרת ווידג׳ט</string>
+
+    <string name="close">סגור</string>
+    <string name="applications">אפליקציות</string>
+    <string name="contacts">אנשי קשר</string>
+    <string name="search">חיפוש</string>
+
+    <string name="requires_contact_permission">
+        נדרש אישור גישה לאנשי קשר כדי לחפש אותם ולבצע שיחות.
+    </string>
+
+    <string name="grant_permission">מתן הרשאה</string>
+
+    <string name="privacy_policy_text">
+        אנו מכבדים את הפרטיות שלך. Comfer אינו אוסף או שומר מידע אישי. הקש כאן כדי לקרוא את מדיניות הפרטיות שלנו.
+    </string>
+
+    <string name="background_image">תמונת רקע</string>
+    <string name="feedback">משוב</string>
+    <string name="feedback_text">שתף את החוויה שלך ועזור לשפר את Comfer.</string>
+    <string name="feedback_icon">אייקון משוב</string>
+
+    <string name="rate_comfer">דרג את Comfer</string>
+    <string name="not_now">לא עכשיו</string>
+
+    <string name="permission_required">נדרשת הרשאה</string>
+
+    <string name="recent_apps_permission_title">
+        כדי לאפשר את קיצור הדרך "אפליקציות אחרונות", Comfer צריך גישה לשירות הנגישות.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">שירות זה מאפשר:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • פתיחת מסך "האפליקציות האחרונות" של המערכת.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">שירות זה אינו עושה את הפעולות הבאות:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • אינו אוסף מידע אישי.\n
+        • אינו עוקב אחרי הפעולות שלך או אחרי הטקסט שאתה מקליד.\n
+        • אינו קורא את תוכן המסך.
+    </string>
+
+    <string name="continue_text">המשך</string>
+    <string name="cancel_text">ביטול</string>
+    <string name="backspace_key">מקש מחיקה לאחור</string>
+
+    <string name="contact_number_not_available">מספר טלפון לא זמין לאיש קשר זה</string>
+    <string name="no_app_to_place_calls">לא נמצאה אפליקציה לביצוע שיחות</string>
+
+    <string name="update_available">עדכון חדש זמין.</string>
+    <string name="update_action">עדכן</string>
+    <string name="update_downloaded">העדכון מוכן להתקנה.</string>
+    <string name="update_install">התקן</string>
+
+    <string name="select_an_application">בחר אפליקציה</string>
+
+    <string name="gesture_shortcuts_title">קיצורי דרך במחוות</string>
+    <string name="paid_feature_title">תכונה בתשלום</string>
+
+    <string name="tap_icon_to_select_app">הקש על אייקון כדי לבחור אפליקציה</string>
+
+    <string name="requires_subscription">נדרשת מנוי</string>
+
+    <string name="button_to_move_app_to_quick_app_list">העבר לאפליקציות הבית</string>
+    <string name="button_to_move_app_to_primary_app_list">העבר לאפליקציות מגירת האפליקציות</string>
+    <string name="button_to_move_app_to_ghost_app_list">העבר לאפליקציות מוסתרות</string>
+
+    <string name="title_widgets">ווידג׳טים</string>
+    <string name="title_time">שעה</string>
+    <string name="rest_widget_positions">איפוס מיקומים</string>
+
+    <string name="title_analog_clock">שעון אנלוגי</string>
+    <string name="title_clock_size">גודל השעון</string>
+    <string name="clock_background_color">צבע רקע השעון</string>
+    <string name="background_transparency">שקיפות הרקע</string>
+    <string name="hour_hand_color">צבע מחוג השעות</string>
+    <string name="minute_hand_color">צבע מחוג הדקות</string>
+
+    <string name="title_time_format">תצורת שעה</string>
+    <string name="title_show_am_pm">הצגת AM/PM</string>
+    <string name="title_font_size">גודל גופן</string>
+    <string name="title_font_weight">עובי גופן</string>
+    <string name="title_font_style">סגנון גופן</string>
+    <string name="title_time_font_color">צבע גופן השעה</string>
+
+    <string name="title_date">תאריך</string>
+    <string name="date_example">שבת, ספט׳ 16</string>
+    <string name="date_font_color">צבע גופן התאריך</string>
+
+    <string name="title_battery">סוללה</string>
+    <string name="show_battery_icon">הצג אייקון סוללה</string>
+    <string name="show_battery_percentage">הצג אחוז סוללה</string>
+    <string name="battery_indicator_color">צבע המצביע</string>
+
+    <string name="title_notifications">התראות</string>
+    <string name="show_notification_icons">הצג אייקוני התראות</string>
+
+    <string name="title_size">גודל</string>
+    <string name="title_color">צבע</string>
+    <string name="title_selected_color">צבע נבחר</string>
+
+    <string name="button_text_save">שמור</string>
+
+    <string name="title_premium">פרימיום</string>
+    <string name="title_pro_features">יכולות Pro</string>
+    <string name="title_subscription">מנוי</string>
+    <string name="go_to_page">פתיחת עמוד</string>
+
+    <string name="title_support">תמיכה</string>
+    <string name="title_how_to">מדריך שימוש</string>
+    <string name="title_app_guide">מדריך ניווט באפליקציה</string>
+
+    <string name="icon_how_to_guide">אייקון מדריך "מדריך שימוש"</string>
+    <string name="icon_arrow_right">אייקון חץ ימינה</string>
+
+    <string name="title_report_issue">דיווח על בעיה</string>
+    <string name="icon_support">אייקון תמיכה</string>
+
+    <string name="title_wallpapers">טפטים</string>
+    <string name="title_auto_wallpapers">טפטים אוטומטיים</string>
+    <string name="auto_wallpaper_text">שנה טפטים באופן אוטומטי</string>
+    <string name="icon_wallpaper">אייקון טפט</string>
+
+    <string name="title_monochrome">רקע מונוכרומטי</string>
+    <string name="title_color_less_world">מצב ללא צבע</string>
+    <string name="icon_monochrome">אייקון מונוכרומטי</string>
+
+    <string name="title_wallpaper_motion">תנועת טפט</string>
+    <string name="wallpaper_motion_text">הפוך את מסך הבית לחי יותר</string>
+    <string name="icon_wallpaper_motion">אייקון תנועת טפט</string>
+
+    <string name="title_change_wallpaper">שינוי טפט</string>
+    <string name="change_wallpaper_text">הקש כדי לשנות את הטפט עכשיו</string>
+    <string name="icon_wallpaper_change">אייקון שינוי טפט</string>
+
+    <string name="title_wallpaper_frequency">תדירות שינוי</string>
+    <string name="wallpaper_frequency_text">עם מצב יום/לילה אוטומטי</string>
+    <string name="icon_wallpaper_frequency">אייקון תדירות טפט</string>
+
+    <string name="title_own_wallpapers">הגדרת טפטים אישיים</string>
+    <string name="wallpaper_directory_select">הקש כדי לבחור תיקייה</string>
+    <string name="icon_wallpaper_directory">אייקון תיקיית טפטים</string>
+
+    <string name="set_launcher_first">הגדר קודם את Comfer כמשגר ברירת מחדל</string>
+
+    <string name="title_lock_screen">מסך הנעילה</string>
+    <string name="lock_screen_wallpaper_text">הגדר את הטפט גם במסך הנעילה</string>
+    <string name="icon_lock_screen_wallpaper">אייקון טפט מסך הנעילה</string>
+
+    <string name="title_app_icons">אייקוני אפליקציות</string>
+    <string name="title_app_icon_size">גודל אייקון</string>
+    <string name="icon_app_icon_size">אייקון גודל אייקון אפליקציה</string>
+    <string name="button_decrease_app_icon_size">הקטנת גודל האייקון</string>
+    <string name="button_increase_app_icon_size">הגדלת גודל האייקון</string>
+
+    <string name="title_themed_icons">אייקונים עם ערכת נושא</string>
+    <string name="themed_icons_text">התאם את צבעי האייקונים לטפט (ניסיוני)</string>
+    <string name="icon_themed_icons">אייקון אייקונים עם ערכת נושא</string>
+
+    <string name="title_notification_badges">תגי התראות ואייקונים</string>
+    <string name="requires_notification_permission">נדרשת הרשאת התראות</string>
+    <string name="icon_notification_badges">אייקון תגי התראות</string>
+
+    <string name="title_home_screen">מסך הבית</string>
+    <string name="title_custom_widgets">ווידג׳טים מותאמים אישית</string>
+    <string name="custom_widgets_text">הווידג׳טים המועדפים עליך</string>
+    <string name="icon_custom_widgets">אייקון ווידג׳טים מותאמים אישית</string>
+
+    <string name="title_quick_apps_layout">פריסת אפליקציות הבית</string>
+    <string name="quick_apps_layout_text">סדר את האפליקציות בסטייל</string>
+    <string name="icon_apps_layout">אייקון פריסת אפליקציות הבית</string>
+
+    <string name="title_left_swipe_action">פעולת החלקה שמאלה</string>
+    <string name="icon_left_swipe_action">אייקון פעולת החלקה שמאלה</string>
+
+    <string name="title_right_swipe_action">פעולת החלקה ימינה</string>
+    <string name="icon_right_swipe_action">אייקון פעולת החלקה ימינה</string>
+
+    <string name="title_swipe_gestures">מחוות החלקה</string>
+    <string name="swipe_gestures_text">השתמש במחוות לקיצורי דרך לאפליקציות</string>
+    <string name="icon_swipe_gestures">אייקון מחוות החלקה</string>
+
+    <string name="title_app_drawer">מגירת האפליקציות</string>
+    <string name="title_app_drawer_layouts">פריסות</string>
+    <string name="app_drawer_layouts_text">דרכים לדפדוף בין אפליקציות</string>
+
+    <string name="title_alphabetical_order">סדר אלפביתי</string>
+    <string name="alphabetical_order_text">מיון אפליקציות לפי סדר אלפביתי</string>
+    <string name="icon_alphabetical_order">אייקון סדר אלפביתי</string>
+
+    <string name="title_apps_list">רשימות אפליקציות</string>
+    <string name="title_manage_app_list">ניהול אפליקציות</string>
+    <string name="manage_app_list_text">ארגון או שינוי סדר של אפליקציות ברשימות</string>
+    <string name="icon_manage_app_list">אייקון ניהול רשימת אפליקציות</string>
+
+    <string name="title_feedback">משוב</string>
+    <string name="icon_feedback">אייקון משוב</string>
+
+    <string name="title_share_app">שיתוף אפליקציה</string>
+    <string name="icon_share_app">אייקון שיתוף אפליקציה</string>
+    <string name="share_app_text">נסה את המשגר החדש הזה:</string>
+
+    <string name="title_share_with">שיתוף באמצעות</string>
+
+    <string name="title_app_version">גרסת האפליקציה</string>
+    <string name="icon_app_version">אייקון גרסת האפליקציה</string>
+
+    <string name="title_icon_shapes">צורות אייקונים</string>
+    <string name="icon_shapes_text">בחר את צורת אייקוני האפליקציות</string>
+    <string name="icon_icon_shapes">אייקון צורות אייקונים</string>
+
+    <string name="title_select_icon_shape">בחר צורת אייקון</string>
+
+    <string name="notification_permission_text">
+        כדי להציג אייקוני התראות במסך הבית ותגים על אייקוני האפליקציות, Comfer צריך גישה להתראות.
+    </string>
+
+    <string name="what_notification_permission_do_title">שירות זה מאפשר:</string>
+
+    <string name="what_notification_permission_do_text">
+        • קריאת מצב ההתראות והצגת אייקונים ותגים לפי הצורך.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">שירות זה אינו עושה את הפעולות הבאות:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • אינו אוסף מידע אישי.
+    </string>
+
+    <string name="title_choose_layout">בחירת פריסה</string>
+    <string name="swipe_action_selection">בחר אפליקציה או מסך ווידג׳טים</string>
+    <string name="title_choose_options">בחירת אפשרות</string>
+    <string name="title_select_app">בחר אפליקציה</string>
+    <string name="title_widgets_screen">מסך ווידג׳טים</string>
+    <string name="title_choose_action">בחר פעולה</string>
+
+    <string name="unable_to_load_subscriptions">
+        לא ניתן לטעון את פרטי המנוי. בדוק את החיבור ונסה שוב.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">טעינת המנוי נכשלה</string>
+    <string name="no_subscription_available">אין מנויים זמינים</string>
+
+    <string name="title_active_subscription">מנוי פעיל</string>
+    <string name="subscription_renews_on">מועד חידוש</string>
+    <string name="subscription_expires_on">תאריך סיום</string>
+
+    <string name="subscription_benefit_one">הגדרת טפטים דינמיים משלך</string>
+    <string name="subscription_benefit_two">הוספת הווידג׳טים המועדפים עליך למסך הבית</string>
+    <string name="subscription_benefit_three">התאמת הווידג׳טים ברירת המחדל במסך הבית</string>
+    <string name="subscription_benefit_four">שימוש במחוות לפתיחת אפליקציות במהירות</string>
+
+    <string name="title_manage_your_subscription">ניהול המנוי שלך</string>
+    <string name="title_pro_access">גישה Pro</string>
+    <string name="title_year">שנה</string>
+
+    <string name="subscription_failed_prefix">המנוי נכשל</string>
+    <string name="subscription_successful_prefix">המנוי בוצע בהצלחה</string>
+    <string name="title_subscribe_now">הירשם עכשיו</string>
+
+    <string name="subscription_restore_failed_prefix">שחזור המנוי נכשל</string>
+    <string name="subscription_restore_successful_prefix">המנוי שוחזר בהצלחה</string>
+    <string name="subscription_not_found_to_restore">לא נמצא מנוי לשחזור</string>
+    <string name="title_restore_subscription">שחזור מנוי</string>
+
+    <string name="guide_home_swipe_up">החלק מעלה כדי לפתוח את מגירת האפליקציות.</string>
+    <string name="guide_home_swipe_down">החלק מטה כדי לראות התראות.</string>
+    <string name="guide_home_double_tap">הקשה כפולה על המסך תפתח את "האפליקציות האחרונות".</string>
+    <string name="guide_home_long_press_lower">לחיצה ארוכה על החלק התחתון של המסך תפתח את ההגדרות.</string>
+    <string name="guide_home_long_press_upper">לחיצה ארוכה על החלק העליון של המסך תאפשר עריכת ווידג׳טים.</string>
+    <string name="guide_home_tap_upper_half">הקשה על החלק העליון של המסך תצא ממצב עריכת הווידג׳טים.</string>
+    <string name="guide_home_tap_date_time">הקש על התאריך/שעה כדי לראות את השעונים המעוררים.</string>
+    <string name="guide_home_long_press_date_time">לחיצה ארוכה על התאריך/שעה תפתח את לוח השנה.</string>
+    <string name="guide_home_swipe_left_right">החלק שמאלה או ימינה כדי לפתוח את האפליקציה שנבחרה או את מסך הווידג׳טים.</string>
+    <string name="guide_home_gestures">צייר מחוות כדי לפתוח אפליקציות שהוגדרו בקיצורי דרך למחוות.</string>
+
+    <string name="guide_circular_app_drawer">מגירת אפליקציות מעגלית</string>
+    <string name="guide_circular_app_drawer_swipe_down">החלק מטה כדי לחזור.</string>
+    <string name="guide_circular_app_drawer_double_tap">הקשה כפולה תפתח את האפליקציה שבמרכז.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">החלק שמאלה או ימינה כדי לגלול.</string>
+    <string name="guide_circular_app_drawer_tap_icon">הקש על אייקון כדי לפתוח את האפליקציה.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">לחיצה ארוכה על אייקון תפתח את פרטי האפליקציה.</string>
+
+    <string name="guide_horizontal_app_drawer">מגירת אפליקציות אופקית</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">החלק מטה כדי לחזור.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">החלק שמאלה או ימינה כדי לגלול.</string>
+    <string name="guide_horizontal_app_drawer_long_press">לחץ לחיצה ארוכה כדי לנהל את המגירה.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">במצב עריכה גרור ושחרר אייקונים כדי לשנות את המיקום שלהם.</string>
+    <string name="guide_horizontal_app_drawer_drag">במצב עריכה גרור את המגירה כדי להזיז אותה אנכית.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">הקש פעם אחת כדי לצאת ממצב העריכה.</string>
+
+    <string name="guide_search">חפש אפליקציות או אנשי קשר.</string>
+    <string name="guide_search_swipe_down">החלק מטה על המקלדת כדי לחזור.</string>
+    <string name="guide_search_swipe_right">החלק ימינה על המקלדת כדי לחפש באנשי קשר.</string>
+    <string name="guide_search_swipe_left">החלק שמאלה על המקלדת כדי לחפש באפליקציות.</string>
+    <string name="guide_search_swipe_up">החלק מעלה על המקלדת כדי לראות עוד תווים.</string>
+    <string name="guide_search_long_press">לחץ לחיצה ארוכה על חץ החזרה במרכז כדי לבחור שפה.</string>
+    <string name="guide_search_scroll_list">גלול אופקית את רשימת האפליקציות כדי לראות את כל התוצאות.</string>
+    <string name="guide_search_scroll_sides">גלול את צדדי המקלדת המעגלית כדי להזיז את רשימת אנשי הקשר.</string>
+    <string name="guide_search_double_tap_sides">הקשה כפולה על אחד מצדי המקלדת המעגלית תפתח את החייגן עם איש הקשר המסומן.</string>
+
+    <string name="guide_manage_apps">ניהול רשימת האפליקציות</string>
+    <string name="guide_manage_apps_tap">הקש כדי לבחור אפליקציות ולהעביר אותן לרשימה אחרת.</string>
+    <string name="guide_manage_apps_long_press">
+        לחץ לחיצה ארוכה על אייקון אפליקציה כדי לגרור ולשנות את הסדר באותה רשימה. עובד רק כשהרשימה אינה ממוינת לפי אלפבית.
+    </string>
+
+    <string name="title_app_language">שפת האפליקציה</string>
+    <string name="app_language_text">הקש כדי לשנות את שפת האפליקציה</string>
+    <string name="icon_app_language">אייקון שפת האפליקציה</string>
+</resources>

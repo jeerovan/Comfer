@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import com.jeerovan.comfer.ui.theme.ComferTheme
 
 import android.content.Context
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -23,7 +24,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 
-class CrashViewActivity : ComponentActivity(){
+class CrashViewActivity : AppCompatActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

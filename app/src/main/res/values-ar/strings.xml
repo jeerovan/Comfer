@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">مرحبًا</string>
+
+    <string name="checkout_how_to_guide">
+        اضغط مطولًا في أي مكان على الشاشة الرئيسية لفتح القائمة وقراءة دليل "كيفية الاستخدام".
+    </string>
+
+    <string name="accessibility_service_description">
+        هذه الخدمة مطلوبة لفتح شاشة "التطبيقات الحديثة" في النظام. يستخدم Comfer هذا الإذن فقط لتوفير هذا الاختصار ولا يجمع أو يراقب أي بيانات شخصية.
+    </string>
+
+    <string name="set_default_launcher">تعيين كمشغّل افتراضي</string>
+    <string name="widget_binding_cancelled">تم إلغاء إعداد الأداة</string>
+    <string name="long_press_to_add_edit_widgets">اضغط مطولًا لإضافة الأدوات أو تعديلها</string>
+
+    <string name="add_widget">إضافة أداة</string>
+    <string name="could_not_load_widget">تعذّر تحميل الأداة</string>
+    <string name="remove_widget">إزالة الأداة</string>
+
+    <string name="close">إغلاق</string>
+    <string name="applications">التطبيقات</string>
+    <string name="contacts">جهات الاتصال</string>
+    <string name="search">بحث</string>
+
+    <string name="requires_contact_permission">
+        يتطلب البحث عن جهات الاتصال والاتصال بهم إذن الوصول إلى جهات الاتصال.
+    </string>
+
+    <string name="grant_permission">منح الإذن</string>
+
+    <string name="privacy_policy_text">
+        نحن نحترم خصوصيتك. لا يقوم Comfer بجمع أو تخزين أي بيانات شخصية. اضغط لقراءة سياسة الخصوصية.
+    </string>
+
+    <string name="background_image">صورة الخلفية</string>
+    <string name="feedback">ملاحظات</string>
+    <string name="feedback_text">شارك تجربتك وساعد في تحسين Comfer.</string>
+    <string name="feedback_icon">أيقونة الملاحظات</string>
+
+    <string name="rate_comfer">قيّم Comfer</string>
+    <string name="not_now">ليس الآن</string>
+
+    <string name="permission_required">إذن مطلوب</string>
+
+    <string name="recent_apps_permission_title">
+        لتمكين اختصار "التطبيقات الحديثة"، يحتاج Comfer إلى إذن خدمة إمكانية الوصول.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">ما الذي تتيحه هذه الخدمة:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • فتح شاشة "التطبيقات الحديثة" في النظام.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">ما الذي لا تفعله هذه الخدمة:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • لا تجمع أي بيانات شخصية.\n
+        • لا تراقب إجراءاتك أو النص الذي تكتبه.\n
+        • لا تقرأ محتوى الشاشة.
+    </string>
+
+    <string name="continue_text">متابعة</string>
+    <string name="cancel_text">إلغاء</string>
+    <string name="backspace_key">مفتاح الحذف للخلف</string>
+
+    <string name="contact_number_not_available">رقم هاتف جهة الاتصال غير متوفر</string>
+    <string name="no_app_to_place_calls">لم يتم العثور على تطبيق لإجراء المكالمات</string>
+
+    <string name="update_available">يتوفر تحديث جديد.</string>
+    <string name="update_action">تحديث</string>
+    <string name="update_downloaded">التحديث جاهز للتثبيت.</string>
+    <string name="update_install">تثبيت</string>
+
+    <string name="select_an_application">اختر تطبيقًا</string>
+
+    <string name="gesture_shortcuts_title">اختصارات الإيماءات</string>
+    <string name="paid_feature_title">ميزة مدفوعة</string>
+
+    <string name="tap_icon_to_select_app">اضغط على الأيقونة لاختيار تطبيق</string>
+
+    <string name="requires_subscription">يتطلب اشتراكًا</string>
+
+    <string name="button_to_move_app_to_quick_app_list">نقل إلى تطبيقات الشاشة الرئيسية</string>
+    <string name="button_to_move_app_to_primary_app_list">نقل إلى تطبيقات الدرج</string>
+    <string name="button_to_move_app_to_ghost_app_list">نقل إلى التطبيقات المخفية</string>
+
+    <string name="title_widgets">الأدوات</string>
+    <string name="title_time">الوقت</string>
+    <string name="rest_widget_positions">إعادة تعيين المواضع</string>
+
+    <string name="title_analog_clock">ساعة تماثلية</string>
+    <string name="title_clock_size">حجم الساعة</string>
+    <string name="clock_background_color">لون خلفية الساعة</string>
+    <string name="background_transparency">شفافية الخلفية</string>
+    <string name="hour_hand_color">لون عقرب الساعات</string>
+    <string name="minute_hand_color">لون عقرب الدقائق</string>
+
+    <string name="title_time_format">تنسيق الوقت</string>
+    <string name="title_show_am_pm">عرض ص/م</string>
+    <string name="title_font_size">حجم الخط</string>
+    <string name="title_font_weight">سُمك الخط</string>
+    <string name="title_font_style">نمط الخط</string>
+    <string name="title_time_font_color">لون خط الوقت</string>
+
+    <string name="title_date">التاريخ</string>
+    <string name="date_example">السبت، أيلول 16</string>
+    <string name="date_font_color">لون خط التاريخ</string>
+
+    <string name="title_battery">البطارية</string>
+    <string name="show_battery_icon">عرض أيقونة البطارية</string>
+    <string name="show_battery_percentage">عرض نسبة البطارية</string>
+    <string name="battery_indicator_color">لون المؤشر</string>
+
+    <string name="title_notifications">الإشعارات</string>
+    <string name="show_notification_icons">عرض أيقونات الإشعارات</string>
+
+    <string name="title_size">الحجم</string>
+    <string name="title_color">اللون</string>
+    <string name="title_selected_color">اللون المحدد</string>
+
+    <string name="button_text_save">حفظ</string>
+
+    <string name="title_premium">مميز</string>
+    <string name="title_pro_features">ميزات Pro</string>
+    <string name="title_subscription">الاشتراك</string>
+    <string name="go_to_page">فتح الصفحة</string>
+
+    <string name="title_support">الدعم</string>
+    <string name="title_how_to">كيفية الاستخدام</string>
+    <string name="title_app_guide">دليل استخدام التطبيق</string>
+
+    <string name="icon_how_to_guide">أيقونة دليل "كيفية الاستخدام"</string>
+    <string name="icon_arrow_right">أيقونة سهم لليمين</string>
+
+    <string name="title_report_issue">الإبلاغ عن مشكلة</string>
+    <string name="icon_support">أيقونة الدعم</string>
+
+    <string name="title_wallpapers">الخلفيات</string>
+    <string name="title_auto_wallpapers">الخلفيات التلقائية</string>
+    <string name="auto_wallpaper_text">تغيير الخلفيات تلقائيًا</string>
+    <string name="icon_wallpaper">أيقونة الخلفية</string>
+
+    <string name="title_monochrome">خلفية أحادية اللون</string>
+    <string name="title_color_less_world">وضع بلا ألوان</string>
+    <string name="icon_monochrome">أيقونة أحادية اللون</string>
+
+    <string name="title_wallpaper_motion">حركة الخلفية</string>
+    <string name="wallpaper_motion_text">اجعل الشاشة الرئيسية نابضة بالحياة</string>
+    <string name="icon_wallpaper_motion">أيقونة حركة الخلفية</string>
+
+    <string name="title_change_wallpaper">تغيير الخلفية</string>
+    <string name="change_wallpaper_text">اضغط لتغيير الخلفية الآن</string>
+    <string name="icon_wallpaper_change">أيقونة تغيير الخلفية</string>
+
+    <string name="title_wallpaper_frequency">تكرار التغيير</string>
+    <string name="wallpaper_frequency_text">مع وضع اليوم/الليل التلقائي</string>
+    <string name="icon_wallpaper_frequency">أيقونة تكرار الخلفية</string>
+
+    <string name="title_own_wallpapers">تعيين خلفياتك الخاصة</string>
+    <string name="wallpaper_directory_select">اضغط لاختيار المجلد</string>
+    <string name="icon_wallpaper_directory">أيقونة مجلد الخلفيات</string>
+
+    <string name="set_launcher_first">قم أولًا بتعيين Comfer كمشغّل افتراضي</string>
+
+    <string name="title_lock_screen">شاشة القفل</string>
+    <string name="lock_screen_wallpaper_text">تعيين الخلفية أيضًا على شاشة القفل</string>
+    <string name="icon_lock_screen_wallpaper">أيقونة خلفية شاشة القفل</string>
+
+    <string name="title_app_icons">أيقونات التطبيقات</string>
+    <string name="title_app_icon_size">حجم الأيقونة</string>
+    <string name="icon_app_icon_size">أيقونة حجم أيقونة التطبيق</string>
+    <string name="button_decrease_app_icon_size">تصغير حجم الأيقونة</string>
+    <string name="button_increase_app_icon_size">تكبير حجم الأيقونة</string>
+
+    <string name="title_themed_icons">أيقونات ذات سمة</string>
+    <string name="themed_icons_text">مطابقة ألوان الأيقونات مع الخلفية (تجريبي)</string>
+    <string name="icon_themed_icons">أيقونة الأيقونات ذات السمة</string>
+
+    <string name="title_notification_badges">شارات الإشعارات والأيقونات</string>
+    <string name="requires_notification_permission">إذن الإشعارات مطلوب</string>
+    <string name="icon_notification_badges">أيقونة شارات الإشعارات</string>
+
+    <string name="title_home_screen">الشاشة الرئيسية</string>
+    <string name="title_custom_widgets">أدوات مخصصة</string>
+    <string name="custom_widgets_text">أدواتك المفضلة</string>
+    <string name="icon_custom_widgets">أيقونة الأدوات المخصصة</string>
+
+    <string name="title_quick_apps_layout">تخطيط تطبيقات الشاشة الرئيسية</string>
+    <string name="quick_apps_layout_text">رتّب التطبيقات بأسلوب جميل</string>
+    <string name="icon_apps_layout">أيقونة تخطيط تطبيقات الشاشة الرئيسية</string>
+
+    <string name="title_left_swipe_action">إجراء السحب لليسار</string>
+    <string name="icon_left_swipe_action">أيقونة إجراء السحب لليسار</string>
+
+    <string name="title_right_swipe_action">إجراء السحب لليمين</string>
+    <string name="icon_right_swipe_action">أيقونة إجراء السحب لليمين</string>
+
+    <string name="title_swipe_gestures">إيماءات السحب</string>
+    <string name="swipe_gestures_text">استخدم الإيماءات لاختصارات التطبيقات</string>
+    <string name="icon_swipe_gestures">أيقونة إيماءات السحب</string>
+
+    <string name="title_app_drawer">درج التطبيقات</string>
+    <string name="title_app_drawer_layouts">التخطيطات</string>
+    <string name="app_drawer_layouts_text">طرق لتصفح التطبيقات</string>
+
+    <string name="title_alphabetical_order">الترتيب الأبجدي</string>
+    <string name="alphabetical_order_text">فرز التطبيقات أبجديًا</string>
+    <string name="icon_alphabetical_order">أيقونة الترتيب الأبجدي</string>
+
+    <string name="title_apps_list">قوائم التطبيقات</string>
+    <string name="title_manage_app_list">إدارة التطبيقات</string>
+    <string name="manage_app_list_text">تنظيم التطبيقات في قوائم أو إعادة ترتيبها</string>
+    <string name="icon_manage_app_list">أيقونة إدارة قائمة التطبيقات</string>
+
+    <string name="title_feedback">ملاحظات</string>
+    <string name="icon_feedback">أيقونة الملاحظات</string>
+
+    <string name="title_share_app">مشاركة التطبيق</string>
+    <string name="icon_share_app">أيقونة مشاركة التطبيق</string>
+    <string name="share_app_text">جرّب هذا المشغّل الجديد:</string>
+
+    <string name="title_share_with">المشاركة عبر</string>
+
+    <string name="title_app_version">إصدار التطبيق</string>
+    <string name="icon_app_version">أيقونة إصدار التطبيق</string>
+
+    <string name="title_icon_shapes">أشكال الأيقونات</string>
+    <string name="icon_shapes_text">اختر شكل أيقونة التطبيق</string>
+    <string name="icon_icon_shapes">أيقونة أشكال الأيقونات</string>
+
+    <string name="title_select_icon_shape">اختر شكل الأيقونة</string>
+
+    <string name="notification_permission_text">
+        لعرض أيقونات الإشعارات على الشاشة الرئيسية والشارات على أيقونات التطبيقات، يحتاج Comfer إلى إذن الوصول للإشعارات.
+    </string>
+
+    <string name="what_notification_permission_do_title">ما الذي تتيحه هذه الخدمة:</string>
+
+    <string name="what_notification_permission_do_text">
+        • قراءة حالة الإشعارات وعرض الأيقونات والشارات حسب الحاجة.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">ما الذي لا تفعله هذه الخدمة:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • لا تجمع أي بيانات شخصية.
+    </string>
+
+    <string name="title_choose_layout">اختر التخطيط</string>
+    <string name="swipe_action_selection">اختر تطبيقًا أو شاشة الأدوات</string>
+    <string name="title_choose_options">اختر خيارًا</string>
+    <string name="title_select_app">اختر تطبيقًا</string>
+    <string name="title_widgets_screen">شاشة الأدوات</string>
+    <string name="title_choose_action">اختر إجراءً</string>
+
+    <string name="unable_to_load_subscriptions">
+        تعذّر تحميل معلومات الاشتراك. يرجى التحقق من الاتصال والمحاولة مرة أخرى.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">فشل في تحميل الاشتراك</string>
+    <string name="no_subscription_available">لا توجد اشتراكات متاحة</string>
+
+    <string name="title_active_subscription">اشتراك فعّال</string>
+    <string name="subscription_renews_on">يتم التجديد في</string>
+    <string name="subscription_expires_on">ينتهي في</string>
+
+    <string name="subscription_benefit_one">تعيين خلفيات ديناميكية خاصة بك</string>
+    <string name="subscription_benefit_two">إضافة أدواتك المفضلة إلى الشاشة الرئيسية</string>
+    <string name="subscription_benefit_three">تخصيص الأدوات الافتراضية على الشاشة الرئيسية</string>
+    <string name="subscription_benefit_four">استخدام الإيماءات لفتح التطبيقات بسرعة</string>
+
+    <string name="title_manage_your_subscription">إدارة الاشتراك</string>
+    <string name="title_pro_access">وصول Pro</string>
+    <string name="title_year">سنة</string>
+
+    <string name="subscription_failed_prefix">فشل الاشتراك</string>
+    <string name="subscription_successful_prefix">تم الاشتراك بنجاح</string>
+    <string name="title_subscribe_now">اشترك الآن</string>
+
+    <string name="subscription_restore_failed_prefix">فشل استعادة الاشتراك</string>
+    <string name="subscription_restore_successful_prefix">تمت استعادة الاشتراك بنجاح</string>
+    <string name="subscription_not_found_to_restore">لا يوجد اشتراك لاستعادته</string>
+    <string name="title_restore_subscription">استعادة الاشتراك</string>
+
+    <string name="guide_home_swipe_up">اسحب للأعلى لفتح درج التطبيقات.</string>
+    <string name="guide_home_swipe_down">اسحب للأسفل لعرض الإشعارات.</string>
+    <string name="guide_home_double_tap">اضغط مرتين على الشاشة لفتح "التطبيقات الحديثة".</string>
+    <string name="guide_home_long_press_lower">اضغط مطولًا على النصف السفلي من الشاشة لفتح الإعدادات.</string>
+    <string name="guide_home_long_press_upper">اضغط مطولًا على النصف العلوي من الشاشة لتعديل الأدوات.</string>
+    <string name="guide_home_tap_upper_half">اضغط على النصف العلوي من الشاشة للخروج من وضع تعديل الأدوات.</string>
+    <string name="guide_home_tap_date_time">اضغط على التاريخ/الوقت لعرض المنبهات.</string>
+    <string name="guide_home_long_press_date_time">اضغط مطولًا على التاريخ/الوقت لفتح التقويم.</string>
+    <string name="guide_home_swipe_left_right">اسحب لليسار أو لليمين لفتح التطبيق المحدد أو شاشة الأدوات.</string>
+    <string name="guide_home_gestures">ارسم الإيماءات لفتح التطبيقات المحددة في اختصارات الإيماءات.</string>
+
+    <string name="guide_circular_app_drawer">درج التطبيقات الدائري</string>
+    <string name="guide_circular_app_drawer_swipe_down">اسحب للأسفل للرجوع.</string>
+    <string name="guide_circular_app_drawer_double_tap">اضغط مرتين لفتح التطبيق في المنتصف.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">اسحب لليسار أو لليمين للتمرير.</string>
+    <string name="guide_circular_app_drawer_tap_icon">اضغط على الأيقونة لفتح التطبيق.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">اضغط مطولًا على الأيقونة لفتح معلومات التطبيق.</string>
+
+    <string name="guide_horizontal_app_drawer">درج التطبيقات الأفقي</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">اسحب للأسفل للرجوع.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">اسحب لليسار أو لليمين للتمرير.</string>
+    <string name="guide_horizontal_app_drawer_long_press">اضغط مطولًا لإدارة الدرج.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">اسحب وأسقط الأيقونات في وضع التعديل لتغيير مواضعها.</string>
+    <string name="guide_horizontal_app_drawer_drag">اسحب الدرج في وضع التعديل لتحريكه عموديًا.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">اضغط مرة واحدة للخروج من وضع التعديل.</string>
+
+    <string name="guide_search">ابحث عن التطبيقات أو جهات الاتصال.</string>
+    <string name="guide_search_swipe_down">اسحب للأسفل على لوحة المفاتيح للرجوع.</string>
+    <string name="guide_search_swipe_right">اسحب لليمين على لوحة المفاتيح للبحث في جهات الاتصال.</string>
+    <string name="guide_search_swipe_left">اسحب لليسار على لوحة المفاتيح للبحث في التطبيقات.</string>
+    <string name="guide_search_swipe_up">اسحب للأعلى على لوحة المفاتيح لعرض المزيد من الأحرف.</string>
+    <string name="guide_search_long_press">اضغط مطولًا على سهم الرجوع في المنتصف لاختيار اللغة.</string>
+    <string name="guide_search_scroll_list">قم بالتمرير أفقيًا في قائمة التطبيقات لعرض جميع النتائج.</string>
+    <string name="guide_search_scroll_sides">قم بالتمرير على جانبي لوحة المفاتيح الدائرية لتمرير قائمة جهات الاتصال.</string>
+    <string name="guide_search_double_tap_sides">اضغط مرتين على أي من جانبي لوحة المفاتيح الدائرية لفتح لوحة الاتصال مع جهة الاتصال المحددة.</string>
+
+    <string name="guide_manage_apps">إدارة قائمة التطبيقات</string>
+    <string name="guide_manage_apps_tap">اضغط لاختيار التطبيقات ونقلها إلى قائمة أخرى.</string>
+    <string name="guide_manage_apps_long_press">
+        اضغط مطولًا على أيقونة التطبيق لسحبها وإعادة ترتيبها داخل نفس القائمة. يعمل ذلك فقط إذا لم تكن القائمة مرتبة أبجديًا.
+    </string>
+
+    <string name="title_app_language">لغة التطبيق</string>
+    <string name="app_language_text">اضغط لتغيير لغة التطبيق</string>
+    <string name="icon_app_language">أيقونة لغة التطبيق</string>
+</resources>

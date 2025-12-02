@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">Καλωσόρισες</string>
+
+    <string name="checkout_how_to_guide">
+        Κράτησε πατημένο οπουδήποτε στην αρχική οθόνη για να ανοίξεις το μενού και να δεις τον οδηγό «Πώς να το χρησιμοποιείς».
+    </string>
+
+    <string name="accessibility_service_description">
+        Αυτή η υπηρεσία απαιτείται για να ανοίγει η οθόνη «Πρόσφατες εφαρμογές» του συστήματος. Το Comfer χρησιμοποιεί αυτή την άδεια μόνο για αυτή τη συντόμευση και δεν συλλέγει ή παρακολουθεί κανένα προσωπικό δεδομένο.
+    </string>
+
+    <string name="set_default_launcher">Ορισμός ως προεπιλεγμένος launcher</string>
+    <string name="widget_binding_cancelled">Η ρύθμιση γραφικού στοιχείου ακυρώθηκε</string>
+    <string name="long_press_to_add_edit_widgets">Κράτησε πατημένο για προσθήκη ή επεξεργασία γραφικών στοιχείων</string>
+
+    <string name="add_widget">Προσθήκη γραφικού στοιχείου</string>
+    <string name="could_not_load_widget">Αδυναμία φόρτωσης γραφικού στοιχείου</string>
+    <string name="remove_widget">Κατάργηση γραφικού στοιχείου</string>
+
+    <string name="close">Κλείσιμο</string>
+    <string name="applications">Εφαρμογές</string>
+    <string name="contacts">Επαφές</string>
+    <string name="search">Αναζήτηση</string>
+
+    <string name="requires_contact_permission">
+        Για αναζήτηση και κλήση επαφών απαιτείται πρόσβαση στις επαφές.
+    </string>
+
+    <string name="grant_permission">Παροχή άδειας</string>
+
+    <string name="privacy_policy_text">
+        Σεβόμαστε το απόρρητό σου. Το Comfer δεν συλλέγει ούτε αποθηκεύει προσωπικά δεδομένα. Πάτησε για να διαβάσεις την πολιτική απορρήτου μας.
+    </string>
+
+    <string name="background_image">Εικόνα φόντου</string>
+    <string name="feedback">Σχόλια</string>
+    <string name="feedback_text">Μοιράσου την εμπειρία σου και βοήθησε να βελτιωθεί το Comfer.</string>
+    <string name="feedback_icon">Εικονίδιο σχολίων</string>
+
+    <string name="rate_comfer">Βαθμολόγησε το Comfer</string>
+    <string name="not_now">Όχι τώρα</string>
+
+    <string name="permission_required">Απαιτείται άδεια</string>
+
+    <string name="recent_apps_permission_title">
+        Για να ενεργοποιηθεί η συντόμευση «Πρόσφατες εφαρμογές», το Comfer χρειάζεται πρόσβαση στην Υπηρεσία προσβασιμότητας.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">Αυτή η υπηρεσία επιτρέπει:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • Το άνοιγμα της οθόνης «Πρόσφατες εφαρμογές» του συστήματος.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">Αυτή η υπηρεσία δεν κάνει:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • Δεν συλλέγει προσωπικά δεδομένα.\n
+        • Δεν παρακολουθεί τις ενέργειές σου ή το κείμενο που πληκτρολογείς.\n
+        • Δεν διαβάζει το περιεχόμενο της οθόνης.
+    </string>
+
+    <string name="continue_text">Συνέχεια</string>
+    <string name="cancel_text">Ακύρωση</string>
+    <string name="backspace_key">Πλήκτρο διαγραφής προς τα πίσω</string>
+
+    <string name="contact_number_not_available">Δεν υπάρχει διαθέσιμο τηλέφωνο για αυτή την επαφή</string>
+    <string name="no_app_to_place_calls">Δεν βρέθηκε εφαρμογή για κλήσεις</string>
+
+    <string name="update_available">Είναι διαθέσιμη μια νέα ενημέρωση.</string>
+    <string name="update_action">Ενημέρωση</string>
+    <string name="update_downloaded">Η ενημέρωση είναι έτοιμη για εγκατάσταση.</string>
+    <string name="update_install">Εγκατάσταση</string>
+
+    <string name="select_an_application">Επιλογή εφαρμογής</string>
+
+    <string name="gesture_shortcuts_title">Συντομεύσεις χειρονομιών</string>
+    <string name="paid_feature_title">Πληρωμένη δυνατότητα</string>
+
+    <string name="tap_icon_to_select_app">Πάτησε σε ένα εικονίδιο για να επιλέξεις εφαρμογή</string>
+
+    <string name="requires_subscription">Απαιτείται συνδρομή</string>
+
+    <string name="button_to_move_app_to_quick_app_list">Μετακίνηση στις εφαρμογές αρχικής οθόνης</string>
+    <string name="button_to_move_app_to_primary_app_list">Μετακίνηση στις εφαρμογές συρταριού</string>
+    <string name="button_to_move_app_to_ghost_app_list">Μετακίνηση στις κρυφές εφαρμογές</string>
+
+    <string name="title_widgets">Γραφικά στοιχεία</string>
+    <string name="title_time">Ώρα</string>
+    <string name="rest_widget_positions">Επαναφορά θέσεων</string>
+
+    <string name="title_analog_clock">Αναλογικό ρολόι</string>
+    <string name="title_clock_size">Μέγεθος ρολογιού</string>
+    <string name="clock_background_color">Χρώμα φόντου ρολογιού</string>
+    <string name="background_transparency">Διαφάνεια φόντου</string>
+    <string name="hour_hand_color">Χρώμα δείκτη ωρών</string>
+    <string name="minute_hand_color">Χρώμα δείκτη λεπτών</string>
+
+    <string name="title_time_format">Μορφή ώρας</string>
+    <string name="title_show_am_pm">Εμφάνιση π.μ./μ.μ.</string>
+    <string name="title_font_size">Μέγεθος γραμματοσειράς</string>
+    <string name="title_font_weight">Πάχος γραμματοσειράς</string>
+    <string name="title_font_style">Είδος γραμματοσειράς</string>
+    <string name="title_time_font_color">Χρώμα γραμματοσειράς ώρας</string>
+
+    <string name="title_date">Ημερομηνία</string>
+    <string name="date_example">Σαβ., Σεπτ 16</string>
+    <string name="date_font_color">Χρώμα γραμματοσειράς ημερομηνίας</string>
+
+    <string name="title_battery">Μπαταρία</string>
+    <string name="show_battery_icon">Εμφάνιση εικονιδίου μπαταρίας</string>
+    <string name="show_battery_percentage">Εμφάνιση ποσοστού μπαταρίας</string>
+    <string name="battery_indicator_color">Χρώμα δείκτη</string>
+
+    <string name="title_notifications">Ειδοποιήσεις</string>
+    <string name="show_notification_icons">Εμφάνιση εικονιδίων ειδοποιήσεων</string>
+
+    <string name="title_size">Μέγεθος</string>
+    <string name="title_color">Χρώμα</string>
+    <string name="title_selected_color">Επιλεγμένο χρώμα</string>
+
+    <string name="button_text_save">Αποθήκευση</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">Λειτουργίες Pro</string>
+    <string name="title_subscription">Συνδρομή</string>
+    <string name="go_to_page">Άνοιγμα σελίδας</string>
+
+    <string name="title_support">Υποστήριξη</string>
+    <string name="title_how_to">Οδηγίες</string>
+    <string name="title_app_guide">Οδηγός πλοήγησης εφαρμογής</string>
+
+    <string name="icon_how_to_guide">Εικονίδιο οδηγού «Οδηγίες»</string>
+    <string name="icon_arrow_right">Εικονίδιο βέλους προς τα δεξιά</string>
+
+    <string name="title_report_issue">Αναφορά προβλήματος</string>
+    <string name="icon_support">Εικονίδιο υποστήριξης</string>
+
+    <string name="title_wallpapers">Ταπετσαρίες</string>
+    <string name="title_auto_wallpapers">Αυτόματες ταπετσαρίες</string>
+    <string name="auto_wallpaper_text">Αυτόματη αλλαγή ταπετσαριών</string>
+    <string name="icon_wallpaper">Εικονίδιο ταπετσαρίας</string>
+
+    <string name="title_monochrome">Μονόχρωμο φόντο</string>
+    <string name="title_color_less_world">Λειτουργία χωρίς χρώματα</string>
+    <string name="icon_monochrome">Μονόχρωμο εικονίδιο</string>
+
+    <string name="title_wallpaper_motion">Κίνηση ταπετσαρίας</string>
+    <string name="wallpaper_motion_text">Κάνε την αρχική οθόνη πιο ζωντανή</string>
+    <string name="icon_wallpaper_motion">Εικονίδιο κίνησης ταπετσαρίας</string>
+
+    <string name="title_change_wallpaper">Αλλαγή ταπετσαρίας</string>
+    <string name="change_wallpaper_text">Πάτησε για να αλλάξεις ταπετσαρία τώρα</string>
+    <string name="icon_wallpaper_change">Εικονίδιο αλλαγής ταπετσαρίας</string>
+
+    <string name="title_wallpaper_frequency">Συχνότητα αλλαγής</string>
+    <string name="wallpaper_frequency_text">Με αυτόματη λειτουργία ημέρας/νύχτας</string>
+    <string name="icon_wallpaper_frequency">Εικονίδιο συχνότητας ταπετσαρίας</string>
+
+    <string name="title_own_wallpapers">Ορισμός δικών σου ταπετσαριών</string>
+    <string name="wallpaper_directory_select">Πάτησε για επιλογή φακέλου</string>
+    <string name="icon_wallpaper_directory">Εικονίδιο φακέλου ταπετσαριών</string>
+
+    <string name="set_launcher_first">Πρώτα όρισε το Comfer ως προεπιλεγμένο launcher</string>
+
+    <string name="title_lock_screen">Οθόνη κλειδώματος</string>
+    <string name="lock_screen_wallpaper_text">Ορισμός ταπετσαρίας και στην οθόνη κλειδώματος</string>
+    <string name="icon_lock_screen_wallpaper">Εικονίδιο ταπετσαρίας οθόνης κλειδώματος</string>
+
+    <string name="title_app_icons">Εικονίδια εφαρμογών</string>
+    <string name="title_app_icon_size">Μέγεθος εικονιδίου</string>
+    <string name="icon_app_icon_size">Εικονίδιο μεγέθους εικονιδίου εφαρμογής</string>
+    <string name="button_decrease_app_icon_size">Μείωση μεγέθους εικονιδίου</string>
+    <string name="button_increase_app_icon_size">Αύξηση μεγέθους εικονιδίου</string>
+
+    <string name="title_themed_icons">Εικονίδια με θέμα</string>
+    <string name="themed_icons_text">Ταίριαξε τα χρώματα των εικονιδίων με την ταπετσαρία (πειραματικό)</string>
+    <string name="icon_themed_icons">Εικονίδιο εικονιδίων με θέμα</string>
+
+    <string name="title_notification_badges">Σήματα ειδοποιήσεων και εικονιδίων</string>
+    <string name="requires_notification_permission">Απαιτείται άδεια ειδοποιήσεων</string>
+    <string name="icon_notification_badges">Εικονίδιο σημάτων ειδοποιήσεων</string>
+
+    <string name="title_home_screen">Αρχική οθόνη</string>
+    <string name="title_custom_widgets">Προσαρμοσμένα γραφικά στοιχεία</string>
+    <string name="custom_widgets_text">Τα αγαπημένα σου γραφικά στοιχεία</string>
+    <string name="icon_custom_widgets">Εικονίδιο προσαρμοσμένων γραφικών στοιχείων</string>
+
+    <string name="title_quick_apps_layout">Διάταξη εφαρμογών αρχικής οθόνης</string>
+    <string name="quick_apps_layout_text">Τακτοποίησε τις εφαρμογές με στυλ</string>
+    <string name="icon_apps_layout">Εικονίδιο διάταξης εφαρμογών αρχικής οθόνης</string>
+
+    <string name="title_left_swipe_action">Ενέργεια σάρωσης προς τα αριστερά</string>
+    <string name="icon_left_swipe_action">Εικονίδιο ενέργειας σάρωσης προς τα αριστερά</string>
+
+    <string name="title_right_swipe_action">Ενέργεια σάρωσης προς τα δεξιά</string>
+    <string name="icon_right_swipe_action">Εικονίδιο ενέργειας σάρωσης προς τα δεξιά</string>
+
+    <string name="title_swipe_gestures">Χειρονομίες σάρωσης</string>
+    <string name="swipe_gestures_text">Χρησιμοποίησε χειρονομίες για συντομεύσεις εφαρμογών</string>
+    <string name="icon_swipe_gestures">Εικονίδιο χειρονομιών σάρωσης</string>
+
+    <string name="title_app_drawer">Συρτάρι εφαρμογών</string>
+    <string name="title_app_drawer_layouts">Διατάξεις</string>
+    <string name="app_drawer_layouts_text">Τρόποι περιήγησης στις εφαρμογές</string>
+
+    <string name="title_alphabetical_order">Αλφαβητική σειρά</string>
+    <string name="alphabetical_order_text">Ταξινόμηση εφαρμογών αλφαβητικά</string>
+    <string name="icon_alphabetical_order">Εικονίδιο αλφαβητικής ταξινόμησης</string>
+
+    <string name="title_apps_list">Λίστες εφαρμογών</string>
+    <string name="title_manage_app_list">Διαχείριση εφαρμογών</string>
+    <string name="manage_app_list_text">Οργάνωση ή αναδιάταξη εφαρμογών σε λίστες</string>
+    <string name="icon_manage_app_list">Εικονίδιο διαχείρισης λίστας εφαρμογών</string>
+
+    <string name="title_feedback">Σχόλια</string>
+    <string name="icon_feedback">Εικονίδιο σχολίων</string>
+
+    <string name="title_share_app">Κοινή χρήση εφαρμογής</string>
+    <string name="icon_share_app">Εικονίδιο κοινής χρήσης εφαρμογής</string>
+    <string name="share_app_text">Δοκίμασε αυτόν τον νέο launcher:</string>
+
+    <string name="title_share_with">Κοινή χρήση μέσω</string>
+
+    <string name="title_app_version">Έκδοση εφαρμογής</string>
+    <string name="icon_app_version">Εικονίδιο έκδοσης εφαρμογής</string>
+
+    <string name="title_icon_shapes">Σχήματα εικονιδίων</string>
+    <string name="icon_shapes_text">Επίλεξε σχήμα εικονιδίων εφαρμογών</string>
+    <string name="icon_icon_shapes">Εικονίδιο σχημάτων εικονιδίων</string>
+
+    <string name="title_select_icon_shape">Επιλογή σχήματος εικονιδίου</string>
+
+    <string name="notification_permission_text">
+        Για να εμφανίζονται εικονίδια ειδοποιήσεων στην αρχική οθόνη και σήματα στα εικονίδια εφαρμογών, το Comfer χρειάζεται πρόσβαση στις ειδοποιήσεις.
+    </string>
+
+    <string name="what_notification_permission_do_title">Αυτή η υπηρεσία επιτρέπει:</string>
+
+    <string name="what_notification_permission_do_text">
+        • Ανάγνωση της κατάστασης ειδοποιήσεων και εμφάνιση εικονιδίων και σημάτων όταν χρειάζεται.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">Αυτή η υπηρεσία δεν κάνει:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • Δεν συλλέγει προσωπικά δεδομένα.
+    </string>
+
+    <string name="title_choose_layout">Επιλογή διάταξης</string>
+    <string name="swipe_action_selection">Επιλογή εφαρμογής ή οθόνης γραφικών στοιχείων</string>
+    <string name="title_choose_options">Επιλογή επιλογής</string>
+    <string name="title_select_app">Επιλογή εφαρμογής</string>
+    <string name="title_widgets_screen">Οθόνη γραφικών στοιχείων</string>
+    <string name="title_choose_action">Επιλογή ενέργειας</string>
+
+    <string name="unable_to_load_subscriptions">
+        Αδυναμία φόρτωσης πληροφοριών συνδρομής. Έλεγξε τη σύνδεση και προσπάθησε ξανά.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">Αποτυχία φόρτωσης συνδρομής</string>
+    <string name="no_subscription_available">Δεν υπάρχει διαθέσιμη συνδρομή</string>
+
+    <string name="title_active_subscription">Ενεργή συνδρομή</string>
+    <string name="subscription_renews_on">Ανανεώνεται στις</string>
+    <string name="subscription_expires_on">Λήγει στις</string>
+
+    <string name="subscription_benefit_one">Ορισμός δικών σου δυναμικών ταπετσαριών</string>
+    <string name="subscription_benefit_two">Προσθήκη αγαπημένων γραφικών στοιχείων στην αρχική οθόνη</string>
+    <string name="subscription_benefit_three">Προσαρμογή προεπιλεγμένων γραφικών στοιχείων στην αρχική οθόνη</string>
+    <string name="subscription_benefit_four">Χρήση χειρονομιών για γρήγορο άνοιγμα εφαρμογών</string>
+
+    <string name="title_manage_your_subscription">Διαχείριση συνδρομής</string>
+    <string name="title_pro_access">Πρόσβαση Pro</string>
+    <string name="title_year">έτος</string>
+
+    <string name="subscription_failed_prefix">Αποτυχία συνδρομής</string>
+    <string name="subscription_successful_prefix">Επιτυχής συνδρομή</string>
+    <string name="title_subscribe_now">Εγγραφή τώρα</string>
+
+    <string name="subscription_restore_failed_prefix">Αποτυχία επαναφοράς συνδρομής</string>
+    <string name="subscription_restore_successful_prefix">Η συνδρομή επανήλθε με επιτυχία</string>
+    <string name="subscription_not_found_to_restore">Δεν βρέθηκε συνδρομή για επαναφορά</string>
+    <string name="title_restore_subscription">Επαναφορά συνδρομής</string>
+
+    <string name="guide_home_swipe_up">Σάρωσε προς τα πάνω για να ανοίξεις το συρτάρι εφαρμογών.</string>
+    <string name="guide_home_swipe_down">Σάρωσε προς τα κάτω για να δεις τις ειδοποιήσεις.</string>
+    <string name="guide_home_double_tap">Κάνε διπλό πάτημα στην οθόνη για να ανοίξεις τις «Πρόσφατες εφαρμογές».</string>
+    <string name="guide_home_long_press_lower">Κράτησε πατημένο το κάτω μισό της οθόνης για να ανοίξεις τις ρυθμίσεις.</string>
+    <string name="guide_home_long_press_upper">Κράτησε πατημένο το πάνω μισό της οθόνης για να επεξεργαστείς γραφικά στοιχεία.</string>
+    <string name="guide_home_tap_upper_half">Πάτησε στο πάνω μισό της οθόνης για έξοδο από την επεξεργασία γραφικών στοιχείων.</string>
+    <string name="guide_home_tap_date_time">Πάτησε στην ημερομηνία/ώρα για να δεις τα ξυπνητήρια.</string>
+    <string name="guide_home_long_press_date_time">Κράτησε πατημένη την ημερομηνία/ώρα για να ανοίξεις το ημερολόγιο.</string>
+    <string name="guide_home_swipe_left_right">Σάρωσε αριστερά ή δεξιά για να ανοίξεις την επιλεγμένη εφαρμογή ή την οθόνη γραφικών στοιχείων.</string>
+    <string name="guide_home_gestures">Σχεδίασε χειρονομίες για να ανοίγεις εφαρμογές που έχουν οριστεί στις συντομεύσεις χειρονομιών.</string>
+
+    <string name="guide_circular_app_drawer">Κυκλικό συρτάρι εφαρμογών</string>
+    <string name="guide_circular_app_drawer_swipe_down">Σάρωσε προς τα κάτω για να επιστρέψεις.</string>
+    <string name="guide_circular_app_drawer_double_tap">Κάνε διπλό πάτημα για να ανοίξεις την εφαρμογή στο κέντρο.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">Σάρωσε αριστερά ή δεξιά για κύλιση.</string>
+    <string name="guide_circular_app_drawer_tap_icon">Πάτησε σε ένα εικονίδιο για να ανοίξεις την εφαρμογή.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">Κράτησε πατημένο ένα εικονίδιο για να ανοίξεις τις πληροφορίες εφαρμογής.</string>
+
+    <string name="guide_horizontal_app_drawer">Οριζόντιο συρτάρι εφαρμογών</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">Σάρωσε προς τα κάτω για να επιστρέψεις.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">Σάρωσε αριστερά ή δεξιά για κύλιση.</string>
+    <string name="guide_horizontal_app_drawer_long_press">Κράτησε πατημένο για να διαχειριστείς το συρτάρι.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">Σύρε και άφησε εικονίδια σε λειτουργία επεξεργασίας για αλλαγή θέσης.</string>
+    <string name="guide_horizontal_app_drawer_drag">Σύρε το συρτάρι σε λειτουργία επεξεργασίας για να το μετακινήσεις κατακόρυφα.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">Πάτησε μία φορά για έξοδο από τη λειτουργία επεξεργασίας.</string>
+
+    <string name="guide_search">Αναζήτηση εφαρμογών ή επαφών.</string>
+    <string name="guide_search_swipe_down">Σάρωσε προς τα κάτω στο πληκτρολόγιο για να επιστρέψεις.</string>
+    <string name="guide_search_swipe_right">Σάρωσε προς τα δεξιά στο πληκτρολόγιο για αναζήτηση στις επαφές.</string>
+    <string name="guide_search_swipe_left">Σάρωσε προς τα αριστερά στο πληκτρολόγιο για αναζήτηση στις εφαρμογές.</string>
+    <string name="guide_search_swipe_up">Σάρωσε προς τα πάνω στο πληκτρολόγιο για να δεις περισσότερους χαρακτήρες.</string>
+    <string name="guide_search_long_press">Κράτησε πατημένο το βέλος επιστροφής στο κέντρο για επιλογή γλώσσας.</string>
+    <string name="guide_search_scroll_list">Κάνε οριζόντια κύλιση στη λίστα εφαρμογών για να δεις όλα τα αποτελέσματα.</string>
+    <string name="guide_search_scroll_sides">Κάνε κύλιση στα πλάγια του κυκλικού πληκτρολογίου για να μετακινήσεις τη λίστα επαφών.</string>
+    <string name="guide_search_double_tap_sides">Κάνε διπλό πάτημα σε οποιαδήποτε πλευρά του κυκλικού πληκτρολογίου για να ανοίξεις τον επιλογέα κλήσης με την επισημασμένη επαφή.</string>
+
+    <string name="guide_manage_apps">Διαχείριση λίστας εφαρμογών</string>
+    <string name="guide_manage_apps_tap">Πάτησε για να επιλέξεις εφαρμογές και να τις μετακινήσεις σε άλλη λίστα.</string>
+    <string name="guide_manage_apps_long_press">
+        Κράτησε πατημένο ένα εικονίδιο εφαρμογής για να το σύρεις και να αλλάξεις τη σειρά στην ίδια λίστα. Λειτουργεί μόνο όταν η λίστα δεν είναι ταξινομημένη αλφαβητικά.
+    </string>
+
+    <string name="title_app_language">Γλώσσα εφαρμογής</string>
+    <string name="app_language_text">Πάτησε για να αλλάξεις τη γλώσσα της εφαρμογής</string>
+    <string name="icon_app_language">Εικονίδιο γλώσσας εφαρμογής</string>
+</resources>

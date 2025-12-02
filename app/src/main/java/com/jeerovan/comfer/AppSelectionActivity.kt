@@ -8,6 +8,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -44,7 +45,7 @@ import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import kotlin.math.min
 
-class AppSelectionActivity : ComponentActivity() {
+class AppSelectionActivity : AppCompatActivity() {
 
     private val appInfoViewModel: AppInfoViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
