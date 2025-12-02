@@ -11,6 +11,8 @@ import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import kotlinx.serialization.json.Json
 import java.util.Calendar
 import androidx.core.net.toUri
+import androidx.core.os.LocaleListCompat
+import com.jeerovan.comfer.utils.KeyboardLocale
 import java.io.File
 import java.util.Locale
 
@@ -409,7 +411,23 @@ object PreferenceManager {
         setBoolean(context,WALLPAPER_SET,applied)
     }
     fun getKeyboardLocale(context: Context): Locale {
-        return Locale.forLanguageTag(getString(context,KEYBOARD_LOCALE,"en"))
+        // 1. Get the raw preference (default to "system" if not set)
+        val savedTag = getString(context, KEYBOARD_LOCALE, "system")
+        // 2. If user selected a specific language manually, return it
+        if (savedTag != "system") {
+            return Locale.forLanguageTag(savedTag)
+        }
+        // 3. "Follow System" Logic:
+        // Get the device's top preferred locale
+        val deviceLocale = LocaleListCompat.getAdjustedDefault()[0] ?: Locale.ENGLISH
+        val supportedLocales = KeyboardLocale.getSupportedLocales()
+        // 4. Find the best match in your supported list
+        // First try exact match (fr-FR == fr-FR)
+        // Then try language match (fr-FR matches fr)
+        val bestMatch = supportedLocales.firstOrNull { it == deviceLocale }
+            ?: supportedLocales.firstOrNull { it.language == deviceLocale.language }
+            ?: Locale.ENGLISH
+        return bestMatch
     }
     fun setKeyboardLocale(context: Context,locale: Locale) {
         setString(context,KEYBOARD_LOCALE,locale.toLanguageTag())
