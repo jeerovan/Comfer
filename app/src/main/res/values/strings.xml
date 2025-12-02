@@ -3,7 +3,8 @@
     <string name="welcome">Welcome</string>
 
     <string name="checkout_how_to_guide">
-        Long-press anywhere on the Home screen to open the menu and view the “How-to” guide.
+        Long-press anywhere on the Home screen to open the menu and view the “How-to” guide.\n
+        Disclaimer: Some translations may have been generated automatically. If you notice any incorrect text, please contact us by email.
     </string>
 
     <string name="accessibility_service_description">

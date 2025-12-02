@@ -4,7 +4,8 @@
     <string name="welcome">Bem-vindo</string>
 
     <string name="checkout_how_to_guide">
-        Toque e segure em qualquer lugar na tela inicial para abrir o menu e ver o guia "Como usar".
+        Toque e segure em qualquer lugar na tela inicial para abrir o menu e ver o guia "Como usar".\n
+        Aviso: Algumas traduções podem ter sido geradas automaticamente. Se notar algum texto incorreto, entre em contato por e-mail.
     </string>
 
     <string name="accessibility_service_description">

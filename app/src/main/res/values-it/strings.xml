@@ -4,7 +4,8 @@
     <string name="welcome">Benvenuto</string>
 
     <string name="checkout_how_to_guide">
-        Tieni premuto in un punto qualsiasi della schermata Home per aprire il menu e vedere la guida "Come si usa".
+        Tieni premuto in un punto qualsiasi della schermata Home per aprire il menu e vedere la guida "Come si usa".\n
+        Avviso: Alcune traduzioni potrebbero essere state generate automaticamente. Se noti testo errato, contattaci via e-mail.
     </string>
 
     <string name="accessibility_service_description">
