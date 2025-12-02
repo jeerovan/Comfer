@@ -482,6 +482,9 @@ object CommonUtil {
             "circle" -> {
                 CircleShape
             }
+            "pebble" -> {
+                PebbleShape()
+            }
             else -> {
                 CircleShape
             }

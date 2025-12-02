@@ -105,6 +105,7 @@ import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import com.jeerovan.comfer.utils.CommonUtil.getUriPath
 import com.jeerovan.comfer.utils.CommonUtil.openUrl
+import com.jeerovan.comfer.utils.PebbleShape
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -890,7 +891,8 @@ fun ShapeSelectionDialog(
     )
     val shapesRowTwo = mapOf(
         "flower" to FlowerShape(petalCount = 7),
-        "cutcorner" to CutCornerShape(0.dp)
+        "cutcorner" to CutCornerShape(0.dp),
+        "pebble" to PebbleShape()
     )
 
     AlertDialog(
