@@ -27,6 +27,7 @@ import androidx.palette.graphics.Palette
 import coil.Coil
 import coil.request.ImageRequest
 import coil.request.ImageResult
+import com.jeerovan.comfer.KeyTextObject
 import com.jeerovan.comfer.ImageData
 import com.jeerovan.comfer.LoggerManager
 import com.jeerovan.comfer.PreferenceKeys
@@ -523,6 +524,18 @@ object CommonUtil {
             }
         }
         return inSampleSize
+    }
+    fun getKeyTextObject(option: String,context: Context) : KeyTextObject {
+        return when(option) {
+            "H12" -> KeyTextObject(option,option)
+            "H24" -> KeyTextObject(option,option)
+            "Hourly" -> KeyTextObject(context.getString(R.string.update_frequency_hour),option)
+            "Daily" -> KeyTextObject(context.getString(R.string.update_frequency_day),option)
+            "Light" -> KeyTextObject(context.getString(R.string.font_weight_light),option)
+            "Normal" -> KeyTextObject(context.getString(R.string.font_weight_normal),option)
+            "Bold" -> KeyTextObject(context.getString(R.string.font_weight_bold),option)
+            else -> KeyTextObject(option,option)
+        }
     }
 }
 

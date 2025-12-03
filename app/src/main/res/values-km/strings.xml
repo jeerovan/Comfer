@@ -333,5 +333,8 @@
     <string name="icon_app_language">រូបតំណាង​ភាសា​កម្មវិធី</string>
     <string name="update_frequency_hour">មួយម៉ោង</string>
     <string name="update_frequency_day">មួយថ្ងៃ</string>
+    <string name="font_weight_light">ស្រាល</string>
+    <string name="font_weight_normal">ធម្មតា</string>
+    <string name="font_weight_bold">ដិត</string>
 
 </resources>

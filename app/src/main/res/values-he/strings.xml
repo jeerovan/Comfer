@@ -333,5 +333,8 @@
     <string name="icon_app_language">אייקון שפת האפליקציה</string>
     <string name="update_frequency_hour">שעה</string>
     <string name="update_frequency_day">יום</string>
+    <string name="font_weight_light">קל</string>
+    <string name="font_weight_normal">רגיל</string>
+    <string name="font_weight_bold">מודגש</string>
 
 </resources>

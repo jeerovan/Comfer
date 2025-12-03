@@ -336,5 +336,8 @@
     <string name="icon_app_language">Иконаи забони барнома</string>
     <string name="update_frequency_hour">Як соат</string>
     <string name="update_frequency_day">Як рӯз</string>
+    <string name="font_weight_light">Сабук</string>
+    <string name="font_weight_normal">Оддӣ</string>
+    <string name="font_weight_bold">Ғафс</string>
 
 </resources>

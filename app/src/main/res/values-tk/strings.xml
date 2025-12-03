@@ -333,5 +333,8 @@
     <string name="icon_app_language">App language ikonasy</string>
     <string name="update_frequency_hour">Bir sagat</string>
     <string name="update_frequency_day">Bir gün</string>
+    <string name="font_weight_light">Ýuksaň</string>
+    <string name="font_weight_normal">Adaty</string>
+    <string name="font_weight_bold">Galyň</string>
 
 </resources>

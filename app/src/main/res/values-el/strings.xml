@@ -333,5 +333,8 @@
     <string name="icon_app_language">Εικονίδιο γλώσσας εφαρμογής</string>
     <string name="update_frequency_hour">Μία ώρα</string>
     <string name="update_frequency_day">Μία μέρα</string>
+    <string name="font_weight_light">Ελαφρύ</string>
+    <string name="font_weight_normal">Κανονικό</string>
+    <string name="font_weight_bold">Έντονο</string>
 
 </resources>

@@ -334,5 +334,8 @@
     <string name="icon_app_language">أيقونة لغة التطبيق</string>
     <string name="update_frequency_hour">ساعة</string>
     <string name="update_frequency_day">يوم</string>
+    <string name="font_weight_light">خفيف</string>
+    <string name="font_weight_normal">عادي</string>
+    <string name="font_weight_bold">عريض</string>
 
 </resources>

@@ -333,5 +333,8 @@
     <string name="icon_app_language">ऐप भाषा आइकन</string>
     <string name="update_frequency_hour">एक घंटा</string>
     <string name="update_frequency_day">एक दिन</string>
+    <string name="font_weight_light">हल्का</string>
+    <string name="font_weight_normal">सामान्य</string>
+    <string name="font_weight_bold">गाढ़ा</string>
 
 </resources>

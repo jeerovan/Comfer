@@ -333,5 +333,8 @@
     <string name="icon_app_language">Іконка мови додатка</string>
     <string name="update_frequency_hour">Година</string>
     <string name="update_frequency_day">День</string>
+    <string name="font_weight_light">Легкий</string>
+    <string name="font_weight_normal">Звичайний</string>
+    <string name="font_weight_bold">Жирний</string>
 
 </resources>

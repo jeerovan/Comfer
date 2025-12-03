@@ -333,5 +333,8 @@
     <string name="icon_app_language">App language icon</string>
     <string name="update_frequency_hour">Нэг цаг</string>
     <string name="update_frequency_day">Нэг өдөр</string>
+    <string name="font_weight_light">Хөнгөн</string>
+    <string name="font_weight_normal">Энгийн</string>
+    <string name="font_weight_bold">Тод</string>
 
 </resources>

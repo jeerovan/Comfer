@@ -333,5 +333,8 @@
     <string name="icon_app_language">Иконка языка приложения</string>
     <string name="update_frequency_hour">Час</string>
     <string name="update_frequency_day">День</string>
+    <string name="font_weight_light">Светлый</string>
+    <string name="font_weight_normal">Обычный</string>
+    <string name="font_weight_bold">Жирный</string>
 
 </resources>

@@ -333,5 +333,8 @@
     <string name="icon_app_language">Uygulama dili simgesi</string>
     <string name="update_frequency_hour">Bir saat</string>
     <string name="update_frequency_day">Bir gün</string>
+    <string name="font_weight_light">İnce</string>
+    <string name="font_weight_normal">Normal</string>
+    <string name="font_weight_bold">Kalın</string>
 
-    </resources>
+</resources>

@@ -333,5 +333,8 @@
     <string name="icon_app_language">Biểu tượng ngôn ngữ ứng dụng</string>
     <string name="update_frequency_hour">Một giờ</string>
     <string name="update_frequency_day">Một ngày</string>
+    <string name="font_weight_light">Mỏng</string>
+    <string name="font_weight_normal">Thường</string>
+    <string name="font_weight_bold">Đậm</string>
 
 </resources>

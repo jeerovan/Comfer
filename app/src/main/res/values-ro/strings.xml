@@ -333,5 +333,8 @@
     <string name="icon_app_language">Pictogramă limbă aplicație</string>
     <string name="update_frequency_hour">O oră</string>
     <string name="update_frequency_day">O zi</string>
+    <string name="font_weight_light">Subțire</string>
+    <string name="font_weight_normal">Normal</string>
+    <string name="font_weight_bold">Aldin</string>
 
 </resources>

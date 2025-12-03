@@ -333,5 +333,8 @@
     <string name="icon_app_language">앱 언어 아이콘</string>
     <string name="update_frequency_hour">한 시간</string>
     <string name="update_frequency_day">하루</string>
+    <string name="font_weight_light">가늘게</string>
+    <string name="font_weight_normal">보통</string>
+    <string name="font_weight_bold">굵게</string>
 
 </resources>

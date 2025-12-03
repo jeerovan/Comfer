@@ -333,5 +333,8 @@
     <string name="icon_app_language">آیکون زبان برنامه</string>
     <string name="update_frequency_hour">یک ساعت</string>
     <string name="update_frequency_day">یک روز</string>
+    <string name="font_weight_light">سبک</string>
+    <string name="font_weight_normal">معمولی</string>
+    <string name="font_weight_bold">بولد</string>
 
 </resources>

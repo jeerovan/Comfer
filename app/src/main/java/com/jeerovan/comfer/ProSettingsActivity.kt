@@ -60,6 +60,7 @@ import androidx.compose.ui.window.Dialog
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.ui.theme.fontProvider
 import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
+import com.jeerovan.comfer.utils.CommonUtil.getKeyTextObject
 import com.jeerovan.comfer.utils.CommonUtil.isColorDark
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyGridState
@@ -206,7 +207,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                     SettingDropdown(
                         label = stringResource(R.string.title_time_format),
                         selectedValue = settingsState.timeFormat,
-                        options = arrayOf("H12", "H24").map { it },
+                        options = arrayOf(getKeyTextObject("H12",context),getKeyTextObject("H24",context)),
                         onValueChange = {
                             settingsViewModel.setTimeFormat(it)
                         }
@@ -232,7 +233,10 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                     SettingDropdown(
                         label = stringResource(R.string.title_font_weight),
                         selectedValue = settingsState.timeFontWeight,
-                        options = arrayOf("Light", "Normal", "Bold").map { it },
+                        options = arrayOf(getKeyTextObject("Light",context),
+                            getKeyTextObject("Normal",context),
+                                getKeyTextObject("Bold",context)
+                        ),
                         onValueChange = {
                             settingsViewModel.setTimeFontWeight(it)
                         }
@@ -328,7 +332,10 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                 SettingDropdown(
                     label = stringResource(R.string.title_font_weight),
                     selectedValue = settingsState.dateFontWeight,
-                    options = arrayOf("Light", "Normal", "Bold").map { it },
+                    options = arrayOf(getKeyTextObject("Light",context),
+                        getKeyTextObject("Normal",context),
+                        getKeyTextObject("Bold",context)
+                    ),
                     onValueChange = {
                         settingsViewModel.setDateFontWeight(it)
                     }
@@ -558,8 +565,12 @@ fun SettingSlider(label: String, value: Int, range: ClosedFloatingPointRange<Flo
 }
 
 @Composable
-fun SettingDropdown(label: String, selectedValue: String, options: List<String>, onValueChange: (String) -> Unit) {
+fun SettingDropdown(label: String,
+                    selectedValue: String,
+                    options: Array<KeyTextObject>,
+                    onValueChange: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
+    val selectedOption = getKeyTextObject(selectedValue,LocalContext.current)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -574,7 +585,7 @@ fun SettingDropdown(label: String, selectedValue: String, options: List<String>,
         )
         Box {
             Text(
-                text = selectedValue,
+                text = selectedOption.text,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -584,11 +595,11 @@ fun SettingDropdown(label: String, selectedValue: String, options: List<String>,
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(option,
+                        text = { Text(option.text,
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface) },
                         onClick = {
-                            onValueChange(option)
+                            onValueChange(option.key)
                             expanded = false
                         }
                     )

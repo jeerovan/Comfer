@@ -333,5 +333,8 @@
     <string name="icon_app_language">ไอคอนภาษาของแอป</string>
     <string name="update_frequency_hour">หนึ่งชั่วโมง</string>
     <string name="update_frequency_day">หนึ่งวัน</string>
+    <string name="font_weight_light">บาง</string>
+    <string name="font_weight_normal">ปกติ</string>
+    <string name="font_weight_bold">หนา</string>
 
 </resources>

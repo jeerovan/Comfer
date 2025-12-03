@@ -100,6 +100,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.jeerovan.comfer.utils.CommonUtil.canSetLockScreenWallpaper
+import com.jeerovan.comfer.utils.CommonUtil.getKeyTextObject
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import com.jeerovan.comfer.utils.CommonUtil.getUriPath
@@ -369,10 +370,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         {Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.icon_wallpaper_frequency))},
                         settingsState.wallpaperFrequency,
                         {frequency -> settingsViewModel.setWallpaperFrequency(frequency)},
-                        arrayOf(
-                            WallpaperFrequency(
-                            stringResource(R.string.update_frequency_hour),"Hourly"),
-                            WallpaperFrequency(stringResource(R.string.update_frequency_day),"Daily"))
+                        arrayOf(getKeyTextObject("Hourly",context),getKeyTextObject("Daily",context))
                     )
                 }
             }
@@ -1288,17 +1286,11 @@ fun SelectOptionsWithListItemSettingItem(
     supportingLine: String?,
     icon: @Composable (() -> Unit)?,
     selectedOption: String,
-    onSelectionClick: (WallpaperFrequency) -> Unit,
-    options: Array<WallpaperFrequency>
+    onSelectionClick: (String) -> Unit,
+    options: Array<KeyTextObject>
 ) {
     var showDialog by remember { mutableStateOf(false) }
-    val selectedFrequency = if (selectedOption == "Hourly") {
-        WallpaperFrequency(
-            stringResource(R.string.update_frequency_hour), "Hourly"
-        )
-    } else {
-        WallpaperFrequency(stringResource(R.string.update_frequency_day), "Daily")
-    }
+    val selectedFrequency = getKeyTextObject(selectedOption,LocalContext.current)
     ListItem(
         headlineContent = { Text(headline) },
         supportingContent = { if(supportingLine != null)Text(supportingLine) },
@@ -1321,7 +1313,7 @@ fun SelectOptionsWithListItemSettingItem(
                             TextButton(
                             onClick = {
                                 showDialog = false
-                                onSelectionClick(option)
+                                onSelectionClick(option.key)
                             }
                         ) {
                             Text(option.text)

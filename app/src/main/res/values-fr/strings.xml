@@ -333,5 +333,8 @@
     <string name="icon_app_language">Icône de langue de l\'application</string>
     <string name="update_frequency_hour">Une heure</string>
     <string name="update_frequency_day">Un jour</string>
+    <string name="font_weight_light">Léger</string>
+    <string name="font_weight_normal">Normal</string>
+    <string name="font_weight_bold">Gras</string>
 
 </resources>

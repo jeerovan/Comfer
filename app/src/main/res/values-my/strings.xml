@@ -333,5 +333,8 @@
     <string name="icon_app_language">App Language အိုင်ကွန်</string>
     <string name="update_frequency_hour">၁နာရီ</string>
     <string name="update_frequency_day">၁ရက်</string>
+    <string name="font_weight_light">ပေါ့</string>
+    <string name="font_weight_normal">ပုံမှန်</string>
+    <string name="font_weight_bold">အထူ</string>
 
 </resources>

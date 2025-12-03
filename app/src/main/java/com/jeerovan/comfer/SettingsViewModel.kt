@@ -6,7 +6,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
-import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,12 +23,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
-import androidx.core.net.toUri
 import com.jeerovan.comfer.ui.theme.fontProvider
-import com.jeerovan.comfer.utils.CommonUtil.downloadImage
-import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
-import com.jeerovan.comfer.utils.CommonUtil.setBackgroundImageFromImageUri
-import kotlinx.coroutines.delay
 import android.graphics.Bitmap
 import androidx.datastore.preferences.core.edit
 import com.revenuecat.purchases.CustomerInfo
@@ -99,6 +93,10 @@ data class SettingsUiState(
 )
 
 data class WallpaperFrequency(
+    val text: String,
+    val key: String
+)
+data class KeyTextObject(
     val text: String,
     val key: String
 )
@@ -499,10 +497,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _uiState.update { it.copy(notificationColor = color) }
         }
     }
-    fun setWallpaperFrequency(frequency: WallpaperFrequency){
+    fun setWallpaperFrequency(frequency: String){
         viewModelScope.launch {
-            PreferenceManager.setWallpaperFrequency(getApplication(),frequency.key)
-            _uiState.update { it.copy(wallpaperFrequency = frequency.key) }
+            PreferenceManager.setWallpaperFrequency(getApplication(),frequency)
+            _uiState.update { it.copy(wallpaperFrequency = frequency) }
         }
     }
     fun setWallpaperDirectory(directoryUri: String?){
@@ -859,4 +857,5 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         // 4. Generate and save the White image
         saveColorToFile(fileWhite, Color.White)
     }
+
 }

@@ -333,5 +333,8 @@
     <string name="icon_app_language">アプリ言語アイコン</string>
     <string name="update_frequency_hour">一時間</string>
     <string name="update_frequency_day">一日</string>
+    <string name="font_weight_light">ライト</string>
+    <string name="font_weight_normal">標準</string>
+    <string name="font_weight_bold">太字</string>
 
 </resources>

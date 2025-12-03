@@ -333,5 +333,8 @@
     <string name="icon_app_language">App language ikonasi</string>
     <string name="update_frequency_hour">Bir soat</string>
     <string name="update_frequency_day">Bir kun</string>
+    <string name="font_weight_light">Yengil</string>
+    <string name="font_weight_normal">Oddiy</string>
+    <string name="font_weight_bold">Qalin</string>
 
 </resources>
