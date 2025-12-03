@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
@@ -284,7 +285,10 @@ object CommonUtil {
         val autoWallpapers = PreferenceManager.getAutoWallpapers(applicationContext)
         if(!autoWallpapers) return
         val previousWallpaperApplied = PreferenceManager.getWallpaperApplied(applicationContext)
-        if(!previousWallpaperApplied) return
+        if(!previousWallpaperApplied && !manualChange) {
+            Log.e("FetchImageData","Previous Wallpaper Not Applied Yet")
+            return
+        }
         val changeFrequency = PreferenceManager.getWallpaperFrequency(applicationContext)
         val hour = PreferenceManager.getHour(applicationContext)
         if (hour > 0 || manualChange) {

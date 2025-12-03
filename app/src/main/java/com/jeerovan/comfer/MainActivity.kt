@@ -2878,68 +2878,53 @@ private fun lerp(start: Float, stop: Float, fraction: Float): Float {
 
 @Composable
 fun AnimatedBackground(
-    backgroundImage: Any?,
+    backgroundImage: Any?, // Can be a URL, URI, or other data Coil can handle
     wallpaperMotionEnabled: Boolean,
     maxWidthPx: Float,
     maxHeightPx: Float
 ) {
     val context = LocalContext.current
 
-    // Use AnimatedContent to handle the transition between "old" and "new" background objects.
-    // This ensures that when 'backgroundImage' changes, the old one is removed via animation.
-    AnimatedContent(
-        targetState = backgroundImage,
-        transitionSpec = {
-            // Fade in the new image over 500ms.
-            // You can use 'fadeIn() togetherWith fadeOut()' for a crossfade,
-            // or just 'fadeIn()' to show the new one on top of a black/transparent background.
-            fadeIn(animationSpec = tween(500)) togetherWith fadeOut(animationSpec = tween(500))
-        },
-        label = "BackgroundTransition"
-    ) { currentImage ->
-
-        if (currentImage != null) {
-            // Re-establish animation for the *current* image being shown
-            val infiniteTransition = rememberInfiniteTransition(label = "wallpaper_motion")
-            val angle by if (wallpaperMotionEnabled) {
-                infiniteTransition.animateFloat(
-                    initialValue = 0f,
-                    targetValue = (2f * Math.PI).toFloat(),
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(60000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Restart
+        val infiniteTransition = rememberInfiniteTransition(label = "wallpaper_motion")
+        val angle by if (wallpaperMotionEnabled) {
+            infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = (2f * Math.PI).toFloat(),
+                animationSpec = infiniteRepeatable(
+                    animation = tween(
+                        durationMillis = 60000,
+                        easing = LinearEasing
                     ),
-                    label = "angle"
-                )
-            } else {
-                remember { mutableFloatStateOf(0f) }
-            }
-
-            val xOffset = if (wallpaperMotionEnabled) cos(angle) * maxWidthPx * 0.08f else 0f
-            val yOffset = if (wallpaperMotionEnabled) sin(angle) * maxHeightPx * 0.08f else 0f
-
-            AsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(currentImage)
-                    .crossfade(true) // Enable Coil's internal crossfade too for smoother loading
-                    .build(),
-                contentDescription = stringResource(R.string.background_image),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .scale(if (wallpaperMotionEnabled) 1.2f else 1f)
-                    .graphicsLayer {
-                        translationX = xOffset
-                        translationY = yOffset
-                    },
-                contentScale = ContentScale.Crop
+                    repeatMode = RepeatMode.Restart
+                ),
+                label = "angle-animation"
             )
         } else {
-            // If null, show a transparent box or loading state
-            Box(modifier = Modifier.fillMaxSize().background(Color.Transparent))
+            remember { mutableFloatStateOf(0f) }
         }
-    }
-}
 
+        val xOffset = if (wallpaperMotionEnabled) cos(angle) * maxWidthPx * 0.08f else 0f
+        val yOffset = if (wallpaperMotionEnabled) sin(angle) * maxHeightPx * 0.08f else 0f
+
+        AsyncImage(
+            model = ImageRequest.Builder(context)
+                .data(backgroundImage)
+                .crossfade(true)
+                .build(),
+            contentDescription = stringResource(R.string.background_image),
+            modifier = Modifier
+                .fillMaxSize()
+                // The scale modifier is applied conditionally
+                .scale(if (wallpaperMotionEnabled) 1.2f else 1f)
+                // graphicsLayer remains the most performant way to apply transformations [32]
+                .graphicsLayer {
+                    translationX = xOffset
+                    translationY = yOffset
+                },
+            contentScale = ContentScale.Crop
+        )
+
+}
 @Composable
 fun UshapedAppList(
     apps: List<AppInfo>,

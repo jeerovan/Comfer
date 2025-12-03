@@ -12,6 +12,7 @@ import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaperThemedColors
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,8 +38,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val logger = LoggerManager(application)
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState = _uiState.asStateFlow()
-    private var isWorking = false
-    private var isLoadingWallpaper = false
+    private var backgroundLoadJob: Job? = null
+    private var wallpaperChangeJob: Job? = null
     private val _backPressEvent = MutableSharedFlow<Unit>()
     val backPressEvent = _backPressEvent.asSharedFlow()
     fun onBackButtonPressed() {
@@ -81,9 +82,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     fun loadBackgroundData(){
-        if(isWorking)return
-        isWorking = true
-        viewModelScope.launch {
+        if(backgroundLoadJob?.isActive == true) return
+        backgroundLoadJob = viewModelScope.launch {
             try {
                 val applicationContext: Application = getApplication()
                 val imageData = PreferenceManager.getImageData(applicationContext)
@@ -133,15 +133,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             catch (e: Exception){
                 logger.setLog("MainViewModel",e.toString())
             }
-            finally {
-                isWorking = false
-            }
         }
     }
     fun changeWallpaper(){
-        if(isLoadingWallpaper)return
-        isLoadingWallpaper = true
-        viewModelScope.launch {
+        if(wallpaperChangeJob?.isActive == true) return
+        wallpaperChangeJob = viewModelScope.launch {
             val context:Context = getApplication()
             try {
                 delay(100)
@@ -155,9 +151,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
             catch (e: Exception){
                 logger.setLog("MainViewModel",e.toString())
-            }
-            finally {
-                isLoadingWallpaper = false
             }
         }
     }
