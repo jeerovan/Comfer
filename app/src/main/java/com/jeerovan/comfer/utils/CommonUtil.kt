@@ -286,7 +286,6 @@ object CommonUtil {
         if(!autoWallpapers) return
         val previousWallpaperApplied = PreferenceManager.getWallpaperApplied(applicationContext)
         if(!previousWallpaperApplied && !manualChange) {
-            Log.e("FetchImageData","Previous Wallpaper Not Applied Yet")
             return
         }
         val changeFrequency = PreferenceManager.getWallpaperFrequency(applicationContext)

@@ -83,10 +83,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun reloadImagePath() {
         viewModelScope.launch {
+            val context: Context = getApplication()
             if(_uiState.value.imagePath == null) {
-                val backgroundImagePath = PreferenceManager.getBackgroundImagePath(getApplication())
+                val backgroundImagePath = PreferenceManager.getBackgroundImagePath(context)
                 _uiState.update { it.copy(imagePath = backgroundImagePath) }
             }
+            PreferenceManager.setWallpaperApplied(context, true)
         }
     }
     fun clearImagePath() {
@@ -115,18 +117,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
                     // this is a first time fetch, do not set wallpaper on home screen as the app is not set default home app now
                     if (imageData != null && filePath != null) {
-                        logger.setLog("MainViewModel","Updating State with image path & data")
                         _uiState.update {
                             it.copy(
                                 imageData = imageData,
                                 imagePath = filePath
                             )
                         }
+                        withContext(Dispatchers.IO){
+                            setWallpaperThemedColors(applicationContext, File(filePath))
+                        }
                     }
                     PreferenceManager.setWallpaperApplied(applicationContext, true)
-                    withContext(Dispatchers.IO){
-                        setWallpaperThemedColors(applicationContext, File(filePath))
-                    }
                 } else {
                     if (_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImagePath) {
                         _uiState.update {

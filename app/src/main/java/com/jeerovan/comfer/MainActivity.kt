@@ -327,7 +327,6 @@ class MainActivity : AppCompatActivity() {
         widgetHosts.startListening()
         lifecycleScope.launch {
             settingsViewModel.loadSettings()
-            PreferenceManager.setWallpaperApplied(applicationContext, true)
             mainViewModel.reloadImagePath()
             }
     }
