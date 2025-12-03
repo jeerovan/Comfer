@@ -467,6 +467,9 @@ object CommonUtil {
 
     fun getShapeFromString(iconShape:String?="circle"): Shape{
         return when (iconShape) {
+            "pebble" -> {
+                PebbleShape()
+            }
             "cloud" -> {
                 FlowerShape(angle = 45.0f)
             }
@@ -481,9 +484,6 @@ object CommonUtil {
             }
             "circle" -> {
                 CircleShape
-            }
-            "pebble" -> {
-                PebbleShape()
             }
             else -> {
                 CircleShape

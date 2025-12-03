@@ -331,4 +331,7 @@
     <string name="title_app_language">ភាសា​កម្មវិធី</string>
     <string name="app_language_text">ចុច ដើម្បី​ផ្លាស់ប្ដូរ​ភាសា​កម្មវិធី</string>
     <string name="icon_app_language">រូបតំណាង​ភាសា​កម្មវិធី</string>
+    <string name="update_frequency_hour">មួយម៉ោង</string>
+    <string name="update_frequency_day">មួយថ្ងៃ</string>
+
 </resources>

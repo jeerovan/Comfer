@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.Shape
 import android.os.Bundle
 import android.view.WindowManager
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -369,8 +368,11 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         stringResource(R.string.wallpaper_frequency_text),
                         {Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.icon_wallpaper_frequency))},
                         settingsState.wallpaperFrequency,
-                        {option -> settingsViewModel.setWallpaperFrequency(option)},
-                        arrayOf("Hourly","Daily")
+                        {frequency -> settingsViewModel.setWallpaperFrequency(frequency)},
+                        arrayOf(
+                            WallpaperFrequency(
+                            stringResource(R.string.update_frequency_hour),"Hourly"),
+                            WallpaperFrequency(stringResource(R.string.update_frequency_day),"Daily"))
                     )
                 }
             }
@@ -1286,17 +1288,23 @@ fun SelectOptionsWithListItemSettingItem(
     supportingLine: String?,
     icon: @Composable (() -> Unit)?,
     selectedOption: String,
-    onSelectionClick: (String) -> Unit,
-    options: Array<String>
+    onSelectionClick: (WallpaperFrequency) -> Unit,
+    options: Array<WallpaperFrequency>
 ) {
     var showDialog by remember { mutableStateOf(false) }
-
+    val selectedFrequency = if (selectedOption == "Hourly") {
+        WallpaperFrequency(
+            stringResource(R.string.update_frequency_hour), "Hourly"
+        )
+    } else {
+        WallpaperFrequency(stringResource(R.string.update_frequency_day), "Daily")
+    }
     ListItem(
         headlineContent = { Text(headline) },
         supportingContent = { if(supportingLine != null)Text(supportingLine) },
         leadingContent = { if(icon != null)icon() },
         trailingContent = {
-            Text(selectedOption,style = MaterialTheme.typography.bodyLarge )
+            Text(selectedFrequency.text,style = MaterialTheme.typography.bodyLarge )
         },
         modifier = Modifier.fillMaxWidth().clickable { showDialog = true },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent)
@@ -1316,7 +1324,7 @@ fun SelectOptionsWithListItemSettingItem(
                                 onSelectionClick(option)
                             }
                         ) {
-                            Text(option)
+                            Text(option.text)
                         }
                     }
 

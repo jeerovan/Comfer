@@ -331,4 +331,7 @@
     <string name="title_app_language">Uygulama dili</string>
     <string name="app_language_text">Uygulama dilini değiştirmek için dokunun</string>
     <string name="icon_app_language">Uygulama dili simgesi</string>
-</resources>
+    <string name="update_frequency_hour">Bir saat</string>
+    <string name="update_frequency_day">Bir gün</string>
+
+    </resources>

@@ -334,4 +334,7 @@
     <string name="title_app_language">Забони барнома</string>
     <string name="app_language_text">Барои иваз кардани забони барнома зер кунед</string>
     <string name="icon_app_language">Иконаи забони барнома</string>
+    <string name="update_frequency_hour">Як соат</string>
+    <string name="update_frequency_day">Як рӯз</string>
+
 </resources>

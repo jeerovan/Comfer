@@ -331,4 +331,7 @@
     <string name="title_app_language">Мова додатка</string>
     <string name="app_language_text">Натисніть, щоб змінити мову додатка</string>
     <string name="icon_app_language">Іконка мови додатка</string>
+    <string name="update_frequency_hour">Година</string>
+    <string name="update_frequency_day">День</string>
+
 </resources>

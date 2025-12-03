@@ -331,4 +331,7 @@
     <string name="title_app_language">ภาษาของแอป</string>
     <string name="app_language_text">แตะเพื่อเปลี่ยนภาษาของแอป</string>
     <string name="icon_app_language">ไอคอนภาษาของแอป</string>
+    <string name="update_frequency_hour">หนึ่งชั่วโมง</string>
+    <string name="update_frequency_day">หนึ่งวัน</string>
+
 </resources>

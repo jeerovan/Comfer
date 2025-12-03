@@ -331,4 +331,7 @@
     <string name="title_app_language">Ilova tili</string>
     <string name="app_language_text">Ilova tilini o‘zgartirish uchun bosing</string>
     <string name="icon_app_language">App language ikonasi</string>
+    <string name="update_frequency_hour">Bir soat</string>
+    <string name="update_frequency_day">Bir kun</string>
+
 </resources>

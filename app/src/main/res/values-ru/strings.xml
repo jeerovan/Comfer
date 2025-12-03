@@ -331,4 +331,7 @@
     <string name="title_app_language">Язык приложения</string>
     <string name="app_language_text">Нажмите, чтобы изменить язык приложения</string>
     <string name="icon_app_language">Иконка языка приложения</string>
+    <string name="update_frequency_hour">Час</string>
+    <string name="update_frequency_day">День</string>
+
 </resources>

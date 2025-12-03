@@ -332,4 +332,7 @@
     <string name="title_app_language">لغة التطبيق</string>
     <string name="app_language_text">اضغط لتغيير لغة التطبيق</string>
     <string name="icon_app_language">أيقونة لغة التطبيق</string>
+    <string name="update_frequency_hour">ساعة</string>
+    <string name="update_frequency_day">يوم</string>
+
 </resources>

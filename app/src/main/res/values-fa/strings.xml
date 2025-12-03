@@ -331,4 +331,7 @@
     <string name="title_app_language">زبان برنامه</string>
     <string name="app_language_text">برای تغییر زبان برنامه، ضربه بزنید</string>
     <string name="icon_app_language">آیکون زبان برنامه</string>
+    <string name="update_frequency_hour">یک ساعت</string>
+    <string name="update_frequency_day">یک روز</string>
+
 </resources>

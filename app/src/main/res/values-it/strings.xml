@@ -331,4 +331,7 @@
     <string name="title_app_language">Lingua dell\'app</string>
     <string name="app_language_text">Tocca per cambiare la lingua dell\'app</string>
     <string name="icon_app_language">Icona lingua app</string>
+    <string name="update_frequency_hour">Un’ora</string>
+    <string name="update_frequency_day">Un giorno</string>
+
 </resources>

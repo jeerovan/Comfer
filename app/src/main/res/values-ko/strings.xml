@@ -331,4 +331,7 @@
     <string name="title_app_language">앱 언어</string>
     <string name="app_language_text">탭하여 앱 언어를 변경합니다</string>
     <string name="icon_app_language">앱 언어 아이콘</string>
+    <string name="update_frequency_hour">한 시간</string>
+    <string name="update_frequency_day">하루</string>
+
 </resources>

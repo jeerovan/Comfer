@@ -331,4 +331,7 @@
     <string name="title_app_language">שפת האפליקציה</string>
     <string name="app_language_text">הקש כדי לשנות את שפת האפליקציה</string>
     <string name="icon_app_language">אייקון שפת האפליקציה</string>
+    <string name="update_frequency_hour">שעה</string>
+    <string name="update_frequency_day">יום</string>
+
 </resources>

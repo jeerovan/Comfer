@@ -331,4 +331,7 @@
     <string name="title_app_language">ພາສາແອັບ</string>
     <string name="app_language_text">ແຕະເພື່ອປ່ຽນພາສາຂອງແອັບ</string>
     <string name="icon_app_language">ໄອຄອນ app language</string>
+    <string name="update_frequency_hour">1 ຊົ່ວໂມງ</string>
+    <string name="update_frequency_day">1 ມື້</string>
+
 </resources>

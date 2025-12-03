@@ -331,4 +331,7 @@
     <string name="title_app_language">アプリの言語</string>
     <string name="app_language_text">タップしてアプリの表示言語を変更</string>
     <string name="icon_app_language">アプリ言語アイコン</string>
+    <string name="update_frequency_hour">一時間</string>
+    <string name="update_frequency_day">一日</string>
+
 </resources>

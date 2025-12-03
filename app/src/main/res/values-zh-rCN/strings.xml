@@ -331,4 +331,7 @@
     <string name="title_app_language">应用语言</string>
     <string name="app_language_text">点按以更改应用语言</string>
     <string name="icon_app_language">应用语言图标</string>
+    <string name="update_frequency_hour">一小时</string>
+    <string name="update_frequency_day">一天</string>
+
 </resources>

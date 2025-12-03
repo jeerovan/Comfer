@@ -331,4 +331,7 @@
     <string name="title_app_language">App ဘာသာစကား</string>
     <string name="app_language_text">App language ကို ပြောင်းလဲရန် တို့တ်ပါ</string>
     <string name="icon_app_language">App Language အိုင်ကွန်</string>
+    <string name="update_frequency_hour">၁နာရီ</string>
+    <string name="update_frequency_day">၁ရက်</string>
+
 </resources>

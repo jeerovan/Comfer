@@ -331,4 +331,7 @@
     <string name="title_app_language">Аппын хэл</string>
     <string name="app_language_text">Аппын хэлийг солихын тулд товшино уу</string>
     <string name="icon_app_language">App language icon</string>
+    <string name="update_frequency_hour">Нэг цаг</string>
+    <string name="update_frequency_day">Нэг өдөр</string>
+
 </resources>

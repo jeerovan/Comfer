@@ -330,4 +330,6 @@
     <string name="title_app_language">App language</string>
     <string name="app_language_text">Tap to change app language</string>
     <string name="icon_app_language">App language icon</string>
+    <string name="update_frequency_hour">An hour</string>
+    <string name="update_frequency_day">A day</string>
 </resources>

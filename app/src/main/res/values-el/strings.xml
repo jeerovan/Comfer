@@ -331,4 +331,7 @@
     <string name="title_app_language">Γλώσσα εφαρμογής</string>
     <string name="app_language_text">Πάτησε για να αλλάξεις τη γλώσσα της εφαρμογής</string>
     <string name="icon_app_language">Εικονίδιο γλώσσας εφαρμογής</string>
+    <string name="update_frequency_hour">Μία ώρα</string>
+    <string name="update_frequency_day">Μία μέρα</string>
+
 </resources>

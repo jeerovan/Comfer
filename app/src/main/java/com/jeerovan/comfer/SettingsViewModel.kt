@@ -98,6 +98,11 @@ data class SettingsUiState(
     val shouldAppUpdatePromptUserCounter: Int = 0,
 )
 
+data class WallpaperFrequency(
+    val text: String,
+    val key: String
+)
+
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
     private val logger = LoggerManager(application)
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -494,10 +499,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _uiState.update { it.copy(notificationColor = color) }
         }
     }
-    fun setWallpaperFrequency(frequency:String){
+    fun setWallpaperFrequency(frequency: WallpaperFrequency){
         viewModelScope.launch {
-            PreferenceManager.setWallpaperFrequency(getApplication(),frequency)
-            _uiState.update { it.copy(wallpaperFrequency = frequency) }
+            PreferenceManager.setWallpaperFrequency(getApplication(),frequency.key)
+            _uiState.update { it.copy(wallpaperFrequency = frequency.key) }
         }
     }
     fun setWallpaperDirectory(directoryUri: String?){

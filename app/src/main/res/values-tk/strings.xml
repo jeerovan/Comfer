@@ -331,4 +331,7 @@
     <string name="title_app_language">App dili</string>
     <string name="app_language_text">App dilini üýtgetmek üçin basyň</string>
     <string name="icon_app_language">App language ikonasy</string>
+    <string name="update_frequency_hour">Bir sagat</string>
+    <string name="update_frequency_day">Bir gün</string>
+
 </resources>
