@@ -3092,7 +3092,7 @@ fun AppIcon(app: AppInfo,
                         position.y + size.height
                     )
                 }
-                .pointerInput(clickable) {
+                .pointerInput(app.packageName) {
                     if (clickable) detectTapGestures(
                         onTap = {
                             view.playSoundEffect(SoundEffectConstants.CLICK)
@@ -3401,7 +3401,7 @@ fun CircularButton(
             .clip(CircleShape)
             .background(buttonColor)
             .background(gradient) // Subtle gradient for a "sheen" effect
-            .pointerInput(Unit) {
+            .pointerInput(char) {
             detectTapGestures(
                 onTap = {
                     // Handle Click
