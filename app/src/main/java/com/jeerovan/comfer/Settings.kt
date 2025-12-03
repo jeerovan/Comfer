@@ -358,7 +358,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                             contentDescription = stringResource(R.string.icon_wallpaper_change)
                         )
                     },
-                    modifier = Modifier.clickable { settingsViewModel.changeWallpaper() },
+                    modifier = Modifier.clickable { settingsViewModel.signalToChangeWallpaper() },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }

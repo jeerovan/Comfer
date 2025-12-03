@@ -509,7 +509,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             PreferenceManager.setWallpaperDirectory(context,directoryUri)
             _uiState.update { it.copy(wallpaperDirectory = directoryUri) }
             if(directoryUri != null) {
-                changeWallpaper()
+                signalToChangeWallpaper()
             }
         }
     }
@@ -761,7 +761,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             PreferenceManager.setWallpaperOnLockScreen(context, enabled)
             _uiState.update { it.copy(wallpaperOnLockScreen = enabled) }
             if(enabled){
-                changeWallpaper()
+                signalToChangeWallpaper()
             }
         }
     }
@@ -815,7 +815,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
         context.startActivity(intent)
     }
-    fun changeWallpaper(){
+    fun signalToChangeWallpaper(){
         viewModelScope.launch {
             val context:Context = getApplication()
             context.dataStore.edit { preferences ->

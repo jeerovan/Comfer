@@ -65,7 +65,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 .map { it[PreferenceKeys.WALLPAPER_CHANGE] ?: 0L }
                 .distinctUntilChanged() // Critical: ignore unrelated DataStore updates
                 .collect { timestamp ->
-                    if(timestamp > 0) {
+                    if(timestamp > 0L) {
                         Log.d("MainViewModel", "Wallpaper Changed At: $timestamp")
                         changeWallpaper()
                     }
