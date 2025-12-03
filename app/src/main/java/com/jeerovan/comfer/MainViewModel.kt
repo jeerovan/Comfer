@@ -81,6 +81,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+    fun reloadImagePath() {
+        viewModelScope.launch {
+            if(_uiState.value.imagePath == null) {
+                val backgroundImagePath = PreferenceManager.getBackgroundImagePath(getApplication())
+                _uiState.update { it.copy(imagePath = backgroundImagePath) }
+            }
+        }
+    }
+    fun clearImagePath() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(imagePath = null) }
+        }
+    }
     fun loadBackgroundData(){
         if(backgroundLoadJob?.isActive == true) return
         backgroundLoadJob = viewModelScope.launch {

@@ -163,6 +163,7 @@ import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.os.PowerManager
 import android.provider.AlarmClock
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -327,12 +328,20 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             settingsViewModel.loadSettings()
             PreferenceManager.setWallpaperApplied(applicationContext, true)
+            mainViewModel.reloadImagePath()
             }
     }
 
     override fun onStop(){
         super.onStop()
         widgetHosts.stopListening()
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        // Check if the screen is ON or OFF
+        if (powerManager.isInteractive) {
+            lifecycleScope.launch {
+                mainViewModel.clearImagePath()
+            }
+        }
     }
 }
 
