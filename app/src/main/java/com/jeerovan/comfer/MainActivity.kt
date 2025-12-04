@@ -533,14 +533,14 @@ fun WidgetHostScreen(
         if (result.resultCode == Activity.RESULT_OK) {
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                 if (provider != null) {
-                    LoggerManager(context).setLog("configureWidgetLauncher", "Creating Widget:$appWidgetId:${provider.provider}")
+                    Log.i("configureWidgetLauncher", "Creating Widget:$appWidgetId:${provider.provider}")
                     createWidgetView(provider, appWidgetId)
                 } else {
                     appWidgetHost.deleteAppWidgetId(appWidgetId)
-                    LoggerManager(context).setLog("configureWidgetLauncher", "Provider is NULL")
+                    Log.i("configureWidgetLauncher", "Provider is NULL")
                 }
             } else {
-                LoggerManager(context).setLog("configureWidgetLauncher","Invalid widgetId")
+                Log.i("configureWidgetLauncher","Invalid widgetId")
             }
         } else {
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
@@ -558,15 +558,15 @@ fun WidgetHostScreen(
             intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
             // Use ActivityResultLauncher to start the activity and handle the result
             try {
-                LoggerManager(context).setLog("CheckConfigureWidget","Running configureWidgetLauncher")
+                Log.i("CheckConfigureWidget","Running configureWidgetLauncher")
                 configureWidgetLauncher.launch(intent)
             } catch (e:Exception){
-                LoggerManager(context).setLog( "configureWidgetLauncher.launch failed",e.toString())
+                Log.e( "configureWidgetLauncher.launch failed",e.toString())
                 createWidgetView(provider,appWidgetId)
             }
         } else {
             // No configuration needed, create the widget view directly
-            LoggerManager(context).setLog("CheckConfigureWidget","Not Required")
+            Log.i("CheckConfigureWidget","Not Required")
             createWidgetView(provider, appWidgetId)
         }
     }
@@ -581,14 +581,14 @@ fun WidgetHostScreen(
         if (result.resultCode == Activity.RESULT_OK) {
             if( appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                 if (provider != null) {
-                    LoggerManager(context).setLog("BindWidgetLauncher", "Checking configuration")
+                    Log.i("BindWidgetLauncher", "Checking configuration")
                     checkConfigureWidget(provider, appWidgetId)
                 } else {
                     appWidgetHost.deleteAppWidgetId(appWidgetId)
-                    LoggerManager(context).setLog("BindWidgetLauncher", "provider is null: $appWidgetId")
+                    Log.i("BindWidgetLauncher", "provider is null: $appWidgetId")
                 }
             } else {
-                LoggerManager(context).setLog("BindWidgetLauncher", "Invalid appWidgetId")
+                Log.i("BindWidgetLauncher", "Invalid appWidgetId")
             }
         } else {
             // User cancelled the binding. Clean up the allocated ID.
@@ -674,24 +674,24 @@ fun WidgetHostScreen(
                     onWidgetSelected = { provider ->
                         showPicker = false
                         val appWidgetId = appWidgetHost.allocateAppWidgetId()
-                        LoggerManager(context).setLog("WidgetHost","Allocated WidgetId: $appWidgetId")
+                        Log.i("WidgetHost","Allocated WidgetId: $appWidgetId")
                         val canBind = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, provider.provider)
                         if (canBind) {
                             checkConfigureWidget(provider,appWidgetId)
                         } else {
-                            LoggerManager(context).setLog("WidgetHost","Can NOT bind: $appWidgetId")
+                            Log.i("WidgetHost","Can NOT bind: $appWidgetId")
                             val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
                                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
                                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
                             }
                             try {
-                                LoggerManager(context).setLog("WidgetHost","Calling bindWidgetLauncher")
+                                Log.i("WidgetHost","Calling bindWidgetLauncher")
                                 bindWidgetLauncher.launch(intent)
                             } catch (e:Exception){
                                 if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                                     appWidgetHost.deleteAppWidgetId(appWidgetId)
                                 }
-                                LoggerManager(context).setLog("bindWidgetLauncher.launch failed", e.toString())
+                                Log.i("bindWidgetLauncher.launch failed", e.toString())
                             }
                         }
                     },
@@ -2508,7 +2508,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val logger = LoggerManager(context)
 
     var isAppListVisible by remember { mutableStateOf(false) }
     var isSearchListVisible by remember { mutableStateOf(false) }

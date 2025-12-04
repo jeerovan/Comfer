@@ -141,8 +141,6 @@ class SettingsActivity : AppCompatActivity() {
     }
     override fun onResume() {
         super.onResume()
-        val logger = LoggerManager(applicationContext)
-        logger.setLog("SettingsActivity","Resumed")
         lifecycleScope.launch {
             // required to load notification change settings (example)
             settingsViewModel.loadSettings()
@@ -777,7 +775,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         )
                     },
                     modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, LogsActivity::class.java))
+                        context.startActivity(Intent(context, LogcatViewActivity::class.java))
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )

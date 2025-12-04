@@ -102,7 +102,6 @@ data class KeyTextObject(
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
-    private val logger = LoggerManager(application)
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState = _uiState.asStateFlow()
     // const
@@ -160,7 +159,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         checkSubscriptionStatus()
     }
     fun loadSettings() {
-        logger.setLog("SettingsViewModel","LoadSettings")
+        Log.i("SettingsViewModel","LoadSettings")
         viewModelScope.launch {
             val hasPro = PreferenceManager.getPro(getApplication())
             val autoWallpapers = PreferenceManager.getAutoWallpapers(getApplication(),true)

@@ -30,7 +30,6 @@ import coil.request.ImageRequest
 import coil.request.ImageResult
 import com.jeerovan.comfer.KeyTextObject
 import com.jeerovan.comfer.ImageData
-import com.jeerovan.comfer.LoggerManager
 import com.jeerovan.comfer.PreferenceKeys
 import com.jeerovan.comfer.PreferenceManager
 import com.jeerovan.comfer.R
@@ -281,7 +280,6 @@ object CommonUtil {
         }
     }
     suspend fun fetchImageData(applicationContext: Context,manualChange: Boolean = false){
-        val logger = LoggerManager(applicationContext)
         val autoWallpapers = PreferenceManager.getAutoWallpapers(applicationContext)
         if(!autoWallpapers) return
         val previousWallpaperApplied = PreferenceManager.getWallpaperApplied(applicationContext)
@@ -331,12 +329,12 @@ object CommonUtil {
                             parameter("name", name)
                             parameter("hour", hour)
                         }.body()
-                        logger.setLog("FetchImageData", response.toString())
+                        Log.i("FetchImageData", response.toString())
                         client.close()
                         PreferenceManager.saveImageData(applicationContext, response)
                         PreferenceManager.setHour(applicationContext, hour)
                     } catch (e: Exception) {
-                        logger.setLog("FetchImageData", e.toString())
+                        Log.e("FetchImageData", e.toString())
                     }
                 }
             }
@@ -395,9 +393,8 @@ object CommonUtil {
         }
     }
     suspend fun downloadImage(applicationContext: Context){
-        val logger = LoggerManager(applicationContext)
         if (PreferenceManager.newImageAvailable(applicationContext)) {
-            logger.setLog("DownloadImage", "Downloading New Image")
+            Log.i("DownloadImage", "Downloading New Image")
             val tempImageData: ImageData? =
                 PreferenceManager.getTempImageData(applicationContext)
             if (tempImageData != null) {
@@ -419,7 +416,7 @@ object CommonUtil {
                                 stream
                             )
                         stream.close()
-                        logger.setLog("DownloadImage","Downloaded: $filename")
+                        Log.i("DownloadImage","Downloaded: $filename")
                         val oldFilePath:String? = PreferenceManager.getBackgroundImagePath(applicationContext)
                         PreferenceManager.setBackgroundImagePath(
                             applicationContext,
@@ -431,7 +428,7 @@ object CommonUtil {
                         if(oldFilePath != null && oldFilePath != file.absolutePath) {
                             val oldFile = File(oldFilePath)
                             oldFile.delete()
-                            logger.setLog("DownloadImage","Deleted: $oldFilePath")
+                            Log.i("DownloadImage","Deleted: $oldFilePath")
                         }
                         setWallpaperThemedColors(applicationContext, file)
                         withContext(Dispatchers.IO){

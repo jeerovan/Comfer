@@ -106,7 +106,6 @@ class ManageAppListActivity : AppCompatActivity() {
 fun ManageLayersScreen(viewModel: AppInfoViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    val logger = LoggerManager(context)
     val quickListState = rememberLazyListState()
     val primaryListState = rememberLazyListState()
     val restListState = rememberLazyListState()

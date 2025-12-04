@@ -213,7 +213,7 @@ suspend fun mapPackageNameToAppInfo(
     }
 }
 class AppInfoViewModel(application: Application) : AndroidViewModel(application) {
-    private val logger = LoggerManager(application)
+
     private val _uiState = MutableStateFlow(AppInfoUiState())
     val uiState: StateFlow<AppInfoUiState> = _uiState.asStateFlow()
 
@@ -264,7 +264,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
     }
     private suspend fun refreshAppLists() = withContext(Dispatchers.Default) {
         try {
-            logger.setLog("LoadAppLists", "Loading started")
+            Log.i("LoadAppLists", "Loading started")
 
             // --- Stage 1: Fetch All Launchable Activities (Personal + Work) ---
             val allActivitiesMap = mutableMapOf<String, LauncherActivityInfo>()
@@ -381,7 +381,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             }
 
         } catch (e: Exception) {
-            logger.setLog("AppInfoViewModel", e.toString())
+            Log.e("AppInfoViewModel", e.toString())
         }
     }
 

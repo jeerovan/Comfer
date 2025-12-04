@@ -95,8 +95,6 @@ class GestureShortcutActivity : AppCompatActivity() {
     }
     override fun onResume() {
         super.onResume()
-        val logger = LoggerManager(applicationContext)
-        logger.setLog("SettingsActivity","Resumed")
         lifecycleScope.launch {
             settingsViewModel.loadSettings()
         }

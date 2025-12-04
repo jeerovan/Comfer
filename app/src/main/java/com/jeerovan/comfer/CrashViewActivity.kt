@@ -1,11 +1,8 @@
 package com.jeerovan.comfer
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import com.jeerovan.comfer.ui.theme.ComferTheme
-
 import android.content.Context
+import android.os.Bundle
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,15 +13,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.core.content.edit
+import com.jeerovan.comfer.ui.theme.ComferTheme
+import java.io.File
 
-class CrashViewActivity : AppCompatActivity(){
+class CrashViewActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -39,6 +36,7 @@ class CrashViewActivity : AppCompatActivity(){
 @Composable
 fun CrashLogScreen() {
     val context = LocalContext.current
+    // Load logs into state. Note: For very large files, consider loading this inside a LaunchedEffect(Dispatchers.IO)
     var logs by remember { mutableStateOf(getCrashLogs(context)) }
 
     Scaffold(
@@ -48,7 +46,7 @@ fun CrashLogScreen() {
                 actions = {
                     Button(onClick = {
                         clearCrashLogs(context)
-                        logs = "" // Clear the state to update UI
+                        logs = "" // Clear the state to update UI immediately
                     }) {
                         Text("Clear Logs")
                     }
@@ -58,7 +56,9 @@ fun CrashLogScreen() {
     ) { padding ->
         if (logs.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentAlignment = androidx.compose.ui.Alignment.Center
             ) {
                 Text("No crash logs found.")
@@ -74,8 +74,9 @@ fun CrashLogScreen() {
                     text = logs,
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
-                    fontFamily = FontFamily.Monospace,
+                        .verticalScroll(rememberScrollState()), // Enable scrolling
+                    fontFamily = FontFamily.Monospace, // Monospace is better for stack traces
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -84,11 +85,21 @@ fun CrashLogScreen() {
 }
 
 private fun getCrashLogs(context: Context): String {
-    val prefs = context.getSharedPreferences("CrashLogs", Context.MODE_PRIVATE)
-    return prefs.getString("logs", "") ?: ""
+    val file = File(context.filesDir, "crash_logs.txt")
+    return if (file.exists()) {
+        try {
+            file.readText()
+        } catch (e: Exception) {
+            "Error reading log file: ${e.localizedMessage}"
+        }
+    } else {
+        ""
+    }
 }
 
 private fun clearCrashLogs(context: Context) {
-    val prefs = context.getSharedPreferences("CrashLogs", Context.MODE_PRIVATE)
-    prefs.edit { remove("logs") }
+    val file = File(context.filesDir, "crash_logs.txt")
+    if (file.exists()) {
+        file.delete()
+    }
 }

@@ -64,10 +64,10 @@
             android:name=".GuideActivity"
             android:exported="false" />
         <activity
-            android:name=".LogsActivity"
+            android:name=".CrashViewActivity"
             android:exported="false" />
         <activity
-            android:name=".CrashViewActivity"
+            android:name=".LogcatViewActivity"
             android:exported="false" />
         <service
             android:name=".RecentsAccessibilityService"

@@ -35,7 +35,6 @@ data class MainUiState (
     val isDefaultLauncher: Boolean = false
 )
 class MainViewModel(application: Application) : AndroidViewModel(application) {
-    private val logger = LoggerManager(application)
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState = _uiState.asStateFlow()
     private var backgroundLoadJob: Job? = null
@@ -145,7 +144,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
             catch (e: Exception){
-                logger.setLog("MainViewModel",e.toString())
+                Log.e("MainViewModel",e.toString())
             }
         }
     }
@@ -164,7 +163,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
             catch (e: Exception){
-                logger.setLog("MainViewModel",e.toString())
+                Log.e("MainViewModel",e.toString())
             }
         }
     }

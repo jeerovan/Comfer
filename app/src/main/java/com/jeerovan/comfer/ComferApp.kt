@@ -10,13 +10,15 @@ import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.PurchasesConfiguration
 
 const val saveCrashes = false
-const val isTesting = true
+const val saveLogs = false
+const val isTesting = false
 class ComferApp : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
         if(saveCrashes) {
             Thread.setDefaultUncaughtExceptionHandler(CrashHandler(this))
+            LogcatRecorder(this).startLogging()
         }
         Purchases.logLevel = LogLevel.ERROR
         Purchases.configure(PurchasesConfiguration.Builder(this, "goog_alczWNGIWABONRuXvtRSKpPJFXi").build())
@@ -26,6 +28,7 @@ class ComferApp : Application(), ImageLoaderFactory {
     private fun setupImageWorker() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(true)
             .build()
 
         val periodicWorkRequest = PeriodicWorkRequestBuilder<ImageWorker>(20, TimeUnit.MINUTES)

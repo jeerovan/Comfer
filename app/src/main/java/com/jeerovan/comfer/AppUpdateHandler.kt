@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.callbackFlow
 
 class AppUpdateHandler(private val context: Context) {
     val appUpdateManager: AppUpdateManager = AppUpdateManagerFactory.create(context)
-    private val logger: LoggerManager = LoggerManager(context)
     // Check if we should prompt based on 48-hour cooldown
     private fun shouldPromptUser(): Boolean {
         return PreferenceManager.shouldAppUpdatePromptUser(context)
