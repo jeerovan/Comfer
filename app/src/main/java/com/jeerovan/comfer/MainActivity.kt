@@ -2885,7 +2885,7 @@ private fun lerp(start: Float, stop: Float, fraction: Float): Float {
 
 @Composable
 fun AnimatedBackground(
-    backgroundImage: Any?, // Can be a URL, URI, or other data Coil can handle
+    background: Any?, // Can be a URL, URI, or other data Coil can handle
     wallpaperMotionEnabled: Boolean,
     maxWidthPx: Float,
     maxHeightPx: Float
@@ -2915,7 +2915,7 @@ fun AnimatedBackground(
 
         AsyncImage(
             model = ImageRequest.Builder(context)
-                .data(backgroundImage)
+                .data(background)
                 .crossfade(true)
                 .build(),
             contentDescription = stringResource(R.string.background_image),

@@ -292,12 +292,12 @@ object CommonUtil {
             val hasPro = PreferenceManager.getPro(applicationContext)
             val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(applicationContext)
             if(wallpaperDirectory != null && hasPro){
-                if (changeFrequency == "Hourly" || hour == 1){
+                if (changeFrequency == "Hourly" || hour == 1 || manualChange){
                     setBackgroundImageFromImageUri(applicationContext,wallpaperDirectory.toUri())
                     PreferenceManager.setHour(applicationContext, hour)
                 }
             } else {
-                if(changeFrequency == "Hourly" || hour == 7 || hour == 19) {
+                if(changeFrequency == "Hourly" || hour == 7 || hour == 19 || manualChange) {
                     try {
                         val name = PreferenceManager.getUsername(applicationContext)
                         val (sslSocketFactory, trustManager) = SSLHelper.createSslSocketFactory(
