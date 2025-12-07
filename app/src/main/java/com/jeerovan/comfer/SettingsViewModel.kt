@@ -69,7 +69,6 @@ data class SettingsUiState(
     val clockHourColor: Color = Color.White,
     val clockMinuteColor: Color = Color.White,
     val timeFormat: String = "H12",
-    val showAmPm: Boolean = true,
     val timeFontSize: Int = 60,
     val timeFontName: String = "Roboto",
     val timeFontColor: Color = Color.White,
@@ -112,7 +111,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val CLOCK_HOUR_COLOR = "clock_hour_color"
     private val CLOCK_MINUTE_COLOR = "clock_minute_color"
     private val TIME_FORMAT = "time_format"
-    private val SHOW_AM_PM = "show_am_pm"
     private val TIME_FONT_SIZE = "time_font_size"
     private val TIME_FONT_NAME = "time_font_name"
     private val TIME_FONT_COLOR = "time_font_color"
@@ -200,7 +198,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val clockHourColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_HOUR_COLOR,Color.White.toArgb()))
             val clockMinuteColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_MINUTE_COLOR,Color.White.toArgb()))
             val timeFormat = PreferenceManager.getString(getApplication(),TIME_FORMAT, "H12") ?: "H12"
-            val showAmPm = PreferenceManager.getBoolean(getApplication(),SHOW_AM_PM,true)
             val timeFontSize = PreferenceManager.getInt(getApplication(),TIME_FONT_SIZE,60)
             val timeFontColor = Color(PreferenceManager.getInt(getApplication(),TIME_FONT_COLOR,Color.White.toArgb()))
             val timeFontName = if(hasPro){
@@ -287,7 +284,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     clockHourColor = clockHourColor,
                     clockMinuteColor = clockMinuteColor,
                     timeFormat =  timeFormat,
-                    showAmPm = showAmPm,
                     timeFontSize = timeFontSize,
                     timeFontColor = timeFontColor,
                     timeFontName = timeFontName,
@@ -552,13 +548,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             PreferenceManager.setString(getApplication(),TIME_FORMAT,format)
             _uiState.update { it.copy(timeFormat = format) }
-        }
-    }
-
-    fun setShowAmPm(show: Boolean) {
-        viewModelScope.launch {
-            PreferenceManager.setBoolean(getApplication(),SHOW_AM_PM,show)
-            _uiState.update { it.copy(showAmPm = show) }
         }
     }
 

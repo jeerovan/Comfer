@@ -2,6 +2,7 @@ package com.jeerovan.comfer
 
 import com.jeerovan.comfer.utils.FlowerShape
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -148,6 +149,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 }
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(settingsViewModel: SettingsViewModel) {
@@ -971,6 +973,7 @@ fun IconShapePreview(
             .border(width = 2.dp, color = borderColor, shape = iconShape)
     )
 }
+@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun SelectSetOwnWallpapersDirectory(
     isDefaultLauncher: Boolean,

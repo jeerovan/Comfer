@@ -162,7 +162,6 @@ import android.content.ComponentName
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.graphics.RectF
-import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.PowerManager
@@ -611,8 +610,8 @@ fun WidgetHostScreen(
         .fillMaxWidth()
         .height(windowHeightDp)
     Box(
-            modifier = modifier.fillMaxSize()
-                //.border(width=1.dp,Color.White)
+            modifier = modifier
+                .border(width=1.dp,Color.White)
                 .detectSwipes(
                     Unit,
                     onSwipeLeft = onSwipeLeft,
@@ -1598,8 +1597,10 @@ fun QuickListOverlay(apps: List<AppInfo>,
         {onFeedbackDismiss()},
         {onFeedbackRateIt()}
     )
-    val maxHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp }
+    val maxHeightDp = LocalConfiguration.current.screenHeightDp.dp
+    Log.d("ScreenHeight","$maxHeightDp")
     val lowerPartHeight = 350.dp
+    val topPartHeight = maxHeightDp - lowerPartHeight
     var defaultColor = imageData?.color?.let { colorName ->
         stringToColor(colorName)
     } ?: Color.White
@@ -1614,7 +1615,9 @@ fun QuickListOverlay(apps: List<AppInfo>,
     var showWidgetSettings by remember { mutableStateOf(false) }
     val themedColors = PreferenceManager.getThemedColors(context)
     val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+    ) {
         Column (modifier = Modifier) {
             if(settings.hasPro && settings.hasCustomWidgets) {
                 WidgetHostScreen(
@@ -1624,11 +1627,11 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     "widgets_center",
                     gridColumns = 9,
                     fullScreen = false,
-                    screenHeight = lowerPartHeight,
+                    screenHeight = topPartHeight,
                     onSwipeRight = {},
                     onSwipeLeft = {})
             } else {
-                DraggableContainerWithViewModel (
+                DraggableQuickWidgetsContainer (
                     modifier = Modifier.weight(1f),
                     widgetIds = settings.widgetIds,
                     widgetPositions = settings.widgetPositions,
@@ -1676,7 +1679,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(300.dp)
+                            .height(lowerPartHeight)
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onTap = {},
@@ -1691,9 +1694,9 @@ fun QuickListOverlay(apps: List<AppInfo>,
                 } else {
                     Box(
                         modifier = Modifier
-                            //.border(1.dp, color = Color.Cyan)
+                            .border(1.dp, color = Color.Cyan)
                             .fillMaxWidth()
-                            .heightIn(min= 300.dp,max= 400.dp)
+                            .height(lowerPartHeight)
                             .detectGestures(
                                 onSwipeUp = onSwipeUp,
                                 onSwipeDown = {
@@ -3895,10 +3898,10 @@ fun WidgetClock(
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
     val customWallpaper = settings.wallpaperDirectory != null && settings.autoWallpapers
-    val timeFormat = remember(settings.timeFormat, settings.showAmPm) {
+    val timeFormat = remember(settings.timeFormat) {
         // Build your pattern based on the settings
         val pattern = if (settings.timeFormat == "H12") {
-            if (settings.showAmPm) "hh:mm a" else "hh:mm"
+            "hh:mm"
         } else { // "H24"
             "HH:mm"
         }
@@ -4387,7 +4390,7 @@ class WidgetHostManager(private val context: Context) {
 }
 
 @Composable
-fun DraggableContainerWithViewModel(
+fun DraggableQuickWidgetsContainer(
     modifier: Modifier = Modifier,
     widgetIds: List<String>,
     widgetPositions: Map<String, Offset?>,
@@ -4398,43 +4401,16 @@ fun DraggableContainerWithViewModel(
     // Edit mode state
     var editMode by remember { mutableStateOf(false) }
 
-    // Container dimensions
-    var containerSize by remember { mutableStateOf(IntSize.Zero) }
-
     // Track measured sizes for initial column layout calculation
     val measuredSizes = remember { mutableStateMapOf<String, IntSize>() }
 
     // Calculate initial positions when all sizes are measured
     val initialPositions = remember { mutableStateMapOf<String, Offset>() }
 
-    // Calculate centered column positions once container and all children are measured
-    fun setInitialSizes(){
-        if (containerSize.width > 0) {
-            // Calculate positions for centered column layout
-            val totalHeight = measuredSizes.filterKeys { it in widgetIds }.values.sumOf { it.height }
-            var currentY = (containerSize.height - totalHeight) / 2f
-
-            widgetIds.forEach { id ->
-                if (widgetPositions[id] == null) {
-                    val size = measuredSizes[id] ?: IntSize.Zero
-                    val centerX = (containerSize.width - size.width) / 2f
-
-                    initialPositions[id] = Offset(centerX, currentY)
-                    currentY += size.height
-                }
-            }
-        }
-    }
-    LaunchedEffect(widgetPositions.size,containerSize, measuredSizes.size) {
-        setInitialSizes()
-    }
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .border(width = 1.dp, Color.Cyan)
             .fillMaxWidth()
-            .onGloballyPositioned { coordinates ->
-                containerSize = coordinates.size
-            }
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
@@ -4451,18 +4427,48 @@ fun DraggableContainerWithViewModel(
                 )
             }
     ) {
+        // Convert constraints to Px for calculations
+        val density = LocalDensity.current
+        val containerWidthPx = with(density) { maxWidth.toPx() }
+        val containerHeightPx = with(density) { maxHeight.toPx() }
+
+        // Function to calculate centered column positions
+        // This is now inside the scope so it has access to containerWidthPx/HeightPx directly
+        fun calculateInitialPositions() {
+            if (containerWidthPx > 0 && containerHeightPx > 0) {
+                val totalHeight = measuredSizes.filterKeys { it in widgetIds }.values.sumOf { it.height }
+                var currentY = (containerHeightPx - totalHeight) / 2f
+
+                widgetIds.forEach { id ->
+                    if (widgetPositions[id] == null) {
+                        val size = measuredSizes[id] ?: IntSize.Zero
+                        val centerX = (containerWidthPx - size.width) / 2f
+
+                        // Only update if it's different to avoid loops (though remember check handles this implicitly)
+                        initialPositions[id] = Offset(centerX, currentY)
+                        currentY += size.height
+                    }
+                }
+            }
+        }
+
+        // Trigger calculation when relevant sizes or constraints change
+        LaunchedEffect(widgetPositions.size, containerWidthPx, containerHeightPx, measuredSizes.size) {
+            calculateInitialPositions()
+        }
+
         widgetIds.forEach { id ->
-            key(id,widgetPositions[id]) {
-                DraggableComposableWithViewModel(
+            key(id, widgetPositions[id]) {
+                DraggableQuickWidgets(
                     id = id,
                     editMode = editMode,
-                    containerSize = containerSize,
                     savedPosition = widgetPositions[id],
                     initialPosition = initialPositions[id],
                     onPositionChanged = onPositionChanged,
                     onSizeMeasured = { size ->
                         measuredSizes[id] = size
-                        setInitialSizes()
+                        // Re-trigger calculation when a child reports its size
+                        calculateInitialPositions()
                     },
                     content = { composableContent(id, editMode) }
                 )
@@ -4471,11 +4477,11 @@ fun DraggableContainerWithViewModel(
     }
 }
 
+
 @Composable
-fun DraggableComposableWithViewModel(
+fun DraggableQuickWidgets(
     id: String,
     editMode: Boolean,
-    containerSize: IntSize,
     savedPosition: Offset?,
     initialPosition: Offset?,
     onPositionChanged: (String, Offset) -> Unit,
@@ -4604,23 +4610,19 @@ fun EffectTextBlock(
     text: String,
     fontSize: TextUnit = 30.sp,
     color: Color = Color.Blue,
-    // 1. Add Font Styling Parameters
     fontWeight: FontWeight = FontWeight.Normal,
     fontStyle: FontStyle = FontStyle.Normal,
     fontFamily: FontFamily = FontFamily.Default,
     angle: Float = 90f,
     stretchY: Float = 1f,
-    curveRadius: Float = 10000f,
+    curveRadius: Float = 10000f, // Large radius = flatter curve
     shadowColor: Int = android.graphics.Color.BLACK
 ) {
-    // 2. Resolve the correct Typeface (Android's native font format)
     val context = LocalContext.current
     val density = LocalDensity.current
-
-    // This resolver converts Compose FontFamily/Weight/Style into an Android Typeface
     val resolver = LocalFontFamilyResolver.current
 
-    // Use the extension function that returns State<Typeface> directly
+    // Resolve Typeface
     val typefaceState = remember(resolver, fontFamily, fontWeight, fontStyle) {
         resolver.resolveAsTypeface(
             fontFamily = fontFamily,
@@ -4628,36 +4630,62 @@ fun EffectTextBlock(
             fontStyle = fontStyle
         )
     }
+    val typeface = typefaceState.value
 
-    // Now you can access .value directly as a Typeface
-    val typeface: Typeface = typefaceState.value
-
-
-    Canvas(modifier = Modifier.size(300.dp)) {
-        val paint = android.graphics.Paint().apply {
+    // 1. Calculate the required size
+    // For text on a path (Arc), the width is roughly the chord length or diameter,
+    // and height depends on the font size + curve height.
+    // Since curveRadius is usually huge (10000f) for slight bends, we shouldn't use it directly for size.
+    // Instead, we measure the text width using Paint.
+    val textPaint = remember(fontSize, typeface, fontStyle, fontWeight) {
+        android.graphics.Paint().apply {
             this.textSize = with(density) { fontSize.toPx() }
-            this.color = color.toArgb() // Convert Compose Color to Android Int Color
-            this.textAlign = android.graphics.Paint.Align.CENTER
-            this.isAntiAlias = true
-
-            // 3. Apply the resolved Typeface (handles Bold, Italic, Custom Fonts)
             this.typeface = typeface
-
-            // Apply fake bold/italic if the font file itself doesn't support it
             this.isFakeBoldText = fontWeight.weight >= FontWeight.Bold.weight && !typeface.isBold
             this.textSkewX = if (fontStyle == FontStyle.Italic && !typeface.isItalic) -0.25f else 0f
+        }
+    }
 
-            // Shadow (Layer)
+    // Measure text dimensions
+    val textWidth = remember(text, textPaint) { textPaint.measureText(text) }
+    val fontMetrics = remember(textPaint) { textPaint.fontMetrics }
+    val textHeight = remember(fontMetrics) {
+        (fontMetrics.descent - fontMetrics.ascent) * stretchY
+    }
+
+    // Determine Canvas Size
+    // If we rotate, the bounding box changes. For simplicity, we create a box large enough
+    // to hold the text width and height plus some padding for the shadow and curve.
+    // A more complex math solution would calculate exact rotated bounds.
+    val canvasWidth = with(density) { (textWidth * 1.2f).toDp() } // 20% padding
+    val canvasHeight = with(density) { (textHeight * 1.5f).toDp() } // 50% padding for arc/shadow
+
+    // 2. Use the calculated size modifiers
+    Canvas(
+        modifier = Modifier
+            .size(width = canvasWidth, height = canvasHeight)
+        // Optional: wrapContentSize if you want it to center in a larger parent
+        // .wrapContentSize()
+    ) {
+        val paint = textPaint.apply {
+            this.color = color.toArgb()
+            this.textAlign = android.graphics.Paint.Align.CENTER
+            this.isAntiAlias = true
             setShadowLayer(10f, 5f, 5f, shadowColor)
         }
 
+        // Center the arc in the new dynamic size
+        val cx = size.width / 2
+        val cy = size.height / 2
+
+        // Adjust the path to curve around the center of our canvas
         val path = android.graphics.Path().apply {
             addArc(
                 RectF(
-                    center.x - curveRadius,
-                    center.y,
-                    center.x + curveRadius,
-                    center.y + (curveRadius * 2)
+                    cx - curveRadius,
+                    cy, // Start arc from vertical center
+                    cx + curveRadius,
+                    cy + (curveRadius * 2)
                 ),
                 180f,
                 180f
@@ -4668,11 +4696,12 @@ fun EffectTextBlock(
             val nativeCanvas = canvas.nativeCanvas
             nativeCanvas.save()
 
-            // Transformations
-            nativeCanvas.rotate(angle, center.x, center.y)
-            nativeCanvas.scale(1f, stretchY, center.x, center.y)
+            // Rotate around the calculated center
+            nativeCanvas.rotate(angle, cx, cy)
+            nativeCanvas.scale(1f, stretchY, cx, cy)
 
-            // Draw
+            // Draw text centered on the path (0 offset)
+            // Note: Since we use Align.CENTER, hOffset should be 0 to center on the path's top point
             nativeCanvas.drawTextOnPath(text, path, 0f, 0f, paint)
 
             nativeCanvas.restore()

@@ -1,5 +1,6 @@
 package com.jeerovan.comfer
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -81,6 +82,7 @@ class ProSettingsActivity : AppCompatActivity() {
     }
 }
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
     val context = LocalContext.current
@@ -212,15 +214,6 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                             settingsViewModel.setTimeFormat(it)
                         }
                     )
-                    // Show AM/PM
-                    if (settingsState.timeFormat == "H12") {
-                        SettingSwitch(
-                            label = stringResource(R.string.title_show_am_pm),
-                            enabled = true,
-                            checked = settingsState.showAmPm,
-                            onCheckedChange = { settingsViewModel.setShowAmPm(it) }
-                        )
-                    }
                     // Time Font Size
                     SettingSlider(
                         label = stringResource(R.string.title_font_size),
