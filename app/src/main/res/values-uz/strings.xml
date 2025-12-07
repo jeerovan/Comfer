@@ -4,8 +4,7 @@
     <string name="welcome">Xush kelibsiz</string>
 
     <string name="checkout_how_to_guide">
-        Home ekranning istalgan joyiga uzoq bosib menyuni oching va "How-to" qo‘llanmasini ko‘ring.\n
-        Ogohlantirish: Baʼzi tarjimalar avtomatik tarzda yaratilgan bo‘lishi mumkin. Agar noto‘g‘ri yoki tushunarsiz matnni ko‘rsangiz, iltimos, bizga elektron pochta orqali yozing.
+        Menyuni ochish va “Qanday qilish” qo‘llanmasini ko‘rish uchun ekraning pastki qismiga uzoq bosib turing.\nEslatma: Ba’zi tarjimalar avtomatik yaratilgan bo‘lishi mumkin. Noto‘g‘ri matn ko‘rsangiz, bizga email orqali murojaat qiling.
     </string>
 
     <string name="accessibility_service_description">

@@ -4,8 +4,7 @@
     <string name="welcome">Bienvenue</string>
 
     <string name="checkout_how_to_guide">
-        Appuie longuement n\'importe où sur l\'écran d\'accueil pour ouvrir le menu et voir le guide "Comment faire".\n
-        Avertissement : Certaines traductions peuvent avoir été générées automatiquement. Si vous remarquez un texte incorrect, veuillez nous contacter par e-mail.
+        Appuyez longuement sur la moitié inférieure de l’écran pour ouvrir le menu et afficher le guide “Comment faire”.\nAvertissement : Certaines traductions peuvent avoir été générées automatiquement. Si vous remarquez un texte incorrect, veuillez nous contacter par email.
     </string>
 
     <string name="accessibility_service_description">

@@ -4,8 +4,7 @@
     <string name="welcome">Willkommen</string>
 
     <string name="checkout_how_to_guide">
-        Halte irgendwo auf dem Startbildschirm gedrückt, um das Menü zu öffnen und den "So geht\'s"-Leitfaden zu sehen.\n
-        Hinweis: Einige Übersetzungen wurden möglicherweise automatisch erstellt. Wenn Sie fehlerhaften Text bemerken, kontaktieren Sie uns bitte per E-Mail.
+        Drücken Sie lange auf die untere Bildschirmhälfte, um das Menü zu öffnen und die „Anleitung“ anzuzeigen.\nHinweis: Einige Übersetzungen wurden möglicherweise automatisch erstellt. Wenn Sie einen Fehler bemerken, kontaktieren Sie uns bitte per E-Mail.
     </string>
 
     <string name="accessibility_service_description">

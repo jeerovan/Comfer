@@ -161,6 +161,8 @@ import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
+import android.graphics.RectF
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.PowerManager
@@ -219,14 +221,19 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import com.google.android.play.core.install.model.InstallStatus
 import com.jeerovan.comfer.utils.CommonUtil.doesMatchSearch
 import com.jeerovan.comfer.utils.KeyboardLayoutEngine
 import com.jeerovan.comfer.utils.KeyboardLocale
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.resolveAsTypeface
 
 
 data class Contact(
@@ -344,8 +351,10 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun WidgetHostScreen(
+    modifier:Modifier = Modifier,
     appWidgetManager: AppWidgetManager,
     appWidgetHost: AppWidgetHost,
     widgetPrefsTitle: String,
@@ -602,7 +611,7 @@ fun WidgetHostScreen(
         .fillMaxWidth()
         .height(windowHeightDp)
     Box(
-            modifier = sizeModifier
+            modifier = modifier.fillMaxSize()
                 //.border(width=1.dp,Color.White)
                 .detectSwipes(
                     Unit,
@@ -1590,7 +1599,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
         {onFeedbackRateIt()}
     )
     val maxHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp }
-    val topColumnHeight = maxHeightDp.dp * 2/5
+    val lowerPartHeight = 350.dp
     var defaultColor = imageData?.color?.let { colorName ->
         stringToColor(colorName)
     } ?: Color.White
@@ -1609,20 +1618,20 @@ fun QuickListOverlay(apps: List<AppInfo>,
         Column (modifier = Modifier) {
             if(settings.hasPro && settings.hasCustomWidgets) {
                 WidgetHostScreen(
+                    modifier = Modifier.weight(1f),
                     appWidgetManager,
                     mainWidgetHost,
                     "widgets_center",
                     gridColumns = 9,
                     fullScreen = false,
-                    screenHeight = topColumnHeight,
+                    screenHeight = lowerPartHeight,
                     onSwipeRight = {},
                     onSwipeLeft = {})
             } else {
                 DraggableContainerWithViewModel (
-                    topColumnHeight = topColumnHeight,
+                    modifier = Modifier.weight(1f),
                     widgetIds = settings.widgetIds,
                     widgetPositions = settings.widgetPositions,
-                    hasPro = settings.hasPro,
                     onPositionChanged = { id, offset ->
                         settingsModel.saveWidgetPosition(id, offset.x, offset.y)
                     },
@@ -1666,8 +1675,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                 if (isShowingSettings) {
                     Box(
                         modifier = Modifier
-                            //.border(1.dp, color = Color.Cyan)
-                            .fillMaxSize()
+                            .fillMaxWidth()
+                            .height(300.dp)
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onTap = {},
@@ -1683,7 +1692,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     Box(
                         modifier = Modifier
                             //.border(1.dp, color = Color.Cyan)
-                            .fillMaxSize()
+                            .fillMaxWidth()
+                            .heightIn(min= 300.dp,max= 400.dp)
                             .detectGestures(
                                 onSwipeUp = onSwipeUp,
                                 onSwipeDown = {
@@ -2825,6 +2835,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
         ) {
             WidgetHostScreen(
+                modifier = Modifier,
                 widgetHosts.appWidgetManager,
                 widgetHosts.leftHost,
                 "widgets_prefs_left",
@@ -2842,6 +2853,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
         ) {
             WidgetHostScreen(
+                modifier = Modifier,
                 widgetHosts.appWidgetManager,
                 widgetHosts.rightHost,
                 "widgets_prefs_right",
@@ -3863,13 +3875,14 @@ fun WidgetDate(
     Box(modifier = Modifier
         .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp))
         .padding(4.dp)){
-        Text(
+        EffectTextBlock(date)
+        /*Text(
             text = date,
             color = if(customWallpaper) settings.dateFontColor else defaultColor,
             fontSize = settings.dateFontSize.sp,
             fontWeight = getFontWeightFromString(settings.dateFontWeight),
             fontFamily = settings.dateFontFamily,
-        )
+        )*/
     }
 }
 @Composable
@@ -3885,7 +3898,7 @@ fun WidgetClock(
     val timeFormat = remember(settings.timeFormat, settings.showAmPm) {
         // Build your pattern based on the settings
         val pattern = if (settings.timeFormat == "H12") {
-            if (settings.showAmPm) "h:mm a" else "h:mm"
+            if (settings.showAmPm) "hh:mm a" else "hh:mm"
         } else { // "H24"
             "HH:mm"
         }
@@ -4376,10 +4389,8 @@ class WidgetHostManager(private val context: Context) {
 @Composable
 fun DraggableContainerWithViewModel(
     modifier: Modifier = Modifier,
-    topColumnHeight: Dp,
     widgetIds: List<String>,
     widgetPositions: Map<String, Offset?>,
-    hasPro: Boolean,
     onPositionChanged: (String, Offset) -> Unit,
     onEditModeChanged: (Boolean) -> Unit,
     composableContent: @Composable (String, Boolean) -> Unit
@@ -4419,9 +4430,8 @@ fun DraggableContainerWithViewModel(
     }
     Box(
         modifier = modifier
-            //.border(width = 1.dp, Color.Cyan)
+            .border(width = 1.dp, Color.Cyan)
             .fillMaxWidth()
-            .height(topColumnHeight)
             .onGloballyPositioned { coordinates ->
                 containerSize = coordinates.size
             }
@@ -4514,16 +4524,16 @@ fun DraggableComposableWithViewModel(
                         onDrag = { change, dragAmount ->
                             change.consume()
 
-                            val newOffset = Offset(
+                            currentOffset = Offset(
                                 x = currentOffset.x + dragAmount.x,
                                 y = currentOffset.y + dragAmount.y
                             )
 
-                            currentOffset = constrainToBoundary(
+                            /*currentOffset = constrainToBoundary(
                                 offset = newOffset,
                                 composableSize = composableSize,
                                 containerSize = containerSize
-                            )
+                            )*/
                         },
                         onDragEnd = {
                             onPositionChanged(id, currentOffset)
@@ -4586,6 +4596,86 @@ fun LocaleSelectionDialog(
                     )
                 }
             }
+        }
+    }
+}
+@Composable
+fun EffectTextBlock(
+    text: String,
+    fontSize: TextUnit = 30.sp,
+    color: Color = Color.Blue,
+    // 1. Add Font Styling Parameters
+    fontWeight: FontWeight = FontWeight.Normal,
+    fontStyle: FontStyle = FontStyle.Normal,
+    fontFamily: FontFamily = FontFamily.Default,
+    angle: Float = 90f,
+    stretchY: Float = 1f,
+    curveRadius: Float = 10000f,
+    shadowColor: Int = android.graphics.Color.BLACK
+) {
+    // 2. Resolve the correct Typeface (Android's native font format)
+    val context = LocalContext.current
+    val density = LocalDensity.current
+
+    // This resolver converts Compose FontFamily/Weight/Style into an Android Typeface
+    val resolver = LocalFontFamilyResolver.current
+
+    // Use the extension function that returns State<Typeface> directly
+    val typefaceState = remember(resolver, fontFamily, fontWeight, fontStyle) {
+        resolver.resolveAsTypeface(
+            fontFamily = fontFamily,
+            fontWeight = fontWeight,
+            fontStyle = fontStyle
+        )
+    }
+
+    // Now you can access .value directly as a Typeface
+    val typeface: Typeface = typefaceState.value
+
+
+    Canvas(modifier = Modifier.size(300.dp)) {
+        val paint = android.graphics.Paint().apply {
+            this.textSize = with(density) { fontSize.toPx() }
+            this.color = color.toArgb() // Convert Compose Color to Android Int Color
+            this.textAlign = android.graphics.Paint.Align.CENTER
+            this.isAntiAlias = true
+
+            // 3. Apply the resolved Typeface (handles Bold, Italic, Custom Fonts)
+            this.typeface = typeface
+
+            // Apply fake bold/italic if the font file itself doesn't support it
+            this.isFakeBoldText = fontWeight.weight >= FontWeight.Bold.weight && !typeface.isBold
+            this.textSkewX = if (fontStyle == FontStyle.Italic && !typeface.isItalic) -0.25f else 0f
+
+            // Shadow (Layer)
+            setShadowLayer(10f, 5f, 5f, shadowColor)
+        }
+
+        val path = android.graphics.Path().apply {
+            addArc(
+                RectF(
+                    center.x - curveRadius,
+                    center.y,
+                    center.x + curveRadius,
+                    center.y + (curveRadius * 2)
+                ),
+                180f,
+                180f
+            )
+        }
+
+        drawIntoCanvas { canvas ->
+            val nativeCanvas = canvas.nativeCanvas
+            nativeCanvas.save()
+
+            // Transformations
+            nativeCanvas.rotate(angle, center.x, center.y)
+            nativeCanvas.scale(1f, stretchY, center.x, center.y)
+
+            // Draw
+            nativeCanvas.drawTextOnPath(text, path, 0f, 0f, paint)
+
+            nativeCanvas.restore()
         }
     }
 }

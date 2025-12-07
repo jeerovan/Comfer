@@ -4,8 +4,7 @@
     <string name="welcome">Hoş geldiňiz</string>
 
     <string name="checkout_how_to_guide">
-        Baş ekranyň (Home screen) islendik ýerine uzak basyp menyuny açyň we "How-to" gollanmasyny görüň.\n
-        Bildiriş: Käbir terjimeler awtomatiki döredilen bolup biler. Nädogry ýa-da düşnüksiz tekst görseňiz, haýyş edýäris, e-poçta arkaly bize habar beriň.
+        Menýuny açmak we “Näme etmeli” gollanmasyny görmek üçin ekranyň aşaky bölegine uzak basyň.\nDuýduryş: Käbir terjimeler awtomatiki döredilen bolup biler. Nädogry tekst görseňiz, e-mail arkaly habar beriň.
     </string>
 
     <string name="accessibility_service_description">

@@ -4,8 +4,7 @@
     <string name="welcome">Xoş gəlmisiniz</string>
 
     <string name="checkout_how_to_guide">
-        Əsas ekranda istənilən yerə uzun toxunaraq menyunu açın və "İstifadə qaydaları" bələdçisinə baxın.\n
-        Qeyd: Bəzi tərcümələr avtomatik yaradılmış ola bilər. Səhv mətn görsəniz, zəhmət olmasa e-poçt vasitəsilə bizimlə əlaqə saxlayın.
+        Menyunu açmaq və “Necə etməli” bələdçisinə baxmaq üçün ekranın alt hissəsinə uzun basın.\nQeyd: Bəzi tərcümələr avtomatik yaradılmış ola bilər. Səhv mətn görsəniz, zəhmət olmasa e-poçt vasitəsilə bizimlə əlaqə saxlayın.
     </string>
 
     <string name="accessibility_service_description">

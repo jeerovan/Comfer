@@ -4,8 +4,7 @@
     <string name="welcome">Hoş geldiniz</string>
 
     <string name="checkout_how_to_guide">
-        Ana ekranın herhangi bir yerinde uzun basarak menüyü açın ve "Nasıl yapılır" rehberini görüntüleyin.\n
-        Feragatname: Bazı çeviriler otomatik olarak oluşturulmuş olabilir. Hatalı bir metin fark ederseniz lütfen bize e-posta ile ulaşın.
+        Menüyü açmak ve “Nasıl yapılır” rehberini görmek için ekranın alt kısmına uzun basın.\nUyarı: Bazı çeviriler otomatik oluşturulmuş olabilir. Hatalı bir metin fark ederseniz lütfen e-posta ile bize ulaşın.
     </string>
 
     <string name="accessibility_service_description">

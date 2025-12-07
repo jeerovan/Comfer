@@ -4,8 +4,7 @@
     <string name="welcome">ようこそ</string>
 
     <string name="checkout_how_to_guide">
-        ホーム画面の任意の場所を長押しするとメニューが開き、「使い方」ガイドを表示できます。\n
-        免責事項：一部の翻訳は自動生成されています。誤った表現に気付いた場合は、メールでご連絡ください。
+        メニューを開いて「使い方」ガイドを見るには、画面下部を長押ししてください。\n注意：一部の翻訳は自動生成された可能性があります。誤りを見つけた場合はメールでご連絡ください。
     </string>
 
     <string name="accessibility_service_description">

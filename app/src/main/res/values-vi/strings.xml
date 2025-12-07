@@ -4,8 +4,7 @@
     <string name="welcome">Chào mừng</string>
 
     <string name="checkout_how_to_guide">
-        Nhấn giữ bất kỳ vị trí nào trên Màn hình chính để mở menu và xem mục "Hướng dẫn sử dụng".\n
-        Lưu ý: Một số bản dịch có thể được tạo tự động. Nếu bạn thấy nội dung chưa chính xác, vui lòng liên hệ với chúng tôi qua email.
+        Nhấn giữ nửa dưới màn hình để mở menu và xem hướng dẫn “Cách thực hiện”。\nLưu ý: Một số bản dịch có thể được tạo tự động. Nếu bạn thấy văn bản không chính xác, hãy liên hệ với chúng tôi qua email.
     </string>
 
     <string name="accessibility_service_description">

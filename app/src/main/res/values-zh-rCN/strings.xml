@@ -4,8 +4,7 @@
     <string name="welcome">欢迎</string>
 
     <string name="checkout_how_to_guide">
-        在主屏幕的任意位置长按即可打开菜单并查看“使用指南”。\n
-        免责声明：部分翻译可能由系统自动生成，如发现不准确的文字，请通过电子邮件联系我们。
+        长按屏幕下半部分以打开菜单并查看“使用指南”。\n说明：部分翻译可能为自动生成。如发现文字错误，请通过电子邮件联系我们。
     </string>
 
     <string name="accessibility_service_description">
