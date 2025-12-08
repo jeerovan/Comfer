@@ -171,6 +171,7 @@ import android.util.Log
 import android.view.WindowManager
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import android.view.ContextThemeWrapper
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -358,8 +359,6 @@ fun WidgetHostScreen(
     appWidgetHost: AppWidgetHost,
     widgetPrefsTitle: String,
     gridColumns: Int,
-    fullScreen: Boolean,
-    screenHeight: Dp,
     onSwipeLeft: () -> Unit,
     onSwipeRight: () -> Unit
 ) {
@@ -445,12 +444,6 @@ fun WidgetHostScreen(
             updateWidgetGroups()
         }
     }
-    // Load widgets from SharedPreferences on startup
-    LaunchedEffect(Unit) {
-        val loadedWidgets = loadWidgetsFromPrefs(prefs, appWidgetManager)
-        boundWidgets.clear()
-        boundWidgets.addAll(loadedWidgets)
-    }
     // Hook into the onResume lifecycle event.
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -484,7 +477,7 @@ fun WidgetHostScreen(
                     context.sendBroadcast(intent)
                 }
             } catch (_: ClassNotFoundException) {
-                // Handle case where the provider class can't be found, if necessary
+            // Handle case where the provider class can't be found, if necessary
             }
         }
     }
@@ -494,164 +487,177 @@ fun WidgetHostScreen(
         refreshWidgets()
     }
 
-    val gapWidth = 8.dp
-    val gapWidthPx = with(LocalDensity.current) { gapWidth.toPx() }
-    // Calculate the total horizontal space available after accounting for all gaps
-    val screenWidthDp = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp }
-    val screenHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp }
-    val windowHeightDp = if (fullScreen) screenHeightDp else screenHeight
-    val windowHeightPx = with(LocalDensity.current) { windowHeightDp.toPx()}
-    val screenWidthPx = with(LocalDensity.current) { screenWidthDp.toPx()}
-    val totalHorizontalGapPx = (gridColumns + 1) * gapWidthPx
-    val totalAvailableWidth = screenWidthPx - totalHorizontalGapPx
-    val cellWidthPx = totalAvailableWidth / gridColumns
-    // 1. Estimate total rows based on square cells to start
-    val minHeightPx = cellWidthPx
-    val totalGridRows = floor(windowHeightPx / (minHeightPx + gapWidthPx)).toInt()
-    // 2. Calculate the exact cell height required to fill the screen with that many rows
-    // The total space for cells is the screen height minus all vertical gaps.
-    // There is one gap for each row, plus one final gap at the bottom.
-    val totalVerticalGapPx = (totalGridRows + 1) * gapWidthPx
-    val totalAvailableHeight = windowHeightPx - totalVerticalGapPx
-    val cellHeightPx = totalAvailableHeight / totalGridRows
-
-    fun createWidgetView(provider: AppWidgetProviderInfo,widgetId:Int){
-        val position = findNextAvailableCell(boundWidgets, gridColumns,totalGridRows)
-        if(position != null) {
-            val newWidget = BoundWidget(widgetId, provider, position.first, position.second, 3, 3)
-            boundWidgets.add(newWidget)
-            coroutineScope.launch {
-                saveWidgetsToPrefs(prefs, boundWidgets)
-                updateWidgetGroups()
-            }
-        } else {
-            appWidgetHost.deleteAppWidgetId(widgetId)
-        }
-    }
-
-    val configureWidgetLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val appWidgetId = result.data?.getIntExtra(
-            AppWidgetManager.EXTRA_APPWIDGET_ID,
-            AppWidgetManager.INVALID_APPWIDGET_ID
-        ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
-
-        val provider = appWidgetManager.getAppWidgetInfo(appWidgetId)
-        if (result.resultCode == Activity.RESULT_OK) {
-            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                if (provider != null) {
-                    Log.i("configureWidgetLauncher", "Creating Widget:$appWidgetId:${provider.provider}")
-                    createWidgetView(provider, appWidgetId)
-                } else {
-                    appWidgetHost.deleteAppWidgetId(appWidgetId)
-                    Log.i("configureWidgetLauncher", "Provider is NULL")
-                }
-            } else {
-                Log.i("configureWidgetLauncher","Invalid widgetId")
-            }
-        } else {
-            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                appWidgetHost.deleteAppWidgetId(appWidgetId)
-            }
-            Toast.makeText(context, context.getString(R.string.widget_binding_cancelled), Toast.LENGTH_SHORT).show()
-        }
-    }
-    fun checkConfigureWidget(provider: AppWidgetProviderInfo,appWidgetId:Int) {
-        if (provider.configure != null) {
-            // This widget needs configuration
-            val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE)
-            intent.component = provider.configure
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
-            // Use ActivityResultLauncher to start the activity and handle the result
-            try {
-                Log.i("CheckConfigureWidget","Running configureWidgetLauncher")
-                configureWidgetLauncher.launch(intent)
-            } catch (e:Exception){
-                Log.e( "configureWidgetLauncher.launch failed",e.toString())
-                createWidgetView(provider,appWidgetId)
-            }
-        } else {
-            // No configuration needed, create the widget view directly
-            Log.i("CheckConfigureWidget","Not Required")
-            createWidgetView(provider, appWidgetId)
-        }
-    }
-    val bindWidgetLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val appWidgetId = result.data?.getIntExtra(
-            AppWidgetManager.EXTRA_APPWIDGET_ID,
-            AppWidgetManager.INVALID_APPWIDGET_ID
-        ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
-        val provider = appWidgetManager.getAppWidgetInfo(appWidgetId)
-        if (result.resultCode == Activity.RESULT_OK) {
-            if( appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                if (provider != null) {
-                    Log.i("BindWidgetLauncher", "Checking configuration")
-                    checkConfigureWidget(provider, appWidgetId)
-                } else {
-                    appWidgetHost.deleteAppWidgetId(appWidgetId)
-                    Log.i("BindWidgetLauncher", "provider is null: $appWidgetId")
-                }
-            } else {
-                Log.i("BindWidgetLauncher", "Invalid appWidgetId")
-            }
-        } else {
-            // User cancelled the binding. Clean up the allocated ID.
-            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                appWidgetHost.deleteAppWidgetId(appWidgetId)
-            }
-            Toast.makeText(context, context.getString(R.string.widget_binding_cancelled), Toast.LENGTH_SHORT).show()
-        }
-    }
-    val sizeModifier = if(fullScreen) Modifier.fillMaxSize() else Modifier
-        .fillMaxWidth()
-        .height(windowHeightDp)
-    Box(
-            modifier = modifier
-                .border(width=1.dp,Color.White)
-                .detectSwipes(
-                    Unit,
-                    onSwipeLeft = onSwipeLeft,
-                    onSwipeRight = onSwipeRight
-                )
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = {
-                            if (editMode) {
-                                editMode = false
-                            }
-                        },
-                        onLongPress = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            editMode = !editMode
+    BoxWithConstraints(
+        modifier = modifier
+            //.border(width=1.dp,Color.Blue)
+            .detectSwipes(
+                Unit,
+                onSwipeLeft = onSwipeLeft,
+                onSwipeRight = onSwipeRight
+            )
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {
+                        if (editMode) {
+                            editMode = false
                         }
-                    )
-                }
-        ) {
-            if (boundWidgets.isEmpty() && !editMode) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp) // Keep horizontal padding for screen margins
-                        .height(50.dp)
-                        .clip(RoundedCornerShape(16.dp)) // Clip the content to the rounded shape
-                        .background(Color.Black.copy(alpha = 0.5f)), // Black background for the box
-                    contentAlignment = Alignment.Center, // Center the Text inside the Box
-                ) {
-                    Text(
-                        text = stringResource(R.string.long_press_to_add_edit_widgets),
-                        color = Color.White.copy(alpha = 0.8f),
-                        fontSize = 20.sp,
-                        textAlign = TextAlign.Center, // Ensure placeholder text is centered
-                        modifier = Modifier.padding(horizontal = 16.dp) // Inner padding for the text
-                    )
-                }
+                    },
+                    onLongPress = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        editMode = !editMode
+                    }
+                )
             }
+    ) {
+        // 1. Get exact dimensions available to this Box
+        // maxHeight and maxWidth are provided by BoxWithConstraintsScope
+        val containerHeight = maxHeight
+        val containerWidth = maxWidth
 
+        // 2. Perform your Grid Calculations here (inside the scope)
+        val gapWidth = 8.dp
+
+        // Convert Dp to Px for math
+        // LocalDensity is available here
+        val density = LocalDensity.current
+
+        val windowHeightPx = with(density) { containerHeight.toPx() }
+        val screenWidthPx = with(density) { containerWidth.toPx() }
+        val gapWidthPx = with(density) { gapWidth.toPx() }
+
+        val totalHorizontalGapPx = (gridColumns + 1) * gapWidthPx
+        val totalAvailableWidth = screenWidthPx - totalHorizontalGapPx
+        val cellWidthPx = totalAvailableWidth / gridColumns
+
+        val minHeightPx = cellWidthPx // Assuming square cells
+        val totalGridRows = floor(windowHeightPx / (minHeightPx + gapWidthPx)).toInt()
+
+        val totalVerticalGapPx = (totalGridRows + 1) * gapWidthPx
+        val totalAvailableHeight = windowHeightPx - totalVerticalGapPx
+        val cellHeightPx = if (totalGridRows > 0) totalAvailableHeight / totalGridRows else 0f
+
+        val currentGridRows by rememberUpdatedState(totalGridRows)
+
+        fun createWidgetView(provider: AppWidgetProviderInfo,widgetId:Int){
+            val position = findNextAvailableCell(boundWidgets, gridColumns,totalGridRows)
+            if(position != null) {
+                val newWidget = BoundWidget(widgetId, provider, position.first, position.second, 3, 3)
+                boundWidgets.add(newWidget)
+                coroutineScope.launch {
+                    saveWidgetsToPrefs(prefs, boundWidgets)
+                    updateWidgetGroups()
+                }
+            } else {
+                appWidgetHost.deleteAppWidgetId(widgetId)
+            }
+        }
+
+        val configureWidgetLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            val appWidgetId = result.data?.getIntExtra(
+                AppWidgetManager.EXTRA_APPWIDGET_ID,
+                AppWidgetManager.INVALID_APPWIDGET_ID
+            ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
+
+            val provider = appWidgetManager.getAppWidgetInfo(appWidgetId)
+            if (result.resultCode == Activity.RESULT_OK) {
+                if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                    if (provider != null) {
+                        Log.i("configureWidgetLauncher", "Creating Widget:$appWidgetId:${provider.provider}")
+                        createWidgetView(provider, appWidgetId)
+                    } else {
+                        appWidgetHost.deleteAppWidgetId(appWidgetId)
+                        Log.i("configureWidgetLauncher", "Provider is NULL")
+                    }
+                } else {
+                    Log.i("configureWidgetLauncher","Invalid widgetId")
+                }
+            } else {
+                if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                    appWidgetHost.deleteAppWidgetId(appWidgetId)
+                }
+                Toast.makeText(context, context.getString(R.string.widget_binding_cancelled), Toast.LENGTH_SHORT).show()
+            }
+        }
+        fun checkConfigureWidget(provider: AppWidgetProviderInfo,appWidgetId:Int) {
+            if (provider.configure != null) {
+                // This widget needs configuration
+                val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE)
+                intent.component = provider.configure
+                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
+                // Use ActivityResultLauncher to start the activity and handle the result
+                try {
+                    Log.i("CheckConfigureWidget","Running configureWidgetLauncher")
+                    configureWidgetLauncher.launch(intent)
+                } catch (e:Exception){
+                    Log.e( "configureWidgetLauncher.launch failed",e.toString())
+                    createWidgetView(provider,appWidgetId)
+                }
+            } else {
+                // No configuration needed, create the widget view directly
+                Log.i("CheckConfigureWidget","Not Required")
+                createWidgetView(provider, appWidgetId)
+            }
+        }
+        val bindWidgetLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            val appWidgetId = result.data?.getIntExtra(
+                AppWidgetManager.EXTRA_APPWIDGET_ID,
+                AppWidgetManager.INVALID_APPWIDGET_ID
+            ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
+            val provider = appWidgetManager.getAppWidgetInfo(appWidgetId)
+            if (result.resultCode == Activity.RESULT_OK) {
+                if( appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                    if (provider != null) {
+                        Log.i("BindWidgetLauncher", "Checking configuration")
+                        checkConfigureWidget(provider, appWidgetId)
+                    } else {
+                        appWidgetHost.deleteAppWidgetId(appWidgetId)
+                        Log.i("BindWidgetLauncher", "provider is null: $appWidgetId")
+                    }
+                } else {
+                    Log.i("BindWidgetLauncher", "Invalid appWidgetId")
+                }
+            } else {
+                // User cancelled the binding. Clean up the allocated ID.
+                if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                    appWidgetHost.deleteAppWidgetId(appWidgetId)
+                }
+                Toast.makeText(context, context.getString(R.string.widget_binding_cancelled), Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Load widgets from SharedPreferences on startup
+        LaunchedEffect(Unit) {
+            val loadedWidgets = loadWidgetsFromPrefs(prefs, appWidgetManager)
+            boundWidgets.clear()
+            boundWidgets.addAll(loadedWidgets)
+        }
+
+        if (boundWidgets.isEmpty() && !editMode) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp) // Keep horizontal padding for screen margins
+                    .height(50.dp)
+                    .clip(RoundedCornerShape(16.dp)) // Clip the content to the rounded shape
+                    .background(Color.Black.copy(alpha = 0.5f)), // Black background for the box
+                contentAlignment = Alignment.Center, // Center the Text inside the Box
+            ) {
+                Text(
+                    text = stringResource(R.string.long_press_to_add_edit_widgets),
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center, // Ensure placeholder text is centered
+                    modifier = Modifier.padding(horizontal = 16.dp) // Inner padding for the text
+                )
+            }
+        }
+        if (currentGridRows > 0) {
             WidgetGrid(
                 boundWidgets = boundWidgets,
                 appWidgetHost = appWidgetHost,
@@ -675,38 +681,39 @@ fun WidgetHostScreen(
                 },
                 onAddClick = { showPicker = true }
             )
-
-            if (showPicker) {
-                WidgetPickerFullScreen(
-                    onDismiss = { showPicker = false },
-                    onWidgetSelected = { provider ->
-                        showPicker = false
-                        val appWidgetId = appWidgetHost.allocateAppWidgetId()
-                        Log.i("WidgetHost","Allocated WidgetId: $appWidgetId")
-                        val canBind = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, provider.provider)
-                        if (canBind) {
-                            checkConfigureWidget(provider,appWidgetId)
-                        } else {
-                            Log.i("WidgetHost","Can NOT bind: $appWidgetId")
-                            val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
-                                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-                                putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
-                            }
-                            try {
-                                Log.i("WidgetHost","Calling bindWidgetLauncher")
-                                bindWidgetLauncher.launch(intent)
-                            } catch (e:Exception){
-                                if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                                    appWidgetHost.deleteAppWidgetId(appWidgetId)
-                                }
-                                Log.i("bindWidgetLauncher.launch failed", e.toString())
-                            }
-                        }
-                    },
-                    widgetProviderGroups = widgetProviderGroups
-                )
-            }
         }
+
+        if (showPicker) {
+            WidgetPickerFullScreen(
+                onDismiss = { showPicker = false },
+                onWidgetSelected = { provider ->
+                    showPicker = false
+                    val appWidgetId = appWidgetHost.allocateAppWidgetId()
+                    Log.i("WidgetHost","Allocated WidgetId: $appWidgetId")
+                    val canBind = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, provider.provider)
+                    if (canBind) {
+                        checkConfigureWidget(provider,appWidgetId)
+                    } else {
+                        Log.i("WidgetHost","Can NOT bind: $appWidgetId")
+                        val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
+                            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                            putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
+                        }
+                        try {
+                            Log.i("WidgetHost","Calling bindWidgetLauncher")
+                            bindWidgetLauncher.launch(intent)
+                        } catch (e:Exception){
+                            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                                appWidgetHost.deleteAppWidgetId(appWidgetId)
+                            }
+                            Log.i("bindWidgetLauncher.launch failed", e.toString())
+                        }
+                    }
+                },
+                widgetProviderGroups = widgetProviderGroups
+            )
+        }
+    }
 }
 
 // --- Widget Grid ---
@@ -729,9 +736,9 @@ fun WidgetGrid(
     val gapWidthPx = with(LocalDensity.current) { gapWidth.toPx() }
 
     Box(modifier = Modifier
-        //.border(width = 1.dp,Color.Red)
         .fillMaxSize()
         .padding(horizontal = gapWidth)
+        //.border(width = 1.dp,Color.Red)
     ) {
         boundWidgets.forEach { widget ->
             key(widget.widgetId) {
@@ -952,11 +959,16 @@ private fun WidgetInstance(
                 )
             } else {
                 AndroidView(
-                    factory = { context ->
-                        val hostView = appWidgetHost.createView(context.applicationContext, widget.widgetId, appWidgetProviderInfo)
+                    factory = { ctx ->
+                        val themedContext = ContextThemeWrapper(ctx.applicationContext,
+                            android.R.style.Theme_DeviceDefault)
+                        val hostView = appWidgetHost.createView(themedContext,
+                            widget.widgetId,
+                            appWidgetProviderInfo)
                         try {
-                            hostView.setAppWidget(widget.widgetId, appWidgetProviderInfo)
                             hostView.updateAppWidgetOptions( getBundleOptionsFromCurrentSize())
+
+                            hostView.setAppWidget(widget.widgetId, appWidgetProviderInfo)
                         } catch (_: Exception) {
                             hasError = true
                         }
@@ -1597,10 +1609,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
         {onFeedbackDismiss()},
         {onFeedbackRateIt()}
     )
-    val maxHeightDp = LocalConfiguration.current.screenHeightDp.dp
-    Log.d("ScreenHeight","$maxHeightDp")
     val lowerPartHeight = 350.dp
-    val topPartHeight = maxHeightDp - lowerPartHeight
     var defaultColor = imageData?.color?.let { colorName ->
         stringToColor(colorName)
     } ?: Color.White
@@ -1626,8 +1635,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     mainWidgetHost,
                     "widgets_center",
                     gridColumns = 9,
-                    fullScreen = false,
-                    screenHeight = topPartHeight,
                     onSwipeRight = {},
                     onSwipeLeft = {})
             } else {
@@ -1694,8 +1701,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                 } else {
                     Box(
                         modifier = Modifier
-                            .border(1.dp, color = Color.Cyan)
                             .fillMaxWidth()
+                            //.border(1.dp, color = Color.Cyan)
                             .height(lowerPartHeight)
                             .detectGestures(
                                 onSwipeUp = onSwipeUp,
@@ -2843,8 +2850,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 widgetHosts.leftHost,
                 "widgets_prefs_left",
                 gridColumns = 7,
-                fullScreen = true,
-                screenHeight = 0.dp,
                 onSwipeLeft = { areLeftWigetsVisible = false},
                 onSwipeRight = {}
             )
@@ -2861,8 +2866,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 widgetHosts.rightHost,
                 "widgets_prefs_right",
                 gridColumns = 7,
-                fullScreen = true,
-                screenHeight = 0.dp,
                 onSwipeLeft = { },
                 onSwipeRight = { areRightWigetsVisible = false}
             )
@@ -3878,14 +3881,14 @@ fun WidgetDate(
     Box(modifier = Modifier
         .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp))
         .padding(4.dp)){
-        EffectTextBlock(date)
-        /*Text(
+        //EffectTextBlock(date)
+        Text(
             text = date,
             color = if(customWallpaper) settings.dateFontColor else defaultColor,
             fontSize = settings.dateFontSize.sp,
             fontWeight = getFontWeightFromString(settings.dateFontWeight),
             fontFamily = settings.dateFontFamily,
-        )*/
+        )
     }
 }
 @Composable
@@ -4409,8 +4412,8 @@ fun DraggableQuickWidgetsContainer(
 
     BoxWithConstraints(
         modifier = modifier
-            .border(width = 1.dp, Color.Cyan)
-            .fillMaxWidth()
+            .fillMaxSize()
+            //.border(width = 1.dp, Color.Cyan)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
