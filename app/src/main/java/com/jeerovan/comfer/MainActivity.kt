@@ -143,7 +143,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalUriHandler
@@ -220,6 +219,7 @@ import com.jeerovan.comfer.utils.CommonUtil.handleStartActivity
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
@@ -642,10 +642,9 @@ fun WidgetHostScreen(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp) // Keep horizontal padding for screen margins
-                    .height(50.dp)
-                    .clip(RoundedCornerShape(16.dp)) // Clip the content to the rounded shape
-                    .background(Color.Black.copy(alpha = 0.5f)), // Black background for the box
+                    .padding(horizontal = 24.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.Black.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center, // Center the Text inside the Box
             ) {
                 Text(
@@ -653,7 +652,7 @@ fun WidgetHostScreen(
                     color = Color.White.copy(alpha = 0.8f),
                     fontSize = 20.sp,
                     textAlign = TextAlign.Center, // Ensure placeholder text is centered
-                    modifier = Modifier.padding(horizontal = 16.dp) // Inner padding for the text
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp) // Inner padding for the text
                 )
             }
         }
@@ -1530,6 +1529,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                      onSwipeLeft: () -> Unit,
                      onShowSearch:() -> Unit) {
     val context = LocalContext.current
+    val view = LocalView.current
     var iconSize by remember { mutableStateOf(48.dp) }
     var iconShape: Shape by remember { mutableStateOf(CircleShape)}
     var isDefault by remember { mutableStateOf(false) }
@@ -1624,6 +1624,10 @@ fun QuickListOverlay(apps: List<AppInfo>,
     var showWidgetSettings by remember { mutableStateOf(false) }
     val themedColors = PreferenceManager.getThemedColors(context)
     val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
+    fun exitWidgetSettings() {
+        showWidgetSettings = false
+        view.playSoundEffect(SoundEffectConstants.CLICK)
+    }
     Box(modifier = Modifier
         .fillMaxSize()
     ) {
@@ -1640,6 +1644,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
             } else {
                 DraggableQuickWidgetsContainer (
                     modifier = Modifier.weight(1f),
+                    editMode = showWidgetSettings,
                     widgetIds = settings.widgetIds,
                     widgetPositions = settings.widgetPositions,
                     onPositionChanged = { id, offset ->
@@ -1696,7 +1701,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 )
                             }
                     ) {
-                        ProSettingsScreen(settingsModel)
+                        ProSettingsScreen(settingsModel,
+                            { exitWidgetSettings() })
                     }
                 } else {
                     Box(
@@ -3986,13 +3992,22 @@ fun TextClock(
             .padding(4.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = time,
-            color = color,
-            fontSize = fontSize,
-            fontWeight = fontWeight,
-            fontFamily = fontFamily
-        )
+        Column( horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = time.split(":").first(),
+                color = color,
+                fontSize = fontSize,
+                fontWeight = fontWeight,
+                fontFamily = fontFamily
+            )
+            Text(
+                text = time.split(":").last(),
+                color = color,
+                fontSize = fontSize,
+                fontWeight = fontWeight,
+                fontFamily = fontFamily
+            )
+        }
     }
 }
 @Composable
@@ -4395,14 +4410,13 @@ class WidgetHostManager(private val context: Context) {
 @Composable
 fun DraggableQuickWidgetsContainer(
     modifier: Modifier = Modifier,
+    editMode: Boolean,
     widgetIds: List<String>,
     widgetPositions: Map<String, Offset?>,
     onPositionChanged: (String, Offset) -> Unit,
     onEditModeChanged: (Boolean) -> Unit,
     composableContent: @Composable (String, Boolean) -> Unit
 ) {
-    // Edit mode state
-    var editMode by remember { mutableStateOf(false) }
 
     // Track measured sizes for initial column layout calculation
     val measuredSizes = remember { mutableStateMapOf<String, IntSize>() }
@@ -4417,15 +4431,11 @@ fun DraggableQuickWidgetsContainer(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        if (editMode) {
-                            editMode = false
-                            onEditModeChanged(false)
-                        }
+                        onEditModeChanged(false)
                     },
                     onDoubleTap = {},
                     onLongPress = {
-                        editMode = !editMode
-                        onEditModeChanged(editMode)
+                        onEditModeChanged(true)
                     }
                 )
             }

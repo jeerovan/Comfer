@@ -334,4 +334,5 @@
     <string name="font_weight_light">Light</string>
     <string name="font_weight_normal">Normal</string>
     <string name="font_weight_bold">Bold</string>
+    <string name="icon_go_back">Icon go back</string>
 </resources>

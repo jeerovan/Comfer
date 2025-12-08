@@ -2,6 +2,7 @@ package com.jeerovan.comfer
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.SoundEffectConstants
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -28,6 +29,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.material3.Text
@@ -74,17 +78,15 @@ class ProSettingsActivity : AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         setContent {
-            // A basic theme wrapper
-            ComferTheme {
-                ProSettingsScreen(settingsViewModel)
-            }
+
         }
     }
 }
 
 @SuppressLint("LocalContextGetResourceValueCall")
 @Composable
-fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
+fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
+                      exitWidgetSettings: () -> Unit) {
     val context = LocalContext.current
     val settingsState by settingsViewModel.uiState.collectAsState()
     var showTimeFontDialog by remember { mutableStateOf(false) }
@@ -101,148 +103,280 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp,)
-                .windowInsetsPadding(WindowInsets.navigationBars)
-        ) {
-            SettingSection(stringResource(R.string.title_widgets)) {
-                Box(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-                    .clickable {
-                        settingsViewModel.clearAllWidgetPositions()
-                    }
+        Column {
+            Box(Modifier.fillMaxWidth()) { // Use a Box to control alignment
+                SmallFloatingActionButton(
+                    onClick = exitWidgetSettings,
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter) // Align to the bottom-right corner
+                        .padding(8.dp) // Add standard margin from the edges
                 ) {
-                    Text(stringResource(R.string.rest_widget_positions),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.icon_go_back),
                     )
                 }
             }
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 16.dp),
-                thickness = DividerDefaults.Thickness,
-                color = DividerDefaults.color
-            )
-            // Time Settings
-            SettingSection(stringResource(R.string.title_time)) {
-                SettingSwitch(
-                    label = stringResource(R.string.title_analog_clock),
-                    enabled = settingsState.hasPro,
-                    checked = settingsState.showAnalog,
-                    onCheckedChange = {
-                        if(settingsState.hasPro){
-                            settingsViewModel.showAnalog(it)
-                        } else {
-                            Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT).show()
-                        }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp,)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+            ) {
+                SettingSection(stringResource(R.string.title_widgets)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .clickable {
+                                settingsViewModel.clearAllWidgetPositions()
+                            }
+                    ) {
+                        Text(
+                            stringResource(R.string.rest_widget_positions),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
+                }
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    thickness = DividerDefaults.Thickness,
+                    color = DividerDefaults.color
                 )
-                if (settingsState.showAnalog) {
-                    // Clock Size
-                    SettingSlider(
-                        label = stringResource(R.string.title_clock_size),
-                        value = settingsState.clockSize,
-                        range = 70f..250f,
-                        onValueChange = { settingsViewModel.setClockSize(it) }
-                    )
-                    if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
-                        // Background Color
-                        ColorPickerSettingItem(
-                            stringResource(R.string.clock_background_color),
-                            settingsState.clockBgColor
-                        ) { showClockBgPicker = true }
-                        // Background Alpha
-                        SettingSlider(
-                            label = stringResource(R.string.background_transparency),
-                            value = (settingsState.clockBgAlpha * 100f).toInt(),
-                            range = 0f..100f,
-                            onValueChange = { settingsViewModel.setClockBgAlpha(it) }
-                        )
-                        // Hour Color
-                        ColorPickerSettingItem(
-                            stringResource(R.string.hour_hand_color),
-                            settingsState.clockHourColor
-                        ) { showClockHourPicker = true }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        // Minute Color
-                        ColorPickerSettingItem(
-                            stringResource(R.string.minute_hand_color),
-                            settingsState.clockMinuteColor
-                        ) { showClockMinutePicker = true }
-                    }
-                    if (showClockBgPicker) {
-                        EnhancedColorPicker(
-                            predefinedColors = settingsViewModel.predefinedColors,
-                            initialColor = settingsState.clockBgColor,
-                            onColorSelected = { color ->
-                                settingsViewModel.setClockBgColor(color)
-                            },
-                            onDismissRequest = { showClockBgPicker = false }
-                        )
-                    }
-                    if (showClockHourPicker) {
-                        EnhancedColorPicker(
-                            predefinedColors = settingsViewModel.predefinedColors,
-                            initialColor = settingsState.clockHourColor,
-                            onColorSelected = { color ->
-                                settingsViewModel.setClockHourColor(color)
-                            },
-                            onDismissRequest = { showClockHourPicker = false }
-                        )
-                    }
-                    if (showClockMinutePicker) {
-                        EnhancedColorPicker(
-                            predefinedColors = settingsViewModel.predefinedColors,
-                            initialColor = settingsState.clockMinuteColor,
-                            onColorSelected = { color ->
-                                settingsViewModel.setClockMinuteColor(color)
-                            },
-                            onDismissRequest = { showClockMinutePicker = false }
-                        )
-                    }
-                } else {
-                    // Time Format
-                    SettingDropdown(
-                        label = stringResource(R.string.title_time_format),
-                        selectedValue = settingsState.timeFormat,
-                        options = arrayOf(getKeyTextObject("H12",context),getKeyTextObject("H24",context)),
-                        onValueChange = {
-                            settingsViewModel.setTimeFormat(it)
+                // Time Settings
+                SettingSection(stringResource(R.string.title_time)) {
+                    SettingSwitch(
+                        label = stringResource(R.string.title_analog_clock),
+                        enabled = settingsState.hasPro,
+                        checked = settingsState.showAnalog,
+                        onCheckedChange = {
+                            if (settingsState.hasPro) {
+                                settingsViewModel.showAnalog(it)
+                            } else {
+                                Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
                         }
                     )
-                    // Time Font Size
+                    if (settingsState.showAnalog) {
+                        // Clock Size
+                        SettingSlider(
+                            label = stringResource(R.string.title_clock_size),
+                            value = settingsState.clockSize,
+                            range = 70f..250f,
+                            onValueChange = { settingsViewModel.setClockSize(it) }
+                        )
+                        if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
+                            // Background Color
+                            ColorPickerSettingItem(
+                                stringResource(R.string.clock_background_color),
+                                settingsState.clockBgColor
+                            ) { showClockBgPicker = true }
+                            // Background Alpha
+                            SettingSlider(
+                                label = stringResource(R.string.background_transparency),
+                                value = (settingsState.clockBgAlpha * 100f).toInt(),
+                                range = 0f..100f,
+                                onValueChange = { settingsViewModel.setClockBgAlpha(it) }
+                            )
+                            // Hour Color
+                            ColorPickerSettingItem(
+                                stringResource(R.string.hour_hand_color),
+                                settingsState.clockHourColor
+                            ) { showClockHourPicker = true }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            // Minute Color
+                            ColorPickerSettingItem(
+                                stringResource(R.string.minute_hand_color),
+                                settingsState.clockMinuteColor
+                            ) { showClockMinutePicker = true }
+                        }
+                        if (showClockBgPicker) {
+                            EnhancedColorPicker(
+                                predefinedColors = settingsViewModel.predefinedColors,
+                                initialColor = settingsState.clockBgColor,
+                                onColorSelected = { color ->
+                                    settingsViewModel.setClockBgColor(color)
+                                },
+                                onDismissRequest = { showClockBgPicker = false }
+                            )
+                        }
+                        if (showClockHourPicker) {
+                            EnhancedColorPicker(
+                                predefinedColors = settingsViewModel.predefinedColors,
+                                initialColor = settingsState.clockHourColor,
+                                onColorSelected = { color ->
+                                    settingsViewModel.setClockHourColor(color)
+                                },
+                                onDismissRequest = { showClockHourPicker = false }
+                            )
+                        }
+                        if (showClockMinutePicker) {
+                            EnhancedColorPicker(
+                                predefinedColors = settingsViewModel.predefinedColors,
+                                initialColor = settingsState.clockMinuteColor,
+                                onColorSelected = { color ->
+                                    settingsViewModel.setClockMinuteColor(color)
+                                },
+                                onDismissRequest = { showClockMinutePicker = false }
+                            )
+                        }
+                    } else {
+                        // Time Format
+                        SettingDropdown(
+                            label = stringResource(R.string.title_time_format),
+                            selectedValue = settingsState.timeFormat,
+                            options = arrayOf(
+                                getKeyTextObject("H12", context),
+                                getKeyTextObject("H24", context)
+                            ),
+                            onValueChange = {
+                                settingsViewModel.setTimeFormat(it)
+                            }
+                        )
+                        // Time Font Size
+                        SettingSlider(
+                            label = stringResource(R.string.title_font_size),
+                            value = settingsState.timeFontSize,
+                            range = 20f..100f,
+                            onValueChange = { settingsViewModel.setTimeFontSize(it) }
+                        )
+
+                        // Time Text Style
+                        SettingDropdown(
+                            label = stringResource(R.string.title_font_weight),
+                            selectedValue = settingsState.timeFontWeight,
+                            options = arrayOf(
+                                getKeyTextObject("Light", context),
+                                getKeyTextObject("Normal", context),
+                                getKeyTextObject("Bold", context)
+                            ),
+                            onValueChange = {
+                                settingsViewModel.setTimeFontWeight(it)
+                            }
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    showTimeFontDialog = true
+                                } // Make the whole row clickable
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            val fontName = settingsState.timeFontName
+                            val fontFamily = remember(fontName) {
+                                FontFamily(
+                                    Font(
+                                        googleFont = GoogleFont(fontName),
+                                        fontProvider = fontProvider
+                                    )
+                                )
+                            }
+                            Row {
+                                Text(
+                                    stringResource(R.string.title_font_style),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                if (!settingsState.hasPro) Icon(
+                                    Icons.Filled.Lock,
+                                    contentDescription = "Paid Feature",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .size(15.dp)
+                                        .offset(x = 10.dp, y = 2.dp)
+                                )
+                            }
+                            Text(
+                                text = "12:34",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontFamily = fontFamily,
+                                fontSize = 32.sp,
+                                fontWeight = getFontWeightFromString(settingsState.timeFontWeight)
+                            )
+                        }
+                        if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
+                            ColorPickerSettingItem(
+                                stringResource(R.string.title_time_font_color),
+                                settingsState.timeFontColor
+                            ) { showTimeFontColor = true }
+                        }
+                        if (showTimeFontDialog) {
+                            FontSelectionDialog(
+                                sampleText = "12:34",
+                                onDismissRequest = { showTimeFontDialog = false },
+                                onFontSelected = { fontName ->
+                                    if (settingsState.hasPro) {
+                                        settingsViewModel.setTimeFontName(fontName)
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.requires_subscription),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                    showTimeFontDialog =
+                                        false // Also dismiss dialog after selection
+                                }
+                            )
+                        }
+                        if (showTimeFontColor) {
+                            EnhancedColorPicker(
+                                predefinedColors = settingsViewModel.predefinedColors,
+                                initialColor = settingsState.timeFontColor,
+                                onColorSelected = { color ->
+                                    settingsViewModel.setTimeFontColor(color)
+                                },
+                                onDismissRequest = { showTimeFontColor = false }
+                            )
+                        }
+                    }
+                }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    thickness = DividerDefaults.Thickness,
+                    color = DividerDefaults.color
+                )
+
+                // Date Settings
+                SettingSection(stringResource(R.string.title_date)) {
+                    // Date Font Size
                     SettingSlider(
                         label = stringResource(R.string.title_font_size),
-                        value = settingsState.timeFontSize,
-                        range = 20f..100f,
-                        onValueChange = { settingsViewModel.setTimeFontSize(it) }
+                        value = settingsState.dateFontSize,
+                        range = 12f..40f,
+                        onValueChange = { settingsViewModel.setDateFontSize(it) }
                     )
 
-                    // Time Text Style
+                    // Date Text Style
                     SettingDropdown(
                         label = stringResource(R.string.title_font_weight),
-                        selectedValue = settingsState.timeFontWeight,
-                        options = arrayOf(getKeyTextObject("Light",context),
-                            getKeyTextObject("Normal",context),
-                                getKeyTextObject("Bold",context)
+                        selectedValue = settingsState.dateFontWeight,
+                        options = arrayOf(
+                            getKeyTextObject("Light", context),
+                            getKeyTextObject("Normal", context),
+                            getKeyTextObject("Bold", context)
                         ),
                         onValueChange = {
-                            settingsViewModel.setTimeFontWeight(it)
+                            settingsViewModel.setDateFontWeight(it)
                         }
                     )
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { showTimeFontDialog = true } // Make the whole row clickable
+                            .clickable { showDateFontDialog = true } // Make the whole row clickable
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        val fontName = settingsState.timeFontName
+                        val fontName = settingsState.dateFontName
                         val fontFamily = remember(fontName) {
                             FontFamily(
                                 Font(
@@ -252,236 +386,145 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel) {
                             )
                         }
                         Row {
-                            Text(stringResource(R.string.title_font_style),
+                            Text(
+                                stringResource(R.string.title_font_style),
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface)
-                            if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
-                                contentDescription = "Paid Feature",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            if (!settingsState.hasPro) Icon(
+                                Icons.Filled.Lock,
+                                contentDescription = stringResource(R.string.paid_feature_title),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
                                     .size(15.dp)
-                                    .offset(x=10.dp,y=2.dp)
+                                    .offset(x = 10.dp, y = 2.dp)
                             )
                         }
                         Text(
-                            text = "12:34 PM",
+                            text = stringResource(R.string.date_example),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.primary,
                             fontFamily = fontFamily,
-                            fontSize = 32.sp,
-                            fontWeight = getFontWeightFromString(settingsState.timeFontWeight)
+                            fontWeight = getFontWeightFromString(settingsState.dateFontWeight),
+                            fontSize = 24.sp
                         )
                     }
                     if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
                         ColorPickerSettingItem(
-                            stringResource(R.string.title_time_font_color),
-                            settingsState.timeFontColor
-                        ) { showTimeFontColor = true }
+                            stringResource(R.string.date_font_color),
+                            settingsState.dateFontColor
+                        ) { showDateFontColor = true }
                     }
-                    if (showTimeFontDialog) {
+                    if (showDateFontDialog) {
                         FontSelectionDialog(
-                            sampleText = "12:34 PM",
-                            onDismissRequest = { showTimeFontDialog = false },
+                            sampleText = stringResource(R.string.date_example),
+                            onDismissRequest = { showDateFontDialog = false },
                             onFontSelected = { fontName ->
-                                if(settingsState.hasPro){
-                                    settingsViewModel.setTimeFontName(fontName)
+                                if (settingsState.hasPro) {
+                                    settingsViewModel.setDateFontName(fontName)
                                 } else {
-                                    Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.requires_subscription),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
-                                showTimeFontDialog = false // Also dismiss dialog after selection
+                                showDateFontDialog = false // Also dismiss dialog after selection
                             }
                         )
                     }
-                    if (showTimeFontColor) {
+                    if (showDateFontColor) {
                         EnhancedColorPicker(
                             predefinedColors = settingsViewModel.predefinedColors,
-                            initialColor = settingsState.timeFontColor,
+                            initialColor = settingsState.dateFontColor,
                             onColorSelected = { color ->
-                                settingsViewModel.setTimeFontColor(color)
+                                settingsViewModel.setDateFontColor(color)
                             },
-                            onDismissRequest = { showTimeFontColor = false }
+                            onDismissRequest = { showDateFontColor = false }
                         )
                     }
                 }
-            }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 16.dp),
-                thickness = DividerDefaults.Thickness,
-                color = DividerDefaults.color
-            )
-
-            // Date Settings
-            SettingSection(stringResource(R.string.title_date)) {
-                // Date Font Size
-                SettingSlider(
-                    label = stringResource(R.string.title_font_size),
-                    value = settingsState.dateFontSize,
-                    range = 12f..40f,
-                    onValueChange = { settingsViewModel.setDateFontSize(it) }
-                )
-
-                // Date Text Style
-                SettingDropdown(
-                    label = stringResource(R.string.title_font_weight),
-                    selectedValue = settingsState.dateFontWeight,
-                    options = arrayOf(getKeyTextObject("Light",context),
-                        getKeyTextObject("Normal",context),
-                        getKeyTextObject("Bold",context)
-                    ),
-                    onValueChange = {
-                        settingsViewModel.setDateFontWeight(it)
-                    }
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showDateFontDialog = true } // Make the whole row clickable
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    val fontName = settingsState.dateFontName
-                    val fontFamily = remember(fontName) {
-                        FontFamily(
-                            Font(
-                                googleFont = GoogleFont(fontName),
-                                fontProvider = fontProvider
-                            )
-                        )
-                    }
-                    Row {
-                        Text(stringResource(R.string.title_font_style),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface)
-                        if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
-                            contentDescription = stringResource(R.string.paid_feature_title),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .size(15.dp)
-                                .offset(x=10.dp,y=2.dp)
-                        )
-                    }
-                    Text(
-                        text = stringResource(R.string.date_example),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontFamily = fontFamily,
-                        fontWeight = getFontWeightFromString(settingsState.dateFontWeight),
-                        fontSize = 24.sp
-                    )
-                }
-                if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
-                    ColorPickerSettingItem(
-                        stringResource(R.string.date_font_color),
-                        settingsState.dateFontColor
-                    ) { showDateFontColor = true }
-                }
-                if (showDateFontDialog) {
-                    FontSelectionDialog(
-                        sampleText = stringResource(R.string.date_example),
-                        onDismissRequest = { showDateFontDialog = false },
-                        onFontSelected = { fontName ->
-                            if(settingsState.hasPro){
-                                settingsViewModel.setDateFontName(fontName)
-                            } else {
-                                Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT).show()
-                            }
-                            showDateFontDialog = false // Also dismiss dialog after selection
-                        }
-                    )
-                }
-                if (showDateFontColor) {
-                    EnhancedColorPicker(
-                        predefinedColors = settingsViewModel.predefinedColors,
-                        initialColor = settingsState.dateFontColor,
-                        onColorSelected = { color ->
-                            settingsViewModel.setDateFontColor(color)
-                        },
-                        onDismissRequest = { showDateFontColor = false }
-                    )
-                }
-            }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 16.dp),
-                thickness = DividerDefaults.Thickness,
-                color = DividerDefaults.color
-            )
-
-            // Battery Settings
-            SettingSection(stringResource(R.string.title_battery)) {
-                SettingSwitch(
-                    label = stringResource(R.string.show_battery_icon),
-                    enabled = true,
-                    checked = settingsState.showBatteryIcon,
-                    onCheckedChange = { settingsViewModel.setShowBatteryIcon(it) }
-                )
-                SettingSwitch(
-                    label = stringResource(R.string.show_battery_percentage),
-                    enabled = true,
-                    checked = settingsState.showBatteryPercentage,
-                    onCheckedChange = { settingsViewModel.setShowBatteryPercentage(it) }
-                )
-                SettingSlider(
-                    label = stringResource(R.string.title_font_size),
-                    value = settingsState.batterySize,
-                    range = 12f..40f,
-                    onValueChange = { settingsViewModel.setBatterySize(it) }
-                )
-                if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
-                    ColorPickerSettingItem(
-                        stringResource(R.string.battery_indicator_color),
-                        settingsState.batteryColor
-                    ) { showBatteryColor = true }
-                }
-                if (showBatteryColor) {
-                    EnhancedColorPicker(
-                        predefinedColors = settingsViewModel.predefinedColors,
-                        initialColor = settingsState.batteryColor,
-                        onColorSelected = { color ->
-                            settingsViewModel.setBatteryColor(color)
-                        },
-                        onDismissRequest = { showBatteryColor = false }
-                    )
-                }
-            }
-
-            if(settingsState.hasNotificationAccess) {
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 16.dp),
                     thickness = DividerDefaults.Thickness,
                     color = DividerDefaults.color
                 )
-                // Notification Settings
-                SettingSection(stringResource(R.string.title_notifications)) {
+
+                // Battery Settings
+                SettingSection(stringResource(R.string.title_battery)) {
                     SettingSwitch(
-                        label = stringResource(R.string.show_notification_icons),
+                        label = stringResource(R.string.show_battery_icon),
                         enabled = true,
-                        checked = settingsState.showNotificationRow,
-                        onCheckedChange = { settingsViewModel.setShowNotificationRow(it) }
+                        checked = settingsState.showBatteryIcon,
+                        onCheckedChange = { settingsViewModel.setShowBatteryIcon(it) }
+                    )
+                    SettingSwitch(
+                        label = stringResource(R.string.show_battery_percentage),
+                        enabled = true,
+                        checked = settingsState.showBatteryPercentage,
+                        onCheckedChange = { settingsViewModel.setShowBatteryPercentage(it) }
                     )
                     SettingSlider(
-                        label = stringResource(R.string.title_size),
-                        value = settingsState.notificationSize,
+                        label = stringResource(R.string.title_font_size),
+                        value = settingsState.batterySize,
                         range = 12f..40f,
-                        onValueChange = { settingsViewModel.setNotificationSize(it) }
+                        onValueChange = { settingsViewModel.setBatterySize(it) }
                     )
                     if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
                         ColorPickerSettingItem(
-                            stringResource(R.string.title_color),
-                            settingsState.notificationColor
-                        ) { showNotificationColor = true }
+                            stringResource(R.string.battery_indicator_color),
+                            settingsState.batteryColor
+                        ) { showBatteryColor = true }
                     }
-                    if (showNotificationColor) {
+                    if (showBatteryColor) {
                         EnhancedColorPicker(
                             predefinedColors = settingsViewModel.predefinedColors,
-                            initialColor = settingsState.notificationColor,
+                            initialColor = settingsState.batteryColor,
                             onColorSelected = { color ->
-                                settingsViewModel.setNotificationColor(color)
+                                settingsViewModel.setBatteryColor(color)
                             },
-                            onDismissRequest = { showNotificationColor = false }
+                            onDismissRequest = { showBatteryColor = false }
                         )
+                    }
+                }
+
+                if (settingsState.hasNotificationAccess) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 16.dp),
+                        thickness = DividerDefaults.Thickness,
+                        color = DividerDefaults.color
+                    )
+                    // Notification Settings
+                    SettingSection(stringResource(R.string.title_notifications)) {
+                        SettingSwitch(
+                            label = stringResource(R.string.show_notification_icons),
+                            enabled = true,
+                            checked = settingsState.showNotificationRow,
+                            onCheckedChange = { settingsViewModel.setShowNotificationRow(it) }
+                        )
+                        SettingSlider(
+                            label = stringResource(R.string.title_size),
+                            value = settingsState.notificationSize,
+                            range = 12f..40f,
+                            onValueChange = { settingsViewModel.setNotificationSize(it) }
+                        )
+                        if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
+                            ColorPickerSettingItem(
+                                stringResource(R.string.title_color),
+                                settingsState.notificationColor
+                            ) { showNotificationColor = true }
+                        }
+                        if (showNotificationColor) {
+                            EnhancedColorPicker(
+                                predefinedColors = settingsViewModel.predefinedColors,
+                                initialColor = settingsState.notificationColor,
+                                onColorSelected = { color ->
+                                    settingsViewModel.setNotificationColor(color)
+                                },
+                                onDismissRequest = { showNotificationColor = false }
+                            )
+                        }
                     }
                 }
             }
