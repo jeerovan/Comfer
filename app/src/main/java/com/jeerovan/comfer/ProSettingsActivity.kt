@@ -2,14 +2,19 @@ package com.jeerovan.comfer
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.view.SoundEffectConstants
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -30,12 +35,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,7 +67,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.ui.theme.fontProvider
 import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
 import com.jeerovan.comfer.utils.CommonUtil.getKeyTextObject
@@ -82,11 +86,71 @@ class ProSettingsActivity : AppCompatActivity() {
         }
     }
 }
+enum class SettingsScreen {
+    Basic,
+    TimeAdvanced,
+    DateAdvanced
+}
 
 @SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
                       exitWidgetSettings: () -> Unit) {
+
+    // State variable tracks the current screen
+    var currentScreen by remember { mutableStateOf(SettingsScreen.Basic) }
+
+    AnimatedContent(
+        targetState = currentScreen,
+        transitionSpec = {
+            // Logic: If the destination is Basic, we are going "Back".
+            // Otherwise, we are going "Forward" (deeper) into settings.
+            val direction = if (targetState == SettingsScreen.Basic) {
+                AnimatedContentTransitionScope.SlideDirection.Right
+            } else {
+                AnimatedContentTransitionScope.SlideDirection.Left
+            }
+
+            // Apply the slide direction to both entering and exiting content
+            (slideIntoContainer(direction) + fadeIn()) togetherWith
+                    (slideOutOfContainer(direction) + fadeOut())
+        },
+        label = "SettingsNavigation"
+    ) { screen ->
+        // The 'screen' parameter ensures the correct content is rendered
+        when (screen) {
+            SettingsScreen.Basic -> {
+                BasicSettings(
+                    settingsViewModel,
+                    exitWidgetSettings,
+                    // Pass distinct callbacks for each sub-screen
+                    onShowTimeAdvanced = { currentScreen = SettingsScreen.TimeAdvanced },
+                    //onShowDateAdvanced = { currentScreen = SettingsScreen.DateAdvanced }
+                )
+            }
+            SettingsScreen.TimeAdvanced -> {
+                TimeAdvancedSettings(
+                    settingsViewModel,
+                    onBack = { currentScreen = SettingsScreen.Basic }
+                )
+            }
+            SettingsScreen.DateAdvanced -> {
+                DateAdvancedSettings(
+                    settingsViewModel,
+                    onBack = { currentScreen = SettingsScreen.Basic }
+                )
+            }
+        }
+    }
+}
+
+@SuppressLint("LocalContextGetResourceValueCall")
+@Composable
+fun BasicSettings(
+    settingsViewModel: SettingsViewModel,
+    exitWidgetSettings: () -> Unit,
+    onShowTimeAdvanced: () -> Unit
+){
     val context = LocalContext.current
     val settingsState by settingsViewModel.uiState.collectAsState()
     var showTimeFontDialog by remember { mutableStateOf(false) }
@@ -299,6 +363,36 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
                                 fontFamily = fontFamily,
                                 fontSize = 32.sp,
                                 fontWeight = getFontWeightFromString(settingsState.timeFontWeight)
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onShowTimeAdvanced()
+                                } // Make the whole row clickable
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row {
+                                Text(
+                                    stringResource(R.string.title_advanced),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                if (!settingsState.hasPro) Icon(
+                                    Icons.Filled.Lock,
+                                    contentDescription = "Paid Feature",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .size(15.dp)
+                                        .offset(x = 10.dp, y = 2.dp)
+                                )
+                            }
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = stringResource(R.string.icon_arrow_right)
                             )
                         }
                         if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
@@ -532,8 +626,69 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
     }
 }
 
-// Helper composable for a cleaner settings screen
+@Composable
+fun TimeAdvancedSettings(
+    settingsViewModel: SettingsViewModel,
+    onBack: () -> Unit){
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+    ) {
+        Column {
+            Box(Modifier.fillMaxWidth()) { // Use a Box to control alignment
+                SmallFloatingActionButton(
+                    onClick = onBack,
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter) // Align to the bottom-right corner
+                        .padding(8.dp) // Add standard margin from the edges
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.icon_go_back),
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp,)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+            ) {
+                SettingSection(stringResource(R.string.title_widgets)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                            .clickable {
+                                settingsViewModel.clearAllWidgetPositions()
+                            }
+                    ) {
+                        Text(
+                            stringResource(R.string.rest_widget_positions),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    thickness = DividerDefaults.Thickness,
+                    color = DividerDefaults.color
+                )
+            }
+        }
+    }
+}
+@Composable
+fun DateAdvancedSettings(
+    settingsViewModel: SettingsViewModel,
+    onBack: () -> Unit) {
 
+    }
+// Helper composable for a cleaner settings screen
 @Composable
 fun SettingSection(title: String,
                    content: @Composable ColumnScope.() -> Unit) {
@@ -903,8 +1058,7 @@ fun ColorPickerSettingItem(
     }
 }
 
-// Test Composables
-
+// Horizontal App Drawer
 @Composable
 fun AppDrawer(
     modifier: Modifier = Modifier,

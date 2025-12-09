@@ -35,6 +35,7 @@ espressoCore = "3.7.0"
 datastoreCore = "1.2.0"
 appcompat = "1.7.1"
 uiText = "1.10.0"
+animation = "1.10.0"
 
 [libraries]
 # Core AndroidX
@@ -93,6 +94,7 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core", version.ref = "datastoreCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
+androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 
 
 
