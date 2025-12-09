@@ -74,12 +74,22 @@ data class SettingsUiState(
     val timeFontColor: Color = Color.White,
     val timeFontFamily: FontFamily = FontFamily.Default,
     val timeFontWeight: String = "Light",
+    val timeLayoutId: Int = 1,
+    val timeAngle: Int = 0,
+    val timeRadius: Int = 500,
+    val timeHasShadow: Boolean = false,
+    val timeShadowColor: Color = Color.White,
     val dateFormat: String? = "EEE,MMM d",
     val dateFontSize: Int = 20,
     val dateFontName: String = "Roboto",
     val dateFontColor: Color = Color.White,
     val dateFontFamily: FontFamily = FontFamily.Default,
     val dateFontWeight: String = "Normal",
+    val dateLayoutId: Int = 1,
+    val dateAngle: Int = 0,
+    val dateRadius: Int = 500,
+    val dateHasShadow: Boolean = false,
+    val dateShadowColor: Color = Color.White,
     val showBatteryIcon: Boolean  = true,
     val batteryColor: Color = Color.White,
     val showBatteryPercentage: Boolean = true,
@@ -115,10 +125,20 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val TIME_FONT_NAME = "time_font_name"
     private val TIME_FONT_COLOR = "time_font_color"
     private val TIME_FONT_WEIGHT = "time_font_weight"
+    private val TIME_LAYOUT_ID = "time_layout_id"
+    private val TIME_ANGLE = "time_angle"
+    private val TIME_RADIUS = "time_radius"
+    private val TIME_HAS_SHADOW = "time_has_shadow"
+    private val TIME_SHADOW = "time_shadow"
     private val DATE_FONT_SIZE = "date_font_size"
     private val DATE_FONT_COLOR = "date_font_color"
     private val DATE_FONT_NAME = "date_font_name"
     private val DATE_FONT_WEIGHT = "date_font_weight"
+    private val DATE_LAYOUT_ID = "date_layout_id"
+    private val DATE_ANGLE = "date_angle"
+    private val DATE_RADIUS = "date_radius"
+    private val DATE_HAS_SHADOW = "date_has_shadow"
+    private val DATE_SHADOW = "date_shadow"
     private val SHOW_BATTERY_ICON = "show_battery_icon"
     private val SHOW_BATTERY_PERCENTAGE = "show_battery_percentage"
     private val BATTERY_COLOR = "battery_color"
@@ -217,6 +237,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
             val timeFontWeight = PreferenceManager.getString(getApplication(),TIME_FONT_WEIGHT,
                 "Light") ?: "Light"
+            val timeLayoutId = if(hasPro)PreferenceManager.getInt(getApplication(),TIME_LAYOUT_ID,1) else 1
+            val timeAngle = if(hasPro)PreferenceManager.getInt(getApplication(),TIME_ANGLE,0) else 0
+            val timeRadius = if(hasPro)PreferenceManager.getInt(getApplication(),TIME_RADIUS,500) else 500
+            val timeHasShadow = if(hasPro)PreferenceManager.getBoolean(getApplication(),TIME_HAS_SHADOW,false) else false
+            val timeShadowColor = Color(PreferenceManager.getInt(getApplication(),TIME_SHADOW,Color.White.toArgb()))
             val dateFontSize = PreferenceManager.getInt(getApplication(),DATE_FONT_SIZE,20)
             val dateFontColor = Color(PreferenceManager.getInt(getApplication(),DATE_FONT_COLOR,Color.White.toArgb()))
             val dateFontName = if(hasPro){
@@ -235,6 +260,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 FontFamily.Default
             }
             val dateFontWeight = PreferenceManager.getString(getApplication(),DATE_FONT_WEIGHT,"Normal") ?: "Normal"
+            val dateLayoutId = if(hasPro)PreferenceManager.getInt(getApplication(),DATE_LAYOUT_ID,1) else 1
+            val dateAngle = if(hasPro)PreferenceManager.getInt(getApplication(),DATE_ANGLE,0) else 0
+            val dateRadius = if(hasPro)PreferenceManager.getInt(getApplication(),DATE_RADIUS,500) else 500
+            val dateHasShadow = if(hasPro)PreferenceManager.getBoolean(getApplication(),DATE_HAS_SHADOW,false) else false
+            val dateShadowColor = Color(PreferenceManager.getInt(getApplication(),DATE_SHADOW,Color.White.toArgb()))
+
             val showBatteryIcon = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_ICON,true)
             val batteryColor = Color(PreferenceManager.getInt(getApplication(),BATTERY_COLOR,Color.White.toArgb()))
             val batterySize = PreferenceManager.getInt(getApplication(),BATTERY_SIZE,20)
@@ -289,11 +320,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     timeFontName = timeFontName,
                     timeFontFamily = timeFontFamily,
                     timeFontWeight = timeFontWeight,
+                    timeLayoutId = timeLayoutId,
+                    timeAngle = timeAngle,
+                    timeRadius = timeRadius,
+                    timeHasShadow = timeHasShadow,
+                    timeShadowColor = timeShadowColor,
                     dateFontSize = dateFontSize,
                     dateFontColor = dateFontColor,
                     dateFontName = dateFontName,
                     dateFontFamily = dateFontFamily,
                     dateFontWeight = dateFontWeight,
+                    dateLayoutId = dateLayoutId,
+                    dateAngle = dateAngle,
+                    dateRadius = dateRadius,
+                    dateHasShadow = dateHasShadow,
+                    dateShadowColor = dateShadowColor,
                     showBatteryIcon = showBatteryIcon,
                     batteryColor = batteryColor,
                     batterySize = batterySize,
@@ -334,6 +375,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setPro(enabled:Boolean){
         viewModelScope.launch {
             Log.d("SettingsViewModel","SetPro:$enabled")
+            //TODO set time-date pro settings
             PreferenceManager.setPro(getApplication(),enabled)
             val showAnalog = if(enabled)PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false) else false
             val timeFontName = if(enabled){
@@ -351,6 +393,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             } catch (_: Exception) {
                 FontFamily.Default
             }
+            val timeLayoutId = if (enabled){
+                PreferenceManager.getInt(getApplication(),TIME_LAYOUT_ID,1)
+            } else {
+                1
+            }
+            val timeAngle = if (enabled){
+                PreferenceManager.getInt(getApplication(),TIME_ANGLE,0)
+            } else {
+                0
+            }
+            val timeRadius = if (enabled) {
+                PreferenceManager.getInt(getApplication(),TIME_RADIUS,500)
+            } else {
+                500
+            }
             val dateFontName = if(enabled){
                 PreferenceManager.getString(getApplication(),DATE_FONT_NAME,"Iter") ?: "Iter"
             } else {
@@ -366,11 +423,32 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             } catch (_: Exception) {
                 FontFamily.Default
             }
+            val dateLayoutId = if (enabled){
+                PreferenceManager.getInt(getApplication(),DATE_LAYOUT_ID,1)
+            } else {
+                1
+            }
+            val dateAngle = if (enabled){
+                PreferenceManager.getInt(getApplication(),DATE_ANGLE,0)
+            } else {
+                0
+            }
+            val dateRadius = if (enabled) {
+                PreferenceManager.getInt(getApplication(),DATE_RADIUS,500)
+            } else {
+                500
+            }
             _uiState.update { it.copy(
                 hasPro = enabled,
                 showAnalog = showAnalog,
                 timeFontFamily = timeFontFamily,
-                dateFontFamily = dateFontFamily) }
+                timeLayoutId = timeLayoutId,
+                timeAngle = timeAngle,
+                timeRadius = timeRadius,
+                dateFontFamily = dateFontFamily,
+                dateLayoutId = dateLayoutId,
+                dateAngle = dateAngle,
+                dateRadius = dateRadius) }
         }
     }
     fun setThemedIcons(enabled: Boolean){
@@ -592,6 +670,36 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _uiState.update { it.copy(timeFontWeight = style) }
         }
     }
+    fun setTimeLayoutId(id:Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),TIME_LAYOUT_ID,id)
+            _uiState.update { it.copy(timeLayoutId = id) }
+        }
+    }
+    fun setTimeAngle(value:Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),TIME_ANGLE,value)
+            _uiState.update { it.copy(timeAngle = value) }
+        }
+    }
+    fun setTimeRadius(value:Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),TIME_RADIUS,value)
+            _uiState.update { it.copy(timeRadius = value) }
+        }
+    }
+    fun setTimeHasShadow(has:Boolean){
+        viewModelScope.launch {
+            PreferenceManager.setBoolean(getApplication(),TIME_HAS_SHADOW,has)
+            _uiState.update { it.copy(timeHasShadow = has) }
+        }
+    }
+    fun setTimeShadow(color:Color){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),TIME_SHADOW,color.toArgb())
+            _uiState.update { it.copy(timeShadowColor = color) }
+        }
+    }
 
     fun setDateFontSize(size: Int) {
         viewModelScope.launch {
@@ -631,6 +739,36 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             PreferenceManager.setString(getApplication(),DATE_FONT_WEIGHT,style)
             _uiState.update { it.copy(dateFontWeight = style) }
+        }
+    }
+    fun setDateLayoutId(id:Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),DATE_LAYOUT_ID,id)
+            _uiState.update { it.copy(dateLayoutId = id) }
+        }
+    }
+    fun setDateAngle(value:Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),DATE_ANGLE,value)
+            _uiState.update { it.copy(dateAngle = value) }
+        }
+    }
+    fun setDateRadius(value:Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),DATE_RADIUS,value)
+            _uiState.update { it.copy(dateRadius = value) }
+        }
+    }
+    fun setDateHasShadow(has:Boolean){
+        viewModelScope.launch {
+            PreferenceManager.setBoolean(getApplication(),DATE_HAS_SHADOW,has)
+            _uiState.update { it.copy(dateHasShadow = has) }
+        }
+    }
+    fun setDateShadow(color:Color){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),DATE_SHADOW,color.toArgb())
+            _uiState.update { it.copy(dateShadowColor = color) }
         }
     }
 

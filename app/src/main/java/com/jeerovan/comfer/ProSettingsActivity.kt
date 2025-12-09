@@ -125,7 +125,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
                     exitWidgetSettings,
                     // Pass distinct callbacks for each sub-screen
                     onShowTimeAdvanced = { currentScreen = SettingsScreen.TimeAdvanced },
-                    //onShowDateAdvanced = { currentScreen = SettingsScreen.DateAdvanced }
+                    onShowDateAdvanced = { currentScreen = SettingsScreen.DateAdvanced }
                 )
             }
             SettingsScreen.TimeAdvanced -> {
@@ -149,7 +149,8 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
 fun BasicSettings(
     settingsViewModel: SettingsViewModel,
     exitWidgetSettings: () -> Unit,
-    onShowTimeAdvanced: () -> Unit
+    onShowTimeAdvanced: () -> Unit,
+    onShowDateAdvanced: () -> Unit
 ){
     val context = LocalContext.current
     val settingsState by settingsViewModel.uiState.collectAsState()
@@ -220,7 +221,7 @@ fun BasicSettings(
                             if (settingsState.hasPro) {
                                 settingsViewModel.showAnalog(it)
                             } else {
-                                Toast.makeText(context, "Requires subscription", Toast.LENGTH_SHORT)
+                                Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT)
                                     .show()
                             }
                         }
@@ -365,6 +366,13 @@ fun BasicSettings(
                                 fontWeight = getFontWeightFromString(settingsState.timeFontWeight)
                             )
                         }
+                        if ((settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) ||
+                            (!settingsState.autoWallpapers && !settingsState.monochrome)) {
+                            ColorPickerSettingItem(
+                                stringResource(R.string.title_time_font_color),
+                                settingsState.timeFontColor
+                            ) { showTimeFontColor = true }
+                        }
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -394,12 +402,6 @@ fun BasicSettings(
                                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                 contentDescription = stringResource(R.string.icon_arrow_right)
                             )
-                        }
-                        if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
-                            ColorPickerSettingItem(
-                                stringResource(R.string.title_time_font_color),
-                                settingsState.timeFontColor
-                            ) { showTimeFontColor = true }
                         }
                         if (showTimeFontDialog) {
                             FontSelectionDialog(
@@ -503,11 +505,42 @@ fun BasicSettings(
                             fontSize = 24.sp
                         )
                     }
-                    if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
+                    if ((settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) ||
+                        (!settingsState.autoWallpapers && !settingsState.monochrome)) {
                         ColorPickerSettingItem(
                             stringResource(R.string.date_font_color),
                             settingsState.dateFontColor
                         ) { showDateFontColor = true }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onShowDateAdvanced()
+                            } // Make the whole row clickable
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row {
+                            Text(
+                                stringResource(R.string.title_advanced),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            if (!settingsState.hasPro) Icon(
+                                Icons.Filled.Lock,
+                                contentDescription = "Paid Feature",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .size(15.dp)
+                                    .offset(x = 10.dp, y = 2.dp)
+                            )
+                        }
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = stringResource(R.string.icon_arrow_right)
+                        )
                     }
                     if (showDateFontDialog) {
                         FontSelectionDialog(
@@ -565,7 +598,8 @@ fun BasicSettings(
                         range = 12f..40f,
                         onValueChange = { settingsViewModel.setBatterySize(it) }
                     )
-                    if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
+                    if ((settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) ||
+                        (!settingsState.autoWallpapers && !settingsState.monochrome)) {
                         ColorPickerSettingItem(
                             stringResource(R.string.battery_indicator_color),
                             settingsState.batteryColor
@@ -603,7 +637,8 @@ fun BasicSettings(
                             range = 12f..40f,
                             onValueChange = { settingsViewModel.setNotificationSize(it) }
                         )
-                        if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
+                        if ((settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) ||
+                            (!settingsState.autoWallpapers && !settingsState.monochrome)) {
                             ColorPickerSettingItem(
                                 stringResource(R.string.title_color),
                                 settingsState.notificationColor
@@ -626,17 +661,20 @@ fun BasicSettings(
     }
 }
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun TimeAdvancedSettings(
     settingsViewModel: SettingsViewModel,
     onBack: () -> Unit){
+    val context = LocalContext.current
+    val settingsState by settingsViewModel.uiState.collectAsState()
     Surface(
         modifier = Modifier.fillMaxSize(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
     ) {
         Column {
-            Box(Modifier.fillMaxWidth()) { // Use a Box to control alignment
+            Box(Modifier.fillMaxWidth()) {
                 SmallFloatingActionButton(
                     onClick = onBack,
                     shape = CircleShape,
@@ -657,20 +695,59 @@ fun TimeAdvancedSettings(
                     .padding(16.dp,)
                     .windowInsetsPadding(WindowInsets.navigationBars)
             ) {
-                SettingSection(stringResource(R.string.title_widgets)) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                            .clickable {
-                                settingsViewModel.clearAllWidgetPositions()
-                            }
+                var selectedId by remember { mutableIntStateOf(settingsState.timeLayoutId) }
+                var angle by remember { mutableIntStateOf(settingsState.timeAngle) }
+                var radius by remember { mutableIntStateOf(settingsState.timeRadius) }
+                fun onSelectLayoutId(id: Int) {
+                    settingsViewModel.setTimeLayoutId(id)
+                    selectedId = id
+                }
+                fun onSetAngle(value:Int){
+                    settingsViewModel.setTimeAngle(value)
+                    angle = value
+                }
+                fun onSetRadius(value:Int){
+                    settingsViewModel.setTimeRadius(value)
+                    radius = value
+                }
+                val fontSize = 30
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Box 1
+                    SelectableSquareBox(
+                        id = 1,
+                        selectedId = selectedId,
+                        onSelect = { onSelectLayoutId(it) }
                     ) {
-                        Text(
-                            stringResource(R.string.rest_widget_positions),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        Text("12:34", fontSize = fontSize.sp)
+                    }
+
+                    // Box 2
+                    SelectableSquareBox(
+                        id = 2,
+                        selectedId = selectedId,
+                        onSelect = { onSelectLayoutId(it) }
+                    ) {
+                        Text("1234", fontSize = fontSize.sp)
+                    }
+
+                    // Box 3 with Column
+                    SelectableSquareBox(
+                        id = 3,
+                        selectedId = selectedId,
+                        onSelect = { onSelectLayoutId(it) }
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text("12", fontSize = fontSize.sp)
+                            Text("34", fontSize = (fontSize - 10).sp)
+                        }
                     }
                 }
                 HorizontalDivider(
@@ -678,16 +755,143 @@ fun TimeAdvancedSettings(
                     thickness = DividerDefaults.Thickness,
                     color = DividerDefaults.color
                 )
+                SettingSlider(
+                    label = stringResource(R.string.title_text_angle),
+                    value = angle,
+                    range = 0f..360f,
+                    onValueChange = { onSetAngle(it) }
+                )
+                SettingSlider(
+                    label = stringResource(R.string.title_text_radius),
+                    value = radius,
+                    range = 250f..500f,
+                    onValueChange = { onSetRadius(it) }
+                )
+                SettingSwitch(
+                    label = stringResource(R.string.title_shadow),
+                    enabled = settingsState.hasPro,
+                    checked = settingsState.timeHasShadow,
+                    onCheckedChange = {
+                        if (settingsState.hasPro) {
+                            settingsViewModel.setTimeHasShadow(it)
+                        } else {
+                            Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    }
+                )
             }
         }
     }
 }
+@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun DateAdvancedSettings(
     settingsViewModel: SettingsViewModel,
     onBack: () -> Unit) {
+    val context = LocalContext.current
+    val settingsState by settingsViewModel.uiState.collectAsState()
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+    ) {
+        Column {
+            Box(Modifier.fillMaxWidth()) {
+                SmallFloatingActionButton(
+                    onClick = onBack,
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter) // Align to the bottom-right corner
+                        .padding(8.dp) // Add standard margin from the edges
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.icon_go_back),
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp,)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+            ) {
+                var selectedId by remember { mutableIntStateOf(settingsState.dateLayoutId) }
+                var angle by remember { mutableIntStateOf(settingsState.dateAngle) }
+                var radius by remember { mutableIntStateOf(settingsState.dateRadius) }
+                fun onSelectLayoutId(id: Int) {
+                    settingsViewModel.setDateLayoutId(id)
+                    selectedId = id
+                }
+                fun onSetAngle(value:Int){
+                    settingsViewModel.setDateAngle(value)
+                    angle = value
+                }
+                fun onSetRadius(value:Int){
+                    settingsViewModel.setDateRadius(value)
+                    radius = value
+                }
+                val fontSize = 20
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Box 1
+                    SelectableSquareBox(
+                        id = 1,
+                        selectedId = selectedId,
+                        onSelect = { onSelectLayoutId(it) }
+                    ) {
+                        Text(stringResource(R.string.date_example), fontSize = fontSize.sp)
+                    }
 
+                    // Box 2
+                    SelectableSquareBox(
+                        id = 2,
+                        selectedId = selectedId,
+                        onSelect = { onSelectLayoutId(it) }
+                    ) {
+                        Text(stringResource(R.string.date_example_two), fontSize = fontSize.sp)
+                    }
+                }
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    thickness = DividerDefaults.Thickness,
+                    color = DividerDefaults.color
+                )
+                SettingSlider(
+                    label = stringResource(R.string.title_text_angle),
+                    value = angle,
+                    range = 0f..360f,
+                    onValueChange = { onSetAngle(it) }
+                )
+                SettingSlider(
+                    label = stringResource(R.string.title_text_radius),
+                    value = radius,
+                    range = 250f..500f,
+                    onValueChange = { onSetRadius(it) }
+                )
+                SettingSwitch(
+                    label = stringResource(R.string.title_shadow),
+                    enabled = settingsState.hasPro,
+                    checked = settingsState.dateHasShadow,
+                    onCheckedChange = {
+                        if (settingsState.hasPro) {
+                            settingsViewModel.setDateHasShadow(it)
+                        } else {
+                            Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    }
+                )
+            }
+        }
     }
+}
 // Helper composable for a cleaner settings screen
 @Composable
 fun SettingSection(title: String,
@@ -1418,4 +1622,31 @@ fun AppDrawerScreen(
             iconShape = settings.iconShape
         )
     }
+}
+@Composable
+fun RowScope.SelectableSquareBox(
+    id: Int,
+    selectedId: Int,
+    onSelect: (Int) -> Unit,
+    content: @Composable BoxScope.() -> Unit
+) {
+    val isSelected = selectedId == id
+    val borderColor = if (isSelected) Color.Blue else Color.Transparent
+    val backgroundColor = if (isSelected) Color.Blue.copy(alpha = 0.1f) else Color.Gray.copy(alpha = 0.4f)
+
+    Box(
+        modifier = Modifier
+            .weight(1f)             // Share width equally
+            .aspectRatio(1f)        // Force Square shape
+            .clip(RoundedCornerShape(12.dp)) // Corner Radius
+            .background(backgroundColor)
+            .border(
+                width = 2.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .clickable { onSelect(id) },
+        contentAlignment = Alignment.Center,
+        content = content
+    )
 }

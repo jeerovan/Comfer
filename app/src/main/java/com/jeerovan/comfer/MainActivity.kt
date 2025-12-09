@@ -234,6 +234,7 @@ import com.jeerovan.comfer.utils.KeyboardLayoutEngine
 import com.jeerovan.comfer.utils.KeyboardLocale
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.resolveAsTypeface
+import kotlin.math.pow
 
 
 data class Contact(
@@ -1432,7 +1433,8 @@ fun BatteryStatus(
     defaultColor: Color,
     showBorder: Boolean
 ) {
-    val customWallpaper = settings.wallpaperDirectory != null && settings.autoWallpapers
+    val customWallpaper = (settings.wallpaperDirectory != null && settings.autoWallpapers) ||
+            (!settings.autoWallpapers && !settings.monochrome)
     val themeColor = if(customWallpaper) settings.batteryColor else defaultColor
     val borderColor = if(showBorder) themeColor else Color.Transparent
     val showBatteryIcon = settings.showBatteryIcon
@@ -1513,7 +1515,6 @@ fun BatteryStatus(
             )
         }
     }
-
 }
 
 @Composable
@@ -1613,9 +1614,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
     var defaultColor = imageData?.color?.let { colorName ->
         stringToColor(colorName)
     } ?: Color.White
-    if (!settings.autoWallpapers) {
-        defaultColor = Color.White
-    }
     val monochrome = settings.monochrome
     val isLightHour = PreferenceManager.isLightHour(context)
     val monoColor = if(isLightHour) Color.Black.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.8f)
@@ -3795,7 +3793,8 @@ fun NotificationIconRow(
     showBorder: Boolean
 ) {
     val context = LocalContext.current
-    val customWallpaper = settings.wallpaperDirectory != null && settings.autoWallpapers
+    val customWallpaper = (settings.wallpaperDirectory != null && settings.autoWallpapers) ||
+            (!settings.autoWallpapers && !settings.monochrome)
     val iconSize = settings.notificationSize.dp
     val iconColor = if(customWallpaper) settings.notificationColor else defaultColor
     val borderColor = if(showBorder) iconColor else Color.Transparent
@@ -3869,7 +3868,7 @@ fun WidgetDate(
     showBorder: Boolean
 ){
     val dateFormat = remember {
-        SimpleDateFormat("EEE, MMM d", Locale.getDefault())
+        SimpleDateFormat("EEE MMM d", Locale.getDefault())
     }
     var date by remember { mutableStateOf("") }
     // This effect now restarts whenever `timeFormat` changes
@@ -3880,21 +3879,62 @@ fun WidgetDate(
             delay(1000)
         }
     }
-    val customWallpaper = settings.wallpaperDirectory != null && settings.autoWallpapers
+    val customWallpaper = (settings.wallpaperDirectory != null && settings.autoWallpapers) ||
+            (!settings.autoWallpapers && !settings.monochrome)
     val borderColor = if(showBorder) {
         if(customWallpaper) settings.dateFontColor else defaultColor
     } else Color.Transparent
     Box(modifier = Modifier
         .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp))
         .padding(4.dp)){
-        //EffectTextBlock(date)
-        Text(
-            text = date,
-            color = if(customWallpaper) settings.dateFontColor else defaultColor,
-            fontSize = settings.dateFontSize.sp,
-            fontWeight = getFontWeightFromString(settings.dateFontWeight),
-            fontFamily = settings.dateFontFamily,
-        )
+        when (settings.dateLayoutId) {
+            1 ->
+                EffectTextBlock(
+                    text = date,
+                    color = if(customWallpaper) settings.dateFontColor else defaultColor,
+                    fontSize = settings.dateFontSize.sp,
+                    fontWeight = getFontWeightFromString(settings.dateFontWeight),
+                    fontFamily = settings.dateFontFamily,
+                    angle = settings.dateAngle.toFloat(),
+                    radius = settings.dateRadius.toFloat(),
+                    shadowColor = if(settings.dateHasShadow) settings.dateShadowColor.toArgb() else Color.Transparent.toArgb()
+                )
+            2 ->
+                if(date.split(" ").size == 3) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        EffectTextBlock(
+                            text = date.split(" ")[0],
+                            color = if (customWallpaper) settings.dateFontColor else defaultColor,
+                            fontSize = settings.dateFontSize.sp,
+                            fontWeight = getFontWeightFromString(settings.dateFontWeight),
+                            fontFamily = settings.dateFontFamily,
+                            angle = settings.dateAngle.toFloat(),
+                            radius = settings.dateRadius.toFloat(),
+                            shadowColor = if (settings.dateHasShadow) settings.dateShadowColor.toArgb() else Color.Transparent.toArgb()
+                        )
+                        EffectTextBlock(
+                            text = date.split(" ")[1],
+                            color = if (customWallpaper) settings.dateFontColor else defaultColor,
+                            fontSize = settings.dateFontSize.sp,
+                            fontWeight = getFontWeightFromString(settings.dateFontWeight),
+                            fontFamily = settings.dateFontFamily,
+                            angle = settings.dateAngle.toFloat(),
+                            radius = settings.dateRadius.toFloat(),
+                            shadowColor = if (settings.dateHasShadow) settings.dateShadowColor.toArgb() else Color.Transparent.toArgb()
+                        )
+                        EffectTextBlock(
+                            text = date.split(" ")[2],
+                            color = if (customWallpaper) settings.dateFontColor else defaultColor,
+                            fontSize = settings.dateFontSize.sp,
+                            fontWeight = getFontWeightFromString(settings.dateFontWeight),
+                            fontFamily = settings.dateFontFamily,
+                            angle = settings.dateAngle.toFloat(),
+                            radius = settings.dateRadius.toFloat(),
+                            shadowColor = if (settings.dateHasShadow) settings.dateShadowColor.toArgb() else Color.Transparent.toArgb()
+                        )
+                    }
+                }
+        }
     }
 }
 @Composable
@@ -3906,7 +3946,8 @@ fun WidgetClock(
     val context = LocalContext.current
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
-    val customWallpaper = settings.wallpaperDirectory != null && settings.autoWallpapers
+    val customWallpaper = (settings.wallpaperDirectory != null && settings.autoWallpapers) ||
+            (!settings.autoWallpapers && !settings.monochrome)
     val timeFormat = remember(settings.timeFormat) {
         // Build your pattern based on the settings
         val pattern = if (settings.timeFormat == "H12") {
@@ -3959,25 +4000,25 @@ fun WidgetClock(
             )
         } else {
             TextClock(
+                settings,
+                defaultColor,
                 timeFormat,
-                color = if (customWallpaper) settings.timeFontColor else defaultColor,
-                fontSize = settings.timeFontSize.sp,
-                fontWeight = getFontWeightFromString(settings.timeFontWeight),
-                fontFamily = settings.timeFontFamily
+                customWallpaper
             )
         }
     }
 }
 @Composable
 fun TextClock(
+    settings: SettingsUiState,
+    defaultColor: Color,
     timeFormat: SimpleDateFormat,
-    color: Color,
-    fontWeight: FontWeight,
-    fontSize: TextUnit,
-    fontFamily: FontFamily
+    customWallpaper: Boolean
 ) {
+    val color = if (customWallpaper) settings.timeFontColor else defaultColor
+    val fontWeight = getFontWeightFromString(settings.timeFontWeight)
+    val fontFamily = settings.timeFontFamily
     var time by remember { mutableStateOf("") }
-
     // This effect now restarts whenever `timeFormat` changes
     LaunchedEffect(timeFormat) {
         while (true) {
@@ -3992,22 +4033,54 @@ fun TextClock(
             .padding(4.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column( horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = time.split(":").first(),
-                color = color,
-                fontSize = fontSize,
-                fontWeight = fontWeight,
-                fontFamily = fontFamily
-            )
-            Text(
-                text = time.split(":").last(),
-                color = color,
-                fontSize = fontSize,
-                fontWeight = fontWeight,
-                fontFamily = fontFamily
-            )
+        when (settings.timeLayoutId){
+            1 ->
+                EffectTextBlock(
+                    text = time,
+                    color = color,
+                    fontSize = settings.timeFontSize.sp,
+                    fontWeight = fontWeight,
+                    fontFamily = fontFamily,
+                    angle = settings.timeAngle.toFloat(),
+                    radius = settings.timeRadius.toFloat(),
+                    shadowColor = if(settings.timeHasShadow) settings.timeShadowColor.toArgb() else Color.Transparent.toArgb()
+                )
+            2 ->
+                EffectTextBlock(
+                    text = time.replace(":"," "),
+                    color = color,
+                    fontSize = settings.timeFontSize.sp,
+                    fontWeight = fontWeight,
+                    fontFamily = fontFamily,
+                    angle = settings.timeAngle.toFloat(),
+                    radius = settings.timeRadius.toFloat(),
+                    shadowColor = if(settings.timeHasShadow) settings.timeShadowColor.toArgb() else Color.Transparent.toArgb()
+                )
+            3 ->
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    EffectTextBlock(
+                        text = time.split(":").first(),
+                        color = color,
+                        fontSize = settings.timeFontSize.sp,
+                        fontWeight = fontWeight,
+                        fontFamily = fontFamily,
+                        angle = settings.timeAngle.toFloat(),
+                        radius = settings.timeRadius.toFloat(),
+                        shadowColor = if(settings.timeHasShadow) settings.timeShadowColor.toArgb() else Color.Transparent.toArgb()
+                    )
+                    EffectTextBlock(
+                        text = time.split(":").last(),
+                        color = color,
+                        fontSize = (settings.timeFontSize-10).sp,
+                        fontWeight = fontWeight,
+                        fontFamily = fontFamily,
+                        angle = settings.timeAngle.toFloat(),
+                        radius = settings.timeRadius.toFloat(),
+                        shadowColor = if(settings.timeHasShadow) settings.timeShadowColor.toArgb() else Color.Transparent.toArgb()
+                    )
+                }
         }
+
     }
 }
 @Composable
@@ -4626,15 +4699,14 @@ fun EffectTextBlock(
     fontWeight: FontWeight = FontWeight.Normal,
     fontStyle: FontStyle = FontStyle.Normal,
     fontFamily: FontFamily = FontFamily.Default,
-    angle: Float = 90f,
-    stretchY: Float = 1f,
-    curveRadius: Float = 10000f, // Large radius = flatter curve
-    shadowColor: Int = android.graphics.Color.BLACK
+    angle: Float = 0f,
+    radius: Float = 500f, // Large radius = flatter curve
+    shadowColor: Int = Color.Black.toArgb()
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
     val resolver = LocalFontFamilyResolver.current
-
+    val curveRadius = (1.02f).pow(radius) - 1
     // Resolve Typeface
     val typefaceState = remember(resolver, fontFamily, fontWeight, fontStyle) {
         resolver.resolveAsTypeface(
@@ -4663,20 +4735,21 @@ fun EffectTextBlock(
     val textWidth = remember(text, textPaint) { textPaint.measureText(text) }
     val fontMetrics = remember(textPaint) { textPaint.fontMetrics }
     val textHeight = remember(fontMetrics) {
-        (fontMetrics.descent - fontMetrics.ascent) * stretchY
+        (fontMetrics.descent - fontMetrics.ascent)
     }
 
     // Determine Canvas Size
     // If we rotate, the bounding box changes. For simplicity, we create a box large enough
     // to hold the text width and height plus some padding for the shadow and curve.
     // A more complex math solution would calculate exact rotated bounds.
-    val canvasWidth = with(density) { (textWidth * 1.2f).toDp() } // 20% padding
-    val canvasHeight = with(density) { (textHeight * 1.5f).toDp() } // 50% padding for arc/shadow
+    val canvasWidth = with(density) { textWidth.toDp() } // 20% padding
+    val canvasHeight = with(density) { (textHeight*0.7f).toDp() } // 30% padding for arc/shadow
 
     // 2. Use the calculated size modifiers
     Canvas(
         modifier = Modifier
             .size(width = canvasWidth, height = canvasHeight)
+            //.border(width=1.dp,Color.Blue)
         // Optional: wrapContentSize if you want it to center in a larger parent
         // .wrapContentSize()
     ) {
@@ -4705,17 +4778,22 @@ fun EffectTextBlock(
             )
         }
 
+        val vOffsetCorrection = -((textPaint.descent() + textPaint.ascent()) / 2)
+
         drawIntoCanvas { canvas ->
             val nativeCanvas = canvas.nativeCanvas
             nativeCanvas.save()
 
             // Rotate around the calculated center
             nativeCanvas.rotate(angle, cx, cy)
-            nativeCanvas.scale(1f, stretchY, cx, cy)
 
             // Draw text centered on the path (0 offset)
             // Note: Since we use Align.CENTER, hOffset should be 0 to center on the path's top point
-            nativeCanvas.drawTextOnPath(text, path, 0f, 0f, paint)
+            nativeCanvas.drawTextOnPath(text,
+                path,
+                0f,
+                vOffsetCorrection,
+                paint)
 
             nativeCanvas.restore()
         }

@@ -336,4 +336,8 @@
     <string name="font_weight_bold">Bold</string>
     <string name="icon_go_back">Icon go back</string>
     <string name="title_advanced">Advanced</string>
+    <string name="title_text_angle">Tilt</string>
+    <string name="title_text_radius">Curve</string>
+    <string name="title_shadow">Shadow</string>
+    <string name="date_example_two">Sat\nSep\n16</string>
 </resources>
