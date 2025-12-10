@@ -149,13 +149,13 @@ class SettingsActivity : AppCompatActivity() {
     }
 }
 
-@SuppressLint("LocalContextGetResourceValueCall")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val settingsState by settingsViewModel.uiState.collectAsState()
     val context = LocalContext.current
-
+    val stringShareWith = stringResource(R.string.title_share_with)
+    val stringRequiresSubscription = stringResource(R.string.requires_subscription)
     val appSelectionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -544,7 +544,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         if(settingsState.hasPro){
                             settingsViewModel.setCustomWidgets(!settingsState.hasCustomWidgets)
                         } else {
-                            Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, stringRequiresSubscription, Toast.LENGTH_SHORT).show()
                         }
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
@@ -753,7 +753,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                             )
                         }
                         // Use a chooser to show the Android share sheet
-                        context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.title_share_with)))
+                        context.startActivity(Intent.createChooser(shareIntent, stringShareWith))
                     }
                 )
             }
@@ -973,7 +973,7 @@ fun IconShapePreview(
             .border(width = 2.dp, color = borderColor, shape = iconShape)
     )
 }
-@SuppressLint("LocalContextGetResourceValueCall")
+
 @Composable
 fun SelectSetOwnWallpapersDirectory(
     isDefaultLauncher: Boolean,
@@ -982,7 +982,8 @@ fun SelectSetOwnWallpapersDirectory(
     selectedDirectory: String?
 ) {
     val context = LocalContext.current
-
+    val stringRequiresSubscription = stringResource(R.string.requires_subscription)
+    val stringSetLauncherFirst = stringResource(R.string.set_launcher_first)
     val isChecked = selectedDirectory != null
 
     val directoryPickerLauncher = rememberLauncherForActivityResult(
@@ -1076,10 +1077,10 @@ fun SelectSetOwnWallpapersDirectory(
                         }
                     }
                 } else {
-                    Toast.makeText(context, context.getString(R.string.set_launcher_first), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, stringSetLauncherFirst, Toast.LENGTH_SHORT).show()
                 }
             } else {
-                Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, stringRequiresSubscription, Toast.LENGTH_SHORT).show()
             }
         }
     )

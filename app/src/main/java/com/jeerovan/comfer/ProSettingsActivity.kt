@@ -92,7 +92,7 @@ enum class SettingsScreen {
     DateAdvanced
 }
 
-@SuppressLint("LocalContextGetResourceValueCall")
+
 @Composable
 fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
                       exitWidgetSettings: () -> Unit) {
@@ -144,7 +144,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
     }
 }
 
-@SuppressLint("LocalContextGetResourceValueCall")
+
 @Composable
 fun BasicSettings(
     settingsViewModel: SettingsViewModel,
@@ -163,6 +163,7 @@ fun BasicSettings(
     var showClockMinutePicker by remember { mutableStateOf(false) }
     var showBatteryColor by remember { mutableStateOf(false) }
     var showNotificationColor by remember { mutableStateOf(false) }
+    val subscriptionToast = stringResource(R.string.requires_subscription)
     Surface(
         modifier = Modifier.fillMaxSize(),
         shape = RoundedCornerShape(16.dp),
@@ -221,7 +222,7 @@ fun BasicSettings(
                             if (settingsState.hasPro) {
                                 settingsViewModel.showAnalog(it)
                             } else {
-                                Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT)
+                                Toast.makeText(context, subscriptionToast, Toast.LENGTH_SHORT)
                                     .show()
                             }
                         }
@@ -413,7 +414,7 @@ fun BasicSettings(
                                     } else {
                                         Toast.makeText(
                                             context,
-                                            context.getString(R.string.requires_subscription),
+                                            subscriptionToast,
                                             Toast.LENGTH_SHORT
                                         ).show()
                                     }
@@ -552,7 +553,7 @@ fun BasicSettings(
                                 } else {
                                     Toast.makeText(
                                         context,
-                                        context.getString(R.string.requires_subscription),
+                                        subscriptionToast,
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
@@ -661,7 +662,7 @@ fun BasicSettings(
     }
 }
 
-@SuppressLint("LocalContextGetResourceValueCall")
+
 @Composable
 fun TimeAdvancedSettings(
     settingsViewModel: SettingsViewModel,
@@ -673,6 +674,8 @@ fun TimeAdvancedSettings(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
     ) {
+        val context = LocalContext.current
+        val subscriptionToast = stringResource(R.string.requires_subscription)
         Column {
             Box(Modifier.fillMaxWidth()) {
                 SmallFloatingActionButton(
@@ -719,6 +722,7 @@ fun TimeAdvancedSettings(
                 ) {
                     // Box 1
                     SelectableSquareBox(
+                        enabled = settingsState.hasPro,
                         id = 1,
                         selectedId = selectedId,
                         onSelect = { onSelectLayoutId(it) }
@@ -728,6 +732,7 @@ fun TimeAdvancedSettings(
 
                     // Box 2
                     SelectableSquareBox(
+                        enabled = settingsState.hasPro,
                         id = 2,
                         selectedId = selectedId,
                         onSelect = { onSelectLayoutId(it) }
@@ -737,6 +742,7 @@ fun TimeAdvancedSettings(
 
                     // Box 3 with Column
                     SelectableSquareBox(
+                        enabled = settingsState.hasPro,
                         id = 3,
                         selectedId = selectedId,
                         onSelect = { onSelectLayoutId(it) }
@@ -761,10 +767,9 @@ fun TimeAdvancedSettings(
                     range = 0f..360f,
                     onValueChange = { onSetAngle(it) }
                 )
-                SettingSlider(
+                CurveRadiusSlider (
                     label = stringResource(R.string.title_text_radius),
                     value = radius,
-                    range = 250f..500f,
                     onValueChange = { onSetRadius(it) }
                 )
                 SettingSwitch(
@@ -775,7 +780,7 @@ fun TimeAdvancedSettings(
                         if (settingsState.hasPro) {
                             settingsViewModel.setTimeHasShadow(it)
                         } else {
-                            Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT)
+                            Toast.makeText(context, subscriptionToast, Toast.LENGTH_SHORT)
                                 .show()
                         }
                     }
@@ -784,12 +789,13 @@ fun TimeAdvancedSettings(
         }
     }
 }
-@SuppressLint("LocalContextGetResourceValueCall")
+
 @Composable
 fun DateAdvancedSettings(
     settingsViewModel: SettingsViewModel,
     onBack: () -> Unit) {
     val context = LocalContext.current
+    val subscriptionToast = stringResource(R.string.requires_subscription)
     val settingsState by settingsViewModel.uiState.collectAsState()
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -842,6 +848,7 @@ fun DateAdvancedSettings(
                 ) {
                     // Box 1
                     SelectableSquareBox(
+                        enabled = settingsState.hasPro,
                         id = 1,
                         selectedId = selectedId,
                         onSelect = { onSelectLayoutId(it) }
@@ -851,6 +858,7 @@ fun DateAdvancedSettings(
 
                     // Box 2
                     SelectableSquareBox(
+                        enabled = settingsState.hasPro,
                         id = 2,
                         selectedId = selectedId,
                         onSelect = { onSelectLayoutId(it) }
@@ -867,12 +875,11 @@ fun DateAdvancedSettings(
                     label = stringResource(R.string.title_text_angle),
                     value = angle,
                     range = 0f..360f,
-                    onValueChange = { onSetAngle(it) }
+                    onValueChange = { onSetAngle(it)}
                 )
-                SettingSlider(
+                CurveRadiusSlider(
                     label = stringResource(R.string.title_text_radius),
                     value = radius,
-                    range = 250f..500f,
                     onValueChange = { onSetRadius(it) }
                 )
                 SettingSwitch(
@@ -883,7 +890,7 @@ fun DateAdvancedSettings(
                         if (settingsState.hasPro) {
                             settingsViewModel.setDateHasShadow(it)
                         } else {
-                            Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT)
+                            Toast.makeText(context, subscriptionToast, Toast.LENGTH_SHORT)
                                 .show()
                         }
                     }
@@ -944,17 +951,52 @@ fun SettingSwitch(label: String,
 }
 
 @Composable
-fun SettingSlider(label: String, value: Int, range: ClosedFloatingPointRange<Float>, onValueChange: (Int) -> Unit) {
-    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        Text("$label: $value",
+fun SettingSlider(label: String,
+                  value: Int,
+                  range: ClosedFloatingPointRange<Float>,
+                  onValueChange: (Int) -> Unit) {
+    val context = LocalContext.current
+    Column(modifier = Modifier.padding( 8.dp)) {
+        Text("$label",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
         Slider(
             value = value.toFloat(),
-            onValueChange = { onValueChange(it.toInt()) },
+            onValueChange = {
+                onValueChange(it.toInt())
+                            },
             valueRange = range,
             steps = ((range.endInclusive - range.start) / 2).toInt() -1
+        )
+    }
+}
+
+@Composable
+fun CurveRadiusSlider(
+    label: String,
+    value: Int,
+    onValueChange: (Int) -> Unit
+) {
+    val range = -250f..250f
+
+    // Total integer values = 501 (-250 to 250).
+    // Steps are the ticks *between* the ends.
+    // Steps = (Total Values) - 2 = 501 - 2 = 499.
+    val steps = 499
+
+    Column(modifier = Modifier.padding(8.dp)) {
+        Text(
+            text = "$label",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Slider(
+            value = value.toFloat(),
+            onValueChange = { onValueChange(it.toInt()) },
+            valueRange = range,
+            steps = steps,
         )
     }
 }
@@ -1623,17 +1665,20 @@ fun AppDrawerScreen(
         )
     }
 }
+
 @Composable
 fun RowScope.SelectableSquareBox(
+    enabled: Boolean,
     id: Int,
     selectedId: Int,
     onSelect: (Int) -> Unit,
     content: @Composable BoxScope.() -> Unit
 ) {
+    val context = LocalContext.current
     val isSelected = selectedId == id
     val borderColor = if (isSelected) Color.Blue else Color.Transparent
-    val backgroundColor = if (isSelected) Color.Blue.copy(alpha = 0.1f) else Color.Gray.copy(alpha = 0.4f)
-
+    val backgroundColor = if (isSelected) Color.Blue.copy(alpha = 0.1f) else Color.LightGray.copy(alpha = 0.7f)
+    val toastMessage = stringResource(R.string.requires_subscription)
     Box(
         modifier = Modifier
             .weight(1f)             // Share width equally
@@ -1645,7 +1690,14 @@ fun RowScope.SelectableSquareBox(
                 color = borderColor,
                 shape = RoundedCornerShape(12.dp)
             )
-            .clickable { onSelect(id) },
+            .clickable {
+                        if(enabled) {
+                            onSelect(id)
+                        } else {
+                            Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                       },
         contentAlignment = Alignment.Center,
         content = content
     )

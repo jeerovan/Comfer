@@ -352,7 +352,6 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-@SuppressLint("LocalContextGetResourceValueCall")
 @Composable
 fun WidgetHostScreen(
     modifier:Modifier = Modifier,
@@ -364,6 +363,7 @@ fun WidgetHostScreen(
     onSwipeRight: () -> Unit
 ) {
     val context = LocalContext.current
+    val stringWidgetBindingCancelled = stringResource(R.string.widget_binding_cancelled)
     val prefs: SharedPreferences = context.getSharedPreferences(widgetPrefsTitle, MODE_PRIVATE)
     val coroutineScope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -578,7 +578,7 @@ fun WidgetHostScreen(
                 if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                     appWidgetHost.deleteAppWidgetId(appWidgetId)
                 }
-                Toast.makeText(context, context.getString(R.string.widget_binding_cancelled), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, stringWidgetBindingCancelled, Toast.LENGTH_SHORT).show()
             }
         }
         fun checkConfigureWidget(provider: AppWidgetProviderInfo,appWidgetId:Int) {
@@ -627,7 +627,7 @@ fun WidgetHostScreen(
                 if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                     appWidgetHost.deleteAppWidgetId(appWidgetId)
                 }
-                Toast.makeText(context, context.getString(R.string.widget_binding_cancelled), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, stringWidgetBindingCancelled, Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -1625,6 +1625,15 @@ fun QuickListOverlay(apps: List<AppInfo>,
     fun exitWidgetSettings() {
         showWidgetSettings = false
         view.playSoundEffect(SoundEffectConstants.CLICK)
+
+        if(!settings.hasPro){
+            //Reset date slider settings
+            settingsModel.setDateAngle(0)
+            settingsModel.setDateRadius(0)
+            //Reset time slider settings
+            settingsModel.setTimeAngle(0)
+            settingsModel.setTimeRadius(0)
+        }
     }
     Box(modifier = Modifier
         .fillMaxSize()
@@ -4700,13 +4709,19 @@ fun EffectTextBlock(
     fontStyle: FontStyle = FontStyle.Normal,
     fontFamily: FontFamily = FontFamily.Default,
     angle: Float = 0f,
-    radius: Float = 500f, // Large radius = flatter curve
+    radius: Float = 0f,
     shadowColor: Int = Color.Black.toArgb()
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
     val resolver = LocalFontFamilyResolver.current
-    val curveRadius = (1.02f).pow(radius) - 1
+    val reverse = radius < 0
+    val absRadius = if (radius < 0) {
+        500f + radius
+    } else {
+        500f - radius
+    }
+    val curveRadius = (1.02f).pow(absRadius) - 1
     // Resolve Typeface
     val typefaceState = remember(resolver, fontFamily, fontWeight, fontStyle) {
         resolver.resolveAsTypeface(
@@ -4765,16 +4780,24 @@ fun EffectTextBlock(
         val cy = size.height / 2
 
         // Adjust the path to curve around the center of our canvas
+        var top = cy
+        var bottom = cy + (curveRadius * 2)
+        var sweepAngle = 180f
+        if(reverse){
+            top = cy - (curveRadius * 2)
+            bottom  = cy
+            sweepAngle = -180f
+        }
         val path = android.graphics.Path().apply {
             addArc(
                 RectF(
                     cx - curveRadius,
-                    cy, // Start arc from vertical center
+                    top,
                     cx + curveRadius,
-                    cy + (curveRadius * 2)
+                    bottom
                 ),
                 180f,
-                180f
+                sweepAngle
             )
         }
 

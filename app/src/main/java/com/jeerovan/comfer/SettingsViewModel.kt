@@ -76,7 +76,7 @@ data class SettingsUiState(
     val timeFontWeight: String = "Light",
     val timeLayoutId: Int = 1,
     val timeAngle: Int = 0,
-    val timeRadius: Int = 500,
+    val timeRadius: Int = 0,
     val timeHasShadow: Boolean = false,
     val timeShadowColor: Color = Color.White,
     val dateFormat: String? = "EEE,MMM d",
@@ -87,7 +87,7 @@ data class SettingsUiState(
     val dateFontWeight: String = "Normal",
     val dateLayoutId: Int = 1,
     val dateAngle: Int = 0,
-    val dateRadius: Int = 500,
+    val dateRadius: Int = 0,
     val dateHasShadow: Boolean = false,
     val dateShadowColor: Color = Color.White,
     val showBatteryIcon: Boolean  = true,
@@ -239,7 +239,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 "Light") ?: "Light"
             val timeLayoutId = if(hasPro)PreferenceManager.getInt(getApplication(),TIME_LAYOUT_ID,1) else 1
             val timeAngle = if(hasPro)PreferenceManager.getInt(getApplication(),TIME_ANGLE,0) else 0
-            val timeRadius = if(hasPro)PreferenceManager.getInt(getApplication(),TIME_RADIUS,500) else 500
+            val timeRadius = if(hasPro)PreferenceManager.getInt(getApplication(),TIME_RADIUS,0) else 0
             val timeHasShadow = if(hasPro)PreferenceManager.getBoolean(getApplication(),TIME_HAS_SHADOW,false) else false
             val timeShadowColor = Color(PreferenceManager.getInt(getApplication(),TIME_SHADOW,Color.White.toArgb()))
             val dateFontSize = PreferenceManager.getInt(getApplication(),DATE_FONT_SIZE,20)
@@ -262,7 +262,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val dateFontWeight = PreferenceManager.getString(getApplication(),DATE_FONT_WEIGHT,"Normal") ?: "Normal"
             val dateLayoutId = if(hasPro)PreferenceManager.getInt(getApplication(),DATE_LAYOUT_ID,1) else 1
             val dateAngle = if(hasPro)PreferenceManager.getInt(getApplication(),DATE_ANGLE,0) else 0
-            val dateRadius = if(hasPro)PreferenceManager.getInt(getApplication(),DATE_RADIUS,500) else 500
+            val dateRadius = if(hasPro)PreferenceManager.getInt(getApplication(),DATE_RADIUS,0) else 0
             val dateHasShadow = if(hasPro)PreferenceManager.getBoolean(getApplication(),DATE_HAS_SHADOW,false) else false
             val dateShadowColor = Color(PreferenceManager.getInt(getApplication(),DATE_SHADOW,Color.White.toArgb()))
 
