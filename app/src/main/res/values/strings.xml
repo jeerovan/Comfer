@@ -340,4 +340,5 @@
     <string name="title_text_radius">Curve</string>
     <string name="title_shadow">Shadow</string>
     <string name="date_example_two">Sat\nSep\n16</string>
+    <string name="title_transparency">Transparency</string>
 </resources>

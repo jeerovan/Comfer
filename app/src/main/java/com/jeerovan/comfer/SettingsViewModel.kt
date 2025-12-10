@@ -65,15 +65,18 @@ data class SettingsUiState(
     val showAnalog:Boolean = false,
     val clockSize: Int = 150,
     val clockBgColor: Color = Color.Black,
-    val clockBgAlpha: Float = 0.6f,
+    val clockBgAlpha: Int = 60,
     val clockHourColor: Color = Color.White,
+    val clockHourAlpha: Int = 100,
     val clockMinuteColor: Color = Color.White,
+    val clockMinuteAlpha: Int = 100,
     val timeFormat: String = "H12",
     val timeFontSize: Int = 60,
     val timeFontName: String = "Roboto",
     val timeFontColor: Color = Color.White,
     val timeFontFamily: FontFamily = FontFamily.Default,
     val timeFontWeight: String = "Light",
+    val timeFontAlpha: Int = 100,
     val timeLayoutId: Int = 1,
     val timeAngle: Int = 0,
     val timeRadius: Int = 0,
@@ -85,26 +88,26 @@ data class SettingsUiState(
     val dateFontColor: Color = Color.White,
     val dateFontFamily: FontFamily = FontFamily.Default,
     val dateFontWeight: String = "Normal",
+    val dateFontAlpha: Int = 100,
     val dateLayoutId: Int = 1,
     val dateAngle: Int = 0,
     val dateRadius: Int = 0,
     val dateHasShadow: Boolean = false,
-    val dateShadowColor: Color = Color.White,
+    val dateShadowColor: Color = Color.Transparent,
     val showBatteryIcon: Boolean  = true,
     val batteryColor: Color = Color.White,
+    val batteryAlpha: Int = 100,
     val showBatteryPercentage: Boolean = true,
     val batterySize: Int = 20,
     val showNotificationRow : Boolean = true,
     val notificationColor: Color = Color.White,
+    val notificationAlpha: Int = 100,
     val notificationSize: Int = 18,
+    val notificationLayoutId: Int = 1,
     val arrangeInAlphabeticalOrder: Boolean = false,
     val shouldAppUpdatePromptUserCounter: Int = 0,
 )
 
-data class WallpaperFrequency(
-    val text: String,
-    val key: String
-)
 data class KeyTextObject(
     val text: String,
     val key: String
@@ -119,33 +122,40 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val CLOCK_BG_ALPHA = "clock_bg_alpha"
     private val CLOCK_SIZE = "clock_size"
     private val CLOCK_HOUR_COLOR = "clock_hour_color"
+    private val CLOCK_HOUR_ALPHA = "clock_hour_alpha"
     private val CLOCK_MINUTE_COLOR = "clock_minute_color"
+    private val CLOCK_MINUTE_ALPHA = "clock_minute_alpha"
     private val TIME_FORMAT = "time_format"
     private val TIME_FONT_SIZE = "time_font_size"
     private val TIME_FONT_NAME = "time_font_name"
     private val TIME_FONT_COLOR = "time_font_color"
+    private val TIME_FONT_ALPHA = "time_font_alpha"
     private val TIME_FONT_WEIGHT = "time_font_weight"
     private val TIME_LAYOUT_ID = "time_layout_id"
     private val TIME_ANGLE = "time_angle"
     private val TIME_RADIUS = "time_radius"
     private val TIME_HAS_SHADOW = "time_has_shadow"
-    private val TIME_SHADOW = "time_shadow"
+    private val TIME_SHADOW_COLOR = "time_shadow_color"
     private val DATE_FONT_SIZE = "date_font_size"
     private val DATE_FONT_COLOR = "date_font_color"
+    private val DATE_FONT_ALPHA = "date_font_alpha"
     private val DATE_FONT_NAME = "date_font_name"
     private val DATE_FONT_WEIGHT = "date_font_weight"
     private val DATE_LAYOUT_ID = "date_layout_id"
     private val DATE_ANGLE = "date_angle"
     private val DATE_RADIUS = "date_radius"
     private val DATE_HAS_SHADOW = "date_has_shadow"
-    private val DATE_SHADOW = "date_shadow"
+    private val DATE_SHADOW_COLOR = "date_shadow_color"
     private val SHOW_BATTERY_ICON = "show_battery_icon"
     private val SHOW_BATTERY_PERCENTAGE = "show_battery_percentage"
     private val BATTERY_COLOR = "battery_color"
+    private val BATTERY_ALPHA = "battery_alpha"
     private val BATTERY_SIZE = "battery_size"
     private val NOTIFICATION_COLOR = "notification_color"
+    private val NOTIFICATION_ALPHA = "notification_alpha"
     private val SHOW_NOTIFICATIONS_ROW = "show_notifications_row"
     private val NOTIFICATION_SIZE = "notification_size"
+    private val NOTIFICATION_LAYOUT_ID = "notification_layout_id"
     private val DRAWER_HEIGHT = "drawer_height"
     private val DRAWER_OFFSET = "drawer_offset"
     val predefinedColors = listOf(
@@ -214,12 +224,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val showAnalog = if(hasPro)PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false) else false
             val clockSize = PreferenceManager.getInt(getApplication(),CLOCK_SIZE,150)
             val clockBgColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_BG_COLOR,Color.Black.toArgb()))
-            val clockBgAlpha = PreferenceManager.getInt(getApplication(),CLOCK_BG_ALPHA,70) / 100f
+            val clockBgAlpha = PreferenceManager.getInt(getApplication(),CLOCK_BG_ALPHA,70)
             val clockHourColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_HOUR_COLOR,Color.White.toArgb()))
             val clockMinuteColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_MINUTE_COLOR,Color.White.toArgb()))
             val timeFormat = PreferenceManager.getString(getApplication(),TIME_FORMAT, "H12") ?: "H12"
             val timeFontSize = PreferenceManager.getInt(getApplication(),TIME_FONT_SIZE,60)
             val timeFontColor = Color(PreferenceManager.getInt(getApplication(),TIME_FONT_COLOR,Color.White.toArgb()))
+            val timeFontAlpha = PreferenceManager.getInt(getApplication(),TIME_FONT_ALPHA,100)
             val timeFontName = if(hasPro){
                 PreferenceManager.getString(getApplication(),TIME_FONT_NAME,"Iter") ?: "Iter"
             } else {
@@ -241,9 +252,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val timeAngle = if(hasPro)PreferenceManager.getInt(getApplication(),TIME_ANGLE,0) else 0
             val timeRadius = if(hasPro)PreferenceManager.getInt(getApplication(),TIME_RADIUS,0) else 0
             val timeHasShadow = if(hasPro)PreferenceManager.getBoolean(getApplication(),TIME_HAS_SHADOW,false) else false
-            val timeShadowColor = Color(PreferenceManager.getInt(getApplication(),TIME_SHADOW,Color.White.toArgb()))
+            val timeShadowColor = Color(PreferenceManager.getInt(getApplication(),TIME_SHADOW_COLOR,Color.White.toArgb()))
             val dateFontSize = PreferenceManager.getInt(getApplication(),DATE_FONT_SIZE,20)
             val dateFontColor = Color(PreferenceManager.getInt(getApplication(),DATE_FONT_COLOR,Color.White.toArgb()))
+            val dateFontAlpha = PreferenceManager.getInt(getApplication(),DATE_FONT_ALPHA,100)
             val dateFontName = if(hasPro){
                 PreferenceManager.getString(getApplication(),DATE_FONT_NAME,"Iter") ?: "Iter"
             } else {
@@ -264,14 +276,17 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val dateAngle = if(hasPro)PreferenceManager.getInt(getApplication(),DATE_ANGLE,0) else 0
             val dateRadius = if(hasPro)PreferenceManager.getInt(getApplication(),DATE_RADIUS,0) else 0
             val dateHasShadow = if(hasPro)PreferenceManager.getBoolean(getApplication(),DATE_HAS_SHADOW,false) else false
-            val dateShadowColor = Color(PreferenceManager.getInt(getApplication(),DATE_SHADOW,Color.White.toArgb()))
+            val dateShadowColor = Color(PreferenceManager.getInt(getApplication(),DATE_SHADOW_COLOR,Color.White.toArgb()))
 
             val showBatteryIcon = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_ICON,true)
             val batteryColor = Color(PreferenceManager.getInt(getApplication(),BATTERY_COLOR,Color.White.toArgb()))
+            val batteryAlpha = PreferenceManager.getInt(getApplication(),BATTERY_ALPHA,100)
             val batterySize = PreferenceManager.getInt(getApplication(),BATTERY_SIZE,20)
             val showBatteryPercentage = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_PERCENTAGE,true)
             val notificationColor = Color(PreferenceManager.getInt(getApplication(),NOTIFICATION_COLOR,Color.White.toArgb()))
+            val notificationAlpha = PreferenceManager.getInt(getApplication(),NOTIFICATION_ALPHA,100)
             val notificationSize = PreferenceManager.getInt(getApplication(),NOTIFICATION_SIZE,18)
+            val notificationLayoutId = PreferenceManager.getInt(getApplication(),NOTIFICATION_LAYOUT_ID,1)
             val showNotificationRow = PreferenceManager.getBoolean(getApplication(),SHOW_NOTIFICATIONS_ROW,true)
             val widgetIds = getWidgetIds(showBatteryIcon,
                 showBatteryPercentage,
@@ -317,6 +332,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     timeFormat =  timeFormat,
                     timeFontSize = timeFontSize,
                     timeFontColor = timeFontColor,
+                    timeFontAlpha = timeFontAlpha,
                     timeFontName = timeFontName,
                     timeFontFamily = timeFontFamily,
                     timeFontWeight = timeFontWeight,
@@ -327,6 +343,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     timeShadowColor = timeShadowColor,
                     dateFontSize = dateFontSize,
                     dateFontColor = dateFontColor,
+                    dateFontAlpha = dateFontAlpha,
                     dateFontName = dateFontName,
                     dateFontFamily = dateFontFamily,
                     dateFontWeight = dateFontWeight,
@@ -337,11 +354,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     dateShadowColor = dateShadowColor,
                     showBatteryIcon = showBatteryIcon,
                     batteryColor = batteryColor,
+                    batteryAlpha = batteryAlpha,
                     batterySize = batterySize,
                     showBatteryPercentage = showBatteryPercentage,
                     showNotificationRow = showNotificationRow,
                     notificationColor = notificationColor,
+                    notificationAlpha = notificationAlpha,
                     notificationSize = notificationSize,
+                    notificationLayoutId = notificationLayoutId,
                     arrangeInAlphabeticalOrder = alphabeticalOrder,
                     shouldAppUpdatePromptUserCounter = shouldAppUpdatePromptUserCounter
                 )
@@ -404,9 +424,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 0
             }
             val timeRadius = if (enabled) {
-                PreferenceManager.getInt(getApplication(),TIME_RADIUS,500)
+                PreferenceManager.getInt(getApplication(),TIME_RADIUS,0)
             } else {
-                500
+                0
+            }
+            val timeHasShadow = if (enabled) {
+                PreferenceManager.getBoolean(getApplication(),TIME_HAS_SHADOW,false)
+            } else {
+                false
             }
             val dateFontName = if(enabled){
                 PreferenceManager.getString(getApplication(),DATE_FONT_NAME,"Iter") ?: "Iter"
@@ -434,9 +459,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 0
             }
             val dateRadius = if (enabled) {
-                PreferenceManager.getInt(getApplication(),DATE_RADIUS,500)
+                PreferenceManager.getInt(getApplication(),DATE_RADIUS,0)
             } else {
-                500
+                0
+            }
+            val dateHasShadow = if (enabled) {
+                PreferenceManager.getBoolean(getApplication(),DATE_HAS_SHADOW,false)
+            } else {
+                false
             }
             _uiState.update { it.copy(
                 hasPro = enabled,
@@ -445,10 +475,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 timeLayoutId = timeLayoutId,
                 timeAngle = timeAngle,
                 timeRadius = timeRadius,
+                timeHasShadow = timeHasShadow,
                 dateFontFamily = dateFontFamily,
                 dateLayoutId = dateLayoutId,
                 dateAngle = dateAngle,
-                dateRadius = dateRadius) }
+                dateRadius = dateRadius,
+                dateHasShadow = dateHasShadow) }
         }
     }
     fun setThemedIcons(enabled: Boolean){
@@ -546,10 +578,22 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _uiState.update { it.copy(notificationSize = size) }
         }
     }
+    fun setNotificationLayoutId(id:Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),NOTIFICATION_LAYOUT_ID,id)
+            _uiState.update { it.copy(notificationLayoutId = id) }
+        }
+    }
     fun setTimeFontColor(color: Color){
         viewModelScope.launch {
             PreferenceManager.setInt(getApplication(),TIME_FONT_COLOR,color.toArgb())
             _uiState.update { it.copy(timeFontColor = color) }
+        }
+    }
+    fun setTimeFontAlpha(alpha: Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),TIME_FONT_ALPHA,alpha)
+            _uiState.update { it.copy(timeFontAlpha = alpha) }
         }
     }
     fun setDateFontColor(color: Color){
@@ -558,16 +602,34 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _uiState.update { it.copy(dateFontColor = color) }
         }
     }
+    fun setDateFontAlpha(alpha: Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),DATE_FONT_ALPHA,alpha)
+            _uiState.update { it.copy(dateFontAlpha = alpha) }
+        }
+    }
     fun setBatteryColor(color: Color){
         viewModelScope.launch {
             PreferenceManager.setInt(getApplication(),BATTERY_COLOR,color.toArgb())
             _uiState.update { it.copy(batteryColor = color) }
         }
     }
+    fun setBatteryAlpha(alpha: Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),BATTERY_ALPHA,alpha)
+            _uiState.update { it.copy(batteryAlpha = alpha) }
+        }
+    }
     fun setNotificationColor(color: Color){
         viewModelScope.launch {
             PreferenceManager.setInt(getApplication(),NOTIFICATION_COLOR,color.toArgb())
             _uiState.update { it.copy(notificationColor = color) }
+        }
+    }
+    fun setNotificationAlpha(alpha: Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),NOTIFICATION_ALPHA,alpha)
+            _uiState.update { it.copy(notificationAlpha = alpha) }
         }
     }
     fun setWallpaperFrequency(frequency: String){
@@ -607,7 +669,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setClockBgAlpha(alpha: Int){
         viewModelScope.launch {
             PreferenceManager.setInt(getApplication(),CLOCK_BG_ALPHA,alpha)
-            _uiState.update { it.copy(clockBgAlpha = alpha/100f) }
+            _uiState.update { it.copy(clockBgAlpha = alpha) }
         }
     }
     fun setClockHourColor(color: Color){
@@ -616,10 +678,22 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _uiState.update { it.copy(clockHourColor = color) }
         }
     }
+    fun setClockHourAlpha(alpha: Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),CLOCK_HOUR_ALPHA,alpha)
+            _uiState.update { it.copy(clockHourAlpha = alpha) }
+        }
+    }
     fun setClockMinuteColor(color: Color){
         viewModelScope.launch {
             PreferenceManager.setInt(getApplication(),CLOCK_MINUTE_COLOR,color.toArgb())
             _uiState.update { it.copy(clockMinuteColor = color) }
+        }
+    }
+    fun setClockMinuteAlpha(alpha: Int){
+        viewModelScope.launch {
+            PreferenceManager.setInt(getApplication(),CLOCK_MINUTE_ALPHA,alpha)
+            _uiState.update { it.copy(clockMinuteAlpha = alpha) }
         }
     }
     fun setTimeFormat(format: String) {
@@ -696,7 +770,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     fun setTimeShadow(color:Color){
         viewModelScope.launch {
-            PreferenceManager.setInt(getApplication(),TIME_SHADOW,color.toArgb())
+            PreferenceManager.setInt(getApplication(),TIME_SHADOW_COLOR,color.toArgb())
             _uiState.update { it.copy(timeShadowColor = color) }
         }
     }
@@ -767,7 +841,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     fun setDateShadow(color:Color){
         viewModelScope.launch {
-            PreferenceManager.setInt(getApplication(),DATE_SHADOW,color.toArgb())
+            PreferenceManager.setInt(getApplication(),DATE_SHADOW_COLOR,color.toArgb())
             _uiState.update { it.copy(dateShadowColor = color) }
         }
     }

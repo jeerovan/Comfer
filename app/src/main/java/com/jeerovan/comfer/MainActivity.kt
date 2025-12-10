@@ -1435,7 +1435,7 @@ fun BatteryStatus(
 ) {
     val customWallpaper = (settings.wallpaperDirectory != null && settings.autoWallpapers) ||
             (!settings.autoWallpapers && !settings.monochrome)
-    val themeColor = if(customWallpaper) settings.batteryColor else defaultColor
+    val themeColor = if(customWallpaper) settings.batteryColor.copy(alpha = settings.batteryAlpha/100f) else defaultColor
     val borderColor = if(showBorder) themeColor else Color.Transparent
     val showBatteryIcon = settings.showBatteryIcon
     val showBatteryPercentage = settings.showBatteryPercentage
@@ -1630,9 +1630,11 @@ fun QuickListOverlay(apps: List<AppInfo>,
             //Reset date slider settings
             settingsModel.setDateAngle(0)
             settingsModel.setDateRadius(0)
+            settingsModel.setDateHasShadow(false)
             //Reset time slider settings
             settingsModel.setTimeAngle(0)
             settingsModel.setTimeRadius(0)
+            settingsModel.setTimeHasShadow(false)
         }
     }
     Box(modifier = Modifier
@@ -3805,10 +3807,14 @@ fun NotificationIconRow(
     val customWallpaper = (settings.wallpaperDirectory != null && settings.autoWallpapers) ||
             (!settings.autoWallpapers && !settings.monochrome)
     val iconSize = settings.notificationSize.dp
-    val iconColor = if(customWallpaper) settings.notificationColor else defaultColor
+    val iconColor = if(customWallpaper) settings.notificationColor.copy(alpha=settings.notificationAlpha/100f) else defaultColor
     val borderColor = if(showBorder) iconColor else Color.Transparent
-    val rowHeight = iconSize + 16.dp
-    val rowWidth = iconSize * 10 + 8.dp
+    var rowHeight = iconSize + 16.dp
+    var rowWidth = iconSize * 10 + 8.dp
+    if(settings.notificationLayoutId == 2){
+        rowHeight = rowWidth
+        rowWidth = iconSize + 16.dp
+    }
     if (settings.hasNotificationAccess && settings.showNotificationRow && notificationIcons.isNotEmpty()) {
         Box(modifier = Modifier
             .size(width = rowWidth, height = rowHeight)
@@ -3816,53 +3822,98 @@ fun NotificationIconRow(
             contentAlignment = Alignment.Center
         )
         {
-            LazyRow(
-                modifier = modifier
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val iconsToShow = if (notificationIcons.size > maxVisibleIcons + 1) {
-                    notificationIcons.take(maxVisibleIcons)
-                } else {
-                    notificationIcons
-                }
-
-                items(
-                    items = iconsToShow,
-                    key = { (key, _) -> key } // Use the stable key for performance
-                ) { (_, drawable) ->
-                    AndroidView(
-                        factory = { ctx ->
-                            ImageView(ctx).apply {
-                                setImageDrawable(drawable)
-                                scaleType = ImageView.ScaleType.FIT_CENTER
+            val iconsToShow = if (notificationIcons.size > maxVisibleIcons + 1) {
+                notificationIcons.take(maxVisibleIcons)
+            } else {
+                notificationIcons
+            }
+            if(settings.notificationLayoutId == 1){
+                LazyRow(
+                    modifier = modifier
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    items(
+                        items = iconsToShow,
+                        key = { (key, _) -> key } // Use the stable key for performance
+                    ) { (_, drawable) ->
+                        AndroidView(
+                            factory = { ctx ->
+                                ImageView(ctx).apply {
+                                    setImageDrawable(drawable)
+                                    scaleType = ImageView.ScaleType.FIT_CENTER
+                                }
+                            },
+                            update = { view ->
+                                view.setImageDrawable(drawable)
+                                view.setColorFilter(iconColor.toArgb())
+                            },
+                            modifier = Modifier.size(iconSize)
+                        )
+                    }
+                    // Overflow badge remains the same
+                    if (notificationIcons.size > maxVisibleIcons + 1) {
+                        item {
+                            val overflowCount = notificationIcons.size - maxVisibleIcons
+                            Box(
+                                modifier = Modifier
+                                    .size(iconSize)
+                                    .clip(CircleShape)
+                                    .background(iconColor),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "+$overflowCount",
+                                    color = if (iconColor == Color.White) Color.Black else Color.White,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
                             }
-                        },
-                        update = { view ->
-                            view.setImageDrawable(drawable)
-                            view.setColorFilter(iconColor.toArgb())
-                        },
-                        modifier = Modifier.size(iconSize)
-                    )
+                        }
+                    }
                 }
-
-                // Overflow badge remains the same
-                if (notificationIcons.size > maxVisibleIcons + 1) {
-                    item {
-                        val overflowCount = notificationIcons.size - maxVisibleIcons
-                        Box(
-                            modifier = Modifier
-                                .size(iconSize)
-                                .clip(CircleShape)
-                                .background(iconColor),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "+$overflowCount",
-                                color = if (iconColor == Color.White) Color.Black else Color.White,
-                                style = MaterialTheme.typography.bodySmall
-                            )
+            } else {
+                LazyColumn(
+                    modifier = modifier
+                        .padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),    // Was horizontalArrangement
+                    horizontalAlignment = Alignment.CenterHorizontally   // Was verticalAlignment
+                ) {
+                    items(
+                        items = iconsToShow,
+                        key = { (key, _) -> key } // Use the stable key for performance
+                    ) { (_, drawable) ->
+                        AndroidView(
+                            factory = { ctx ->
+                                ImageView(ctx).apply {
+                                    setImageDrawable(drawable)
+                                    scaleType = ImageView.ScaleType.FIT_CENTER
+                                }
+                            },
+                            update = { view ->
+                                view.setImageDrawable(drawable)
+                                view.setColorFilter(iconColor.toArgb())
+                            },
+                            modifier = Modifier.size(iconSize)
+                        )
+                    }
+                    // Overflow badge remains the same
+                    if (notificationIcons.size > maxVisibleIcons + 1) {
+                        item {
+                            val overflowCount = notificationIcons.size - maxVisibleIcons
+                            Box(
+                                modifier = Modifier
+                                    .size(iconSize)
+                                    .clip(CircleShape)
+                                    .background(iconColor),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "+$overflowCount",
+                                    color = if (iconColor == Color.White) Color.Black else Color.White,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
                         }
                     }
                 }
@@ -3870,6 +3921,7 @@ fun NotificationIconRow(
         }
     }
 }
+
 @Composable
 fun WidgetDate(
     settings: SettingsUiState,
@@ -3893,6 +3945,8 @@ fun WidgetDate(
     val borderColor = if(showBorder) {
         if(customWallpaper) settings.dateFontColor else defaultColor
     } else Color.Transparent
+    val textColor = if(customWallpaper) settings.dateFontColor.copy(alpha = settings.dateFontAlpha/100f) else defaultColor
+    val shadowColor = if(settings.dateHasShadow) settings.dateShadowColor.toArgb() else Color.Transparent.toArgb()
     Box(modifier = Modifier
         .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp))
         .padding(4.dp)){
@@ -3900,46 +3954,46 @@ fun WidgetDate(
             1 ->
                 EffectTextBlock(
                     text = date,
-                    color = if(customWallpaper) settings.dateFontColor else defaultColor,
+                    color = textColor,
                     fontSize = settings.dateFontSize.sp,
                     fontWeight = getFontWeightFromString(settings.dateFontWeight),
                     fontFamily = settings.dateFontFamily,
                     angle = settings.dateAngle.toFloat(),
                     radius = settings.dateRadius.toFloat(),
-                    shadowColor = if(settings.dateHasShadow) settings.dateShadowColor.toArgb() else Color.Transparent.toArgb()
+                    shadowColor = shadowColor
                 )
             2 ->
                 if(date.split(" ").size == 3) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         EffectTextBlock(
                             text = date.split(" ")[0],
-                            color = if (customWallpaper) settings.dateFontColor else defaultColor,
+                            color = textColor,
                             fontSize = settings.dateFontSize.sp,
                             fontWeight = getFontWeightFromString(settings.dateFontWeight),
                             fontFamily = settings.dateFontFamily,
                             angle = settings.dateAngle.toFloat(),
                             radius = settings.dateRadius.toFloat(),
-                            shadowColor = if (settings.dateHasShadow) settings.dateShadowColor.toArgb() else Color.Transparent.toArgb()
+                            shadowColor = shadowColor
                         )
                         EffectTextBlock(
                             text = date.split(" ")[1],
-                            color = if (customWallpaper) settings.dateFontColor else defaultColor,
+                            color = textColor,
                             fontSize = settings.dateFontSize.sp,
                             fontWeight = getFontWeightFromString(settings.dateFontWeight),
                             fontFamily = settings.dateFontFamily,
                             angle = settings.dateAngle.toFloat(),
                             radius = settings.dateRadius.toFloat(),
-                            shadowColor = if (settings.dateHasShadow) settings.dateShadowColor.toArgb() else Color.Transparent.toArgb()
+                            shadowColor = shadowColor
                         )
                         EffectTextBlock(
                             text = date.split(" ")[2],
-                            color = if (customWallpaper) settings.dateFontColor else defaultColor,
+                            color = textColor,
                             fontSize = settings.dateFontSize.sp,
                             fontWeight = getFontWeightFromString(settings.dateFontWeight),
                             fontFamily = settings.dateFontFamily,
                             angle = settings.dateAngle.toFloat(),
                             radius = settings.dateRadius.toFloat(),
-                            shadowColor = if (settings.dateHasShadow) settings.dateShadowColor.toArgb() else Color.Transparent.toArgb()
+                            shadowColor = shadowColor
                         )
                     }
                 }
@@ -4002,10 +4056,9 @@ fun WidgetClock(
         if (settings.showAnalog) {
             AnalogClock(
                 settings.clockSize.dp,
-                if (customWallpaper) settings.clockBgColor else Color.Black,
-                if (customWallpaper) settings.clockBgAlpha else 0f,
-                if (customWallpaper) settings.clockMinuteColor else defaultColor,
-                if (customWallpaper) settings.clockHourColor else defaultColor
+                if (customWallpaper) settings.clockBgColor.copy(alpha = settings.clockBgAlpha/100f) else Color.Black,
+                if (customWallpaper) settings.clockMinuteColor.copy(alpha = settings.clockHourAlpha/100f) else defaultColor,
+                if (customWallpaper) settings.clockHourColor.copy(alpha = settings.clockMinuteAlpha/100f) else defaultColor
             )
         } else {
             TextClock(
@@ -4024,7 +4077,8 @@ fun TextClock(
     timeFormat: SimpleDateFormat,
     customWallpaper: Boolean
 ) {
-    val color = if (customWallpaper) settings.timeFontColor else defaultColor
+    val color = if (customWallpaper) settings.timeFontColor.copy(alpha=settings.timeFontAlpha/100f) else defaultColor
+    val shadowColor = if(settings.timeHasShadow) settings.timeShadowColor.toArgb() else Color.Transparent.toArgb()
     val fontWeight = getFontWeightFromString(settings.timeFontWeight)
     val fontFamily = settings.timeFontFamily
     var time by remember { mutableStateOf("") }
@@ -4052,7 +4106,7 @@ fun TextClock(
                     fontFamily = fontFamily,
                     angle = settings.timeAngle.toFloat(),
                     radius = settings.timeRadius.toFloat(),
-                    shadowColor = if(settings.timeHasShadow) settings.timeShadowColor.toArgb() else Color.Transparent.toArgb()
+                    shadowColor = shadowColor
                 )
             2 ->
                 EffectTextBlock(
@@ -4063,7 +4117,7 @@ fun TextClock(
                     fontFamily = fontFamily,
                     angle = settings.timeAngle.toFloat(),
                     radius = settings.timeRadius.toFloat(),
-                    shadowColor = if(settings.timeHasShadow) settings.timeShadowColor.toArgb() else Color.Transparent.toArgb()
+                    shadowColor = shadowColor
                 )
             3 ->
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -4075,7 +4129,7 @@ fun TextClock(
                         fontFamily = fontFamily,
                         angle = settings.timeAngle.toFloat(),
                         radius = settings.timeRadius.toFloat(),
-                        shadowColor = if(settings.timeHasShadow) settings.timeShadowColor.toArgb() else Color.Transparent.toArgb()
+                        shadowColor = shadowColor
                     )
                     EffectTextBlock(
                         text = time.split(":").last(),
@@ -4085,7 +4139,7 @@ fun TextClock(
                         fontFamily = fontFamily,
                         angle = settings.timeAngle.toFloat(),
                         radius = settings.timeRadius.toFloat(),
-                        shadowColor = if(settings.timeHasShadow) settings.timeShadowColor.toArgb() else Color.Transparent.toArgb()
+                        shadowColor = shadowColor
                     )
                 }
         }
@@ -4096,7 +4150,6 @@ fun TextClock(
 fun AnalogClock(
     size: Dp,
     backgroundColor: Color,
-    backgroundAlpha: Float = 1f,
     minuteHandColor: Color,
     hourHandColor: Color
 ) {
@@ -4119,7 +4172,7 @@ fun AnalogClock(
         modifier = Modifier
             .size(size)
             .padding(4.dp)
-            .background(color = backgroundColor.copy(alpha = backgroundAlpha), shape = CircleShape),
+            .background(color = backgroundColor, shape = CircleShape),
         contentAlignment = Alignment.Center
     ) {
         Canvas(modifier = Modifier.size(size)) {
@@ -4700,6 +4753,7 @@ fun LocaleSelectionDialog(
         }
     }
 }
+
 @Composable
 fun EffectTextBlock(
     text: String,
@@ -4764,7 +4818,7 @@ fun EffectTextBlock(
     Canvas(
         modifier = Modifier
             .size(width = canvasWidth, height = canvasHeight)
-            //.border(width=1.dp,Color.Blue)
+        //.border(width=1.dp,Color.Blue)
         // Optional: wrapContentSize if you want it to center in a larger parent
         // .wrapContentSize()
     ) {

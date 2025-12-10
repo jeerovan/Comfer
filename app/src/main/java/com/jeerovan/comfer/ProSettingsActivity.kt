@@ -1,6 +1,5 @@
 package com.jeerovan.comfer
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
@@ -12,8 +11,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,6 +33,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Brightness1
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.material3.Text
@@ -164,6 +162,11 @@ fun BasicSettings(
     var showBatteryColor by remember { mutableStateOf(false) }
     var showNotificationColor by remember { mutableStateOf(false) }
     val subscriptionToast = stringResource(R.string.requires_subscription)
+    var selectedNotificationLayoutId by remember { mutableIntStateOf(settingsState.notificationLayoutId) }
+    fun onSelectNotificationLayout(id: Int) {
+        settingsViewModel.setNotificationLayoutId(id)
+        selectedNotificationLayoutId = id
+    }
     Surface(
         modifier = Modifier.fillMaxSize(),
         shape = RoundedCornerShape(16.dp),
@@ -239,33 +242,28 @@ fun BasicSettings(
                             // Background Color
                             ColorPickerSettingItem(
                                 stringResource(R.string.clock_background_color),
-                                settingsState.clockBgColor
+                                settingsState.clockBgColor.copy(alpha=settingsState.clockBgAlpha/100f)
                             ) { showClockBgPicker = true }
-                            // Background Alpha
-                            SettingSlider(
-                                label = stringResource(R.string.background_transparency),
-                                value = (settingsState.clockBgAlpha * 100f).toInt(),
-                                range = 0f..100f,
-                                onValueChange = { settingsViewModel.setClockBgAlpha(it) }
-                            )
                             // Hour Color
                             ColorPickerSettingItem(
                                 stringResource(R.string.hour_hand_color),
-                                settingsState.clockHourColor
+                                settingsState.clockHourColor.copy(alpha = settingsState.clockHourAlpha/100f)
                             ) { showClockHourPicker = true }
                             Spacer(modifier = Modifier.height(8.dp))
                             // Minute Color
                             ColorPickerSettingItem(
                                 stringResource(R.string.minute_hand_color),
-                                settingsState.clockMinuteColor
+                                settingsState.clockMinuteColor.copy(alpha=settingsState.clockMinuteAlpha/100f)
                             ) { showClockMinutePicker = true }
                         }
                         if (showClockBgPicker) {
                             EnhancedColorPicker(
                                 predefinedColors = settingsViewModel.predefinedColors,
                                 initialColor = settingsState.clockBgColor,
-                                onColorSelected = { color ->
+                                initialAlpha = settingsState.clockBgAlpha,
+                                onColorSelected = { color,alpha ->
                                     settingsViewModel.setClockBgColor(color)
+                                    settingsViewModel.setClockBgAlpha(alpha)
                                 },
                                 onDismissRequest = { showClockBgPicker = false }
                             )
@@ -274,8 +272,10 @@ fun BasicSettings(
                             EnhancedColorPicker(
                                 predefinedColors = settingsViewModel.predefinedColors,
                                 initialColor = settingsState.clockHourColor,
-                                onColorSelected = { color ->
+                                initialAlpha = settingsState.clockHourAlpha,
+                                onColorSelected = { color,alpha ->
                                     settingsViewModel.setClockHourColor(color)
+                                    settingsViewModel.setClockHourAlpha(alpha)
                                 },
                                 onDismissRequest = { showClockHourPicker = false }
                             )
@@ -284,8 +284,10 @@ fun BasicSettings(
                             EnhancedColorPicker(
                                 predefinedColors = settingsViewModel.predefinedColors,
                                 initialColor = settingsState.clockMinuteColor,
-                                onColorSelected = { color ->
+                                initialAlpha = settingsState.clockMinuteAlpha,
+                                onColorSelected = { color,alpha ->
                                     settingsViewModel.setClockMinuteColor(color)
+                                    settingsViewModel.setClockMinuteAlpha(alpha)
                                 },
                                 onDismissRequest = { showClockMinutePicker = false }
                             )
@@ -371,7 +373,7 @@ fun BasicSettings(
                             (!settingsState.autoWallpapers && !settingsState.monochrome)) {
                             ColorPickerSettingItem(
                                 stringResource(R.string.title_time_font_color),
-                                settingsState.timeFontColor
+                                settingsState.timeFontColor.copy(alpha=settingsState.timeFontAlpha/100f)
                             ) { showTimeFontColor = true }
                         }
                         Row(
@@ -380,7 +382,7 @@ fun BasicSettings(
                                 .clickable {
                                     onShowTimeAdvanced()
                                 } // Make the whole row clickable
-                                .padding(vertical = 8.dp),
+                                .padding(vertical = 16.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
@@ -427,8 +429,10 @@ fun BasicSettings(
                             EnhancedColorPicker(
                                 predefinedColors = settingsViewModel.predefinedColors,
                                 initialColor = settingsState.timeFontColor,
-                                onColorSelected = { color ->
+                                initialAlpha = settingsState.timeFontAlpha,
+                                onColorSelected = { color,alpha ->
                                     settingsViewModel.setTimeFontColor(color)
+                                    settingsViewModel.setTimeFontAlpha(alpha)
                                 },
                                 onDismissRequest = { showTimeFontColor = false }
                             )
@@ -448,7 +452,7 @@ fun BasicSettings(
                     SettingSlider(
                         label = stringResource(R.string.title_font_size),
                         value = settingsState.dateFontSize,
-                        range = 12f..40f,
+                        range = 15f..60f,
                         onValueChange = { settingsViewModel.setDateFontSize(it) }
                     )
 
@@ -510,7 +514,7 @@ fun BasicSettings(
                         (!settingsState.autoWallpapers && !settingsState.monochrome)) {
                         ColorPickerSettingItem(
                             stringResource(R.string.date_font_color),
-                            settingsState.dateFontColor
+                            settingsState.dateFontColor.copy(alpha=settingsState.dateFontAlpha/100f)
                         ) { showDateFontColor = true }
                     }
                     Row(
@@ -519,7 +523,7 @@ fun BasicSettings(
                             .clickable {
                                 onShowDateAdvanced()
                             } // Make the whole row clickable
-                            .padding(vertical = 8.dp),
+                            .padding(vertical = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -565,8 +569,10 @@ fun BasicSettings(
                         EnhancedColorPicker(
                             predefinedColors = settingsViewModel.predefinedColors,
                             initialColor = settingsState.dateFontColor,
-                            onColorSelected = { color ->
+                            initialAlpha = settingsState.dateFontAlpha,
+                            onColorSelected = { color,alpha ->
                                 settingsViewModel.setDateFontColor(color)
+                                settingsViewModel.setDateFontAlpha(alpha)
                             },
                             onDismissRequest = { showDateFontColor = false }
                         )
@@ -603,15 +609,17 @@ fun BasicSettings(
                         (!settingsState.autoWallpapers && !settingsState.monochrome)) {
                         ColorPickerSettingItem(
                             stringResource(R.string.battery_indicator_color),
-                            settingsState.batteryColor
+                            settingsState.batteryColor.copy(alpha = settingsState.batteryAlpha/100f)
                         ) { showBatteryColor = true }
                     }
                     if (showBatteryColor) {
                         EnhancedColorPicker(
                             predefinedColors = settingsViewModel.predefinedColors,
                             initialColor = settingsState.batteryColor,
-                            onColorSelected = { color ->
+                            initialAlpha = settingsState.batteryAlpha,
+                            onColorSelected = { color,alpha ->
                                 settingsViewModel.setBatteryColor(color)
+                                settingsViewModel.setBatteryAlpha(alpha)
                             },
                             onDismissRequest = { showBatteryColor = false }
                         )
@@ -642,15 +650,53 @@ fun BasicSettings(
                             (!settingsState.autoWallpapers && !settingsState.monochrome)) {
                             ColorPickerSettingItem(
                                 stringResource(R.string.title_color),
-                                settingsState.notificationColor
+                                settingsState.notificationColor.copy(alpha = settingsState.notificationAlpha/100f)
                             ) { showNotificationColor = true }
+                        }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Box 1
+                            SelectableSquareBox(
+                                enabled = true,
+                                id = 1,
+                                selectedId = selectedNotificationLayoutId,
+                                onSelect = { onSelectNotificationLayout(it) }
+                            ) {
+                                Row {
+                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
+                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
+                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
+                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
+                                }
+                            }
+
+                            // Box 2
+                            SelectableSquareBox(
+                                enabled = true,
+                                id = 2,
+                                selectedId = selectedNotificationLayoutId,
+                                onSelect = { onSelectNotificationLayout(it) }
+                            ) {
+                                Column {
+                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
+                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
+                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
+                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
+                                }
+                            }
                         }
                         if (showNotificationColor) {
                             EnhancedColorPicker(
                                 predefinedColors = settingsViewModel.predefinedColors,
                                 initialColor = settingsState.notificationColor,
-                                onColorSelected = { color ->
+                                initialAlpha = settingsState.notificationAlpha,
+                                onColorSelected = { color,alpha ->
                                     settingsViewModel.setNotificationColor(color)
+                                    settingsViewModel.setNotificationAlpha(alpha)
                                 },
                                 onDismissRequest = { showNotificationColor = false }
                             )
@@ -701,6 +747,7 @@ fun TimeAdvancedSettings(
                 var selectedId by remember { mutableIntStateOf(settingsState.timeLayoutId) }
                 var angle by remember { mutableIntStateOf(settingsState.timeAngle) }
                 var radius by remember { mutableIntStateOf(settingsState.timeRadius) }
+                var showShadowColorPicker by remember { mutableStateOf(false) }
                 fun onSelectLayoutId(id: Int) {
                     settingsViewModel.setTimeLayoutId(id)
                     selectedId = id
@@ -785,6 +832,23 @@ fun TimeAdvancedSettings(
                         }
                     }
                 )
+                if (settingsState.timeHasShadow) {
+                    ColorPickerSettingItem(
+                        stringResource(R.string.title_color),
+                        settingsState.timeShadowColor,
+                    ) { showShadowColorPicker = true }
+                }
+                if (showShadowColorPicker) {
+                    EnhancedColorPicker(
+                        predefinedColors = settingsViewModel.predefinedColors,
+                        initialColor = settingsState.timeShadowColor,
+                        onColorSelected = { color,alpha ->
+                            settingsViewModel.setTimeShadow(color)
+                        },
+                        onDismissRequest = { showShadowColorPicker = false },
+                        setAlpha = false
+                    )
+                }
             }
         }
     }
@@ -827,6 +891,7 @@ fun DateAdvancedSettings(
                 var selectedId by remember { mutableIntStateOf(settingsState.dateLayoutId) }
                 var angle by remember { mutableIntStateOf(settingsState.dateAngle) }
                 var radius by remember { mutableIntStateOf(settingsState.dateRadius) }
+                var showShadowColorPicker by remember { mutableStateOf(false) }
                 fun onSelectLayoutId(id: Int) {
                     settingsViewModel.setDateLayoutId(id)
                     selectedId = id
@@ -895,6 +960,23 @@ fun DateAdvancedSettings(
                         }
                     }
                 )
+                if (settingsState.dateHasShadow) {
+                    ColorPickerSettingItem(
+                        stringResource(R.string.title_color),
+                        settingsState.dateShadowColor
+                    ) { showShadowColorPicker = true }
+                }
+                if (showShadowColorPicker) {
+                    EnhancedColorPicker(
+                        predefinedColors = settingsViewModel.predefinedColors,
+                        initialColor = settingsState.dateShadowColor,
+                        onColorSelected = { color,alpha ->
+                            settingsViewModel.setDateShadow(color)
+                        },
+                        onDismissRequest = { showShadowColorPicker = false },
+                        setAlpha = false
+                    )
+                }
             }
         }
     }
@@ -956,7 +1038,7 @@ fun SettingSlider(label: String,
                   range: ClosedFloatingPointRange<Float>,
                   onValueChange: (Int) -> Unit) {
     val context = LocalContext.current
-    Column(modifier = Modifier.padding( 8.dp)) {
+    Column(modifier = Modifier.padding( vertical = 8.dp)) {
         Text("$label",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface
@@ -985,7 +1067,7 @@ fun CurveRadiusSlider(
     // Steps = (Total Values) - 2 = 501 - 2 = 499.
     val steps = 499
 
-    Column(modifier = Modifier.padding(8.dp)) {
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Text(
             text = "$label",
             style = MaterialTheme.typography.bodyLarge,
@@ -1011,7 +1093,7 @@ fun SettingDropdown(label: String,
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 16.dp)
             .clickable { expanded = true },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
@@ -1176,10 +1258,13 @@ fun FontSelectionDialog(
 fun EnhancedColorPicker(
     predefinedColors: List<Color>,
     initialColor: Color,
-    onColorSelected: (Color) -> Unit,
-    onDismissRequest: () -> Unit
+    onColorSelected: (Color,Int) -> Unit,
+    onDismissRequest: () -> Unit,
+    initialAlpha: Int = 100,
+    setAlpha: Boolean = true
 ) {
     var selectedColor by remember { mutableStateOf(initialColor) }
+    var colorAlpha by remember { mutableIntStateOf(initialAlpha) }
 
     @Composable
     fun ColorSlider(
@@ -1264,7 +1349,14 @@ fun EnhancedColorPicker(
                     selectedColor = color
                 }
             )
-
+            if(setAlpha)SettingSlider(
+                label = stringResource(R.string.title_transparency),
+                value = colorAlpha,
+                range = 0.0f..100.0f,
+                onValueChange = { value ->
+                    colorAlpha = value
+                }
+            )
             // Action buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1274,7 +1366,7 @@ fun EnhancedColorPicker(
                     Text(stringResource(R.string.cancel_text))
                 }
                 TextButton(onClick = {
-                    onColorSelected(selectedColor)
+                    onColorSelected(selectedColor,colorAlpha)
                     onDismissRequest()
                 }) {
                     Text(stringResource(R.string.button_text_save))
