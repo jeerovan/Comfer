@@ -179,6 +179,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -3803,122 +3804,155 @@ fun NotificationIconRow(
     defaultColor: Color,
     showBorder: Boolean
 ) {
-    val context = LocalContext.current
+    // 1. Guard Clauses: Return early if nothing to show
+    if (!settings.hasNotificationAccess || !settings.showNotificationRow || notificationIcons.isEmpty()) {
+        return
+    }
+
+    // 2. Prepare visual properties
+    val isHorizontal = settings.notificationLayoutId == 1
+    val iconSize = settings.notificationSize.dp
+
     val customWallpaper = (settings.wallpaperDirectory != null && settings.autoWallpapers) ||
             (!settings.autoWallpapers && !settings.monochrome)
-    val iconSize = settings.notificationSize.dp
-    val iconColor = if(customWallpaper) settings.notificationColor.copy(alpha=settings.notificationAlpha/100f) else defaultColor
-    val borderColor = if(showBorder) iconColor else Color.Transparent
-    var rowHeight = iconSize + 16.dp
-    var rowWidth = iconSize * 10 + 8.dp
-    if(settings.notificationLayoutId == 2){
-        rowHeight = rowWidth
-        rowWidth = iconSize + 16.dp
+
+    val iconColor = if (customWallpaper) {
+        settings.notificationColor.copy(alpha = settings.notificationAlpha / 100f)
+    } else {
+        defaultColor
     }
-    if (settings.hasNotificationAccess && settings.showNotificationRow && notificationIcons.isNotEmpty()) {
-        Box(modifier = Modifier
-            .size(width = rowWidth, height = rowHeight)
+
+    val borderColor = if (showBorder) iconColor else Color.Transparent
+
+    // 3. Calculate Container Dimensions
+    // Note: Kept original logic, though hardcoded '10' implies a specific design constraint
+    val baseLongSide = iconSize * 10 + 8.dp
+    val baseShortSide = iconSize + 16.dp
+
+    val containerWidth = if (isHorizontal) baseLongSide else baseShortSide
+    val containerHeight = if (isHorizontal) baseShortSide else baseLongSide
+
+    // 4. Prepare Data
+    val iconsToShow = if (notificationIcons.size > maxVisibleIcons + 1) {
+        notificationIcons.take(maxVisibleIcons)
+    } else {
+        notificationIcons
+    }
+    val overflowCount = notificationIcons.size - maxVisibleIcons
+    val hasOverflow = notificationIcons.size > maxVisibleIcons + 1
+
+    Box(
+        modifier = Modifier
+            .size(width = containerWidth, height = containerHeight)
             .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp)),
-            contentAlignment = Alignment.Center
-        )
-        {
-            val iconsToShow = if (notificationIcons.size > maxVisibleIcons + 1) {
-                notificationIcons.take(maxVisibleIcons)
-            } else {
-                notificationIcons
-            }
-            if(settings.notificationLayoutId == 1){
-                LazyRow(
-                    modifier = modifier
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    items(
-                        items = iconsToShow,
-                        key = { (key, _) -> key } // Use the stable key for performance
-                    ) { (_, drawable) ->
-                        AndroidView(
-                            factory = { ctx ->
-                                ImageView(ctx).apply {
-                                    setImageDrawable(drawable)
-                                    scaleType = ImageView.ScaleType.FIT_CENTER
-                                }
-                            },
-                            update = { view ->
-                                view.setImageDrawable(drawable)
-                                view.setColorFilter(iconColor.toArgb())
-                            },
-                            modifier = Modifier.size(iconSize)
-                        )
-                    }
-                    // Overflow badge remains the same
-                    if (notificationIcons.size > maxVisibleIcons + 1) {
-                        item {
-                            val overflowCount = notificationIcons.size - maxVisibleIcons
-                            Box(
-                                modifier = Modifier
-                                    .size(iconSize)
-                                    .clip(CircleShape)
-                                    .background(iconColor),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "+$overflowCount",
-                                    color = if (iconColor == Color.White) Color.Black else Color.White,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                        }
-                    }
-                }
-            } else {
-                LazyColumn(
-                    modifier = modifier
-                        .padding(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),    // Was horizontalArrangement
-                    horizontalAlignment = Alignment.CenterHorizontally   // Was verticalAlignment
-                ) {
-                    items(
-                        items = iconsToShow,
-                        key = { (key, _) -> key } // Use the stable key for performance
-                    ) { (_, drawable) ->
-                        AndroidView(
-                            factory = { ctx ->
-                                ImageView(ctx).apply {
-                                    setImageDrawable(drawable)
-                                    scaleType = ImageView.ScaleType.FIT_CENTER
-                                }
-                            },
-                            update = { view ->
-                                view.setImageDrawable(drawable)
-                                view.setColorFilter(iconColor.toArgb())
-                            },
-                            modifier = Modifier.size(iconSize)
-                        )
-                    }
-                    // Overflow badge remains the same
-                    if (notificationIcons.size > maxVisibleIcons + 1) {
-                        item {
-                            val overflowCount = notificationIcons.size - maxVisibleIcons
-                            Box(
-                                modifier = Modifier
-                                    .size(iconSize)
-                                    .clip(CircleShape)
-                                    .background(iconColor),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "+$overflowCount",
-                                    color = if (iconColor == Color.White) Color.Black else Color.White,
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+        contentAlignment = Alignment.Center
+    ) {
+        // 5. Shared Content Logic
+        // We define the list content once, then reuse it in either Row or Column
+        val listContent: LazyListScope.() -> Unit = {
+            notificationItems(
+                icons = iconsToShow,
+                iconSize = iconSize,
+                iconColor = iconColor,
+                hasOverflow = hasOverflow,
+                overflowCount = overflowCount
+            )
         }
+
+        if (isHorizontal) {
+            LazyRow(
+                modifier = modifier.padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                content = listContent
+            )
+        } else {
+            LazyColumn(
+                modifier = modifier.padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                content = listContent
+            )
+        }
+    }
+}
+
+/**
+ * Extension on LazyListScope to share the "Items + Overflow" logic
+ * between both LazyRow and LazyColumn.
+ */
+private fun LazyListScope.notificationItems(
+    icons: List<Pair<String, Drawable>>,
+    iconSize: Dp,
+    iconColor: Color,
+    hasOverflow: Boolean,
+    overflowCount: Int
+) {
+    items(
+        items = icons,
+        key = { (key, _) -> key }
+    ) { (_, drawable) ->
+        NotificationIcon(
+            drawable = drawable,
+            iconColor = iconColor,
+            size = iconSize
+        )
+    }
+
+    if (hasOverflow) {
+        item {
+            OverflowBadge(
+                count = overflowCount,
+                color = iconColor,
+                size = iconSize
+            )
+        }
+    }
+}
+
+@Composable
+private fun NotificationIcon(
+    drawable: Drawable,
+    iconColor: Color,
+    size: Dp
+) {
+    AndroidView(
+        factory = { ctx ->
+            ImageView(ctx).apply {
+                setImageDrawable(drawable)
+                scaleType = ImageView.ScaleType.FIT_CENTER
+            }
+        },
+        update = { view ->
+            // Update drawable if it changes
+            if (view.drawable != drawable) {
+                view.setImageDrawable(drawable)
+            }
+            view.setColorFilter(iconColor.toArgb())
+        },
+        modifier = Modifier.size(size)
+    )
+}
+
+@Composable
+private fun OverflowBadge(
+    count: Int,
+    color: Color,
+    size: Dp
+) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(CircleShape)
+            .background(color),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "+$count",
+            // Select text color for contrast
+            color = if (color == Color.White) Color.Black else Color.White,
+            style = MaterialTheme.typography.bodySmall
+        )
     }
 }
 
