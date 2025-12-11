@@ -292,9 +292,9 @@ object CommonUtil {
             val hasPro = PreferenceManager.getPro(applicationContext)
             val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(applicationContext)
             if(wallpaperDirectory != null && hasPro){
-                if (changeFrequency == "Hourly" || hour == 1 || manualChange){
-                    setBackgroundImageFromImageUri(applicationContext,wallpaperDirectory.toUri())
+                if (changeFrequency == "Hourly" || hour == 3 || manualChange){
                     PreferenceManager.setHour(applicationContext, hour)
+                    setBackgroundImageFromImageUri(applicationContext,wallpaperDirectory.toUri())
                 }
             } else {
                 if(changeFrequency == "Hourly" || hour == 7 || hour == 19 || manualChange) {

@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.ui.theme.fontProvider
 import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
 import com.jeerovan.comfer.utils.CommonUtil.getKeyTextObject
@@ -403,7 +404,8 @@ fun BasicSettings(
                             }
                             Icon(
                                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                contentDescription = stringResource(R.string.icon_arrow_right)
+                                contentDescription = stringResource(R.string.icon_arrow_right),
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                         if (showTimeFontDialog) {
@@ -544,7 +546,8 @@ fun BasicSettings(
                         }
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.icon_arrow_right)
+                            contentDescription = stringResource(R.string.icon_arrow_right),
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     if (showDateFontDialog) {
@@ -1768,8 +1771,8 @@ fun RowScope.SelectableSquareBox(
 ) {
     val context = LocalContext.current
     val isSelected = selectedId == id
-    val borderColor = if (isSelected) Color.Blue else Color.Transparent
-    val backgroundColor = if (isSelected) Color.Blue.copy(alpha = 0.1f) else Color.LightGray.copy(alpha = 0.7f)
+    val borderColor = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent
+    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
     val toastMessage = stringResource(R.string.requires_subscription)
     Box(
         modifier = Modifier
