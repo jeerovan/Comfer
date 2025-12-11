@@ -293,7 +293,7 @@ object CommonUtil {
             val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(applicationContext)
             if(wallpaperDirectory != null && hasPro){
                 if (changeFrequency == "Hourly" || hour == 3 || manualChange){
-                    PreferenceManager.setHour(applicationContext, hour)
+                    if(!manualChange)PreferenceManager.setHour(applicationContext, hour)
                     setBackgroundImageFromImageUri(applicationContext,wallpaperDirectory.toUri())
                 }
             } else {
@@ -332,7 +332,7 @@ object CommonUtil {
                         Log.i("FetchImageData", response.toString())
                         client.close()
                         PreferenceManager.saveImageData(applicationContext, response)
-                        PreferenceManager.setHour(applicationContext, hour)
+                        if(!manualChange)PreferenceManager.setHour(applicationContext, hour)
                     } catch (e: Exception) {
                         Log.e("FetchImageData", e.toString())
                     }

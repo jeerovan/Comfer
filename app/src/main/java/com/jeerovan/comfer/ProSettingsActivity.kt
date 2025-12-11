@@ -1,6 +1,7 @@
 package com.jeerovan.comfer
 
 import android.os.Bundle
+import android.view.SoundEffectConstants
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -52,6 +53,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.FontFamily
@@ -95,10 +97,9 @@ enum class SettingsScreen {
 @Composable
 fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
                       exitWidgetSettings: () -> Unit) {
-
+    val view = LocalView.current
     // State variable tracks the current screen
     var currentScreen by remember { mutableStateOf(SettingsScreen.Basic) }
-
     AnimatedContent(
         targetState = currentScreen,
         transitionSpec = {
@@ -130,13 +131,19 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
             SettingsScreen.TimeAdvanced -> {
                 TimeAdvancedSettings(
                     settingsViewModel,
-                    onBack = { currentScreen = SettingsScreen.Basic }
+                    onBack = {
+                        view.playSoundEffect(SoundEffectConstants.CLICK)
+                        currentScreen = SettingsScreen.Basic
+                    }
                 )
             }
             SettingsScreen.DateAdvanced -> {
                 DateAdvancedSettings(
                     settingsViewModel,
-                    onBack = { currentScreen = SettingsScreen.Basic }
+                    onBack = {
+                        view.playSoundEffect(SoundEffectConstants.CLICK)
+                        currentScreen = SettingsScreen.Basic
+                    }
                 )
             }
         }
@@ -670,10 +677,18 @@ fun BasicSettings(
                                 onSelect = { onSelectNotificationLayout(it) }
                             ) {
                                 Row {
-                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
-                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
-                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
-                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
+                                    Icon(Icons.Filled.Brightness1,
+                                        contentDescription = "",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Icon(Icons.Filled.Brightness1,
+                                        contentDescription = "",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Icon(Icons.Filled.Brightness1,
+                                        contentDescription = "",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Icon(Icons.Filled.Brightness1,
+                                        contentDescription = "",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
                                 }
                             }
 
@@ -685,10 +700,18 @@ fun BasicSettings(
                                 onSelect = { onSelectNotificationLayout(it) }
                             ) {
                                 Column {
-                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
-                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
-                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
-                                    Icon(Icons.Filled.Brightness1, contentDescription = "")
+                                    Icon(Icons.Filled.Brightness1,
+                                        contentDescription = "",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Icon(Icons.Filled.Brightness1,
+                                        contentDescription = "",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Icon(Icons.Filled.Brightness1,
+                                        contentDescription = "",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    Icon(Icons.Filled.Brightness1,
+                                        contentDescription = "",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
                                 }
                             }
                         }
@@ -777,7 +800,10 @@ fun TimeAdvancedSettings(
                         selectedId = selectedId,
                         onSelect = { onSelectLayoutId(it) }
                     ) {
-                        Text("12:34", fontSize = fontSize.sp)
+                        Text("12:34",
+                            fontSize = fontSize.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     }
 
                     // Box 2
@@ -787,7 +813,9 @@ fun TimeAdvancedSettings(
                         selectedId = selectedId,
                         onSelect = { onSelectLayoutId(it) }
                     ) {
-                        Text("1234", fontSize = fontSize.sp)
+                        Text("1234",
+                            fontSize = fontSize.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
 
                     // Box 3 with Column
@@ -801,8 +829,12 @@ fun TimeAdvancedSettings(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Text("12", fontSize = fontSize.sp)
-                            Text("34", fontSize = (fontSize - 10).sp)
+                            Text("12",
+                                fontSize = fontSize.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Text("34",
+                                fontSize = (fontSize - 10).sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
                     }
                 }
@@ -921,7 +953,9 @@ fun DateAdvancedSettings(
                         selectedId = selectedId,
                         onSelect = { onSelectLayoutId(it) }
                     ) {
-                        Text(stringResource(R.string.date_example), fontSize = fontSize.sp)
+                        Text(stringResource(R.string.date_example),
+                            fontSize = fontSize.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
 
                     // Box 2
@@ -931,7 +965,9 @@ fun DateAdvancedSettings(
                         selectedId = selectedId,
                         onSelect = { onSelectLayoutId(it) }
                     ) {
-                        Text(stringResource(R.string.date_example_two), fontSize = fontSize.sp)
+                        Text(stringResource(R.string.date_example_two),
+                            fontSize = fontSize.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
                 }
                 HorizontalDivider(
@@ -1771,8 +1807,8 @@ fun RowScope.SelectableSquareBox(
 ) {
     val context = LocalContext.current
     val isSelected = selectedId == id
-    val borderColor = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
     val toastMessage = stringResource(R.string.requires_subscription)
     Box(
         modifier = Modifier

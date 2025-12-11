@@ -71,7 +71,7 @@ data class SettingsUiState(
     val clockMinuteColor: Color = Color.White,
     val clockMinuteAlpha: Int = 100,
     val timeFormat: String = "H12",
-    val timeFontSize: Int = 60,
+    val timeFontSize: Int = 100,
     val timeFontName: String = "Roboto",
     val timeFontColor: Color = Color.White,
     val timeFontFamily: FontFamily = FontFamily.Default,
@@ -83,7 +83,7 @@ data class SettingsUiState(
     val timeHasShadow: Boolean = false,
     val timeShadowColor: Color = Color.White,
     val dateFormat: String? = "EEE,MMM d",
-    val dateFontSize: Int = 20,
+    val dateFontSize: Int = 30,
     val dateFontName: String = "Roboto",
     val dateFontColor: Color = Color.White,
     val dateFontFamily: FontFamily = FontFamily.Default,
@@ -94,7 +94,7 @@ data class SettingsUiState(
     val dateRadius: Int = 0,
     val dateHasShadow: Boolean = false,
     val dateShadowColor: Color = Color.Transparent,
-    val showBatteryIcon: Boolean  = true,
+    val showBatteryIcon: Boolean  = false,
     val batteryColor: Color = Color.White,
     val batteryAlpha: Int = 100,
     val showBatteryPercentage: Boolean = true,
@@ -228,7 +228,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val clockHourColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_HOUR_COLOR,Color.White.toArgb()))
             val clockMinuteColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_MINUTE_COLOR,Color.White.toArgb()))
             val timeFormat = PreferenceManager.getString(getApplication(),TIME_FORMAT, "H12") ?: "H12"
-            val timeFontSize = PreferenceManager.getInt(getApplication(),TIME_FONT_SIZE,60)
+            val timeFontSize = PreferenceManager.getInt(getApplication(),TIME_FONT_SIZE,100)
             val timeFontColor = Color(PreferenceManager.getInt(getApplication(),TIME_FONT_COLOR,Color.White.toArgb()))
             val timeFontAlpha = PreferenceManager.getInt(getApplication(),TIME_FONT_ALPHA,100)
             val timeFontName = if(hasPro){
@@ -253,7 +253,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val timeRadius = if(hasPro)PreferenceManager.getInt(getApplication(),TIME_RADIUS,0) else 0
             val timeHasShadow = if(hasPro)PreferenceManager.getBoolean(getApplication(),TIME_HAS_SHADOW,false) else false
             val timeShadowColor = Color(PreferenceManager.getInt(getApplication(),TIME_SHADOW_COLOR,Color.White.toArgb()))
-            val dateFontSize = PreferenceManager.getInt(getApplication(),DATE_FONT_SIZE,20)
+            val dateFontSize = PreferenceManager.getInt(getApplication(),DATE_FONT_SIZE,30)
             val dateFontColor = Color(PreferenceManager.getInt(getApplication(),DATE_FONT_COLOR,Color.White.toArgb()))
             val dateFontAlpha = PreferenceManager.getInt(getApplication(),DATE_FONT_ALPHA,100)
             val dateFontName = if(hasPro){
@@ -278,7 +278,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val dateHasShadow = if(hasPro)PreferenceManager.getBoolean(getApplication(),DATE_HAS_SHADOW,false) else false
             val dateShadowColor = Color(PreferenceManager.getInt(getApplication(),DATE_SHADOW_COLOR,Color.White.toArgb()))
 
-            val showBatteryIcon = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_ICON,true)
+            val showBatteryIcon = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_ICON,false)
             val batteryColor = Color(PreferenceManager.getInt(getApplication(),BATTERY_COLOR,Color.White.toArgb()))
             val batteryAlpha = PreferenceManager.getInt(getApplication(),BATTERY_ALPHA,100)
             val batterySize = PreferenceManager.getInt(getApplication(),BATTERY_SIZE,20)
