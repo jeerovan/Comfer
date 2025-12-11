@@ -3987,7 +3987,10 @@ fun WidgetDate(
         if(customColor) settings.dateFontColor else foregroundColor
     } else Color.Transparent
     val textColor = if(customColor) settings.dateFontColor.copy(alpha = settings.dateFontAlpha/100f) else foregroundColor
-    val shadowColor = if(customColor && settings.dateHasShadow) settings.dateShadowColor.toArgb() else backgroundColor.toArgb()
+    val shadowColor = if(customColor){
+        if(settings.dateHasShadow)settings.dateShadowColor.toArgb()
+        else Color.Transparent.toArgb()
+    } else backgroundColor.toArgb()
     Box(modifier = Modifier
         .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp))
         .padding(4.dp)){
@@ -4121,7 +4124,10 @@ fun TextClock(
     backgroundColor: Color = Color.Black
 ) {
     val color = if (customColor) settings.timeFontColor.copy(alpha=settings.timeFontAlpha/100f) else foregroundColor
-    val shadowColor = if(customColor && settings.timeHasShadow) settings.timeShadowColor.toArgb() else backgroundColor.toArgb()
+    val shadowColor = if(customColor) {
+        if(settings.timeHasShadow) settings.timeShadowColor.toArgb()
+        else Color.Transparent.toArgb()
+    } else backgroundColor.toArgb()
     val fontWeight = getFontWeightFromString(settings.timeFontWeight)
     val fontFamily = settings.timeFontFamily
     var time by remember { mutableStateOf("") }
