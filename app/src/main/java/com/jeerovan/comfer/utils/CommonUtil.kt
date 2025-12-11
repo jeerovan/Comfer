@@ -34,6 +34,7 @@ import com.jeerovan.comfer.PreferenceKeys
 import com.jeerovan.comfer.PreferenceManager
 import com.jeerovan.comfer.R
 import com.jeerovan.comfer.dataStore
+import com.jeerovan.comfer.isTesting
 import com.jeerovan.comfer.toBitmap
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -291,6 +292,9 @@ object CommonUtil {
         if (hour > 0 || manualChange) {
             val hasPro = PreferenceManager.getPro(applicationContext)
             val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(applicationContext)
+            val actualHour = if(isTesting){
+                if(PreferenceManager.isLightHour(applicationContext)) 10 else 20
+            } else hour
             if(wallpaperDirectory != null && hasPro){
                 if (changeFrequency == "Hourly" || hour == 3 || manualChange){
                     if(!manualChange)PreferenceManager.setHour(applicationContext, hour)
@@ -327,7 +331,7 @@ object CommonUtil {
                         }
                         val response: ImageData = client.get("https://comfer.jeerovan.com/api") {
                             parameter("name", name)
-                            parameter("hour", hour)
+                            parameter("hour", actualHour)
                         }.body()
                         Log.i("FetchImageData", response.toString())
                         client.close()
