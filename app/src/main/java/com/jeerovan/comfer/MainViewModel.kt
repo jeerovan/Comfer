@@ -29,7 +29,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 data class MainUiState (
-    val imageData: ImageData? = null,
     val imagePath:String? = null,
     val iconVersion:Int = 0,
     val isDefaultLauncher: Boolean = false
@@ -72,14 +71,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
         }
     }
-    fun reloadImageData(){
-        viewModelScope.launch {
-            val imageData = PreferenceManager.getImageData(getApplication())
-            _uiState.update {
-                it.copy(imageData = imageData)
-            }
-        }
-    }
     fun reloadImagePath() {
         viewModelScope.launch {
             val context: Context = getApplication()
@@ -116,22 +107,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
                     // this is a first time fetch, do not set wallpaper on home screen as the app is not set default home app now
                     if (imageData != null && filePath != null) {
-                        _uiState.update {
-                            it.copy(
-                                imageData = imageData,
-                                imagePath = filePath
-                            )
-                        }
                         withContext(Dispatchers.IO){
                             setWallpaperThemedColors(applicationContext, File(filePath))
+                        }
+                        // let themed colors generate before we change the background
+                        _uiState.update {
+                            it.copy(
+                                imagePath = filePath
+                            )
                         }
                     }
                     PreferenceManager.setWallpaperApplied(applicationContext, true)
                 } else {
-                    if (_uiState.value.imageData != imageData || _uiState.value.imagePath != backgroundImagePath) {
+                    if (_uiState.value.imagePath != backgroundImagePath) {
                         _uiState.update {
                             it.copy(
-                                imageData = imageData,
                                 imagePath = backgroundImagePath,
                                 iconVersion = _uiState.value.iconVersion + 1
                             )

@@ -15,8 +15,7 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @JsonIgnoreUnknownKeys
 data class ImageData(
     val id:Int,
-    val imageUrl: String,
-    var color: String
+    val imageUrl: String
 )
 
 class ImageWorker(appContext: Context, workerParams: WorkerParameters) :

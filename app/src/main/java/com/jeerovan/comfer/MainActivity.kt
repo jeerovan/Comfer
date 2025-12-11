@@ -198,7 +198,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.TextUnit
 import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
-import com.jeerovan.comfer.utils.CommonUtil.stringToColor
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -1431,12 +1430,13 @@ fun rememberBatteryState(): State<BatteryState> {
 @Composable
 fun BatteryStatus(
     settings: SettingsUiState,
-    defaultColor: Color,
-    showBorder: Boolean
+    foregroundColor: Color,
+    showBorder: Boolean,
+    backgroundColor: Color = Color.Black
 ) {
-    val customWallpaper = (settings.wallpaperDirectory != null && settings.autoWallpapers) ||
-            (!settings.autoWallpapers && !settings.monochrome)
-    val themeColor = if(customWallpaper) settings.batteryColor.copy(alpha = settings.batteryAlpha/100f) else defaultColor
+    val customColor = !settings.autoWallpapers && !settings.monochrome
+    val themeColor = if(customColor) settings.batteryColor.copy(alpha = settings.batteryAlpha/100f) else foregroundColor
+    val shadowColor = if(customColor) Color.Transparent.toArgb() else backgroundColor.toArgb()
     val borderColor = if(showBorder) themeColor else Color.Transparent
     val showBatteryIcon = settings.showBatteryIcon
     val showBatteryPercentage = settings.showBatteryPercentage
@@ -1507,12 +1507,13 @@ fun BatteryStatus(
             }
         }
         if (batteryLevel > 0 && showBatteryPercentage) {
-            Text(
+            EffectTextBlock(
                 text = "$batteryLevel%",
                 color = themeColor,
-                fontSize = fontSize, // Use the fontSize parameter
+                fontSize = fontSize,
                 fontFamily = fontFamily,
-                fontWeight = fontWeight
+                fontWeight = fontWeight,
+                shadowColor = shadowColor
             )
         }
     }
@@ -1524,7 +1525,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
                      mainWidgetHost: AppWidgetHost,
                      notificationIcons: List<Pair<String, Drawable>>,
                      notificationPackages: List<String>,
-                     imageData: ImageData?,
                      settingsModel: SettingsViewModel,
                      onSwipeUp: () -> Unit,
                      onSwipeRight: () -> Unit,
@@ -1612,16 +1612,22 @@ fun QuickListOverlay(apps: List<AppInfo>,
         {onFeedbackRateIt()}
     )
     val lowerPartHeight = 350.dp
-    var defaultColor = imageData?.color?.let { colorName ->
-        stringToColor(colorName)
-    } ?: Color.White
-    val monochrome = settings.monochrome
     val isLightHour = PreferenceManager.isLightHour(context)
-    val monoColor = if(isLightHour) Color.Black.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.8f)
-    defaultColor = if(monochrome) monoColor else defaultColor
+
+    val foregroundColor = if(settings.themedColors != null) {
+        Color(getThemedIconColor(settings.themedColors!!,isLightHour))
+    } else {
+        Color.White
+    }
+    val backgroundColor = if(settings.themedColors != null) {
+        Color(getThemedBackgroundColor(
+            settings.themedColors!!,
+            isLightHour))
+    } else {
+        Color.Black
+    }
 
     var showWidgetSettings by remember { mutableStateOf(false) }
-    val themedColors = PreferenceManager.getThemedColors(context)
     val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
     fun exitWidgetSettings() {
         showWidgetSettings = false
@@ -1665,22 +1671,25 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         when (id) {
                             "time" -> WidgetClock(
                                 settings,
-                                defaultColor,
-                                editMode = editMode)
+                                foregroundColor,
+                                editMode = editMode,
+                                backgroundColor)
                             "date" -> WidgetDate(
                                 settings,
-                                defaultColor,
-                                showBorder = editMode)
+                                foregroundColor,
+                                showBorder = editMode,
+                                backgroundColor)
                             "battery" -> BatteryStatus(
                                 settings,
-                                defaultColor,
-                                showBorder = editMode)
+                                foregroundColor,
+                                showBorder = editMode,
+                                backgroundColor)
                             "notifications" -> NotificationIconRow(
                                 notificationIcons,
                                 settings = settings,
-                                defaultColor =  defaultColor,
-                                showBorder = editMode
-                            )
+                                foregroundColor =  foregroundColor,
+                                showBorder = editMode,
+                                backgroundColor = backgroundColor)
                         }
                     },
                 )
@@ -1821,7 +1830,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     iconShape,
                                     onShowSearch,
                                     showThemedIcon,
-                                    themedColors,
+                                    settings.themedColors,
                                     settings.isLightHour
                                 )
 
@@ -1832,7 +1841,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     iconShape,
                                     onShowSearch,
                                     showThemedIcon,
-                                    themedColors,
+                                    settings.themedColors,
                                     settings.isLightHour
                                 )
                             }
@@ -2575,9 +2584,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         settingInfoUiState.monochrome) {
         appInfoViewModel.reloadList()
     }
-    LaunchedEffect(settingInfoUiState.imageDataUpdateCounter) {
-        mainViewModel.reloadImageData()
-    }
 
     val notificationPackages by remember(notifications, hasNotificationAccess) {
         derivedStateOf {
@@ -2634,7 +2640,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val layer2Enter = slideInVertically(initialOffsetY = { it }) + fadeIn()
     val layer2Exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
 
-    val imageData = mainUiState.imageData
     val backgroundImage = mainUiState.imagePath
 
     val contacts = remember {
@@ -2792,7 +2797,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 widgetHosts.mainHost,
                 notificationIcons = notificationIcons,
                 notificationPackages = notificationPackages,
-                imageData = imageData,
                 settingsModel = settingsViewModel,
                 onSwipeUp = {
                     // Set transitions for vertical exit, then hide
@@ -3803,8 +3807,9 @@ fun NotificationIconRow(
     modifier: Modifier = Modifier,
     maxVisibleIcons: Int = 5,
     settings: SettingsUiState,
-    defaultColor: Color,
-    showBorder: Boolean
+    foregroundColor: Color,
+    showBorder: Boolean,
+    backgroundColor: Color = Color.Black
 ) {
     // 1. Guard Clauses: Return early if nothing to show
     if (!settings.hasNotificationAccess || !settings.showNotificationRow || notificationIcons.isEmpty()) {
@@ -3815,13 +3820,12 @@ fun NotificationIconRow(
     val isHorizontal = settings.notificationLayoutId == 1
     val iconSize = settings.notificationSize.dp
 
-    val customWallpaper = (settings.wallpaperDirectory != null && settings.autoWallpapers) ||
-            (!settings.autoWallpapers && !settings.monochrome)
+    val customColor = !settings.autoWallpapers && !settings.monochrome
 
-    val iconColor = if (customWallpaper) {
+    val iconColor = if (customColor) {
         settings.notificationColor.copy(alpha = settings.notificationAlpha / 100f)
     } else {
-        defaultColor
+        foregroundColor
     }
 
     val borderColor = if (showBorder) iconColor else Color.Transparent
@@ -3961,9 +3965,11 @@ private fun OverflowBadge(
 @Composable
 fun WidgetDate(
     settings: SettingsUiState,
-    defaultColor: Color,
-    showBorder: Boolean
+    foregroundColor: Color,
+    showBorder: Boolean,
+    backgroundColor: Color = Color.Black
 ){
+    val context = LocalContext.current
     val dateFormat = remember {
         SimpleDateFormat("EEE MMM d", Locale.getDefault())
     }
@@ -3976,13 +3982,12 @@ fun WidgetDate(
             delay(1000)
         }
     }
-    val customWallpaper = (settings.wallpaperDirectory != null && settings.autoWallpapers) ||
-            (!settings.autoWallpapers && !settings.monochrome)
+    val customColor = !settings.autoWallpapers && !settings.monochrome
     val borderColor = if(showBorder) {
-        if(customWallpaper) settings.dateFontColor else defaultColor
+        if(customColor) settings.dateFontColor else foregroundColor
     } else Color.Transparent
-    val textColor = if(customWallpaper) settings.dateFontColor.copy(alpha = settings.dateFontAlpha/100f) else defaultColor
-    val shadowColor = if(settings.dateHasShadow) settings.dateShadowColor.toArgb() else Color.Transparent.toArgb()
+    val textColor = if(customColor) settings.dateFontColor.copy(alpha = settings.dateFontAlpha/100f) else foregroundColor
+    val shadowColor = if(customColor && settings.dateHasShadow) settings.dateShadowColor.toArgb() else backgroundColor.toArgb()
     Box(modifier = Modifier
         .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp))
         .padding(4.dp)){
@@ -4039,14 +4044,14 @@ fun WidgetDate(
 @Composable
 fun WidgetClock(
     settings: SettingsUiState,
-    defaultColor: Color,
-    editMode: Boolean
+    foregroundColor: Color,
+    editMode: Boolean,
+    backgroundColor: Color = Color.Black
 ){
     val context = LocalContext.current
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
-    val customWallpaper = (settings.wallpaperDirectory != null && settings.autoWallpapers) ||
-            (!settings.autoWallpapers && !settings.monochrome)
+    val customColor = !settings.autoWallpapers && !settings.monochrome
     val timeFormat = remember(settings.timeFormat) {
         // Build your pattern based on the settings
         val pattern = if (settings.timeFormat == "H12") {
@@ -4057,9 +4062,9 @@ fun WidgetClock(
         SimpleDateFormat(pattern, Locale.getDefault())
     }
     val borderColor = if (editMode) {
-        if (customWallpaper) {
+        if (customColor) {
             if (settings.showAnalog) settings.clockHourColor else settings.timeFontColor
-        } else defaultColor
+        } else foregroundColor
     } else Color.Transparent
     Box(modifier = Modifier
         .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp))
@@ -4092,16 +4097,17 @@ fun WidgetClock(
         if (settings.showAnalog) {
             AnalogClock(
                 settings.clockSize.dp,
-                if (customWallpaper) settings.clockBgColor.copy(alpha = settings.clockBgAlpha/100f) else Color.Black.copy(alpha = settings.clockBgAlpha/100f),
-                if (customWallpaper) settings.clockMinuteColor.copy(alpha = settings.clockHourAlpha/100f) else defaultColor,
-                if (customWallpaper) settings.clockHourColor.copy(alpha = settings.clockMinuteAlpha/100f) else defaultColor
+                if (customColor) settings.clockBgColor.copy(alpha = settings.clockBgAlpha/100f) else backgroundColor,
+                if (customColor) settings.clockMinuteColor.copy(alpha = settings.clockHourAlpha/100f) else foregroundColor,
+                if (customColor) settings.clockHourColor.copy(alpha = settings.clockMinuteAlpha/100f) else foregroundColor
             )
         } else {
             TextClock(
                 settings,
-                defaultColor,
+                foregroundColor,
                 timeFormat,
-                customWallpaper
+                customColor,
+                backgroundColor
             )
         }
     }
@@ -4109,12 +4115,13 @@ fun WidgetClock(
 @Composable
 fun TextClock(
     settings: SettingsUiState,
-    defaultColor: Color,
+    foregroundColor: Color,
     timeFormat: SimpleDateFormat,
-    customWallpaper: Boolean
+    customColor: Boolean,
+    backgroundColor: Color = Color.Black
 ) {
-    val color = if (customWallpaper) settings.timeFontColor.copy(alpha=settings.timeFontAlpha/100f) else defaultColor
-    val shadowColor = if(settings.timeHasShadow) settings.timeShadowColor.toArgb() else Color.Transparent.toArgb()
+    val color = if (customColor) settings.timeFontColor.copy(alpha=settings.timeFontAlpha/100f) else foregroundColor
+    val shadowColor = if(customColor && settings.timeHasShadow) settings.timeShadowColor.toArgb() else backgroundColor.toArgb()
     val fontWeight = getFontWeightFromString(settings.timeFontWeight)
     val fontFamily = settings.timeFontFamily
     var time by remember { mutableStateOf("") }
@@ -4806,6 +4813,10 @@ fun EffectTextBlock(
     val context = LocalContext.current
     val density = LocalDensity.current
     val resolver = LocalFontFamilyResolver.current
+    val themedColors = PreferenceManager.getThemedColors(context)
+    val isLightHour = PreferenceManager.isLightHour(context)
+    val backgroundColorInt = getThemedBackgroundColor(themedColors,isLightHour)
+    val foregroundColorInt = getThemedIconColor(themedColors,isLightHour)
     val reverse = radius < 0
     val absRadius = if (radius < 0) {
         500f + radius
@@ -4822,7 +4833,6 @@ fun EffectTextBlock(
         )
     }
     val typeface = typefaceState.value
-
     // 1. Calculate the required size
     // For text on a path (Arc), the width is roughly the chord length or diameter,
     // and height depends on the font size + curve height.
@@ -4863,7 +4873,11 @@ fun EffectTextBlock(
             this.color = color.toArgb()
             this.textAlign = android.graphics.Paint.Align.CENTER
             this.isAntiAlias = true
-            setShadowLayer(10f, 5f, 5f, shadowColor)
+            setShadowLayer(10f,
+                5f,
+                5f,
+                shadowColor
+            )
         }
 
         // Center the arc in the new dynamic size

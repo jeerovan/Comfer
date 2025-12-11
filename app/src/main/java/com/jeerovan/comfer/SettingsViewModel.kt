@@ -30,6 +30,8 @@ import com.revenuecat.purchases.CustomerInfo
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.getCustomerInfoWith
 import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -48,7 +50,6 @@ data class SettingsUiState(
     val showThemedIcons: Boolean = false,
     val isLightHour: Boolean = false,
     val appListsUpdateCounter: Int = 0,
-    val imageDataUpdateCounter: Int = 0,
     val quickAppsLayout: String = "circular",
     val appDrawerLayout: String = "circular",
     val drawerHeight:Int = 0,
@@ -109,6 +110,7 @@ data class SettingsUiState(
     val notificationLayoutId: Int = 1,
     val arrangeInAlphabeticalOrder: Boolean = false,
     val shouldAppUpdatePromptUserCounter: Int = 0,
+    val themedColors: WallpaperThemeColors? = null,
 )
 
 data class KeyTextObject(
@@ -190,6 +192,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         loadSettings()
         setupPurchaseListener()
         checkSubscriptionStatus()
+        viewModelScope.launch {
+            application.dataStore.data
+                .map { it[PreferenceKeys.WALLPAPER_UPDATE] ?: 0L }
+                .distinctUntilChanged()
+                .collect { timestamp ->
+                    setThemedColors()
+                }
+        }
     }
     fun loadSettings() {
         Log.i("SettingsViewModel","LoadSettings")
@@ -206,7 +216,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val iconShape  = PreferenceManager.getIconShape(getApplication())
             val showThemedIcons = PreferenceManager.getThemedIcons(getApplication())
             val isLightHour = PreferenceManager.isLightHour(getApplication())
-            val imageDataUpdateCounter = PreferenceManager.getImageDataUpdateCounter(getApplication())
             val appListUpdateCounter = PreferenceManager.getAppListUpdateCounter(getApplication())
             val quickAppsLayout = PreferenceManager.getQuickAppsLayout(getApplication())
             val appDrawerLayout = PreferenceManager.getAppDrawerLayout(getApplication())
@@ -315,6 +324,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 showNotificationRow)
             val alphabeticalOrder = PreferenceManager.getAlphabeticalOrder(getApplication())
             val shouldAppUpdatePromptUserCounter = PreferenceManager.getAppUpdatePromptUserCounter(getApplication())
+            val themedColors = PreferenceManager.getThemedColors(getApplication())
             _uiState.update {
                 it.copy(
                     hasPro = hasPro,
@@ -328,7 +338,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     iconShape = iconShape,
                     showThemedIcons = showThemedIcons,
                     isLightHour = isLightHour,
-                    imageDataUpdateCounter = imageDataUpdateCounter,
                     appListsUpdateCounter = appListUpdateCounter,
                     quickAppsLayout = quickAppsLayout,
                     appDrawerLayout = appDrawerLayout,
@@ -387,7 +396,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     notificationSize = notificationSize,
                     notificationLayoutId = notificationLayoutId,
                     arrangeInAlphabeticalOrder = alphabeticalOrder,
-                    shouldAppUpdatePromptUserCounter = shouldAppUpdatePromptUserCounter
+                    shouldAppUpdatePromptUserCounter = shouldAppUpdatePromptUserCounter,
+                    themedColors = themedColors
                 )
             }
         }
@@ -521,6 +531,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 dateRadius = dateRadius,
                 dateHasShadow = dateHasShadow,
                 batteryFontFamily = batteryFontFamily) }
+        }
+    }
+    fun setThemedColors(){
+        viewModelScope.launch {
+            val themedColors = PreferenceManager.getThemedColors(getApplication())
+            _uiState.update { it.copy(themedColors = themedColors) }
         }
     }
     fun setThemedIcons(enabled: Boolean){
@@ -1047,8 +1063,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 withContext(Dispatchers.IO) {
                     generateMonochromeColorWallpapers(context)
                 }
-            } else {
-                PreferenceManager.resetImageDataWithWhiteColor(context)
             }
             // signal to loadBackgroundData
             context.dataStore.edit { preferences ->

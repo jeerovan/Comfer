@@ -43,7 +43,6 @@ object PreferenceManager {
     private const val WALLPAPER_LIGHT_BG = "wallpaper_light_bg"
     private const val WALLPAPER_LIGHT_FG = "wallpaper_light_fg"
     private const val APP_LIST_UPDATE_COUNTER = "apps_list_update_counter"
-    private const val IMAGE_DATA_UPDATE_COUNTER = "image_data_update_counter"
     private const val WALLPAPER_DARK_BG = "wallpaper_dark_bg"
     private const val WALLPAPER_DARK_FG = "wallpaper_dark_fg"
     private const val AUTO_WALLPAPER = "auto_wallpaper"
@@ -260,13 +259,6 @@ object PreferenceManager {
     fun getAppListUpdateCounter(context: Context): Int{
         return getInt(context,APP_LIST_UPDATE_COUNTER,0)
     }
-    fun increaseImageDataUpdateCounter(context: Context){
-        val currentVersion = getAppListUpdateCounter(context)
-        setInt(context,IMAGE_DATA_UPDATE_COUNTER,currentVersion + 1)
-    }
-    fun getImageDataUpdateCounter(context: Context): Int{
-        return getInt(context,IMAGE_DATA_UPDATE_COUNTER,0)
-    }
     fun setIconShape(context: Context, shape: String) {
         setString(context,KEY_ICON_SHAPE,shape)
     }
@@ -365,14 +357,6 @@ object PreferenceManager {
     fun setTempImageData(context: Context,jsonString:String){
         setString(context,KEY_TEMP_IMAGE_DATA,jsonString)
         setBoolean(context,IMAGE_AVAILABLE,true)
-    }
-    fun resetImageDataWithWhiteColor(context: Context) {
-        val currentData = getImageData(context)
-        if(currentData != null) {
-            currentData.color = "White";
-            saveImageData(context, currentData);
-            increaseImageDataUpdateCounter(context)
-        }
     }
     fun newImageAvailable(context: Context):Boolean{
         return getBoolean(context,IMAGE_AVAILABLE,false)

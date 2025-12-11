@@ -171,8 +171,7 @@ fun BasicSettings(
     var showNotificationColor by remember { mutableStateOf(false) }
     val subscriptionToast = stringResource(R.string.requires_subscription)
     var selectedNotificationLayoutId by remember { mutableIntStateOf(settingsState.notificationLayoutId) }
-    val customWallpaper = (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) ||
-            (!settingsState.autoWallpapers && !settingsState.monochrome)
+    val customWallpaper = !settingsState.autoWallpapers && !settingsState.monochrome
     fun onSelectNotificationLayout(id: Int) {
         settingsViewModel.setNotificationLayoutId(id)
         selectedNotificationLayoutId = id
@@ -661,7 +660,7 @@ fun BasicSettings(
                             )
                         }
                         Text(
-                            text = stringResource(R.string.battery_percentag_example),
+                            text = "100%",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.primary,
                             fontFamily = fontFamily,
@@ -677,7 +676,7 @@ fun BasicSettings(
                     }
                     if (showBatteryFontDialog) {
                         FontSelectionDialog(
-                            sampleText = stringResource(R.string.battery_percentag_example),
+                            sampleText = "100%",
                             onDismissRequest = { showBatteryFontDialog = false },
                             onFontSelected = { fontName ->
                                 if (settingsState.hasPro) {
@@ -818,6 +817,7 @@ fun TimeAdvancedSettings(
     ) {
         val context = LocalContext.current
         val subscriptionToast = stringResource(R.string.requires_subscription)
+        val customWallpaper = !settingsState.autoWallpapers && !settingsState.monochrome
         Column {
             Box(Modifier.fillMaxWidth()) {
                 SmallFloatingActionButton(
@@ -924,7 +924,7 @@ fun TimeAdvancedSettings(
                     value = radius,
                     onValueChange = { onSetRadius(it) }
                 )
-                SettingSwitch(
+                if(customWallpaper)SettingSwitch(
                     label = stringResource(R.string.title_shadow),
                     enabled = settingsState.hasPro,
                     checked = settingsState.timeHasShadow,
@@ -937,7 +937,7 @@ fun TimeAdvancedSettings(
                         }
                     }
                 )
-                if (settingsState.timeHasShadow) {
+                if (settingsState.timeHasShadow && customWallpaper) {
                     ColorPickerSettingItem(
                         stringResource(R.string.title_color),
                         settingsState.timeShadowColor,
@@ -997,6 +997,7 @@ fun DateAdvancedSettings(
                 var angle by remember { mutableIntStateOf(settingsState.dateAngle) }
                 var radius by remember { mutableIntStateOf(settingsState.dateRadius) }
                 var showShadowColorPicker by remember { mutableStateOf(false) }
+                val customWallpaper = !settingsState.autoWallpapers && !settingsState.monochrome
                 fun onSelectLayoutId(id: Int) {
                     settingsViewModel.setDateLayoutId(id)
                     selectedId = id
@@ -1056,7 +1057,7 @@ fun DateAdvancedSettings(
                     value = radius,
                     onValueChange = { onSetRadius(it) }
                 )
-                SettingSwitch(
+                if(customWallpaper)SettingSwitch(
                     label = stringResource(R.string.title_shadow),
                     enabled = settingsState.hasPro,
                     checked = settingsState.dateHasShadow,
@@ -1069,7 +1070,7 @@ fun DateAdvancedSettings(
                         }
                     }
                 )
-                if (settingsState.dateHasShadow) {
+                if (settingsState.dateHasShadow && customWallpaper) {
                     ColorPickerSettingItem(
                         stringResource(R.string.title_color),
                         settingsState.dateShadowColor
