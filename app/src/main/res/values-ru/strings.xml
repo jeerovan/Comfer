@@ -336,4 +336,12 @@
     <string name="font_weight_normal">Обычный</string>
     <string name="font_weight_bold">Жирный</string>
 
+    <string name="icon_go_back">Значок назад</string>
+    <string name="title_advanced">Дополнительно</string>
+    <string name="title_text_angle">Наклон</string>
+    <string name="title_text_radius">Кривизна</string>
+    <string name="title_shadow">Тень</string>
+    <string name="date_example_two">Сб\nСен\n16</string>
+    <string name="title_transparency">Прозрачность</string>
+
 </resources>

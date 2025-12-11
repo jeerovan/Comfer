@@ -336,4 +336,12 @@
     <string name="font_weight_normal">Κανονικό</string>
     <string name="font_weight_bold">Έντονο</string>
 
+    <string name="icon_go_back">Εικονίδιο επιστροφής</string>
+    <string name="title_advanced">Για προχωρημένους</string>
+    <string name="title_text_angle">Κλίση</string>
+    <string name="title_text_radius">Καμπύλη</string>
+    <string name="title_shadow">Σκιά</string>
+    <string name="date_example_two">Σάβ\nΣεπ\n16</string>
+    <string name="title_transparency">Διαφάνεια</string>
+
 </resources>

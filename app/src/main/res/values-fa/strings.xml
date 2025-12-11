@@ -336,4 +336,12 @@
     <string name="font_weight_normal">معمولی</string>
     <string name="font_weight_bold">بولد</string>
 
+    <string name="icon_go_back">آیکن بازگشت</string>
+    <string name="title_advanced">پیشرفته</string>
+    <string name="title_text_angle">شیب</string>
+    <string name="title_text_radius">انحنا</string>
+    <string name="title_shadow">سایه</string>
+    <string name="date_example_two">شنبه\nسپتامبر\n16</string>
+    <string name="title_transparency">شفافیت</string>
+
 </resources>

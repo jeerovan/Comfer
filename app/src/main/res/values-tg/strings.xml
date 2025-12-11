@@ -339,4 +339,12 @@
     <string name="font_weight_normal">Оддӣ</string>
     <string name="font_weight_bold">Ғафс</string>
 
+    <string name="icon_go_back">Нишонаи бозгашт</string>
+    <string name="title_advanced">Иловагӣ</string>
+    <string name="title_text_angle">Майл</string>
+    <string name="title_text_radius">Каҷӣ</string>
+    <string name="title_shadow">Соя</string>
+    <string name="date_example_two">Шанб\nСен\n16</string>
+    <string name="title_transparency">Шаффофият</string>
+
 </resources>

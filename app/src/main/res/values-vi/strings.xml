@@ -336,4 +336,12 @@
     <string name="font_weight_normal">Thường</string>
     <string name="font_weight_bold">Đậm</string>
 
+    <string name="icon_go_back">Biểu tượng quay lại</string>
+    <string name="title_advanced">Nâng cao</string>
+    <string name="title_text_angle">Độ nghiêng</string>
+    <string name="title_text_radius">Độ cong</string>
+    <string name="title_shadow">Bóng</string>
+    <string name="date_example_two">Th7\nTh9\n16</string>
+    <string name="title_transparency">Độ trong suốt</string>
+
 </resources>

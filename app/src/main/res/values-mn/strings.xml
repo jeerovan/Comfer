@@ -336,4 +336,12 @@
     <string name="font_weight_normal">Энгийн</string>
     <string name="font_weight_bold">Тод</string>
 
+    <string name="icon_go_back">Буцах дүрс</string>
+    <string name="title_advanced">Нарийвчилсан</string>
+    <string name="title_text_angle">Налуу</string>
+    <string name="title_text_radius">Муруйлт</string>
+    <string name="title_shadow">Сүүдэр</string>
+    <string name="date_example_two">Бя\n9-р сар\n16</string>
+    <string name="title_transparency">Тунгалаг байдал</string>
+
 </resources>

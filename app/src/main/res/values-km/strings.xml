@@ -336,4 +336,12 @@
     <string name="font_weight_normal">ធម្មតា</string>
     <string name="font_weight_bold">ដិត</string>
 
+    <string name="icon_go_back">រូបតំណាងត្រឡប់ក្រោយ</string>
+    <string name="title_advanced">កម្រិតខ្ពស់</string>
+    <string name="title_text_angle">ការបត់</string>
+    <string name="title_text_radius">ភាពកោង</string>
+    <string name="title_shadow">ស្រមោល</string>
+    <string name="date_example_two">សៅរ៍\nកញ្ញា\n16</string>
+    <string name="title_transparency">ភាពថ្លា</string>
+
 </resources>

@@ -336,4 +336,12 @@
     <string name="font_weight_normal">רגיל</string>
     <string name="font_weight_bold">מודגש</string>
 
+    <string name="icon_go_back">אייקון חזרה</string>
+    <string name="title_advanced">מתקדם</string>
+    <string name="title_text_angle">הטיה</string>
+    <string name="title_text_radius">עקמומיות</string>
+    <string name="title_shadow">צל</string>
+    <string name="date_example_two">שבת\nספט\n16</string>
+    <string name="title_transparency">שקיפות</string>
+
 </resources>

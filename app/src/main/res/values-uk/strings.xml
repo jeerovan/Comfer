@@ -336,4 +336,12 @@
     <string name="font_weight_normal">Звичайний</string>
     <string name="font_weight_bold">Жирний</string>
 
+    <string name="icon_go_back">Значок назад</string>
+    <string name="title_advanced">Розширені</string>
+    <string name="title_text_angle">Нахил</string>
+    <string name="title_text_radius">Кривизна</string>
+    <string name="title_shadow">Тінь</string>
+    <string name="date_example_two">Сб\nВер\n16</string>
+    <string name="title_transparency">Прозорість</string>
+
 </resources>

@@ -336,4 +336,12 @@
     <string name="font_weight_normal">Oddiy</string>
     <string name="font_weight_bold">Qalin</string>
 
+    <string name="icon_go_back">Orqaga qaytish belgisi</string>
+    <string name="title_advanced">Kengaytirilgan</string>
+    <string name="title_text_angle">Qiyalik</string>
+    <string name="title_text_radius">Egrilik</string>
+    <string name="title_shadow">Soya</string>
+    <string name="date_example_two">Shan\nSen\n16</string>
+    <string name="title_transparency">Shaffoflik</string>
+
 </resources>

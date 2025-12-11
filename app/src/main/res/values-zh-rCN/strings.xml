@@ -336,4 +336,12 @@
     <string name="font_weight_normal">常规</string>
     <string name="font_weight_bold">粗体</string>
 
+    <string name="icon_go_back">返回图标</string>
+    <string name="title_advanced">高级</string>
+    <string name="title_text_angle">倾斜</string>
+    <string name="title_text_radius">曲率</string>
+    <string name="title_shadow">阴影</string>
+    <string name="date_example_two">周六\n9月\n16</string>
+    <string name="title_transparency">透明度</string>
+
 </resources>
