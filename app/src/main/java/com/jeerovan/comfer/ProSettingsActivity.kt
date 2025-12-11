@@ -171,6 +171,8 @@ fun BasicSettings(
     var showNotificationColor by remember { mutableStateOf(false) }
     val subscriptionToast = stringResource(R.string.requires_subscription)
     var selectedNotificationLayoutId by remember { mutableIntStateOf(settingsState.notificationLayoutId) }
+    val customWallpaper = (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) ||
+            (!settingsState.autoWallpapers && !settingsState.monochrome)
     fun onSelectNotificationLayout(id: Int) {
         settingsViewModel.setNotificationLayoutId(id)
         selectedNotificationLayoutId = id
@@ -246,12 +248,13 @@ fun BasicSettings(
                             range = 70f..250f,
                             onValueChange = { settingsViewModel.setClockSize(it) }
                         )
-                        if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) {
+                        if (customWallpaper) {
                             // Background Color
                             ColorPickerSettingItem(
                                 stringResource(R.string.clock_background_color),
                                 settingsState.clockBgColor.copy(alpha=settingsState.clockBgAlpha/100f)
                             ) { showClockBgPicker = true }
+                            Spacer(modifier = Modifier.height(8.dp))
                             // Hour Color
                             ColorPickerSettingItem(
                                 stringResource(R.string.hour_hand_color),
@@ -377,8 +380,7 @@ fun BasicSettings(
                                 fontWeight = getFontWeightFromString(settingsState.timeFontWeight)
                             )
                         }
-                        if ((settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) ||
-                            (!settingsState.autoWallpapers && !settingsState.monochrome)) {
+                        if (customWallpaper) {
                             ColorPickerSettingItem(
                                 stringResource(R.string.title_time_font_color),
                                 settingsState.timeFontColor.copy(alpha=settingsState.timeFontAlpha/100f)
@@ -519,8 +521,7 @@ fun BasicSettings(
                             fontSize = 24.sp
                         )
                     }
-                    if ((settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) ||
-                        (!settingsState.autoWallpapers && !settingsState.monochrome)) {
+                    if (customWallpaper) {
                         ColorPickerSettingItem(
                             stringResource(R.string.date_font_color),
                             settingsState.dateFontColor.copy(alpha=settingsState.dateFontAlpha/100f)
@@ -668,8 +669,7 @@ fun BasicSettings(
                             fontSize = 24.sp
                         )
                     }
-                    if ((settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) ||
-                        (!settingsState.autoWallpapers && !settingsState.monochrome)) {
+                    if (customWallpaper) {
                         ColorPickerSettingItem(
                             stringResource(R.string.battery_indicator_color),
                             settingsState.batteryColor.copy(alpha = settingsState.batteryAlpha/100f)
@@ -727,8 +727,7 @@ fun BasicSettings(
                             range = 12f..40f,
                             onValueChange = { settingsViewModel.setNotificationSize(it) }
                         )
-                        if ((settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) ||
-                            (!settingsState.autoWallpapers && !settingsState.monochrome)) {
+                        if (customWallpaper) {
                             ColorPickerSettingItem(
                                 stringResource(R.string.title_color),
                                 settingsState.notificationColor.copy(alpha = settingsState.notificationAlpha/100f)
@@ -1420,7 +1419,7 @@ fun EnhancedColorPicker(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(40.dp)
-                    .background(selectedColor, RoundedCornerShape(8.dp))
+                    .background(selectedColor.copy(alpha = colorAlpha/100f), RoundedCornerShape(8.dp))
             ) {
                 Text(
                     text = stringResource(R.string.title_selected_color),

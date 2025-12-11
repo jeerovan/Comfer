@@ -4092,7 +4092,7 @@ fun WidgetClock(
         if (settings.showAnalog) {
             AnalogClock(
                 settings.clockSize.dp,
-                if (customWallpaper) settings.clockBgColor.copy(alpha = settings.clockBgAlpha/100f) else Color.Black,
+                if (customWallpaper) settings.clockBgColor.copy(alpha = settings.clockBgAlpha/100f) else Color.Black.copy(alpha = settings.clockBgAlpha/100f),
                 if (customWallpaper) settings.clockMinuteColor.copy(alpha = settings.clockHourAlpha/100f) else defaultColor,
                 if (customWallpaper) settings.clockHourColor.copy(alpha = settings.clockMinuteAlpha/100f) else defaultColor
             )

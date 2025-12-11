@@ -65,7 +65,7 @@ data class SettingsUiState(
     val showAnalog:Boolean = false,
     val clockSize: Int = 150,
     val clockBgColor: Color = Color.Black,
-    val clockBgAlpha: Int = 60,
+    val clockBgAlpha: Int = 40,
     val clockHourColor: Color = Color.White,
     val clockHourAlpha: Int = 100,
     val clockMinuteColor: Color = Color.White,
@@ -229,7 +229,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val showAnalog = if(hasPro)PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false) else false
             val clockSize = PreferenceManager.getInt(getApplication(),CLOCK_SIZE,150)
             val clockBgColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_BG_COLOR,Color.Black.toArgb()))
-            val clockBgAlpha = PreferenceManager.getInt(getApplication(),CLOCK_BG_ALPHA,70)
+            val clockBgAlpha = PreferenceManager.getInt(getApplication(),CLOCK_BG_ALPHA,40)
             val clockHourColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_HOUR_COLOR,Color.White.toArgb()))
             val clockMinuteColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_MINUTE_COLOR,Color.White.toArgb()))
             val timeFormat = PreferenceManager.getString(getApplication(),TIME_FORMAT, "H12") ?: "H12"
