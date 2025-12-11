@@ -2516,15 +2516,17 @@ fun AppListOverlay(apps: List<AppInfo>,
                     // The content lambda provides the updated index
                     if(targetIndex < apps.size) {
                         Text(
-                            text = apps[targetIndex].label.toString(),
+                            text = apps[targetIndex].label.replace(" ", "\n"),
+                            textAlign = TextAlign.Center, // 1. Centers the text lines horizontally
+                            style = MaterialTheme.typography.titleMedium, // 2. Use Theme instead of hardcoded 18.sp
+                            color = Color.White,
+                            lineHeight = 20.sp, // 3. Adjusts spacing between the stacked words
                             modifier = Modifier
                                 .background(
                                     color = Color.Black.copy(alpha = 0.5f),
                                     shape = RoundedCornerShape(16.dp)
                                 )
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            fontSize = 18.sp,
-                            color = Color.White
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
                         )
                     }
                 }
