@@ -98,7 +98,10 @@ data class SettingsUiState(
     val batteryColor: Color = Color.White,
     val batteryAlpha: Int = 100,
     val showBatteryPercentage: Boolean = true,
-    val batterySize: Int = 20,
+    val batteryFontName: String = "Roboto",
+    val batteryFontSize: Int = 20,
+    val batteryFontFamily: FontFamily = FontFamily.Default,
+    val batteryFontWeight: String = "Normal",
     val showNotificationRow : Boolean = true,
     val notificationColor: Color = Color.White,
     val notificationAlpha: Int = 100,
@@ -150,7 +153,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val SHOW_BATTERY_PERCENTAGE = "show_battery_percentage"
     private val BATTERY_COLOR = "battery_color"
     private val BATTERY_ALPHA = "battery_alpha"
-    private val BATTERY_SIZE = "battery_size"
+    private val BATTERY_FONT_SIZE = "battery_size"
+    private val BATTERY_FONT_NAME = "battery_font_name"
+    private val BATTERY_FONT_WEIGHT = "battery_font_weight"
     private val NOTIFICATION_COLOR = "notification_color"
     private val NOTIFICATION_ALPHA = "notification_alpha"
     private val SHOW_NOTIFICATIONS_ROW = "show_notifications_row"
@@ -281,7 +286,23 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val showBatteryIcon = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_ICON,false)
             val batteryColor = Color(PreferenceManager.getInt(getApplication(),BATTERY_COLOR,Color.White.toArgb()))
             val batteryAlpha = PreferenceManager.getInt(getApplication(),BATTERY_ALPHA,100)
-            val batterySize = PreferenceManager.getInt(getApplication(),BATTERY_SIZE,20)
+            val batteryFontSize = PreferenceManager.getInt(getApplication(),BATTERY_FONT_SIZE,20)
+            val batteryFontName = if(hasPro){
+                PreferenceManager.getString(getApplication(),BATTERY_FONT_NAME,"Iter") ?: "Iter"
+            } else {
+                "Iter"
+            }
+            val batteryFontFamily = try {
+                FontFamily(
+                    Font(
+                        googleFont = GoogleFont(batteryFontName),
+                        fontProvider = fontProvider
+                    )
+                )
+            } catch (_: Exception) {
+                FontFamily.Default
+            }
+            val batteryFontWeight = PreferenceManager.getString(getApplication(),BATTERY_FONT_WEIGHT,"Normal") ?: "Normal"
             val showBatteryPercentage = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_PERCENTAGE,true)
             val notificationColor = Color(PreferenceManager.getInt(getApplication(),NOTIFICATION_COLOR,Color.White.toArgb()))
             val notificationAlpha = PreferenceManager.getInt(getApplication(),NOTIFICATION_ALPHA,100)
@@ -355,7 +376,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     showBatteryIcon = showBatteryIcon,
                     batteryColor = batteryColor,
                     batteryAlpha = batteryAlpha,
-                    batterySize = batterySize,
+                    batteryFontSize = batteryFontSize,
+                    batteryFontName = batteryFontName,
+                    batteryFontFamily = batteryFontFamily,
+                    batteryFontWeight = batteryFontWeight,
                     showBatteryPercentage = showBatteryPercentage,
                     showNotificationRow = showNotificationRow,
                     notificationColor = notificationColor,
@@ -468,6 +492,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             } else {
                 false
             }
+            val batteryFontName = if(enabled){
+                PreferenceManager.getString(getApplication(),BATTERY_FONT_NAME,"Iter") ?: "Iter"
+            } else {
+                "Iter"
+            }
+            val batteryFontFamily = try {
+                FontFamily(
+                    Font(
+                        googleFont = GoogleFont(batteryFontName),
+                        fontProvider = fontProvider
+                    )
+                )
+            } catch (_: Exception) {
+                FontFamily.Default
+            }
             _uiState.update { it.copy(
                 hasPro = enabled,
                 showAnalog = showAnalog,
@@ -480,7 +519,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 dateLayoutId = dateLayoutId,
                 dateAngle = dateAngle,
                 dateRadius = dateRadius,
-                dateHasShadow = dateHasShadow) }
+                dateHasShadow = dateHasShadow,
+                batteryFontFamily = batteryFontFamily) }
         }
     }
     fun setThemedIcons(enabled: Boolean){
@@ -568,8 +608,41 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     fun setBatterySize(size: Int){
         viewModelScope.launch {
-            PreferenceManager.setInt(getApplication(),BATTERY_SIZE,size)
-            _uiState.update { it.copy(batterySize = size) }
+            PreferenceManager.setInt(getApplication(),BATTERY_FONT_SIZE,size)
+            _uiState.update { it.copy(batteryFontSize = size) }
+        }
+    }
+    fun setBatteryFontName(fontName: String) {
+        viewModelScope.launch {
+            // Save the new font name to preferences
+            PreferenceManager.setString(getApplication(), BATTERY_FONT_NAME, fontName)
+
+            // Create the new FontFamily
+            val dateFontFamily = try {
+                FontFamily(
+                    Font(
+                        googleFont = GoogleFont(fontName),
+                        fontProvider = fontProvider
+                    )
+                )
+            } catch (e: Exception) {
+                Log.e("SetTimeFontName", e.toString())
+                FontFamily.Default
+            }
+
+            // Update the UI state with the new font name and family
+            _uiState.update {
+                it.copy(
+                    batteryFontName = fontName,
+                    batteryFontFamily = dateFontFamily
+                )
+            }
+        }
+    }
+    fun setBatteryFontWeight(style: String) {
+        viewModelScope.launch {
+            PreferenceManager.setString(getApplication(),BATTERY_FONT_WEIGHT,style)
+            _uiState.update { it.copy(batteryFontWeight = style) }
         }
     }
     fun setNotificationSize(size: Int){

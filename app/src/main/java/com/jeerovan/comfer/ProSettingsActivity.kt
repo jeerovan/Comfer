@@ -67,7 +67,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.ui.theme.fontProvider
 import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
 import com.jeerovan.comfer.utils.CommonUtil.getKeyTextObject
@@ -167,6 +166,7 @@ fun BasicSettings(
     var showClockBgPicker by remember { mutableStateOf(false) }
     var showClockHourPicker by remember { mutableStateOf(false) }
     var showClockMinutePicker by remember { mutableStateOf(false) }
+    var showBatteryFontDialog by remember { mutableStateOf(false) }
     var showBatteryColor by remember { mutableStateOf(false) }
     var showNotificationColor by remember { mutableStateOf(false) }
     val subscriptionToast = stringResource(R.string.requires_subscription)
@@ -317,7 +317,7 @@ fun BasicSettings(
                         SettingSlider(
                             label = stringResource(R.string.title_font_size),
                             value = settingsState.timeFontSize,
-                            range = 20f..100f,
+                            range = 30f..150f,
                             onValueChange = { settingsViewModel.setTimeFontSize(it) }
                         )
 
@@ -481,7 +481,7 @@ fun BasicSettings(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { showDateFontDialog = true } // Make the whole row clickable
+                            .clickable { showDateFontDialog = true }
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -611,16 +611,87 @@ fun BasicSettings(
                     )
                     SettingSlider(
                         label = stringResource(R.string.title_font_size),
-                        value = settingsState.batterySize,
-                        range = 12f..40f,
+                        value = settingsState.batteryFontSize,
+                        range = 10f..40f,
                         onValueChange = { settingsViewModel.setBatterySize(it) }
                     )
+                    SettingDropdown(
+                        label = stringResource(R.string.title_font_weight),
+                        selectedValue = settingsState.batteryFontWeight,
+                        options = arrayOf(
+                            getKeyTextObject("Light", context),
+                            getKeyTextObject("Normal", context),
+                            getKeyTextObject("Bold", context)
+                        ),
+                        onValueChange = {
+                            settingsViewModel.setBatteryFontWeight(it)
+                        }
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showBatteryFontDialog = true }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        val fontName = settingsState.batteryFontName
+                        val fontFamily = remember(fontName) {
+                            FontFamily(
+                                Font(
+                                    googleFont = GoogleFont(fontName),
+                                    fontProvider = fontProvider
+                                )
+                            )
+                        }
+                        Row {
+                            Text(
+                                stringResource(R.string.title_font_style),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            if (!settingsState.hasPro) Icon(
+                                Icons.Filled.Lock,
+                                contentDescription = stringResource(R.string.paid_feature_title),
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .size(15.dp)
+                                    .offset(x = 10.dp, y = 2.dp)
+                            )
+                        }
+                        Text(
+                            text = stringResource(R.string.battery_percentag_example),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontFamily = fontFamily,
+                            fontWeight = getFontWeightFromString(settingsState.batteryFontWeight),
+                            fontSize = 24.sp
+                        )
+                    }
                     if ((settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) ||
                         (!settingsState.autoWallpapers && !settingsState.monochrome)) {
                         ColorPickerSettingItem(
                             stringResource(R.string.battery_indicator_color),
                             settingsState.batteryColor.copy(alpha = settingsState.batteryAlpha/100f)
                         ) { showBatteryColor = true }
+                    }
+                    if (showBatteryFontDialog) {
+                        FontSelectionDialog(
+                            sampleText = stringResource(R.string.battery_percentag_example),
+                            onDismissRequest = { showBatteryFontDialog = false },
+                            onFontSelected = { fontName ->
+                                if (settingsState.hasPro) {
+                                    settingsViewModel.setBatteryFontName(fontName)
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        subscriptionToast,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                                showBatteryFontDialog = false
+                            }
+                        )
                     }
                     if (showBatteryColor) {
                         EnhancedColorPicker(

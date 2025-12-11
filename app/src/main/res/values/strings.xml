@@ -341,4 +341,5 @@
     <string name="title_shadow">Shadow</string>
     <string name="date_example_two">Sat\nSep\n16</string>
     <string name="title_transparency">Transparency</string>
+    <string name="battery_percentag_example">100%</string>
 </resources>

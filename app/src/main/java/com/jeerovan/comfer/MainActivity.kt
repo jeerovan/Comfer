@@ -1440,9 +1440,9 @@ fun BatteryStatus(
     val borderColor = if(showBorder) themeColor else Color.Transparent
     val showBatteryIcon = settings.showBatteryIcon
     val showBatteryPercentage = settings.showBatteryPercentage
-    val fontFamily = settings.dateFontFamily
-    val fontWeight = getFontWeightFromString(settings.dateFontWeight)
-    val fontSize = settings.batterySize.sp
+    val fontFamily = settings.batteryFontFamily
+    val fontWeight = getFontWeightFromString(settings.batteryFontWeight)
+    val fontSize = settings.batteryFontSize.sp
     val batteryState by rememberBatteryState()
     val batteryLevel = batteryState.level
     val isCharging = batteryState.isCharging
@@ -4586,7 +4586,7 @@ fun DraggableQuickWidgetsContainer(
     onEditModeChanged: (Boolean) -> Unit,
     composableContent: @Composable (String, Boolean) -> Unit
 ) {
-
+    val hapticService = LocalHapticFeedback.current
     // Track measured sizes for initial column layout calculation
     val measuredSizes = remember { mutableStateMapOf<String, IntSize>() }
 
@@ -4604,6 +4604,7 @@ fun DraggableQuickWidgetsContainer(
                     },
                     onDoubleTap = {},
                     onLongPress = {
+                        hapticService.performHapticFeedback(HapticFeedbackType.LongPress)
                         onEditModeChanged(true)
                     }
                 )
