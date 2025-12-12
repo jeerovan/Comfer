@@ -394,9 +394,7 @@ object PreferenceManager {
         }
     }
     fun setHour(context: Context,hour:Int){
-        if(hour > 0) {
-            setInt(context, "now_hour", hour)
-        }
+        setInt(context, "now_hour", hour)
     }
     fun getFeedbackDialogShown(context: Context):Boolean {
         return getBoolean(context,FEEDBACK_DIALOG,false)

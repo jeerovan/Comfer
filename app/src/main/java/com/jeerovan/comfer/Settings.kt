@@ -288,7 +288,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
             }
             item { SectionHeader(stringResource(R.string.title_wallpapers)) }
-            item {
+            if(!settingsState.monochrome)item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_auto_wallpapers)) },
                     supportingContent = { Text(stringResource(R.string.auto_wallpaper_text)) },
@@ -381,7 +381,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     onSelectDirectory = { directoryUri -> settingsViewModel.setWallpaperDirectory(directoryUri)},
                     selectedDirectory = settingsState.wallpaperDirectory)
             }
-            if(settingsState.autoWallpapers && isDefaultLauncher(context) && canSetLockScreenWallpaper()){
+            if(isDefaultLauncher(context) && canSetLockScreenWallpaper()){
                 item {
                     ListItem(
                         headlineContent = { Text(stringResource(R.string.title_lock_screen)) },

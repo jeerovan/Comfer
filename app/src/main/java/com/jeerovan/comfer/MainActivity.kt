@@ -2800,7 +2800,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         val maxHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
         if( (!mainUiState.isDefaultLauncher && settingInfoUiState.autoWallpapers) ||
-            (mainUiState.isDefaultLauncher && wallpaperMotionEnabled) || settingInfoUiState.monochrome){
+            (mainUiState.isDefaultLauncher && wallpaperMotionEnabled) ||
+            (!mainUiState.isDefaultLauncher && settingInfoUiState.monochrome)){
             AnimatedBackground(backgroundImage,wallpaperMotionEnabled,maxWidthPx,maxHeightPx)
         }
 

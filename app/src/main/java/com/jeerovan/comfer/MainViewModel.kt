@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.jeerovan.comfer.utils.CommonUtil.downloadImage
 import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
+import com.jeerovan.comfer.utils.CommonUtil.reloadWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaperThemedColors
 import kotlinx.coroutines.Dispatchers
@@ -67,6 +68,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     if(timestamp > 0L) {
                         Log.d("MainViewModel", "Wallpaper Changed At: $timestamp")
                         changeWallpaper()
+                    }
+                }
+        }
+        // Observer for Wallpaper Changes
+        viewModelScope.launch {
+            application.dataStore.data
+                .map { it[PreferenceKeys.WALLPAPER_RESET] ?: 0L }
+                .distinctUntilChanged() // Critical: ignore unrelated DataStore updates
+                .collect { timestamp ->
+                    if(timestamp > 0L) {
+                        Log.d("MainViewModel", "Wallpaper Reset At: $timestamp")
+                        resetWallpaper()
                     }
                 }
         }
@@ -136,6 +149,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             catch (e: Exception){
                 Log.e("MainViewModel",e.toString())
             }
+        }
+    }
+    fun resetWallpaper(){
+        viewModelScope.launch {
+            reloadWallpaper(getApplication())
         }
     }
     fun changeWallpaper(){

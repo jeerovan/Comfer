@@ -1040,9 +1040,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setAutoWallpapers(enabled: Boolean) {
         viewModelScope.launch {
             PreferenceManager.setAutoWallpapers(getApplication(),enabled)
-            if(enabled){
-                setMonochrome(false)
-            }
             _uiState.update { it.copy(autoWallpapers = enabled) }
         }
     }
@@ -1071,10 +1068,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 withContext(Dispatchers.IO) {
                     generateMonochromeColorWallpapers(context)
                 }
-            }
-            // signal to loadBackgroundData
-            context.dataStore.edit { preferences ->
-                preferences[PreferenceKeys.WALLPAPER_UPDATE] = System.currentTimeMillis()
+                // to load wallpaper
+                PreferenceManager.setHour(getApplication(),0)
+                context.dataStore.edit { preferences ->
+                    preferences[PreferenceKeys.WALLPAPER_CHANGE] = System.currentTimeMillis()
+                }
+            } else {
+                context.dataStore.edit { preferences ->
+                    preferences[PreferenceKeys.WALLPAPER_RESET] = System.currentTimeMillis()
+                }
             }
         }
     }

@@ -451,6 +451,20 @@ object CommonUtil {
                     }
                 }
             }
+        } else if (PreferenceManager.getMonochrome(applicationContext)){
+            val hour = PreferenceManager.getHour(applicationContext)
+            if (hour > 0) {
+                // set wallpaper for monochrome colors
+                withContext(Dispatchers.IO) {
+                    setWallpaper(applicationContext)
+                }
+                PreferenceManager.setHour(applicationContext,hour)
+            }
+        }
+    }
+    suspend fun reloadWallpaper(applicationContext: Context){
+        withContext(Dispatchers.IO) {
+            setWallpaper(applicationContext)
         }
     }
     fun setWallpaper(applicationContext: Context){
