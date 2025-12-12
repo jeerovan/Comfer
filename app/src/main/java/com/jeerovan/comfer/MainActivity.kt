@@ -1612,19 +1612,21 @@ fun QuickListOverlay(apps: List<AppInfo>,
         {onFeedbackRateIt()}
     )
     val lowerPartHeight = 350.dp
-    val isLightHour = PreferenceManager.isLightHour(context)
 
-    val foregroundColor = if(settings.themedColors != null) {
-        Color(getThemedIconColor(settings.themedColors!!,isLightHour))
+    val isLightHour = PreferenceManager.isLightHour(context)
+    val hourFgColor = if (isLightHour) {
+        if(settings.monochrome) Color.Black else Color.White
+    } else Color.White.copy(alpha = 0.7f)
+    val hourBgColor = if(settings.monochrome) Color.Transparent else Color.Black
+    val foregroundColor = if(settings.showThemedText && settings.themedColors != null) {
+        Color(settings.themedColors!!.textFg)
     } else {
-        Color.White
+        hourFgColor
     }
-    val backgroundColor = if(settings.themedColors != null) {
-        Color(getThemedBackgroundColor(
-            settings.themedColors!!,
-            isLightHour))
+    val backgroundColor = if(settings.showThemedText && settings.themedColors != null) {
+        Color(settings.themedColors!!.textBg)
     } else {
-        Color.Black
+        hourBgColor
     }
 
     var showWidgetSettings by remember { mutableStateOf(false) }

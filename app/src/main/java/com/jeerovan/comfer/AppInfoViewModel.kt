@@ -53,6 +53,8 @@ data class WallpaperThemeColors(
     val lightFg: Int,
     val darkBg: Int,
     val darkFg: Int,
+    val textFg: Int,
+    val textBg: Int,
 )
 data class AppInfo(
     val background: Drawable?,

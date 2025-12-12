@@ -224,6 +224,21 @@ fun BasicSettings(
                     thickness = DividerDefaults.Thickness,
                     color = DividerDefaults.color
                 )
+                if(settingsState.autoWallpapers)SettingSection(stringResource(R.string.title_color)) {
+                    SettingSwitch(
+                        label = stringResource(R.string.title_wallpaper_colors),
+                        enabled = true,
+                        checked = settingsState.showThemedText,
+                        onCheckedChange = {
+                            settingsViewModel.setThemedText(it)
+                        }
+                    )
+                }
+                if(settingsState.autoWallpapers)HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    thickness = DividerDefaults.Thickness,
+                    color = DividerDefaults.color
+                )
                 // Time Settings
                 SettingSection(stringResource(R.string.title_time)) {
                     SettingSwitch(

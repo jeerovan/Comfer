@@ -34,6 +34,7 @@ import com.jeerovan.comfer.PreferenceKeys
 import com.jeerovan.comfer.PreferenceManager
 import com.jeerovan.comfer.R
 import com.jeerovan.comfer.dataStore
+import com.jeerovan.comfer.getThemedBackgroundColor
 import com.jeerovan.comfer.isTesting
 import com.jeerovan.comfer.toBitmap
 import io.ktor.client.HttpClient
@@ -53,6 +54,11 @@ import java.io.IOException
 import java.net.URLDecoder
 import java.security.MessageDigest
 import java.text.Normalizer
+
+data class VibrantTextColorStyle(
+    val textColor: Color,
+    val shadowColor: Color
+)
 
 object CommonUtil {
     fun handleStartActivity(context:Context, intent:Intent?, options: ActivityOptions?){
@@ -380,13 +386,17 @@ object CommonUtil {
                 val darkFg = palette.darkMutedSwatch?.titleTextColor
                     ?: palette.lightVibrantSwatch?.rgb
                     ?: Color.White.toArgb()
+                val textColors = getThemedColorForUpperHalf(palette)
                 PreferenceManager.setThemedColors(
                     context,
                     lightBg,
                     lightFg,
                     darkBg,
-                    darkFg
+                    darkFg,
+                    textColors.textColor.toArgb(),
+                    textColors.shadowColor.toArgb()
                 )
+                //signal to update
                 context.dataStore.edit { preferences ->
                     preferences[PreferenceKeys.WALLPAPER_UPDATE] = System.currentTimeMillis()
                 }
@@ -540,6 +550,16 @@ object CommonUtil {
             "Bold" -> KeyTextObject(context.getString(R.string.font_weight_bold),option)
             else -> KeyTextObject(option,option)
         }
+    }
+
+    fun getThemedColorForUpperHalf(palette: Palette): VibrantTextColorStyle {
+        // 1. Try to get the main Vibrant color for text
+        // If null, fallback to LightVibrant or a safe default like White
+        val textSwatch = palette.vibrantSwatch ?: palette.lightVibrantSwatch
+        val textColor = textSwatch?.rgb?.let { Color(it) } ?: Color.White
+
+        val shadowColor = if(isColorDark(textColor)) Color.White else Color.Black
+        return VibrantTextColorStyle(textColor, shadowColor)
     }
 }
 

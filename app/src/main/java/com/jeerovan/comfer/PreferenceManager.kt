@@ -45,6 +45,8 @@ object PreferenceManager {
     private const val APP_LIST_UPDATE_COUNTER = "apps_list_update_counter"
     private const val WALLPAPER_DARK_BG = "wallpaper_dark_bg"
     private const val WALLPAPER_DARK_FG = "wallpaper_dark_fg"
+    private const val WALLPAPER_TEXT_FG = "wallpaper_text_fg"
+    private const val WALLPAPER_TEXT_BG = "wallpaper_text_bg"
     private const val AUTO_WALLPAPER = "auto_wallpaper"
     private const val MONOCHROME = "monochrome"
     private const val LIGHT_HOUR = "dark_mode"
@@ -132,11 +134,19 @@ object PreferenceManager {
             return hour > 6 && hour < 19
         }
     }
-    fun setThemedColors(context: Context,lightBg:Int,lightFg:Int,darkBg:Int,darkFg:Int){
+    fun setThemedColors(context: Context,
+                        lightBg:Int,
+                        lightFg:Int,
+                        darkBg:Int,
+                        darkFg:Int,
+                        textFg:Int,
+                        textBg:Int){
         setInt(context,WALLPAPER_LIGHT_FG,lightFg)
         setInt(context,WALLPAPER_LIGHT_BG,lightBg)
         setInt(context,WALLPAPER_DARK_FG,darkFg)
         setInt(context,WALLPAPER_DARK_BG,darkBg)
+        setInt(context,WALLPAPER_TEXT_FG,textFg)
+        setInt(context,WALLPAPER_TEXT_BG,textBg)
     }
     fun getThemedColors(context: Context): WallpaperThemeColors {
         if(getMonochrome(context)){
@@ -146,12 +156,17 @@ object PreferenceManager {
             getInt(context,WALLPAPER_LIGHT_BG,Color.White.copy(alpha = 0.7f).toArgb()),
             getInt(context,WALLPAPER_LIGHT_FG,Color.Black.toArgb()),
             getInt(context,WALLPAPER_DARK_BG,Color.Black.copy(alpha = 0.7f).toArgb()),
-            getInt(context,WALLPAPER_DARK_FG,Color.White.toArgb())
+            getInt(context,WALLPAPER_DARK_FG,Color.White.toArgb()),
+            getInt(context,WALLPAPER_TEXT_FG,Color.White.toArgb()),
+            getInt(context,WALLPAPER_TEXT_BG,Color.Black.toArgb())
         )
     }
     fun getMonoThemedColors(context: Context) : WallpaperThemeColors {
+        val isLightHour = isLightHour(context)
+        val textFg = if (isLightHour) Color.Black.toArgb() else Color.White.toArgb()
+        val textBg = Color.Transparent.toArgb()
         return WallpaperThemeColors(
-            -1275068417,-16777216 ,  -1291845632 , -1
+            -1275068417,-16777216 ,  -1291845632 , -1,textFg,textBg
         )
     }
     fun getAppUpdatePromptUserCounter(context: Context): Int {

@@ -48,6 +48,7 @@ data class SettingsUiState(
     val iconShapeString: String = "circle",
     val iconShape: Shape = CircleShape,
     val showThemedIcons: Boolean = false,
+    val showThemedText: Boolean = false,
     val isLightHour: Boolean = false,
     val appListsUpdateCounter: Int = 0,
     val quickAppsLayout: String = "circular",
@@ -165,6 +166,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val NOTIFICATION_LAYOUT_ID = "notification_layout_id"
     private val DRAWER_HEIGHT = "drawer_height"
     private val DRAWER_OFFSET = "drawer_offset"
+    private val SHOW_THEMED_TEXT = "show_themed_text"
     val predefinedColors = listOf(
         Color.Red, Color.Green, Color.Blue, Color.Yellow,
         Color.Cyan, Color.Magenta, Color.Black, Color.Gray,
@@ -215,6 +217,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val iconShapeString  = PreferenceManager.getIconShapeString(getApplication())
             val iconShape  = PreferenceManager.getIconShape(getApplication())
             val showThemedIcons = PreferenceManager.getThemedIcons(getApplication())
+            val showThemedText = PreferenceManager.getBoolean(getApplication(),SHOW_THEMED_TEXT,false)
             val isLightHour = PreferenceManager.isLightHour(getApplication())
             val appListUpdateCounter = PreferenceManager.getAppListUpdateCounter(getApplication())
             val quickAppsLayout = PreferenceManager.getQuickAppsLayout(getApplication())
@@ -337,6 +340,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     iconSize = iconSize,
                     iconShape = iconShape,
                     showThemedIcons = showThemedIcons,
+                    showThemedText = showThemedText,
                     isLightHour = isLightHour,
                     appListsUpdateCounter = appListUpdateCounter,
                     quickAppsLayout = quickAppsLayout,
@@ -549,6 +553,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 getApplication(),
                 PreferenceManager.getSwipeApp(getApplication(),"right"))
             _uiState.update { it.copy(showThemedIcons = enabled, leftSwipeApp = leftSwipeApp, rightSwipeApp = rightSwipeApp) }
+        }
+    }
+    fun setThemedText(enabled: Boolean){
+        viewModelScope.launch {
+            PreferenceManager.setBoolean(getApplication(),SHOW_THEMED_TEXT,enabled)
+            _uiState.update { it.copy(
+                showThemedText = enabled
+            ) }
         }
     }
     fun setLightHour(enabled: Boolean){
