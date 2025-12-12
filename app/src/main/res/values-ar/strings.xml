@@ -343,5 +343,7 @@
     <string name="title_shadow">الظل</string>
     <string name="date_example_two">السبت\nسبتمبر\n16</string>
     <string name="title_transparency">الشفافية</string>
+    <string name="title_wallpaper_colors">ألوان الخلفية</string>
+
 
 </resources>

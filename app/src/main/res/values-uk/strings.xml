@@ -343,5 +343,6 @@
     <string name="title_shadow">Тінь</string>
     <string name="date_example_two">Сб\nВер\n16</string>
     <string name="title_transparency">Прозорість</string>
+    <string name="title_wallpaper_colors">Кольори шпалер</string>
 
 </resources>

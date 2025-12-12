@@ -343,5 +343,6 @@
     <string name="title_shadow">צל</string>
     <string name="date_example_two">שבת\nספט\n16</string>
     <string name="title_transparency">שקיפות</string>
+    <string name="title_wallpaper_colors">צבעי טפט</string>
 
 </resources>

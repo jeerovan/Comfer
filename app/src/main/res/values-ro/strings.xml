@@ -343,5 +343,6 @@
     <string name="title_shadow">Umbră</string>
     <string name="date_example_two">Sâm\nSep\n16</string>
     <string name="title_transparency">Transparență</string>
+    <string name="title_wallpaper_colors">Culorile fundalului</string>
 
 </resources>

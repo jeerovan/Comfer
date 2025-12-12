@@ -343,5 +343,6 @@
     <string name="title_shadow">阴影</string>
     <string name="date_example_two">周六\n9月\n16</string>
     <string name="title_transparency">透明度</string>
+    <string name="title_wallpaper_colors">壁纸颜色</string>
 
 </resources>

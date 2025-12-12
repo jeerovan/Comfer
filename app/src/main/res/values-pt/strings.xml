@@ -343,5 +343,6 @@
     <string name="title_shadow">Sombra</string>
     <string name="date_example_two">Sáb\nSet\n16</string>
     <string name="title_transparency">Transparência</string>
+    <string name="title_wallpaper_colors">Cores do papel de parede</string>
 
 </resources>

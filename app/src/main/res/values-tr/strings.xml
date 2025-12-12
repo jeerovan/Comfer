@@ -343,5 +343,6 @@
     <string name="title_shadow">Gölge</string>
     <string name="date_example_two">Cts\nEyl\n16</string>
     <string name="title_transparency">Şeffaflık</string>
+    <string name="title_wallpaper_colors">Duvar kağıdı renkleri</string>
 
 </resources>

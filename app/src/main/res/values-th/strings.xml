@@ -343,5 +343,6 @@
     <string name="title_shadow">เงา</string>
     <string name="date_example_two">ส.\nก.ย.\n16</string>
     <string name="title_transparency">ความโปร่งใส</string>
+    <string name="title_wallpaper_colors">สีวอลเปเปอร์</string>
 
 </resources>

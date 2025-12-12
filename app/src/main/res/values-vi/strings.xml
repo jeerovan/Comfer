@@ -343,5 +343,6 @@
     <string name="title_shadow">Bóng</string>
     <string name="date_example_two">Th7\nTh9\n16</string>
     <string name="title_transparency">Độ trong suốt</string>
+    <string name="title_wallpaper_colors">Màu hình nền</string>
 
 </resources>

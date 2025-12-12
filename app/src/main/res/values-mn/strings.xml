@@ -343,5 +343,6 @@
     <string name="title_shadow">Сүүдэр</string>
     <string name="date_example_two">Бя\n9-р сар\n16</string>
     <string name="title_transparency">Тунгалаг байдал</string>
+    <string name="title_wallpaper_colors">Ханын зурагны өнгө</string>
 
 </resources>

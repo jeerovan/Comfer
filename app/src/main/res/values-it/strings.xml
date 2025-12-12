@@ -343,5 +343,6 @@
     <string name="title_shadow">Ombra</string>
     <string name="date_example_two">Sab\nSet\n16</string>
     <string name="title_transparency">Trasparenza</string>
+    <string name="title_wallpaper_colors">Colori dello sfondo</string>
 
 </resources>

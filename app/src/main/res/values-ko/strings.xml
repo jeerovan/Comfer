@@ -343,5 +343,6 @@
     <string name="title_shadow">그림자</string>
     <string name="date_example_two">토\n9월\n16</string>
     <string name="title_transparency">투명도</string>
+    <string name="title_wallpaper_colors">배경화면 색상</string>
 
 </resources>

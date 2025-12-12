@@ -4103,8 +4103,8 @@ fun WidgetClock(
             AnalogClock(
                 settings.clockSize.dp,
                 if (customColor) settings.clockBgColor.copy(alpha = settings.clockBgAlpha/100f) else backgroundColor,
-                if (customColor) settings.clockMinuteColor.copy(alpha = settings.clockHourAlpha/100f) else foregroundColor,
-                if (customColor) settings.clockHourColor.copy(alpha = settings.clockMinuteAlpha/100f) else foregroundColor
+                if (customColor) settings.clockMinuteColor.copy(alpha = settings.clockMinuteAlpha/100f) else foregroundColor,
+                if (customColor) settings.clockHourColor.copy(alpha = settings.clockHourAlpha/100f) else foregroundColor
             )
         } else {
             TextClock(
