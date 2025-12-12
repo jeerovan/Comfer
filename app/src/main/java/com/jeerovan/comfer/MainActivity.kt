@@ -2801,7 +2801,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
 
         if( (!mainUiState.isDefaultLauncher && settingInfoUiState.autoWallpapers) ||
             (mainUiState.isDefaultLauncher && wallpaperMotionEnabled) ||
-            (!mainUiState.isDefaultLauncher && settingInfoUiState.monochrome)){
+            settingInfoUiState.monochrome){
             AnimatedBackground(backgroundImage,wallpaperMotionEnabled,maxWidthPx,maxHeightPx)
         }
 

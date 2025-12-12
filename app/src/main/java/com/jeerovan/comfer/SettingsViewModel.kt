@@ -53,7 +53,7 @@ data class SettingsUiState(
     val iconShape: Shape = CircleShape,
     val showThemedIcons: Boolean = false,
     val showThemedText: Boolean = false,
-    val isLightHour: Boolean = false,
+    val isLightHour: Boolean = true,
     val appListsUpdateCounter: Int = 0,
     val quickAppsLayout: String = "circular",
     val appDrawerLayout: String = "circular",

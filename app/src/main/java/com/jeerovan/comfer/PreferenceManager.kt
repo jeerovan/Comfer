@@ -127,7 +127,7 @@ object PreferenceManager {
     }
     fun isLightHour(context: Context): Boolean {
         if(isTesting) {
-            return getBoolean(context, LIGHT_HOUR, false)
+            return getBoolean(context, LIGHT_HOUR, true)
         } else {
             val calendar = Calendar.getInstance()
             val hour = calendar.get(Calendar.HOUR_OF_DAY)
