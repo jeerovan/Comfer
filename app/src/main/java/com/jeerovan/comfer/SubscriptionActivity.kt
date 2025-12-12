@@ -116,15 +116,15 @@ fun SubscriptionScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var yearlyPackage by remember { mutableStateOf<Package?>(null) }
     var isSubscribed by remember { mutableStateOf(false) }
-
+    val unableToLoad = stringResource(R.string.unable_to_load_subscriptions)
     // Check subscription status on launch
     LaunchedEffect(Unit) {
         try {
-            // Wait up to 10 seconds for SDK initialization
-            withTimeout(6_000L) {
-                while (!Purchases.isConfigured) {
-                    delay(50)
-                }
+            if (!Purchases.isConfigured) {
+                // Log error or attempt emergency re-configuration (unlikely needed if using Application class)
+                errorMessage = unableToLoad
+                isLoading = false
+                return@LaunchedEffect
             }
 
             Purchases.sharedInstance.getCustomerInfoWith(
@@ -157,7 +157,7 @@ fun SubscriptionScreen(
             )
         } catch (e: TimeoutCancellationException) {
             isLoading = false
-            errorMessage = context.getString(R.string.unable_to_load_subscriptions)
+            errorMessage = unableToLoad
             // Optionally log this error to your crash reporting service
         }
     }

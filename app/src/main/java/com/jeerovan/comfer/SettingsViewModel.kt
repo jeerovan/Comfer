@@ -30,8 +30,12 @@ import com.revenuecat.purchases.CustomerInfo
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.getCustomerInfoWith
 import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -172,7 +176,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         Color.Cyan, Color.Magenta, Color.Black, Color.Gray,
         Color.White, Color(0xFF_FFA500), Color(0xFF_800080), Color(0xFF_008080)
     )
-
     val widgetIds = listOf("time", "date", "battery", "notifications")
     val patternIds = listOf("TopLeft","TopRight","BottomRight","BottomLeft","Center")
     fun getWidgetIds(showBatteryIcon:Boolean,
@@ -192,8 +195,19 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     init {
         loadSettings()
-        setupPurchaseListener()
-        checkSubscriptionStatus()
+        viewModelScope.launch {
+            BillingRepository.customerInfo
+                .filterNotNull()
+                .map { info ->
+                    // 1. Map to the boolean state you care about
+                    info?.entitlements?.active?.isNotEmpty() == true
+                }
+                .distinctUntilChanged() // 2. ONLY emit if the value is different from the last one
+                .collect { isPro ->
+                    // 3. Perform your side effect
+                    if(!isTesting)setPro(isPro)
+                }
+        }
         viewModelScope.launch {
             application.dataStore.data
                 .map { it[PreferenceKeys.WALLPAPER_UPDATE] ?: 0L }
@@ -406,24 +420,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-    private fun setupPurchaseListener() {
-        Purchases.sharedInstance.updatedCustomerInfoListener =
-            UpdatedCustomerInfoListener { customerInfo ->
-                processCustomerInfo(customerInfo)
-            }
-    }
 
-    fun checkSubscriptionStatus() {
-        Purchases.sharedInstance.getCustomerInfoWith(
-            onError = { if(!isTesting)setPro(false) },
-            onSuccess = { processCustomerInfo(it) }
-        )
-    }
-
-    private fun processCustomerInfo(info: CustomerInfo) {
-        val isPro = info.entitlements.active.isNotEmpty()
-        if(!isTesting)setPro(isPro)
-    }
 
     override fun onCleared() {
         super.onCleared()
@@ -433,7 +430,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setPro(enabled:Boolean){
         viewModelScope.launch {
             Log.d("SettingsViewModel","SetPro:$enabled")
-            //TODO set time-date pro settings
             PreferenceManager.setPro(getApplication(),enabled)
             val showAnalog = if(enabled)PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false) else false
             val timeFontName = if(enabled){

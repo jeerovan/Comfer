@@ -332,22 +332,38 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        widgetHosts.startListening()
         lifecycleScope.launch {
             settingsViewModel.loadSettings()
             mainViewModel.reloadImagePath()
-            }
+        }
+        try {
+            widgetHosts.startListening()
+        } catch (e: RuntimeException) {
+            // Log the error if needed, but safe to ignore as it's a system-side failure
+            Log.e("MainActivity", "System widget service crash in stopListening", e)
+        } catch (e: NullPointerException) {
+            // Some variations of this crash might throw NPE directly
+            Log.e("MainActivity", "System widget service NPE in stopListening", e)
+        }
     }
 
     override fun onStop(){
         super.onStop()
-        widgetHosts.stopListening()
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         // Check if the screen is ON or OFF
         if (powerManager.isInteractive) {
             lifecycleScope.launch {
                 mainViewModel.clearImagePath()
             }
+        }
+        try {
+            widgetHosts.stopListening()
+        } catch (e: RuntimeException) {
+            // Log the error if needed, but safe to ignore as it's a system-side failure
+            Log.e("MainActivity", "System widget service crash in stopListening", e)
+        } catch (e: NullPointerException) {
+            // Some variations of this crash might throw NPE directly
+            Log.e("MainActivity", "System widget service NPE in stopListening", e)
         }
     }
 }
