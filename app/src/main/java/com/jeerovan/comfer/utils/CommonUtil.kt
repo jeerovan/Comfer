@@ -34,7 +34,6 @@ import com.jeerovan.comfer.PreferenceKeys
 import com.jeerovan.comfer.PreferenceManager
 import com.jeerovan.comfer.R
 import com.jeerovan.comfer.dataStore
-import com.jeerovan.comfer.getThemedBackgroundColor
 import com.jeerovan.comfer.isTesting
 import com.jeerovan.comfer.toBitmap
 import io.ktor.client.HttpClient
@@ -467,15 +466,15 @@ object CommonUtil {
             setWallpaper(applicationContext)
         }
     }
-    fun setWallpaper(applicationContext: Context){
-        val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
+    fun setWallpaper(context: Context){
+        val filePath = PreferenceManager.getBackgroundImagePath(context)
         val bitmap = BitmapFactory.decodeFile(filePath)
         if(bitmap != null) {
-            if (isDefaultLauncher(applicationContext)) {
+            if (isDefaultLauncher(context)) {
                 val setWallpaperOnLockScreen =
-                    PreferenceManager.getWallpaperOnLockScreen(applicationContext)
+                    PreferenceManager.getWallpaperOnLockScreen(context)
                 val wallpaperManager =
-                    WallpaperManager.getInstance(applicationContext)
+                    WallpaperManager.getInstance(context)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     var flag = WallpaperManager.FLAG_SYSTEM
                     if (setWallpaperOnLockScreen) {
@@ -490,6 +489,10 @@ object CommonUtil {
                 } else {
                     wallpaperManager.setBitmap(bitmap)
                 }
+                val fileName = File(filePath).name
+                PreferenceManager.setAppliedWallpaperImage(context,fileName)
+            } else {
+                PreferenceManager.setAppliedWallpaperImage(context,null)
             }
         }
     }

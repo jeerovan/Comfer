@@ -38,6 +38,7 @@ object PreferenceManager {
     private const val WALLPAPER_DIRECTORY = "wallpaper_directory"
     private const val WALLPAPER_FREQUENCY = "wallpaper_frequency"
     private const val WALLPAPER_URI = "wallpaper_uri"
+    private const val APPLIED_WALLPAPER_IMAGE = "applied_wallpaper_image"
     private const val ALPHABETICAL_ORDER = "alphabetical_order"
     private const val HAS_PRO_VERSION = "has_pro_version"
     private const val THEMED_ICONS = "themed_icons"
@@ -204,6 +205,12 @@ object PreferenceManager {
     }
     fun setBackgroundImageUri(context: Context, uri: Uri) {
         setString(context,WALLPAPER_URI,uri.toString())
+    }
+    fun setAppliedWallpaperImage(context: Context,image: String?){
+        setString(context,APPLIED_WALLPAPER_IMAGE,image)
+    }
+    fun getAppliedWallpaperImage(context:Context): String? {
+        return getString(context,APPLIED_WALLPAPER_IMAGE,null)
     }
     fun getWallpaperDirectory(context: Context): String?{
         val uriString = getString(context,WALLPAPER_DIRECTORY,null)

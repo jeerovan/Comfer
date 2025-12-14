@@ -1052,7 +1052,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             PreferenceManager.setWallpaperOnLockScreen(context, enabled)
             _uiState.update { it.copy(wallpaperOnLockScreen = enabled) }
             if(enabled){
-                signalToChangeWallpaper()
+                context.dataStore.edit { preferences ->
+                    preferences[PreferenceKeys.WALLPAPER_RESET] = System.currentTimeMillis()
+                }
             }
         }
     }

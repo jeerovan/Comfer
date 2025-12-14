@@ -508,7 +508,10 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     trailingContent = {
                         Switch(
                             checked = settingsState.isLightHour,
-                            onCheckedChange = { settingsViewModel.setLightHour(it) }
+                            onCheckedChange = {
+                                settingsViewModel.setLightHour(it)
+                                PreferenceManager.increaseAppListVersion(context)
+                            }
                         )
                     },
                     modifier = Modifier.clickable { settingsViewModel.setLightHour(!settingsState.isLightHour) },

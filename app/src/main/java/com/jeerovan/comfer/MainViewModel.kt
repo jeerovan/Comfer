@@ -84,7 +84,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
         }
     }
-    fun reloadImagePath() {
+    fun reloadImagePath() { // reloads after screen turns on
         viewModelScope.launch {
             val context: Context = getApplication()
             if(_uiState.value.imagePath == null) {
@@ -92,9 +92,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _uiState.update { it.copy(imagePath = backgroundImagePath) }
             }
             PreferenceManager.setWallpaperApplied(context, true)
+            val isDefaultLauncher = isDefaultLauncher(context)
+            _uiState.update {
+                it.copy(isDefaultLauncher = isDefaultLauncher)
+            }
+            if (isDefaultLauncher){
+                val appliedWallpaperImage = PreferenceManager.getAppliedWallpaperImage(context)
+                if (appliedWallpaperImage == null){
+                    resetWallpaper()
+                }
+            }
         }
     }
-    fun clearImagePath() {
+    fun clearImagePath() { // unloads on screen off
         viewModelScope.launch {
             _uiState.update { it.copy(imagePath = null) }
         }
@@ -140,10 +150,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             )
                         }
                     }
-                }
-                val isDefaultLauncher = isDefaultLauncher(applicationContext)
-                _uiState.update {
-                    it.copy(isDefaultLauncher = isDefaultLauncher)
                 }
             }
             catch (e: Exception){
