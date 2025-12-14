@@ -2599,7 +2599,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         settingInfoUiState.appListsVersion, // after modifying app list: quick list <-> primary list (in or between)
         settingInfoUiState.showThemedIcons,
         settingInfoUiState.autoWallpapers,
-        settingInfoUiState.monochrome) {
+        settingInfoUiState.monochrome,
+        settingInfoUiState.iconPackPackage) {
         appInfoViewModel.reloadList()
     }
 
@@ -3238,7 +3239,7 @@ fun SearchIcon(
             if(isLightMode){
                 Color.Black
             } else {
-                Color.White
+                Color.White.copy(alpha = 0.7f)
             }
         }
     val view = LocalView.current

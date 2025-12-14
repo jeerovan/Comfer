@@ -51,6 +51,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BatterySaver
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Grain
@@ -203,6 +204,8 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     var showDisclosure by remember { mutableStateOf(false) }
     var showLocaleSelection by remember {mutableStateOf(false)}
 
+    val textSavingBattery = stringResource(R.string.text_saving_battery)
+
     fun checkShowDiscloseOrPermissionIntent(){
         if(settingsState.hasNotificationAccess){
             settingsViewModel.requestNotificationPermission(context)
@@ -339,10 +342,22 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     trailingContent = {
                         Switch(
                             checked = settingsState.monochrome,
-                            onCheckedChange = { settingsViewModel.setMonochrome(it) }
+                            onCheckedChange = {
+                                if(!settingsState.isBatterySaver) {
+                                    settingsViewModel.setMonochrome(it)
+                                } else {
+                                    Toast.makeText(context,textSavingBattery,Toast.LENGTH_SHORT).show()
+                                }
+                            }
                         )
                     },
-                    modifier = Modifier.clickable { settingsViewModel.setMonochrome(!settingsState.monochrome) },
+                    modifier = Modifier.clickable {
+                        if (!settingsState.isBatterySaver) {
+                            settingsViewModel.setMonochrome(!settingsState.monochrome)
+                        } else {
+                            Toast.makeText(context,textSavingBattery,Toast.LENGTH_SHORT).show()
+                        }
+                                                  },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
@@ -470,12 +485,18 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
             }
             item {
-                IconPackSettingItem(currentPack = iconPackPackage,
+                IconPackSettingItem(
+                    settingsState.hasPro,
+                    currentPack = iconPackPackage,
                    onSetPack = { pack ->
-                       settingsViewModel.setIconPackPackage(pack)
+                       if(settingsState.hasPro){
+                           settingsViewModel.setIconPackPackage(pack)
+                       } else {
+                           Toast.makeText(context,stringRequiresSubscription,Toast.LENGTH_SHORT).show()
+                       }
                    } )
             }
-            item{
+            if(settingsState.autoWallpapers || settingsState.monochrome )item{
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_themed_icons)) },
                     supportingContent = { Text(stringResource(R.string.themed_icons_text)) },
@@ -488,10 +509,22 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     trailingContent = {
                         Switch(
                             checked = settingsState.showThemedIcons,
-                            onCheckedChange = { settingsViewModel.setThemedIcons(it) }
+                            onCheckedChange = {
+                                if(!settingsState.isBatterySaver){
+                                    settingsViewModel.setThemedIcons(it)
+                                } else {
+                                    Toast.makeText(context,textSavingBattery,Toast.LENGTH_SHORT).show()
+                                }
+                            }
                         )
                     },
-                    modifier = Modifier.clickable { settingsViewModel.setThemedIcons(!settingsState.showThemedIcons) },
+                    modifier = Modifier.clickable {
+                        if(!settingsState.isBatterySaver) {
+                            settingsViewModel.setThemedIcons(!settingsState.showThemedIcons)
+                        } else {
+                            Toast.makeText(context,textSavingBattery,Toast.LENGTH_SHORT).show()
+                        }
+                                                  },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
@@ -730,6 +763,26 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             item {
                 ListItem(
+                    headlineContent = { Text(stringResource(R.string.title_battery_saver)) },
+                    supportingContent = { Text(stringResource(R.string.battery_saver_text)) },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.BatterySaver,
+                            contentDescription = stringResource(R.string.title_battery_saver)
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settingsState.isBatterySaver,
+                            onCheckedChange = { settingsViewModel.setBatterySaver(it) }
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.setBatterySaver(!settingsState.isBatterySaver) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
+            item {
+                ListItem(
                     headlineContent = {Text(stringResource(R.string.title_app_language))},
                     supportingContent = { Text(stringResource(R.string.app_language_text))},
                     leadingContent = { Icon(Icons.Default.Translate, contentDescription = stringResource(R.string.icon_app_language))},
@@ -855,13 +908,27 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
 
 @Composable
 fun IconPackSettingItem(
+    hasPro: Boolean,
     currentPack: String?,
     onSetPack: (String?) -> Unit
 ) {
+    val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
     ListItem(
         modifier = Modifier.clickable { showDialog = true },
-        headlineContent = { Text(stringResource(R.string.title_icon_pack)) },
+        headlineContent = {
+            Row {
+                Text(stringResource(R.string.title_icon_pack))
+                if (!hasPro) Icon(
+                    Icons.Filled.Lock,
+                    contentDescription = stringResource(R.string.paid_feature_title),
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(15.dp)
+                        .offset(x = 10.dp, y = 5.dp)
+                )
+            }
+                          },
         supportingContent = { Text(currentPack ?: stringResource(R.string.title_select_icon_app)) },
         leadingContent = {
             Icon(

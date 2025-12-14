@@ -111,6 +111,7 @@ data class SettingsUiState(
     val arrangeInAlphabeticalOrder: Boolean = false,
     val shouldAppUpdatePromptUserCounter: Int = 0,
     val themedColors: WallpaperThemeColors? = null,
+    val isBatterySaver: Boolean = false,
 )
 
 data class KeyTextObject(
@@ -214,17 +215,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     fun loadSettings() {
         Log.i("SettingsViewModel","LoadSettings")
+        // refresh pro state
+        BillingRepository.refreshSubscription()
         viewModelScope.launch {
             val hasPro = PreferenceManager.getPro(getApplication())
             val autoWallpapers = PreferenceManager.getAutoWallpapers(getApplication(),true)
             val monochrome = PreferenceManager.getMonochrome(getApplication(), default = false)
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val wallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(getApplication())
-            val wallpaperDirectory = if(hasPro) PreferenceManager.getWallpaperDirectory(getApplication()) else null
+            // PRO
+            val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(getApplication())
             val wallpaperFrequency = PreferenceManager.getWallpaperFrequency(getApplication())
             val iconSize = PreferenceManager.getIconSize(getApplication())
             val iconShapeString  = PreferenceManager.getIconShapeString(getApplication())
             val iconShape  = PreferenceManager.getIconShape(getApplication())
+            // PRO
             val iconPackPackage = PreferenceManager.getIconPack(getApplication())
             val showThemedIcons = PreferenceManager.getThemedIcons(getApplication())
             val showThemedText = PreferenceManager.getBoolean(getApplication(),SHOW_THEMED_TEXT,false)
@@ -243,11 +248,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val isLeftSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"left")
             val isRightSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"right")
             val isNotificationServiceEnabled = isNotificationServiceEnabled(getApplication())
-            val hasCustomWidgets = if(hasPro)PreferenceManager.getCustomWidgets(getApplication()) else false
+            // PRO
+            val hasCustomWidgets = PreferenceManager.getCustomWidgets(getApplication())
             val widgetPositions = widgetIds.associateWith { id ->
                 loadWidgetPosition(id)
             }
-            val patternApps = if(hasPro) patternIds.associateWith {id -> loadPatternApp(id)} else emptyMap()
+            val patternApps = if(hasPro) patternIds.associateWith {id -> loadPatternApp(id)} else emptyMap() // pro is check on gesture call
+            // PRO
             val showAnalog = if(hasPro)PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false) else false
             val clockSize = PreferenceManager.getInt(getApplication(),CLOCK_SIZE,150)
             val clockBgColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_BG_COLOR,Color.Black.toArgb()))
@@ -258,6 +265,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val timeFontSize = PreferenceManager.getInt(getApplication(),TIME_FONT_SIZE,100)
             val timeFontColor = Color(PreferenceManager.getInt(getApplication(),TIME_FONT_COLOR,Color.White.toArgb()))
             val timeFontAlpha = PreferenceManager.getInt(getApplication(),TIME_FONT_ALPHA,100)
+            // PRO
             val timeFontName = if(hasPro){
                 PreferenceManager.getString(getApplication(),TIME_FONT_NAME,"Iter") ?: "Iter"
             } else {
@@ -338,6 +346,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val alphabeticalOrder = PreferenceManager.getAlphabeticalOrder(getApplication())
             val shouldAppUpdatePromptUserCounter = PreferenceManager.getAppUpdatePromptUserCounter(getApplication())
             val themedColors = PreferenceManager.getThemedColors(getApplication())
+            val isBatterySaver = PreferenceManager.isBatterySaver(getApplication())
             _uiState.update {
                 it.copy(
                     hasPro = hasPro,
@@ -412,18 +421,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     notificationLayoutId = notificationLayoutId,
                     arrangeInAlphabeticalOrder = alphabeticalOrder,
                     shouldAppUpdatePromptUserCounter = shouldAppUpdatePromptUserCounter,
-                    themedColors = themedColors
+                    themedColors = themedColors,
+                    isBatterySaver = isBatterySaver
                 )
             }
         }
     }
 
-
-    override fun onCleared() {
-        super.onCleared()
-        // Prevent memory leaks by removing listener
-        Purchases.sharedInstance.updatedCustomerInfoListener = null
-    }
     fun setPro(enabled:Boolean){
         viewModelScope.launch {
             Log.d("SettingsViewModel","SetPro:$enabled")
@@ -514,6 +518,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             } catch (_: Exception) {
                 FontFamily.Default
             }
+            // set icon pack settings
+            val iconPackPackage = if (enabled) {
+                PreferenceManager.getIconPack(getApplication())
+            } else {
+                null
+            }
             _uiState.update { it.copy(
                 hasPro = enabled,
                 showAnalog = showAnalog,
@@ -527,7 +537,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 dateAngle = dateAngle,
                 dateRadius = dateRadius,
                 dateHasShadow = dateHasShadow,
-                batteryFontFamily = batteryFontFamily) }
+                batteryFontFamily = batteryFontFamily,
+                iconPackPackage = iconPackPackage) }
         }
     }
     fun setThemedColors(){
@@ -538,14 +549,24 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     fun setThemedIcons(enabled: Boolean){
         viewModelScope.launch {
-            PreferenceManager.setThemedIcons(getApplication(),enabled)
-            val leftSwipeApp = mapPackageNameToAppInfo(
-                getApplication(),
-                PreferenceManager.getSwipeApp(getApplication(),"left"))
-            val rightSwipeApp = mapPackageNameToAppInfo(
-                getApplication(),
-                PreferenceManager.getSwipeApp(getApplication(),"right"))
-            _uiState.update { it.copy(showThemedIcons = enabled, leftSwipeApp = leftSwipeApp, rightSwipeApp = rightSwipeApp) }
+            if (!PreferenceManager.isBatterySaver(getApplication())) {
+                PreferenceManager.setThemedIcons(getApplication(), enabled)
+                val leftSwipeApp = mapPackageNameToAppInfo(
+                    getApplication(),
+                    PreferenceManager.getSwipeApp(getApplication(), "left")
+                )
+                val rightSwipeApp = mapPackageNameToAppInfo(
+                    getApplication(),
+                    PreferenceManager.getSwipeApp(getApplication(), "right")
+                )
+                _uiState.update {
+                    it.copy(
+                        showThemedIcons = enabled,
+                        leftSwipeApp = leftSwipeApp,
+                        rightSwipeApp = rightSwipeApp
+                    )
+                }
+            }
         }
     }
     fun setThemedText(enabled: Boolean){
@@ -1058,23 +1079,26 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
+
     fun setMonochrome(enabled: Boolean) {
         viewModelScope.launch {
-            val context:Context = getApplication()
-            PreferenceManager.setMonochrome(context,enabled)
-            _uiState.update { it.copy(monochrome = enabled) }
-            if(enabled) {
-                withContext(Dispatchers.IO) {
-                    generateMonochromeColorWallpapers(context)
-                }
-                // to load wallpaper
-                PreferenceManager.setHour(getApplication(),0)
-                context.dataStore.edit { preferences ->
-                    preferences[PreferenceKeys.WALLPAPER_CHANGE] = System.currentTimeMillis()
-                }
-            } else {
-                context.dataStore.edit { preferences ->
-                    preferences[PreferenceKeys.WALLPAPER_RESET] = System.currentTimeMillis()
+            viewModelScope.launch {
+                val context:Context = getApplication()
+                PreferenceManager.setMonochrome(context,enabled)
+                _uiState.update { it.copy(monochrome = enabled) }
+                if(enabled) {
+                    withContext(Dispatchers.IO) {
+                        generateMonochromeColorWallpapers(context)
+                    }
+                    // to load wallpaper
+                    PreferenceManager.setHour(getApplication(),0)
+                    context.dataStore.edit { preferences ->
+                        preferences[PreferenceKeys.WALLPAPER_CHANGE] = System.currentTimeMillis()
+                    }
+                } else {
+                    context.dataStore.edit { preferences ->
+                        preferences[PreferenceKeys.WALLPAPER_RESET] = System.currentTimeMillis()
+                    }
                 }
             }
         }
@@ -1112,7 +1136,20 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-
+    fun setBatterySaver(enabled: Boolean){
+        viewModelScope.launch {
+            PreferenceManager.setBatterySaver(getApplication(),enabled)
+            val showThemedIcons = if (enabled) false else PreferenceManager.getThemedIcons(getApplication())
+            val autoWallpapers = if (enabled) false else PreferenceManager.getAutoWallpapers(getApplication())
+            _uiState.update { it.copy(
+                isBatterySaver = enabled,
+                showThemedIcons = showThemedIcons,
+                autoWallpapers = autoWallpapers
+                )
+            }
+            setMonochrome(enabled)
+        }
+    }
     // Function to check if the notification listener permission is enabled
     fun isNotificationServiceEnabled(context: Context): Boolean {
         val enabledListeners = NotificationManagerCompat.getEnabledListenerPackages(context)

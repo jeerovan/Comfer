@@ -346,4 +346,7 @@
     <string name="title_select_icon_app">Select Icon Pack</string>
     <string name="title_not_available">Not Available</string>
     <string name="title_action_clear">Clear</string>
+    <string name="title_battery_saver">Battery Saver</string>
+    <string name="battery_saver_text">Enable to save battery</string>
+    <string name="text_saving_battery">Saving battery</string>
 </resources>

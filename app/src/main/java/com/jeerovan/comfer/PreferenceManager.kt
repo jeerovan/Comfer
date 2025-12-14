@@ -55,6 +55,7 @@ object PreferenceManager {
     private const val APP_UPDATE_PROMPT_TIME = "app_update_prompt_time"
     private const val APP_UPDATE_PROMPT_COUNTER = "app_update_prompt_counter"
     private const val KEYBOARD_LOCALE = "keyboard_locale"
+    private const val BATTERY_SAVER_MODE = "battery_saver_mode"
 
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -130,6 +131,8 @@ object PreferenceManager {
     fun isLightHour(context: Context): Boolean {
         if(isTesting) {
             return getBoolean(context, LIGHT_HOUR, true)
+        } else if (isBatterySaver(context)) {
+            return false
         } else {
             val calendar = Calendar.getInstance()
             val hour = calendar.get(Calendar.HOUR_OF_DAY)
@@ -191,7 +194,7 @@ object PreferenceManager {
         setBoolean(context,THEMED_ICONS,enabled)
     }
     fun getThemedIcons(context: Context): Boolean {
-        return getBoolean(context,THEMED_ICONS,false)
+        return if(isBatterySaver(context)) false else getBoolean(context,THEMED_ICONS,false)
     }
     fun setAlphabeticalOrder(context: Context,enabled: Boolean){
         setBoolean(context,ALPHABETICAL_ORDER,enabled)
@@ -213,7 +216,7 @@ object PreferenceManager {
         return getString(context,APPLIED_WALLPAPER_IMAGE,null)
     }
     fun getWallpaperDirectory(context: Context): String?{
-        val uriString = getString(context,WALLPAPER_DIRECTORY,null)
+        val uriString = if(getPro(context))getString(context,WALLPAPER_DIRECTORY,null) else null
         return uriString
     }
     fun setWallpaperDirectory(context: Context,directoryUri: String?){
@@ -241,20 +244,20 @@ object PreferenceManager {
         setBoolean(context,CUSTOM_WIDGETS,enabled)
     }
     fun getCustomWidgets(context: Context):Boolean{
-        return getBoolean(context,CUSTOM_WIDGETS,false)
+        return if(getPro(context)) getBoolean(context,CUSTOM_WIDGETS,false) else false
     }
 
     fun setWallpaperMotion(context: Context, enabled: Boolean) {
         setBoolean(context,KEY_WALLPAPER_MOTION,enabled)
     }
     fun getAutoWallpapers(context: Context, default: Boolean = true): Boolean {
-        return getBoolean(context,AUTO_WALLPAPER,default)
+        return if (isBatterySaver(context)) false else getBoolean(context,AUTO_WALLPAPER,default)
     }
     fun setAutoWallpapers(context: Context, enabled: Boolean) {
         setBoolean(context,AUTO_WALLPAPER,enabled)
     }
     fun getMonochrome(context: Context, default: Boolean = false): Boolean {
-        return getBoolean(context,MONOCHROME,default)
+        return if (isBatterySaver(context)) true else getBoolean(context,MONOCHROME,default)
     }
     fun setMonochrome(context: Context, enabled: Boolean) {
         setBoolean(context,MONOCHROME,enabled)
@@ -299,7 +302,7 @@ object PreferenceManager {
         setString(context,ICON_PACK_PACKAGE,pack)
     }
     fun getIconPack(context: Context): String? {
-        return getString(context,ICON_PACK_PACKAGE,null)
+        return if(getPro(context)) getString(context,ICON_PACK_PACKAGE,null) else null
     }
 
     fun getBackgroundImagePath(context: Context): String? {
@@ -368,8 +371,6 @@ object PreferenceManager {
             setTempImageData(context,jsonString)
         }
     }
-
-
     fun setImageDataString(context: Context,jsonString:String) {
         setString(context,KEY_IMAGE_DATA,jsonString)
     }
@@ -445,5 +446,11 @@ object PreferenceManager {
     }
     fun setKeyboardLocale(context: Context,locale: Locale) {
         setString(context,KEYBOARD_LOCALE,locale.toLanguageTag())
+    }
+    fun setBatterySaver(context: Context,enabled:Boolean){
+        setBoolean(context,BATTERY_SAVER_MODE,enabled)
+    }
+    fun isBatterySaver(context: Context): Boolean {
+        return getBoolean(context,BATTERY_SAVER_MODE,false)
     }
 }
