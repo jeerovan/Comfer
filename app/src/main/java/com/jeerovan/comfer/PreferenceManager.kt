@@ -309,10 +309,10 @@ object PreferenceManager {
         if(getMonochrome(context,false)){
             val fileBlack = File(context.filesDir, "comfer_black.jpg")
             val fileWhite = File(context.filesDir, "comfer_white.jpg")
-            if(isLightHour(context)){
-                return fileWhite.absolutePath
+            return if(isLightHour(context)){
+                fileWhite.absolutePath
             } else {
-                return fileBlack.absolutePath
+                fileBlack.absolutePath
             }
         }
         return getString(context,PREF_BACKGROUND_IMAGE,null)

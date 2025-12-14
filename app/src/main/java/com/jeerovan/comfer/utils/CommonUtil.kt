@@ -451,13 +451,11 @@ object CommonUtil {
                 }
             }
         } else if (PreferenceManager.getMonochrome(applicationContext)){
-            val hour = PreferenceManager.getHour(applicationContext)
-            if (hour > 0) {
-                // set wallpaper for monochrome colors
+            val currentWallpaperFilePath = PreferenceManager.getBackgroundImagePath(applicationContext)
+            if( PreferenceManager.getAppliedWallpaperImage(applicationContext) != currentWallpaperFilePath){
                 withContext(Dispatchers.IO) {
                     setWallpaper(applicationContext)
                 }
-                PreferenceManager.setHour(applicationContext,hour)
             }
         }
     }
@@ -489,8 +487,7 @@ object CommonUtil {
                 } else {
                     wallpaperManager.setBitmap(bitmap)
                 }
-                val fileName = File(filePath).name
-                PreferenceManager.setAppliedWallpaperImage(context,fileName)
+                PreferenceManager.setAppliedWallpaperImage(context,filePath)
             } else {
                 PreferenceManager.setAppliedWallpaperImage(context,null)
             }

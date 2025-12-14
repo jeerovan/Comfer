@@ -2,7 +2,6 @@ package com.jeerovan.comfer
 
 import android.app.Application
 import android.content.Context
-import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,13 +16,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -79,7 +75,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 .collect { timestamp ->
                     if(timestamp > 0L) {
                         Log.d("MainViewModel", "Wallpaper Reset At: $timestamp")
-                        resetWallpaper()
+                        reapplyWallpaper()
                     }
                 }
         }
@@ -87,9 +83,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun reloadImagePath() { // reloads after screen turns on
         viewModelScope.launch {
             val context: Context = getApplication()
+            val backgroundImage = PreferenceManager.getBackgroundImagePath(context)
             if(_uiState.value.imagePath == null) {
-                val backgroundImagePath = PreferenceManager.getBackgroundImagePath(context)
-                _uiState.update { it.copy(imagePath = backgroundImagePath) }
+                _uiState.update { it.copy(imagePath = backgroundImage) }
             }
             PreferenceManager.setWallpaperApplied(context, true)
             val isDefaultLauncher = isDefaultLauncher(context)
@@ -98,8 +94,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
             if (isDefaultLauncher){
                 val appliedWallpaperImage = PreferenceManager.getAppliedWallpaperImage(context)
-                if (appliedWallpaperImage == null){
-                    resetWallpaper()
+                if (appliedWallpaperImage != backgroundImage){
+                    reapplyWallpaper()
                 }
             }
         }
@@ -128,10 +124,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     // update uiState
                     val imageData = PreferenceManager.getImageData(applicationContext)
                     val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
-                    // this is a first time fetch, do not set wallpaper on home screen as the app is not set default home app now
                     if (imageData != null && filePath != null) {
                         withContext(Dispatchers.IO){
-                            setWallpaperThemedColors(applicationContext, File(filePath))
+                            val imageFile = File(filePath)
+                            setWallpaperThemedColors(applicationContext, imageFile)
+                            // check if current image was already set as wallpaper
+                            if (PreferenceManager.getAppliedWallpaperImage(applicationContext) != filePath){
+                                setWallpaper(applicationContext)
+                            }
                         }
                         // let themed colors generate before we change the background
                         _uiState.update {
@@ -157,7 +157,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-    fun resetWallpaper(){
+    fun reapplyWallpaper(){
         viewModelScope.launch {
             reloadWallpaper(getApplication())
         }

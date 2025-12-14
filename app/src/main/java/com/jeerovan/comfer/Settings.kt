@@ -381,7 +381,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            if(settingsState.autoWallpapers)item {
+            if(settingsState.autoWallpapers || isTesting)item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_change_wallpaper)) },
                     supportingContent = { Text(stringResource(R.string.change_wallpaper_text)) },
