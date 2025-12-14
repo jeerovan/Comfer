@@ -26,16 +26,10 @@ import androidx.compose.ui.text.googlefonts.GoogleFont
 import com.jeerovan.comfer.ui.theme.fontProvider
 import android.graphics.Bitmap
 import androidx.datastore.preferences.core.edit
-import com.revenuecat.purchases.CustomerInfo
 import com.revenuecat.purchases.Purchases
-import com.revenuecat.purchases.getCustomerInfoWith
-import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -51,10 +45,11 @@ data class SettingsUiState(
     val iconSize: Int = 48,
     val iconShapeString: String = "circle",
     val iconShape: Shape = CircleShape,
+    val iconPackPackage: String? = null,
     val showThemedIcons: Boolean = false,
     val showThemedText: Boolean = false,
     val isLightHour: Boolean = true,
-    val appListsUpdateCounter: Int = 0,
+    val appListsVersion: Int = 0,
     val quickAppsLayout: String = "circular",
     val appDrawerLayout: String = "circular",
     val drawerHeight:Int = 0,
@@ -230,10 +225,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val iconSize = PreferenceManager.getIconSize(getApplication())
             val iconShapeString  = PreferenceManager.getIconShapeString(getApplication())
             val iconShape  = PreferenceManager.getIconShape(getApplication())
+            val iconPackPackage = PreferenceManager.getIconPack(getApplication())
             val showThemedIcons = PreferenceManager.getThemedIcons(getApplication())
             val showThemedText = PreferenceManager.getBoolean(getApplication(),SHOW_THEMED_TEXT,false)
             val isLightHour = PreferenceManager.isLightHour(getApplication())
-            val appListUpdateCounter = PreferenceManager.getAppListUpdateCounter(getApplication())
+            val appListUpdateCounter = PreferenceManager.getAppListVersion(getApplication())
             val quickAppsLayout = PreferenceManager.getQuickAppsLayout(getApplication())
             val appDrawerLayout = PreferenceManager.getAppDrawerLayout(getApplication())
             val drawerHeight = PreferenceManager.getInt(getApplication(),DRAWER_HEIGHT,0)
@@ -353,10 +349,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     monochrome = monochrome,
                     iconSize = iconSize,
                     iconShape = iconShape,
+                    iconPackPackage = iconPackPackage,
                     showThemedIcons = showThemedIcons,
                     showThemedText = showThemedText,
                     isLightHour = isLightHour,
-                    appListsUpdateCounter = appListUpdateCounter,
+                    appListsVersion = appListUpdateCounter,
                     quickAppsLayout = quickAppsLayout,
                     appDrawerLayout = appDrawerLayout,
                     drawerHeight = drawerHeight,
@@ -1087,7 +1084,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _uiState.update { it.copy(iconShapeString = shapeString, iconShape = iconShape) }
         }
     }
-
+    fun setIconPackPackage(pack: String?){
+        viewModelScope.launch {
+            val context: Context = getApplication()
+            PreferenceManager.setIconPack(context,pack)
+            _uiState.update { it.copy(
+                iconPackPackage = pack
+            ) }
+            context.dataStore.edit { preferences ->
+                preferences[PreferenceKeys.ICON_PACK_LOAD] = System.currentTimeMillis()
+            }
+        }
+    }
     fun changeIconSize(increase: Boolean) {
         viewModelScope.launch {
             val currentSize = _uiState.value.iconSize

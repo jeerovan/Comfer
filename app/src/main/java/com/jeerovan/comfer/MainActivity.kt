@@ -2596,7 +2596,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val hasNotificationAccess = settingInfoUiState.hasNotificationAccess
 
     LaunchedEffect(mainUiState.iconVersion, // after changing background, update app icons.
-        settingInfoUiState.appListsUpdateCounter, // after modifying app list: quick list <-> primary list (in or between)
+        settingInfoUiState.appListsVersion, // after modifying app list: quick list <-> primary list (in or between)
         settingInfoUiState.showThemedIcons,
         settingInfoUiState.autoWallpapers,
         settingInfoUiState.monochrome) {

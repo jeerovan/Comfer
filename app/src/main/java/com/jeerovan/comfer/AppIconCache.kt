@@ -11,5 +11,4 @@ object AppIconCache {
     fun cacheIcon(packageName: String, icon: Drawable) {
         iconCache[packageName] = icon
     }
-
 }

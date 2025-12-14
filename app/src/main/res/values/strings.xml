@@ -342,4 +342,8 @@
     <string name="date_example_two">Sat\nSep\n16</string>
     <string name="title_transparency">Transparency</string>
     <string name="title_wallpaper_colors">Wallpaper colors</string>
+    <string name="title_icon_pack">Icon Pack</string>
+    <string name="title_select_icon_app">Select Icon Pack</string>
+    <string name="title_not_available">Not Available</string>
+    <string name="title_action_clear">Clear</string>
 </resources>

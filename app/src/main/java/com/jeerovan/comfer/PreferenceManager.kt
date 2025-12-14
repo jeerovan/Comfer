@@ -23,6 +23,7 @@ object PreferenceManager {
     private const val WALLPAPER_ON_LOCK_SCREEN = "wallpaper_on_lock_screen"
     private const val KEY_ICON_SIZE = "icon_size"
     private const val KEY_ICON_SHAPE = "icon_shape"
+    private const val ICON_PACK_PACKAGE = "icon_pack_package"
     private const val KEY_IMAGE_URL = "image_url"
     private const val DUMMY_NAME = "dummy_name"
     private const val USER_NAME = "user_name"
@@ -267,11 +268,11 @@ object PreferenceManager {
     fun getIconSize(context: Context, default: Int = 48): Int {
         return getInt(context,KEY_ICON_SIZE,default)
     }
-    fun increaseAppListUpdateCounter(context: Context){
-        val currentVersion = getAppListUpdateCounter(context)
+    fun increaseAppListVersion(context: Context){
+        val currentVersion = getAppListVersion(context)
         setInt(context,APP_LIST_UPDATE_COUNTER,currentVersion + 1)
     }
-    fun getAppListUpdateCounter(context: Context): Int{
+    fun getAppListVersion(context: Context): Int{
         return getInt(context,APP_LIST_UPDATE_COUNTER,0)
     }
     fun setIconShape(context: Context, shape: String) {
@@ -285,6 +286,13 @@ object PreferenceManager {
     fun getIconShape(context: Context, default: String = "circle"): Shape {
         val iconShapeString = getIconShapeString(context, default)
         return getShapeFromString(iconShapeString)
+    }
+
+    fun setIconPack(context: Context,pack: String?){
+        setString(context,ICON_PACK_PACKAGE,pack)
+    }
+    fun getIconPack(context: Context): String? {
+        return getString(context,ICON_PACK_PACKAGE,null)
     }
 
     fun getBackgroundImagePath(context: Context): String? {

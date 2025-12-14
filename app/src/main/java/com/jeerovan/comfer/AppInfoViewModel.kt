@@ -40,6 +40,8 @@ import android.os.UserManager
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 private const val REST_LIST_NAME = "Rest"
 
@@ -76,7 +78,8 @@ suspend fun getAppInfo(
     info: LauncherActivityInfo,
     showThemedIcons: Boolean,
     themedColors: WallpaperThemeColors,
-    isLightHour: Boolean
+    isLightHour: Boolean,
+    iconPackPackage: String?
 ): AppInfo? = withContext(Dispatchers.Default) {
     try {
         val packageName = info.componentName.packageName
@@ -88,8 +91,14 @@ suspend fun getAppInfo(
         val cachedIcon = AppIconCache.getIcon(cacheKey)
 
         // Load the icon. getBadgedIcon automatically adds the "Briefcase" for work apps
-        val loadedDrawable = cachedIcon ?: info.getBadgedIcon(0).also {
-            AppIconCache.cacheIcon(cacheKey, it)
+        val loadedDrawable = if(iconPackPackage != null) {
+            IconPackManager.getCustomIcon(context,info.componentName) ?: cachedIcon ?: info.getBadgedIcon(0).also {
+                AppIconCache.cacheIcon(cacheKey, it)
+            }
+        } else {
+            cachedIcon ?: info.getBadgedIcon(0).also {
+                AppIconCache.cacheIcon(cacheKey, it)
+            }
         }
 
         val iconDrawable = loadedDrawable.constantState?.newDrawable()?.mutate()
@@ -104,7 +113,7 @@ suspend fun getAppInfo(
 
         // Determine scale and process icon
         val isAdaptive = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && iconDrawable is AdaptiveIconDrawable
-        val scale = if (isAdaptive) 1.5f else 0.8f
+        val scale = if (isAdaptive) 1.5f else 0.9f
 
         when {
             isAdaptive && iconDrawable is AdaptiveIconDrawable -> {
@@ -189,6 +198,7 @@ suspend fun mapPackageNameToAppInfo(
     val showThemedIcons = PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
     val themedColors = PreferenceManager.getThemedColors(context)
     val isLightHour = PreferenceManager.isLightHour(context)
+    val iconPackPackage = PreferenceManager.getIconPack(context)
 
     return try {
         val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
@@ -205,7 +215,8 @@ suspend fun mapPackageNameToAppInfo(
                 activityInfo,
                 showThemedIcons,
                 themedColors,
-                isLightHour
+                isLightHour,
+                iconPackPackage
             )
         } else {
             null
@@ -226,6 +237,22 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
     init {
         // Start observing system changes immediately
         observePackageChanges()
+        viewModelScope.launch {
+            application.dataStore.data
+                .map { it[PreferenceKeys.ICON_PACK_LOAD] ?: 0L }
+                .distinctUntilChanged()
+                .collect { timestamp ->
+                    loadIconPack()
+                }
+        }
+    }
+    private fun loadIconPack(){
+        val iconPackPackage = PreferenceManager.getIconPack(getApplication())
+        if(iconPackPackage != null) {
+            IconPackManager.loadIconPack(getApplication(), iconPackPackage)
+        } else {
+            IconPackManager.unloadIconPack(getApplication())
+        }
     }
     private fun observePackageChanges() {
         viewModelScope.launch {
@@ -311,6 +338,12 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 val addedPackages = allCurrentPackageNames - savedAllPackageNames
                 val removedPackages = savedAllPackageNames - allCurrentPackageNames
 
+                // Unload app icons loaded from icon pack
+                val iconPackApp = PreferenceManager.getIconPack(context)
+                if(iconPackApp != null && removedPackages.contains(iconPackApp)){
+                    IconPackManager.unloadIconPack(context)
+                }
+
                 var currentQuickPackages = savedQuickPackageNames.filter { it !in removedPackages }
                 var currentPrimaryPackages = savedPrimaryPackageNames.filter { it !in removedPackages }
 
@@ -336,7 +369,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val showThemedIcons = PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
             val themedColors = PreferenceManager.getThemedColors(context)
             val isLightHour = PreferenceManager.isLightHour(context)
-
+            val iconPackPackage = PreferenceManager.getIconPack(context)
             // Function to map package names to your UI models
             // NOTE: This handles if a package exists on multiple profiles (Work + Personal)
             suspend fun mapPackagesToAppInfo(packageNames: List<String>): List<AppInfo> {
@@ -351,7 +384,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                             activityInfo,
                             showThemedIcons,
                             themedColors,
-                            isLightHour
+                            isLightHour,
+                            iconPackPackage
                         )
                     }
                 }
@@ -392,14 +426,16 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         info: LauncherActivityInfo, // CHANGED input type
         showThemedIcons: Boolean,
         themedColors: WallpaperThemeColors,
-        isLightHour: Boolean
+        isLightHour: Boolean,
+        iconPackPackage: String?
     ): AppInfo? {
         return getAppInfo(
             context,
             info,
             showThemedIcons,
             themedColors,
-            isLightHour
+            isLightHour,
+            iconPackPackage
         )
     }
 
@@ -431,7 +467,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     _uiState.update { it.copy(restApps = currentList) }
                 }
             }
-            PreferenceManager.increaseAppListUpdateCounter(getApplication()) // triggers UI update
+            PreferenceManager.increaseAppListVersion(getApplication()) // triggers UI update
         }
     }
 
@@ -492,7 +528,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     restApps = newRestApps,
                 )
             }
-            PreferenceManager.increaseAppListUpdateCounter(getApplication()) // triggers UI update
+            PreferenceManager.increaseAppListVersion(getApplication()) // triggers UI update
         }
     }
 }
@@ -765,32 +801,11 @@ class ThemedIconProcessor {
         //val width = drawable.intrinsicWidth.coerceAtLeast(1)
         //val height = drawable.intrinsicHeight.coerceAtLeast(1)
 
-
         val bitmap = createBitmap(width, height)
         val canvas = Canvas(bitmap)
         drawable.setBounds(0, 0, width, height)
         drawable.draw(canvas)
 
         return bitmap
-    }
-    fun resizeBitmapWithAspectRatio(source: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
-        val sourceWidth = source.width
-        val sourceHeight = source.height
-
-        if (sourceHeight <= maxHeight && sourceWidth <= maxWidth) {
-            return source // No need to resize if it's already smaller
-        }
-
-        val ratio = sourceWidth.toFloat() / sourceHeight.toFloat()
-        var targetWidth = maxWidth
-        var targetHeight = maxHeight
-
-        if (ratio > 1) { // Landscape
-            targetHeight = (targetWidth / ratio).toInt()
-        } else { // Portrait or square
-            targetWidth = (targetHeight * ratio).toInt()
-        }
-
-        return source.scale(targetWidth, targetHeight)
     }
 }

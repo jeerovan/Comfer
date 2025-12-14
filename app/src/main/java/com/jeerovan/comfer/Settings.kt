@@ -7,6 +7,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.compose.ui.graphics.Shape
 import android.os.Bundle
@@ -18,6 +19,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -31,6 +33,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -48,7 +51,9 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ColorLens
+import androidx.compose.material.icons.filled.Grain
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.InvertColors
 import androidx.compose.material.icons.filled.Lock
@@ -60,6 +65,8 @@ import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -74,6 +81,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -100,6 +108,7 @@ import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.utils.CommonUtil.canSetLockScreenWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.getKeyTextObject
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
@@ -107,8 +116,16 @@ import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import com.jeerovan.comfer.utils.CommonUtil.getUriPath
 import com.jeerovan.comfer.utils.CommonUtil.openUrl
 import com.jeerovan.comfer.utils.PebbleShape
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
+
+data class IconPackInfo(
+    val name: String,
+    val packageName: String,
+    val icon: Drawable
+)
 
 class SettingsActivity : AppCompatActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
@@ -179,6 +196,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val iconShape = settingsState.iconShape
     val iconSize = settingsState.iconSize - 10
     val iconShapeString = settingsState.iconShapeString
+    val iconPackPackage = settingsState.iconPackPackage
 
     val quickAppsLayout = settingsState.quickAppsLayout
     val appDrawerLayout = settingsState.appDrawerLayout
@@ -450,6 +468,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         settingsViewModel.setIconShape(newShape)
                     }
                 )
+            }
+            item {
+                IconPackSettingItem(currentPack = iconPackPackage,
+                   onSetPack = { pack ->
+                       settingsViewModel.setIconPackPackage(pack)
+                   } )
             }
             item{
                 ListItem(
@@ -822,6 +846,36 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         LocaleSelectionDialog(
             onDismissRequest = { showLocaleSelection = false},
             onLocaleSelected = { locale -> changeAppLanguage(locale)}
+        )
+    }
+}
+
+@Composable
+fun IconPackSettingItem(
+    currentPack: String?,
+    onSetPack: (String?) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    ListItem(
+        modifier = Modifier.clickable { showDialog = true },
+        headlineContent = { Text(stringResource(R.string.title_icon_pack)) },
+        supportingContent = { Text(currentPack ?: stringResource(R.string.title_select_icon_app)) },
+        leadingContent = {
+            Icon(
+                Icons.Filled.Grain,
+                contentDescription = stringResource(R.string.icon_icon_shapes)
+            )
+        },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+    )
+    if (showDialog){
+        IconPackSelectionDialog(
+            currentPack = currentPack,
+            onDismissRequest = {showDialog = false},
+            onPackSelected = { pack:String? ->
+                onSetPack(pack)
+                showDialog = false
+            }
         )
     }
 }
@@ -1327,4 +1381,146 @@ fun SelectOptionsWithListItemSettingItem(
             }
         )
     }
+}
+
+@Composable
+fun IconPackSelectionDialog(
+    currentPack: String?,
+    onDismissRequest: () -> Unit,
+    onPackSelected: (String?) -> Unit
+) {
+    val context = LocalContext.current
+    var iconPacks by remember { mutableStateOf<List<IconPackInfo>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // 2. Asynchronously load icon packs
+    LaunchedEffect(Unit) {
+        iconPacks = getInstalledIconPacks(context)
+        isLoading = false
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = {
+            Text(text = stringResource(R.string.title_select_icon_app))
+        },
+        text = {
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else if (iconPacks.isEmpty()) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(R.string.title_not_available),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.heightIn(max = 400.dp), // Limit height
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(iconPacks) { pack ->
+                        val isSelected = pack.packageName == currentPack
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onPackSelected(pack.packageName) }
+                                .background(
+                                    color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Display Icon Pack Icon
+                            Image(
+                                painter = rememberDrawablePainter(drawable = pack.icon),
+                                contentDescription = null,
+                                modifier = Modifier.size(40.dp)
+                            )
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Text(
+                                text = pack.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = if (isSelected)
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                else
+                                    MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = androidx.compose.material.icons.Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onPackSelected(null) }, // Clear action
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text(stringResource(R.string.title_action_clear))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text(stringResource(R.string.cancel_text))
+            }
+        }
+    )
+}
+
+private suspend fun getInstalledIconPacks(context: Context): List<IconPackInfo> = withContext(
+    Dispatchers.IO) {
+    val pm = context.packageManager
+    val iconPacks = mutableListOf<IconPackInfo>()
+
+    // Common actions used by icon packs
+    val intentActions = listOf(
+        "org.adw.launcher.THEMES",
+        "com.novalauncher.THEME",
+        "com.teslacoilsw.launcher.THEME",
+        "com.fede.launcher.THEME_ICONPACK",
+        "com.anddoes.launcher.THEME",
+        "com.dlto.atom.launcher.THEME"
+    )
+
+    val seenPackages = mutableSetOf<String>()
+
+    for (action in intentActions) {
+        val intent = Intent(action)
+        val resolvedList = pm.queryIntentActivities(intent, PackageManager.GET_META_DATA)
+
+        for (info in resolvedList) {
+            val packageName = info.activityInfo.packageName
+            if (packageName !in seenPackages) {
+                seenPackages.add(packageName)
+                try {
+                    val appInfo = pm.getApplicationInfo(packageName, 0)
+                    val label = pm.getApplicationLabel(appInfo).toString()
+                    val icon = pm.getApplicationIcon(appInfo)
+
+                    iconPacks.add(IconPackInfo(label, packageName, icon))
+                } catch (e: Exception) {
+                    // Ignore packages that can't be loaded
+                }
+            }
+        }
+    }
+
+    // Sort alphabetically
+    iconPacks.sortedBy { it.name }
 }

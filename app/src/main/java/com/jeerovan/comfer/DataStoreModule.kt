@@ -13,4 +13,5 @@ object PreferenceKeys {
     val WALLPAPER_UPDATE = longPreferencesKey("wallpaper_update")
     val WALLPAPER_CHANGE = longPreferencesKey("wallpaper_change")
     val WALLPAPER_RESET = longPreferencesKey("wallpaper_reset")
+    val ICON_PACK_LOAD = longPreferencesKey("icon_pack_load")
 }

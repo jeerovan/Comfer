@@ -36,6 +36,7 @@ datastoreCore = "1.2.0"
 appcompat = "1.7.1"
 uiText = "1.10.0"
 animation = "1.10.0"
+runtime = "1.10.0"
 
 [libraries]
 # Core AndroidX
@@ -95,6 +96,7 @@ androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
+androidx-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
 
 
 
