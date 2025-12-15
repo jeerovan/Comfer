@@ -215,9 +215,15 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         }
     }
     fun changeAppLanguage(locale:Locale){
-        val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(locale.toLanguageTag())
-        AppCompatDelegate.setApplicationLocales(appLocale)
+        /*val appLocale: LocaleListCompat = LocaleListCompat.forLanguageTags(locale.toLanguageTag())
+        AppCompatDelegate.setApplicationLocales(appLocale)*/
         showLocaleSelection = false
+        val intent = Intent(context, LanguageUpdateActivity::class.java).apply {
+            putExtra("LOCALE_TAG", locale.toLanguageTag())
+            // Add flags to ensure it starts a new clean flow if needed
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        context.startActivity(intent)
     }
     Box( modifier = Modifier
         .fillMaxSize()
