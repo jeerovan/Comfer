@@ -344,5 +344,12 @@
     <string name="date_example_two">စနေ\nစက်တင်ဘာ\n16</string>
     <string name="title_transparency">ကြည်လင်မှု</string>
     <string name="title_wallpaper_colors">နောက်ခံအရောင်များ</string>
+    <string name="title_icon_pack">အိုင်ကွန်အုပ်စု</string>
+    <string name="title_select_icon_app">အိုင်ကွန်အုပ်စုရွေးပါ</string>
+    <string name="title_not_available">မရှိပါ</string>
+    <string name="title_action_clear">ရှင်းပါ</string>
+    <string name="title_battery_saver">ဘတ္ထရီထိန်းသိမ်းမှု</string>
+    <string name="battery_saver_text">ဘတ္ထရီမသုံးရှားစေရန် ဖွင့်ပါ</string>
+    <string name="text_saving_battery">ဘတ္ထရီထိန်းသိမ်းနေသည်…</string>
 
 </resources>

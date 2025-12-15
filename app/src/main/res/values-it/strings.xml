@@ -344,5 +344,12 @@
     <string name="date_example_two">Sab\nSet\n16</string>
     <string name="title_transparency">Trasparenza</string>
     <string name="title_wallpaper_colors">Colori dello sfondo</string>
+    <string name="title_icon_pack">Pacchetto icone</string>
+    <string name="title_select_icon_app">Seleziona pacchetto icone</string>
+    <string name="title_not_available">Non disponibile</string>
+    <string name="title_action_clear">Cancella</string>
+    <string name="title_battery_saver">Risparmio batteria</string>
+    <string name="battery_saver_text">Attiva per risparmiare batteria</string>
+    <string name="text_saving_battery">Risparmio batteria…</string>
 
 </resources>

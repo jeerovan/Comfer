@@ -347,5 +347,12 @@
     <string name="date_example_two">Шанб\nСен\n16</string>
     <string name="title_transparency">Шаффофият</string>
     <string name="title_wallpaper_colors">Рангҳои обої</string>
+    <string name="title_icon_pack">Бастаи нишонаҳо</string>
+    <string name="title_select_icon_app">Интихоби бастаи нишонаҳо</string>
+    <string name="title_not_available">Дастрас нест</string>
+    <string name="title_action_clear">Пок кардан</string>
+    <string name="title_battery_saver">Ҳифзи батарея</string>
+    <string name="battery_saver_text">Барои сарфа кардани батарея фаъол кунед</string>
+    <string name="text_saving_battery">Дар ҳоли сарфа кардани батарея…</string>
 
 </resources>

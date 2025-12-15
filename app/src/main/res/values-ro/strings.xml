@@ -344,5 +344,12 @@
     <string name="date_example_two">Sâm\nSep\n16</string>
     <string name="title_transparency">Transparență</string>
     <string name="title_wallpaper_colors">Culorile fundalului</string>
+    <string name="title_icon_pack">Pachet de iconițe</string>
+    <string name="title_select_icon_app">Selectați pachetul de iconițe</string>
+    <string name="title_not_available">Indisponibil</string>
+    <string name="title_action_clear">Șterge</string>
+    <string name="title_battery_saver">Economisire baterie</string>
+    <string name="battery_saver_text">Activați pentru a economisi bateria</string>
+    <string name="text_saving_battery">Se economisește bateria…</string>
 
 </resources>

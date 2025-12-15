@@ -344,5 +344,12 @@
     <string name="date_example_two">Sam\nSep\n16</string>
     <string name="title_transparency">Transparence</string>
     <string name="title_wallpaper_colors">Couleurs du fond d’écran</string>
+    <string name="title_icon_pack">Pack d’icônes</string>
+    <string name="title_select_icon_app">Choisir un pack d’icônes</string>
+    <string name="title_not_available">Indisponible</string>
+    <string name="title_action_clear">Effacer</string>
+    <string name="title_battery_saver">Économie de batterie</string>
+    <string name="battery_saver_text">Activez pour économiser la batterie</string>
+    <string name="text_saving_battery">Économie de batterie…</string>
 
 </resources>

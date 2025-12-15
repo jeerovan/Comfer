@@ -344,5 +344,12 @@
     <string name="date_example_two">ເສົາ\nກັນຍາ\n16</string>
     <string name="title_transparency">ຄວາມໃສ</string>
     <string name="title_wallpaper_colors">ສີພາບພື້ນຫຼັງ</string>
+    <string name="title_icon_pack">ຊຸດໄອຄອນ</string>
+    <string name="title_select_icon_app">ເລືອກຊຸດໄອຄອນ</string>
+    <string name="title_not_available">ບໍ່ມີ</string>
+    <string name="title_action_clear">ລຶບ</string>
+    <string name="title_battery_saver">ປະຫຍັດແບັດ</string>
+    <string name="battery_saver_text">ເປີດເພື່ອປະຫຍັດແບັດ</string>
+    <string name="text_saving_battery">ກໍາລັງປະຫຍັດແບັດ…</string>
 
 </resources>

@@ -344,5 +344,12 @@
     <string name="date_example_two">សៅរ៍\nកញ្ញា\n16</string>
     <string name="title_transparency">ភាពថ្លា</string>
     <string name="title_wallpaper_colors">ពណ៌ផ្ទៃតុ</string>
+    <string name="title_icon_pack">កញ្ចប់រូបតំណាង</string>
+    <string name="title_select_icon_app">ជ្រើសរើសកញ្ចប់រូបតំណាង</string>
+    <string name="title_not_available">មិនមាន</string>
+    <string name="title_action_clear">សម្អាត</string>
+    <string name="title_battery_saver">សន្សំថាមពលថ្ម</string>
+    <string name="battery_saver_text">បើកដើម្បីសន្សំថ្ម</string>
+    <string name="text_saving_battery">កំពុងសន្សំថ្ម…</string>
 
 </resources>

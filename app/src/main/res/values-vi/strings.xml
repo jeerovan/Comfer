@@ -344,5 +344,12 @@
     <string name="date_example_two">Th7\nTh9\n16</string>
     <string name="title_transparency">Độ trong suốt</string>
     <string name="title_wallpaper_colors">Màu hình nền</string>
+    <string name="title_icon_pack">Gói biểu tượng</string>
+    <string name="title_select_icon_app">Chọn gói biểu tượng</string>
+    <string name="title_not_available">Không khả dụng</string>
+    <string name="title_action_clear">Xóa</string>
+    <string name="title_battery_saver">Tiết kiệm pin</string>
+    <string name="battery_saver_text">Bật để tiết kiệm pin</string>
+    <string name="text_saving_battery">Đang tiết kiệm pin…</string>
 
 </resources>

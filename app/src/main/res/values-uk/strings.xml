@@ -344,5 +344,12 @@
     <string name="date_example_two">Сб\nВер\n16</string>
     <string name="title_transparency">Прозорість</string>
     <string name="title_wallpaper_colors">Кольори шпалер</string>
+    <string name="title_icon_pack">Пакет іконок</string>
+    <string name="title_select_icon_app">Виберіть пакет іконок</string>
+    <string name="title_not_available">Недоступно</string>
+    <string name="title_action_clear">Очистити</string>
+    <string name="title_battery_saver">Режим економії батареї</string>
+    <string name="battery_saver_text">Увімкніть для економії батареї</string>
+    <string name="text_saving_battery">Економія батареї…</string>
 
 </resources>

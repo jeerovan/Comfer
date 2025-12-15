@@ -344,5 +344,12 @@
     <string name="date_example_two">Şen\nSen\n16</string>
     <string name="title_transparency">Şaffaflyk</string>
     <string name="title_wallpaper_colors">Wallpaperyň reňkleri</string>
+    <string name="title_icon_pack">Nyşan bukjasy</string>
+    <string name="title_select_icon_app">Nyşan bukjasyny saýlaň</string>
+    <string name="title_not_available">Elýeterli däl</string>
+    <string name="title_action_clear">Arassala</string>
+    <string name="title_battery_saver">Batareýa tygşytlaýjy</string>
+    <string name="battery_saver_text">Batareýa tygşytlamak üçin açyň</string>
+    <string name="text_saving_battery">Batareýa tygşytlanýar…</string>
 
 </resources>

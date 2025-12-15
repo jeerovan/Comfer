@@ -344,5 +344,12 @@
     <string name="date_example_two">Сб\nСен\n16</string>
     <string name="title_transparency">Прозрачность</string>
     <string name="title_wallpaper_colors">Цвета обоев</string>
+    <string name="title_icon_pack">Пакет иконок</string>
+    <string name="title_select_icon_app">Выберите пакет иконок</string>
+    <string name="title_not_available">Недоступно</string>
+    <string name="title_action_clear">Очистить</string>
+    <string name="title_battery_saver">Экономия батареи</string>
+    <string name="battery_saver_text">Включите для экономии батареи</string>
+    <string name="text_saving_battery">Экономия батареи…</string>
 
 </resources>

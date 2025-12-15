@@ -344,5 +344,12 @@
     <string name="date_example_two">周六\n9月\n16</string>
     <string name="title_transparency">透明度</string>
     <string name="title_wallpaper_colors">壁纸颜色</string>
+    <string name="title_icon_pack">图标包</string>
+    <string name="title_select_icon_app">选择图标包</string>
+    <string name="title_not_available">不可用</string>
+    <string name="title_action_clear">清除</string>
+    <string name="title_battery_saver">省电模式</string>
+    <string name="battery_saver_text">开启以节省电量</string>
+    <string name="text_saving_battery">正在节省电量…</string>
 
 </resources>

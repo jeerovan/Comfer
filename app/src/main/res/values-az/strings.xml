@@ -344,5 +344,12 @@
     <string name="date_example_two">Şənbə\nSen\n16</string>
     <string name="title_transparency">Şəffaflıq</string>
     <string name="title_wallpaper_colors">Divar kağızı rəngləri</string>
+    <string name="title_icon_pack">İkon Paketi</string>
+    <string name="title_select_icon_app">İkon paketini seçin</string>
+    <string name="title_not_available">Mövcud deyil</string>
+    <string name="title_action_clear">Təmizlə</string>
+    <string name="title_battery_saver">Batareya qənaəti</string>
+    <string name="battery_saver_text">Batareyaya qənaət üçün aktiv edin</string>
+    <string name="text_saving_battery">Batareyaya qənaət edilir…</string>
 
 </resources>

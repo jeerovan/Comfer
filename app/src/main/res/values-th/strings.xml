@@ -344,5 +344,12 @@
     <string name="date_example_two">ส.\nก.ย.\n16</string>
     <string name="title_transparency">ความโปร่งใส</string>
     <string name="title_wallpaper_colors">สีวอลเปเปอร์</string>
+    <string name="title_icon_pack">ชุดไอคอน</string>
+    <string name="title_select_icon_app">เลือกชุดไอคอน</string>
+    <string name="title_not_available">ไม่พร้อมใช้งาน</string>
+    <string name="title_action_clear">ล้าง</string>
+    <string name="title_battery_saver">ประหยัดแบตเตอรี่</string>
+    <string name="battery_saver_text">เปิดเพื่อประหยัดแบตเตอรี่</string>
+    <string name="text_saving_battery">กำลังประหยัดแบตเตอรี่…</string>
 
 </resources>

@@ -344,6 +344,13 @@
     <string name="date_example_two">السبت\nسبتمبر\n16</string>
     <string name="title_transparency">الشفافية</string>
     <string name="title_wallpaper_colors">ألوان الخلفية</string>
+    <string name="title_icon_pack">حزمة الأيقونات</string>
+    <string name="title_select_icon_app">اختر حزمة الأيقونات</string>
+    <string name="title_not_available">غير متوفر</string>
+    <string name="title_action_clear">مسح</string>
+    <string name="title_battery_saver">موفر البطارية</string>
+    <string name="battery_saver_text">شغّل للتوفير في البطارية</string>
+    <string name="text_saving_battery">جارٍ توفير البطارية…</string>
 
 
 </resources>

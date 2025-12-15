@@ -344,5 +344,12 @@
     <string name="date_example_two">Σάβ\nΣεπ\n16</string>
     <string name="title_transparency">Διαφάνεια</string>
     <string name="title_wallpaper_colors">Χρώματα ταπετσαρίας</string>
+    <string name="title_icon_pack">Πακέτο εικονιδίων</string>
+    <string name="title_select_icon_app">Επιλέξτε πακέτο εικονιδίων</string>
+    <string name="title_not_available">Μη διαθέσιμο</string>
+    <string name="title_action_clear">Καθαρισμός</string>
+    <string name="title_battery_saver">Εξοικονόμηση μπαταρίας</string>
+    <string name="battery_saver_text">Ενεργοποιήστε για εξοικονόμηση μπαταρίας</string>
+    <string name="text_saving_battery">Γίνεται εξοικονόμηση μπαταρίας…</string>
 
 </resources>

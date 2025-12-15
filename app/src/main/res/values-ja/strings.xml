@@ -344,5 +344,12 @@
     <string name="date_example_two">土\n9月\n16</string>
     <string name="title_transparency">透明度</string>
     <string name="title_wallpaper_colors">壁紙の色</string>
+    <string name="title_icon_pack">アイコンパック</string>
+    <string name="title_select_icon_app">アイコンパックを選択</string>
+    <string name="title_not_available">利用できません</string>
+    <string name="title_action_clear">クリア</string>
+    <string name="title_battery_saver">バッテリー節約</string>
+    <string name="battery_saver_text">節電のためオンにしてください</string>
+    <string name="text_saving_battery">バッテリー節約中…</string>
 
 </resources>

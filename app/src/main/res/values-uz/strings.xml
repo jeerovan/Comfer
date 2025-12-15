@@ -344,5 +344,12 @@
     <string name="date_example_two">Shan\nSen\n16</string>
     <string name="title_transparency">Shaffoflik</string>
     <string name="title_wallpaper_colors">Devor qog‘ozi ranglari</string>
+    <string name="title_icon_pack">Ikonalar to‘plami</string>
+    <string name="title_select_icon_app">Ikonalar to‘plamini tanlang</string>
+    <string name="title_not_available">Mavjud emas</string>
+    <string name="title_action_clear">Tozalash</string>
+    <string name="title_battery_saver">Batareya tejash</string>
+    <string name="battery_saver_text">Batareyani tejash uchun yoqing</string>
+    <string name="text_saving_battery">Batareya tejalyapti…</string>
 
 </resources>

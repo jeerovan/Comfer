@@ -344,5 +344,12 @@
     <string name="date_example_two">شنبه\nسپتامبر\n16</string>
     <string name="title_transparency">شفافیت</string>
     <string name="title_wallpaper_colors">رنگ‌های پس‌زمینه</string>
+    <string name="title_icon_pack">بسته آیکن</string>
+    <string name="title_select_icon_app">انتخاب بسته آیکن</string>
+    <string name="title_not_available">در دسترس نیست</string>
+    <string name="title_action_clear">پاک کردن</string>
+    <string name="title_battery_saver">صرفه‌جوی باتری</string>
+    <string name="battery_saver_text">برای صرفه‌جویی باتری روشن کنید</string>
+    <string name="text_saving_battery">در حال صرفه‌جویی باتری…</string>
 
 </resources>
