@@ -351,5 +351,6 @@
     <string name="title_battery_saver">बैटरी सेवर</string>
     <string name="battery_saver_text">बैटरी बचाने के लिए चालू करें</string>
     <string name="text_saving_battery">बैटरी बचाई जा रही है…</string>
+    <string name="icon_pack_support">अपना पसंदीदा आइकन पैक इस्तेमाल करें</string>
 
 </resources>

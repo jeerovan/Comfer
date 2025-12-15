@@ -351,5 +351,6 @@
     <string name="title_battery_saver">Batareya tejash</string>
     <string name="battery_saver_text">Batareyani tejash uchun yoqing</string>
     <string name="text_saving_battery">Batareya tejalyapti…</string>
+    <string name="icon_pack_support">Yoqtirgan ikonalar to‘plamingizdan foydalaning</string>
 
 </resources>

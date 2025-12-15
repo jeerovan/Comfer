@@ -351,5 +351,6 @@
     <string name="title_battery_saver">Зай хэмнэгч</string>
     <string name="battery_saver_text">Зай хэмнэхийн тулд асаана уу</string>
     <string name="text_saving_battery">Зай хэмнэж байна…</string>
+    <string name="icon_pack_support">Дуртай дүрсний багцаа ашиглаарай</string>
 
 </resources>

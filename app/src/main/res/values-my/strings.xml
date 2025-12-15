@@ -351,5 +351,6 @@
     <string name="title_battery_saver">ဘတ္ထရီထိန်းသိမ်းမှု</string>
     <string name="battery_saver_text">ဘတ္ထရီမသုံးရှားစေရန် ဖွင့်ပါ</string>
     <string name="text_saving_battery">ဘတ္ထရီထိန်းသိမ်းနေသည်…</string>
+    <string name="icon_pack_support">နှစ်သက်ရာ အိုင်ကွန်အုပ်စုကို အသုံးပြုပါ</string>
 
 </resources>

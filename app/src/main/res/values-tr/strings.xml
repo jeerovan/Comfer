@@ -351,5 +351,6 @@
     <string name="title_battery_saver">Pil tasarrufu</string>
     <string name="battery_saver_text">Pil tasarrufu için açın</string>
     <string name="text_saving_battery">Pil tasarrufu yapılıyor…</string>
+    <string name="icon_pack_support">Favori simge paketinizi kullanın</string>
 
 </resources>

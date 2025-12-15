@@ -351,5 +351,6 @@
     <string name="title_battery_saver">صرفه‌جوی باتری</string>
     <string name="battery_saver_text">برای صرفه‌جویی باتری روشن کنید</string>
     <string name="text_saving_battery">در حال صرفه‌جویی باتری…</string>
+    <string name="icon_pack_support">از بسته آیکن موردعلاقه‌تان استفاده کنید</string>
 
 </resources>

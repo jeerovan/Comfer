@@ -351,5 +351,6 @@
     <string name="title_battery_saver">ປະຫຍັດແບັດ</string>
     <string name="battery_saver_text">ເປີດເພື່ອປະຫຍັດແບັດ</string>
     <string name="text_saving_battery">ກໍາລັງປະຫຍັດແບັດ…</string>
+    <string name="icon_pack_support">ໃຊ້ຊຸດໄອຄອນທີ່ທ່ານມັກ</string>
 
 </resources>

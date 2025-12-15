@@ -351,5 +351,6 @@
     <string name="title_battery_saver">バッテリー節約</string>
     <string name="battery_saver_text">節電のためオンにしてください</string>
     <string name="text_saving_battery">バッテリー節約中…</string>
+    <string name="icon_pack_support">お気に入りのアイコンパックを使う</string>
 
 </resources>

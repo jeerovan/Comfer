@@ -349,4 +349,5 @@
     <string name="title_battery_saver">Battery Saver</string>
     <string name="battery_saver_text">Enable to save battery</string>
     <string name="text_saving_battery">Saving battery</string>
+    <string name="icon_pack_support">Use your favorite icon pack</string>
 </resources>

@@ -351,5 +351,6 @@
     <string name="title_battery_saver">សន្សំថាមពលថ្ម</string>
     <string name="battery_saver_text">បើកដើម្បីសន្សំថ្ម</string>
     <string name="text_saving_battery">កំពុងសន្សំថ្ម…</string>
+    <string name="icon_pack_support">ប្រើកញ្ចប់រូបតំណាងដែលអ្នកចូលចិត្ត</string>
 
 </resources>

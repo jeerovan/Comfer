@@ -351,5 +351,6 @@
     <string name="title_battery_saver">Économie de batterie</string>
     <string name="battery_saver_text">Activez pour économiser la batterie</string>
     <string name="text_saving_battery">Économie de batterie…</string>
+    <string name="icon_pack_support">Utilisez votre pack d’icônes préféré</string>
 
 </resources>

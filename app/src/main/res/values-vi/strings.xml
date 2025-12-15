@@ -351,5 +351,6 @@
     <string name="title_battery_saver">Tiết kiệm pin</string>
     <string name="battery_saver_text">Bật để tiết kiệm pin</string>
     <string name="text_saving_battery">Đang tiết kiệm pin…</string>
+    <string name="icon_pack_support">Dùng gói biểu tượng bạn yêu thích</string>
 
 </resources>

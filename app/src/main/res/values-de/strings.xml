@@ -351,5 +351,6 @@
     <string name="title_battery_saver">Energiesparmodus</string>
     <string name="battery_saver_text">Zum Batteriesparen aktivieren</string>
     <string name="text_saving_battery">Batterie wird gespart…</string>
+    <string name="icon_pack_support">Verwenden Sie Ihr Lieblings-Icon-Paket</string>
 
 </resources>

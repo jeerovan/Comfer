@@ -351,5 +351,6 @@
     <string name="title_battery_saver">Экономия батареи</string>
     <string name="battery_saver_text">Включите для экономии батареи</string>
     <string name="text_saving_battery">Экономия батареи…</string>
+    <string name="icon_pack_support">Используйте любимый пакет иконок</string>
 
 </resources>

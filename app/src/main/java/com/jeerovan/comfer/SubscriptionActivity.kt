@@ -318,6 +318,7 @@ private fun SubscribedContent(
                 BenefitItem(stringResource(R.string.subscription_benefit_two))
                 BenefitItem(stringResource(R.string.subscription_benefit_three))
                 BenefitItem(stringResource(R.string.subscription_benefit_four))
+                BenefitItem(stringResource(R.string.icon_pack_support))
             }
         }
 
@@ -435,6 +436,7 @@ private fun SubscriptionContent(
                 BenefitItem(stringResource(R.string.subscription_benefit_two))
                 BenefitItem(stringResource(R.string.subscription_benefit_three))
                 BenefitItem(stringResource(R.string.subscription_benefit_four))
+                BenefitItem(stringResource(R.string.icon_pack_support))
             }
         }
 

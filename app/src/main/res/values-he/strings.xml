@@ -351,5 +351,6 @@
     <string name="title_battery_saver">חיסכון בסוללה</string>
     <string name="battery_saver_text">הפעילו לחיסכון בסוללה</string>
     <string name="text_saving_battery">חוסך בסוללה…</string>
+    <string name="icon_pack_support">השתמשו בחבילת האייקונים המועדפת עליכם</string>
 
 </resources>

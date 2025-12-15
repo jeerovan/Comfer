@@ -351,6 +351,7 @@
     <string name="title_battery_saver">موفر البطارية</string>
     <string name="battery_saver_text">شغّل للتوفير في البطارية</string>
     <string name="text_saving_battery">جارٍ توفير البطارية…</string>
+    <string name="icon_pack_support">استخدم حزمة الأيقونات المفضلة لديك</string>
 
 
 </resources>

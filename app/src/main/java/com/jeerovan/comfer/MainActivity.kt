@@ -171,6 +171,7 @@ import android.view.WindowManager
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import android.view.ContextThemeWrapper
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -2782,7 +2783,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 detectTapGestures(
                     onLongPress = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        context.startActivity(Intent(context, SettingsActivity::class.java))
+                        val intent = Intent(context, SettingsActivity::class.java)
+                        handleStartActivity(context,intent,null)
                     },
                     onDoubleTap = {
                         if (isAccessibilityServiceEnabled(

@@ -351,5 +351,6 @@
     <string name="title_battery_saver">Batareya qənaəti</string>
     <string name="battery_saver_text">Batareyaya qənaət üçün aktiv edin</string>
     <string name="text_saving_battery">Batareyaya qənaət edilir…</string>
+    <string name="icon_pack_support">Sevdiyiniz ikon paketindən istifadə edin</string>
 
 </resources>

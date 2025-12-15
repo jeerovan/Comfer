@@ -351,5 +351,6 @@
     <string name="title_battery_saver">배터리 절약 모드</string>
     <string name="battery_saver_text">배터리를 절약하려면 켜세요</string>
     <string name="text_saving_battery">배터리 절약 중…</string>
+    <string name="icon_pack_support">즐겨 쓰는 아이콘 팩을 사용하세요</string>
 
 </resources>

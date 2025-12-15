@@ -351,5 +351,6 @@
     <string name="title_battery_saver">省电模式</string>
     <string name="battery_saver_text">开启以节省电量</string>
     <string name="text_saving_battery">正在节省电量…</string>
+    <string name="icon_pack_support">使用你喜欢的图标包</string>
 
 </resources>
