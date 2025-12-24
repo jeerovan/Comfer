@@ -1,0 +1,357 @@
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">স্বাগতম</string>
+
+    <string name="checkout_how_to_guide">
+        মেনু খুলতে এবং “কীভাবে করবেন” গাইড দেখতে স্ক্রিনের নিচের অর্ধেক অংশে দীর্ঘক্ষণ চাপ দিন。\nদায়বদ্ধতা: কিছু অনুবাদ স্বয়ংক্রিয়ভাবে তৈরি হতে পারে। কোনো ভুল লেখা চোখে পড়লে অনুগ্রহ করে ইমেইলের মাধ্যমে আমাদের জানান।
+    </string>
+
+    <string name="accessibility_service_description">
+        সিস্টেমের “সাম্প্রতিক অ্যাপস” স্ক্রিন খুলতে এই অ্যাক্সেসিবিলিটি সার্ভিসটি প্রয়োজন। Comfer এই অনুমতিটি শুধুমাত্র শর্টকাট সুবিধা দেওয়ার জন্য ব্যবহার করে এবং কোনো ব্যক্তিগত তথ্য সংগ্রহ বা পর্যবেক্ষণ করে না।
+    </string>
+
+    <string name="set_default_launcher">ডিফল্ট লঞ্চার হিসেবে সেট করুন</string>
+    <string name="widget_binding_cancelled">উইজেট সেটআপ বাতিল হয়েছে</string>
+    <string name="long_press_to_add_edit_widgets">উইজেট যোগ বা সম্পাদনা করতে দীর্ঘক্ষণ চাপ দিন</string>
+
+    <string name="add_widget">উইজেট যোগ করুন</string>
+    <string name="could_not_load_widget">উইজেট লোড করা যায়নি</string>
+    <string name="remove_widget">উইজেট সরান</string>
+
+    <string name="close">বন্ধ করুন</string>
+    <string name="applications">অ্যাপস</string>
+    <string name="contacts">যোগাযোগ</string>
+    <string name="search">অনুসন্ধান</string>
+
+    <string name="requires_contact_permission">
+        যোগাযোগ অনুসন্ধান ও কল করার জন্য কন্টাক্ট অনুমতি প্রয়োজন।
+    </string>
+
+    <string name="grant_permission">অনুমতি দিন</string>
+
+    <string name="privacy_policy_text">
+        আমরা আপনার গোপনীয়তাকে সম্মান করি। Comfer কোনো ব্যক্তিগত তথ্য সংগ্রহ বা সংরক্ষণ করে না। আমাদের গোপনীয়তা নীতি পড়তে ট্যাপ করুন।
+    </string>
+
+    <string name="background_image">পটভূমির ছবি</string>
+    <string name="feedback">প্রতিক্রিয়া</string>
+    <string name="feedback_text">আপনার অভিজ্ঞতা শেয়ার করুন এবং Comfer উন্নত করতে সাহায্য করুন।</string>
+    <string name="feedback_icon">প্রতিক্রিয়া আইকন</string>
+
+    <string name="rate_comfer">Comfer রেট করুন</string>
+    <string name="not_now">এখন নয়</string>
+
+    <string name="permission_required">অনুমতি প্রয়োজন</string>
+
+    <string name="recent_apps_permission_title">
+        সাম্প্রতিক অ্যাপস শর্টকাট সক্রিয় করতে Comfer-এর অ্যাক্সেসিবিলিটি সার্ভিস অনুমতি প্রয়োজন।
+    </string>
+
+    <string name="what_recent_apps_short_do_title">এই সার্ভিস যা করে:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • সিস্টেমের সাম্প্রতিক অ্যাপস স্ক্রিন খোলে।
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">এই সার্ভিস যা করে না:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • কোনো ব্যক্তিগত তথ্য সংগ্রহ করে না。\n
+        • আপনার কার্যকলাপ বা টাইপ করা লেখা পর্যবেক্ষণ করে না。\n
+        • স্ক্রিনের বিষয়বস্তু পড়ে না।
+    </string>
+
+    <string name="continue_text">চালিয়ে যান</string>
+    <string name="cancel_text">বাতিল</string>
+    <string name="backspace_key">ব্যাকস্পেস কী</string>
+
+    <string name="contact_number_not_available">ফোন নম্বর উপলব্ধ নয়</string>
+    <string name="no_app_to_place_calls">কল করার জন্য কোনো অ্যাপ পাওয়া যায়নি</string>
+
+    <string name="update_available">নতুন আপডেট উপলব্ধ।</string>
+    <string name="update_action">আপডেট</string>
+    <string name="update_downloaded">আপডেট ইনস্টল করার জন্য প্রস্তুত।</string>
+    <string name="update_install">ইনস্টল</string>
+
+    <string name="select_an_application">একটি অ্যাপ নির্বাচন করুন</string>
+
+    <string name="gesture_shortcuts_title">জেসচার শর্টকাট</string>
+    <string name="paid_feature_title">প্রিমিয়াম ফিচার</string>
+
+    <string name="tap_icon_to_select_app">অ্যাপ নির্বাচন করতে আইকনে ট্যাপ করুন</string>
+
+    <string name="requires_subscription">সাবস্ক্রিপশন প্রয়োজন</string>
+
+    <string name="button_to_move_app_to_quick_app_list">হোম অ্যাপে সরান</string>
+    <string name="button_to_move_app_to_primary_app_list">ড্রয়ার অ্যাপে সরান</string>
+    <string name="button_to_move_app_to_ghost_app_list">লুকানো অ্যাপে সরান</string>
+
+    <string name="title_widgets">উইজেটস</string>
+    <string name="title_time">সময়</string>
+    <string name="rest_widget_positions">অবস্থান রিসেট করুন</string>
+
+    <string name="title_analog_clock">অ্যানালগ ঘড়ি</string>
+    <string name="title_clock_size">ঘড়ির আকার</string>
+    <string name="clock_background_color">ঘড়ির পটভূমির রঙ</string>
+    <string name="background_transparency">পটভূমির স্বচ্ছতা</string>
+    <string name="hour_hand_color">ঘণ্টার কাঁটার রঙ</string>
+    <string name="minute_hand_color">মিনিটের কাঁটার রঙ</string>
+
+    <string name="title_time_format">সময় ফরম্যাট</string>
+    <string name="title_show_am_pm">AM/PM দেখান</string>
+    <string name="title_font_size">ফন্টের আকার</string>
+    <string name="title_font_weight">ফন্টের ওজন</string>
+    <string name="title_font_style">ফন্টের ধরন</string>
+    <string name="title_time_font_color">সময়ের ফন্ট রঙ</string>
+
+    <string name="title_date">তারিখ</string>
+    <string name="date_example">শনি, সেপ্টেম্বর ১৬</string>
+    <string name="date_font_color">তারিখের ফন্ট রঙ</string>
+
+    <string name="title_battery">ব্যাটারি</string>
+    <string name="show_battery_icon">ব্যাটারি আইকন দেখান</string>
+    <string name="show_battery_percentage">ব্যাটারি শতাংশ দেখান</string>
+    <string name="battery_indicator_color">সূচক রঙ</string>
+
+    <string name="title_notifications">নোটিফিকেশন</string>
+    <string name="show_notification_icons">নোটিফিকেশন আইকন দেখান</string>
+
+    <string name="title_size">আকার</string>
+    <string name="title_color">রঙ</string>
+    <string name="title_selected_color">নির্বাচিত রঙ</string>
+
+    <string name="button_text_save">সংরক্ষণ করুন</string>
+
+    <string name="title_premium">প্রিমিয়াম</string>
+    <string name="title_pro_features">প্রো ফিচার</string>
+    <string name="title_subscription">সাবস্ক্রিপশন</string>
+    <string name="go_to_page">পৃষ্ঠা খুলুন</string>
+
+    <string name="title_support">সহায়তা</string>
+    <string name="title_how_to">কীভাবে করবেন</string>
+    <string name="title_app_guide">অ্যাপ নেভিগেশন গাইড</string>
+
+    <string name="icon_how_to_guide">কীভাবে করবেন গাইড আইকন</string>
+    <string name="icon_arrow_right">ডান তীর আইকন</string>
+
+    <string name="title_report_issue">সমস্যা রিপোর্ট করুন</string>
+    <string name="icon_support">সহায়তা আইকন</string>
+
+    <string name="title_wallpapers">ওয়ালপেপার</string>
+    <string name="title_auto_wallpapers">স্বয়ংক্রিয় ওয়ালপেপার</string>
+    <string name="auto_wallpaper_text">স্বয়ংক্রিয়ভাবে ওয়ালপেপার পরিবর্তন করুন</string>
+    <string name="icon_wallpaper">ওয়ালপেপার আইকন</string>
+
+    <string name="title_monochrome">মনোক্রোম পটভূমি</string>
+    <string name="title_color_less_world">রঙহীন মোড</string>
+    <string name="icon_monochrome">মনোক্রোম আইকন</string>
+
+    <string name="title_wallpaper_motion">ওয়ালপেপার অ্যানিমেশন</string>
+    <string name="wallpaper_motion_text">হোম স্ক্রিন অ্যানিমেট করুন</string>
+    <string name="icon_wallpaper_motion">ওয়ালপেপার অ্যানিমেশন আইকন</string>
+
+    <string name="title_change_wallpaper">ওয়ালপেপার পরিবর্তন করুন</string>
+    <string name="change_wallpaper_text">এখনই ওয়ালপেপার পরিবর্তন করতে ট্যাপ করুন</string>
+    <string name="icon_wallpaper_change">ওয়ালপেপার পরিবর্তন আইকন</string>
+
+    <string name="title_wallpaper_frequency">পরিবর্তনের ফ্রিকোয়েন্সি</string>
+    <string name="wallpaper_frequency_text">স্বয়ংক্রিয় দিন/রাত মোড সহ</string>
+    <string name="icon_wallpaper_frequency">ওয়ালপেপার ফ্রিকোয়েন্সি আইকন</string>
+
+    <string name="title_own_wallpapers">নিজের ওয়ালপেপার সেট করুন</string>
+    <string name="wallpaper_directory_select">ফোল্ডার নির্বাচন করতে ট্যাপ করুন</string>
+    <string name="icon_wallpaper_directory">ওয়ালপেপার ফোল্ডার আইকন</string>
+
+    <string name="set_launcher_first">প্রথমে Comfer-কে ডিফল্ট লঞ্চার হিসেবে সেট করুন</string>
+
+    <string name="title_lock_screen">লক স্ক্রিন</string>
+    <string name="lock_screen_wallpaper_text">লক স্ক্রিনেও ওয়ালপেপার সেট করুন</string>
+    <string name="icon_lock_screen_wallpaper">লক স্ক্রিন ওয়ালপেপার আইকন</string>
+
+    <string name="title_app_icons">অ্যাপ আইকন</string>
+    <string name="title_app_icon_size">আইকনের আকার</string>
+    <string name="icon_app_icon_size">অ্যাপ আইকন আকার আইকন</string>
+    <string name="button_decrease_app_icon_size">আইকনের আকার কমান</string>
+    <string name="button_increase_app_icon_size">আইকনের আকার বাড়ান</string>
+
+    <string name="title_themed_icons">থিমযুক্ত আইকন</string>
+    <string name="themed_icons_text">ওয়ালপেপারের সাথে আইকনের রঙ মিলান (পরীক্ষামূলক)</string>
+    <string name="icon_themed_icons">থিমযুক্ত আইকন আইকন</string>
+
+    <string name="title_notification_badges">নোটিফিকেশন ও আইকন ব্যাজ</string>
+    <string name="requires_notification_permission">নোটিফিকেশন অনুমতি প্রয়োজন</string>
+    <string name="icon_notification_badges">নোটিফিকেশন ব্যাজ আইকন</string>
+
+    <string name="title_home_screen">হোম স্ক্রিন</string>
+    <string name="title_custom_widgets">কাস্টম উইজেট</string>
+    <string name="custom_widgets_text">আপনার পছন্দের উইজেট</string>
+    <string name="icon_custom_widgets">কাস্টম উইজেট আইকন</string>
+
+    <string name="title_quick_apps_layout">কুইক অ্যাপ লেআউট</string>
+    <string name="quick_apps_layout_text">স্টাইল সহ অ্যাপ সাজান</string>
+    <string name="icon_apps_layout">কুইক অ্যাপ লেআউট আইকন</string>
+
+    <string name="title_left_swipe_action">বাম সোয়াইপ অ্যাকশন</string>
+    <string name="icon_left_swipe_action">বাম সোয়াইপ অ্যাকশন আইকন</string>
+
+    <string name="title_right_swipe_action">ডান সোয়াইপ অ্যাকশন</string>
+    <string name="icon_right_swipe_action">ডান সোয়াইপ অ্যাকশন আইকন</string>
+
+    <string name="title_swipe_gestures">সোয়াইপ জেসচার</string>
+    <string name="swipe_gestures_text">অ্যাপ শর্টকাটের জন্য জেসচার ব্যবহার করুন</string>
+    <string name="icon_swipe_gestures">সোয়াইপ জেসচার আইকন</string>
+
+    <string name="title_app_drawer">অ্যাপ ড্রয়ার</string>
+    <string name="title_app_drawer_layouts">লেআউট</string>
+    <string name="app_drawer_layouts_text">অ্যাপ ব্রাউজ করার স্টাইল</string>
+
+    <string name="title_alphabetical_order">বর্ণানুক্রমিক ক্রম</string>
+    <string name="alphabetical_order_text">অ্যাপগুলো বর্ণানুক্রমে সাজান</string>
+    <string name="icon_alphabetical_order">বর্ণানুক্রমিক ক্রম আইকন</string>
+
+    <string name="title_apps_list">অ্যাপ তালিকা</string>
+    <string name="title_manage_app_list">অ্যাপ পরিচালনা</string>
+    <string name="manage_app_list_text">তালিকায় অ্যাপ সাজান বা পুনর্বিন্যাস করুন</string>
+    <string name="icon_manage_app_list">অ্যাপ তালিকা পরিচালনা আইকন</string>
+
+    <string name="title_feedback">প্রতিক্রিয়া</string>
+    <string name="icon_feedback">প্রতিক্রিয়া আইকন</string>
+
+    <string name="title_share_app">অ্যাপ শেয়ার করুন</string>
+    <string name="icon_share_app">অ্যাপ শেয়ার আইকন</string>
+    <string name="share_app_text">এই নতুন লঞ্চারটি ব্যবহার করে দেখুন:</string>
+
+    <string name="title_share_with">এর সাথে শেয়ার করুন</string>
+
+    <string name="title_app_version">অ্যাপ সংস্করণ</string>
+    <string name="icon_app_version">অ্যাপ সংস্করণ আইকন</string>
+
+    <string name="title_icon_shapes">আইকনের আকার</string>
+    <string name="icon_shapes_text">অ্যাপ আইকনের আকার নির্ধারণ করুন</string>
+    <string name="icon_icon_shapes">আইকনের আকার আইকন</string>
+
+    <string name="title_select_icon_shape">আইকনের আকার নির্বাচন করুন</string>
+
+    <string name="notification_permission_text">
+        হোম স্ক্রিনে নোটিফিকেশন আইকন এবং অ্যাপ আইকনে ব্যাজ দেখাতে Comfer-এর নোটিফিকেশন অনুমতি প্রয়োজন।
+    </string>
+
+    <string name="what_notification_permission_do_title">এই সার্ভিস যা করে:</string>
+
+    <string name="what_notification_permission_do_text">
+        • নোটিফিকেশনের অবস্থা পড়ে এবং প্রয়োজন অনুযায়ী আইকন ও ব্যাজ দেখায়।
+    </string>
+
+    <string name="what_notification_permission_do_not_title">এই সার্ভিস যা করে না:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • কোনো ব্যক্তিগত তথ্য সংগ্রহ করে না।
+    </string>
+
+    <string name="title_choose_layout">লেআউট নির্বাচন করুন</string>
+    <string name="swipe_action_selection">একটি অ্যাপ বা উইজেট স্ক্রিন নির্বাচন করুন</string>
+    <string name="title_choose_options">বিকল্প নির্বাচন করুন</string>
+    <string name="title_select_app">অ্যাপ নির্বাচন করুন</string>
+    <string name="title_widgets_screen">উইজেট স্ক্রিন</string>
+    <string name="title_choose_action">অ্যাকশন নির্বাচন করুন</string>
+
+    <string name="unable_to_load_subscriptions">
+        সাবস্ক্রিপশন তথ্য লোড করা যায়নি। অনুগ্রহ করে সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">সাবস্ক্রিপশন লোড ব্যর্থ</string>
+    <string name="no_subscription_available">কোনো সাবস্ক্রিপশন উপলব্ধ নেই</string>
+
+    <string name="title_active_subscription">সক্রিয় সাবস্ক্রিপশন</string>
+    <string name="subscription_renews_on">নবায়ন হবে</string>
+    <string name="subscription_expires_on">মেয়াদ শেষ হবে</string>
+
+    <string name="subscription_benefit_one">নিজস্ব ডাইনামিক ওয়ালপেপার সেট করুন</string>
+    <string name="subscription_benefit_two">হোম স্ক্রিনে আপনার পছন্দের উইজেট যোগ করুন</string>
+    <string name="subscription_benefit_three">হোম স্ক্রিনের ডিফল্ট উইজেট কাস্টমাইজ করুন</string>
+    <string name="subscription_benefit_four">জেসচার ব্যবহার করে দ্রুত অ্যাপ খুলুন</string>
+
+    <string name="title_manage_your_subscription">আপনার সাবস্ক্রিপশন পরিচালনা করুন</string>
+    <string name="title_pro_access">প্রো অ্যাক্সেস</string>
+    <string name="title_year">বছর</string>
+
+    <string name="subscription_failed_prefix">সাবস্ক্রিপশন ব্যর্থ</string>
+    <string name="subscription_successful_prefix">সাবস্ক্রিপশন সফল</string>
+    <string name="title_subscribe_now">এখনই সাবস্ক্রাইব করুন</string>
+
+    <string name="subscription_restore_failed_prefix">সাবস্ক্রিপশন পুনরুদ্ধার ব্যর্থ</string>
+    <string name="subscription_restore_successful_prefix">সাবস্ক্রিপশন সফলভাবে পুনরুদ্ধার হয়েছে</string>
+    <string name="subscription_not_found_to_restore">পুনরুদ্ধারের জন্য কোনো সাবস্ক্রিপশন পাওয়া যায়নি</string>
+    <string name="title_restore_subscription">সাবস্ক্রিপশন পুনরুদ্ধার করুন</string>
+
+    <string name="guide_home_swipe_up">অ্যাপ ড্রয়ার খুলতে উপরে সোয়াইপ করুন।</string>
+    <string name="guide_home_swipe_down">নোটিফিকেশন দেখতে নিচে সোয়াইপ করুন।</string>
+    <string name="guide_home_double_tap">সাম্প্রতিক অ্যাপস খুলতে স্ক্রিনে ডাবল-ট্যাপ করুন।</string>
+    <string name="guide_home_long_press_lower">সেটিংস খুলতে স্ক্রিনের নিচের অর্ধেকে দীর্ঘক্ষণ চাপ দিন।</string>
+    <string name="guide_home_long_press_upper">উইজেট সম্পাদনা করতে স্ক্রিনের উপরের অর্ধেকে দীর্ঘক্ষণ চাপ দিন।</string>
+    <string name="guide_home_tap_upper_half">উইজেট সম্পাদনা থেকে বের হতে উপরের অর্ধেকে ট্যাপ করুন।</string>
+    <string name="guide_home_tap_date_time">অ্যালার্ম দেখতে তারিখ/সময়ে ট্যাপ করুন।</string>
+    <string name="guide_home_long_press_date_time">ক্যালেন্ডার খুলতে তারিখ/সময়ে দীর্ঘক্ষণ চাপ দিন।</string>
+    <string name="guide_home_swipe_left_right">নির্বাচিত অ্যাপ বা উইজেট স্ক্রিন খুলতে বাম বা ডানে সোয়াইপ করুন।</string>
+    <string name="guide_home_gestures">জেসচার শর্টকাটে সেট করা অ্যাপ খুলতে জেসচার আঁকুন।</string>
+
+    <string name="guide_circular_app_drawer">বৃত্তাকার অ্যাপ ড্রয়ার</string>
+    <string name="guide_circular_app_drawer_swipe_down">ফিরে যেতে নিচে সোয়াইপ করুন।</string>
+    <string name="guide_circular_app_drawer_double_tap">মাঝখানের অ্যাপ খুলতে ডাবল-ট্যাপ করুন।</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">স্ক্রল করতে বাম বা ডানে সোয়াইপ করুন।</string>
+    <string name="guide_circular_app_drawer_tap_icon">অ্যাপ খুলতে আইকনে ট্যাপ করুন।</string>
+    <string name="guide_circular_app_drawer_long_press_icon">অ্যাপ তথ্য খুলতে আইকনে দীর্ঘক্ষণ চাপ দিন।</string>
+
+    <string name="guide_horizontal_app_drawer">অনুভূমিক অ্যাপ ড্রয়ার</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">ফিরে যেতে নিচে সোয়াইপ করুন।</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">স্ক্রল করতে বাম বা ডানে সোয়াইপ করুন।</string>
+    <string name="guide_horizontal_app_drawer_long_press">ড্রয়ার পরিচালনা করতে দীর্ঘক্ষণ চাপ দিন।</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">এডিট মোডে আইকন টেনে এনে অবস্থান পরিবর্তন করুন।</string>
+    <string name="guide_horizontal_app_drawer_drag">এডিট মোডে ড্রয়ার টেনে উল্লম্বভাবে সরান।</string>
+    <string name="guide_horizontal_app_drawer_single_tap">এডিট মোড থেকে বের হতে একবার ট্যাপ করুন।</string>
+
+    <string name="guide_search">অ্যাপ বা যোগাযোগ অনুসন্ধান করুন।</string>
+    <string name="guide_search_swipe_down">ফিরে যেতে কীবোর্ডে নিচে সোয়াইপ করুন।</string>
+    <string name="guide_search_swipe_right">যোগাযোগ অনুসন্ধান করতে কীবোর্ডে ডানে সোয়াইপ করুন।</string>
+    <string name="guide_search_swipe_left">অ্যাপ অনুসন্ধান করতে কীবোর্ডে বামে সোয়াইপ করুন।</string>
+    <string name="guide_search_swipe_up">আরও অক্ষর দেখতে কীবোর্ডে উপরে সোয়াইপ করুন।</string>
+    <string name="guide_search_long_press">ভাষা নির্বাচন করতে মাঝখানের ব্যাক অ্যারোতে দীর্ঘক্ষণ চাপ দিন।</string>
+    <string name="guide_search_scroll_list">সব ফলাফল দেখতে অ্যাপ তালিকা অনুভূমিকভাবে স্ক্রল করুন।</string>
+    <string name="guide_search_scroll_sides">যোগাযোগ তালিকা স্ক্রল করতে বৃত্তাকার কীবোর্ডের দুপাশ স্ক্রল করুন।</string>
+    <string name="guide_search_double_tap_sides">হাইলাইট করা যোগাযোগসহ ডায়ালার খুলতে কীবোর্ডের যেকোনো পাশে ডাবল-ট্যাপ করুন।</string>
+
+    <string name="guide_manage_apps">অ্যাপ তালিকা পরিচালনা করুন</string>
+    <string name="guide_manage_apps_tap">অ্যাপ নির্বাচন করে অন্য তালিকায় সরাতে ট্যাপ করুন।</string>
+    <string name="guide_manage_apps_long_press">
+        একই তালিকায় অ্যাপ পুনর্বিন্যাস করতে আইকনে দীর্ঘক্ষণ চাপ দিয়ে টানুন। বর্ণানুক্রমে সাজানো না থাকলে কাজ করে।
+    </string>
+
+    <string name="title_app_language">অ্যাপ ভাষা</string>
+    <string name="app_language_text">অ্যাপের ভাষা পরিবর্তন করতে ট্যাপ করুন</string>
+    <string name="icon_app_language">অ্যাপ ভাষা আইকন</string>
+
+    <string name="update_frequency_hour">এক ঘণ্টা</string>
+    <string name="update_frequency_day">এক দিন</string>
+
+    <string name="font_weight_light">হালকা</string>
+    <string name="font_weight_normal">স্বাভাবিক</string>
+    <string name="font_weight_bold">গাঢ়</string>
+
+    <string name="icon_go_back">পিছনে যাওয়ার আইকন</string>
+    <string name="title_advanced">উন্নত</string>
+    <string name="title_text_angle">ঝোঁক</string>
+    <string name="title_text_radius">বক্রতা</string>
+    <string name="title_shadow">ছায়া</string>
+
+    <string name="date_example_two">শনি\nসেপ্টে\n১৬</string>
+    <string name="title_transparency">স্বচ্ছতা</string>
+    <string name="title_wallpaper_colors">ওয়ালপেপারের রঙ</string>
+    <string name="title_icon_pack">আইকন প্যাক</string>
+    <string name="title_select_icon_app">আইকন প্যাক নির্বাচন করুন</string>
+    <string name="title_not_available">উপলব্ধ নয়</string>
+    <string name="title_action_clear">মুছুন</string>
+    <string name="title_battery_saver">ব্যাটারি সেভার</string>
+    <string name="battery_saver_text">ব্যাটারি সাশ্রয়ের জন্য সক্রিয় করুন</string>
+    <string name="text_saving_battery">ব্যাটারি সাশ্রয় হচ্ছে</string>
+    <string name="icon_pack_support">আপনার পছন্দের আইকন প্যাক ব্যবহার করুন</string>
+</resources>

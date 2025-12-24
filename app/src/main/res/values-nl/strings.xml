@@ -1,0 +1,357 @@
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">Welkom</string>
+
+    <string name="checkout_how_to_guide">
+        Houd het onderste deel van het scherm ingedrukt om het menu te openen en de “Hoe werkt het”-gids te bekijken.\nDisclaimer: Sommige vertalingen zijn mogelijk automatisch gegenereerd. Als u onjuiste tekst opmerkt, neem dan contact met ons op via e-mail.
+    </string>
+
+    <string name="accessibility_service_description">
+        Deze service is nodig om het systeemscherm “Recente apps” te openen. Comfer gebruikt deze toestemming uitsluitend om de snelkoppeling te bieden en verzamelt of monitort geen persoonlijke gegevens.
+    </string>
+
+    <string name="set_default_launcher">Instellen als standaardlauncher</string>
+    <string name="widget_binding_cancelled">Widgetinstelling geannuleerd</string>
+    <string name="long_press_to_add_edit_widgets">Houd ingedrukt om widgets toe te voegen of te bewerken</string>
+
+    <string name="add_widget">Widget toevoegen</string>
+    <string name="could_not_load_widget">Kan widget niet laden</string>
+    <string name="remove_widget">Widget verwijderen</string>
+
+    <string name="close">Sluiten</string>
+    <string name="applications">Apps</string>
+    <string name="contacts">Contacten</string>
+    <string name="search">Zoeken</string>
+
+    <string name="requires_contact_permission">
+        Toegang tot contacten is vereist om ze te zoeken en te bellen.
+    </string>
+
+    <string name="grant_permission">Toestemming geven</string>
+
+    <string name="privacy_policy_text">
+        Wij respecteren uw privacy. Comfer verzamelt of bewaart geen persoonlijke gegevens. Tik om ons privacybeleid te lezen.
+    </string>
+
+    <string name="background_image">Achtergrondafbeelding</string>
+    <string name="feedback">Feedback</string>
+    <string name="feedback_text">Deel uw ervaring en help Comfer te verbeteren.</string>
+    <string name="feedback_icon">Feedbackpictogram</string>
+
+    <string name="rate_comfer">Beoordeel Comfer</string>
+    <string name="not_now">Niet nu</string>
+
+    <string name="permission_required">Toestemming vereist</string>
+
+    <string name="recent_apps_permission_title">
+        Om de snelkoppeling Recente apps in te schakelen, heeft Comfer toegang tot de toegankelijkheidsservice nodig.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">Deze service maakt het volgende mogelijk:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • Het openen van het systeemscherm Recente apps.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">Deze service doet het volgende niet:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • Persoonlijke gegevens verzamelen.\n
+        • Acties of getypte tekst monitoren.\n
+        • Scherminhoud lezen.
+    </string>
+
+    <string name="continue_text">Doorgaan</string>
+    <string name="cancel_text">Annuleren</string>
+    <string name="backspace_key">Backspace-toets</string>
+
+    <string name="contact_number_not_available">Telefoonnummer niet beschikbaar</string>
+    <string name="no_app_to_place_calls">Geen belapp gevonden</string>
+
+    <string name="update_available">Er is een nieuwe update beschikbaar.</string>
+    <string name="update_action">Bijwerken</string>
+    <string name="update_downloaded">Update klaar om te installeren.</string>
+    <string name="update_install">Installeren</string>
+
+    <string name="select_an_application">Selecteer een app</string>
+
+    <string name="gesture_shortcuts_title">Gebarensnelkoppelingen</string>
+    <string name="paid_feature_title">Premiumfunctie</string>
+
+    <string name="tap_icon_to_select_app">Tik op een pictogram om een app te selecteren</string>
+
+    <string name="requires_subscription">Abonnement vereist</string>
+
+    <string name="button_to_move_app_to_quick_app_list">Verplaatsen naar Home-apps</string>
+    <string name="button_to_move_app_to_primary_app_list">Verplaatsen naar Lade-apps</string>
+    <string name="button_to_move_app_to_ghost_app_list">Verplaatsen naar Verborgen apps</string>
+
+    <string name="title_widgets">Widgets</string>
+    <string name="title_time">Tijd</string>
+    <string name="rest_widget_positions">Posities resetten</string>
+
+    <string name="title_analog_clock">Analoge klok</string>
+    <string name="title_clock_size">Klokgrootte</string>
+    <string name="clock_background_color">Achtergrondkleur klok</string>
+    <string name="background_transparency">Achtergrondtransparantie</string>
+    <string name="hour_hand_color">Kleur uurwijzer</string>
+    <string name="minute_hand_color">Kleur minuutwijzer</string>
+
+    <string name="title_time_format">Tijdnotatie</string>
+    <string name="title_show_am_pm">AM/PM weergeven</string>
+    <string name="title_font_size">Lettergrootte</string>
+    <string name="title_font_weight">Letterdikte</string>
+    <string name="title_font_style">Letterstijl</string>
+    <string name="title_time_font_color">Letterkleur tijd</string>
+
+    <string name="title_date">Datum</string>
+    <string name="date_example">Za, sep 16</string>
+    <string name="date_font_color">Letterkleur datum</string>
+
+    <string name="title_battery">Batterij</string>
+    <string name="show_battery_icon">Batterijpictogram weergeven</string>
+    <string name="show_battery_percentage">Batterijpercentage weergeven</string>
+    <string name="battery_indicator_color">Indicatorkleur</string>
+
+    <string name="title_notifications">Meldingen</string>
+    <string name="show_notification_icons">Meldingspictogrammen weergeven</string>
+
+    <string name="title_size">Grootte</string>
+    <string name="title_color">Kleur</string>
+    <string name="title_selected_color">Geselecteerde kleur</string>
+
+    <string name="button_text_save">Opslaan</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">Pro-functies</string>
+    <string name="title_subscription">Abonnement</string>
+    <string name="go_to_page">Pagina openen</string>
+
+    <string name="title_support">Ondersteuning</string>
+    <string name="title_how_to">Hoe werkt het</string>
+    <string name="title_app_guide">App-navigatiegids</string>
+
+    <string name="icon_how_to_guide">Hoe werkt het-gidspictogram</string>
+    <string name="icon_arrow_right">Pijl naar rechts-pictogram</string>
+
+    <string name="title_report_issue">Probleem melden</string>
+    <string name="icon_support">Ondersteuningspictogram</string>
+
+    <string name="title_wallpapers">Achtergronden</string>
+    <string name="title_auto_wallpapers">Automatische achtergronden</string>
+    <string name="auto_wallpaper_text">Achtergronden automatisch wijzigen</string>
+    <string name="icon_wallpaper">Achtergrondpictogram</string>
+
+    <string name="title_monochrome">Monochrome achtergrond</string>
+    <string name="title_color_less_world">Kleurloze modus</string>
+    <string name="icon_monochrome">Monochroom pictogram</string>
+
+    <string name="title_wallpaper_motion">Achtergrondanimatie</string>
+    <string name="wallpaper_motion_text">Animeer uw startscherm</string>
+    <string name="icon_wallpaper_motion">Achtergrondanimatiepictogram</string>
+
+    <string name="title_change_wallpaper">Achtergrond wijzigen</string>
+    <string name="change_wallpaper_text">Tik om nu de achtergrond te wijzigen</string>
+    <string name="icon_wallpaper_change">Achtergrond wijzigen-pictogram</string>
+
+    <string name="title_wallpaper_frequency">Wijzigingsfrequentie</string>
+    <string name="wallpaper_frequency_text">Met automatische dag-/nachtmodus</string>
+    <string name="icon_wallpaper_frequency">Achtergrondfrequentiepictogram</string>
+
+    <string name="title_own_wallpapers">Uw eigen achtergronden instellen</string>
+    <string name="wallpaper_directory_select">Tik om map te selecteren</string>
+    <string name="icon_wallpaper_directory">Achtergrondmap-pictogram</string>
+
+    <string name="set_launcher_first">Stel Comfer eerst in als standaardlauncher</string>
+
+    <string name="title_lock_screen">Vergrendelscherm</string>
+    <string name="lock_screen_wallpaper_text">Ook achtergrond instellen op het vergrendelscherm</string>
+    <string name="icon_lock_screen_wallpaper">Vergrendelschermachtergrond-pictogram</string>
+
+    <string name="title_app_icons">App-pictogrammen</string>
+    <string name="title_app_icon_size">Pictogramgrootte</string>
+    <string name="icon_app_icon_size">Pictogramgrootte-pictogram</string>
+    <string name="button_decrease_app_icon_size">Pictogramgrootte verkleinen</string>
+    <string name="button_increase_app_icon_size">Pictogramgrootte vergroten</string>
+
+    <string name="title_themed_icons">Thematische pictogrammen</string>
+    <string name="themed_icons_text">Pictogramkleuren aanpassen aan de achtergrond (experimenteel)</string>
+    <string name="icon_themed_icons">Thematische pictogram-pictogram</string>
+
+    <string name="title_notification_badges">Meldings- en pictogrambadges</string>
+    <string name="requires_notification_permission">Meldingstoestemming vereist</string>
+    <string name="icon_notification_badges">Meldingsbadge-pictogram</string>
+
+    <string name="title_home_screen">Startscherm</string>
+    <string name="title_custom_widgets">Aangepaste widgets</string>
+    <string name="custom_widgets_text">Uw favoriete widgets</string>
+    <string name="icon_custom_widgets">Aangepaste widget-pictogram</string>
+
+    <string name="title_quick_apps_layout">Indeling Snelle apps</string>
+    <string name="quick_apps_layout_text">Apps stijlvol rangschikken</string>
+    <string name="icon_apps_layout">Snelle apps-indelingspictogram</string>
+
+    <string name="title_left_swipe_action">Actie bij links vegen</string>
+    <string name="icon_left_swipe_action">Links vegen-actie-pictogram</string>
+
+    <string name="title_right_swipe_action">Actie bij rechts vegen</string>
+    <string name="icon_right_swipe_action">Rechts vegen-actie-pictogram</string>
+
+    <string name="title_swipe_gestures">Veeggebaren</string>
+    <string name="swipe_gestures_text">Gebruik gebaren voor app-snelkoppelingen</string>
+    <string name="icon_swipe_gestures">Veeggebaar-pictogram</string>
+
+    <string name="title_app_drawer">Applade</string>
+    <string name="title_app_drawer_layouts">Indelingen</string>
+    <string name="app_drawer_layouts_text">Stijlen om apps te bekijken</string>
+
+    <string name="title_alphabetical_order">Alfabetische volgorde</string>
+    <string name="alphabetical_order_text">Apps alfabetisch sorteren</string>
+    <string name="icon_alphabetical_order">Alfabetische volgorde-pictogram</string>
+
+    <string name="title_apps_list">Applijsten</string>
+    <string name="title_manage_app_list">Apps beheren</string>
+    <string name="manage_app_list_text">Apps organiseren of opnieuw ordenen in lijsten</string>
+    <string name="icon_manage_app_list">App-lijstbeheer-pictogram</string>
+
+    <string name="title_feedback">Feedback</string>
+    <string name="icon_feedback">Feedbackpictogram</string>
+
+    <string name="title_share_app">App delen</string>
+    <string name="icon_share_app">App delen-pictogram</string>
+    <string name="share_app_text">Probeer deze nieuwe launcher:</string>
+
+    <string name="title_share_with">Delen met</string>
+
+    <string name="title_app_version">App-versie</string>
+    <string name="icon_app_version">App-versiepictogram</string>
+
+    <string name="title_icon_shapes">Pictogramvormen</string>
+    <string name="icon_shapes_text">Vorm van app-pictogram instellen</string>
+    <string name="icon_icon_shapes">Pictogramvormen-pictogram</string>
+
+    <string name="title_select_icon_shape">Selecteer pictogramvorm</string>
+
+    <string name="notification_permission_text">
+        Om meldingspictogrammen op het startscherm en badges op app-pictogrammen weer te geven, heeft Comfer meldingstoegang nodig.
+    </string>
+
+    <string name="what_notification_permission_do_title">Deze service maakt het volgende mogelijk:</string>
+
+    <string name="what_notification_permission_do_text">
+        • Het lezen van de meldingsstatus en het weergeven van pictogrammen en badges indien nodig.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">Deze service doet het volgende niet:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • Persoonlijke gegevens verzamelen.
+    </string>
+
+    <string name="title_choose_layout">Indeling kiezen</string>
+    <string name="swipe_action_selection">Kies een app of het widgetsscherm</string>
+    <string name="title_choose_options">Optie kiezen</string>
+    <string name="title_select_app">App selecteren</string>
+    <string name="title_widgets_screen">Widgetsscherm</string>
+    <string name="title_choose_action">Actie kiezen</string>
+
+    <string name="unable_to_load_subscriptions">
+        Kan abonnementsinformatie niet laden. Controleer uw verbinding en probeer het opnieuw.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">Abonnement laden mislukt</string>
+    <string name="no_subscription_available">Geen abonnement beschikbaar</string>
+
+    <string name="title_active_subscription">Actief abonnement</string>
+    <string name="subscription_renews_on">Wordt verlengd op</string>
+    <string name="subscription_expires_on">Verloopt op</string>
+
+    <string name="subscription_benefit_one">Stel uw eigen dynamische achtergronden in</string>
+    <string name="subscription_benefit_two">Voeg uw favoriete widgets toe aan het startscherm</string>
+    <string name="subscription_benefit_three">Pas standaardwidgets op het startscherm aan</string>
+    <string name="subscription_benefit_four">Gebruik gebaren om apps snel te openen</string>
+
+    <string name="title_manage_your_subscription">Beheer uw abonnement</string>
+    <string name="title_pro_access">Pro-toegang</string>
+    <string name="title_year">jaar</string>
+
+    <string name="subscription_failed_prefix">Abonnement mislukt</string>
+    <string name="subscription_successful_prefix">Abonnement succesvol</string>
+    <string name="title_subscribe_now">Nu abonneren</string>
+
+    <string name="subscription_restore_failed_prefix">Abonnement herstellen mislukt</string>
+    <string name="subscription_restore_successful_prefix">Abonnement succesvol hersteld</string>
+    <string name="subscription_not_found_to_restore">Geen abonnement gevonden om te herstellen</string>
+    <string name="title_restore_subscription">Abonnement herstellen</string>
+
+    <string name="guide_home_swipe_up">Veeg omhoog om de applade te openen.</string>
+    <string name="guide_home_swipe_down">Veeg omlaag om meldingen te bekijken.</string>
+    <string name="guide_home_double_tap">Dubbeltik op het scherm om Recente apps te openen.</string>
+    <string name="guide_home_long_press_lower">Houd het onderste deel van het scherm ingedrukt om Instellingen te openen.</string>
+    <string name="guide_home_long_press_upper">Houd het bovenste deel van het scherm ingedrukt om widgets te bewerken.</string>
+    <string name="guide_home_tap_upper_half">Tik op het bovenste deel van het scherm om het bewerken van widgets te beëindigen.</string>
+    <string name="guide_home_tap_date_time">Tik op Datum/Tijd om alarmen te bekijken.</string>
+    <string name="guide_home_long_press_date_time">Houd Datum/Tijd ingedrukt om de kalender te openen.</string>
+    <string name="guide_home_swipe_left_right">Veeg links of rechts om een geselecteerde app of het widgetsscherm te openen.</string>
+    <string name="guide_home_gestures">Teken gebaren om apps te openen die zijn ingesteld in Gebarensnelkoppelingen.</string>
+
+    <string name="guide_circular_app_drawer">Cirkelvormige applade</string>
+    <string name="guide_circular_app_drawer_swipe_down">Veeg omlaag om terug te gaan.</string>
+    <string name="guide_circular_app_drawer_double_tap">Dubbeltik om de app in het midden te openen.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">Veeg links of rechts om te scrollen.</string>
+    <string name="guide_circular_app_drawer_tap_icon">Tik op een pictogram om de app te openen.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">Houd een pictogram ingedrukt om app-informatie te openen.</string>
+
+    <string name="guide_horizontal_app_drawer">Horizontale applade</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">Veeg omlaag om terug te gaan.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">Veeg links of rechts om te scrollen.</string>
+    <string name="guide_horizontal_app_drawer_long_press">Houd ingedrukt om de lade te beheren.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">Sleep pictogrammen in bewerkingsmodus om ze te verplaatsen.</string>
+    <string name="guide_horizontal_app_drawer_drag">Sleep de lade in bewerkingsmodus om deze verticaal te verplaatsen.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">Tik één keer om de bewerkingsmodus te verlaten.</string>
+
+    <string name="guide_search">Zoek apps of contacten.</string>
+    <string name="guide_search_swipe_down">Veeg omlaag op het toetsenbord om terug te gaan.</string>
+    <string name="guide_search_swipe_right">Veeg rechts op het toetsenbord om contacten te zoeken.</string>
+    <string name="guide_search_swipe_left">Veeg links op het toetsenbord om apps te zoeken.</string>
+    <string name="guide_search_swipe_up">Veeg omhoog op het toetsenbord om meer tekens te bekijken.</string>
+    <string name="guide_search_long_press">Houd de terugpijl in het midden ingedrukt om een taal te selecteren.</string>
+    <string name="guide_search_scroll_list">Scroll de applijst horizontaal om alle resultaten te bekijken.</string>
+    <string name="guide_search_scroll_sides">Scroll aan beide zijden van het ronde toetsenbord om de contactenlijst te scrollen.</string>
+    <string name="guide_search_double_tap_sides">Dubbeltik op een zijde van het ronde toetsenbord om de kiezer te openen met het gemarkeerde contact.</string>
+
+    <string name="guide_manage_apps">Applijst beheren</string>
+    <string name="guide_manage_apps_tap">Tik om apps te selecteren en naar een andere lijst te verplaatsen.</string>
+    <string name="guide_manage_apps_long_press">
+        Houd een app-pictogram ingedrukt om binnen dezelfde lijst te slepen en opnieuw te ordenen. Werkt wanneer niet alfabetisch gesorteerd.
+    </string>
+
+    <string name="title_app_language">Apptaal</string>
+    <string name="app_language_text">Tik om de apptaal te wijzigen</string>
+    <string name="icon_app_language">Apptaal-pictogram</string>
+
+    <string name="update_frequency_hour">Een uur</string>
+    <string name="update_frequency_day">Een dag</string>
+
+    <string name="font_weight_light">Licht</string>
+    <string name="font_weight_normal">Normaal</string>
+    <string name="font_weight_bold">Vet</string>
+
+    <string name="icon_go_back">Terug-pictogram</string>
+    <string name="title_advanced">Geavanceerd</string>
+    <string name="title_text_angle">Kanteling</string>
+    <string name="title_text_radius">Kromming</string>
+    <string name="title_shadow">Schaduw</string>
+
+    <string name="date_example_two">Za\nsep\n16</string>
+    <string name="title_transparency">Transparantie</string>
+    <string name="title_wallpaper_colors">Achtergrondkleuren</string>
+    <string name="title_icon_pack">Pictogrampakket</string>
+    <string name="title_select_icon_app">Pictogrampakket selecteren</string>
+    <string name="title_not_available">Niet beschikbaar</string>
+    <string name="title_action_clear">Wissen</string>
+    <string name="title_battery_saver">Batterijbesparing</string>
+    <string name="battery_saver_text">Inschakelen om batterij te besparen</string>
+    <string name="text_saving_battery">Batterij besparen</string>
+    <string name="icon_pack_support">Gebruik uw favoriete pictogrampakket</string>
+</resources>

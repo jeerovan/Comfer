@@ -347,11 +347,149 @@ object KeyboardLocale {
         )
     )
 
+    private val Bengali = listOf(
+        listOf(
+            // Consonants
+            "ক","খ","গ","ঘ","ঙ",
+            "চ","ছ","জ","ঝ","ঞ",
+            "ট","ঠ","ড","ঢ","ণ",
+            "ত","থ","দ","ধ","ন",
+            "প","ফ","ব","ভ","ম",
+            "য","র","ল","শ","ষ","স","হ",
+            "ক্ষ","জ্ঞ"
+        ),
+        listOf(
+            // Vowels
+            "অ","আ","ই","ঈ","উ","ঊ","ঋ","এ","ঐ","ও","ঔ","অং","অঃ",
+
+            // Dependent vowels & signs
+            "া","ি","ী","ু","ূ","ৃ","ে","ৈ","ো","ৌ",
+            "ং","ঃ","ঁ",
+            "্" // hasanta (virama)
+        )
+    )
+
+    private val Tamil = listOf(
+        listOf(
+            // Consonants
+            "க","ங",
+            "ச","ஞ",
+            "ட","ண",
+            "த","ந",
+            "ப","ம",
+            "ய","ர","ல","வ",
+            "ழ","ள","ற","ன"
+        ),
+        listOf(
+            // Vowels
+            "அ","ஆ","இ","ஈ","உ","ஊ","எ","ஏ","ஐ","ஒ","ஓ","ஔ",
+
+            // Dependent vowels & signs
+            "ா","ி","ீ","ு","ூ","ெ","ே","ை","ொ","ோ","ௌ",
+            "்" // pulli (virama)
+        )
+    )
+
+    private val Telugu = listOf(
+        listOf(
+            // Consonants
+            "క","ఖ","గ","ఘ","ఙ",
+            "చ","ఛ","జ","ఝ","ఞ",
+            "ట","ఠ","డ","ఢ","ణ",
+            "త","థ","ద","ధ","న",
+            "ప","ఫ","బ","భ","మ",
+            "య","ర","ల","వ",
+            "శ","ష","స","హ","ళ","క్ష","జ్ఞ"
+        ),
+        listOf(
+            // Vowels
+            "అ","ఆ","ఇ","ఈ","ఉ","ఊ","ఋ","ఎ","ఏ","ఐ","ఒ","ఓ","ఔ","అం","అః",
+
+            // Dependent vowels & signs
+            "ా","ి","ీ","ు","ూ","ృ","ె","ే","ై","ొ","ో","ౌ",
+            "ం","ః",
+            "్" // virama
+        )
+    )
+
+    private val Marathi = listOf(
+        listOf(
+            // Consonants
+            "क","ख","ग","घ","ङ",
+            "च","छ","ज","झ","ञ",
+            "ट","ठ","ड","ढ","ण",
+            "त","थ","द","ध","न",
+            "प","फ","ब","भ","म",
+            "य","र","ल","व",
+            "श","ष","स","ह",
+            "ळ","क्ष","त्र","ज्ञ"
+        ),
+        listOf(
+            // Vowels
+            "अ","आ","इ","ई","उ","ऊ","ऋ","ए","ऐ","ओ","औ","अं","अः",
+
+            // Dependent vowels & signs
+            "ा","ि","ी","ु","ू","ृ","े","ै","ो","ौ",
+            "ं","ः","ँ",
+            "ॅ","ॉ",
+            "्"
+        )
+    )
+
+    private val Urdu = listOf(
+        listOf(
+            // Letters
+            "ا","ب","پ","ت","ٹ","ث",
+            "ج","چ","ح","خ",
+            "د","ڈ","ذ","ر","ڑ","ز","ژ",
+            "س","ش","ص","ض","ط","ظ",
+            "ع","غ",
+            "ف","ق","ک","گ",
+            "ل","م","ن",
+            "و","ہ","ھ","ء","ی","ے"
+        ),
+        listOf(
+            // Vowel marks (optional in Urdu)
+            "َ","ِ","ُ",   // zabar, zer, pesh
+            "ً","ٍ","ٌ",  // tanween
+            "ّ","ْ"       // shadda, sukoon
+        )
+    )
+
+    private val Indonesian = listOf(
+        listOf(
+            // Letters
+            "a","b","c","d","e","f","g","h",
+            "i","j","k","l","m","n",
+            "o","p","q","r","s","t",
+            "u","v","w","x","y","z"
+        ),
+        listOf(
+            // Diacritics / symbols (rare in Indonesian)
+            "é","è","ê","ô","-","'"
+        )
+    )
+
+    private val Dutch = listOf(
+        listOf(
+            // Letters
+            "a","b","c","d","e","f","g","h",
+            "i","j","k","l","m","n",
+            "o","p","q","r","s","t",
+            "u","v","w","x","y","z"
+        ),
+        listOf(
+            // Diacritics & common symbols
+            "á","à","ä","é","è","ë","í","ï",
+            "ó","ö","ú","ü","ĳ","'"
+        )
+    )
 
     fun getSupportedLocales(): List<Locale> {
         return listOf(
             "ar",
             "az",
+            "bn",
             "de",
             "el",
             "en",
@@ -360,21 +498,27 @@ object KeyboardLocale {
             "fr",
             "he",
             "hi",
+            "id",
             "it",
             "ja",
             "km",
             "ko",
             "lo",
             "mn",
+            "mr",
             "my",
+            "nl",
             "pt",
             "ro",
             "ru",
+            "ta",
+            "te",
             "tg",
             "th",
             "tk",
             "tr",
             "uk",
+            "ur",
             "uz",
             "vi",
             "zh-CN"
@@ -410,6 +554,13 @@ object KeyboardLocale {
             "tg" -> Tajik
             "tk" -> Turkmen
             "uz" -> Uzbek
+            "bn" -> Bengali
+            "ta" -> Tamil
+            "te" -> Telugu
+            "mr" -> Marathi
+            "ur" -> Urdu
+            "id" -> Indonesian
+            "nl" -> Dutch
             else -> English
         }
     }

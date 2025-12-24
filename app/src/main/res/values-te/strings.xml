@@ -1,0 +1,357 @@
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">స్వాగతం</string>
+
+    <string name="checkout_how_to_guide">
+        మెను తెరవడానికి మరియు “ఎలా చేయాలి” గైడ్‌ను చూడడానికి స్క్రీన్ దిగువ భాగాన్ని ఎక్కువసేపు నొక్కండి。\nగమనిక: కొన్ని అనువాదాలు స్వయంచాలకంగా రూపొందించబడివుండవచ్చు. తప్పైన పాఠ్యం కనిపిస్తే దయచేసి మాకు ఇమెయిల్ ద్వారా తెలియజేయండి.
+    </string>
+
+    <string name="accessibility_service_description">
+        సిస్టమ్‌లోని “ఇటీవలి యాప్‌లు” స్క్రీన్‌ను తెరవడానికి ఈ యాక్సెసిబిలిటీ సర్వీస్ అవసరం. Comfer ఈ అనుమతిని కేవలం షార్ట్‌కట్ అందించడానికి మాత్రమే ఉపయోగిస్తుంది మరియు ఎటువంటి వ్యక్తిగత డేటాను సేకరించదు లేదా పర్యవేక్షించదు.
+    </string>
+
+    <string name="set_default_launcher">డిఫాల్ట్ లాంచర్‌గా సెట్ చేయండి</string>
+    <string name="widget_binding_cancelled">విడ్జెట్ సెటప్ రద్దు చేయబడింది</string>
+    <string name="long_press_to_add_edit_widgets">విడ్జెట్లను జోడించడానికి లేదా సవరించడానికి ఎక్కువసేపు నొక్కండి</string>
+
+    <string name="add_widget">విడ్జెట్ జోడించండి</string>
+    <string name="could_not_load_widget">విడ్జెట్ లోడ్ చేయలేకపోయింది</string>
+    <string name="remove_widget">విడ్జెట్ తొలగించండి</string>
+
+    <string name="close">మూసివేయండి</string>
+    <string name="applications">యాప్‌లు</string>
+    <string name="contacts">సంప్రదింపులు</string>
+    <string name="search">వెతకండి</string>
+
+    <string name="requires_contact_permission">
+        సంప్రదింపులను వెతకడానికి మరియు కాల్ చేయడానికి సంప్రదింపు అనుమతి అవసరం.
+    </string>
+
+    <string name="grant_permission">అనుమతి ఇవ్వండి</string>
+
+    <string name="privacy_policy_text">
+        మేము మీ గోప్యతను గౌరవిస్తాము. Comfer ఎటువంటి వ్యక్తిగత డేటాను సేకరించదు లేదా నిల్వ చేయదు. మా గోప్యతా విధానాన్ని చదవడానికి ట్యాప్ చేయండి.
+    </string>
+
+    <string name="background_image">నేపథ్య చిత్రం</string>
+    <string name="feedback">అభిప్రాయం</string>
+    <string name="feedback_text">మీ అనుభవాన్ని పంచుకుని Comfer‌ను మెరుగుపరచడంలో సహాయపడండి.</string>
+    <string name="feedback_icon">అభిప్రాయం ఐకాన్</string>
+
+    <string name="rate_comfer">Comfer‌ను రేట్ చేయండి</string>
+    <string name="not_now">ఇప్పుడు కాదు</string>
+
+    <string name="permission_required">అనుమతి అవసరం</string>
+
+    <string name="recent_apps_permission_title">
+        ఇటీవలి యాప్‌లు షార్ట్‌కట్‌ను ప్రారంభించడానికి Comfer‌కు యాక్సెసిబిలిటీ సర్వీస్ అనుమతి అవసరం.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">ఈ సర్వీస్ చేయగలది:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • సిస్టమ్‌లోని ఇటీవలి యాప్‌లు స్క్రీన్‌ను తెరవడం.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">ఈ సర్వీస్ చేయదు:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • వ్యక్తిగత డేటాను సేకరించదు。\n
+        • మీరు చేసే చర్యలను లేదా టైప్ చేసిన పాఠ్యాన్ని పర్యవేక్షించదు。\n
+        • స్క్రీన్ విషయాన్ని చదవదు.
+    </string>
+
+    <string name="continue_text">కొనసాగించండి</string>
+    <string name="cancel_text">రద్దు చేయండి</string>
+    <string name="backspace_key">బ్యాక్‌స్పేస్ కీ</string>
+
+    <string name="contact_number_not_available">ఫోన్ నంబర్ అందుబాటులో లేదు</string>
+    <string name="no_app_to_place_calls">కాల్ చేయడానికి యాప్ లేదు</string>
+
+    <string name="update_available">కొత్త అప్‌డేట్ అందుబాటులో ఉంది.</string>
+    <string name="update_action">అప్‌డేట్</string>
+    <string name="update_downloaded">అప్‌డేట్ ఇన్‌స్టాల్ చేయడానికి సిద్ధంగా ఉంది.</string>
+    <string name="update_install">ఇన్‌స్టాల్ చేయండి</string>
+
+    <string name="select_an_application">ఒక యాప్‌ను ఎంచుకోండి</string>
+
+    <string name="gesture_shortcuts_title">జెస్చర్ షార్ట్‌కట్‌లు</string>
+    <string name="paid_feature_title">ప్రీమియం ఫీచర్</string>
+
+    <string name="tap_icon_to_select_app">యాప్‌ను ఎంచుకోవడానికి ఐకాన్‌ను ట్యాప్ చేయండి</string>
+
+    <string name="requires_subscription">సబ్‌స్క్రిప్షన్ అవసరం</string>
+
+    <string name="button_to_move_app_to_quick_app_list">హోమ్ యాప్‌లకు మార్చండి</string>
+    <string name="button_to_move_app_to_primary_app_list">డ్రాయర్ యాప్‌లకు మార్చండి</string>
+    <string name="button_to_move_app_to_ghost_app_list">దాచిన యాప్‌లకు మార్చండి</string>
+
+    <string name="title_widgets">విడ్జెట్‌లు</string>
+    <string name="title_time">సమయం</string>
+    <string name="rest_widget_positions">స్థానాలను రీసెట్ చేయండి</string>
+
+    <string name="title_analog_clock">అనలాగ్ గడియారం</string>
+    <string name="title_clock_size">గడియారం పరిమాణం</string>
+    <string name="clock_background_color">గడియారం నేపథ్య రంగు</string>
+    <string name="background_transparency">నేపథ్య పారదర్శకత</string>
+    <string name="hour_hand_color">గంట సూది రంగు</string>
+    <string name="minute_hand_color">నిమిష సూది రంగు</string>
+
+    <string name="title_time_format">సమయ ఫార్మాట్</string>
+    <string name="title_show_am_pm">AM/PM చూపించండి</string>
+    <string name="title_font_size">ఫాంట్ పరిమాణం</string>
+    <string name="title_font_weight">ఫాంట్ బరువు</string>
+    <string name="title_font_style">ఫాంట్ శైలి</string>
+    <string name="title_time_font_color">సమయ ఫాంట్ రంగు</string>
+
+    <string name="title_date">తేదీ</string>
+    <string name="date_example">శని, సెప్టెంబర్ 16</string>
+    <string name="date_font_color">తేదీ ఫాంట్ రంగు</string>
+
+    <string name="title_battery">బ్యాటరీ</string>
+    <string name="show_battery_icon">బ్యాటరీ ఐకాన్ చూపించండి</string>
+    <string name="show_battery_percentage">బ్యాటరీ శాతం చూపించండి</string>
+    <string name="battery_indicator_color">సూచిక రంగు</string>
+
+    <string name="title_notifications">నోటిఫికేషన్‌లు</string>
+    <string name="show_notification_icons">నోటిఫికేషన్ ఐకాన్‌లు చూపించండి</string>
+
+    <string name="title_size">పరిమాణం</string>
+    <string name="title_color">రంగు</string>
+    <string name="title_selected_color">ఎంచుకున్న రంగు</string>
+
+    <string name="button_text_save">సేవ్ చేయండి</string>
+
+    <string name="title_premium">ప్రీమియం</string>
+    <string name="title_pro_features">ప్రో ఫీచర్‌లు</string>
+    <string name="title_subscription">సబ్‌స్క్రిప్షన్</string>
+    <string name="go_to_page">పేజీని తెరవండి</string>
+
+    <string name="title_support">మద్దతు</string>
+    <string name="title_how_to">ఎలా చేయాలి</string>
+    <string name="title_app_guide">యాప్ నావిగేషన్ గైడ్</string>
+
+    <string name="icon_how_to_guide">ఎలా చేయాలి గైడ్ ఐకాన్</string>
+    <string name="icon_arrow_right">కుడి బాణం ఐకాన్</string>
+
+    <string name="title_report_issue">సమస్యను నివేదించండి</string>
+    <string name="icon_support">మద్దతు ఐకాన్</string>
+
+    <string name="title_wallpapers">వాల్‌పేపర్‌లు</string>
+    <string name="title_auto_wallpapers">ఆటో వాల్‌పేపర్‌లు</string>
+    <string name="auto_wallpaper_text">వాల్‌పేపర్‌లను స్వయంచాలకంగా మార్చండి</string>
+    <string name="icon_wallpaper">వాల్‌పేపర్ ఐకాన్</string>
+
+    <string name="title_monochrome">మోనోక్రోమ్ నేపథ్యం</string>
+    <string name="title_color_less_world">రంగులేని మోడ్</string>
+    <string name="icon_monochrome">మోనోక్రోమ్ ఐకాన్</string>
+
+    <string name="title_wallpaper_motion">వాల్‌పేపర్ మోషన్</string>
+    <string name="wallpaper_motion_text">హోమ్ స్క్రీన్‌ను యానిమేట్ చేయండి</string>
+    <string name="icon_wallpaper_motion">వాల్‌పేపర్ మోషన్ ఐకాన్</string>
+
+    <string name="title_change_wallpaper">వాల్‌పేపర్ మార్చండి</string>
+    <string name="change_wallpaper_text">ఇప్పుడు వాల్‌పేపర్ మార్చడానికి ట్యాప్ చేయండి</string>
+    <string name="icon_wallpaper_change">వాల్‌పేపర్ మార్పు ఐకాన్</string>
+
+    <string name="title_wallpaper_frequency">మార్పు ఫ్రీక్వెన్సీ</string>
+    <string name="wallpaper_frequency_text">ఆటో రోజు/రాత్రి మోడ్‌తో</string>
+    <string name="icon_wallpaper_frequency">వాల్‌పేపర్ ఫ్రీక్వెన్సీ ఐకాన్</string>
+
+    <string name="title_own_wallpapers">మీ స్వంత వాల్‌పేపర్‌లను సెట్ చేయండి</string>
+    <string name="wallpaper_directory_select">ఫోల్డర్ ఎంచుకోవడానికి ట్యాప్ చేయండి</string>
+    <string name="icon_wallpaper_directory">వాల్‌పేపర్ ఫోల్డర్ ఐకాన్</string>
+
+    <string name="set_launcher_first">ముందుగా Comfer‌ను డిఫాల్ట్ లాంచర్‌గా సెట్ చేయండి</string>
+
+    <string name="title_lock_screen">లాక్ స్క్రీన్</string>
+    <string name="lock_screen_wallpaper_text">లాక్ స్క్రీన్‌పైనా వాల్‌పేపర్ సెట్ చేయండి</string>
+    <string name="icon_lock_screen_wallpaper">లాక్ స్క్రీన్ వాల్‌పేపర్ ఐకాన్</string>
+
+    <string name="title_app_icons">యాప్ ఐకాన్‌లు</string>
+    <string name="title_app_icon_size">ఐకాన్ పరిమాణం</string>
+    <string name="icon_app_icon_size">యాప్ ఐకాన్ పరిమాణం ఐకాన్</string>
+    <string name="button_decrease_app_icon_size">ఐకాన్ పరిమాణం తగ్గించండి</string>
+    <string name="button_increase_app_icon_size">ఐకాన్ పరిమాణం పెంచండి</string>
+
+    <string name="title_themed_icons">థీమ్ ఐకాన్‌లు</string>
+    <string name="themed_icons_text">వాల్‌పేపర్‌కు అనుగుణంగా ఐకాన్ రంగులను మార్చండి (ప్రయోగాత్మకం)</string>
+    <string name="icon_themed_icons">థీమ్ ఐకాన్ ఐకాన్</string>
+
+    <string name="title_notification_badges">నోటిఫికేషన్ మరియు ఐకాన్ బ్యాడ్జ్‌లు</string>
+    <string name="requires_notification_permission">నోటిఫికేషన్ అనుమతి అవసరం</string>
+    <string name="icon_notification_badges">నోటిఫికేషన్ బ్యాడ్జ్ ఐకాన్</string>
+
+    <string name="title_home_screen">హోమ్ స్క్రీన్</string>
+    <string name="title_custom_widgets">కస్టమ్ విడ్జెట్‌లు</string>
+    <string name="custom_widgets_text">మీకు ఇష్టమైన విడ్జెట్‌లు</string>
+    <string name="icon_custom_widgets">కస్టమ్ విడ్జెట్ ఐకాన్</string>
+
+    <string name="title_quick_apps_layout">క్విక్ యాప్ లేఅవుట్</string>
+    <string name="quick_apps_layout_text">శైలితో యాప్‌లను అమర్చండి</string>
+    <string name="icon_apps_layout">క్విక్ యాప్ లేఅవుట్ ఐకాన్</string>
+
+    <string name="title_left_swipe_action">ఎడమ స్వైప్ చర్య</string>
+    <string name="icon_left_swipe_action">ఎడమ స్వైప్ చర్య ఐకాన్</string>
+
+    <string name="title_right_swipe_action">కుడి స్వైప్ చర్య</string>
+    <string name="icon_right_swipe_action">కుడి స్వైప్ చర్య ఐకాన్</string>
+
+    <string name="title_swipe_gestures">స్వైప్ జెస్చర్‌లు</string>
+    <string name="swipe_gestures_text">యాప్ షార్ట్‌కట్‌ల కోసం జెస్చర్‌లను ఉపయోగించండి</string>
+    <string name="icon_swipe_gestures">స్వైప్ జెస్చర్ ఐకాన్</string>
+
+    <string name="title_app_drawer">యాప్ డ్రాయర్</string>
+    <string name="title_app_drawer_layouts">లేఅవుట్‌లు</string>
+    <string name="app_drawer_layouts_text">యాప్‌లను బ్రౌజ్ చేయడానికి శైలులు</string>
+
+    <string name="title_alphabetical_order">అక్షరక్రమం</string>
+    <string name="alphabetical_order_text">యాప్‌లను అక్షరక్రమంలో సార్ట్ చేయండి</string>
+    <string name="icon_alphabetical_order">అక్షరక్రమ ఐకాన్</string>
+
+    <string name="title_apps_list">యాప్ జాబితాలు</string>
+    <string name="title_manage_app_list">యాప్‌లను నిర్వహించండి</string>
+    <string name="manage_app_list_text">జాబితాల్లో యాప్‌లను అమర్చండి లేదా తిరిగి క్రమబద్ధీకరించండి</string>
+    <string name="icon_manage_app_list">యాప్ జాబితా నిర్వహణ ఐకాన్</string>
+
+    <string name="title_feedback">అభిప్రాయం</string>
+    <string name="icon_feedback">అభిప్రాయం ఐకాన్</string>
+
+    <string name="title_share_app">యాప్‌ను షేర్ చేయండి</string>
+    <string name="icon_share_app">యాప్ షేర్ ఐకాన్</string>
+    <string name="share_app_text">ఈ కొత్త లాంచర్‌ను ప్రయత్నించండి:</string>
+
+    <string name="title_share_with">ఇవారితో షేర్ చేయండి</string>
+
+    <string name="title_app_version">యాప్ వెర్షన్</string>
+    <string name="icon_app_version">యాప్ వెర్షన్ ఐకాన్</string>
+
+    <string name="title_icon_shapes">ఐకాన్ ఆకారాలు</string>
+    <string name="icon_shapes_text">యాప్ ఐకాన్ ఆకారాన్ని సెట్ చేయండి</string>
+    <string name="icon_icon_shapes">ఐకాన్ ఆకారాల ఐకాన్</string>
+
+    <string name="title_select_icon_shape">ఐకాన్ ఆకారాన్ని ఎంచుకోండి</string>
+
+    <string name="notification_permission_text">
+        హోమ్ స్క్రీన్‌పై నోటిఫికేషన్ ఐకాన్‌లు మరియు యాప్ ఐకాన్‌లపై బ్యాడ్జ్‌లను చూపించడానికి Comfer‌కు నోటిఫికేషన్ అనుమతి అవసరం.
+    </string>
+
+    <string name="what_notification_permission_do_title">ఈ సర్వీస్ చేయగలది:</string>
+
+    <string name="what_notification_permission_do_text">
+        • నోటిఫికేషన్ స్థితిని చదివి అవసరమైనప్పుడు ఐకాన్‌లు మరియు బ్యాడ్జ్‌లను చూపిస్తుంది.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">ఈ సర్వీస్ చేయదు:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • వ్యక్తిగత డేటాను సేకరించదు.
+    </string>
+
+    <string name="title_choose_layout">లేఅవుట్ ఎంచుకోండి</string>
+    <string name="swipe_action_selection">ఒక యాప్ లేదా విడ్జెట్ స్క్రీన్‌ను ఎంచుకోండి</string>
+    <string name="title_choose_options">ఎంపికను ఎంచుకోండి</string>
+    <string name="title_select_app">యాప్‌ను ఎంచుకోండి</string>
+    <string name="title_widgets_screen">విడ్జెట్ స్క్రీన్</string>
+    <string name="title_choose_action">చర్యను ఎంచుకోండి</string>
+
+    <string name="unable_to_load_subscriptions">
+        సబ్‌స్క్రిప్షన్ సమాచారాన్ని లోడ్ చేయలేకపోయింది. దయచేసి మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">సబ్‌స్క్రిప్షన్ లోడ్ విఫలమైంది</string>
+    <string name="no_subscription_available">ఏ సబ్‌స్క్రిప్షన్ అందుబాటులో లేదు</string>
+
+    <string name="title_active_subscription">క్రియాశీల సబ్‌స్క్రిప్షన్</string>
+    <string name="subscription_renews_on">పునరుద్ధరించబడే తేదీ</string>
+    <string name="subscription_expires_on">గడువు ముగిసే తేదీ</string>
+
+    <string name="subscription_benefit_one">మీ స్వంత డైనమిక్ వాల్‌పేపర్‌లను సెట్ చేయండి</string>
+    <string name="subscription_benefit_two">హోమ్ స్క్రీన్‌పై మీకు ఇష్టమైన విడ్జెట్‌లను జోడించండి</string>
+    <string name="subscription_benefit_three">హోమ్ స్క్రీన్‌లోని డిఫాల్ట్ విడ్జెట్‌లను కస్టమైజ్ చేయండి</string>
+    <string name="subscription_benefit_four">జెస్చర్‌లను ఉపయోగించి యాప్‌లను త్వరగా తెరవండి</string>
+
+    <string name="title_manage_your_subscription">మీ సబ్‌స్క్రిప్షన్‌ను నిర్వహించండి</string>
+    <string name="title_pro_access">ప్రో యాక్సెస్</string>
+    <string name="title_year">సంవత్సరం</string>
+
+    <string name="subscription_failed_prefix">సబ్‌స్క్రిప్షన్ విఫలమైంది</string>
+    <string name="subscription_successful_prefix">సబ్‌స్క్రిప్షన్ విజయవంతమైంది</string>
+    <string name="title_subscribe_now">ఇప్పుడే సబ్‌స్క్రైబ్ చేయండి</string>
+
+    <string name="subscription_restore_failed_prefix">సబ్‌స్క్రిప్షన్ పునరుద్ధరణ విఫలమైంది</string>
+    <string name="subscription_restore_successful_prefix">సబ్‌స్క్రిప్షన్ విజయవంతంగా పునరుద్ధరించబడింది</string>
+    <string name="subscription_not_found_to_restore">పునరుద్ధరించడానికి సబ్‌స్క్రిప్షన్ లేదు</string>
+    <string name="title_restore_subscription">సబ్‌స్క్రిప్షన్‌ను పునరుద్ధరించండి</string>
+
+    <string name="guide_home_swipe_up">యాప్ డ్రాయర్‌ను తెరవడానికి పైకి స్వైప్ చేయండి.</string>
+    <string name="guide_home_swipe_down">నోటిఫికేషన్‌లను చూడడానికి కిందికి స్వైప్ చేయండి.</string>
+    <string name="guide_home_double_tap">ఇటీవలి యాప్‌లను తెరవడానికి స్క్రీన్‌పై డబుల్-ట్యాప్ చేయండి.</string>
+    <string name="guide_home_long_press_lower">సెట్టింగ్‌లను తెరవడానికి స్క్రీన్ దిగువ భాగాన్ని ఎక్కువసేపు నొక్కండి.</string>
+    <string name="guide_home_long_press_upper">విడ్జెట్‌లను సవరించడానికి స్క్రీన్ పై భాగాన్ని ఎక్కువసేపు నొక్కండి.</string>
+    <string name="guide_home_tap_upper_half">విడ్జెట్ ఎడిటింగ్ నుంచి బయటకు రావడానికి పై భాగాన్ని ట్యాప్ చేయండి.</string>
+    <string name="guide_home_tap_date_time">అలారమ్‌లను చూడడానికి తేదీ/సమయాన్ని ట్యాప్ చేయండి.</string>
+    <string name="guide_home_long_press_date_time">క్యాలెండర్‌ను తెరవడానికి తేదీ/సమయాన్ని ఎక్కువసేపు నొక్కండి.</string>
+    <string name="guide_home_swipe_left_right">ఎంచుకున్న యాప్ లేదా విడ్జెట్ స్క్రీన్‌ను తెరవడానికి ఎడమ లేదా కుడి వైపు స్వైప్ చేయండి.</string>
+    <string name="guide_home_gestures">జెస్చర్ షార్ట్‌కట్‌లలో సెట్ చేసిన యాప్‌లను తెరవడానికి జెస్చర్‌లను గీయండి.</string>
+
+    <string name="guide_circular_app_drawer">వృత్తాకార యాప్ డ్రాయర్</string>
+    <string name="guide_circular_app_drawer_swipe_down">వెనక్కి వెళ్లడానికి కిందికి స్వైప్ చేయండి.</string>
+    <string name="guide_circular_app_drawer_double_tap">మధ్యలో ఉన్న యాప్‌ను తెరవడానికి డబుల్-ట్యాప్ చేయండి.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">స్క్రోల్ చేయడానికి ఎడమ లేదా కుడి వైపు స్వైప్ చేయండి.</string>
+    <string name="guide_circular_app_drawer_tap_icon">యాప్‌ను తెరవడానికి ఐకాన్‌ను ట్యాప్ చేయండి.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">యాప్ సమాచారం తెరవడానికి ఐకాన్‌ను ఎక్కువసేపు నొక్కండి.</string>
+
+    <string name="guide_horizontal_app_drawer">అడ్డంగా ఉన్న యాప్ డ్రాయర్</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">వెనక్కి వెళ్లడానికి కిందికి స్వైప్ చేయండి.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">స్క్రోల్ చేయడానికి ఎడమ లేదా కుడి వైపు స్వైప్ చేయండి.</string>
+    <string name="guide_horizontal_app_drawer_long_press">డ్రాయర్‌ను నిర్వహించడానికి ఎక్కువసేపు నొక్కండి.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">ఎడిట్ మోడ్‌లో ఐకాన్‌లను లాగి వదిలి స్థానాన్ని మార్చండి.</string>
+    <string name="guide_horizontal_app_drawer_drag">ఎడిట్ మోడ్‌లో డ్రాయర్‌ను లాగి నిలువుగా కదిలించండి.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">ఎడిట్ మోడ్ నుంచి బయటకు రావడానికి ఒక్కసారి ట్యాప్ చేయండి.</string>
+
+    <string name="guide_search">యాప్‌లు లేదా సంప్రదింపులను వెతకండి.</string>
+    <string name="guide_search_swipe_down">వెనక్కి వెళ్లడానికి కీబోర్డ్‌పై కిందికి స్వైప్ చేయండి.</string>
+    <string name="guide_search_swipe_right">సంప్రదింపులను వెతకడానికి కీబోర్డ్‌పై కుడి వైపు స్వైప్ చేయండి.</string>
+    <string name="guide_search_swipe_left">యాప్‌లను వెతకడానికి కీబోర్డ్‌పై ఎడమ వైపు స్వైప్ చేయండి.</string>
+    <string name="guide_search_swipe_up">మరిన్ని అక్షరాలను చూడడానికి కీబోర్డ్‌పై పైకి స్వైప్ చేయండి.</string>
+    <string name="guide_search_long_press">భాషను ఎంచుకోవడానికి మధ్యలో ఉన్న బ్యాక్ అరోను ఎక్కువసేపు నొక్కండి.</string>
+    <string name="guide_search_scroll_list">అన్ని ఫలితాలను చూడడానికి యాప్ జాబితాను అడ్డంగా స్క్రోల్ చేయండి.</string>
+    <string name="guide_search_scroll_sides">సంప్రదింపు జాబితాను స్క్రోల్ చేయడానికి వృత్తాకార కీబోర్డ్ యొక్క రెండు వైపులా స్క్రోల్ చేయండి.</string>
+    <string name="guide_search_double_tap_sides">హైలైట్ చేసిన సంప్రదింపుతో డయలర్ తెరవడానికి కీబోర్డ్ యొక్క ఏ వైపైనా డబుల్-ట్యాప్ చేయండి.</string>
+
+    <string name="guide_manage_apps">యాప్ జాబితాను నిర్వహించండి</string>
+    <string name="guide_manage_apps_tap">యాప్‌లను ఎంచుకుని మరొక జాబితాకు తరలించడానికి ట్యాప్ చేయండి.</string>
+    <string name="guide_manage_apps_long_press">
+        అదే జాబితాలో క్రమాన్ని మార్చడానికి యాప్ ఐకాన్‌ను ఎక్కువసేపు నొక్కి లాగండి. అక్షరక్రమంగా సార్ట్ చేయనప్పుడు మాత్రమే పని చేస్తుంది.
+    </string>
+
+    <string name="title_app_language">యాప్ భాష</string>
+    <string name="app_language_text">యాప్ భాషను మార్చడానికి ట్యాప్ చేయండి</string>
+    <string name="icon_app_language">యాప్ భాష ఐకాన్</string>
+
+    <string name="update_frequency_hour">ఒక గంట</string>
+    <string name="update_frequency_day">ఒక రోజు</string>
+
+    <string name="font_weight_light">తేలిక</string>
+    <string name="font_weight_normal">సాధారణం</string>
+    <string name="font_weight_bold">బరువు</string>
+
+    <string name="icon_go_back">వెనక్కి వెళ్లే ఐకాన్</string>
+    <string name="title_advanced">అధునాతనం</string>
+    <string name="title_text_angle">వంచు</string>
+    <string name="title_text_radius">వంపు</string>
+    <string name="title_shadow">నీడ</string>
+
+    <string name="date_example_two">శని\nసెప్\n16</string>
+    <string name="title_transparency">పారదర్శకత</string>
+    <string name="title_wallpaper_colors">వాల్‌పేపర్ రంగులు</string>
+    <string name="title_icon_pack">ఐకాన్ ప్యాక్</string>
+    <string name="title_select_icon_app">ఐకాన్ ప్యాక్‌ను ఎంచుకోండి</string>
+    <string name="title_not_available">అందుబాటులో లేదు</string>
+    <string name="title_action_clear">తొలగించండి</string>
+    <string name="title_battery_saver">బ్యాటరీ సేవర్</string>
+    <string name="battery_saver_text">బ్యాటరీని ఆదా చేయడానికి ప్రారంభించండి</string>
+    <string name="text_saving_battery">బ్యాటరీ సేవ్ అవుతోంది</string>
+    <string name="icon_pack_support">మీకు ఇష్టమైన ఐకాన్ ప్యాక్‌ను ఉపయోగించండి</string>
+</resources>

@@ -1,0 +1,357 @@
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">Selamat datang</string>
+
+    <string name="checkout_how_to_guide">
+        Tekan lama bagian bawah layar untuk membuka menu dan melihat panduan “Cara penggunaan”.\nPeringatan: Beberapa terjemahan mungkin dibuat secara otomatis. Jika Anda menemukan teks yang tidak tepat, silakan hubungi kami melalui email.
+    </string>
+
+    <string name="accessibility_service_description">
+        Layanan ini diperlukan untuk membuka layar sistem “Aplikasi Terbaru”. Comfer menggunakan izin ini hanya untuk menyediakan pintasan dan tidak mengumpulkan atau memantau data pribadi apa pun.
+    </string>
+
+    <string name="set_default_launcher">Atur sebagai peluncur default</string>
+    <string name="widget_binding_cancelled">Pengaturan widget dibatalkan</string>
+    <string name="long_press_to_add_edit_widgets">Tekan lama untuk menambah atau mengedit widget</string>
+
+    <string name="add_widget">Tambah widget</string>
+    <string name="could_not_load_widget">Tidak dapat memuat widget</string>
+    <string name="remove_widget">Hapus widget</string>
+
+    <string name="close">Tutup</string>
+    <string name="applications">Aplikasi</string>
+    <string name="contacts">Kontak</string>
+    <string name="search">Cari</string>
+
+    <string name="requires_contact_permission">
+        Akses ke kontak diperlukan untuk mencari dan meneleponnya.
+    </string>
+
+    <string name="grant_permission">Berikan izin</string>
+
+    <string name="privacy_policy_text">
+        Kami menghormati privasi Anda. Comfer tidak mengumpulkan atau menyimpan data pribadi. Ketuk untuk membaca kebijakan privasi kami.
+    </string>
+
+    <string name="background_image">Gambar latar belakang</string>
+    <string name="feedback">Umpan balik</string>
+    <string name="feedback_text">Bagikan pengalaman Anda dan bantu meningkatkan Comfer.</string>
+    <string name="feedback_icon">Ikon umpan balik</string>
+
+    <string name="rate_comfer">Beri nilai Comfer</string>
+    <string name="not_now">Tidak sekarang</string>
+
+    <string name="permission_required">Izin diperlukan</string>
+
+    <string name="recent_apps_permission_title">
+        Untuk mengaktifkan pintasan Aplikasi Terbaru, Comfer memerlukan akses Layanan Aksesibilitas.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">Layanan ini memungkinkan:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • Membuka layar sistem Aplikasi Terbaru.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">Layanan ini tidak:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • Mengumpulkan data pribadi.\n
+        • Memantau tindakan atau teks yang Anda ketik.\n
+        • Membaca konten layar.
+    </string>
+
+    <string name="continue_text">Lanjutkan</string>
+    <string name="cancel_text">Batal</string>
+    <string name="backspace_key">Tombol backspace</string>
+
+    <string name="contact_number_not_available">Nomor telepon tidak tersedia</string>
+    <string name="no_app_to_place_calls">Tidak ada aplikasi untuk melakukan panggilan</string>
+
+    <string name="update_available">Pembaruan baru tersedia.</string>
+    <string name="update_action">Perbarui</string>
+    <string name="update_downloaded">Pembaruan siap dipasang.</string>
+    <string name="update_install">Pasang</string>
+
+    <string name="select_an_application">Pilih aplikasi</string>
+
+    <string name="gesture_shortcuts_title">Pintasan gestur</string>
+    <string name="paid_feature_title">Fitur premium</string>
+
+    <string name="tap_icon_to_select_app">Ketuk ikon untuk memilih aplikasi</string>
+
+    <string name="requires_subscription">Memerlukan langganan</string>
+
+    <string name="button_to_move_app_to_quick_app_list">Pindahkan ke Aplikasi Beranda</string>
+    <string name="button_to_move_app_to_primary_app_list">Pindahkan ke Aplikasi Laci</string>
+    <string name="button_to_move_app_to_ghost_app_list">Pindahkan ke Aplikasi Tersembunyi</string>
+
+    <string name="title_widgets">Widget</string>
+    <string name="title_time">Waktu</string>
+    <string name="rest_widget_positions">Atur ulang posisi</string>
+
+    <string name="title_analog_clock">Jam analog</string>
+    <string name="title_clock_size">Ukuran jam</string>
+    <string name="clock_background_color">Warna latar jam</string>
+    <string name="background_transparency">Transparansi latar belakang</string>
+    <string name="hour_hand_color">Warna jarum jam</string>
+    <string name="minute_hand_color">Warna jarum menit</string>
+
+    <string name="title_time_format">Format waktu</string>
+    <string name="title_show_am_pm">Tampilkan AM/PM</string>
+    <string name="title_font_size">Ukuran font</string>
+    <string name="title_font_weight">Ketebalan font</string>
+    <string name="title_font_style">Gaya font</string>
+    <string name="title_time_font_color">Warna font waktu</string>
+
+    <string name="title_date">Tanggal</string>
+    <string name="date_example">Sab, Sep 16</string>
+    <string name="date_font_color">Warna font tanggal</string>
+
+    <string name="title_battery">Baterai</string>
+    <string name="show_battery_icon">Tampilkan ikon baterai</string>
+    <string name="show_battery_percentage">Tampilkan persentase baterai</string>
+    <string name="battery_indicator_color">Warna indikator</string>
+
+    <string name="title_notifications">Notifikasi</string>
+    <string name="show_notification_icons">Tampilkan ikon notifikasi</string>
+
+    <string name="title_size">Ukuran</string>
+    <string name="title_color">Warna</string>
+    <string name="title_selected_color">Warna terpilih</string>
+
+    <string name="button_text_save">Simpan</string>
+
+    <string name="title_premium">Premium</string>
+    <string name="title_pro_features">Fitur Pro</string>
+    <string name="title_subscription">Langganan</string>
+    <string name="go_to_page">Buka halaman</string>
+
+    <string name="title_support">Dukungan</string>
+    <string name="title_how_to">Cara penggunaan</string>
+    <string name="title_app_guide">Panduan navigasi aplikasi</string>
+
+    <string name="icon_how_to_guide">Ikon panduan</string>
+    <string name="icon_arrow_right">Ikon panah kanan</string>
+
+    <string name="title_report_issue">Laporkan masalah</string>
+    <string name="icon_support">Ikon dukungan</string>
+
+    <string name="title_wallpapers">Wallpaper</string>
+    <string name="title_auto_wallpapers">Wallpaper otomatis</string>
+    <string name="auto_wallpaper_text">Ganti wallpaper secara otomatis</string>
+    <string name="icon_wallpaper">Ikon wallpaper</string>
+
+    <string name="title_monochrome">Latar belakang monokrom</string>
+    <string name="title_color_less_world">Mode tanpa warna</string>
+    <string name="icon_monochrome">Ikon monokrom</string>
+
+    <string name="title_wallpaper_motion">Gerakan wallpaper</string>
+    <string name="wallpaper_motion_text">Animasikan layar Beranda Anda</string>
+    <string name="icon_wallpaper_motion">Ikon gerakan wallpaper</string>
+
+    <string name="title_change_wallpaper">Ganti wallpaper</string>
+    <string name="change_wallpaper_text">Ketuk untuk mengganti wallpaper sekarang</string>
+    <string name="icon_wallpaper_change">Ikon ganti wallpaper</string>
+
+    <string name="title_wallpaper_frequency">Frekuensi perubahan</string>
+    <string name="wallpaper_frequency_text">Dengan mode siang/malam otomatis</string>
+    <string name="icon_wallpaper_frequency">Ikon frekuensi wallpaper</string>
+
+    <string name="title_own_wallpapers">Atur wallpaper Anda sendiri</string>
+    <string name="wallpaper_directory_select">Ketuk untuk memilih folder</string>
+    <string name="icon_wallpaper_directory">Ikon folder wallpaper</string>
+
+    <string name="set_launcher_first">Atur Comfer sebagai peluncur default terlebih dahulu</string>
+
+    <string name="title_lock_screen">Layar kunci</string>
+    <string name="lock_screen_wallpaper_text">Atur wallpaper juga di layar kunci</string>
+    <string name="icon_lock_screen_wallpaper">Ikon wallpaper layar kunci</string>
+
+    <string name="title_app_icons">Ikon aplikasi</string>
+    <string name="title_app_icon_size">Ukuran ikon</string>
+    <string name="icon_app_icon_size">Ikon ukuran ikon aplikasi</string>
+    <string name="button_decrease_app_icon_size">Perkecil ukuran ikon</string>
+    <string name="button_increase_app_icon_size">Perbesar ukuran ikon</string>
+
+    <string name="title_themed_icons">Ikon bertema</string>
+    <string name="themed_icons_text">Sesuaikan warna ikon dengan wallpaper (eksperimental)</string>
+    <string name="icon_themed_icons">Ikon ikon bertema</string>
+
+    <string name="title_notification_badges">Notifikasi dan lencana ikon</string>
+    <string name="requires_notification_permission">Izin notifikasi diperlukan</string>
+    <string name="icon_notification_badges">Ikon lencana notifikasi</string>
+
+    <string name="title_home_screen">Layar Beranda</string>
+    <string name="title_custom_widgets">Widget kustom</string>
+    <string name="custom_widgets_text">Widget favorit Anda</string>
+    <string name="icon_custom_widgets">Ikon widget kustom</string>
+
+    <string name="title_quick_apps_layout">Tata letak Aplikasi Cepat</string>
+    <string name="quick_apps_layout_text">Atur aplikasi dengan gaya</string>
+    <string name="icon_apps_layout">Ikon tata letak Aplikasi Cepat</string>
+
+    <string name="title_left_swipe_action">Aksi geser kiri</string>
+    <string name="icon_left_swipe_action">Ikon aksi geser kiri</string>
+
+    <string name="title_right_swipe_action">Aksi geser kanan</string>
+    <string name="icon_right_swipe_action">Ikon aksi geser kanan</string>
+
+    <string name="title_swipe_gestures">Gestur geser</string>
+    <string name="swipe_gestures_text">Gunakan gestur untuk pintasan aplikasi</string>
+    <string name="icon_swipe_gestures">Ikon gestur geser</string>
+
+    <string name="title_app_drawer">Laci aplikasi</string>
+    <string name="title_app_drawer_layouts">Tata letak</string>
+    <string name="app_drawer_layouts_text">Gaya untuk menjelajahi aplikasi</string>
+
+    <string name="title_alphabetical_order">Urutan alfabet</string>
+    <string name="alphabetical_order_text">Urutkan aplikasi secara alfabet</string>
+    <string name="icon_alphabetical_order">Ikon urutan alfabet</string>
+
+    <string name="title_apps_list">Daftar aplikasi</string>
+    <string name="title_manage_app_list">Kelola aplikasi</string>
+    <string name="manage_app_list_text">Atur atau urutkan ulang aplikasi dalam daftar</string>
+    <string name="icon_manage_app_list">Ikon kelola daftar aplikasi</string>
+
+    <string name="title_feedback">Umpan balik</string>
+    <string name="icon_feedback">Ikon umpan balik</string>
+
+    <string name="title_share_app">Bagikan aplikasi</string>
+    <string name="icon_share_app">Ikon bagikan aplikasi</string>
+    <string name="share_app_text">Coba peluncur baru ini:</string>
+
+    <string name="title_share_with">Bagikan dengan</string>
+
+    <string name="title_app_version">Versi aplikasi</string>
+    <string name="icon_app_version">Ikon versi aplikasi</string>
+
+    <string name="title_icon_shapes">Bentuk ikon</string>
+    <string name="icon_shapes_text">Atur bentuk ikon aplikasi</string>
+    <string name="icon_icon_shapes">Ikon bentuk ikon</string>
+
+    <string name="title_select_icon_shape">Pilih bentuk ikon</string>
+
+    <string name="notification_permission_text">
+        Untuk menampilkan ikon notifikasi di layar Beranda dan lencana pada ikon aplikasi, Comfer memerlukan akses notifikasi.
+    </string>
+
+    <string name="what_notification_permission_do_title">Layanan ini memungkinkan:</string>
+
+    <string name="what_notification_permission_do_text">
+        • Membaca status notifikasi dan menampilkan ikon serta lencana sesuai kebutuhan.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">Layanan ini tidak:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • Mengumpulkan data pribadi.
+    </string>
+
+    <string name="title_choose_layout">Pilih tata letak</string>
+    <string name="swipe_action_selection">Pilih aplikasi atau layar Widget</string>
+    <string name="title_choose_options">Pilih opsi</string>
+    <string name="title_select_app">Pilih aplikasi</string>
+    <string name="title_widgets_screen">Layar widget</string>
+    <string name="title_choose_action">Pilih aksi</string>
+
+    <string name="unable_to_load_subscriptions">
+        Tidak dapat memuat informasi langganan. Silakan periksa koneksi Anda dan coba lagi.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">Gagal memuat langganan</string>
+    <string name="no_subscription_available">Tidak ada langganan tersedia</string>
+
+    <string name="title_active_subscription">Langganan aktif</string>
+    <string name="subscription_renews_on">Diperpanjang pada</string>
+    <string name="subscription_expires_on">Berakhir pada</string>
+
+    <string name="subscription_benefit_one">Atur wallpaper dinamis Anda sendiri</string>
+    <string name="subscription_benefit_two">Tambahkan widget favorit ke layar Beranda</string>
+    <string name="subscription_benefit_three">Sesuaikan widget default di layar Beranda</string>
+    <string name="subscription_benefit_four">Gunakan gestur untuk membuka aplikasi dengan cepat</string>
+
+    <string name="title_manage_your_subscription">Kelola langganan Anda</string>
+    <string name="title_pro_access">Akses Pro</string>
+    <string name="title_year">tahun</string>
+
+    <string name="subscription_failed_prefix">Langganan gagal</string>
+    <string name="subscription_successful_prefix">Langganan berhasil</string>
+    <string name="title_subscribe_now">Langgan sekarang</string>
+
+    <string name="subscription_restore_failed_prefix">Pemulihan langganan gagal</string>
+    <string name="subscription_restore_successful_prefix">Langganan berhasil dipulihkan</string>
+    <string name="subscription_not_found_to_restore">Tidak ada langganan untuk dipulihkan</string>
+    <string name="title_restore_subscription">Pulihkan langganan</string>
+
+    <string name="guide_home_swipe_up">Geser ke atas untuk membuka laci aplikasi.</string>
+    <string name="guide_home_swipe_down">Geser ke bawah untuk melihat notifikasi.</string>
+    <string name="guide_home_double_tap">Ketuk dua kali layar untuk membuka Aplikasi Terbaru.</string>
+    <string name="guide_home_long_press_lower">Tekan lama bagian bawah layar untuk membuka Pengaturan.</string>
+    <string name="guide_home_long_press_upper">Tekan lama bagian atas layar untuk mengedit widget.</string>
+    <string name="guide_home_tap_upper_half">Ketuk bagian atas layar untuk keluar dari pengeditan widget.</string>
+    <string name="guide_home_tap_date_time">Ketuk Tanggal/Waktu untuk melihat alarm.</string>
+    <string name="guide_home_long_press_date_time">Tekan lama Tanggal/Waktu untuk membuka kalender.</string>
+    <string name="guide_home_swipe_left_right">Geser ke kiri atau kanan untuk membuka aplikasi terpilih atau layar Widget.</string>
+    <string name="guide_home_gestures">Gambar gestur untuk membuka aplikasi yang diatur di Pintasan Gestur.</string>
+
+    <string name="guide_circular_app_drawer">Laci aplikasi melingkar</string>
+    <string name="guide_circular_app_drawer_swipe_down">Geser ke bawah untuk kembali.</string>
+    <string name="guide_circular_app_drawer_double_tap">Ketuk dua kali untuk membuka aplikasi di tengah.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">Geser ke kiri atau kanan untuk menggulir.</string>
+    <string name="guide_circular_app_drawer_tap_icon">Ketuk ikon untuk membuka aplikasi.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">Tekan lama ikon untuk membuka info aplikasi.</string>
+
+    <string name="guide_horizontal_app_drawer">Laci aplikasi horizontal</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">Geser ke bawah untuk kembali.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">Geser ke kiri atau kanan untuk menggulir.</string>
+    <string name="guide_horizontal_app_drawer_long_press">Tekan lama untuk mengelola laci.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">Seret dan lepas ikon dalam mode edit untuk memindahkannya.</string>
+    <string name="guide_horizontal_app_drawer_drag">Seret laci dalam mode edit untuk memindahkannya secara vertikal.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">Ketuk sekali untuk keluar dari mode edit.</string>
+
+    <string name="guide_search">Cari aplikasi atau kontak.</string>
+    <string name="guide_search_swipe_down">Geser ke bawah pada keyboard untuk kembali.</string>
+    <string name="guide_search_swipe_right">Geser ke kanan pada keyboard untuk mencari kontak.</string>
+    <string name="guide_search_swipe_left">Geser ke kiri pada keyboard untuk mencari aplikasi.</string>
+    <string name="guide_search_swipe_up">Geser ke atas pada keyboard untuk melihat lebih banyak karakter.</string>
+    <string name="guide_search_long_press">Tekan lama panah kembali di tengah untuk memilih bahasa.</string>
+    <string name="guide_search_scroll_list">Gulir daftar aplikasi secara horizontal untuk melihat semua hasil.</string>
+    <string name="guide_search_scroll_sides">Gulir sisi keyboard melingkar untuk menggulir daftar kontak.</string>
+    <string name="guide_search_double_tap_sides">Ketuk dua kali sisi keyboard melingkar untuk membuka dialer dengan kontak yang disorot.</string>
+
+    <string name="guide_manage_apps">Kelola daftar aplikasi</string>
+    <string name="guide_manage_apps_tap">Ketuk untuk memilih aplikasi dan memindahkannya ke daftar lain.</string>
+    <string name="guide_manage_apps_long_press">
+        Tekan lama ikon aplikasi untuk menyeret dan mengurutkannya dalam daftar yang sama. Berfungsi saat tidak diurutkan secara alfabet.
+    </string>
+
+    <string name="title_app_language">Bahasa aplikasi</string>
+    <string name="app_language_text">Ketuk untuk mengubah bahasa aplikasi</string>
+    <string name="icon_app_language">Ikon bahasa aplikasi</string>
+
+    <string name="update_frequency_hour">Satu jam</string>
+    <string name="update_frequency_day">Satu hari</string>
+
+    <string name="font_weight_light">Ringan</string>
+    <string name="font_weight_normal">Normal</string>
+    <string name="font_weight_bold">Tebal</string>
+
+    <string name="icon_go_back">Ikon kembali</string>
+    <string name="title_advanced">Lanjutan</string>
+    <string name="title_text_angle">Kemiringan</string>
+    <string name="title_text_radius">Lengkungan</string>
+    <string name="title_shadow">Bayangan</string>
+
+    <string name="date_example_two">Sab\nSep\n16</string>
+    <string name="title_transparency">Transparansi</string>
+    <string name="title_wallpaper_colors">Warna wallpaper</string>
+    <string name="title_icon_pack">Paket ikon</string>
+    <string name="title_select_icon_app">Pilih Paket Ikon</string>
+    <string name="title_not_available">Tidak tersedia</string>
+    <string name="title_action_clear">Hapus</string>
+    <string name="title_battery_saver">Penghemat baterai</string>
+    <string name="battery_saver_text">Aktifkan untuk menghemat baterai</string>
+    <string name="text_saving_battery">Menghemat baterai</string>
+    <string name="icon_pack_support">Gunakan paket ikon favorit Anda</string>
+</resources>

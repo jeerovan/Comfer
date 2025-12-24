@@ -1,0 +1,357 @@
+<resources>
+    <string name="app_name">Comfer</string>
+    <string name="welcome">வரவேற்கிறோம்</string>
+
+    <string name="checkout_how_to_guide">
+        மெனுவை திறக்கவும் “எப்படி செய்வது” வழிகாட்டியை பார்க்கவும், திரையின் கீழ் பகுதியை நீண்ட நேரம் அழுத்தவும்。\nகுறிப்பு: சில மொழிபெயர்ப்புகள் தானாக உருவாக்கப்பட்டிருக்கலாம். தவறான உரை இருப்பின் தயவுசெய்து எங்களை மின்னஞ்சல் மூலம் தொடர்புகொள்ளுங்கள்.
+    </string>
+
+    <string name="accessibility_service_description">
+        கணினி அமைப்பின் “சமீபத்திய பயன்பாடுகள்” திரையை திறக்க இந்த அணுகல் சேவை தேவை. Comfer இந்த அனுமதியை குறுக்குவழி வழங்குவதற்காக மட்டுமே பயன்படுத்துகிறது மற்றும் எந்த தனிப்பட்ட தரவையும் சேகரிக்கவோ கண்காணிக்கவோாது.
+    </string>
+
+    <string name="set_default_launcher">இயல்புநிலை லாஞ்சராக அமைக்கவும்</string>
+    <string name="widget_binding_cancelled">விட்ஜெட் அமைப்பு ரத்து செய்யப்பட்டது</string>
+    <string name="long_press_to_add_edit_widgets">விட்ஜெட்களை சேர்க்க அல்லது திருத்த நீண்ட நேரம் அழுத்தவும்</string>
+
+    <string name="add_widget">விட்ஜெட் சேர்க்கவும்</string>
+    <string name="could_not_load_widget">விட்ஜெட்டை ஏற்ற முடியவில்லை</string>
+    <string name="remove_widget">விட்ஜெட்டை அகற்றவும்</string>
+
+    <string name="close">மூடு</string>
+    <string name="applications">பயன்பாடுகள்</string>
+    <string name="contacts">தொடர்புகள்</string>
+    <string name="search">தேடல்</string>
+
+    <string name="requires_contact_permission">
+        தொடர்புகளை தேடவும் அழைக்கவும் தொடர்பு அனுமதி தேவை.
+    </string>
+
+    <string name="grant_permission">அனுமதி வழங்கவும்</string>
+
+    <string name="privacy_policy_text">
+        உங்கள் தனியுரிமையை நாங்கள் மதிக்கிறோம். Comfer எந்த தனிப்பட்ட தரவையும் சேகரிக்கவோ சேமிக்கவோாது. எங்கள் தனியுரிமைக் கொள்கையை படிக்க தட்டவும்.
+    </string>
+
+    <string name="background_image">பின்னணி படம்</string>
+    <string name="feedback">கருத்து</string>
+    <string name="feedback_text">உங்கள் அனுபவத்தை பகிர்ந்து Comfer மேம்பட உதவுங்கள்.</string>
+    <string name="feedback_icon">கருத்து ஐகான்</string>
+
+    <string name="rate_comfer">Comfer-ஐ மதிப்பிடுங்கள்</string>
+    <string name="not_now">இப்போது வேண்டாம்</string>
+
+    <string name="permission_required">அனுமதி தேவை</string>
+
+    <string name="recent_apps_permission_title">
+        சமீபத்திய பயன்பாடுகள் குறுக்குவழியை இயக்க Comfer-க்கு அணுகல் சேவை அனுமதி தேவை.
+    </string>
+
+    <string name="what_recent_apps_short_do_title">இந்த சேவை அனுமதிப்பது:</string>
+
+    <string name="what_recent_apps_short_do_content">
+        • கணினி அமைப்பின் சமீபத்திய பயன்பாடுகள் திரையை திறப்பது.
+    </string>
+
+    <string name="what_recent_apps_short_do_not_title">இந்த சேவை செய்யாதது:</string>
+
+    <string name="what_recent_apps_short_do_not_content">
+        • தனிப்பட்ட தரவுகளை சேகரிக்காது。\n
+        • நீங்கள் செய்யும் செயல்கள் அல்லது தட்டச்சு செய்யும் உரைகளை கண்காணிக்காது。\n
+        • திரை உள்ளடக்கத்தை வாசிக்காது.
+    </string>
+
+    <string name="continue_text">தொடரவும்</string>
+    <string name="cancel_text">ரத்து</string>
+    <string name="backspace_key">பேக்ஸ்பேஸ் விசை</string>
+
+    <string name="contact_number_not_available">தொலைபேசி எண் கிடைக்கவில்லை</string>
+    <string name="no_app_to_place_calls">அழைக்க எந்த பயன்பாடும் இல்லை</string>
+
+    <string name="update_available">புதிய புதுப்பிப்பு கிடைக்கிறது.</string>
+    <string name="update_action">புதுப்பிக்கவும்</string>
+    <string name="update_downloaded">புதுப்பிப்பு நிறுவ தயாராக உள்ளது.</string>
+    <string name="update_install">நிறுவவும்</string>
+
+    <string name="select_an_application">ஒரு பயன்பாட்டை தேர்வு செய்யவும்</string>
+
+    <string name="gesture_shortcuts_title">கைசைகை குறுக்குவழிகள்</string>
+    <string name="paid_feature_title">பிரீமியம் அம்சம்</string>
+
+    <string name="tap_icon_to_select_app">பயன்பாட்டை தேர்வு செய்ய ஐகானை தட்டவும்</string>
+
+    <string name="requires_subscription">சந்தா தேவை</string>
+
+    <string name="button_to_move_app_to_quick_app_list">ஹோம் பயன்பாடுகளுக்கு நகர்த்தவும்</string>
+    <string name="button_to_move_app_to_primary_app_list">டிராயர் பயன்பாடுகளுக்கு நகர்த்தவும்</string>
+    <string name="button_to_move_app_to_ghost_app_list">மறைக்கப்பட்ட பயன்பாடுகளுக்கு நகர்த்தவும்</string>
+
+    <string name="title_widgets">விட்ஜெட்கள்</string>
+    <string name="title_time">நேரம்</string>
+    <string name="rest_widget_positions">இடங்களை மீட்டமைக்கவும்</string>
+
+    <string name="title_analog_clock">அனலாக் கடிகாரம்</string>
+    <string name="title_clock_size">கடிகார அளவு</string>
+    <string name="clock_background_color">கடிகார பின்னணி நிறம்</string>
+    <string name="background_transparency">பின்னணி தெளிவுத்தன்மை</string>
+    <string name="hour_hand_color">மணிக்கட்டு நிறம்</string>
+    <string name="minute_hand_color">நிமிடக் கை நிறம்</string>
+
+    <string name="title_time_format">நேர வடிவம்</string>
+    <string name="title_show_am_pm">AM/PM காட்டு</string>
+    <string name="title_font_size">எழுத்துரு அளவு</string>
+    <string name="title_font_weight">எழுத்துரு எடை</string>
+    <string name="title_font_style">எழுத்துரு பாணி</string>
+    <string name="title_time_font_color">நேர எழுத்துரு நிறம்</string>
+
+    <string name="title_date">தேதி</string>
+    <string name="date_example">சனி, செப்டம்பர் 16</string>
+    <string name="date_font_color">தேதி எழுத்துரு நிறம்</string>
+
+    <string name="title_battery">பேட்டரி</string>
+    <string name="show_battery_icon">பேட்டரி ஐகானை காட்டு</string>
+    <string name="show_battery_percentage">பேட்டரி சதவீதத்தை காட்டு</string>
+    <string name="battery_indicator_color">குறியீட்டு நிறம்</string>
+
+    <string name="title_notifications">அறிவிப்புகள்</string>
+    <string name="show_notification_icons">அறிவிப்பு ஐகான்களை காட்டு</string>
+
+    <string name="title_size">அளவு</string>
+    <string name="title_color">நிறம்</string>
+    <string name="title_selected_color">தேர்ந்தெடுத்த நிறம்</string>
+
+    <string name="button_text_save">சேமிக்கவும்</string>
+
+    <string name="title_premium">பிரீமியம்</string>
+    <string name="title_pro_features">ப்ரோ அம்சங்கள்</string>
+    <string name="title_subscription">சந்தா</string>
+    <string name="go_to_page">பக்கத்தை திறக்கவும்</string>
+
+    <string name="title_support">ஆதரவு</string>
+    <string name="title_how_to">எப்படி செய்வது</string>
+    <string name="title_app_guide">பயன்பாட்டு வழிசெலுத்தல் வழிகாட்டி</string>
+
+    <string name="icon_how_to_guide">எப்படி செய்வது வழிகாட்டி ஐகான்</string>
+    <string name="icon_arrow_right">வலது அம்பு ஐகான்</string>
+
+    <string name="title_report_issue">பிரச்சினையை புகாரளிக்கவும்</string>
+    <string name="icon_support">ஆதரவு ஐகான்</string>
+
+    <string name="title_wallpapers">வால்பேப்பர்கள்</string>
+    <string name="title_auto_wallpapers">தானியங்கி வால்பேப்பர்கள்</string>
+    <string name="auto_wallpaper_text">வால்பேப்பர்களை தானாக மாற்றவும்</string>
+    <string name="icon_wallpaper">வால்பேப்பர் ஐகான்</string>
+
+    <string name="title_monochrome">ஒற்றை நிற பின்னணி</string>
+    <string name="title_color_less_world">நிறமற்ற முறை</string>
+    <string name="icon_monochrome">ஒற்றை நிற ஐகான்</string>
+
+    <string name="title_wallpaper_motion">வால்பேப்பர் இயக்கம்</string>
+    <string name="wallpaper_motion_text">ஹோம் திரையை உயிர்ப்பூட்டவும்</string>
+    <string name="icon_wallpaper_motion">வால்பேப்பர் இயக்கம் ஐகான்</string>
+
+    <string name="title_change_wallpaper">வால்பேப்பரை மாற்றவும்</string>
+    <string name="change_wallpaper_text">இப்போது வால்பேப்பரை மாற்ற தட்டவும்</string>
+    <string name="icon_wallpaper_change">வால்பேப்பர் மாற்றம் ஐகான்</string>
+
+    <string name="title_wallpaper_frequency">மாற்றும் அதிர்வு</string>
+    <string name="wallpaper_frequency_text">தானியங்கி நாள்/இரவு முறையுடன்</string>
+    <string name="icon_wallpaper_frequency">வால்பேப்பர் அதிர்வு ஐகான்</string>
+
+    <string name="title_own_wallpapers">உங்கள் சொந்த வால்பேப்பர்களை அமைக்கவும்</string>
+    <string name="wallpaper_directory_select">கோப்புறையை தேர்வு செய்ய தட்டவும்</string>
+    <string name="icon_wallpaper_directory">வால்பேப்பர் கோப்புறை ஐகான்</string>
+
+    <string name="set_launcher_first">முதலில் Comfer-ஐ இயல்புநிலை லாஞ்சராக அமைக்கவும்</string>
+
+    <string name="title_lock_screen">லாக் திரை</string>
+    <string name="lock_screen_wallpaper_text">லாக் திரையிலும் வால்பேப்பரை அமைக்கவும்</string>
+    <string name="icon_lock_screen_wallpaper">லாக் திரை வால்பேப்பர் ஐகான்</string>
+
+    <string name="title_app_icons">பயன்பாட்டு ஐகான்கள்</string>
+    <string name="title_app_icon_size">ஐகான் அளவு</string>
+    <string name="icon_app_icon_size">பயன்பாட்டு ஐகான் அளவு ஐகான்</string>
+    <string name="button_decrease_app_icon_size">ஐகான் அளவை குறைக்கவும்</string>
+    <string name="button_increase_app_icon_size">ஐகான் அளவை அதிகரிக்கவும்</string>
+
+    <string name="title_themed_icons">தீம் செய்யப்பட்ட ஐகான்கள்</string>
+    <string name="themed_icons_text">வால்பேப்பருடன் ஐகான் நிறங்களை பொருத்தவும் (சோதனை)</string>
+    <string name="icon_themed_icons">தீம் செய்யப்பட்ட ஐகான் ஐகான்</string>
+
+    <string name="title_notification_badges">அறிவிப்பு மற்றும் ஐகான் பேட்ஜ்கள்</string>
+    <string name="requires_notification_permission">அறிவிப்பு அனுமதி தேவை</string>
+    <string name="icon_notification_badges">அறிவிப்பு பேட்ஜ் ஐகான்</string>
+
+    <string name="title_home_screen">ஹோம் திரை</string>
+    <string name="title_custom_widgets">தனிப்பயன் விட்ஜெட்கள்</string>
+    <string name="custom_widgets_text">உங்கள் விருப்பமான விட்ஜெட்கள்</string>
+    <string name="icon_custom_widgets">தனிப்பயன் விட்ஜெட் ஐகான்</string>
+
+    <string name="title_quick_apps_layout">விரைவு பயன்பாடுகள் அமைப்பு</string>
+    <string name="quick_apps_layout_text">ஸ்டைலுடன் பயன்பாடுகளை ஒழுங்குபடுத்துங்கள்</string>
+    <string name="icon_apps_layout">விரைவு பயன்பாடுகள் அமைப்பு ஐகான்</string>
+
+    <string name="title_left_swipe_action">இடது ஸ்வைப் செயல்</string>
+    <string name="icon_left_swipe_action">இடது ஸ்வைப் செயல் ஐகான்</string>
+
+    <string name="title_right_swipe_action">வலது ஸ்வைப் செயல்</string>
+    <string name="icon_right_swipe_action">வலது ஸ்வைப் செயல் ஐகான்</string>
+
+    <string name="title_swipe_gestures">ஸ்வைப் கைசைகைகள்</string>
+    <string name="swipe_gestures_text">பயன்பாட்டு குறுக்குவழிகளுக்காக கைசைகைகளை பயன்படுத்தவும்</string>
+    <string name="icon_swipe_gestures">ஸ்வைப் கைசைகை ஐகான்</string>
+
+    <string name="title_app_drawer">பயன்பாட்டு டிராயர்</string>
+    <string name="title_app_drawer_layouts">அமைப்புகள்</string>
+    <string name="app_drawer_layouts_text">பயன்பாடுகளை உலாவும் பாணிகள்</string>
+
+    <string name="title_alphabetical_order">அகரவரிசை வரிசை</string>
+    <string name="alphabetical_order_text">பயன்பாடுகளை அகரவரிசையாக வரிசைப்படுத்தவும்</string>
+    <string name="icon_alphabetical_order">அகரவரிசை வரிசை ஐகான்</string>
+
+    <string name="title_apps_list">பயன்பாட்டு பட்டியல்கள்</string>
+    <string name="title_manage_app_list">பயன்பாடுகளை நிர்வகிக்கவும்</string>
+    <string name="manage_app_list_text">பட்டியல்களில் பயன்பாடுகளை ஒழுங்குபடுத்தவும் அல்லது மறுவரிசைப்படுத்தவும்</string>
+    <string name="icon_manage_app_list">பயன்பாட்டு பட்டியல் நிர்வகிப்பு ஐகான்</string>
+
+    <string name="title_feedback">கருத்து</string>
+    <string name="icon_feedback">கருத்து ஐகான்</string>
+
+    <string name="title_share_app">பயன்பாட்டை பகிரவும்</string>
+    <string name="icon_share_app">பயன்பாடு பகிர்வு ஐகான்</string>
+    <string name="share_app_text">இந்த புதிய லாஞ்சரை முயற்சிக்கவும்:</string>
+
+    <string name="title_share_with">இதுடன் பகிரவும்</string>
+
+    <string name="title_app_version">பயன்பாட்டு பதிப்பு</string>
+    <string name="icon_app_version">பயன்பாட்டு பதிப்பு ஐகான்</string>
+
+    <string name="title_icon_shapes">ஐகான் வடிவங்கள்</string>
+    <string name="icon_shapes_text">பயன்பாட்டு ஐகான் வடிவத்தை அமைக்கவும்</string>
+    <string name="icon_icon_shapes">ஐகான் வடிவங்கள் ஐகான்</string>
+
+    <string name="title_select_icon_shape">ஐகான் வடிவத்தை தேர்வு செய்யவும்</string>
+
+    <string name="notification_permission_text">
+        ஹோம் திரையில் அறிவிப்பு ஐகான்கள் மற்றும் பயன்பாட்டு ஐகான்களில் பேட்ஜ்களை காட்ட Comfer-க்கு அறிவிப்பு அணுகல் தேவை.
+    </string>
+
+    <string name="what_notification_permission_do_title">இந்த சேவை அனுமதிப்பது:</string>
+
+    <string name="what_notification_permission_do_text">
+        • அறிவிப்பு நிலையை வாசித்து தேவையானபோது ஐகான்கள் மற்றும் பேட்ஜ்களை காட்டுகிறது.
+    </string>
+
+    <string name="what_notification_permission_do_not_title">இந்த சேவை செய்யாதது:</string>
+
+    <string name="what_notification_permission_do_not_text">
+        • தனிப்பட்ட தரவுகளை சேகரிக்காது.
+    </string>
+
+    <string name="title_choose_layout">அமைப்பை தேர்வு செய்யவும்</string>
+    <string name="swipe_action_selection">ஒரு பயன்பாடு அல்லது விட்ஜெட் திரையை தேர்வு செய்யவும்</string>
+    <string name="title_choose_options">விருப்பத்தை தேர்வு செய்யவும்</string>
+    <string name="title_select_app">பயன்பாட்டை தேர்வு செய்யவும்</string>
+    <string name="title_widgets_screen">விட்ஜெட் திரை</string>
+    <string name="title_choose_action">செயலை தேர்வு செய்யவும்</string>
+
+    <string name="unable_to_load_subscriptions">
+        சந்தா தகவலை ஏற்ற முடியவில்லை. தயவுசெய்து உங்கள் இணைப்பை சரிபார்த்து மீண்டும் முயற்சிக்கவும்.
+    </string>
+
+    <string name="unable_to_load_subscriptions_title">சந்தாவை ஏற்ற முடியவில்லை</string>
+    <string name="no_subscription_available">எந்த சந்தாவும் கிடைக்கவில்லை</string>
+
+    <string name="title_active_subscription">செயலில் உள்ள சந்தா</string>
+    <string name="subscription_renews_on">புதுப்பிக்கப்படும் தேதி</string>
+    <string name="subscription_expires_on">காலாவதி ஆகும் தேதி</string>
+
+    <string name="subscription_benefit_one">உங்கள் சொந்த டைனமிக் வால்பேப்பர்களை அமைக்கவும்</string>
+    <string name="subscription_benefit_two">ஹோம் திரையில் உங்கள் விருப்பமான விட்ஜெட்களை சேர்க்கவும்</string>
+    <string name="subscription_benefit_three">ஹோம் திரையின் இயல்புநிலை விட்ஜெட்களை தனிப்பயனாக்கவும்</string>
+    <string name="subscription_benefit_four">கைசைகைகளை பயன்படுத்தி பயன்பாடுகளை விரைவாக திறக்கவும்</string>
+
+    <string name="title_manage_your_subscription">உங்கள் சந்தாவை நிர்வகிக்கவும்</string>
+    <string name="title_pro_access">ப்ரோ அணுகல்</string>
+    <string name="title_year">ஆண்டு</string>
+
+    <string name="subscription_failed_prefix">சந்தா தோல்வியடைந்தது</string>
+    <string name="subscription_successful_prefix">சந்தா வெற்றிகரமாக நிறைவேற்றப்பட்டது</string>
+    <string name="title_subscribe_now">இப்போது சந்தா செய்யவும்</string>
+
+    <string name="subscription_restore_failed_prefix">சந்தா மீட்டமைப்பு தோல்வியடைந்தது</string>
+    <string name="subscription_restore_successful_prefix">சந்தா வெற்றிகரமாக மீட்டமைக்கப்பட்டது</string>
+    <string name="subscription_not_found_to_restore">மீட்டமைக்க எந்த சந்தாவும் இல்லை</string>
+    <string name="title_restore_subscription">சந்தாவை மீட்டமைக்கவும்</string>
+
+    <string name="guide_home_swipe_up">பயன்பாட்டு டிராயரை திறக்க மேலே ஸ்வைப் செய்யவும்.</string>
+    <string name="guide_home_swipe_down">அறிவிப்புகளை பார்க்க கீழே ஸ்வைப் செய்யவும்.</string>
+    <string name="guide_home_double_tap">சமீபத்திய பயன்பாடுகளை திறக்க திரையை இருமுறை தட்டவும்.</string>
+    <string name="guide_home_long_press_lower">அமைப்புகளை திறக்க திரையின் கீழ் பகுதியை நீண்ட நேரம் அழுத்தவும்.</string>
+    <string name="guide_home_long_press_upper">விட்ஜெட்களை திருத்த திரையின் மேல் பகுதியை நீண்ட நேரம் அழுத்தவும்.</string>
+    <string name="guide_home_tap_upper_half">விட்ஜெட் திருத்தத்திலிருந்து வெளியேற மேல் பகுதியை தட்டவும்.</string>
+    <string name="guide_home_tap_date_time">அலாரங்களை பார்க்க தேதி/நேரத்தை தட்டவும்.</string>
+    <string name="guide_home_long_press_date_time">காலெண்டரை திறக்க தேதி/நேரத்தை நீண்ட நேரம் அழுத்தவும்.</string>
+    <string name="guide_home_swipe_left_right">தேர்ந்தெடுக்கப்பட்ட பயன்பாடு அல்லது விட்ஜெட் திரையை திறக்க இடது அல்லது வலது ஸ்வைப் செய்யவும்.</string>
+    <string name="guide_home_gestures">கைசைகை குறுக்குவழிகளில் அமைக்கப்பட்ட பயன்பாடுகளை திறக்க கைசைகைகளை வரையவும்.</string>
+
+    <string name="guide_circular_app_drawer">வட்ட வடிவ பயன்பாட்டு டிராயர்</string>
+    <string name="guide_circular_app_drawer_swipe_down">திரும்ப செல்ல கீழே ஸ்வைப் செய்யவும்.</string>
+    <string name="guide_circular_app_drawer_double_tap">மையத்தில் உள்ள பயன்பாட்டை திறக்க இருமுறை தட்டவும்.</string>
+    <string name="guide_circular_app_drawer_swipe_left_right">ஸ்க்ரோல் செய்ய இடது அல்லது வலது ஸ்வைப் செய்யவும்.</string>
+    <string name="guide_circular_app_drawer_tap_icon">பயன்பாட்டை திறக்க ஐகானை தட்டவும்.</string>
+    <string name="guide_circular_app_drawer_long_press_icon">பயன்பாட்டு தகவலை திறக்க ஐகானை நீண்ட நேரம் அழுத்தவும்.</string>
+
+    <string name="guide_horizontal_app_drawer">கிடைமட்ட பயன்பாட்டு டிராயர்</string>
+    <string name="guide_horizontal_app_drawer_swipe_down">திரும்ப செல்ல கீழே ஸ்வைப் செய்யவும்.</string>
+    <string name="guide_horizontal_app_drawer_swipe_left_right">ஸ்க்ரோல் செய்ய இடது அல்லது வலது ஸ்வைப் செய்யவும்.</string>
+    <string name="guide_horizontal_app_drawer_long_press">டிராயரை நிர்வகிக்க நீண்ட நேரம் அழுத்தவும்.</string>
+    <string name="guide_horizontal_app_drawer_drag_drop">திருத்த முறையில் ஐகான்களை இழுத்து விடவும் மூலம் இடத்தை மாற்றவும்.</string>
+    <string name="guide_horizontal_app_drawer_drag">திருத்த முறையில் டிராயரை இழுத்து செங்குத்தாக நகர்த்தவும்.</string>
+    <string name="guide_horizontal_app_drawer_single_tap">திருத்த முறையிலிருந்து வெளியேற ஒருமுறை தட்டவும்.</string>
+
+    <string name="guide_search">பயன்பாடுகள் அல்லது தொடர்புகளை தேடவும்.</string>
+    <string name="guide_search_swipe_down">திரும்ப செல்ல விசைப்பலகையில் கீழே ஸ்வைப் செய்யவும்.</string>
+    <string name="guide_search_swipe_right">தொடர்புகளை தேட விசைப்பலகையில் வலது ஸ்வைப் செய்யவும்.</string>
+    <string name="guide_search_swipe_left">பயன்பாடுகளை தேட விசைப்பலகையில் இடது ஸ்வைப் செய்யவும்.</string>
+    <string name="guide_search_swipe_up">மேலும் எழுத்துகளை பார்க்க விசைப்பலகையில் மேலே ஸ்வைப் செய்யவும்.</string>
+    <string name="guide_search_long_press">மொழியை தேர்வு செய்ய நடுவிலுள்ள பின்செல் அம்பை நீண்ட நேரம் அழுத்தவும்.</string>
+    <string name="guide_search_scroll_list">அனைத்து முடிவுகளையும் பார்க்க பயன்பாட்டு பட்டியலை கிடைமட்டமாக ஸ்க்ரோல் செய்யவும்.</string>
+    <string name="guide_search_scroll_sides">தொடர்பு பட்டியலை ஸ்க்ரோல் செய்ய வட்ட விசைப்பலகையின் இருபுறங்களையும் ஸ்க்ரோல் செய்யவும்.</string>
+    <string name="guide_search_double_tap_sides">தேர்ந்தெடுக்கப்பட்ட தொடர்புடன் டயலரை திறக்க விசைப்பலகையின் எந்த பக்கத்திலும் இருமுறை தட்டவும்.</string>
+
+    <string name="guide_manage_apps">பயன்பாட்டு பட்டியலை நிர்வகிக்கவும்</string>
+    <string name="guide_manage_apps_tap">பயன்பாடுகளை தேர்வு செய்து மற்றொரு பட்டியலுக்கு நகர்த்த தட்டவும்.</string>
+    <string name="guide_manage_apps_long_press">
+        ஒரே பட்டியலில் வரிசையை மாற்ற பயன்பாட்டு ஐகானை நீண்ட நேரம் அழுத்தி இழுக்கவும். அகரவரிசையாக வரிசைப்படுத்தப்படாதபோது மட்டுமே செயல்படும்.
+    </string>
+
+    <string name="title_app_language">பயன்பாட்டு மொழி</string>
+    <string name="app_language_text">பயன்பாட்டு மொழியை மாற்ற தட்டவும்</string>
+    <string name="icon_app_language">பயன்பாட்டு மொழி ஐகான்</string>
+
+    <string name="update_frequency_hour">ஒரு மணி நேரம்</string>
+    <string name="update_frequency_day">ஒரு நாள்</string>
+
+    <string name="font_weight_light">இலகு</string>
+    <string name="font_weight_normal">சாதாரணம்</string>
+    <string name="font_weight_bold">தடித்த</string>
+
+    <string name="icon_go_back">பின்செல் ஐகான்</string>
+    <string name="title_advanced">மேம்பட்டது</string>
+    <string name="title_text_angle">சாய்வு</string>
+    <string name="title_text_radius">வளைவு</string>
+    <string name="title_shadow">நிழல்</string>
+
+    <string name="date_example_two">சனி\nசெப்\n16</string>
+    <string name="title_transparency">தெளிவுத்தன்மை</string>
+    <string name="title_wallpaper_colors">வால்பேப்பர் நிறங்கள்</string>
+    <string name="title_icon_pack">ஐகான் பேக்</string>
+    <string name="title_select_icon_app">ஐகான் பேக்கை தேர்வு செய்யவும்</string>
+    <string name="title_not_available">கிடைக்கவில்லை</string>
+    <string name="title_action_clear">அழி</string>
+    <string name="title_battery_saver">பேட்டரி சேமிப்பு</string>
+    <string name="battery_saver_text">பேட்டரியை சேமிக்க இயக்கவும்</string>
+    <string name="text_saving_battery">பேட்டரி சேமிக்கப்படுகிறது</string>
+    <string name="icon_pack_support">உங்கள் விருப்பமான ஐகான் பேக்கை பயன்படுத்தவும்</string>
+</resources>
