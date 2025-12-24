@@ -1628,7 +1628,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
         {onFeedbackDismiss()},
         {onFeedbackRateIt()}
     )
-    val lowerPartHeight = 300.dp
+    val lowerPartHeight = 400.dp
 
     val isLightHour = PreferenceManager.isLightHour(context)
     val hourFgColor = if (isLightHour) {
