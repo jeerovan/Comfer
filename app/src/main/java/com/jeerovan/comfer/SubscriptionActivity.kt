@@ -121,7 +121,6 @@ fun SubscriptionScreen(
     LaunchedEffect(Unit) {
         try {
             if (!Purchases.isConfigured) {
-                // Log error or attempt emergency re-configuration (unlikely needed if using Application class)
                 errorMessage = unableToLoad
                 isLoading = false
                 return@LaunchedEffect

@@ -4,6 +4,9 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.core.content.edit
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 object AppInfoManager {
     private const val PREFS_NAME = "com.jeerovan.comfer.AppInfoPrefs"
@@ -23,9 +26,11 @@ object AppInfoManager {
     }
 
     fun saveAppPackageNames(context: Context, listName: String, packageNames: Collection<String>) {
-        getSharedPreferences(context).edit {
-            val stringToSave = packageNames.joinToString(DELIMITER)
-            putString(listName, stringToSave)
+        CoroutineScope(Dispatchers.IO).launch {
+            getSharedPreferences(context).edit(commit = true) {
+                val stringToSave = packageNames.joinToString(DELIMITER)
+                putString(listName, stringToSave)
+            }
         }
     }
 }

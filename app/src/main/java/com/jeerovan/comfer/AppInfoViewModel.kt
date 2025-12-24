@@ -43,6 +43,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 private const val REST_LIST_NAME = "Rest"
 
 data class AppInfoUiState(
@@ -371,28 +373,26 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val isLightHour = PreferenceManager.isLightHour(context)
             val iconPackPackage = PreferenceManager.getIconPack(context)
             // Function to map package names to your UI models
-            // NOTE: This handles if a package exists on multiple profiles (Work + Personal)
+            // NOTE: handle if a package exists on multiple profiles (Work + Personal)
+            val semaphore = Semaphore(8)
             suspend fun mapPackagesToAppInfo(packageNames: List<String>): List<AppInfo> {
                 return packageNames.map { packageName ->
                     async {
-                        // 1. Get list of activities (Personal, Work, etc.) or return empty list if none
-                        val activityInfo = allActivitiesMap[packageName] ?: return@async null
-
-                        // 2. Process each activity (e.g. Personal Gmail, Work Gmail)
-                        createAppInfo(
-                            context,
-                            activityInfo,
-                            showThemedIcons,
-                            themedColors,
-                            isLightHour,
-                            iconPackPackage
-                        )
+                        // Acquire a permit before entering the heavy lifting
+                        semaphore.withPermit {
+                            val activityInfo = allActivitiesMap[packageName] ?: return@withPermit null
+                            createAppInfo(
+                                context,
+                                activityInfo,
+                                showThemedIcons,
+                                themedColors,
+                                isLightHour,
+                                iconPackPackage
+                            )
+                        }
                     }
-                }
-                    .awaitAll()
-                    .filterNotNull()
+                }.awaitAll().filterNotNull()
             }
-
 
             // 1. Quick Apps - Update Immediately
             val quickApps = mapPackagesToAppInfo(finalQuickPackageNames.toSet().toList())
