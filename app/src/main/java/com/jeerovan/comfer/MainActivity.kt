@@ -155,6 +155,7 @@ import kotlinx.coroutines.withContext
 
 import android.app.Activity
 import android.appwidget.AppWidgetHost
+import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
@@ -881,6 +882,12 @@ private fun WidgetInstance(
     beingRearranged: (Boolean) -> Unit
 ) {
     val view = LocalView.current
+    val context = LocalContext.current
+
+    // Capture density and providerInfo during composition
+    val density = LocalDensity.current
+    val appWidgetProviderInfo = remember { widget.providerInfo }
+
     // Initial grid-based calculations
     val initialX = (widget.gridX * (cellWidthPx + gapPx))
     val initialY = (widget.gridY * (cellHeightPx + gapPx)) + gapPx
@@ -889,7 +896,12 @@ private fun WidgetInstance(
 
     var position by remember { mutableStateOf(Offset(initialX, initialY)) }
     var size by remember { mutableStateOf(IntSize(initialWidth.roundToInt(), initialHeight.roundToInt())) }
-    var widgetUpdated by remember { mutableStateOf(false)}
+    var widgetUpdated by remember { mutableStateOf(false) }
+
+    // Widget view state management
+    var hostView by remember { mutableStateOf<AppWidgetHostView?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    var hasError by remember { mutableStateOf(false) }
 
     // Re-sync position and size if the widget's grid properties change externally
     LaunchedEffect(widget.gridX, widget.gridY, widget.spanX, widget.spanY) {
@@ -897,15 +909,67 @@ private fun WidgetInstance(
         size = IntSize(initialWidth.roundToInt(), initialHeight.roundToInt())
     }
 
-    val density = LocalDensity.current
+    // Async widget initialization to prevent ANR
+    LaunchedEffect(widget.widgetId) {
+        isLoading = true
+        hasError = false
+
+        // Capture size values during composition context
+        val width = with(density) { size.width.toDp().value.toInt() }
+        val height = with(density) { size.height.toDp().value.toInt() }
+
+        withContext(Dispatchers.Default) {
+            try {
+                // Create themed context off main thread
+                val themedContext = ContextThemeWrapper(
+                    context.applicationContext,
+                    android.R.style.Theme_DeviceDefault
+                )
+
+                // Switch to main thread for widget view creation
+                withContext(Dispatchers.Main) {
+                    try {
+                        // Create widget view with providerInfo
+                        val view = appWidgetHost.createView(
+                            themedContext,
+                            widget.widgetId,
+                            appWidgetProviderInfo  // This was missing!
+                        )
+
+                        val options = Bundle().apply {
+                            putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, width)
+                            putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, height)
+                            putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, width)
+                            putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, height)
+                        }
+
+                        view.updateAppWidgetOptions(options)
+                        view.setAppWidget(widget.widgetId, appWidgetProviderInfo)
+
+                        hostView = view
+                        isLoading = false
+                    } catch (e: Exception) {
+                        Log.e("WidgetInstance", "Error setting up widget", e)
+                        hasError = true
+                        isLoading = false
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("WidgetInstance", "Error creating widget view", e)
+                withContext(Dispatchers.Main) {
+                    hasError = true
+                    isLoading = false
+                }
+            }
+        }
+    }
+
     val windowWidthPx = with(density) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
     val minWidgetSizePx = with(density) { 40.dp.toPx() }
 
-    val appWidgetProviderInfo = remember { widget.providerInfo }
-
-    fun getBundleOptionsFromCurrentSize():Bundle{
-        val width = with(density){size.width.toDp().value.toInt()}
-        val height = with(density){size.height.toDp().value.toInt()}
+    fun getBundleOptionsFromCurrentSize(): Bundle {
+        val width = with(density) { size.width.toDp().value.toInt() }
+        val height = with(density) { size.height.toDp().value.toInt() }
         return Bundle().apply {
             putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, width)
             putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, height)
@@ -913,7 +977,7 @@ private fun WidgetInstance(
             putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, height)
         }
     }
-    var hasError by remember { mutableStateOf(false) }
+
     Box { // Parent container for the widget and its handles
         // Main widget Box, which is also the repositioning drag area
         Box(
@@ -925,11 +989,10 @@ private fun WidgetInstance(
                     color = if (editMode) MaterialTheme.colorScheme.primary else Color.Transparent,
                     shape = RoundedCornerShape(16.dp)
                 )
-                .pointerInput(editMode, allWidgets) { // Re-trigger pointer input if widgets change
+                .pointerInput(editMode, allWidgets) {
                     if (editMode) {
                         detectDragGestures(
                             onDragEnd = {
-                                // Snap to the final grid position after dragging
                                 val finalGridX = ((position.x) / (cellWidthPx + gapPx)).roundToInt()
                                 val finalGridY =
                                     ((position.y - gapPx) / (cellHeightPx + gapPx)).roundToInt()
@@ -939,7 +1002,6 @@ private fun WidgetInstance(
                                     widget.gridY = finalGridY
                                     onUpdate()
                                 }
-                                // Ensure the visual position snaps perfectly to the grid
                                 position = Offset(
                                     widget.gridX * (cellWidthPx + gapPx),
                                     widget.gridY * (cellHeightPx + gapPx) + gapPx
@@ -959,7 +1021,6 @@ private fun WidgetInstance(
                                 )
                             )
 
-                            // Calculate proposed grid position
                             val newGridX = ((newPos.x) / (cellWidthPx + gapPx)).roundToInt()
                                 .coerceIn(0, gridColumns - widget.spanX)
                             val newGridY =
@@ -972,7 +1033,6 @@ private fun WidgetInstance(
                                 newGridY + widget.spanY
                             )
 
-                            // Update position only if there's no collision
                             if (!isColliding(proposedRect, widget.widgetId, allWidgets)) {
                                 position = newPos
                             }
@@ -982,41 +1042,38 @@ private fun WidgetInstance(
                 },
             contentAlignment = Alignment.Center
         ) {
-            if (hasError) {
-                Text(
-                    text = stringResource(R.string.could_not_load_widget),
-                    modifier = Modifier.fillMaxSize(),
-                    textAlign = TextAlign.Center
-                )
-            } else {
-                AndroidView(
-                    factory = { ctx ->
-                        val themedContext = ContextThemeWrapper(ctx.applicationContext,
-                            android.R.style.Theme_DeviceDefault)
-                        val hostView = appWidgetHost.createView(themedContext,
-                            widget.widgetId,
-                            appWidgetProviderInfo)
-                        try {
-                            hostView.updateAppWidgetOptions( getBundleOptionsFromCurrentSize())
-
-                            hostView.setAppWidget(widget.widgetId, appWidgetProviderInfo)
-                        } catch (_: Exception) {
-                            hasError = true
-                        }
-                        hostView
-                    },
-                    update = { hostView ->
-                        if (!widgetUpdated) {
-                            widgetUpdated = true
-                            try {
-                                hostView.updateAppWidgetOptions(getBundleOptionsFromCurrentSize())
-                            } catch (_: Exception) {
-
+            when {
+                isLoading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(48.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                hasError -> {
+                    Text(
+                        text = stringResource(R.string.could_not_load_widget),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                hostView != null -> {
+                    AndroidView(
+                        factory = { hostView!! },
+                        update = { view ->
+                            if (!widgetUpdated) {
+                                widgetUpdated = true
+                                try {
+                                    view.updateAppWidgetOptions(getBundleOptionsFromCurrentSize())
+                                } catch (e: Exception) {
+                                    Log.e("WidgetInstance", "Error updating widget options", e)
+                                }
                             }
-                        }
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
         }
 
@@ -1026,15 +1083,12 @@ private fun WidgetInstance(
             val handleSizePx = with(density) { handleSize.toPx() }
 
             val onResizeEnd: () -> Unit = {
-                // Calculate final spans from the current size
                 val finalSpanX = max(1, (size.width / (cellWidthPx + gapPx)).roundToInt()).coerceAtMost(gridColumns - widget.gridX)
                 val finalSpanY = max(1, (size.height / (cellHeightPx + gapPx)).roundToInt())
 
-                // Calculate final grid position (important for top/left resize)
                 val finalGridX = ((position.x) / (cellWidthPx + gapPx)).roundToInt()
                 val finalGridY = ((position.y - gapPx) / (cellHeightPx + gapPx)).roundToInt()
 
-                // Check if anything actually changed
                 if (widget.spanX != finalSpanX || widget.spanY != finalSpanY || widget.gridX != finalGridX || widget.gridY != finalGridY) {
                     widget.spanX = finalSpanX
                     widget.spanY = finalSpanY
@@ -1043,7 +1097,6 @@ private fun WidgetInstance(
                     onUpdate()
                 }
 
-                // Snap back to grid-aligned position and size after resizing
                 position = Offset(widget.gridX * (cellWidthPx + gapPx), widget.gridY * (cellHeightPx + gapPx) + gapPx)
                 size = IntSize(
                     (widget.spanX * cellWidthPx + (widget.spanX - 1) * gapPx).roundToInt(),
@@ -1193,17 +1246,16 @@ private fun WidgetInstance(
                 modifier = Modifier
                     .offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
                     .size(
-                        with(LocalDensity.current) { size.width.toDp() },
-                        with(LocalDensity.current) { size.height.toDp() })
+                        with(density) { size.width.toDp() },
+                        with(density) { size.height.toDp() })
             ) {
                 SmallFloatingActionButton(
                     onClick = {
                         view.playSoundEffect(SoundEffectConstants.CLICK)
                         onRemove(widget)
-                              },
+                    },
                     modifier = Modifier.align(Alignment.TopEnd),
                     shape = CircleShape,
-                    // Set elevation to 0 to remove the default shadow, which might look odd in this context
                     elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp)
                 ) {
                     Icon(
@@ -1221,16 +1273,18 @@ private fun isColliding(
     currentWidgetId: Int,
     allWidgets: List<BoundWidget>
 ): Boolean {
-    return allWidgets.any { other ->
-        if (other.widgetId == currentWidgetId) return@any false
-        val otherRect = IntRect(
-            left = other.gridX,
-            top = other.gridY,
-            right = other.gridX + other.spanX,
-            bottom = other.gridY + other.spanY
-        )
-        proposedRect.overlaps(otherRect)
+    for (other in allWidgets) {
+        if (other.widgetId == currentWidgetId) continue
+
+        if (proposedRect.left >= other.gridX + other.spanX ||
+            proposedRect.right <= other.gridX ||
+            proposedRect.top >= other.gridY + other.spanY ||
+            proposedRect.bottom <= other.gridY) {
+            continue
+        }
+        return true
     }
+    return false
 }
 
 // --- Full-Screen Widget Picker ---
