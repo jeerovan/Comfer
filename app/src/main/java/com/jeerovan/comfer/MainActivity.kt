@@ -172,7 +172,6 @@ import android.view.WindowManager
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import android.view.ContextThemeWrapper
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -239,7 +238,6 @@ import androidx.compose.ui.text.font.resolveAsTypeface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
 import kotlin.math.pow
 
 
@@ -1672,9 +1670,11 @@ fun QuickListOverlay(apps: List<AppInfo>,
     }
 
     LaunchedEffect(Unit) {
-        isDefault = isDefaultLauncher(context)
-        guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
-        feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
+        withContext(Dispatchers.IO) {
+            isDefault = isDefaultLauncher(context)
+            guideShown = PreferenceManager.getBoolean(context, guideKeyword, false)
+            feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
+        }
         delay(500)
         canShowGuide = true
     }
@@ -1683,11 +1683,17 @@ fun QuickListOverlay(apps: List<AppInfo>,
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                iconSize = PreferenceManager.getIconSize(context).dp
-                iconShape = PreferenceManager.getIconShape(context)
-                guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
-                feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
-                isDefault = isDefaultLauncher(context)
+                lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    val newIconSize = PreferenceManager.getIconSize(context).dp
+                    val newIconShape = PreferenceManager.getIconShape(context)
+                    withContext(Dispatchers.Main) {
+                        iconSize = newIconSize
+                        iconShape = newIconShape
+                    }
+                    guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
+                    feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
+                    isDefault = isDefaultLauncher(context)
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -1769,6 +1775,22 @@ fun QuickListOverlay(apps: List<AppInfo>,
             settingsModel.setTimeAngle(0)
             settingsModel.setTimeRadius(0)
             settingsModel.setTimeHasShadow(false)
+        }
+    }
+
+    val launchSwipeIntentsCache = remember {
+        mutableMapOf<String, Intent?>()
+    }
+    LaunchedEffect(settings.rightSwipeApp,settings.leftSwipeApp) {
+        withContext(Dispatchers.IO) {
+            val leftPackage = PreferenceManager.getSwipeApp(context, "left")
+            if (leftPackage != null) {
+                launchSwipeIntentsCache["left"] = context.packageManager.getLaunchIntentForPackage(leftPackage)
+            }
+            val rightPackage = PreferenceManager.getSwipeApp(context, "right")
+            if (rightPackage != null) {
+                launchSwipeIntentsCache["right"] = context.packageManager.getLaunchIntentForPackage(rightPackage)
+            }
         }
     }
     Box(modifier = Modifier
@@ -1878,13 +1900,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     if (showWidget) {
                                         onSwipeLeft()
                                     } else {
-                                        val swipeLeftPackage =
-                                            PreferenceManager.getSwipeApp(context, "left")
-                                        if (swipeLeftPackage != null) {
-                                            val launchIntent: Intent? =
-                                                context.packageManager.getLaunchIntentForPackage(
-                                                    swipeLeftPackage
-                                                )
+                                        val launchIntent = launchSwipeIntentsCache["left"]
+                                        if (launchIntent != null) {
                                             handleStartActivity(context, launchIntent, null)
                                         }
                                     }
@@ -1895,13 +1912,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     if (showWidget) {
                                         onSwipeRight()
                                     } else {
-                                        val swipeRightPackage =
-                                            PreferenceManager.getSwipeApp(context, "right")
-                                        if (swipeRightPackage != null) {
-                                            val launchIntent: Intent? =
-                                                context.packageManager.getLaunchIntentForPackage(
-                                                    swipeRightPackage
-                                                )
+                                        val launchIntent = launchSwipeIntentsCache["right"]
+                                        if (launchIntent != null) {
                                             handleStartActivity(context, launchIntent, null)
                                         }
                                     }

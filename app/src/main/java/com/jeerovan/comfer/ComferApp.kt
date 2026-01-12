@@ -1,6 +1,7 @@
 package com.jeerovan.comfer
 
 import android.app.Application
+import android.os.StrictMode
 import androidx.work.*
 import coil.ImageLoaderFactory
 import java.util.concurrent.TimeUnit
@@ -16,6 +17,17 @@ class ComferApp : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
+        if (BuildConfig.DEBUG) {
+            StrictMode.setThreadPolicy(
+                StrictMode.ThreadPolicy.Builder()
+                    .detectDiskReads()
+                    .detectDiskWrites()
+                    .detectNetwork()
+                    .detectCustomSlowCalls()
+                    .penaltyLog()
+                    .build()
+            )
+        }
         if(saveCrashes) {
             Thread.setDefaultUncaughtExceptionHandler(CrashHandler(this))
             LogcatRecorder(this).startLogging()
