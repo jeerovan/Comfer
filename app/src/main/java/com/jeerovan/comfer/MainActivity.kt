@@ -235,6 +235,9 @@ import com.jeerovan.comfer.utils.KeyboardLayoutEngine
 import com.jeerovan.comfer.utils.KeyboardLocale
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.resolveAsTypeface
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlin.math.pow
 
 
@@ -4592,6 +4595,8 @@ class WidgetHostManager(private val context: Context) {
     lateinit var leftHost: AppWidgetHost
     lateinit var rightHost: AppWidgetHost
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     fun initHosts() {
         mainHost = AppWidgetHost(context, MAIN_WIDGET_HOST_ID)
         leftHost = AppWidgetHost(context, LEFT_SIDE_WIDGET_HOST_ID)
@@ -4599,17 +4604,40 @@ class WidgetHostManager(private val context: Context) {
     }
 
     fun startListening() {
-        mainHost.startListening()
-        leftHost.startListening()
-        rightHost.startListening()
+        scope.launch {
+            // Offload binder calls to background thread
+            withContext(Dispatchers.IO) {
+                try {
+                    mainHost.startListening()
+                    leftHost.startListening()
+                    rightHost.startListening()
+                } catch (e: Exception) {
+                    // Log error - widget updates may not work
+                    Log.e("WidgetHostManager", "Error starting widget hosts", e)
+                }
+            }
+        }
     }
 
     fun stopListening() {
-        mainHost.stopListening()
-        leftHost.stopListening()
-        rightHost.stopListening()
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    mainHost.stopListening()
+                    leftHost.stopListening()
+                    rightHost.stopListening()
+                } catch (e: Exception) {
+                    Log.e("WidgetHostManager", "Error stopping widget hosts", e)
+                }
+            }
+        }
+    }
+
+    fun cleanup() {
+        scope.cancel()
     }
 }
+
 
 @Composable
 fun DraggableQuickWidgetsContainer(

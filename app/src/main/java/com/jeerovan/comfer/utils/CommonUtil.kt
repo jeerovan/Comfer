@@ -43,7 +43,9 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.ConnectionSpec
@@ -64,14 +66,27 @@ object CommonUtil {
         try {
             if (intent != null) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                intent.addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
-                if (options != null){
-                    context.startActivity(intent,options.toBundle())
-                } else {
-                    context.startActivity(intent)
+                CoroutineScope(Dispatchers.Main).launch {
+                    withContext(Dispatchers.Default) {
+                        // The actual startActivity call happens here
+                        // but we're not blocking the UI thread waiting for response
+                        try {
+                            if (options != null) {
+                                context.startActivity(intent, options.toBundle())
+                            } else {
+                                context.startActivity(intent)
+                            }
+                        } catch (e: ActivityNotFoundException) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(
+                                    context,
+                                    "App not found",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
                 }
-            } else {
-                // Optionally, handle the case where the intent is null
             }
         } catch (e: SecurityException) {
             // The permission was denied by the system.
