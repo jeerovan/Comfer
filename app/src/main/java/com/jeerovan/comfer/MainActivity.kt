@@ -238,6 +238,7 @@ import androidx.compose.ui.text.font.resolveAsTypeface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlin.math.pow
 
 
@@ -383,9 +384,11 @@ fun WidgetHostScreen(
     onSwipeRight: () -> Unit
 ) {
     val context = LocalContext.current
-    val stringWidgetBindingCancelled = stringResource(R.string.widget_binding_cancelled)
-    val prefs: SharedPreferences = context.getSharedPreferences(widgetPrefsTitle, MODE_PRIVATE)
     val coroutineScope = rememberCoroutineScope()
+    val stringWidgetBindingCancelled = stringResource(R.string.widget_binding_cancelled)
+    val prefs = remember {
+        context.getSharedPreferences(widgetPrefsTitle, MODE_PRIVATE)
+    }
     val lifecycleOwner = LocalLifecycleOwner.current
     val haptic = LocalHapticFeedback.current
     var editMode by remember { mutableStateOf(false) }
@@ -469,7 +472,9 @@ fun WidgetHostScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                syncAndRefreshProviders()
+                coroutineScope.launch(Dispatchers.IO) {
+                    syncAndRefreshProviders()
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -503,9 +508,11 @@ fun WidgetHostScreen(
         }
     }
     // This effect runs when the composable first launches and any time isDarkTheme changes.
-    LaunchedEffect(isDarkTheme) {
+    LaunchedEffect(isDarkTheme, ) {
         // Find all unique provider classes from the currently bound widgets
-        refreshWidgets()
+        withContext(Dispatchers.IO) {
+            refreshWidgets()
+        }
     }
 
     BoxWithConstraints(
@@ -653,9 +660,13 @@ fun WidgetHostScreen(
 
         // Load widgets from SharedPreferences on startup
         LaunchedEffect(Unit) {
-            val loadedWidgets = loadWidgetsFromPrefs(prefs, appWidgetManager)
-            boundWidgets.clear()
-            boundWidgets.addAll(loadedWidgets)
+            withContext(Dispatchers.IO) {
+                val loadedWidgets = loadWidgetsFromPrefs(prefs, appWidgetManager)
+                withContext(Dispatchers.Main) {
+                    boundWidgets.clear()
+                    boundWidgets.addAll(loadedWidgets)
+                }
+            }
         }
 
         if (boundWidgets.isEmpty() && !editMode) {
@@ -1350,7 +1361,6 @@ private suspend fun loadWidgetsFromPrefs(
     appWidgetManager: AppWidgetManager
 ): List<BoundWidget> = withContext(Dispatchers.IO) {
     val jsonString = prefs.getString(BOUND_WIDGETS_KEY, null) ?: return@withContext emptyList()
-
     try {
         val persistableList = Json.decodeFromString<List<PersistableBoundWidget>>(jsonString)
 
@@ -1376,15 +1386,26 @@ private suspend fun loadWidgetsFromPrefs(
         emptyList()
     }
 }
-
-
-private fun saveWidgetsToPrefs(prefs: SharedPreferences, widgets: List<BoundWidget>) {
+private suspend fun saveWidgetsToPrefs(
+    prefs: SharedPreferences,
+    widgets: List<BoundWidget>
+) = withContext(Dispatchers.IO) {
     val persistableList = widgets.map {
-        PersistableBoundWidget(it.widgetId, it.providerInfo.provider.packageName, it.providerInfo.provider.className, it.gridX, it.gridY, it.spanX, it.spanY)
+        PersistableBoundWidget(
+            it.widgetId,
+            it.providerInfo.provider.packageName,
+            it.providerInfo.provider.className,
+            it.gridX,
+            it.gridY,
+            it.spanX,
+            it.spanY
+        )
     }
     val jsonString = Json.encodeToString(persistableList)
     prefs.edit { putString(BOUND_WIDGETS_KEY, jsonString) }
 }
+
+
 private fun findNextAvailableCell(widgets: List<BoundWidget>,
                                   gridColumns: Int,
                                   gridRows: Int): Pair<Int, Int>? {
