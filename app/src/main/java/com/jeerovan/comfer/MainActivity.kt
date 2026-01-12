@@ -1319,35 +1319,13 @@ fun WidgetPickerFullScreen(
                             Spacer(Modifier.height(16.dp))
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                                 items(group.providers) { provider ->
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        modifier = Modifier
-                                            .width(120.dp)
-                                            .clickable {
-                                                view.playSoundEffect(SoundEffectConstants.CLICK)
-                                                onWidgetSelected(provider)
-                                            }
-                                    ) {
-                                        val previewDrawable = remember(provider) {
-                                            // Load the preview image with a fallback to the icon.
-                                            provider.loadPreviewImage(context, 0)
-                                                ?: provider.loadIcon(context, 0)
+                                    WidgetPreviewItem(
+                                        provider = provider,
+                                        onSelected = {
+                                            view.playSoundEffect(SoundEffectConstants.CLICK)
+                                            onWidgetSelected(provider)
                                         }
-
-                                        Image(
-                                            painter = rememberDrawablePainter(drawable = previewDrawable),
-                                            contentDescription = provider.loadLabel(context.packageManager),
-                                            modifier = Modifier
-                                                .height(100.dp)
-                                                .fillMaxWidth(),
-                                            contentScale = ContentScale.Fit
-                                        )
-                                        Text(
-                                            provider.loadLabel(context.packageManager),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            maxLines = 2
-                                        )
-                                    }
+                                    )
                                 }
                             }
                         }
@@ -1375,7 +1353,59 @@ fun WidgetPickerFullScreen(
         }
     }
 }
+@Composable
+private fun WidgetPreviewItem(
+    provider: AppWidgetProviderInfo,
+    onSelected: () -> Unit
+) {
+    val context = LocalContext.current
+    var previewDrawable by remember { mutableStateOf<Drawable?>(null) }
+    val label = remember(provider) { provider.loadLabel(context.packageManager) }
 
+    LaunchedEffect(provider) {
+        withContext(Dispatchers.IO) {
+            val drawable = provider.loadPreviewImage(context, 0)
+                ?: provider.loadIcon(context, 0)
+            withContext(Dispatchers.Main) {
+                previewDrawable = drawable
+            }
+        }
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .width(120.dp)
+            .clickable(enabled = previewDrawable != null) { onSelected() }
+    ) {
+        if (previewDrawable != null) {
+            Image(
+                painter = rememberDrawablePainter(drawable = previewDrawable),
+                contentDescription = label,
+                modifier = Modifier
+                    .height(100.dp)
+                    .fillMaxWidth(),
+                contentScale = ContentScale.Fit
+            )
+        } else {
+            // Show placeholder while loading
+            Box(
+                modifier = Modifier
+                    .height(100.dp)
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            }
+        }
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 2
+        )
+    }
+}
 
 // --- Utility & Persistence Functions ---
 private suspend fun getGroupedWidgetProviders(context: Context): List<WidgetProviderGroup> = withContext(Dispatchers.IO) {
