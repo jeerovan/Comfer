@@ -1679,26 +1679,10 @@ fun QuickListOverlay(apps: List<AppInfo>,
         canShowGuide = true
     }
 
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    val newIconSize = PreferenceManager.getIconSize(context).dp
-                    val newIconShape = PreferenceManager.getIconShape(context)
-                    withContext(Dispatchers.Main) {
-                        iconSize = newIconSize
-                        iconShape = newIconShape
-                    }
-                    guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
-                    feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
-                    isDefault = isDefaultLauncher(context)
-                }
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
+    LaunchedEffect(settings.iconSize,settings.iconShape) {
+        withContext(Dispatchers.IO) {
+            iconSize = PreferenceManager.getIconSize(context).dp
+            iconShape = PreferenceManager.getIconShape(context)
         }
     }
 
@@ -3257,6 +3241,7 @@ fun AppIcon(app: AppInfo,
     val haptic = LocalHapticFeedback.current
     val iconShape = getShapeFromShape(shape,iconSize)
     var iconBounds by remember { mutableStateOf(Rect.Zero) }
+    val scope = rememberCoroutineScope()
     Box (modifier = Modifier
         .offset(x = x, y = y),
         contentAlignment = Alignment.Center
@@ -3280,25 +3265,29 @@ fun AppIcon(app: AppInfo,
                     if (clickable) detectTapGestures(
                         onTap = {
                             view.playSoundEffect(SoundEffectConstants.CLICK)
-                            val intent: Intent? =
-                                context.packageManager.getLaunchIntentForPackage(app.packageName)
-                            if (intent != null) {
-                                val boundedRect = android.graphics.Rect(
-                                    iconBounds.left.toInt(),
-                                    iconBounds.top.toInt(),
-                                    iconBounds.right.toInt(),
-                                    iconBounds.bottom.toInt()
-                                )
-                                intent.sourceBounds = boundedRect
+                            scope.launch(Dispatchers.IO) {
+                                val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
+                                if (intent != null) {
+                                    val boundedRect = android.graphics.Rect(
+                                        iconBounds.left.toInt(),
+                                        iconBounds.top.toInt(),
+                                        iconBounds.right.toInt(),
+                                        iconBounds.bottom.toInt()
+                                    )
+                                    intent.sourceBounds = boundedRect
+
+                                    withContext(Dispatchers.Main) {
+                                        val options = ActivityOptions.makeClipRevealAnimation(
+                                            view,
+                                            iconBounds.left.toInt(),
+                                            iconBounds.top.toInt(),
+                                            iconBounds.width.toInt(),
+                                            iconBounds.height.toInt()
+                                        )
+                                        handleStartActivity(context, intent, options)
+                                    }
+                                }
                             }
-                            val options = ActivityOptions.makeClipRevealAnimation(
-                                view,
-                                iconBounds.left.toInt(),
-                                iconBounds.top.toInt(),
-                                iconBounds.width.toInt(),
-                                iconBounds.height.toInt()
-                            )
-                            handleStartActivity(context, intent, options)
                         },
                         onLongPress = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -3352,28 +3341,31 @@ fun SearchIcon(
     showThemedIcon: Boolean,
     themedColors: WallpaperThemeColors?,
     isLightMode: Boolean
-){
-    val context = LocalContext.current
-    val backgroundColor: Color =
+) {
+    val view = LocalView.current
+
+    // Cache colors to avoid recalculation
+    val backgroundColor = remember(showThemedIcon, themedColors, isLightMode) {
         if (showThemedIcon && themedColors != null) {
-            Color(getThemedBackgroundColor(themedColors,isLightMode))
+            Color(getThemedBackgroundColor(themedColors, isLightMode))
         } else {
             getBackgroundColor(isLightMode)
         }
-    val foregroundColor: Color =
-        if(showThemedIcon && themedColors != null) {
-            Color(getThemedIconColor(themedColors,isLightMode))
+    }
+
+    val foregroundColor = remember(showThemedIcon, themedColors, isLightMode) {
+        if (showThemedIcon && themedColors != null) {
+            Color(getThemedIconColor(themedColors, isLightMode))
         } else {
-            if(isLightMode){
-                Color.Black
-            } else {
-                Color.White.copy(alpha = 0.7f)
-            }
+            if (isLightMode) Color.Black else Color.White.copy(alpha = 0.7f)
         }
-    val view = LocalView.current
+    }
+
+    val shape = remember(iconShape, iconSize) { getShapeFromShape(iconShape, iconSize) }
+
     Box(
         modifier = Modifier
-            .clip(getShapeFromShape(iconShape, iconSize))
+            .clip(shape)
             .background(color = backgroundColor)
             .size(iconSize)
             .scale(0.8f)
@@ -3393,6 +3385,7 @@ fun SearchIcon(
         )
     }
 }
+
 private fun Float.toDp(): Dp {
     return (this / Resources.getSystem().displayMetrics.density).dp
 }

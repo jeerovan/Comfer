@@ -544,7 +544,6 @@ object CommonUtil {
                 val cornerRadius = size * 0.425f
                 iconShape = RoundedCornerShape(cornerRadius)
             }
-
             is CutCornerShape -> {
                 val cornerCut = size * 0.225f
                 iconShape = CutCornerShape(cornerCut)
