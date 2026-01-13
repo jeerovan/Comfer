@@ -238,6 +238,8 @@ import androidx.compose.ui.text.font.resolveAsTypeface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.math.pow
 
 
@@ -3102,6 +3104,7 @@ fun AnimatedBackground(
 private fun lerp(start: Float, stop: Float, fraction: Float): Float {
     return start + (stop - start) * fraction
 }
+
 @Composable
 fun UshapedAppList(
     apps: List<AppInfo>,
@@ -3123,79 +3126,102 @@ fun UshapedAppList(
 
     Box(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
-        val width = with(density) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
-        val height = with(density) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
+        val configuration = LocalConfiguration.current
 
-        val sidePaddingPx = with(density) { sidePadding.toPx() }
-        val topPaddingPx = with(density) { topPadding.toPx() }
-        val smallIconPx = with(density) { smallIconSize.toPx() }
-        val largeIconPx = with(density) { largeIconSize.toPx() }
-        val minimumGapPx = with(density) { minimumGap.toPx() }
+        // Cache all expensive calculations that don't depend on scrollOffset
+        val layoutParams = remember(configuration.screenWidthDp, configuration.screenHeightDp, iconSize) {
+            val width = with(density) { configuration.screenWidthDp.dp.toPx() }
+            val height = with(density) { configuration.screenHeightDp.dp.toPx() }
+            val sidePaddingPx = with(density) { sidePadding.toPx() }
+            val topPaddingPx = with(density) { topPadding.toPx() }
+            val smallIconPx = with(density) { smallIconSize.toPx() }
+            val largeIconPx = with(density) { largeIconSize.toPx() }
+            val minimumGapPx = with(density) { minimumGap.toPx() }
 
-        val arcRadius = width / 2f - sidePaddingPx - smallIconPx / 2f
-        val numTopIcons =
-            2 * floor(PI / (4 * asin((smallIconPx / 2 + minimumGapPx / 2) / (arcRadius - smallIconPx / 2)))).toInt() + 1
+            val arcRadius = width / 2f - sidePaddingPx - smallIconPx / 2f
+            val numTopIcons = 2 * floor(
+                PI / (4 * asin((smallIconPx / 2 + minimumGapPx / 2) / (arcRadius - smallIconPx / 2)))
+            ).toInt() + 1
 
-        val arcCenterY = topPaddingPx + arcRadius
+            val arcCenterY = topPaddingPx + arcRadius
+            val verticalSpacingPx = 2 * (2 * (arcRadius - smallIconPx / 2) *
+                    sin(PI / (2 * (numTopIcons - 1))).toFloat() - smallIconPx).absoluteValue
+            val angularSpacingRad = PI / (numTopIcons - 1)
 
-        val verticalSpacingPx =
-            2 * (2 * (arcRadius - smallIconPx / 2) * sin(PI / (2 * (numTopIcons - 1))).toFloat() - smallIconPx).absoluteValue
-        // Calculate the actual angular spacing based on the final number of top icons
-        val angularSpacingRad = PI / (numTopIcons - 1)
+            val sideColumnY = arcCenterY + smallIconPx / 2
+            val availableHeight = height - sideColumnY
+            val iconWithSpace = smallIconPx + verticalSpacingPx
+            val numSideIcons = ceil(availableHeight / iconWithSpace).toInt()
 
-        val sideColumnY = arcCenterY + smallIconPx / 2
-        val availableHeight = height - sideColumnY
-        val iconWithSpace = smallIconPx + verticalSpacingPx
-        val numSideIcons = ceil(availableHeight / iconWithSpace).toInt()
+            LayoutParams(
+                width = width,
+                height = height,
+                sidePaddingPx = sidePaddingPx,
+                smallIconPx = smallIconPx,
+                largeIconPx = largeIconPx,
+                arcRadius = arcRadius,
+                arcCenterY = arcCenterY,
+                verticalSpacingPx = verticalSpacingPx,
+                angularSpacingRad = angularSpacingRad,
+                sideColumnY = sideColumnY,
+                iconWithSpace = iconWithSpace,
+                numTopIcons = numTopIcons,
+                numSideIcons = numSideIcons
+            )
+        }
 
-        if (numSideIcons <= 0 || numTopIcons <= 1) {
-            // Not enough space to draw a meaningful shape
+        if (layoutParams.numSideIcons <= 0 || layoutParams.numTopIcons <= 1) {
             return@Box
         }
 
-        val numVisibleIcons = numSideIcons * 2 + numTopIcons + 1
+        val numVisibleIcons = layoutParams.numSideIcons * 2 + layoutParams.numTopIcons + 1
 
+        // Direct calculation - scrollOffset changes frequently so no derivedStateOf needed
         val smoothScrollIndex = scrollOffset / 20f
         val baseScrollIndex = floor(smoothScrollIndex)
         val scrollFraction = smoothScrollIndex - baseScrollIndex
         val intScrollIndex = baseScrollIndex.toInt()
         val startIndex = (intScrollIndex - numVisibleIcons / 2 + totalIcons) % totalIcons
 
-        fun getPositionForSlot(slot: Int, center: Int): Pair<Float, Float> {
-            return when {
-                slot < numSideIcons -> {
-                    // Left side (bottom to top)
-                    val xPos = sidePaddingPx
-                    val yPos =
-                        sideColumnY + (numSideIcons - 1) * iconWithSpace - (slot - 1) * verticalSpacingPx - slot * smallIconPx
-                    Pair(xPos, yPos)
-                }
-
-                slot < numSideIcons + numTopIcons -> {
-                    // Top arc
-                    val arcIndex = slot - numSideIcons
-                    val angle = PI - arcIndex * angularSpacingRad
-                    var xPos = width / 2 - smallIconPx / 2 + arcRadius * cos(angle).toFloat()
-                    var yPos = arcCenterY - arcRadius * sin(angle).toFloat() - smallIconPx / 2
-                    if (slot == center) {
-                        xPos = xPos + smallIconPx / 2 - largeIconPx / 2
-                        yPos = yPos + smallIconPx / 2 - largeIconPx / 2
+        // Cache position calculation function
+        val getPositionForSlot = remember(layoutParams) {
+            { slot: Int, center: Int ->
+                when {
+                    slot < layoutParams.numSideIcons -> {
+                        val xPos = layoutParams.sidePaddingPx
+                        val yPos = layoutParams.sideColumnY +
+                                (layoutParams.numSideIcons - 1) * layoutParams.iconWithSpace -
+                                (slot - 1) * layoutParams.verticalSpacingPx -
+                                slot * layoutParams.smallIconPx
+                        Pair(xPos, yPos)
                     }
-                    Pair(xPos, yPos)
-                }
-
-                else -> {
-                    // Right side (bottom to top)
-                    val sideIndex = slot - numSideIcons - numTopIcons
-                    val xPos = width - sidePaddingPx - smallIconPx
-                    val yPos =
-                        sideColumnY + verticalSpacingPx + sideIndex * verticalSpacingPx + sideIndex * smallIconPx
-                    Pair(xPos, yPos)
+                    slot < layoutParams.numSideIcons + layoutParams.numTopIcons -> {
+                        val arcIndex = slot - layoutParams.numSideIcons
+                        val angle = PI - arcIndex * layoutParams.angularSpacingRad
+                        var xPos = layoutParams.width / 2 - layoutParams.smallIconPx / 2 +
+                                layoutParams.arcRadius * cos(angle).toFloat()
+                        var yPos = layoutParams.arcCenterY -
+                                layoutParams.arcRadius * sin(angle).toFloat() -
+                                layoutParams.smallIconPx / 2
+                        if (slot == center) {
+                            xPos = xPos + layoutParams.smallIconPx / 2 - layoutParams.largeIconPx / 2
+                            yPos = yPos + layoutParams.smallIconPx / 2 - layoutParams.largeIconPx / 2
+                        }
+                        Pair(xPos, yPos)
+                    }
+                    else -> {
+                        val sideIndex = slot - layoutParams.numSideIcons - layoutParams.numTopIcons
+                        val xPos = layoutParams.width - layoutParams.sidePaddingPx - layoutParams.smallIconPx
+                        val yPos = layoutParams.sideColumnY + layoutParams.verticalSpacingPx +
+                                sideIndex * layoutParams.verticalSpacingPx +
+                                sideIndex * layoutParams.smallIconPx
+                        Pair(xPos, yPos)
+                    }
                 }
             }
         }
 
-        val centerSlot = numSideIcons + numTopIcons / 2
+        val centerSlot = layoutParams.numSideIcons + layoutParams.numTopIcons / 2
 
         for (i in 0 until numVisibleIcons) {
             val appIndex = (startIndex + i + totalIcons) % totalIcons
@@ -3209,11 +3235,13 @@ fun UshapedAppList(
             val sizeCurrent = if (i == centerSlot) largeIconSize else smallIconSize
             val sizePrev = if ((i - 1) == centerSlot) largeIconSize else smallIconSize
             val size = lerp(sizeCurrent.value, sizePrev.value, scrollFraction).dp
+
             if (size > largeIconSize - 10.dp) {
                 updateCenterIndex(appIndex)
                 val sizePx = with(density) { size.toPx() }
                 updateCenterIconGeom(x + sizePx / 2, y + sizePx / 2, sizePx)
             }
+
             key(apps[appIndex].packageName) {
                 AppIcon(
                     app = apps[appIndex],
@@ -3221,12 +3249,29 @@ fun UshapedAppList(
                     shape = iconShape,
                     x = x.toDp(),
                     y = y.toDp(),
-                    iconSize = size
+                    iconSize = size,
                 )
             }
         }
     }
 }
+// Data classes to hold cached values
+private data class LayoutParams(
+    val width: Float,
+    val height: Float,
+    val sidePaddingPx: Float,
+    val smallIconPx: Float,
+    val largeIconPx: Float,
+    val arcRadius: Float,
+    val arcCenterY: Float,
+    val verticalSpacingPx: Float,
+    val angularSpacingRad: Double,
+    val sideColumnY: Float,
+    val iconWithSpace: Float,
+    val numTopIcons: Int,
+    val numSideIcons: Int
+)
+
 
 @Composable
 fun AppIcon(app: AppInfo,
@@ -4046,7 +4091,7 @@ private fun LazyListScope.notificationItems(
 
     if (hasOverflow) {
         item {
-            OverflowBadge(
+            NotificationRowOverflowBadge(
                 count = overflowCount,
                 color = iconColor,
                 size = iconSize
@@ -4080,7 +4125,7 @@ private fun NotificationIcon(
 }
 
 @Composable
-private fun OverflowBadge(
+private fun NotificationRowOverflowBadge(
     count: Int,
     color: Color,
     size: Dp
@@ -4108,16 +4153,13 @@ fun WidgetDate(
     showBorder: Boolean,
     backgroundColor: Color = Color.Black
 ){
-    val context = LocalContext.current
-    val dateFormat = remember {
-        SimpleDateFormat("EEE MMM d", Locale.getDefault())
-    }
     var date by remember { mutableStateOf("") }
-    // This effect now restarts whenever `timeFormat` changes
-    LaunchedEffect(dateFormat) {
+    LaunchedEffect(Unit) {
         while (true) {
+            // Create new SimpleDateFormat instance in coroutine scope
+            val dateFormat = SimpleDateFormat("EEE MMM d", Locale.getDefault())
             val now = System.currentTimeMillis()
-            date = dateFormat.format(Date(now))
+            date = dateFormat.format(now)  // No Date object needed
             delay(1000)
         }
     }
@@ -4130,6 +4172,7 @@ fun WidgetDate(
         if(settings.dateHasShadow)settings.dateShadowColor.toArgb()
         else Color.Transparent.toArgb()
     } else backgroundColor.toArgb()
+    val dateParts = remember(date) { date.split(" ") }
     Box(modifier = Modifier
         .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp))
         .padding(4.dp)){
@@ -4146,38 +4189,20 @@ fun WidgetDate(
                     shadowColor = shadowColor
                 )
             2 ->
-                if(date.split(" ").size == 3) {
+                if(dateParts.size == 3) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        EffectTextBlock(
-                            text = date.split(" ")[0],
-                            color = textColor,
-                            fontSize = settings.dateFontSize.sp,
-                            fontWeight = getFontWeightFromString(settings.dateFontWeight),
-                            fontFamily = settings.dateFontFamily,
-                            angle = settings.dateAngle.toFloat(),
-                            radius = settings.dateRadius.toFloat(),
-                            shadowColor = shadowColor
-                        )
-                        EffectTextBlock(
-                            text = date.split(" ")[1],
-                            color = textColor,
-                            fontSize = settings.dateFontSize.sp,
-                            fontWeight = getFontWeightFromString(settings.dateFontWeight),
-                            fontFamily = settings.dateFontFamily,
-                            angle = settings.dateAngle.toFloat(),
-                            radius = settings.dateRadius.toFloat(),
-                            shadowColor = shadowColor
-                        )
-                        EffectTextBlock(
-                            text = date.split(" ")[2],
-                            color = textColor,
-                            fontSize = settings.dateFontSize.sp,
-                            fontWeight = getFontWeightFromString(settings.dateFontWeight),
-                            fontFamily = settings.dateFontFamily,
-                            angle = settings.dateAngle.toFloat(),
-                            radius = settings.dateRadius.toFloat(),
-                            shadowColor = shadowColor
-                        )
+                        dateParts.forEach { part ->
+                            EffectTextBlock(
+                                text = part,
+                                color = textColor,
+                                fontSize = settings.dateFontSize.sp,
+                                fontWeight = getFontWeightFromString(settings.dateFontWeight),
+                                fontFamily = settings.dateFontFamily,
+                                angle = settings.dateAngle.toFloat(),
+                                radius = settings.dateRadius.toFloat(),
+                                shadowColor = shadowColor
+                            )
+                        }
                     }
                 }
         }
@@ -4194,15 +4219,6 @@ fun WidgetClock(
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
     val customColor = !settings.autoWallpapers && !settings.monochrome
-    val timeFormat = remember(settings.timeFormat) {
-        // Build your pattern based on the settings
-        val pattern = if (settings.timeFormat == "H12") {
-            "hh:mm"
-        } else { // "H24"
-            "HH:mm"
-        }
-        SimpleDateFormat(pattern, Locale.getDefault())
-    }
     val borderColor = if (editMode) {
         if (customColor) {
             if (settings.showAnalog) settings.clockHourColor else settings.timeFontColor
@@ -4247,7 +4263,6 @@ fun WidgetClock(
             TextClock(
                 settings,
                 foregroundColor,
-                timeFormat,
                 customColor,
                 backgroundColor
             )
@@ -4258,7 +4273,6 @@ fun WidgetClock(
 fun TextClock(
     settings: SettingsUiState,
     foregroundColor: Color,
-    timeFormat: SimpleDateFormat,
     customColor: Boolean,
     backgroundColor: Color = Color.Black
 ) {
@@ -4270,15 +4284,16 @@ fun TextClock(
     val fontWeight = getFontWeightFromString(settings.timeFontWeight)
     val fontFamily = settings.timeFontFamily
     var time by remember { mutableStateOf("") }
-    // This effect now restarts whenever `timeFormat` changes
-    LaunchedEffect(timeFormat) {
+    LaunchedEffect(settings.timeFormat) {
         while (true) {
+            val pattern = if (settings.timeFormat == "H12") "hh:mm" else "HH:mm"
+            val timeFormat = SimpleDateFormat(pattern, Locale.getDefault())
             val now = System.currentTimeMillis()
-            // Update the state variables, triggering recomposition for the Text composables
-            time = timeFormat.format(Date(now))
+            time = timeFormat.format(now)
             delay(60000L - (System.currentTimeMillis() % 60000L))
         }
     }
+    val timeParts = remember(time) { time.split(":") }
     Box(
         modifier = Modifier
             .padding(4.dp),
@@ -4310,7 +4325,7 @@ fun TextClock(
             3 ->
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     EffectTextBlock(
-                        text = time.split(":").first(),
+                        text = timeParts.first(),
                         color = color,
                         fontSize = settings.timeFontSize.sp,
                         fontWeight = fontWeight,
@@ -4320,7 +4335,7 @@ fun TextClock(
                         shadowColor = shadowColor
                     )
                     EffectTextBlock(
-                        text = time.split(":").last(),
+                        text = timeParts.last(),
                         color = color,
                         fontSize = (settings.timeFontSize-10).sp,
                         fontWeight = fontWeight,
@@ -4331,7 +4346,6 @@ fun TextClock(
                     )
                 }
         }
-
     }
 }
 @Composable
@@ -4914,20 +4928,6 @@ fun DraggableQuickWidgets(
     }
 }
 
-// Constrain offset to stay within container boundaries
-private fun constrainToBoundary(
-    offset: Offset,
-    composableSize: IntSize,
-    containerSize: IntSize
-): Offset {
-    val maxX = (containerSize.width - composableSize.width).toFloat()
-    val maxY = (containerSize.height - composableSize.height).toFloat()
-
-    return Offset(
-        x = offset.x.coerceIn(0f, maxX.coerceAtLeast(0f)),
-        y = offset.y.coerceIn(0f, maxY.coerceAtLeast(0f))
-    )
-}
 
 @Composable
 fun LocaleSelectionDialog(
