@@ -1682,10 +1682,26 @@ fun QuickListOverlay(apps: List<AppInfo>,
         canShowGuide = true
     }
 
-    LaunchedEffect(settings.iconSize,settings.iconShape) {
-        withContext(Dispatchers.IO) {
-            iconSize = PreferenceManager.getIconSize(context).dp
-            iconShape = PreferenceManager.getIconShape(context)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    val newIconSize = PreferenceManager.getIconSize(context).dp
+                    val newIconShape = PreferenceManager.getIconShape(context)
+                    withContext(Dispatchers.Main) {
+                        iconSize = newIconSize
+                        iconShape = newIconShape
+                    }
+                    guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
+                    feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
+                    isDefault = isDefaultLauncher(context)
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
@@ -2690,7 +2706,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         settingInfoUiState.showThemedIcons,
         settingInfoUiState.autoWallpapers,
         settingInfoUiState.monochrome,
-        settingInfoUiState.iconShape,
         settingInfoUiState.iconPackPackage) {
         appInfoViewModel.reloadList()
     }
