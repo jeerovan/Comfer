@@ -2006,16 +2006,10 @@ fun SearchListOverlay(apps: List<AppInfo>,
     var inputText by remember { mutableStateOf("") }
 
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
-    val filteredApps by remember(inputText) {
+    val filteredApps by remember(inputText, activeTab) {
         derivedStateOf {
-            if(activeTab == SearchTab.APPS) {
-                val searchText = inputText.trim()
-                if (searchText.isBlank()) {
-                     apps // Return the full list if search text is empty
-                }
-                apps.filter { app ->
-                    doesMatchSearch(searchText,app.label)
-                }
+            if(activeTab == SearchTab.APPS && inputText.isNotBlank()) {
+                apps.filter { app -> doesMatchSearch(inputText.trim(), app.label) }
             } else {
                 apps
             }
@@ -2075,17 +2069,10 @@ fun SearchListOverlay(apps: List<AppInfo>,
         }
     }
 
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                iconSize = PreferenceManager.getIconSize(context).dp
-                iconShape = PreferenceManager.getIconShape(context)
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            iconSize = PreferenceManager.getIconSize(context).dp
+            iconShape = PreferenceManager.getIconShape(context)
         }
     }
 
