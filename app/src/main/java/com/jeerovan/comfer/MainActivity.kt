@@ -2345,6 +2345,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
             }
         }
 }
+
 @Composable
 fun ContactListItem(contact: Contact,isSelected:Boolean) {
     val context = LocalContext.current
@@ -2459,18 +2460,10 @@ fun AppListOverlay(apps: List<AppInfo>,
     var iconSize by remember { mutableStateOf(48.dp) }
     var iconShape: Shape by remember { mutableStateOf(CircleShape) }
 
-    val lifecycleOwner = LocalLifecycleOwner.current
-
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                iconSize = PreferenceManager.getIconSize(context).dp
-                iconShape = PreferenceManager.getIconShape(context)
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            iconSize = PreferenceManager.getIconSize(context).dp
+            iconShape = PreferenceManager.getIconShape(context)
         }
     }
 
@@ -2514,17 +2507,20 @@ fun AppListOverlay(apps: List<AppInfo>,
                         if (apps.isNotEmpty()) {
                             if (centerAppIndex < apps.size) {
                                 val app = apps[centerAppIndex]
-                                val launchIntent =
-                                    packageManager.getLaunchIntentForPackage(app.packageName)
-                                if (launchIntent != null) {
-                                    val opts = ActivityOptions.makeClipRevealAnimation(
-                                        view,
-                                        centerIconX.toInt(),
-                                        centerIconY.toInt(),
-                                        centerIconSize.toInt(),
-                                        centerIconSize.toInt()
-                                    )
-                                    context.startActivity(launchIntent, opts.toBundle())
+                                scope.launch(Dispatchers.Default) {
+                                    val launchIntent = packageManager.getLaunchIntentForPackage(app.packageName)
+                                    if (launchIntent != null) {
+                                        withContext(Dispatchers.Main) {
+                                            val opts = ActivityOptions.makeClipRevealAnimation(
+                                                view,
+                                                centerIconX.toInt(),
+                                                centerIconY.toInt(),
+                                                centerIconSize.toInt(),
+                                                centerIconSize.toInt()
+                                            )
+                                            context.startActivity(launchIntent, opts.toBundle())
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -2669,7 +2665,6 @@ fun AppListOverlay(apps: List<AppInfo>,
         }
     }
 }
-
 private enum class DragAxis { HORIZONTAL, VERTICAL }
 
 @Composable
