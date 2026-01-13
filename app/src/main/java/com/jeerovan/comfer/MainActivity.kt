@@ -225,6 +225,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.res.stringResource
@@ -2689,6 +2690,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         settingInfoUiState.showThemedIcons,
         settingInfoUiState.autoWallpapers,
         settingInfoUiState.monochrome,
+        settingInfoUiState.iconShape,
         settingInfoUiState.iconPackPackage) {
         appInfoViewModel.reloadList()
     }
@@ -4510,23 +4512,34 @@ fun Modifier.detectGestures(
     onSwipeRight: () -> Unit = {},
     onCircular: () -> Unit = {},
     onLPatternDetected: (String) -> Unit = {}
-): Modifier = this.pointerInput(Unit) {
+): Modifier = this.pointerInput(onSwipeUp, onSwipeDown, onSwipeLeft, onSwipeRight,
+    onCircular, onLPatternDetected) {
     val path = mutableListOf<Offset>()
+    val pathSimplificationDistance = 5f
     val swipeThreshold = 50.dp.toPx() // Minimum distance for swipe detection
-
+    var currentPointerId: PointerId? = null
     detectDragGestures(
         onDragStart = { offset ->
-            path.clear()
-            path.add(offset)
+            if (currentPointerId == null) {
+                path.clear()
+                path.add(offset)
+            }
         },
         onDrag = { change, _ ->
             change.consume()
-            path.add(change.position)
+            if (currentPointerId == null || currentPointerId == change.id) {
+                currentPointerId = change.id
+                change.consume()
+                val lastPoint = path.lastOrNull()
+                if (lastPoint == null || (change.position - lastPoint).getDistance() > pathSimplificationDistance) {
+                    path.add(change.position)
+                }
+            }
         },
         onDragEnd = {
             if (path.size >= 2) {
                 val circular = detectCircularPattern(path,swipeThreshold)
-                val pattern = detectLPatternWithCorner(path)
+                val pattern = detectLPatternWithCorner(path,swipeThreshold)
                 if(circular != null){
                     onCircular()
                     Log.d("GesturePattern","Detected: Circular")
@@ -4556,30 +4569,37 @@ fun Modifier.detectGestures(
                 }
             }
             path.clear()
+            currentPointerId = null
         }
     )
 }
-private fun detectLPatternWithCorner(points: List<Offset>): LPatternType? {
-    if (points.size < 10) return null
+private fun detectLPatternWithCorner(points: List<Offset>,swipeThreshold: Float): LPatternType? {
+    if (points.size < 15) return null
+
+    // Helper function to normalize angle difference
+    fun normalizeAngleDiff(angle1: Float, angle2: Float): Float {
+        val diff = abs(angle1 - angle2)
+        return minOf(diff, (2 * PI).toFloat() - diff)
+    }
 
     // Find the corner point (where direction changes most)
     var maxDirectionChange = 0f
     var cornerIndex = 0
 
     for (i in 5 until points.size - 5) {
-        val before = points.subList(i - 5, i)
-        val after = points.subList(i, i + 5)
+        val beforeStartIdx = i - 5
+        val afterEndIdx = i + 5
 
         val beforeAngle = atan2(
-            before.last().y - before.first().y,
-            before.last().x - before.first().x
+            points[i - 1].y - points[beforeStartIdx].y,
+            points[i - 1].x - points[beforeStartIdx].x
         )
         val afterAngle = atan2(
-            after.last().y - after.first().y,
-            after.last().x - after.first().x
+            points[afterEndIdx - 1].y - points[i].y,
+            points[afterEndIdx - 1].x - points[i].x
         )
 
-        val directionChange = abs(beforeAngle - afterAngle)
+        val directionChange = normalizeAngleDiff(beforeAngle, afterAngle)
         if (directionChange > maxDirectionChange) {
             maxDirectionChange = directionChange
             cornerIndex = i
@@ -4589,17 +4609,26 @@ private fun detectLPatternWithCorner(points: List<Offset>): LPatternType? {
     // Require significant direction change (close to 90 degrees)
     if (maxDirectionChange < PI / 3) return null
 
-    val firstSegment = points.subList(0, cornerIndex)
-    val secondSegment = points.subList(cornerIndex, points.size)
+    // Calculate movements without creating sublists
+    val firstStartIdx = 0
+    val firstEndIdx = cornerIndex
+    val secondStartIdx = cornerIndex
+    val secondEndIdx = points.size
 
-    // Calculate movements
-    val firstVertical = firstSegment.last().y - firstSegment.first().y
-    val firstHorizontal = firstSegment.last().x - firstSegment.first().x
-    val secondVertical = secondSegment.last().y - secondSegment.first().y
-    val secondHorizontal = secondSegment.last().x - secondSegment.first().x
+    val firstVertical = points[firstEndIdx - 1].y - points[firstStartIdx].y
+    val firstHorizontal = points[firstEndIdx - 1].x - points[firstStartIdx].x
+    val secondVertical = points[secondEndIdx - 1].y - points[secondStartIdx].y
+    val secondHorizontal = points[secondEndIdx - 1].x - points[secondStartIdx].x
 
     val threshold = 1.5f
 
+    // Check if segments are long enough
+    val firstSegmentLength = kotlin.math.sqrt(firstVertical * firstVertical + firstHorizontal * firstHorizontal)
+    val secondSegmentLength = kotlin.math.sqrt(secondVertical * secondVertical + secondHorizontal * secondHorizontal)
+
+    if (firstSegmentLength < swipeThreshold || secondSegmentLength < swipeThreshold) {
+        return null
+    }
     // Determine pattern type
     if (abs(firstVertical) > abs(firstHorizontal) * threshold &&
         abs(secondHorizontal) > abs(secondVertical) * threshold) {
