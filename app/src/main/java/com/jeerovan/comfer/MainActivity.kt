@@ -2784,19 +2784,49 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     fun onRequestContactsPermission(){
         contactsPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
     }
-    fun fetchContacts(){
+    fun fetchContacts() {
         coroutineScope.launch {
             val fetchedContacts = withContext(Dispatchers.IO) {
-                // withContext(Dispatchers.IO) switches the coroutine to a background thread
-                // ideal for disk or network I/O operations.
                 val contactsList = mutableListOf<Contact>()
                 val contentResolver = context.contentResolver
+
+                // Step 1: Query all phone numbers in a single batch query
+                val phoneMap = mutableMapOf<Long, String>()
+                val phoneCursor = contentResolver.query(
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    arrayOf(
+                        ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+                        ContactsContract.CommonDataKinds.Phone.NUMBER
+                    ),
+                    null,
+                    null,
+                    null
+                )
+
+                phoneCursor?.use { cursor ->
+                    val contactIdIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
+                    val numberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+
+                    if (contactIdIndex != -1 && numberIndex != -1) {
+                        while (cursor.moveToNext()) {
+                            val contactId = cursor.getLong(contactIdIndex)
+                            val number = cursor.getString(numberIndex)
+                            // Store first phone number for each contact (if not already stored)
+                            if (!phoneMap.containsKey(contactId) && number != null) {
+                                phoneMap[contactId] = number
+                            }
+                        }
+                    }
+                }
+
+                // Step 2: Query all contacts
                 val projection = arrayOf(
                     ContactsContract.Contacts._ID,
                     ContactsContract.Contacts.DISPLAY_NAME,
                     ContactsContract.Contacts.PHOTO_URI,
                     ContactsContract.Contacts.HAS_PHONE_NUMBER
                 )
+
                 val cursor = contentResolver.query(
                     ContactsContract.Contacts.CONTENT_URI,
                     projection,
@@ -2804,6 +2834,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                     null,
                     null
                 )
+
                 cursor?.use { contactCursor ->
                     val idIndex = contactCursor.getColumnIndex(ContactsContract.Contacts._ID)
                     val nameIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
@@ -2812,7 +2843,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
 
                     // Check if any column is not found
                     if (idIndex == -1 || nameIndex == -1 || photoUriIndex == -1 || hasPhoneNumberIndex == -1) {
-                        // Handle error: a required column is missing
                         return@withContext emptyList()
                     }
 
@@ -2823,39 +2853,26 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                         val photoUri = photoUriString?.toUri()
                         val hasPhoneNumber = contactCursor.getInt(hasPhoneNumberIndex) > 0
 
-                        var number: String? = null
-                        if (hasPhoneNumber) {
-                            val phoneCursor = contentResolver.query(
-                                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                                null,
-                                "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
-                                arrayOf(id.toString()),
-                                null
-                            )
+                        // Look up the phone number from our pre-built map
+                        val number = if (hasPhoneNumber) phoneMap[id] else null
 
-                            phoneCursor?.use {
-                                if (it.moveToFirst()) {
-                                    val numberIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-                                    number = it.getString(numberIndex)
-                                }
-                            }
-                        }
-                        if( name != null && number != null && name.isNotEmpty()) {
+                        if (name != null && number != null && name.isNotEmpty()) {
                             contactsList.add(Contact(id, name, photoUri, number))
                         }
                     }
                 }
-                contactsList // The result of the withContext block
+
+                contactsList
             }
-            // Update the state list on the main thread.
-            // It is safe to update Compose's state objects from any thread.
+
+            // Update the state list on the main thread
             contacts.clear()
             val uniqueAndSortedContacts = fetchedContacts
-                //.distinctBy { it.number } // First, create a new list with unique contacts based on their number
-                .sortedBy { it.name }     // Then, sort the resulting unique list by name
+                .sortedBy { it.name }
             contacts.addAll(uniqueAndSortedContacts)
         }
     }
+
 
     DisposableEffect(lifecycleOwner, hasContactsPermission) {
         val observer = LifecycleEventObserver { _, event ->
@@ -2889,14 +2906,20 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                         handleStartActivity(context,intent,null)
                     },
                     onDoubleTap = {
-                        if (isAccessibilityServiceEnabled(
+                        coroutineScope.launch(Dispatchers.Default) {
+                            val hasAccess = isAccessibilityServiceEnabled(
                                 context,
                                 RecentsAccessibilityService::class.java
                             )
-                        ) {
-                            showRecentApps()
-                        } else {
-                            showDisclosure = true
+                            if (hasAccess) {
+                                withContext(Dispatchers.Main) {
+                                    showRecentApps()
+                                }
+                            } else {
+                                withContext(Dispatchers.Main) {
+                                    showDisclosure = true
+                                }
+                            }
                         }
                     }
                 )
@@ -3041,10 +3064,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     }
 }
 
-private fun lerp(start: Float, stop: Float, fraction: Float): Float {
-    return start + (stop - start) * fraction
-}
-
 @Composable
 fun AnimatedBackground(
     background: Any?, // Can be a URL, URI, or other data Coil can handle
@@ -3093,6 +3112,11 @@ fun AnimatedBackground(
             contentScale = ContentScale.Crop
         )
 
+}
+
+
+private fun lerp(start: Float, stop: Float, fraction: Float): Float {
+    return start + (stop - start) * fraction
 }
 @Composable
 fun UshapedAppList(
