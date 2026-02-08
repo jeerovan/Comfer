@@ -81,91 +81,87 @@ suspend fun getAppInfo(
     showThemedIcons: Boolean,
     themedColors: WallpaperThemeColors,
     isLightHour: Boolean,
-    iconPackPackage: String?
-): AppInfo? = withContext(Dispatchers.Default) {
+    iconPackPackage: String?,
+    iconProcessor: ThemedIconProcessor
+): AppInfo? = withContext(Dispatchers.IO) { // FIX: Changed Default to IO for IPC/Disk ops
     try {
         val packageName = info.componentName.packageName
         val user = info.user
-        // NOTE: If you support Work Profiles, your Cache Key should ideally be "packageName + userId"
-        // because the Work version might have a different badge than the Personal version.
-        val cacheKey = "$packageName"
+        val cacheKey = "$packageName" // Add userId here if you support work profiles
 
+        // 1. Check Cache
         val cachedIcon = AppIconCache.getIcon(cacheKey)
 
-        // Load the icon. getBadgedIcon automatically adds the "Briefcase" for work apps
-        val loadedDrawable = if(iconPackPackage != null) {
-            IconPackManager.getCustomIcon(context,info.componentName) ?: cachedIcon ?: info.getBadgedIcon(0).also {
-                AppIconCache.cacheIcon(cacheKey, it)
-            }
+        // 2. Load Drawable (Heavy I/O & IPC)
+        // If not cached, getBadgedIcon blocks. IO Dispatcher handles this.
+        val loadedDrawable = if (iconPackPackage != null) {
+            IconPackManager.getCustomIcon(context, info.componentName)
+                ?: cachedIcon
+                ?: info.getBadgedIcon(0).also { AppIconCache.cacheIcon(cacheKey, it) }
         } else {
-            cachedIcon ?: info.getBadgedIcon(0).also {
-                AppIconCache.cacheIcon(cacheKey, it)
-            }
+            cachedIcon ?: info.getBadgedIcon(0).also { AppIconCache.cacheIcon(cacheKey, it) }
         }
 
+        // 3. Create a mutable copy for processing to ensure thread safety
+        // and prevent modifying the cached instance.
         val iconDrawable = loadedDrawable.constantState?.newDrawable()?.mutate()
+            ?: loadedDrawable // Fallback if constantState is null
+
         var backgroundDrawable: Drawable?
         var foregroundDrawable: Drawable?
 
-        // LauncherActivityInfo loads labels faster/cleaner
+        // Optimization: CharSequence allows avoiding string allocation if not needed immediately
         val appLabel = info.label.toString().trim()
         val foregroundColor = getThemedIconColor(themedColors, isLightHour)
 
-        val iconProcessor = ThemedIconProcessor()
-
-        // Determine scale and process icon
+        // Determine scale
         val isAdaptive = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && iconDrawable is AdaptiveIconDrawable
         val scale = if (isAdaptive) 1.5f else 0.9f
 
-        when {
-            isAdaptive && iconDrawable is AdaptiveIconDrawable -> {
-                if (showThemedIcons) {
-                    val backgroundColor = getThemedBackgroundColor(themedColors, isLightHour)
-                    backgroundDrawable = backgroundColor.toDrawable()
-
-                    foregroundDrawable = when {
-                        // Android 13+ (Tiramisu): Try monochrome first
-                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
-                            iconDrawable.monochrome?.mutate()?.apply {
-                                setTint(foregroundColor)
-                            } ?: iconDrawable.foreground?.mutate()?.apply {
-                                colorFilter = PorterDuffColorFilter(foregroundColor, PorterDuff.Mode.SRC_IN)
-                            }
-                        }
-                        else -> {
-                            iconProcessor.applyThemedColor(
-                                iconDrawable.foreground,
-                                foregroundColor,
-                                backgroundColor,
-                                isLightHour
-                            )
-                        }
-                    }
-                } else {
-                    // Original adaptive icon
-                    backgroundDrawable = iconDrawable.background
-                    foregroundDrawable = iconDrawable.foreground
-                }
-            }
-            else -> {
-                // Non-adaptive / legacy icons / Badged icons that wrap adaptive icons
-                val backgroundColor = if (showThemedIcons) {
-                    getThemedBackgroundColor(themedColors, isLightHour)
-                } else {
-                    getBackgroundColor(isLightHour).toArgb()
-                }
+        // 4. Heavy Image Processing (CPU bound, but fine inside IO context)
+        if (isAdaptive && iconDrawable is AdaptiveIconDrawable) {
+            if (showThemedIcons) {
+                val backgroundColor = getThemedBackgroundColor(themedColors, isLightHour)
                 backgroundDrawable = backgroundColor.toDrawable()
 
-                foregroundDrawable = if (showThemedIcons) {
-                    if (iconDrawable != null) iconProcessor.applyThemedColor(
-                        iconDrawable,
+                foregroundDrawable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    // Try monochrome first for Android 13+
+                    iconDrawable.monochrome?.mutate()?.apply {
+                        setTint(foregroundColor)
+                    } ?: iconDrawable.foreground?.mutate()?.apply {
+                        colorFilter = PorterDuffColorFilter(foregroundColor, PorterDuff.Mode.SRC_IN)
+                    }
+                } else {
+                    iconProcessor.applyThemedColor(
+                        iconDrawable.foreground,
                         foregroundColor,
                         backgroundColor,
                         isLightHour
-                    ) else iconDrawable
-                } else {
-                    iconDrawable
+                    )
                 }
+            } else {
+                // Original adaptive icon
+                backgroundDrawable = iconDrawable.background
+                foregroundDrawable = iconDrawable.foreground
+            }
+        } else {
+            // Legacy / Standard Icons
+            val backgroundColor = if (showThemedIcons) {
+                getThemedBackgroundColor(themedColors, isLightHour)
+            } else {
+                getBackgroundColor(isLightHour).toArgb()
+            }
+            backgroundDrawable = backgroundColor.toDrawable()
+
+            foregroundDrawable = if (showThemedIcons && iconDrawable != null) {
+                iconProcessor.applyThemedColor(
+                    iconDrawable,
+                    foregroundColor,
+                    backgroundColor,
+                    isLightHour
+                )
+            } else {
+                iconDrawable
             }
         }
 
@@ -175,15 +171,17 @@ suspend fun getAppInfo(
             scale = scale,
             label = appLabel,
             packageName = packageName,
-            icon = loadedDrawable, // Keeps the badged icon for standard display
+            icon = loadedDrawable,
             componentName = info.componentName,
             user = user
         )
     } catch (e: Exception) {
-        Log.e("getAppInfo", e.stackTraceToString())
+        // Log generic error to avoid spamming logs with specific package failures
+        Log.e("getAppInfo", "Failed to load ${info.componentName.packageName}: ${e.message}")
         null
     }
 }
+
 
 /**
  * Legacy helper: Tries to find an app by string package name.
@@ -211,6 +209,7 @@ suspend fun mapPackageNameToAppInfo(
 
         val activityInfo = activityList.find { it.componentName.packageName == packageName }
 
+        val themedIconProcessor = ThemedIconProcessor()
         if (activityInfo != null) {
             getAppInfo(
                 context,
@@ -218,7 +217,8 @@ suspend fun mapPackageNameToAppInfo(
                 showThemedIcons,
                 themedColors,
                 isLightHour,
-                iconPackPackage
+                iconPackPackage,
+                themedIconProcessor
             )
         } else {
             null
@@ -375,6 +375,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             // Function to map package names to your UI models
             // NOTE: handle if a package exists on multiple profiles (Work + Personal)
             val semaphore = Semaphore(8)
+            val themedIconProcessor = ThemedIconProcessor()
             suspend fun mapPackagesToAppInfo(packageNames: List<String>): List<AppInfo> {
                 return packageNames.map { packageName ->
                     async {
@@ -387,7 +388,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                                 showThemedIcons,
                                 themedColors,
                                 isLightHour,
-                                iconPackPackage
+                                iconPackPackage,
+                                themedIconProcessor
                             )
                         }
                     }
@@ -427,7 +429,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         showThemedIcons: Boolean,
         themedColors: WallpaperThemeColors,
         isLightHour: Boolean,
-        iconPackPackage: String?
+        iconPackPackage: String?,
+        themedIconProcessor: ThemedIconProcessor
     ): AppInfo? {
         return getAppInfo(
             context,
@@ -435,7 +438,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             showThemedIcons,
             themedColors,
             isLightHour,
-            iconPackPackage
+            iconPackPackage,
+            themedIconProcessor
         )
     }
 

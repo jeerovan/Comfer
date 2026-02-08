@@ -84,6 +84,14 @@ object CommonUtil {
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
+                        } catch (e: Exception){
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(
+                                    context,
+                                    "Error",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
                     }
                 }

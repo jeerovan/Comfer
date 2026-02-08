@@ -239,6 +239,9 @@ import androidx.compose.ui.text.font.resolveAsTypeface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.pow
@@ -1522,35 +1525,55 @@ data class IntRect(val left: Int, val top: Int, val right: Int, val bottom: Int)
 
 @Composable
 fun rememberBatteryState(): State<BatteryState> {
-    val context = LocalContext.current
-    val batteryState = remember { mutableStateOf(BatteryState(-1, false)) }
+    // Use ApplicationContext to avoid Activity leaks and decouple from Activity lifecycle
+    val context = LocalContext.current.applicationContext
 
-    DisposableEffect(context) {
-        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
-                val scale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
-                val batteryLevel = if (level != -1 && scale != -1) {
-                    (level * 100 / scale.toFloat()).toInt()
-                } else {
-                    -1
+    return produceState(initialValue = BatteryState(-1, false), key1 = context) {
+        // callbackFlow adapts the callback-based BroadcastReceiver to a Coroutine Flow
+        val batteryFlow = callbackFlow {
+            val receiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+                    val scale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+                    val batteryLevel = if (level != -1 && scale != -1) {
+                        (level * 100 / scale.toFloat()).toInt()
+                    } else {
+                        -1
+                    }
+
+                    val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+                    val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                            status == BatteryManager.BATTERY_STATUS_FULL
+
+                    trySend(BatteryState(batteryLevel, isCharging))
                 }
-
-                val status: Int = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
-                val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                        status == BatteryManager.BATTERY_STATUS_FULL
-
-                batteryState.value = BatteryState(batteryLevel, isCharging)
             }
-        }
-        context.registerReceiver(receiver, filter)
-        onDispose {
-            context.unregisterReceiver(receiver)
+
+            try {
+                // Registering receiver is an IPC call; doing it on IO prevents Main Thread ANRs
+                context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            } catch (e: Exception) {
+                // Catches DeadSystemRuntimeException (Crash fix) and SecurityException
+                e.printStackTrace()
+            }
+
+            awaitClose {
+                try {
+                    // Unregistering is also an IPC call; safe to do here as flowOn(IO) handles the context
+                    context.unregisterReceiver(receiver)
+                } catch (e: Exception) {
+                    // Ignore exceptions during unregistration (e.g., if system service is dead)
+                }
+            }
+        }.flowOn(Dispatchers.IO) // CRITICAL: Moves register/unregister/onReceive ops to background thread
+
+        // Collect the flow on the Main dispatcher (default for produceState) to update State safely
+        batteryFlow.collect { newState ->
+            value = newState
         }
     }
-    return batteryState
 }
+
 
 
 @Composable
@@ -3069,52 +3092,62 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
 
 @Composable
 fun AnimatedBackground(
-    background: Any?, // Can be a URL, URI, or other data Coil can handle
+    background: Any?,
     wallpaperMotionEnabled: Boolean,
     maxWidthPx: Float,
     maxHeightPx: Float
 ) {
     val context = LocalContext.current
 
-        val infiniteTransition = rememberInfiniteTransition(label = "wallpaper_motion")
-        val angle by if (wallpaperMotionEnabled) {
-            infiniteTransition.animateFloat(
-                initialValue = 0f,
-                targetValue = (2f * Math.PI).toFloat(),
-                animationSpec = infiniteRepeatable(
-                    animation = tween(
-                        durationMillis = 60000,
-                        easing = LinearEasing
-                    ),
-                    repeatMode = RepeatMode.Restart
-                ),
-                label = "angle-animation"
-            )
-        } else {
-            remember { mutableFloatStateOf(0f) }
-        }
+    // 1. Optimize Image Request: Remember it so it doesn't rebuild constantly.
+    // Also, limit memory usage by resizing the image to the screen dimensions (fixes "Unresponsive GPU").
+    val imageRequest = remember(background, context, maxWidthPx, maxHeightPx) {
+        ImageRequest.Builder(context)
+            .data(background)
+            .size(width = maxWidthPx.toInt(), height = maxHeightPx.toInt()) // Crucial for GPU performance
+            .crossfade(true)
+            .build()
+    }
 
-        val xOffset = if (wallpaperMotionEnabled) cos(angle) * maxWidthPx * 0.08f else 0f
-        val yOffset = if (wallpaperMotionEnabled) sin(angle) * maxHeightPx * 0.08f else 0f
-
-        AsyncImage(
-            model = ImageRequest.Builder(context)
-                .data(background)
-                .crossfade(true)
-                .build(),
-            contentDescription = stringResource(R.string.background_image),
-            modifier = Modifier
-                .fillMaxSize()
-                // The scale modifier is applied conditionally
-                .scale(if (wallpaperMotionEnabled) 1.2f else 1f)
-                // graphicsLayer remains the most performant way to apply transformations [32]
-                .graphicsLayer {
-                    translationX = xOffset
-                    translationY = yOffset
-                },
-            contentScale = ContentScale.Crop
+    // 2. Animation State: Do NOT use 'by' delegation here.
+    // Keep it as a State<Float> object to read it later.
+    val infiniteTransition = rememberInfiniteTransition(label = "wallpaper_motion")
+    val angleState = if (wallpaperMotionEnabled) {
+        infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = (2f * Math.PI).toFloat(),
+            animationSpec = infiniteRepeatable(
+                animation = tween(60000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "angle-animation"
         )
+    } else {
+        remember { mutableFloatStateOf(0f) }
+    }
 
+    AsyncImage(
+        model = imageRequest,
+        contentDescription = stringResource(R.string.background_image),
+        modifier = Modifier
+            .fillMaxSize()
+            .scale(if (wallpaperMotionEnabled) 1.2f else 1f)
+            .graphicsLayer {
+                // 3. Defer Read: Only read the state INSIDE this block.
+                // This runs on the RenderThread/Layout phase, NOT the Main Thread composition.
+                if (wallpaperMotionEnabled) {
+                    val angle = angleState.value // Reading here is safe
+                    val x = kotlin.math.cos(angle) * maxWidthPx * 0.08f
+                    val y = kotlin.math.sin(angle) * maxHeightPx * 0.08f
+                    translationX = x
+                    translationY = y
+                } else {
+                    translationX = 0f
+                    translationY = 0f
+                }
+            },
+        contentScale = ContentScale.Crop
+    )
 }
 
 

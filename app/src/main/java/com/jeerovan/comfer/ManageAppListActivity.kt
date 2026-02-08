@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -110,10 +111,10 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
     val primaryListState = rememberLazyListState()
     val restListState = rememberLazyListState()
 
-    val iconSize = min(46,PreferenceManager.getIconSize(context))
+    val iconSize = min(46, PreferenceManager.getIconSize(context))
     val shape = PreferenceManager.getIconShape(context)
     val alphabeticalOrder = PreferenceManager.getAlphabeticalOrder(context)
-    val iconShape = getShapeFromShape(shape,iconSize.dp)
+    val iconShape = getShapeFromShape(shape, iconSize.dp)
     val listStates = remember {
         mapOf(
             AppInfoManager.QUICK_APPS_LIST_NAME to quickListState,
@@ -121,35 +122,50 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
             REST_LIST_NAME to restListState
         )
     }
-    val primaryApps = if(alphabeticalOrder) uiState.primaryApps.sortedBy { it.label.toString() } else uiState.primaryApps
-    var selectedList by rememberSaveable { mutableStateOf<String?>(null) }
-    var selectedIndices by rememberSaveable { mutableStateOf(emptySet<Int>()) }
+    // Stable sorted lists
+    val primaryApps = remember(uiState.primaryApps, alphabeticalOrder) {
+        if (alphabeticalOrder) uiState.primaryApps.sortedBy { it.label.toString() } else uiState.primaryApps
+    }
 
-    val onItemSelect = { listName: String, index: Int ->
+    // Changed to track Package Names instead of Indices for stability
+    var selectedList by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedPackageNames by rememberSaveable { mutableStateOf(emptySet<String>()) }
+
+    val onItemSelect = { listName: String, packageName: String ->
         if (selectedList != listName) {
             selectedList = listName
-            selectedIndices = setOf(index)
+            selectedPackageNames = setOf(packageName)
         } else {
-            selectedIndices = if (selectedIndices.contains(index)) {
-                selectedIndices - index
+            selectedPackageNames = if (selectedPackageNames.contains(packageName)) {
+                selectedPackageNames - packageName
             } else {
-                selectedIndices + index
+                selectedPackageNames + packageName
             }
         }
     }
 
     val clearSelection = {
         selectedList = null
-        selectedIndices = emptySet()
+        selectedPackageNames = emptySet()
+    }
+
+    // Helper to get indices for the move operation (since ViewModel likely still expects indices)
+    // If your ViewModel can accept packageNames, refactor it to use those instead!
+    // For now, we map back to indices just for the action.
+    fun getSelectedIndices(sourceList: List<AppInfo>): List<Int> {
+        return sourceList
+            .mapIndexedNotNull { index, app -> if (selectedPackageNames.contains(app.packageName)) index else null }
+            .sortedDescending()
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(top = 24.dp)
-        .windowInsetsPadding(WindowInsets.navigationBars)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 24.dp)
+            .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         Row(
             modifier = Modifier
@@ -162,38 +178,37 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 apps = uiState.quickApps,
                 canReOrder = true,
                 listState = listStates[AppInfoManager.QUICK_APPS_LIST_NAME]!!,
-                modifier = Modifier
-                    .weight(1f),
+                modifier = Modifier.weight(1f),
                 listName = AppInfoManager.QUICK_APPS_LIST_NAME,
                 viewModel = viewModel,
                 selectedList = selectedList,
-                selectedIndices = selectedIndices,
+                selectedPackageNames = selectedPackageNames,
                 onItemSelect = onItemSelect,
                 iconShape = iconShape,
                 iconSize = iconSize.dp
             )
             Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
                 Row {
-                    // Button to move apps from primary list to quick list
                     OutlinedButton(
                         shape = CircleShape,
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
                         onClick = {
-                            if (uiState.quickApps.size + selectedIndices.size > MAX_QUICK_APPS) {
+                            if (uiState.quickApps.size + selectedPackageNames.size > MAX_QUICK_APPS) {
                                 scope.launch {
                                     snackbarHostState.showSnackbar("Maximum $MAX_QUICK_APPS apps only")
                                 }
                             } else {
+                                val indices = getSelectedIndices(uiState.primaryApps) // Source is Primary
                                 viewModel.moveAppsToList(
                                     AppInfoManager.PRIMARY_APPS_LIST_NAME,
                                     AppInfoManager.QUICK_APPS_LIST_NAME,
-                                    selectedIndices.toList().sortedDescending()
+                                    indices // VM expects indices
                                 )
                                 clearSelection()
                             }
                         },
-                        enabled = selectedList == AppInfoManager.PRIMARY_APPS_LIST_NAME && selectedIndices.isNotEmpty()
+                        enabled = selectedList == AppInfoManager.PRIMARY_APPS_LIST_NAME && selectedPackageNames.isNotEmpty()
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -203,20 +218,20 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 }
                 Spacer(Modifier.height(20.dp))
                 Row {
-                    // Button to move apps from quick list to primary list
                     OutlinedButton(
                         shape = CircleShape,
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
                         onClick = {
+                            val indices = getSelectedIndices(uiState.quickApps)
                             viewModel.moveAppsToList(
                                 AppInfoManager.QUICK_APPS_LIST_NAME,
                                 AppInfoManager.PRIMARY_APPS_LIST_NAME,
-                                selectedIndices.toList().sortedDescending()
+                                indices
                             )
                             clearSelection()
                         },
-                        enabled = selectedList == AppInfoManager.QUICK_APPS_LIST_NAME && selectedIndices.isNotEmpty()
+                        enabled = selectedList == AppInfoManager.QUICK_APPS_LIST_NAME && selectedPackageNames.isNotEmpty()
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -230,32 +245,31 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 apps = primaryApps,
                 canReOrder = !alphabeticalOrder,
                 listState = listStates[AppInfoManager.PRIMARY_APPS_LIST_NAME]!!,
-                modifier = Modifier
-                    .weight(1f),
+                modifier = Modifier.weight(1f),
                 listName = AppInfoManager.PRIMARY_APPS_LIST_NAME,
                 viewModel = viewModel,
                 selectedList = selectedList,
-                selectedIndices = selectedIndices,
+                selectedPackageNames = selectedPackageNames,
                 onItemSelect = onItemSelect,
                 iconShape = iconShape,
                 iconSize = iconSize.dp
             )
             Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center) {
                 Row {
-                    // Button to move apps from ghost list to primary list
                     OutlinedButton(
                         shape = CircleShape,
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
                         onClick = {
+                            val indices = getSelectedIndices(uiState.restApps)
                             viewModel.moveAppsToList(
                                 REST_LIST_NAME,
                                 AppInfoManager.PRIMARY_APPS_LIST_NAME,
-                                selectedIndices.toList().sortedDescending()
+                                indices
                             )
                             clearSelection()
                         },
-                        enabled = selectedList == REST_LIST_NAME && selectedIndices.isNotEmpty()
+                        enabled = selectedList == REST_LIST_NAME && selectedPackageNames.isNotEmpty()
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -265,20 +279,20 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 }
                 Spacer(Modifier.height(20.dp))
                 Row {
-                    // Button to move apps from primary list to ghost list
                     OutlinedButton(
                         shape = CircleShape,
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
                         onClick = {
+                            val indices = getSelectedIndices(primaryApps)
                             viewModel.moveAppsToList(
                                 AppInfoManager.PRIMARY_APPS_LIST_NAME,
                                 REST_LIST_NAME,
-                                selectedIndices.toList().sortedDescending()
+                                indices
                             )
                             clearSelection()
                         },
-                        enabled = selectedList == AppInfoManager.PRIMARY_APPS_LIST_NAME && selectedIndices.isNotEmpty()
+                        enabled = selectedList == AppInfoManager.PRIMARY_APPS_LIST_NAME && selectedPackageNames.isNotEmpty()
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -292,12 +306,11 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 apps = uiState.restApps,
                 canReOrder = true,
                 listState = listStates[REST_LIST_NAME]!!,
-                modifier = Modifier
-                    .weight(1f),
+                modifier = Modifier.weight(1f),
                 listName = REST_LIST_NAME,
                 viewModel = viewModel,
                 selectedList = selectedList,
-                selectedIndices = selectedIndices,
+                selectedPackageNames = selectedPackageNames,
                 onItemSelect = onItemSelect,
                 iconShape = iconShape,
                 iconSize = iconSize.dp
@@ -320,10 +333,10 @@ fun AppListColumn(
     listName: String,
     viewModel: AppInfoViewModel,
     selectedList: String?,
-    selectedIndices: Set<Int>,
+    selectedPackageNames: Set<String>, // Changed from Set<Int>
     iconSize: Dp,
     iconShape: Shape,
-    onItemSelect: (String, Int) -> Unit
+    onItemSelect: (String, String) -> Unit // Changed to (ListName, PackageName)
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val reorderableLazyListState = rememberReorderableLazyListState(listState) { from, to ->
@@ -349,22 +362,25 @@ fun AppListColumn(
         )
         LazyColumn(
             state = listState,
-            modifier = Modifier
-                .fillMaxHeight(),
+            modifier = Modifier.fillMaxHeight(),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            items(apps.size, key = { index -> apps[index].packageName }) { index ->
-                if(canReOrder) {
+            // FIX: Using items with key selector and direct item access
+            items(
+                items = apps,
+                key = { it.packageName }
+            ) { app ->
+                if (canReOrder) {
                     ReorderableItem(
                         reorderableLazyListState,
-                        key = apps[index].packageName
+                        key = app.packageName
                     ) { isDragging ->
                         val elevation by animateDpAsState(
                             if (isDragging) 4.dp else 0.dp,
                             label = ""
                         )
                         val scale by animateFloatAsState(if (isDragging) 1.2f else 1f, label = "scale")
-                        val isSelected = selectedList == listName && selectedIndices.contains(index)
+                        val isSelected = selectedList == listName && selectedPackageNames.contains(app.packageName)
 
                         Surface(
                             shape = iconShape,
@@ -377,18 +393,20 @@ fun AppListColumn(
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = null
-                                ) { onItemSelect(listName, index) },
+                                ) { onItemSelect(listName, app.packageName) },
                             shadowElevation = elevation,
-                            ) {
-                            AppCard(app = apps[index],
+                        ) {
+                            AppCard(
+                                app = app,
                                 isSelected = isSelected,
-                                iconSize,
-                                iconShape)
+                                iconSize = iconSize,
+                                iconShape = iconShape
+                            )
                         }
                     }
                 } else {
                     // Normal list with selectable items
-                    val isSelected = selectedList == listName && selectedIndices.contains(index)
+                    val isSelected = selectedList == listName && selectedPackageNames.contains(app.packageName)
                     val elevation by animateDpAsState(
                         if (isSelected) 2.dp else 0.dp,
                         label = ""
@@ -399,14 +417,14 @@ fun AppListColumn(
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
-                            ) { onItemSelect(listName, index) },
+                            ) { onItemSelect(listName, app.packageName) },
                         shadowElevation = elevation,
                     ) {
                         AppCard(
-                            app = apps[index],
+                            app = app,
                             isSelected = isSelected,
-                            iconSize,
-                            iconShape
+                            iconSize = iconSize,
+                            iconShape = iconShape
                         )
                     }
                 }
