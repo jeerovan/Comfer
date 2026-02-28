@@ -14,6 +14,9 @@ object IconPackManager {
 
     // Call this when the user selects an icon pack
     fun loadIconPack(context: Context, packageName: String) {
+        if(iconPackPackage != null && iconPackPackage == packageName){
+            return
+        }
         iconPackPackage = packageName
         appFilterMap.clear()
         try {
@@ -44,6 +47,7 @@ object IconPackManager {
     }
 
     fun unloadIconPack(context: Context){
+        iconPackPackage = null
         appFilterMap.clear()
         PreferenceManager.increaseAppListVersion(context)// will reload app list
     }

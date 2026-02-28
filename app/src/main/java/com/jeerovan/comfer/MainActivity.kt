@@ -2122,7 +2122,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
     }
 
     var dragAccumulator by remember { mutableFloatStateOf(0f) }
-    val scrollThreshold = 50f // The number of pixels to drag before the index changes
+    val scrollThreshold = with(LocalDensity.current) { 50.dp.toPx() }
 
     var showLocaleSelection by remember { mutableStateOf(false)}
     var keyboardLocale by remember { mutableStateOf(PreferenceManager.getKeyboardLocale(context)) }

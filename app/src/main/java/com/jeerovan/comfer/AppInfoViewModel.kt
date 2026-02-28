@@ -71,10 +71,6 @@ data class AppInfo(
     val user: UserHandle // Important for work profiles
 )
 
-/**
- * Main function to process app info.
- * Now accepts LauncherActivityInfo instead of ResolveInfo.
- */
 private val packageManagerDispatcher = Dispatchers.IO.limitedParallelism(2)
 suspend fun getAppInfo(
     context: Context,
@@ -427,7 +423,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
     suspend fun createAppInfo(
         context: Context,
-        info: LauncherActivityInfo, // CHANGED input type
+        info: LauncherActivityInfo,
         showThemedIcons: Boolean,
         themedColors: WallpaperThemeColors,
         isLightHour: Boolean,
