@@ -136,7 +136,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -177,6 +176,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -2018,7 +2018,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun SearchListOverlay(apps: List<AppInfo>,
                       notificationPackages: List<String>,
@@ -2032,7 +2031,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
     var inputText by remember { mutableStateOf("") }
 
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
-    val filteredApps by remember(inputText, activeTab) {
+    val filteredApps by remember {
         derivedStateOf {
             if(activeTab == SearchTab.APPS && inputText.isNotBlank()) {
                 apps.filter { app -> doesMatchSearch(inputText.trim(), app.label) }
@@ -2041,7 +2040,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
             }
         }
     }
-    val filteredContacts by remember(inputText, contacts) {
+    val filteredContacts by remember {
         derivedStateOf {
             if(activeTab == SearchTab.CONTACTS){
                 searchContacts(inputText, contacts)
@@ -2051,7 +2050,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
         }
     }
     var selectedContactIndex by remember { mutableIntStateOf(0) }
-    val selectedContact by remember(selectedContactIndex) {
+    val selectedContact by remember {
         derivedStateOf {
             filteredContacts.getOrNull(selectedContactIndex)
         }
@@ -2149,8 +2148,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                 )
             }
             .pointerInput(
-                lazyListState,
-                filteredContacts.size
+                lazyListState
             ) { // Relaunch gesture detection if state or data changes
                 detectVerticalDragGestures(
                     onDragStart = { dragAccumulator = 0f },
@@ -2161,40 +2159,31 @@ fun SearchListOverlay(apps: List<AppInfo>,
                         val isAtBottom = !lazyListState.canScrollForward
 
                         when {
-                            // Dragging Down (finger moves down, content tries to move up)
-                            dragAmount > 0 -> {
+                            dragAmount > 0 -> { // Dragging Down
                                 if (isAtTop) {
-                                    // Requirement 4: At the top, select previous item on drag.
                                     dragAccumulator += dragAmount
                                     if (dragAccumulator > scrollThreshold) {
-                                        selectedContactIndex =
-                                            (selectedContactIndex - 1).coerceAtLeast(0)
+                                        selectedContactIndex = (selectedContactIndex - 1).coerceAtLeast(0)
                                         dragAccumulator = 0f
                                     }
                                 } else {
-                                    coroutineScope.launch {
-                                        lazyListState.scrollBy(-2 * dragAmount)
-                                    }
+                                    lazyListState.dispatchRawDelta(-2 * dragAmount)
                                 }
                             }
-                            // Dragging Up (finger moves up, content tries to move down)
-                            dragAmount < 0 -> {
+                            dragAmount < 0 -> { // Dragging Up
                                 if (isAtBottom) {
-                                    // Requirement 3: At the bottom, select next item on drag.
                                     dragAccumulator += dragAmount
                                     if (dragAccumulator < -scrollThreshold) {
-                                        selectedContactIndex =
-                                            (selectedContactIndex + 1).coerceAtMost(filteredContacts.lastIndex)
+                                        selectedContactIndex = (selectedContactIndex + 1).coerceAtMost(filteredContacts.lastIndex)
                                         dragAccumulator = 0f
                                     }
                                 } else {
-                                    coroutineScope.launch {
-                                        lazyListState.scrollBy(-2 * dragAmount)
-                                    }
+                                    lazyListState.dispatchRawDelta(-2 * dragAmount)
                                 }
                             }
                         }
                     }
+
                 )
             },
         contentAlignment = Alignment.BottomCenter
@@ -2292,8 +2281,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                         }
                     }
                 }
-                val maxWidth = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp }
-                val textBoxPadding = (maxWidth/5).dp
+                val textBoxPadding = (LocalConfiguration.current.screenWidthDp / 5).dp
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()

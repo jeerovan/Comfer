@@ -12,22 +12,11 @@ import com.revenuecat.purchases.PurchasesConfiguration
 
 const val saveCrashes = false
 const val saveLogs = false
-const val isTesting = false
+const val isTesting = true
 class ComferApp : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
-        if (BuildConfig.DEBUG) {
-            StrictMode.setThreadPolicy(
-                StrictMode.ThreadPolicy.Builder()
-                    .detectDiskReads()
-                    .detectDiskWrites()
-                    .detectNetwork()
-                    .detectCustomSlowCalls()
-                    .penaltyLog()
-                    .build()
-            )
-        }
         if(saveCrashes) {
             Thread.setDefaultUncaughtExceptionHandler(CrashHandler(this))
             LogcatRecorder(this).startLogging()

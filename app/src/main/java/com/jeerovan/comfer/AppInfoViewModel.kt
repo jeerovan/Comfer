@@ -75,6 +75,7 @@ data class AppInfo(
  * Main function to process app info.
  * Now accepts LauncherActivityInfo instead of ResolveInfo.
  */
+private val packageManagerDispatcher = Dispatchers.IO.limitedParallelism(2)
 suspend fun getAppInfo(
     context: Context,
     info: LauncherActivityInfo,
@@ -83,7 +84,7 @@ suspend fun getAppInfo(
     isLightHour: Boolean,
     iconPackPackage: String?,
     iconProcessor: ThemedIconProcessor
-): AppInfo? = withContext(Dispatchers.IO) { // FIX: Changed Default to IO for IPC/Disk ops
+): AppInfo? = withContext(Dispatchers.Default) {
     try {
         val packageName = info.componentName.packageName
         val user = info.user
@@ -93,13 +94,12 @@ suspend fun getAppInfo(
         val cachedIcon = AppIconCache.getIcon(cacheKey)
 
         // 2. Load Drawable (Heavy I/O & IPC)
-        // If not cached, getBadgedIcon blocks. IO Dispatcher handles this.
-        val loadedDrawable = if (iconPackPackage != null) {
-            IconPackManager.getCustomIcon(context, info.componentName)
-                ?: cachedIcon
-                ?: info.getBadgedIcon(0).also { AppIconCache.cacheIcon(cacheKey, it) }
-        } else {
-            cachedIcon ?: info.getBadgedIcon(0).also { AppIconCache.cacheIcon(cacheKey, it) }
+        // Wrapped strictly in limited parallelism to avoid ResourcesManager ANR
+        val loadedDrawable = withContext(packageManagerDispatcher) {
+            val customIcon = if (iconPackPackage != null) {
+                IconPackManager.getCustomIcon(context, info.componentName)
+            } else null
+            customIcon ?: cachedIcon ?: info.getBadgedIcon(0).also { AppIconCache.cacheIcon(cacheKey, it) }
         }
 
         // 3. Create a mutable copy for processing to ensure thread safety
@@ -110,8 +110,10 @@ suspend fun getAppInfo(
         var backgroundDrawable: Drawable?
         var foregroundDrawable: Drawable?
 
-        // Optimization: CharSequence allows avoiding string allocation if not needed immediately
-        val appLabel = info.label.toString().trim()
+        // Wrapped label extraction in limited parallelism for the same lock-contention reasons
+        val appLabel = withContext(packageManagerDispatcher) {
+            info.label.toString().trim()
+        }
         val foregroundColor = getThemedIconColor(themedColors, isLightHour)
 
         // Determine scale
