@@ -194,7 +194,11 @@ object PreferenceManager {
         setBoolean(context,THEMED_ICONS,enabled)
     }
     fun getThemedIcons(context: Context): Boolean {
-        return if(isBatterySaver(context)) false else getBoolean(context,THEMED_ICONS,false)
+        return if(isBatterySaver(context)){
+            false
+        }  else {
+            getBoolean(context,THEMED_ICONS,false)
+        }
     }
     fun setAlphabeticalOrder(context: Context,enabled: Boolean){
         setBoolean(context,ALPHABETICAL_ORDER,enabled)
@@ -216,7 +220,7 @@ object PreferenceManager {
         return getString(context,APPLIED_WALLPAPER_IMAGE,null)
     }
     fun getWallpaperDirectory(context: Context): String?{
-        val uriString = if(getPro(context))getString(context,WALLPAPER_DIRECTORY,null) else null
+        val uriString = if(getPro(context)) { getString(context,WALLPAPER_DIRECTORY,null) } else { null }
         return uriString
     }
     fun setWallpaperDirectory(context: Context,directoryUri: String?){
@@ -244,14 +248,14 @@ object PreferenceManager {
         setBoolean(context,CUSTOM_WIDGETS,enabled)
     }
     fun getCustomWidgets(context: Context):Boolean{
-        return if(getPro(context)) getBoolean(context,CUSTOM_WIDGETS,false) else false
+        return if(getPro(context)){ getBoolean(context,CUSTOM_WIDGETS,false) } else { false }
     }
 
     fun setWallpaperMotion(context: Context, enabled: Boolean) {
         setBoolean(context,KEY_WALLPAPER_MOTION,enabled)
     }
     fun getAutoWallpapers(context: Context, default: Boolean = true): Boolean {
-        return if (isBatterySaver(context)) false else getBoolean(context,AUTO_WALLPAPER,default)
+        return if(isBatterySaver(context)){ false } else { getBoolean(context,AUTO_WALLPAPER,default) }
     }
     fun setAutoWallpapers(context: Context, enabled: Boolean) {
         setBoolean(context,AUTO_WALLPAPER,enabled)
@@ -355,7 +359,7 @@ object PreferenceManager {
     }
 
     fun saveImageData(context: Context, imageData: ImageData) {
-        val previousImageData:ImageData? = getImageData(context);
+        val previousImageData:ImageData? = getImageData(context)
         if (previousImageData != null){
             if(previousImageData.id == imageData.id){
                 // must be saved/overwritten for changes other than image url
@@ -429,7 +433,7 @@ object PreferenceManager {
         // 1. Get the raw preference (default to "system" if not set)
         val savedTag = getString(context, KEYBOARD_LOCALE, "system")
         // 2. If user selected a specific language manually, return it
-        if (savedTag != "system") {
+        if (savedTag != null && savedTag != "system") {
             return Locale.forLanguageTag(savedTag)
         }
         // 3. "Follow System" Logic:
