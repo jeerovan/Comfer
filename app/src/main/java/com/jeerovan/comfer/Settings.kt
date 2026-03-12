@@ -2,7 +2,6 @@ package com.jeerovan.comfer
 
 import com.jeerovan.comfer.utils.FlowerShape
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -18,7 +17,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,7 +33,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -57,7 +54,6 @@ import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Grain
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.InvertColors
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
@@ -69,7 +65,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -106,7 +101,6 @@ import androidx.core.content.ContextCompat
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import androidx.core.net.toUri
-import androidx.core.os.LocaleListCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
@@ -115,7 +109,6 @@ import com.jeerovan.comfer.utils.CommonUtil.getKeyTextObject
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import com.jeerovan.comfer.utils.CommonUtil.getUriPath
-import com.jeerovan.comfer.utils.CommonUtil.handleStartActivity
 import com.jeerovan.comfer.utils.CommonUtil.openUrl
 import com.jeerovan.comfer.utils.PebbleShape
 import kotlinx.coroutines.Dispatchers
@@ -168,13 +161,11 @@ class SettingsActivity : AppCompatActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val settingsState by settingsViewModel.uiState.collectAsState()
     val context = LocalContext.current
     val stringShareWith = stringResource(R.string.title_share_with)
-    val stringRequiresSubscription = stringResource(R.string.requires_subscription)
     val appSelectionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -235,14 +226,14 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 Spacer(Modifier.height(24.dp))
             }
-            item { SectionHeader(stringResource(R.string.title_premium))}
+            item { SectionHeader("Github")}
             item {
                 ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_pro_features)) },
-                    supportingContent = { Text(stringResource(R.string.title_subscription)) },
+                    headlineContent = { Text(stringResource(R.string.title_open_source)) },
+                    supportingContent = { Text(stringResource(R.string.title_view_github_repo)) },
                     leadingContent = {
                         Icon(painter = painterResource(R.drawable.outline_star_shine_24),
-                            contentDescription = stringResource(R.string.title_subscription)) },
+                            contentDescription = "Github") },
                     trailingContent = {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -250,28 +241,8 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         )
                     },
                     modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, SubscriptionActivity::class.java))
+                        openUrl("https://github.com/jeerovan/Comfer",context)
                     },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            if(isTesting)item{
-                ListItem(
-                    headlineContent = { Text("Pro Access") },
-                    supportingContent = { Text("Turn on to enable") },
-                    leadingContent = {
-                        Icon(
-                            painter = painterResource(R.drawable.outline_star_shine_24),
-                            contentDescription = "Pro Access"
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settingsState.hasPro,
-                            onCheckedChange = { settingsViewModel.setPro(it) }
-                        )
-                    },
-                    modifier = Modifier.clickable { settingsViewModel.setPro(!settingsState.hasPro) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
@@ -294,7 +265,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            if(settingsState.hasPro)item {
+            item {
                 val context = LocalContext.current
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_report_issue)) },
@@ -311,7 +282,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     modifier = Modifier.clickable {
-                        openUrl("https://t.me/comfer_launcher",context)
+                        openUrl("https://github.com/jeerovan/Comfer/issues",context)
                     }
                 )
             }
@@ -388,7 +359,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            if(settingsState.autoWallpapers || isTesting)item {
+            if(settingsState.autoWallpapers )item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_change_wallpaper)) },
                     supportingContent = { Text(stringResource(R.string.change_wallpaper_text)) },
@@ -417,7 +388,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             if(settingsState.autoWallpapers)item{
                 SelectSetOwnWallpapersDirectory(
                     isDefaultLauncher = isDefaultLauncher(context),
-                    hasPro = settingsState.hasPro,
                     onSelectDirectory = { directoryUri -> settingsViewModel.setWallpaperDirectory(directoryUri)},
                     selectedDirectory = settingsState.wallpaperDirectory)
             }
@@ -493,14 +463,9 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             item {
                 IconPackSettingItem(
-                    settingsState.hasPro,
                     currentPack = iconPackPackage,
                    onSetPack = { pack ->
-                       if(settingsState.hasPro){
-                           settingsViewModel.setIconPackPackage(pack)
-                       } else {
-                           Toast.makeText(context,stringRequiresSubscription,Toast.LENGTH_SHORT).show()
-                       }
+                       settingsViewModel.setIconPackPackage(pack)
                    } )
             }
             if(settingsState.autoWallpapers || settingsState.monochrome )item{
@@ -535,29 +500,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            if(isTesting)item{
-                ListItem(
-                    headlineContent = { Text("Light Hours") },
-                    supportingContent = { Text("Turn on light mode") },
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.InvertColors,
-                            contentDescription = "Dark/Light mode"
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settingsState.isLightHour,
-                            onCheckedChange = {
-                                settingsViewModel.setLightHour(it)
-                                PreferenceManager.increaseAppListVersion(context)
-                            }
-                        )
-                    },
-                    modifier = Modifier.clickable { settingsViewModel.setLightHour(!settingsState.isLightHour) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
             item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_notification_badges)) },
@@ -584,13 +526,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     headlineContent = {
                         Row {
                             Text(stringResource(R.string.title_custom_widgets))
-                            if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
-                                contentDescription = stringResource(R.string.paid_feature_title),
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .size(15.dp)
-                                    .offset(x=10.dp,y=5.dp)
-                            )
                         }
                     },
                     supportingContent = { Text(stringResource(R.string.custom_widgets_text)) },
@@ -602,17 +537,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     },
                     trailingContent = {
                         Switch(
-                            enabled = settingsState.hasPro,
                             checked = settingsState.hasCustomWidgets,
                             onCheckedChange = { settingsViewModel.setCustomWidgets(it) }
                         )
                     },
                     modifier = Modifier.clickable {
-                        if(settingsState.hasPro){
-                            settingsViewModel.setCustomWidgets(!settingsState.hasCustomWidgets)
-                        } else {
-                            Toast.makeText(context, stringRequiresSubscription, Toast.LENGTH_SHORT).show()
-                        }
+                        settingsViewModel.setCustomWidgets(!settingsState.hasCustomWidgets)
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
@@ -684,13 +614,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     headlineContent = {
                         Row {
                             Text(stringResource(R.string.title_swipe_gestures))
-                            if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
-                                contentDescription = stringResource(R.string.paid_feature_title),
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .size(15.dp)
-                                    .offset(x=10.dp,y=5.dp)
-                            )
                         }
                                       },
                     supportingContent = { Text(stringResource(R.string.swipe_gestures_text)) },
@@ -915,25 +838,15 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
 
 @Composable
 fun IconPackSettingItem(
-    hasPro: Boolean,
     currentPack: String?,
     onSetPack: (String?) -> Unit
 ) {
-    val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
     ListItem(
         modifier = Modifier.clickable { showDialog = true },
         headlineContent = {
             Row {
                 Text(stringResource(R.string.title_icon_pack))
-                if (!hasPro) Icon(
-                    Icons.Filled.Lock,
-                    contentDescription = stringResource(R.string.paid_feature_title),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .size(15.dp)
-                        .offset(x = 10.dp, y = 5.dp)
-                )
             }
                           },
         supportingContent = { Text(currentPack ?: stringResource(R.string.title_select_icon_app)) },
@@ -1108,12 +1021,10 @@ fun IconShapePreview(
 @Composable
 fun SelectSetOwnWallpapersDirectory(
     isDefaultLauncher: Boolean,
-    hasPro: Boolean,
     onSelectDirectory: (directory: String?) -> Unit,
     selectedDirectory: String?
 ) {
     val context = LocalContext.current
-    val stringRequiresSubscription = stringResource(R.string.requires_subscription)
     val stringSetLauncherFirst = stringResource(R.string.set_launcher_first)
     val isChecked = selectedDirectory != null
 
@@ -1146,13 +1057,6 @@ fun SelectSetOwnWallpapersDirectory(
         headlineContent = {
             Row {
                 Text(stringResource(R.string.title_own_wallpapers))
-                if(!hasPro)Icon(Icons.Filled.Lock,
-                    contentDescription = stringResource(R.string.paid_feature_title),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .size(15.dp)
-                        .offset(x=10.dp,y=5.dp)
-                )
             }
                           },
         // Use the .path property for a cleaner display string.
@@ -1165,7 +1069,7 @@ fun SelectSetOwnWallpapersDirectory(
         },
         trailingContent = {
             Switch(
-                enabled = hasPro && isDefaultLauncher,
+                enabled = isDefaultLauncher,
                 checked = isChecked, // The UI is driven by the single source of truth.
                 onCheckedChange = { checked ->
                     if (checked) {
@@ -1188,26 +1092,22 @@ fun SelectSetOwnWallpapersDirectory(
         },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.clickable {
-            if (hasPro) {
-                if(isDefaultLauncher){
-                    if(isChecked){
-                        onSelectDirectory(null)
-                    } else {
-                        if (ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.READ_EXTERNAL_STORAGE
-                            ) == PackageManager.PERMISSION_GRANTED
-                        ) {
-                            directoryPickerLauncher.launch(null)
-                        } else {
-                            permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                        }
-                    }
+            if(isDefaultLauncher){
+                if(isChecked){
+                    onSelectDirectory(null)
                 } else {
-                    Toast.makeText(context, stringSetLauncherFirst, Toast.LENGTH_SHORT).show()
+                    if (ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.READ_EXTERNAL_STORAGE
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        directoryPickerLauncher.launch(null)
+                    } else {
+                        permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    }
                 }
             } else {
-                Toast.makeText(context, stringRequiresSubscription, Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, stringSetLauncherFirst, Toast.LENGTH_SHORT).show()
             }
         }
     )
@@ -1534,7 +1434,7 @@ fun IconPackSelectionDialog(
 
                             if (isSelected) {
                                 Icon(
-                                    imageVector = androidx.compose.material.icons.Icons.Default.Check,
+                                    imageVector = Icons.Default.Check,
                                     contentDescription = "Selected",
                                     tint = MaterialTheme.colorScheme.primary
                                 )
@@ -1591,7 +1491,7 @@ private suspend fun getInstalledIconPacks(context: Context): List<IconPackInfo> 
                     val icon = pm.getApplicationIcon(appInfo)
 
                     iconPacks.add(IconPackInfo(label, packageName, icon))
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     // Ignore packages that can't be loaded
                 }
             }

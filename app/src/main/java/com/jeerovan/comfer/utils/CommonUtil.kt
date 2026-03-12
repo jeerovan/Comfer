@@ -34,7 +34,6 @@ import com.jeerovan.comfer.PreferenceKeys
 import com.jeerovan.comfer.PreferenceManager
 import com.jeerovan.comfer.R
 import com.jeerovan.comfer.dataStore
-import com.jeerovan.comfer.isTesting
 import com.jeerovan.comfer.toBitmap
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -316,20 +315,16 @@ object CommonUtil {
             return
         }
         val changeFrequency = PreferenceManager.getWallpaperFrequency(applicationContext)
-        val hour = PreferenceManager.getHour(applicationContext)
-        if (hour > 0 || manualChange) {
-            val hasPro = PreferenceManager.getPro(applicationContext)
+        val hourNow = PreferenceManager.getHour(applicationContext)
+        if (hourNow > 0 || manualChange) {
             val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(applicationContext)
-            val actualHour = if(isTesting){
-                if(PreferenceManager.isLightHour(applicationContext)) 10 else 20
-            } else hour
-            if(wallpaperDirectory != null && hasPro){
-                if (changeFrequency == "Hourly" || hour == 3 || manualChange){
-                    if(!manualChange)PreferenceManager.setHour(applicationContext, hour)
+            if(wallpaperDirectory != null){
+                if (changeFrequency == "Hourly" || hourNow == 3 || manualChange){
+                    if(!manualChange)PreferenceManager.setHour(applicationContext, hourNow)
                     setBackgroundImageFromImageUri(applicationContext,wallpaperDirectory.toUri())
                 }
             } else {
-                if(changeFrequency == "Hourly" || hour == 7 || hour == 19 || manualChange) {
+                if(changeFrequency == "Hourly" || hourNow == 7 || hourNow == 19 || manualChange) {
                     try {
                         val name = PreferenceManager.getUsername(applicationContext)
                         val (sslSocketFactory, trustManager) = SSLHelper.createSslSocketFactory(
@@ -359,12 +354,12 @@ object CommonUtil {
                         }
                         val response: ImageData = client.get("https://comfer.jeerovan.com/api") {
                             parameter("name", name)
-                            parameter("hour", actualHour)
+                            parameter("hour", hourNow)
                         }.body()
                         Log.i("FetchImageData", response.toString())
                         client.close()
                         PreferenceManager.saveImageData(applicationContext, response)
-                        if(!manualChange)PreferenceManager.setHour(applicationContext, hour)
+                        if(!manualChange)PreferenceManager.setHour(applicationContext, hourNow)
                     } catch (e: Exception) {
                         Log.e("FetchImageData", e.toString())
                     }

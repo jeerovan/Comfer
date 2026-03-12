@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">แตะไอคอนเพื่อเลือกแอป</string>
 
-    <string name="requires_subscription">ต้องมีการสมัครสมาชิก</string>
-
     <string name="button_to_move_app_to_quick_app_list">ย้ายไปยังแอปหน้าจอหลัก</string>
     <string name="button_to_move_app_to_primary_app_list">ย้ายไปยังถาดแอป (App drawer)</string>
     <string name="button_to_move_app_to_ghost_app_list">ย้ายไปยังแอปที่ซ่อนอยู่</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">นาฬิกาเข็ม</string>
     <string name="title_clock_size">ขนาดนาฬิกา</string>
     <string name="clock_background_color">สีพื้นหลังนาฬิกา</string>
-    <string name="background_transparency">ความโปร่งใสของพื้นหลัง</string>
     <string name="hour_hand_color">สีเข็มชั่วโมง</string>
     <string name="minute_hand_color">สีเข็มนาที</string>
 
     <string name="title_time_format">รูปแบบเวลา</string>
-    <string name="title_show_am_pm">แสดง AM/PM</string>
     <string name="title_font_size">ขนาดฟอนต์</string>
     <string name="title_font_weight">น้ำหนักฟอนต์</string>
     <string name="title_font_style">สไตล์ฟอนต์</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">บันทึก</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">ฟีเจอร์ Pro</string>
     <string name="title_subscription">การสมัครสมาชิก</string>
     <string name="go_to_page">เปิดหน้า</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">หน้าจอ Widget</string>
     <string name="title_choose_action">เลือกการทำงาน</string>
 
-    <string name="unable_to_load_subscriptions">
-        ไม่สามารถโหลดข้อมูลการสมัครสมาชิกได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองอีกครั้ง
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">ไม่สามารถโหลดข้อมูลการสมัครสมาชิก</string>
-    <string name="no_subscription_available">ไม่มีการสมัครสมาชิกที่ใช้งานได้</string>
-
-    <string name="title_active_subscription">การสมัครสมาชิกที่ใช้งานอยู่</string>
-    <string name="subscription_renews_on">ต่ออายุวันที่</string>
-    <string name="subscription_expires_on">หมดอายุวันที่</string>
-
-    <string name="subscription_benefit_one">ตั้งค่าวอลเปเปอร์แบบไดนามิกของคุณเอง</string>
-    <string name="subscription_benefit_two">เพิ่ม Widget ที่คุณชอบไปยังหน้าจอหลัก</string>
-    <string name="subscription_benefit_three">ปรับแต่ง Widget เริ่มต้นบนหน้าจอหลัก</string>
-    <string name="subscription_benefit_four">ใช้ Gesture เพื่อเปิดแอปได้อย่างรวดเร็ว</string>
-
-    <string name="title_manage_your_subscription">จัดการการสมัครสมาชิกของคุณ</string>
-    <string name="title_pro_access">การเข้าถึงแบบ Pro</string>
-    <string name="title_year">ปี</string>
-
-    <string name="subscription_failed_prefix">การสมัครสมาชิกล้มเหลว</string>
-    <string name="subscription_successful_prefix">สมัครสมาชิกสำเร็จ</string>
-    <string name="title_subscribe_now">สมัครตอนนี้</string>
-
-    <string name="subscription_restore_failed_prefix">กู้คืนการสมัครสมาชิกล้มเหลว</string>
-    <string name="subscription_restore_successful_prefix">กู้คืนการสมัครสมาชิกสำเร็จ</string>
-    <string name="subscription_not_found_to_restore">ไม่พบการสมัครสมาชิกสำหรับกู้คืน</string>
-    <string name="title_restore_subscription">กู้คืนการสมัครสมาชิก</string>
-
     <string name="guide_home_swipe_up">ปัดขึ้นเพื่อเปิดถาดแอป (App drawer)</string>
     <string name="guide_home_swipe_down">ปัดลงเพื่อดูการแจ้งเตือน</string>
     <string name="guide_home_double_tap">แตะหน้าจอสองครั้งเพื่อเปิด "แอปล่าสุด"</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">ประหยัดแบตเตอรี่</string>
     <string name="battery_saver_text">เปิดเพื่อประหยัดแบตเตอรี่</string>
     <string name="text_saving_battery">กำลังประหยัดแบตเตอรี่…</string>
-    <string name="icon_pack_support">ใช้ชุดไอคอนที่คุณชื่นชอบ</string>
 
+    <string name="title_open_source">โอเพนซอร์ส</string>
+    <string name="title_view_github_repo">แตะเพื่อดูโค้ด</string>
 </resources>

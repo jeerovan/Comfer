@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">ចុច​លើ​រូបតំណាង ដើម្បី​ជ្រើស​កម្មវិធី</string>
 
-    <string name="requires_subscription">ត្រូវការ​ការ​ជាវប្រចាំ (subscription)</string>
-
     <string name="button_to_move_app_to_quick_app_list">ផ្លាស់ទី​ទៅ​កម្មវិធី​ក្នុង​អេក្រង់ដើម</string>
     <string name="button_to_move_app_to_primary_app_list">ផ្លាស់ទី​ទៅ App drawer</string>
     <string name="button_to_move_app_to_ghost_app_list">ផ្លាស់ទី​ទៅ​កម្មវិធី​លាក់</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">នាឡិកា​អាណាឡូក</string>
     <string name="title_clock_size">ទំហំ​នាឡិកា</string>
     <string name="clock_background_color">ពណ៌​ផ្ទៃខាងក្រោយ​នាឡិកា</string>
-    <string name="background_transparency">កម្រិត​ថ្លា​នៃ​ផ្ទៃខាងក្រោយ</string>
     <string name="hour_hand_color">ពណ៌​ម្ជុល​ម៉ោង</string>
     <string name="minute_hand_color">ពណ៌​ម្ជុល​នាទី</string>
 
     <string name="title_time_format">ទម្រង់​ពេលវេលា</string>
-    <string name="title_show_am_pm">បង្ហាញ AM/PM</string>
     <string name="title_font_size">ទំហំ​អក្សរ</string>
     <string name="title_font_weight">កម្រាស់​អក្សរ</string>
     <string name="title_font_style">រចនាប័ទ្ម​អក្សរ</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">រក្សាទុក</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">មុខងារ Pro</string>
     <string name="title_subscription">ការ​ជាវប្រចាំ</string>
     <string name="go_to_page">បើក​ទំព័រ</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">អេក្រង់​វិជិត</string>
     <string name="title_choose_action">ជ្រើស​សកម្មភាព</string>
 
-    <string name="unable_to_load_subscriptions">
-        មិនអាច​ផ្ទុក​ព័ត៌មាន​ការ​ជាវប្រចាំ​បានទេ។ សូមពិនិត្យ​មើល​ការ​តភ្ជាប់​អ៊ីនធើណិត ហើយ​ព្យាយាម​ម្ដងទៀត។
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">មិនអាចផ្ទុក​ការ​ជាវប្រចាំ​បាន</string>
-    <string name="no_subscription_available">មិនមាន​ការ​ជាវប្រចាំ</string>
-
-    <string name="title_active_subscription">ការ​ជាវប្រចាំ​កំពុង​សកម្ម</string>
-    <string name="subscription_renews_on">បន្តជាវ​នៅ​ថ្ងៃទី</string>
-    <string name="subscription_expires_on">ផុត​កំណត់​នៅ​ថ្ងៃទី</string>
-
-    <string name="subscription_benefit_one">កំណត់​រូបផ្ទៃឌីណាមិក​ផ្ទាល់ខ្លួន</string>
-    <string name="subscription_benefit_two">បន្ថែម​វិជិត​ស្រលាញ់​របស់អ្នក​ទៅ​អេក្រង់ដើម</string>
-    <string name="subscription_benefit_three">ប្តូរ និង​កែសម្រួល​វិជិត​លំនាំដើម​លើ​អេក្រង់ដើម</string>
-    <string name="subscription_benefit_four">ប្រើ Gesture ដើម្បី​បើក​កម្មវិធី​យ៉ាង​លឿន</string>
-
-    <string name="title_manage_your_subscription">គ្រប់គ្រង​ការ​ជាវប្រចាំ​របស់អ្នក</string>
-    <string name="title_pro_access">សិទ្ធិ​ប្រើ Pro</string>
-    <string name="title_year">ឆ្នាំ</string>
-
-    <string name="subscription_failed_prefix">ការ​ជាវប្រចាំ​បរាជ័យ</string>
-    <string name="subscription_successful_prefix">ការ​ជាវប្រចាំ​ជោគជ័យ</string>
-    <string name="title_subscribe_now">ជាវ​ឥឡូវនេះ</string>
-
-    <string name="subscription_restore_failed_prefix">ការ​ស្ដារ​ការ​ជាវប្រចាំ​បរាជ័យ</string>
-    <string name="subscription_restore_successful_prefix">ស្ដារ​ការ​ជាវប្រចាំ​ជោគជ័យ</string>
-    <string name="subscription_not_found_to_restore">រក​មិន​ឃើញ​ការ​ជាវប្រចាំ​ដើម្បី​ស្ដារ</string>
-    <string name="title_restore_subscription">ស្ដារ​ការ​ជាវប្រចាំ</string>
-
     <string name="guide_home_swipe_up">ស្វាយឡើង ដើម្បី​បើក App drawer។</string>
     <string name="guide_home_swipe_down">ស្វាយចុះ ដើម្បី​មើល​ការជូនដំណឹង។</string>
     <string name="guide_home_double_tap">ចុច​អេក្រង់​ពីរដង ដើម្បី​បើក "កម្មវិធីថ្មីៗ"។</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">សន្សំថាមពលថ្ម</string>
     <string name="battery_saver_text">បើកដើម្បីសន្សំថ្ម</string>
     <string name="text_saving_battery">កំពុងសន្សំថ្ម…</string>
-    <string name="icon_pack_support">ប្រើកញ្ចប់រូបតំណាងដែលអ្នកចូលចិត្ត</string>
 
+    <string name="title_open_source">កូដបើកចំហ</string>
+    <string name="title_view_github_repo">ចុចដើម្បីមើលកូដ</string>
 </resources>

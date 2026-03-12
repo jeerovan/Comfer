@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">برای انتخاب برنامه، روی آیکون آن ضربه بزنید</string>
 
-    <string name="requires_subscription">نیاز به اشتراک</string>
-
     <string name="button_to_move_app_to_quick_app_list">انتقال به برنامه‌های صفحهٔ اصلی</string>
     <string name="button_to_move_app_to_primary_app_list">انتقال به کشوی برنامه‌ها</string>
     <string name="button_to_move_app_to_ghost_app_list">انتقال به برنامه‌های مخفی</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">ساعت آنالوگ</string>
     <string name="title_clock_size">اندازهٔ ساعت</string>
     <string name="clock_background_color">رنگ پس‌زمینهٔ ساعت</string>
-    <string name="background_transparency">شفافیت پس‌زمینه</string>
     <string name="hour_hand_color">رنگ عقربهٔ ساعت</string>
     <string name="minute_hand_color">رنگ عقربهٔ دقیقه</string>
 
     <string name="title_time_format">فرمت زمان</string>
-    <string name="title_show_am_pm">نمایش AM/PM</string>
     <string name="title_font_size">اندازهٔ فونت</string>
     <string name="title_font_weight">ضخامت فونت</string>
     <string name="title_font_style">سبک فونت</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">ذخیره</string>
 
-    <string name="title_premium">پرمیوم</string>
-    <string name="title_pro_features">امکانات Pro</string>
     <string name="title_subscription">اشتراک</string>
     <string name="go_to_page">باز کردن صفحه</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">صفحهٔ ویجت‌ها</string>
     <string name="title_choose_action">انتخاب عمل</string>
 
-    <string name="unable_to_load_subscriptions">
-        بارگذاری اطلاعات اشتراک ممکن نشد. لطفاً اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">خطا در بارگذاری اشتراک</string>
-    <string name="no_subscription_available">هیچ اشتراکی در دسترس نیست</string>
-
-    <string name="title_active_subscription">اشتراک فعال</string>
-    <string name="subscription_renews_on">تمدید در</string>
-    <string name="subscription_expires_on">اتمام در</string>
-
-    <string name="subscription_benefit_one">تنظیم والپیپرهای پویا و دلخواه خود</string>
-    <string name="subscription_benefit_two">افزودن ویجت‌های محبوب به صفحهٔ اصلی</string>
-    <string name="subscription_benefit_three">سفارشی‌سازی ویجت‌های پیش‌فرض صفحهٔ اصلی</string>
-    <string name="subscription_benefit_four">باز کردن سریع برنامه‌ها با ژست‌ها</string>
-
-    <string name="title_manage_your_subscription">مدیریت اشتراک</string>
-    <string name="title_pro_access">دسترسی Pro</string>
-    <string name="title_year">سال</string>
-
-    <string name="subscription_failed_prefix">اشتراک ناموفق بود</string>
-    <string name="subscription_successful_prefix">اشتراک با موفقیت انجام شد</string>
-    <string name="title_subscribe_now">هم‌اکنون اشتراک بگیر</string>
-
-    <string name="subscription_restore_failed_prefix">بازیابی اشتراک ناموفق بود</string>
-    <string name="subscription_restore_successful_prefix">اشتراک با موفقیت بازیابی شد</string>
-    <string name="subscription_not_found_to_restore">هیچ اشتراکی برای بازیابی پیدا نشد</string>
-    <string name="title_restore_subscription">بازیابی اشتراک</string>
-
     <string name="guide_home_swipe_up">برای باز کردن کشوی برنامه‌ها، به سمت بالا اسلاید کنید.</string>
     <string name="guide_home_swipe_down">برای دیدن اعلان‌ها، به سمت پایین اسلاید کنید.</string>
     <string name="guide_home_double_tap">برای باز کردن "برنامه‌های اخیر"، روی صفحه دوبار ضربه بزنید.</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">صرفه‌جوی باتری</string>
     <string name="battery_saver_text">برای صرفه‌جویی باتری روشن کنید</string>
     <string name="text_saving_battery">در حال صرفه‌جویی باتری…</string>
-    <string name="icon_pack_support">از بسته آیکن موردعلاقه‌تان استفاده کنید</string>
 
+    <string name="title_open_source">متن‌باز</string>
+    <string name="title_view_github_repo">برای مشاهده کد ضربه بزنید</string>
 </resources>

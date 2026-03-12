@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">아이콘을 탭하여 앱을 선택하세요</string>
 
-    <string name="requires_subscription">구독이 필요합니다</string>
-
     <string name="button_to_move_app_to_quick_app_list">홈 앱으로 이동</string>
     <string name="button_to_move_app_to_primary_app_list">앱 서랍(드로어)으로 이동</string>
     <string name="button_to_move_app_to_ghost_app_list">숨긴 앱으로 이동</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">아날로그 시계</string>
     <string name="title_clock_size">시계 크기</string>
     <string name="clock_background_color">시계 배경 색상</string>
-    <string name="background_transparency">배경 투명도</string>
     <string name="hour_hand_color">시침 색상</string>
     <string name="minute_hand_color">분침 색상</string>
 
     <string name="title_time_format">시간 형식</string>
-    <string name="title_show_am_pm">AM/PM 표시</string>
     <string name="title_font_size">글꼴 크기</string>
     <string name="title_font_weight">글꼴 두께</string>
     <string name="title_font_style">글꼴 스타일</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">저장</string>
 
-    <string name="title_premium">프리미엄</string>
-    <string name="title_pro_features">Pro 기능</string>
     <string name="title_subscription">구독</string>
     <string name="go_to_page">페이지 열기</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">위젯 화면</string>
     <string name="title_choose_action">동작 선택</string>
 
-    <string name="unable_to_load_subscriptions">
-        구독 정보를 불러올 수 없습니다. 네트워크 연결을 확인한 후 다시 시도하세요.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">구독 정보 로드 실패</string>
-    <string name="no_subscription_available">사용 가능한 구독이 없습니다</string>
-
-    <string name="title_active_subscription">활성 구독</string>
-    <string name="subscription_renews_on">다음 갱신일</string>
-    <string name="subscription_expires_on">만료일</string>
-
-    <string name="subscription_benefit_one">나만의 동적 배경화면 설정</string>
-    <string name="subscription_benefit_two">즐겨 사용하는 위젯을 홈 화면에 추가</string>
-    <string name="subscription_benefit_three">홈 화면 기본 위젯 사용자 지정</string>
-    <string name="subscription_benefit_four">제스처로 앱을 더 빠르게 열기</string>
-
-    <string name="title_manage_your_subscription">구독 관리</string>
-    <string name="title_pro_access">Pro 액세스</string>
-    <string name="title_year">년</string>
-
-    <string name="subscription_failed_prefix">구독 실패</string>
-    <string name="subscription_successful_prefix">구독 성공</string>
-    <string name="title_subscribe_now">지금 구독하기</string>
-
-    <string name="subscription_restore_failed_prefix">구독 복원 실패</string>
-    <string name="subscription_restore_successful_prefix">구독이 성공적으로 복원되었습니다</string>
-    <string name="subscription_not_found_to_restore">복원할 구독을 찾을 수 없습니다</string>
-    <string name="title_restore_subscription">구독 복원</string>
-
     <string name="guide_home_swipe_up">위로 스와이프하여 앱 서랍을 엽니다.</string>
     <string name="guide_home_swipe_down">아래로 스와이프하여 알림을 확인합니다.</string>
     <string name="guide_home_double_tap">화면을 두 번 탭하면 "최근 앱"이 열립니다.</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">배터리 절약 모드</string>
     <string name="battery_saver_text">배터리를 절약하려면 켜세요</string>
     <string name="text_saving_battery">배터리 절약 중…</string>
-    <string name="icon_pack_support">즐겨 쓰는 아이콘 팩을 사용하세요</string>
 
+    <string name="title_open_source">오픈 소스</string>
+    <string name="title_view_github_repo">코드를 보려면 탭하세요</string>
 </resources>

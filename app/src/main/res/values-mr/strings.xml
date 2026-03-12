@@ -80,8 +80,6 @@
 
     <string name="tap_icon_to_select_app">अ‍ॅप निवडण्यासाठी आयकॉनवर टॅप करा</string>
 
-    <string name="requires_subscription">सबस्क्रिप्शन आवश्यक</string>
-
     <string name="button_to_move_app_to_quick_app_list">होम अ‍ॅप्समध्ये हलवा</string>
     <string name="button_to_move_app_to_primary_app_list">ड्रॉअर अ‍ॅप्समध्ये हलवा</string>
     <string name="button_to_move_app_to_ghost_app_list">लपवलेल्या अ‍ॅप्समध्ये हलवा</string>
@@ -93,12 +91,10 @@
     <string name="title_analog_clock">अ‍ॅनालॉग घड्याळ</string>
     <string name="title_clock_size">घड्याळाचा आकार</string>
     <string name="clock_background_color">घड्याळाची पार्श्वभूमी रंग</string>
-    <string name="background_transparency">पार्श्वभूमी पारदर्शकता</string>
     <string name="hour_hand_color">तास काट्याचा रंग</string>
     <string name="minute_hand_color">मिनिट काट्याचा रंग</string>
 
     <string name="title_time_format">वेळ स्वरूप</string>
-    <string name="title_show_am_pm">AM/PM दाखवा</string>
     <string name="title_font_size">फॉन्ट आकार</string>
     <string name="title_font_weight">फॉन्ट जाडी</string>
     <string name="title_font_style">फॉन्ट शैली</string>
@@ -122,8 +118,6 @@
 
     <string name="button_text_save">जतन करा</string>
 
-    <string name="title_premium">प्रीमियम</string>
-    <string name="title_pro_features">प्रो वैशिष्ट्ये</string>
     <string name="title_subscription">सबस्क्रिप्शन</string>
     <string name="go_to_page">पृष्ठ उघडा</string>
 
@@ -255,35 +249,6 @@
     <string name="title_widgets_screen">विजेट स्क्रीन</string>
     <string name="title_choose_action">क्रिया निवडा</string>
 
-    <string name="unable_to_load_subscriptions">
-        सबस्क्रिप्शन माहिती लोड करू शकलो नाही. कृपया कनेक्शन तपासा आणि पुन्हा प्रयत्न करा.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">सबस्क्रिप्शन लोड अयशस्वी</string>
-    <string name="no_subscription_available">कोणतेही सबस्क्रिप्शन उपलब्ध नाही</string>
-
-    <string name="title_active_subscription">सक्रिय सबस्क्रिप्शन</string>
-    <string name="subscription_renews_on">नूतनीकरण तारीख</string>
-    <string name="subscription_expires_on">कालबाह्य तारीख</string>
-
-    <string name="subscription_benefit_one">तुमचे स्वतःचे डायनॅमिक वॉलपेपर सेट करा</string>
-    <string name="subscription_benefit_two">होम स्क्रीनवर आवडते विजेट जोडा</string>
-    <string name="subscription_benefit_three">होम स्क्रीनवरील डीफॉल्ट विजेट सानुकूल करा</string>
-    <string name="subscription_benefit_four">जेस्चर वापरून अ‍ॅप्स पटकन उघडा</string>
-
-    <string name="title_manage_your_subscription">तुमचे सबस्क्रिप्शन व्यवस्थापित करा</string>
-    <string name="title_pro_access">प्रो प्रवेश</string>
-    <string name="title_year">वर्ष</string>
-
-    <string name="subscription_failed_prefix">सबस्क्रिप्शन अयशस्वी</string>
-    <string name="subscription_successful_prefix">सबस्क्रिप्शन यशस्वी</string>
-    <string name="title_subscribe_now">आत्ताच सबस्क्राइब करा</string>
-
-    <string name="subscription_restore_failed_prefix">सबस्क्रिप्शन पुनर्संचयित अयशस्वी</string>
-    <string name="subscription_restore_successful_prefix">सबस्क्रिप्शन यशस्वीपणे पुनर्संचयित</string>
-    <string name="subscription_not_found_to_restore">पुनर्संचयित करण्यासाठी सबस्क्रिप्शन सापडले नाही</string>
-    <string name="title_restore_subscription">सबस्क्रिप्शन पुनर्संचयित करा</string>
-
     <string name="guide_home_swipe_up">अ‍ॅप ड्रॉअर उघडण्यासाठी वर स्वाइप करा.</string>
     <string name="guide_home_swipe_down">सूचना पाहण्यासाठी खाली स्वाइप करा.</string>
     <string name="guide_home_double_tap">अलीकडील अ‍ॅप्स उघडण्यासाठी स्क्रीनवर डबल-टॅप करा.</string>
@@ -353,5 +318,7 @@
     <string name="title_battery_saver">बॅटरी सेव्हर</string>
     <string name="battery_saver_text">बॅटरी वाचवण्यासाठी सक्षम करा</string>
     <string name="text_saving_battery">बॅटरी वाचवत आहे</string>
-    <string name="icon_pack_support">तुमचा आवडता आयकॉन पॅक वापरा</string>
+
+    <string name="title_open_source">ओपन सोर्स</string>
+    <string name="title_view_github_repo">कोड पाहण्यासाठी टॅप करा</string>
 </resources>

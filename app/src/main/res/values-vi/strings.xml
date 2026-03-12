@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Chạm vào biểu tượng để chọn ứng dụng</string>
 
-    <string name="requires_subscription">Cần đăng ký gói</string>
-
     <string name="button_to_move_app_to_quick_app_list">Chuyển vào ứng dụng Màn hình chính</string>
     <string name="button_to_move_app_to_primary_app_list">Chuyển vào ngăn ứng dụng</string>
     <string name="button_to_move_app_to_ghost_app_list">Chuyển vào ứng dụng ẩn</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Đồng hồ kim</string>
     <string name="title_clock_size">Kích thước đồng hồ</string>
     <string name="clock_background_color">Màu nền đồng hồ</string>
-    <string name="background_transparency">Độ trong suốt nền</string>
     <string name="hour_hand_color">Màu kim giờ</string>
     <string name="minute_hand_color">Màu kim phút</string>
 
     <string name="title_time_format">Định dạng thời gian</string>
-    <string name="title_show_am_pm">Hiển thị AM/PM</string>
     <string name="title_font_size">Cỡ chữ</string>
     <string name="title_font_weight">Độ đậm chữ</string>
     <string name="title_font_style">Kiểu chữ</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Lưu</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Tính năng Pro</string>
     <string name="title_subscription">Gói đăng ký</string>
     <string name="go_to_page">Mở trang</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Màn hình widget</string>
     <string name="title_choose_action">Chọn thao tác</string>
 
-    <string name="unable_to_load_subscriptions">
-        Không tải được thông tin gói đăng ký. Vui lòng kiểm tra kết nối và thử lại.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Không tải được gói đăng ký</string>
-    <string name="no_subscription_available">Không có gói đăng ký nào</string>
-
-    <string name="title_active_subscription">Gói đăng ký đang hoạt động</string>
-    <string name="subscription_renews_on">Gia hạn vào</string>
-    <string name="subscription_expires_on">Hết hạn vào</string>
-
-    <string name="subscription_benefit_one">Đặt hình nền động của riêng bạn</string>
-    <string name="subscription_benefit_two">Thêm widget yêu thích lên Màn hình chính</string>
-    <string name="subscription_benefit_three">Tùy chỉnh widget mặc định trên Màn hình chính</string>
-    <string name="subscription_benefit_four">Dùng cử chỉ để mở ứng dụng nhanh hơn</string>
-
-    <string name="title_manage_your_subscription">Quản lý gói đăng ký</string>
-    <string name="title_pro_access">Quyền truy cập Pro</string>
-    <string name="title_year">năm</string>
-
-    <string name="subscription_failed_prefix">Đăng ký không thành công</string>
-    <string name="subscription_successful_prefix">Đăng ký thành công</string>
-    <string name="title_subscribe_now">Đăng ký ngay</string>
-
-    <string name="subscription_restore_failed_prefix">Khôi phục đăng ký không thành công</string>
-    <string name="subscription_restore_successful_prefix">Khôi phục đăng ký thành công</string>
-    <string name="subscription_not_found_to_restore">Không tìm thấy đăng ký để khôi phục</string>
-    <string name="title_restore_subscription">Khôi phục đăng ký</string>
-
     <string name="guide_home_swipe_up">Vuốt lên để mở Ngăn ứng dụng.</string>
     <string name="guide_home_swipe_down">Vuốt xuống để xem thông báo.</string>
     <string name="guide_home_double_tap">Chạm đúp màn hình để mở "Ứng dụng gần đây".</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">Tiết kiệm pin</string>
     <string name="battery_saver_text">Bật để tiết kiệm pin</string>
     <string name="text_saving_battery">Đang tiết kiệm pin…</string>
-    <string name="icon_pack_support">Dùng gói biểu tượng bạn yêu thích</string>
 
+    <string name="title_open_source">Mã nguồn mở</string>
+    <string name="title_view_github_repo">Nhấn để xem mã</string>
 </resources>

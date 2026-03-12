@@ -80,8 +80,6 @@
 
     <string name="tap_icon_to_select_app">অ্যাপ নির্বাচন করতে আইকনে ট্যাপ করুন</string>
 
-    <string name="requires_subscription">সাবস্ক্রিপশন প্রয়োজন</string>
-
     <string name="button_to_move_app_to_quick_app_list">হোম অ্যাপে সরান</string>
     <string name="button_to_move_app_to_primary_app_list">ড্রয়ার অ্যাপে সরান</string>
     <string name="button_to_move_app_to_ghost_app_list">লুকানো অ্যাপে সরান</string>
@@ -93,12 +91,10 @@
     <string name="title_analog_clock">অ্যানালগ ঘড়ি</string>
     <string name="title_clock_size">ঘড়ির আকার</string>
     <string name="clock_background_color">ঘড়ির পটভূমির রঙ</string>
-    <string name="background_transparency">পটভূমির স্বচ্ছতা</string>
     <string name="hour_hand_color">ঘণ্টার কাঁটার রঙ</string>
     <string name="minute_hand_color">মিনিটের কাঁটার রঙ</string>
 
     <string name="title_time_format">সময় ফরম্যাট</string>
-    <string name="title_show_am_pm">AM/PM দেখান</string>
     <string name="title_font_size">ফন্টের আকার</string>
     <string name="title_font_weight">ফন্টের ওজন</string>
     <string name="title_font_style">ফন্টের ধরন</string>
@@ -122,8 +118,6 @@
 
     <string name="button_text_save">সংরক্ষণ করুন</string>
 
-    <string name="title_premium">প্রিমিয়াম</string>
-    <string name="title_pro_features">প্রো ফিচার</string>
     <string name="title_subscription">সাবস্ক্রিপশন</string>
     <string name="go_to_page">পৃষ্ঠা খুলুন</string>
 
@@ -255,35 +249,6 @@
     <string name="title_widgets_screen">উইজেট স্ক্রিন</string>
     <string name="title_choose_action">অ্যাকশন নির্বাচন করুন</string>
 
-    <string name="unable_to_load_subscriptions">
-        সাবস্ক্রিপশন তথ্য লোড করা যায়নি। অনুগ্রহ করে সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">সাবস্ক্রিপশন লোড ব্যর্থ</string>
-    <string name="no_subscription_available">কোনো সাবস্ক্রিপশন উপলব্ধ নেই</string>
-
-    <string name="title_active_subscription">সক্রিয় সাবস্ক্রিপশন</string>
-    <string name="subscription_renews_on">নবায়ন হবে</string>
-    <string name="subscription_expires_on">মেয়াদ শেষ হবে</string>
-
-    <string name="subscription_benefit_one">নিজস্ব ডাইনামিক ওয়ালপেপার সেট করুন</string>
-    <string name="subscription_benefit_two">হোম স্ক্রিনে আপনার পছন্দের উইজেট যোগ করুন</string>
-    <string name="subscription_benefit_three">হোম স্ক্রিনের ডিফল্ট উইজেট কাস্টমাইজ করুন</string>
-    <string name="subscription_benefit_four">জেসচার ব্যবহার করে দ্রুত অ্যাপ খুলুন</string>
-
-    <string name="title_manage_your_subscription">আপনার সাবস্ক্রিপশন পরিচালনা করুন</string>
-    <string name="title_pro_access">প্রো অ্যাক্সেস</string>
-    <string name="title_year">বছর</string>
-
-    <string name="subscription_failed_prefix">সাবস্ক্রিপশন ব্যর্থ</string>
-    <string name="subscription_successful_prefix">সাবস্ক্রিপশন সফল</string>
-    <string name="title_subscribe_now">এখনই সাবস্ক্রাইব করুন</string>
-
-    <string name="subscription_restore_failed_prefix">সাবস্ক্রিপশন পুনরুদ্ধার ব্যর্থ</string>
-    <string name="subscription_restore_successful_prefix">সাবস্ক্রিপশন সফলভাবে পুনরুদ্ধার হয়েছে</string>
-    <string name="subscription_not_found_to_restore">পুনরুদ্ধারের জন্য কোনো সাবস্ক্রিপশন পাওয়া যায়নি</string>
-    <string name="title_restore_subscription">সাবস্ক্রিপশন পুনরুদ্ধার করুন</string>
-
     <string name="guide_home_swipe_up">অ্যাপ ড্রয়ার খুলতে উপরে সোয়াইপ করুন।</string>
     <string name="guide_home_swipe_down">নোটিফিকেশন দেখতে নিচে সোয়াইপ করুন।</string>
     <string name="guide_home_double_tap">সাম্প্রতিক অ্যাপস খুলতে স্ক্রিনে ডাবল-ট্যাপ করুন।</string>
@@ -353,5 +318,7 @@
     <string name="title_battery_saver">ব্যাটারি সেভার</string>
     <string name="battery_saver_text">ব্যাটারি সাশ্রয়ের জন্য সক্রিয় করুন</string>
     <string name="text_saving_battery">ব্যাটারি সাশ্রয় হচ্ছে</string>
-    <string name="icon_pack_support">আপনার পছন্দের আইকন প্যাক ব্যবহার করুন</string>
+
+    <string name="title_open_source">ওপেন সোর্স</string>
+    <string name="title_view_github_repo">কোড দেখতে ট্যাপ করুন</string>
 </resources>

@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">ແຕະໄອຄອນເພື່ອເລືອກແອັບ</string>
 
-    <string name="requires_subscription">ຕ້ອງການ subscription</string>
-
     <string name="button_to_move_app_to_quick_app_list">ຍ້າຍໄປ Apps ໜ້າຫຼັກ</string>
     <string name="button_to_move_app_to_primary_app_list">ຍ້າຍໄປ App drawer</string>
     <string name="button_to_move_app_to_ghost_app_list">ຍ້າຍໄປ Apps ທີ່ຊ່ອນໄວ້</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">ນາລິກາ analog</string>
     <string name="title_clock_size">ຂະໜາດນາລິກາ</string>
     <string name="clock_background_color">ສີພື້ນຫຼັງນາລິກາ</string>
-    <string name="background_transparency">ຄວາມໂປ່ງໃສຂອງພື້ນຫຼັງ</string>
     <string name="hour_hand_color">ສີເຂັມຊົ່ວໂມງ</string>
     <string name="minute_hand_color">ສີເຂັມນາທີ</string>
 
     <string name="title_time_format">ຮູບແບບເວລາ</string>
-    <string name="title_show_am_pm">ສະແດງ AM/PM</string>
     <string name="title_font_size">ຂະໜາດຟອນ</string>
     <string name="title_font_weight">ນ້ໍາໜັກຟອນ</string>
     <string name="title_font_style">ຮູບແບບຟອນ</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">ບັນທຶກ</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">ຟີຈເຈີ Pro</string>
     <string name="title_subscription">Subscription</string>
     <string name="go_to_page">ເປີດໜ້າ</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">ໜ້າ widgets</string>
     <string name="title_choose_action">ເລືອກການກະທໍາ</string>
 
-    <string name="unable_to_load_subscriptions">
-        ບໍ່ສາມາດໂຫຼດຂໍ້ມູນ subscription ໄດ້. ກະລຸນາກວດກາການເຊື່ອມຕໍ່ ແລະລອງໃໝ່.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">ໂຫຼດ subscription ບໍ່ສໍາເລັດ</string>
-    <string name="no_subscription_available">ບໍ່ມີ subscription</string>
-
-    <string name="title_active_subscription">subscription ກໍາລັງໃຊ້ງານ</string>
-    <string name="subscription_renews_on">ຕໍ່ອາຍຸໃນວັນທີ</string>
-    <string name="subscription_expires_on">ໝົດອາຍຸໃນວັນທີ</string>
-
-    <string name="subscription_benefit_one">ຕັ້ງ dynamic wallpapers ຂອງຕົນເອງ</string>
-    <string name="subscription_benefit_two">ເພີ່ມ widgets ທີ່ມັກໃສ່ Home screen</string>
-    <string name="subscription_benefit_three">ປັບແຕ່ງ default widgets ໃນ Home screen</string>
-    <string name="subscription_benefit_four">ເປີດ apps ໄວໆດ້ວຍ gestures</string>
-
-    <string name="title_manage_your_subscription">ຈັດການ subscription ຂອງທ່ານ</string>
-    <string name="title_pro_access">Pro access</string>
-    <string name="title_year">ປີ</string>
-
-    <string name="subscription_failed_prefix">subscription ລ້ມເຫຼວ</string>
-    <string name="subscription_successful_prefix">subscription ສໍາເລັດ</string>
-    <string name="title_subscribe_now">Subscribe ດຽວນີ້</string>
-
-    <string name="subscription_restore_failed_prefix">ການກູ້ຄືນ subscription ລ້ມເຫຼວ</string>
-    <string name="subscription_restore_successful_prefix">ກູ້ຄືນ subscription ສໍາເລັດ</string>
-    <string name="subscription_not_found_to_restore">ບໍ່ພົບ subscription ສໍາລັບການກູ້ຄືນ</string>
-    <string name="title_restore_subscription">ກູ້ຄືນ subscription</string>
-
     <string name="guide_home_swipe_up">ກວາດຂຶ້ນເພື່ອເປີດ App drawer.</string>
     <string name="guide_home_swipe_down">ກວາດລົງເພື່ອເບິ່ງແຈ້ງເຕືອນ.</string>
     <string name="guide_home_double_tap">ແຕະຫນ້າຈໍ 2 ຄັ້ງເພື່ອເປີດ "Recent Apps".</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">ປະຫຍັດແບັດ</string>
     <string name="battery_saver_text">ເປີດເພື່ອປະຫຍັດແບັດ</string>
     <string name="text_saving_battery">ກໍາລັງປະຫຍັດແບັດ…</string>
-    <string name="icon_pack_support">ໃຊ້ຊຸດໄອຄອນທີ່ທ່ານມັກ</string>
 
+    <string name="title_open_source">ໂອເພນຊອສ໌</string>
+    <string name="title_view_github_repo">ແຕະເພື່ອເບິ່ງລະຫັດ</string>
 </resources>

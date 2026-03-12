@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Aplikasiýa saýlamak üçin ikonanyň üstüne basyň</string>
 
-    <string name="requires_subscription">Abuna (subscription) gerek</string>
-
     <string name="button_to_move_app_to_quick_app_list">Home Apps sanawyna geçir</string>
     <string name="button_to_move_app_to_primary_app_list">App drawer sanawyna geçir</string>
     <string name="button_to_move_app_to_ghost_app_list">Gizlin aplikasyonlar sanawyna geçir</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Analog sagat</string>
     <string name="title_clock_size">Sagadyň ölçegi</string>
     <string name="clock_background_color">Sagadyň arka reňki</string>
-    <string name="background_transparency">Arka fonuň läbikligi</string>
     <string name="hour_hand_color">Sagat görkezijisiniň reňki</string>
     <string name="minute_hand_color">Minut görkezijisiniň reňki</string>
 
     <string name="title_time_format">Wagt formaty</string>
-    <string name="title_show_am_pm">AM/PM görkez</string>
     <string name="title_font_size">Şriftiň ölçegi</string>
     <string name="title_font_weight">Şriftiň inçeligi/galynlygy</string>
     <string name="title_font_style">Şrift stili</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Sakla</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Pro aýratynlyklar</string>
     <string name="title_subscription">Subscription</string>
     <string name="go_to_page">Sahypany aç</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Widgets screen</string>
     <string name="title_choose_action">Hereket saýla</string>
 
-    <string name="unable_to_load_subscriptions">
-        Subscription maglumaty ýüklenmedi. Internet birikmäňizi barlap gaýtadan synanyşyň.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Subscription ýüklenmedi</string>
-    <string name="no_subscription_available">Hiç hili subscription ýok</string>
-
-    <string name="title_active_subscription">Işjeň subscription</string>
-    <string name="subscription_renews_on">Täzelenjek senesi</string>
-    <string name="subscription_expires_on">Möhleti gutarjak senesi</string>
-
-    <string name="subscription_benefit_one">Özüňiziň dynamic wallpapers-leriňizi goýuň</string>
-    <string name="subscription_benefit_two">Halaýan widgets-leriňizi Baş ekrana goşuň</string>
-    <string name="subscription_benefit_three">Baş ekrandaky default widgets-leri özüňize görä sazlaň</string>
-    <string name="subscription_benefit_four">Aplikasiýalary gesture arkaly çalt açyň</string>
-
-    <string name="title_manage_your_subscription">Subscription-laryňyzy dolandyryň</string>
-    <string name="title_pro_access">Pro access</string>
-    <string name="title_year">ýyl</string>
-
-    <string name="subscription_failed_prefix">Subscription şowsuz boldy</string>
-    <string name="subscription_successful_prefix">Subscription üstünlikli</string>
-    <string name="title_subscribe_now">Häzir subscribe et</string>
-
-    <string name="subscription_restore_failed_prefix">Subscription dikeltmek şowsuz boldy</string>
-    <string name="subscription_restore_successful_prefix">Subscription üstünlikli dikeldildi</string>
-    <string name="subscription_not_found_to_restore">Dikeltmek üçin subscription tapylmady</string>
-    <string name="title_restore_subscription">Subscription dikelt</string>
-
     <string name="guide_home_swipe_up">App drawer açmak üçin ýokarlyga swipe ediň.</string>
     <string name="guide_home_swipe_down">Bildirişleri görmek üçin aşaklygyna swipe ediň.</string>
     <string name="guide_home_double_tap">"Recent Apps" açmak üçin ekrana iki sapar basyň.</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">Batareýa tygşytlaýjy</string>
     <string name="battery_saver_text">Batareýa tygşytlamak üçin açyň</string>
     <string name="text_saving_battery">Batareýa tygşytlanýar…</string>
-    <string name="icon_pack_support">Halaýan nyşan bukjaňyzy ulanyň</string>
 
+    <string name="title_open_source">Açyk çeşme</string>
+    <string name="title_view_github_repo">Kody görmek üçin basyň</string>
 </resources>

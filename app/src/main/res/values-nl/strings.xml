@@ -80,8 +80,6 @@
 
     <string name="tap_icon_to_select_app">Tik op een pictogram om een app te selecteren</string>
 
-    <string name="requires_subscription">Abonnement vereist</string>
-
     <string name="button_to_move_app_to_quick_app_list">Verplaatsen naar Home-apps</string>
     <string name="button_to_move_app_to_primary_app_list">Verplaatsen naar Lade-apps</string>
     <string name="button_to_move_app_to_ghost_app_list">Verplaatsen naar Verborgen apps</string>
@@ -93,12 +91,10 @@
     <string name="title_analog_clock">Analoge klok</string>
     <string name="title_clock_size">Klokgrootte</string>
     <string name="clock_background_color">Achtergrondkleur klok</string>
-    <string name="background_transparency">Achtergrondtransparantie</string>
     <string name="hour_hand_color">Kleur uurwijzer</string>
     <string name="minute_hand_color">Kleur minuutwijzer</string>
 
     <string name="title_time_format">Tijdnotatie</string>
-    <string name="title_show_am_pm">AM/PM weergeven</string>
     <string name="title_font_size">Lettergrootte</string>
     <string name="title_font_weight">Letterdikte</string>
     <string name="title_font_style">Letterstijl</string>
@@ -122,8 +118,6 @@
 
     <string name="button_text_save">Opslaan</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Pro-functies</string>
     <string name="title_subscription">Abonnement</string>
     <string name="go_to_page">Pagina openen</string>
 
@@ -255,35 +249,6 @@
     <string name="title_widgets_screen">Widgetsscherm</string>
     <string name="title_choose_action">Actie kiezen</string>
 
-    <string name="unable_to_load_subscriptions">
-        Kan abonnementsinformatie niet laden. Controleer uw verbinding en probeer het opnieuw.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Abonnement laden mislukt</string>
-    <string name="no_subscription_available">Geen abonnement beschikbaar</string>
-
-    <string name="title_active_subscription">Actief abonnement</string>
-    <string name="subscription_renews_on">Wordt verlengd op</string>
-    <string name="subscription_expires_on">Verloopt op</string>
-
-    <string name="subscription_benefit_one">Stel uw eigen dynamische achtergronden in</string>
-    <string name="subscription_benefit_two">Voeg uw favoriete widgets toe aan het startscherm</string>
-    <string name="subscription_benefit_three">Pas standaardwidgets op het startscherm aan</string>
-    <string name="subscription_benefit_four">Gebruik gebaren om apps snel te openen</string>
-
-    <string name="title_manage_your_subscription">Beheer uw abonnement</string>
-    <string name="title_pro_access">Pro-toegang</string>
-    <string name="title_year">jaar</string>
-
-    <string name="subscription_failed_prefix">Abonnement mislukt</string>
-    <string name="subscription_successful_prefix">Abonnement succesvol</string>
-    <string name="title_subscribe_now">Nu abonneren</string>
-
-    <string name="subscription_restore_failed_prefix">Abonnement herstellen mislukt</string>
-    <string name="subscription_restore_successful_prefix">Abonnement succesvol hersteld</string>
-    <string name="subscription_not_found_to_restore">Geen abonnement gevonden om te herstellen</string>
-    <string name="title_restore_subscription">Abonnement herstellen</string>
-
     <string name="guide_home_swipe_up">Veeg omhoog om de applade te openen.</string>
     <string name="guide_home_swipe_down">Veeg omlaag om meldingen te bekijken.</string>
     <string name="guide_home_double_tap">Dubbeltik op het scherm om Recente apps te openen.</string>
@@ -353,5 +318,7 @@
     <string name="title_battery_saver">Batterijbesparing</string>
     <string name="battery_saver_text">Inschakelen om batterij te besparen</string>
     <string name="text_saving_battery">Batterij besparen</string>
-    <string name="icon_pack_support">Gebruik uw favoriete pictogrampakket</string>
+
+    <string name="title_open_source">Open source</string>
+    <string name="title_view_github_repo">Tik om code te bekijken</string>
 </resources>

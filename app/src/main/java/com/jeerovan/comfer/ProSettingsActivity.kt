@@ -2,9 +2,7 @@ package com.jeerovan.comfer
 
 import android.os.Bundle
 import android.view.SoundEffectConstants
-import android.widget.Toast
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -35,7 +33,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Brightness1
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -73,11 +70,8 @@ import com.jeerovan.comfer.utils.CommonUtil.getKeyTextObject
 import com.jeerovan.comfer.utils.CommonUtil.isColorDark
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyGridState
-import kotlin.getValue
 
 class ProSettingsActivity : AppCompatActivity() {
-    private val settingsViewModel: SettingsViewModel by viewModels()
-    private val appsViewModel: AppInfoViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -169,7 +163,6 @@ fun BasicSettings(
     var showBatteryFontDialog by remember { mutableStateOf(false) }
     var showBatteryColor by remember { mutableStateOf(false) }
     var showNotificationColor by remember { mutableStateOf(false) }
-    val subscriptionToast = stringResource(R.string.requires_subscription)
     var selectedNotificationLayoutId by remember { mutableIntStateOf(settingsState.notificationLayoutId) }
     val customWallpaper = !settingsState.autoWallpapers && !settingsState.monochrome
     fun onSelectNotificationLayout(id: Int) {
@@ -200,7 +193,7 @@ fun BasicSettings(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp,)
+                    .padding(16.dp)
                     .windowInsetsPadding(WindowInsets.navigationBars)
             ) {
                 SettingSection(stringResource(R.string.title_widgets)) {
@@ -227,7 +220,6 @@ fun BasicSettings(
                 if(settingsState.autoWallpapers)SettingSection(stringResource(R.string.title_color)) {
                     SettingSwitch(
                         label = stringResource(R.string.title_wallpaper_colors),
-                        enabled = true,
                         checked = settingsState.showThemedText,
                         onCheckedChange = {
                             settingsViewModel.setThemedText(it)
@@ -243,15 +235,9 @@ fun BasicSettings(
                 SettingSection(stringResource(R.string.title_time)) {
                     SettingSwitch(
                         label = stringResource(R.string.title_analog_clock),
-                        enabled = settingsState.hasPro,
                         checked = settingsState.showAnalog,
                         onCheckedChange = {
-                            if (settingsState.hasPro) {
-                                settingsViewModel.showAnalog(it)
-                            } else {
-                                Toast.makeText(context, subscriptionToast, Toast.LENGTH_SHORT)
-                                    .show()
-                            }
+                            settingsViewModel.showAnalog(it)
                         }
                     )
                     if (settingsState.showAnalog) {
@@ -376,14 +362,6 @@ fun BasicSettings(
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                if (!settingsState.hasPro) Icon(
-                                    Icons.Filled.Lock,
-                                    contentDescription = "Paid Feature",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier
-                                        .size(15.dp)
-                                        .offset(x = 10.dp, y = 2.dp)
-                                )
                             }
                             Text(
                                 text = "12:34",
@@ -416,14 +394,6 @@ fun BasicSettings(
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                if (!settingsState.hasPro) Icon(
-                                    Icons.Filled.Lock,
-                                    contentDescription = "Paid Feature",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier
-                                        .size(15.dp)
-                                        .offset(x = 10.dp, y = 2.dp)
-                                )
                             }
                             Icon(
                                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -436,15 +406,7 @@ fun BasicSettings(
                                 sampleText = "12:34",
                                 onDismissRequest = { showTimeFontDialog = false },
                                 onFontSelected = { fontName ->
-                                    if (settingsState.hasPro) {
-                                        settingsViewModel.setTimeFontName(fontName)
-                                    } else {
-                                        Toast.makeText(
-                                            context,
-                                            subscriptionToast,
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
+                                    settingsViewModel.setTimeFontName(fontName)
                                     showTimeFontDialog =
                                         false // Also dismiss dialog after selection
                                 }
@@ -517,14 +479,6 @@ fun BasicSettings(
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            if (!settingsState.hasPro) Icon(
-                                Icons.Filled.Lock,
-                                contentDescription = stringResource(R.string.paid_feature_title),
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .size(15.dp)
-                                    .offset(x = 10.dp, y = 2.dp)
-                            )
                         }
                         Text(
                             text = stringResource(R.string.date_example),
@@ -557,14 +511,6 @@ fun BasicSettings(
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            if (!settingsState.hasPro) Icon(
-                                Icons.Filled.Lock,
-                                contentDescription = "Paid Feature",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .size(15.dp)
-                                    .offset(x = 10.dp, y = 2.dp)
-                            )
                         }
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -577,15 +523,7 @@ fun BasicSettings(
                             sampleText = stringResource(R.string.date_example),
                             onDismissRequest = { showDateFontDialog = false },
                             onFontSelected = { fontName ->
-                                if (settingsState.hasPro) {
-                                    settingsViewModel.setDateFontName(fontName)
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        subscriptionToast,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
+                                settingsViewModel.setDateFontName(fontName)
                                 showDateFontDialog = false // Also dismiss dialog after selection
                             }
                         )
@@ -614,13 +552,11 @@ fun BasicSettings(
                 SettingSection(stringResource(R.string.title_battery)) {
                     SettingSwitch(
                         label = stringResource(R.string.show_battery_icon),
-                        enabled = true,
                         checked = settingsState.showBatteryIcon,
                         onCheckedChange = { settingsViewModel.setShowBatteryIcon(it) }
                     )
                     SettingSwitch(
                         label = stringResource(R.string.show_battery_percentage),
-                        enabled = true,
                         checked = settingsState.showBatteryPercentage,
                         onCheckedChange = { settingsViewModel.setShowBatteryPercentage(it) }
                     )
@@ -665,14 +601,6 @@ fun BasicSettings(
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            if (!settingsState.hasPro) Icon(
-                                Icons.Filled.Lock,
-                                contentDescription = stringResource(R.string.paid_feature_title),
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .size(15.dp)
-                                    .offset(x = 10.dp, y = 2.dp)
-                            )
                         }
                         Text(
                             text = "100%",
@@ -694,15 +622,7 @@ fun BasicSettings(
                             sampleText = "100%",
                             onDismissRequest = { showBatteryFontDialog = false },
                             onFontSelected = { fontName ->
-                                if (settingsState.hasPro) {
-                                    settingsViewModel.setBatteryFontName(fontName)
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        subscriptionToast,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
+                                settingsViewModel.setBatteryFontName(fontName)
                                 showBatteryFontDialog = false
                             }
                         )
@@ -731,7 +651,6 @@ fun BasicSettings(
                     SettingSection(stringResource(R.string.title_notifications)) {
                         SettingSwitch(
                             label = stringResource(R.string.show_notification_icons),
-                            enabled = true,
                             checked = settingsState.showNotificationRow,
                             onCheckedChange = { settingsViewModel.setShowNotificationRow(it) }
                         )
@@ -755,7 +674,6 @@ fun BasicSettings(
                         ) {
                             // Box 1
                             SelectableSquareBox(
-                                enabled = true,
                                 id = 1,
                                 selectedId = selectedNotificationLayoutId,
                                 onSelect = { onSelectNotificationLayout(it) }
@@ -778,7 +696,6 @@ fun BasicSettings(
 
                             // Box 2
                             SelectableSquareBox(
-                                enabled = true,
                                 id = 2,
                                 selectedId = selectedNotificationLayoutId,
                                 onSelect = { onSelectNotificationLayout(it) }
@@ -823,15 +740,12 @@ fun BasicSettings(
 fun TimeAdvancedSettings(
     settingsViewModel: SettingsViewModel,
     onBack: () -> Unit){
-    val context = LocalContext.current
     val settingsState by settingsViewModel.uiState.collectAsState()
     Surface(
         modifier = Modifier.fillMaxSize(),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
     ) {
-        val context = LocalContext.current
-        val subscriptionToast = stringResource(R.string.requires_subscription)
         val customWallpaper = !settingsState.autoWallpapers && !settingsState.monochrome
         Column {
             Box(Modifier.fillMaxWidth()) {
@@ -852,7 +766,7 @@ fun TimeAdvancedSettings(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp,)
+                    .padding(16.dp)
                     .windowInsetsPadding(WindowInsets.navigationBars)
             ) {
                 var selectedId by remember { mutableIntStateOf(settingsState.timeLayoutId) }
@@ -880,7 +794,6 @@ fun TimeAdvancedSettings(
                 ) {
                     // Box 1
                     SelectableSquareBox(
-                        enabled = settingsState.hasPro,
                         id = 1,
                         selectedId = selectedId,
                         onSelect = { onSelectLayoutId(it) }
@@ -893,7 +806,6 @@ fun TimeAdvancedSettings(
 
                     // Box 2
                     SelectableSquareBox(
-                        enabled = settingsState.hasPro,
                         id = 2,
                         selectedId = selectedId,
                         onSelect = { onSelectLayoutId(it) }
@@ -905,7 +817,6 @@ fun TimeAdvancedSettings(
 
                     // Box 3 with Column
                     SelectableSquareBox(
-                        enabled = settingsState.hasPro,
                         id = 3,
                         selectedId = selectedId,
                         onSelect = { onSelectLayoutId(it) }
@@ -941,15 +852,9 @@ fun TimeAdvancedSettings(
                 )
                 if(customWallpaper)SettingSwitch(
                     label = stringResource(R.string.title_shadow),
-                    enabled = settingsState.hasPro,
                     checked = settingsState.timeHasShadow,
                     onCheckedChange = {
-                        if (settingsState.hasPro) {
-                            settingsViewModel.setTimeHasShadow(it)
-                        } else {
-                            Toast.makeText(context, subscriptionToast, Toast.LENGTH_SHORT)
-                                .show()
-                        }
+                        settingsViewModel.setTimeHasShadow(it)
                     }
                 )
                 if (settingsState.timeHasShadow && customWallpaper) {
@@ -978,8 +883,6 @@ fun TimeAdvancedSettings(
 fun DateAdvancedSettings(
     settingsViewModel: SettingsViewModel,
     onBack: () -> Unit) {
-    val context = LocalContext.current
-    val subscriptionToast = stringResource(R.string.requires_subscription)
     val settingsState by settingsViewModel.uiState.collectAsState()
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -1005,7 +908,7 @@ fun DateAdvancedSettings(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp,)
+                    .padding(16.dp)
                     .windowInsetsPadding(WindowInsets.navigationBars)
             ) {
                 var selectedId by remember { mutableIntStateOf(settingsState.dateLayoutId) }
@@ -1034,7 +937,6 @@ fun DateAdvancedSettings(
                 ) {
                     // Box 1
                     SelectableSquareBox(
-                        enabled = settingsState.hasPro,
                         id = 1,
                         selectedId = selectedId,
                         onSelect = { onSelectLayoutId(it) }
@@ -1046,7 +948,6 @@ fun DateAdvancedSettings(
 
                     // Box 2
                     SelectableSquareBox(
-                        enabled = settingsState.hasPro,
                         id = 2,
                         selectedId = selectedId,
                         onSelect = { onSelectLayoutId(it) }
@@ -1074,15 +975,9 @@ fun DateAdvancedSettings(
                 )
                 if(customWallpaper)SettingSwitch(
                     label = stringResource(R.string.title_shadow),
-                    enabled = settingsState.hasPro,
                     checked = settingsState.dateHasShadow,
                     onCheckedChange = {
-                        if (settingsState.hasPro) {
-                            settingsViewModel.setDateHasShadow(it)
-                        } else {
-                            Toast.makeText(context, subscriptionToast, Toast.LENGTH_SHORT)
-                                .show()
-                        }
+                        settingsViewModel.setDateHasShadow(it)
                     }
                 )
                 if (settingsState.dateHasShadow && customWallpaper) {
@@ -1125,7 +1020,6 @@ fun SettingSection(title: String,
 
 @Composable
 fun SettingSwitch(label: String,
-                  enabled: Boolean,
                   checked: Boolean,
                   onCheckedChange: (Boolean) -> Unit) {
     Row(
@@ -1141,16 +1035,8 @@ fun SettingSwitch(label: String,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            if(!enabled)Icon(Icons.Filled.Lock,
-                contentDescription = stringResource(R.string.paid_feature_title),
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(15.dp)
-                    .offset(x=10.dp,y=2.dp)
-            )
         }
         Switch(
-            enabled = enabled,
             checked = checked,
             onCheckedChange = onCheckedChange
         )
@@ -1162,9 +1048,8 @@ fun SettingSlider(label: String,
                   value: Int,
                   range: ClosedFloatingPointRange<Float>,
                   onValueChange: (Int) -> Unit) {
-    val context = LocalContext.current
     Column(modifier = Modifier.padding( vertical = 8.dp)) {
-        Text("$label",
+        Text(label,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -1194,7 +1079,7 @@ fun CurveRadiusSlider(
 
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
         Text(
-            text = "$label",
+            text = label,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -1542,7 +1427,6 @@ fun AppDrawer(
     iconSize: Dp,
     iconShape: Shape
 ) {
-    val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
     val density = LocalDensity.current
 
@@ -1768,7 +1652,7 @@ private fun AppIconWrapper(
 
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = app.label.toString(),
+            text = app.label,
             style = MaterialTheme.typography.labelMedium,
             textAlign = TextAlign.Center,
             maxLines = 2,
@@ -1822,7 +1706,7 @@ fun AppDrawerScreen(
     val hapticFeedback = LocalHapticFeedback.current
     val settings by settingsViewModel.uiState.collectAsState()
     val appsInfo by appInfoViewModel.uiState.collectAsState()
-    val sortedPrimaryApps = if(settings.arrangeInAlphabeticalOrder) appsInfo.primaryApps.sortedBy { it.label.toString() } else appsInfo.primaryApps
+    val sortedPrimaryApps = if(settings.arrangeInAlphabeticalOrder) appsInfo.primaryApps.sortedBy { it.label } else appsInfo.primaryApps
 
     var currentApps by remember(sortedPrimaryApps) { mutableStateOf(sortedPrimaryApps) }
     val maxScreenHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp }
@@ -1885,17 +1769,14 @@ fun AppDrawerScreen(
 
 @Composable
 fun RowScope.SelectableSquareBox(
-    enabled: Boolean,
     id: Int,
     selectedId: Int,
     onSelect: (Int) -> Unit,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val context = LocalContext.current
     val isSelected = selectedId == id
     val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
     val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-    val toastMessage = stringResource(R.string.requires_subscription)
     Box(
         modifier = Modifier
             .weight(1f)             // Share width equally
@@ -1908,12 +1789,7 @@ fun RowScope.SelectableSquareBox(
                 shape = RoundedCornerShape(12.dp)
             )
             .clickable {
-                        if(enabled) {
-                            onSelect(id)
-                        } else {
-                            Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT)
-                                .show()
-                        }
+                onSelect(id)
                        },
         contentAlignment = Alignment.Center,
         content = content

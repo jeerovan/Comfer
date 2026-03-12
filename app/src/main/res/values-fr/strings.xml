@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Touchez une icône pour choisir une application</string>
 
-    <string name="requires_subscription">Nécessite un abonnement</string>
-
     <string name="button_to_move_app_to_quick_app_list">Déplacer vers les apps de l\'accueil</string>
     <string name="button_to_move_app_to_primary_app_list">Déplacer vers les apps du tiroir</string>
     <string name="button_to_move_app_to_ghost_app_list">Déplacer vers les apps masquées</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Horloge analogique</string>
     <string name="title_clock_size">Taille de l\'horloge</string>
     <string name="clock_background_color">Couleur de fond de l\'horloge</string>
-    <string name="background_transparency">Transparence du fond</string>
     <string name="hour_hand_color">Couleur de l\'aiguille des heures</string>
     <string name="minute_hand_color">Couleur de l\'aiguille des minutes</string>
 
     <string name="title_time_format">Format de l\'heure</string>
-    <string name="title_show_am_pm">Afficher AM/PM</string>
     <string name="title_font_size">Taille de police</string>
     <string name="title_font_weight">Épaisseur de police</string>
     <string name="title_font_style">Style de police</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Enregistrer</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Fonctionnalités Pro</string>
     <string name="title_subscription">Abonnement</string>
     <string name="go_to_page">Ouvrir la page</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Écran des widgets</string>
     <string name="title_choose_action">Choisir une action</string>
 
-    <string name="unable_to_load_subscriptions">
-        Impossible de charger les informations d\'abonnement. Vérifiez votre connexion et réessayez.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Échec du chargement de l\'abonnement</string>
-    <string name="no_subscription_available">Aucun abonnement disponible</string>
-
-    <string name="title_active_subscription">Abonnement actif</string>
-    <string name="subscription_renews_on">Renouvelé le</string>
-    <string name="subscription_expires_on">Expire le</string>
-
-    <string name="subscription_benefit_one">Définir vos propres fonds d\'écran dynamiques</string>
-    <string name="subscription_benefit_two">Ajouter vos widgets favoris à l\'écran d\'accueil</string>
-    <string name="subscription_benefit_three">Personnaliser les widgets par défaut de l\'écran d\'accueil</string>
-    <string name="subscription_benefit_four">Utiliser des gestes pour ouvrir les applications rapidement</string>
-
-    <string name="title_manage_your_subscription">Gérer votre abonnement</string>
-    <string name="title_pro_access">Accès Pro</string>
-    <string name="title_year">an</string>
-
-    <string name="subscription_failed_prefix">Échec de l\'abonnement</string>
-    <string name="subscription_successful_prefix">Abonnement réussi</string>
-    <string name="title_subscribe_now">S\'abonner maintenant</string>
-
-    <string name="subscription_restore_failed_prefix">Échec de la restauration de l\'abonnement</string>
-    <string name="subscription_restore_successful_prefix">Abonnement restauré avec succès</string>
-    <string name="subscription_not_found_to_restore">Aucun abonnement trouvé à restaurer</string>
-    <string name="title_restore_subscription">Restaurer l\'abonnement</string>
-
     <string name="guide_home_swipe_up">Balayez vers le haut pour ouvrir le tiroir d\'applications.</string>
     <string name="guide_home_swipe_down">Balayez vers le bas pour voir les notifications.</string>
     <string name="guide_home_double_tap">Touchez deux fois l\'écran pour ouvrir les "Applications récentes".</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">Économie de batterie</string>
     <string name="battery_saver_text">Activez pour économiser la batterie</string>
     <string name="text_saving_battery">Économie de batterie…</string>
-    <string name="icon_pack_support">Utilisez votre pack d’icônes préféré</string>
 
+    <string name="title_open_source">Open Source</string>
+    <string name="title_view_github_repo">Appuyez pour voir le code</string>
 </resources>

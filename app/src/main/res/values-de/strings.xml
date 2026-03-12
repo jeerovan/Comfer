@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Tippe auf ein Symbol, um eine App auszuwählen</string>
 
-    <string name="requires_subscription">Abonnement erforderlich</string>
-
     <string name="button_to_move_app_to_quick_app_list">Zu Startbildschirm-Apps verschieben</string>
     <string name="button_to_move_app_to_primary_app_list">Zu Schubladen-Apps verschieben</string>
     <string name="button_to_move_app_to_ghost_app_list">Zu versteckten Apps verschieben</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Analoguhr</string>
     <string name="title_clock_size">Uhrgröße</string>
     <string name="clock_background_color">Hintergrundfarbe der Uhr</string>
-    <string name="background_transparency">Hintergrundtransparenz</string>
     <string name="hour_hand_color">Farbe des Stundenzeigers</string>
     <string name="minute_hand_color">Farbe des Minutenzeigers</string>
 
     <string name="title_time_format">Zeitformat</string>
-    <string name="title_show_am_pm">AM/PM anzeigen</string>
     <string name="title_font_size">Schriftgröße</string>
     <string name="title_font_weight">Schriftstärke</string>
     <string name="title_font_style">Schriftstil</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Speichern</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Pro-Funktionen</string>
     <string name="title_subscription">Abonnement</string>
     <string name="go_to_page">Seite öffnen</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Widget-Bildschirm</string>
     <string name="title_choose_action">Aktion auswählen</string>
 
-    <string name="unable_to_load_subscriptions">
-        Abonnementinformationen konnten nicht geladen werden. Bitte Verbindung prüfen und erneut versuchen.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Abonnement konnte nicht geladen werden</string>
-    <string name="no_subscription_available">Kein Abonnement verfügbar</string>
-
-    <string name="title_active_subscription">Aktives Abonnement</string>
-    <string name="subscription_renews_on">Wird verlängert am</string>
-    <string name="subscription_expires_on">Läuft ab am</string>
-
-    <string name="subscription_benefit_one">Eigene dynamische Hintergründe festlegen</string>
-    <string name="subscription_benefit_two">Lieblings-Widgets auf dem Startbildschirm hinzufügen</string>
-    <string name="subscription_benefit_three">Standard-Widgets auf dem Startbildschirm anpassen</string>
-    <string name="subscription_benefit_four">Gesten verwenden, um Apps schnell zu öffnen</string>
-
-    <string name="title_manage_your_subscription">Abonnement verwalten</string>
-    <string name="title_pro_access">Pro-Zugang</string>
-    <string name="title_year">Jahr</string>
-
-    <string name="subscription_failed_prefix">Abonnement fehlgeschlagen</string>
-    <string name="subscription_successful_prefix">Abonnement erfolgreich</string>
-    <string name="title_subscribe_now">Jetzt abonnieren</string>
-
-    <string name="subscription_restore_failed_prefix">Wiederherstellung des Abonnements fehlgeschlagen</string>
-    <string name="subscription_restore_successful_prefix">Abonnement erfolgreich wiederhergestellt</string>
-    <string name="subscription_not_found_to_restore">Kein Abonnement zur Wiederherstellung gefunden</string>
-    <string name="title_restore_subscription">Abonnement wiederherstellen</string>
-
     <string name="guide_home_swipe_up">Nach oben wischen, um die App-Schublade zu öffnen.</string>
     <string name="guide_home_swipe_down">Nach unten wischen, um Benachrichtigungen zu sehen.</string>
     <string name="guide_home_double_tap">Doppelt auf den Bildschirm tippen, um "Zuletzt verwendete Apps" zu öffnen.</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">Energiesparmodus</string>
     <string name="battery_saver_text">Zum Batteriesparen aktivieren</string>
     <string name="text_saving_battery">Batterie wird gespart…</string>
-    <string name="icon_pack_support">Verwenden Sie Ihr Lieblings-Icon-Paket</string>
 
+    <string name="title_open_source">Open Source</string>
+    <string name="title_view_github_repo">Tippen, um Code anzuzeigen</string>
 </resources>

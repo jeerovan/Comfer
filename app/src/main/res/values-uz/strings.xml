@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Ilova tanlash uchun ikonkaga bosing</string>
 
-    <string name="requires_subscription">Obuna (subscription) talab etiladi</string>
-
     <string name="button_to_move_app_to_quick_app_list">Asosiy ilovalar (Home Apps) ro‘yxatiga o‘tkazish</string>
     <string name="button_to_move_app_to_primary_app_list">App drawer ro‘yxatiga o‘tkazish</string>
     <string name="button_to_move_app_to_ghost_app_list">Yashirin ilovalar ro‘yxatiga o‘tkazish</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Analog soat</string>
     <string name="title_clock_size">Soat o‘lchami</string>
     <string name="clock_background_color">Soat foni rangi</string>
-    <string name="background_transparency">Fonning shaffofligi</string>
     <string name="hour_hand_color">Soat strelkasi rangi</string>
     <string name="minute_hand_color">Daqiqa strelkasi rangi</string>
 
     <string name="title_time_format">Vaqt formati</string>
-    <string name="title_show_am_pm">AM/PM ni ko‘rsatish</string>
     <string name="title_font_size">Shrift o‘lchami</string>
     <string name="title_font_weight">Shrift qalinligi</string>
     <string name="title_font_style">Shrift uslubi</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Saqlash</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Pro funksiyalar</string>
     <string name="title_subscription">Subscription</string>
     <string name="go_to_page">Sahifani ochish</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Widgets screen</string>
     <string name="title_choose_action">Amalni tanlash</string>
 
-    <string name="unable_to_load_subscriptions">
-        Subscription maʼlumotlarini yuklab bo‘lmadi. Iltimos, internet ulanishini tekshirib, qayta urinib ko‘ring.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Subscription yuklash muvaffaqiyatsiz</string>
-    <string name="no_subscription_available">Hech qanday subscription mavjud emas</string>
-
-    <string name="title_active_subscription">Faol subscription</string>
-    <string name="subscription_renews_on">Qayta yangilanadi</string>
-    <string name="subscription_expires_on">Tugash sanasi</string>
-
-    <string name="subscription_benefit_one">O‘zingizning dinamik wallpapers’laringizni o‘rnating</string>
-    <string name="subscription_benefit_two">Sevimli vidjetlaringizni Home ekranga qo‘shing</string>
-    <string name="subscription_benefit_three">Home ekrandagi standart vidjetlarni moslashtiring</string>
-    <string name="subscription_benefit_four">Ilovalarni gesture yordamida tez oching</string>
-
-    <string name="title_manage_your_subscription">Subscription’ingizni boshqaring</string>
-    <string name="title_pro_access">Pro access</string>
-    <string name="title_year">yil</string>
-
-    <string name="subscription_failed_prefix">Subscription amalga oshmadi</string>
-    <string name="subscription_successful_prefix">Subscription muvaffaqiyatli</string>
-    <string name="title_subscribe_now">Hozir obuna bo‘lish</string>
-
-    <string name="subscription_restore_failed_prefix">Subscription’ni tiklash muvaffaqiyatsiz</string>
-    <string name="subscription_restore_successful_prefix">Subscription muvaffaqiyatli tiklandi</string>
-    <string name="subscription_not_found_to_restore">Tiklash uchun subscription topilmadi</string>
-    <string name="title_restore_subscription">Subscription’ni tiklash</string>
-
     <string name="guide_home_swipe_up">App drawer’ni ochish uchun yuqoriga swipe qiling.</string>
     <string name="guide_home_swipe_down">Bildirishnomalarni ko‘rish uchun pastga swipe qiling.</string>
     <string name="guide_home_double_tap">"Recent Apps" ni ochish uchun ekranga ikki marta bosing.</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">Batareya tejash</string>
     <string name="battery_saver_text">Batareyani tejash uchun yoqing</string>
     <string name="text_saving_battery">Batareya tejalyapti…</string>
-    <string name="icon_pack_support">Yoqtirgan ikonalar to‘plamingizdan foydalaning</string>
 
+    <string name="title_open_source">Ochiq manba</string>
+    <string name="title_view_github_repo">Kodni ko\'rish uchun bosing</string>
 </resources>

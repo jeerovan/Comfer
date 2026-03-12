@@ -16,8 +16,8 @@ android {
         applicationId = "com.jeerovan.comfer"
         minSdk = 23
         targetSdk = 36
-        versionCode = 32
-        versionName = "32.0"
+        versionCode = 33
+        versionName = "33.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -57,8 +57,6 @@ dependencies {
     implementation(libs.app.update.ktx)
     implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.billing.ktx)
-    implementation(libs.purchases)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

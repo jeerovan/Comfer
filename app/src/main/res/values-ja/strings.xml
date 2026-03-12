@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">アイコンをタップしてアプリを選択</string>
 
-    <string name="requires_subscription">サブスクリプションが必要です</string>
-
     <string name="button_to_move_app_to_quick_app_list">ホームアプリに移動</string>
     <string name="button_to_move_app_to_primary_app_list">ドロワーのアプリに移動</string>
     <string name="button_to_move_app_to_ghost_app_list">非表示アプリに移動</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">アナログ時計</string>
     <string name="title_clock_size">時計のサイズ</string>
     <string name="clock_background_color">時計の背景色</string>
-    <string name="background_transparency">背景の透明度</string>
     <string name="hour_hand_color">時針の色</string>
     <string name="minute_hand_color">分針の色</string>
 
     <string name="title_time_format">時刻の形式</string>
-    <string name="title_show_am_pm">AM/PM を表示</string>
     <string name="title_font_size">フォントサイズ</string>
     <string name="title_font_weight">フォントの太さ</string>
     <string name="title_font_style">フォントスタイル</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">保存</string>
 
-    <string name="title_premium">プレミアム</string>
-    <string name="title_pro_features">Pro 機能</string>
     <string name="title_subscription">サブスクリプション</string>
     <string name="go_to_page">ページを開く</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">ウィジェット画面</string>
     <string name="title_choose_action">動作を選択</string>
 
-    <string name="unable_to_load_subscriptions">
-        サブスクリプション情報を読み込めませんでした。ネットワーク接続を確認して、もう一度お試しください。
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">サブスクリプションの読み込みに失敗しました</string>
-    <string name="no_subscription_available">利用可能なサブスクリプションはありません</string>
-
-    <string name="title_active_subscription">有効なサブスクリプション</string>
-    <string name="subscription_renews_on">更新日</string>
-    <string name="subscription_expires_on">有効期限</string>
-
-    <string name="subscription_benefit_one">自分だけの動的壁紙を設定</string>
-    <string name="subscription_benefit_two">お気に入りのウィジェットをホーム画面に追加</string>
-    <string name="subscription_benefit_three">ホーム画面のデフォルトウィジェットをカスタマイズ</string>
-    <string name="subscription_benefit_four">ジェスチャーでアプリを素早く起動</string>
-
-    <string name="title_manage_your_subscription">サブスクリプションを管理</string>
-    <string name="title_pro_access">Pro アクセス</string>
-    <string name="title_year">年</string>
-
-    <string name="subscription_failed_prefix">サブスクリプションに失敗しました</string>
-    <string name="subscription_successful_prefix">サブスクリプションが完了しました</string>
-    <string name="title_subscribe_now">今すぐ購読</string>
-
-    <string name="subscription_restore_failed_prefix">サブスクリプションの復元に失敗しました</string>
-    <string name="subscription_restore_successful_prefix">サブスクリプションが正常に復元されました</string>
-    <string name="subscription_not_found_to_restore">復元できるサブスクリプションが見つかりません</string>
-    <string name="title_restore_subscription">サブスクリプションを復元</string>
-
     <string name="guide_home_swipe_up">上にスワイプしてアプリドロワーを開きます。</string>
     <string name="guide_home_swipe_down">下にスワイプして通知を表示します。</string>
     <string name="guide_home_double_tap">画面をダブルタップすると「最近使用したアプリ」を開きます。</string>
@@ -351,6 +316,8 @@
     <string name="title_battery_saver">バッテリー節約</string>
     <string name="battery_saver_text">節電のためオンにしてください</string>
     <string name="text_saving_battery">バッテリー節約中…</string>
-    <string name="icon_pack_support">お気に入りのアイコンパックを使う</string>
+
+    <string name="title_open_source">オープンソース</string>
+    <string name="title_view_github_repo">タップしてコードを表示</string>
 
 </resources>

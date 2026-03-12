@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Барои интихоб кардани барнома иконаи онро зер кунед</string>
 
-    <string name="requires_subscription">Обуна (subscription) лозим аст</string>
-
     <string name="button_to_move_app_to_quick_app_list">Ба Home Apps интиқол додан</string>
     <string name="button_to_move_app_to_primary_app_list">Ба App drawer интиқол додан</string>
     <string name="button_to_move_app_to_ghost_app_list">Ба Барномаҳои пинҳонӣ интиқол додан</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Соати analog</string>
     <string name="title_clock_size">Андозаи соат</string>
     <string name="clock_background_color">Ранги пасзаминаи соат</string>
-    <string name="background_transparency">Шаффофияти пасзамина</string>
     <string name="hour_hand_color">Ранги тирчаи соат (соатӣ)</string>
     <string name="minute_hand_color">Ранги тирчаи дақиқа</string>
 
     <string name="title_time_format">Формати вақт</string>
-    <string name="title_show_am_pm">AM/PM-ро нишон додан</string>
     <string name="title_font_size">Андозаи шрифт</string>
     <string name="title_font_weight">Ғафсии шрифт</string>
     <string name="title_font_style">Услуби шрифт</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Захира кардан</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Функсияҳои Pro</string>
     <string name="title_subscription">Subscription</string>
     <string name="go_to_page">Саҳифаро кушодан</string>
 
@@ -258,36 +252,6 @@
     <string name="title_widgets_screen">Widgets screen</string>
     <string name="title_choose_action">Интихоби амал</string>
 
-    <string name="unable_to_load_subscriptions">
-        Маълумоти subscription бор нашуд. Лутфан пайвасти интернети худро санҷед ва дубора кӯшиш кунед.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Боркунии subscription ноком шуд</string>
-    <string name="no_subscription_available">Ҳеҷ subscription дастрас нест</string>
-
-    <string name="title_active_subscription">Subscription-и фаъол</string>
-    <string name="subscription_renews_on">Нав карда мешавад рӯзи</string>
-    <string name="subscription_expires_on">Мӯҳлат тамом мешавад рӯзи</string>
-
-    <string name="subscription_benefit_one">Wallpapers-и динамикии шахсии худро танзим кунед</string>
-    <string name="subscription_benefit_two">Widgets–ҳои дӯстдоштаи худро ба Home screen илова кунед</string>
-    <string name="subscription_benefit_three">Widgets–ҳои пешфарзро дар Home screen фарқкунандаи худ созед</string>
-    <string name="subscription_benefit_four">Барномаҳо
-ро бо gestures зуд кушоед</string>
-
-    <string name="title_manage_your_subscription">Subscription-и худро идора кунед</string>
-    <string name="title_pro_access">Pro access</string>
-    <string name="title_year">сол</string>
-
-    <string name="subscription_failed_prefix">Subscription ноком шуд</string>
-    <string name="subscription_successful_prefix">Subscription бомуваффақият анҷом ёфт</string>
-    <string name="title_subscribe_now">Ҳозир subscribe кунед</string>
-
-    <string name="subscription_restore_failed_prefix">Барқароркунии subscription ноком шуд</string>
-    <string name="subscription_restore_successful_prefix">Subscription бомуваффақият барқарор шуд</string>
-    <string name="subscription_not_found_to_restore">Барои барқароркунӣ ягон subscription ёфт нашуд</string>
-    <string name="title_restore_subscription">Барқарор кардани subscription</string>
-
     <string name="guide_home_swipe_up">Барои кушодани App drawer ба боло swipe кунед.</string>
     <string name="guide_home_swipe_down">Барои дидани огоҳномаҳо ба поён swipe кунед.</string>
     <string name="guide_home_double_tap">Барои кушодани "Recent Apps" экранро ду маротиба зер кунед.</string>
@@ -354,6 +318,7 @@
     <string name="title_battery_saver">Ҳифзи батарея</string>
     <string name="battery_saver_text">Барои сарфа кардани батарея фаъол кунед</string>
     <string name="text_saving_battery">Дар ҳоли сарфа кардани батарея…</string>
-    <string name="icon_pack_support">Аз бастаи нишонаҳои дӯстдоштаатон истифода баред</string>
 
+    <string name="title_open_source">Манбаи кушода</string>
+    <string name="title_view_github_repo">Барои дидани код пахш кунед</string>
 </resources>

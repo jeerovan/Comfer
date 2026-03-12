@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Нажмите на иконку, чтобы выбрать приложение</string>
 
-    <string name="requires_subscription">Требуется подписка</string>
-
     <string name="button_to_move_app_to_quick_app_list">Переместить в приложения Домашнего экрана</string>
     <string name="button_to_move_app_to_primary_app_list">Переместить в приложения списка (дроера)</string>
     <string name="button_to_move_app_to_ghost_app_list">Переместить в скрытые приложения</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Аналоговые часы</string>
     <string name="title_clock_size">Размер часов</string>
     <string name="clock_background_color">Цвет фона часов</string>
-    <string name="background_transparency">Прозрачность фона</string>
     <string name="hour_hand_color">Цвет часовой стрелки</string>
     <string name="minute_hand_color">Цвет минутной стрелки</string>
 
     <string name="title_time_format">Формат времени</string>
-    <string name="title_show_am_pm">Показывать AM/PM</string>
     <string name="title_font_size">Размер шрифта</string>
     <string name="title_font_weight">Толщина шрифта</string>
     <string name="title_font_style">Стиль шрифта</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Сохранить</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Функции Pro</string>
     <string name="title_subscription">Подписка</string>
     <string name="go_to_page">Открыть страницу</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Экран виджетов</string>
     <string name="title_choose_action">Выберите действие</string>
 
-    <string name="unable_to_load_subscriptions">
-        Не удалось загрузить информацию о подписке. Проверьте подключение к сети и попробуйте снова.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Не удалось загрузить подписку</string>
-    <string name="no_subscription_available">Нет доступных подписок</string>
-
-    <string name="title_active_subscription">Активная подписка</string>
-    <string name="subscription_renews_on">Продление</string>
-    <string name="subscription_expires_on">Окончание</string>
-
-    <string name="subscription_benefit_one">Настройка собственных динамических обоев</string>
-    <string name="subscription_benefit_two">Добавление любимых виджетов на главный экран</string>
-    <string name="subscription_benefit_three">Настройка стандартных виджетов на главном экране</string>
-    <string name="subscription_benefit_four">Использование жестов для быстрого открытия приложений</string>
-
-    <string name="title_manage_your_subscription">Управление подпиской</string>
-    <string name="title_pro_access">Доступ Pro</string>
-    <string name="title_year">год</string>
-
-    <string name="subscription_failed_prefix">Ошибка подписки</string>
-    <string name="subscription_successful_prefix">Подписка оформлена</string>
-    <string name="title_subscribe_now">Оформить подписку</string>
-
-    <string name="subscription_restore_failed_prefix">Ошибка восстановления подписки</string>
-    <string name="subscription_restore_successful_prefix">Подписка успешно восстановлена</string>
-    <string name="subscription_not_found_to_restore">Подписка для восстановления не найдена</string>
-    <string name="title_restore_subscription">Восстановить подписку</string>
-
     <string name="guide_home_swipe_up">Проведите вверх, чтобы открыть список приложений.</string>
     <string name="guide_home_swipe_down">Проведите вниз, чтобы открыть уведомления.</string>
     <string name="guide_home_double_tap">Дважды нажмите на экран, чтобы открыть "Недавние приложения".</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">Экономия батареи</string>
     <string name="battery_saver_text">Включите для экономии батареи</string>
     <string name="text_saving_battery">Экономия батареи…</string>
-    <string name="icon_pack_support">Используйте любимый пакет иконок</string>
 
+    <string name="title_open_source">Открытый исходный код</string>
+    <string name="title_view_github_repo">Нажмите, чтобы посмотреть код</string>
 </resources>

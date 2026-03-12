@@ -6,13 +6,9 @@ import androidx.work.*
 import coil.ImageLoaderFactory
 import java.util.concurrent.TimeUnit
 import coil.ImageLoader
-import com.revenuecat.purchases.LogLevel
-import com.revenuecat.purchases.Purchases
-import com.revenuecat.purchases.PurchasesConfiguration
 
 const val saveCrashes = false
 const val saveLogs = false
-const val isTesting = false
 class ComferApp : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
@@ -21,8 +17,6 @@ class ComferApp : Application(), ImageLoaderFactory {
             Thread.setDefaultUncaughtExceptionHandler(CrashHandler(this))
             LogcatRecorder(this).startLogging()
         }
-        Purchases.logLevel = LogLevel.ERROR
-        Purchases.configure(PurchasesConfiguration.Builder(this, "goog_alczWNGIWABONRuXvtRSKpPJFXi").build())
         setupImageWorker()
     }
 

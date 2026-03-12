@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">הקש על אייקון כדי לבחור אפליקציה</string>
 
-    <string name="requires_subscription">נדרשת מנוי</string>
-
     <string name="button_to_move_app_to_quick_app_list">העבר לאפליקציות הבית</string>
     <string name="button_to_move_app_to_primary_app_list">העבר לאפליקציות מגירת האפליקציות</string>
     <string name="button_to_move_app_to_ghost_app_list">העבר לאפליקציות מוסתרות</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">שעון אנלוגי</string>
     <string name="title_clock_size">גודל השעון</string>
     <string name="clock_background_color">צבע רקע השעון</string>
-    <string name="background_transparency">שקיפות הרקע</string>
     <string name="hour_hand_color">צבע מחוג השעות</string>
     <string name="minute_hand_color">צבע מחוג הדקות</string>
 
     <string name="title_time_format">תצורת שעה</string>
-    <string name="title_show_am_pm">הצגת AM/PM</string>
     <string name="title_font_size">גודל גופן</string>
     <string name="title_font_weight">עובי גופן</string>
     <string name="title_font_style">סגנון גופן</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">שמור</string>
 
-    <string name="title_premium">פרימיום</string>
-    <string name="title_pro_features">יכולות Pro</string>
     <string name="title_subscription">מנוי</string>
     <string name="go_to_page">פתיחת עמוד</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">מסך ווידג׳טים</string>
     <string name="title_choose_action">בחר פעולה</string>
 
-    <string name="unable_to_load_subscriptions">
-        לא ניתן לטעון את פרטי המנוי. בדוק את החיבור ונסה שוב.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">טעינת המנוי נכשלה</string>
-    <string name="no_subscription_available">אין מנויים זמינים</string>
-
-    <string name="title_active_subscription">מנוי פעיל</string>
-    <string name="subscription_renews_on">מועד חידוש</string>
-    <string name="subscription_expires_on">תאריך סיום</string>
-
-    <string name="subscription_benefit_one">הגדרת טפטים דינמיים משלך</string>
-    <string name="subscription_benefit_two">הוספת הווידג׳טים המועדפים עליך למסך הבית</string>
-    <string name="subscription_benefit_three">התאמת הווידג׳טים ברירת המחדל במסך הבית</string>
-    <string name="subscription_benefit_four">שימוש במחוות לפתיחת אפליקציות במהירות</string>
-
-    <string name="title_manage_your_subscription">ניהול המנוי שלך</string>
-    <string name="title_pro_access">גישה Pro</string>
-    <string name="title_year">שנה</string>
-
-    <string name="subscription_failed_prefix">המנוי נכשל</string>
-    <string name="subscription_successful_prefix">המנוי בוצע בהצלחה</string>
-    <string name="title_subscribe_now">הירשם עכשיו</string>
-
-    <string name="subscription_restore_failed_prefix">שחזור המנוי נכשל</string>
-    <string name="subscription_restore_successful_prefix">המנוי שוחזר בהצלחה</string>
-    <string name="subscription_not_found_to_restore">לא נמצא מנוי לשחזור</string>
-    <string name="title_restore_subscription">שחזור מנוי</string>
-
     <string name="guide_home_swipe_up">החלק מעלה כדי לפתוח את מגירת האפליקציות.</string>
     <string name="guide_home_swipe_down">החלק מטה כדי לראות התראות.</string>
     <string name="guide_home_double_tap">הקשה כפולה על המסך תפתח את "האפליקציות האחרונות".</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">חיסכון בסוללה</string>
     <string name="battery_saver_text">הפעילו לחיסכון בסוללה</string>
     <string name="text_saving_battery">חוסך בסוללה…</string>
-    <string name="icon_pack_support">השתמשו בחבילת האייקונים המועדפת עליכם</string>
 
+    <string name="title_open_source">קוד פתוח</string>
+    <string name="title_view_github_repo">הקש להצגת הקוד</string>
 </resources>

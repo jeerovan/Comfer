@@ -80,8 +80,6 @@
 
     <string name="tap_icon_to_select_app">ایپ منتخب کرنے کے لیے آئیکن پر ٹیپ کریں</string>
 
-    <string name="requires_subscription">سبسکرپشن درکار ہے</string>
-
     <string name="button_to_move_app_to_quick_app_list">ہوم ایپس میں منتقل کریں</string>
     <string name="button_to_move_app_to_primary_app_list">ڈراؤر ایپس میں منتقل کریں</string>
     <string name="button_to_move_app_to_ghost_app_list">پوشیدہ ایپس میں منتقل کریں</string>
@@ -93,12 +91,10 @@
     <string name="title_analog_clock">اینالاگ گھڑی</string>
     <string name="title_clock_size">گھڑی کا سائز</string>
     <string name="clock_background_color">گھڑی کا پس منظر رنگ</string>
-    <string name="background_transparency">پس منظر کی شفافیت</string>
     <string name="hour_hand_color">گھنٹے کی سوئی کا رنگ</string>
     <string name="minute_hand_color">منٹ کی سوئی کا رنگ</string>
 
     <string name="title_time_format">وقت کی ترتیب</string>
-    <string name="title_show_am_pm">AM/PM دکھائیں</string>
     <string name="title_font_size">فونٹ سائز</string>
     <string name="title_font_weight">فونٹ موٹائی</string>
     <string name="title_font_style">فونٹ انداز</string>
@@ -122,8 +118,6 @@
 
     <string name="button_text_save">محفوظ کریں</string>
 
-    <string name="title_premium">پریمیم</string>
-    <string name="title_pro_features">پرو فیچرز</string>
     <string name="title_subscription">سبسکرپشن</string>
     <string name="go_to_page">صفحہ کھولیں</string>
 
@@ -255,35 +249,6 @@
     <string name="title_widgets_screen">ویجٹ اسکرین</string>
     <string name="title_choose_action">عمل منتخب کریں</string>
 
-    <string name="unable_to_load_subscriptions">
-        سبسکرپشن کی معلومات لوڈ نہیں ہو سکیں۔ براہِ کرم اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">سبسکرپشن لوڈ کرنے میں ناکام</string>
-    <string name="no_subscription_available">کوئی سبسکرپشن دستیاب نہیں</string>
-
-    <string name="title_active_subscription">فعال سبسکرپشن</string>
-    <string name="subscription_renews_on">تجدید کی تاریخ</string>
-    <string name="subscription_expires_on">ختم ہونے کی تاریخ</string>
-
-    <string name="subscription_benefit_one">اپنے متحرک وال پیپرز سیٹ کریں</string>
-    <string name="subscription_benefit_two">ہوم اسکرین پر اپنے پسندیدہ ویجٹس شامل کریں</string>
-    <string name="subscription_benefit_three">ہوم اسکرین کے ڈیفالٹ ویجٹس حسبِ ضرورت بنائیں</string>
-    <string name="subscription_benefit_four">جیسچرز کے ذریعے ایپس تیزی سے کھولیں</string>
-
-    <string name="title_manage_your_subscription">اپنی سبسکرپشن منظم کریں</string>
-    <string name="title_pro_access">پرو رسائی</string>
-    <string name="title_year">سال</string>
-
-    <string name="subscription_failed_prefix">سبسکرپشن ناکام</string>
-    <string name="subscription_successful_prefix">سبسکرپشن کامیاب</string>
-    <string name="title_subscribe_now">ابھی سبسکرائب کریں</string>
-
-    <string name="subscription_restore_failed_prefix">سبسکرپشن بحال کرنے میں ناکامی</string>
-    <string name="subscription_restore_successful_prefix">سبسکرپشن کامیابی سے بحال ہو گئی</string>
-    <string name="subscription_not_found_to_restore">بحال کرنے کے لیے کوئی سبسکرپشن نہیں ملی</string>
-    <string name="title_restore_subscription">سبسکرپشن بحال کریں</string>
-
     <string name="guide_home_swipe_up">ایپ ڈراؤر کھولنے کے لیے اوپر سوائپ کریں۔</string>
     <string name="guide_home_swipe_down">اطلاعات دیکھنے کے لیے نیچے سوائپ کریں۔</string>
     <string name="guide_home_double_tap">حالیہ ایپس کھولنے کے لیے اسکرین پر ڈبل ٹیپ کریں۔</string>
@@ -353,5 +318,7 @@
     <string name="title_battery_saver">بیٹری سیور</string>
     <string name="battery_saver_text">بیٹری بچانے کے لیے فعال کریں</string>
     <string name="text_saving_battery">بیٹری محفوظ کی جا رہی ہے</string>
-    <string name="icon_pack_support">اپنا پسندیدہ آئیکن پیک استعمال کریں</string>
+
+    <string name="title_open_source">اوپن سورس</string>
+    <string name="title_view_github_repo">کوڈ دیکھنے کے لیے ٹیپ کریں</string>
 </resources>

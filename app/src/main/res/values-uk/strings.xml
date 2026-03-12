@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Натисніть на іконку, щоб вибрати додаток</string>
 
-    <string name="requires_subscription">Потрібна підписка</string>
-
     <string name="button_to_move_app_to_quick_app_list">Перемістити до додатків головного екрана</string>
     <string name="button_to_move_app_to_primary_app_list">Перемістити до додатків панелі</string>
     <string name="button_to_move_app_to_ghost_app_list">Перемістити до прихованих додатків</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Аналоговий годинник</string>
     <string name="title_clock_size">Розмір годинника</string>
     <string name="clock_background_color">Колір фону годинника</string>
-    <string name="background_transparency">Прозорість фону</string>
     <string name="hour_hand_color">Колір стрілки годин</string>
     <string name="minute_hand_color">Колір стрілки хвилин</string>
 
     <string name="title_time_format">Формат часу</string>
-    <string name="title_show_am_pm">Показувати AM/PM</string>
     <string name="title_font_size">Розмір шрифту</string>
     <string name="title_font_weight">Товщина шрифту</string>
     <string name="title_font_style">Стиль шрифту</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Зберегти</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Функції Pro</string>
     <string name="title_subscription">Підписка</string>
     <string name="go_to_page">Відкрити сторінку</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Екран віджетів</string>
     <string name="title_choose_action">Виберіть дію</string>
 
-    <string name="unable_to_load_subscriptions">
-        Не вдалося завантажити інформацію про підписку. Перевірте з’єднання з Інтернетом і спробуйте ще раз.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Не вдалося завантажити підписку</string>
-    <string name="no_subscription_available">Немає доступних підписок</string>
-
-    <string name="title_active_subscription">Активна підписка</string>
-    <string name="subscription_renews_on">Поновлюється</string>
-    <string name="subscription_expires_on">Закінчується</string>
-
-    <string name="subscription_benefit_one">Налаштовуйте власні динамічні шпалери</string>
-    <string name="subscription_benefit_two">Додавайте улюблені віджети на головний екран</string>
-    <string name="subscription_benefit_three">Налаштовуйте стандартні віджети на головному екрані</string>
-    <string name="subscription_benefit_four">Використовуйте жести для швидкого відкриття додатків</string>
-
-    <string name="title_manage_your_subscription">Керування підпискою</string>
-    <string name="title_pro_access">Доступ Pro</string>
-    <string name="title_year">рік</string>
-
-    <string name="subscription_failed_prefix">Помилка підписки</string>
-    <string name="subscription_successful_prefix">Підписку оформлено</string>
-    <string name="title_subscribe_now">Оформити підписку</string>
-
-    <string name="subscription_restore_failed_prefix">Помилка відновлення підписки</string>
-    <string name="subscription_restore_successful_prefix">Підписку успішно відновлено</string>
-    <string name="subscription_not_found_to_restore">Не знайдено підписки для відновлення</string>
-    <string name="title_restore_subscription">Відновити підписку</string>
-
     <string name="guide_home_swipe_up">Проведіть вгору, щоб відкрити панель додатків.</string>
     <string name="guide_home_swipe_down">Проведіть вниз, щоб переглянути сповіщення.</string>
     <string name="guide_home_double_tap">Двічі натисніть на екран, щоб відкрити "Нещодавні додатки".</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">Режим економії батареї</string>
     <string name="battery_saver_text">Увімкніть для економії батареї</string>
     <string name="text_saving_battery">Економія батареї…</string>
-    <string name="icon_pack_support">Використовуйте улюблений пакет іконок</string>
 
+    <string name="title_open_source">Відкритий вихідний код</string>
+    <string name="title_view_github_repo">Натисніть, щоб переглянути код</string>
 </resources>

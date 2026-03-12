@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Toca un icono para seleccionar una app</string>
 
-    <string name="requires_subscription">Requiere suscripción</string>
-
     <string name="button_to_move_app_to_quick_app_list">Mover a apps de inicio</string>
     <string name="button_to_move_app_to_primary_app_list">Mover a apps del cajón</string>
     <string name="button_to_move_app_to_ghost_app_list">Mover a apps ocultas</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Reloj analógico</string>
     <string name="title_clock_size">Tamaño del reloj</string>
     <string name="clock_background_color">Color de fondo del reloj</string>
-    <string name="background_transparency">Transparencia del fondo</string>
     <string name="hour_hand_color">Color de la aguja de horas</string>
     <string name="minute_hand_color">Color de la aguja de minutos</string>
 
     <string name="title_time_format">Formato de hora</string>
-    <string name="title_show_am_pm">Mostrar AM/PM</string>
     <string name="title_font_size">Tamaño de fuente</string>
     <string name="title_font_weight">Grosor de fuente</string>
     <string name="title_font_style">Estilo de fuente</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Guardar</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Funciones Pro</string>
     <string name="title_subscription">Suscripción</string>
     <string name="go_to_page">Abrir página</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Pantalla de widgets</string>
     <string name="title_choose_action">Elegir acción</string>
 
-    <string name="unable_to_load_subscriptions">
-        No se pudo cargar la información de la suscripción. Comprueba tu conexión e inténtalo de nuevo.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Error al cargar la suscripción</string>
-    <string name="no_subscription_available">No hay suscripciones disponibles</string>
-
-    <string name="title_active_subscription">Suscripción activa</string>
-    <string name="subscription_renews_on">Se renueva el</string>
-    <string name="subscription_expires_on">Expira el</string>
-
-    <string name="subscription_benefit_one">Configura tus propios fondos dinámicos</string>
-    <string name="subscription_benefit_two">Añade tus widgets favoritos a la pantalla de inicio</string>
-    <string name="subscription_benefit_three">Personaliza los widgets predeterminados de la pantalla de inicio</string>
-    <string name="subscription_benefit_four">Usa gestos para abrir apps rápidamente</string>
-
-    <string name="title_manage_your_subscription">Gestionar suscripción</string>
-    <string name="title_pro_access">Acceso Pro</string>
-    <string name="title_year">año</string>
-
-    <string name="subscription_failed_prefix">Fallo en la suscripción</string>
-    <string name="subscription_successful_prefix">Suscripción correcta</string>
-    <string name="title_subscribe_now">Suscribirse ahora</string>
-
-    <string name="subscription_restore_failed_prefix">Error al restaurar la suscripción</string>
-    <string name="subscription_restore_successful_prefix">Suscripción restaurada correctamente</string>
-    <string name="subscription_not_found_to_restore">No se encontró ninguna suscripción para restaurar</string>
-    <string name="title_restore_subscription">Restaurar suscripción</string>
-
     <string name="guide_home_swipe_up">Desliza hacia arriba para abrir el cajón de aplicaciones.</string>
     <string name="guide_home_swipe_down">Desliza hacia abajo para ver las notificaciones.</string>
     <string name="guide_home_double_tap">Toca dos veces la pantalla para abrir "Apps recientes".</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">Ahorro de batería</string>
     <string name="battery_saver_text">Activa para ahorrar batería</string>
     <string name="text_saving_battery">Ahorrando batería…</string>
-    <string name="icon_pack_support">Usa tu paquete de iconos favorito</string>
 
+    <string name="title_open_source">Código abierto</string>
+    <string name="title_view_github_repo">Toca para ver el código</string>
 </resources>

@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Atinge o pictogramă pentru a selecta aplicația</string>
 
-    <string name="requires_subscription">Necesită abonament</string>
-
     <string name="button_to_move_app_to_quick_app_list">Mută la Aplicații principale (Acasă)</string>
     <string name="button_to_move_app_to_primary_app_list">Mută la Aplicațiile din sertar</string>
     <string name="button_to_move_app_to_ghost_app_list">Mută la Aplicații ascunse</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Ceas analog</string>
     <string name="title_clock_size">Dimensiune ceas</string>
     <string name="clock_background_color">Culoarea fundalului ceasului</string>
-    <string name="background_transparency">Transparența fundalului</string>
     <string name="hour_hand_color">Culoarea limbii orare</string>
     <string name="minute_hand_color">Culoarea limbii minutare</string>
 
     <string name="title_time_format">Format oră</string>
-    <string name="title_show_am_pm">Afișează AM/PM</string>
     <string name="title_font_size">Mărime font</string>
     <string name="title_font_weight">Grosime font</string>
     <string name="title_font_style">Stil font</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Salvează</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Funcții Pro</string>
     <string name="title_subscription">Abonament</string>
     <string name="go_to_page">Deschide pagina</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Ecran widgeturi</string>
     <string name="title_choose_action">Alege acțiunea</string>
 
-    <string name="unable_to_load_subscriptions">
-        Nu s-au putut încărca informațiile despre abonament. Verifică conexiunea la internet și încearcă din nou.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Încărcarea abonamentului a eșuat</string>
-    <string name="no_subscription_available">Niciun abonament disponibil</string>
-
-    <string name="title_active_subscription">Abonament activ</string>
-    <string name="subscription_renews_on">Se reînnoiește la</string>
-    <string name="subscription_expires_on">Expiră la</string>
-
-    <string name="subscription_benefit_one">Setează propriile wallpaper-uri dinamice</string>
-    <string name="subscription_benefit_two">Adaugă pe Ecranul principal widgeturile preferate</string>
-    <string name="subscription_benefit_three">Personalizează widgeturile implicite de pe Ecranul principal</string>
-    <string name="subscription_benefit_four">Folosește gesturi pentru a deschide rapid aplicațiile</string>
-
-    <string name="title_manage_your_subscription">Gestionează abonamentul</string>
-    <string name="title_pro_access">Acces Pro</string>
-    <string name="title_year">an</string>
-
-    <string name="subscription_failed_prefix">Abonare eșuată</string>
-    <string name="subscription_successful_prefix">Abonare reușită</string>
-    <string name="title_subscribe_now">Abonează-te acum</string>
-
-    <string name="subscription_restore_failed_prefix">Restaurarea abonamentului a eșuat</string>
-    <string name="subscription_restore_successful_prefix">Abonament restaurat cu succes</string>
-    <string name="subscription_not_found_to_restore">Nu a fost găsit niciun abonament de restaurat</string>
-    <string name="title_restore_subscription">Restaurează abonamentul</string>
-
     <string name="guide_home_swipe_up">Glisează în sus pentru a deschide sertarul de aplicații.</string>
     <string name="guide_home_swipe_down">Glisează în jos pentru a vedea notificările.</string>
     <string name="guide_home_double_tap">Atinge de două ori ecranul pentru a deschide "Aplicații recente".</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">Economisire baterie</string>
     <string name="battery_saver_text">Activați pentru a economisi bateria</string>
     <string name="text_saving_battery">Se economisește bateria…</string>
-    <string name="icon_pack_support">Folosiți pachetul de iconițe preferat</string>
 
+    <string name="title_open_source">Sursă deschisă</string>
+    <string name="title_view_github_repo">Atingeți pentru a vizualiza codul</string>
 </resources>

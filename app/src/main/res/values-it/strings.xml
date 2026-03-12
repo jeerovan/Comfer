@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Tocca un\'icona per selezionare un\'app</string>
 
-    <string name="requires_subscription">Richiede un abbonamento</string>
-
     <string name="button_to_move_app_to_quick_app_list">Sposta nelle app Home</string>
     <string name="button_to_move_app_to_primary_app_list">Sposta nelle app del cassetto</string>
     <string name="button_to_move_app_to_ghost_app_list">Sposta nelle app nascoste</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Orologio analogico</string>
     <string name="title_clock_size">Dimensione orologio</string>
     <string name="clock_background_color">Colore sfondo orologio</string>
-    <string name="background_transparency">Trasparenza sfondo</string>
     <string name="hour_hand_color">Colore lancetta delle ore</string>
     <string name="minute_hand_color">Colore lancetta dei minuti</string>
 
     <string name="title_time_format">Formato ora</string>
-    <string name="title_show_am_pm">Mostra AM/PM</string>
     <string name="title_font_size">Dimensione testo</string>
     <string name="title_font_weight">Spessore testo</string>
     <string name="title_font_style">Stile testo</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Salva</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Funzioni Pro</string>
     <string name="title_subscription">Abbonamento</string>
     <string name="go_to_page">Apri pagina</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Schermata widget</string>
     <string name="title_choose_action">Scegli azione</string>
 
-    <string name="unable_to_load_subscriptions">
-        Impossibile caricare le informazioni sull\'abbonamento. Controlla la connessione e riprova.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Caricamento abbonamento non riuscito</string>
-    <string name="no_subscription_available">Nessun abbonamento disponibile</string>
-
-    <string name="title_active_subscription">Abbonamento attivo</string>
-    <string name="subscription_renews_on">Si rinnova il</string>
-    <string name="subscription_expires_on">Scade il</string>
-
-    <string name="subscription_benefit_one">Imposta i tuoi sfondi dinamici</string>
-    <string name="subscription_benefit_two">Aggiungi i tuoi widget preferiti alla schermata Home</string>
-    <string name="subscription_benefit_three">Personalizza i widget predefiniti della schermata Home</string>
-    <string name="subscription_benefit_four">Usa le gesture per aprire rapidamente le app</string>
-
-    <string name="title_manage_your_subscription">Gestisci il tuo abbonamento</string>
-    <string name="title_pro_access">Accesso Pro</string>
-    <string name="title_year">anno</string>
-
-    <string name="subscription_failed_prefix">Abbonamento non riuscito</string>
-    <string name="subscription_successful_prefix">Abbonamento riuscito</string>
-    <string name="title_subscribe_now">Abbonati ora</string>
-
-    <string name="subscription_restore_failed_prefix">Ripristino abbonamento non riuscito</string>
-    <string name="subscription_restore_successful_prefix">Abbonamento ripristinato correttamente</string>
-    <string name="subscription_not_found_to_restore">Nessun abbonamento trovato da ripristinare</string>
-    <string name="title_restore_subscription">Ripristina abbonamento</string>
-
     <string name="guide_home_swipe_up">Scorri verso l\'alto per aprire il cassetto delle app.</string>
     <string name="guide_home_swipe_down">Scorri verso il basso per vedere le notifiche.</string>
     <string name="guide_home_double_tap">Tocca due volte lo schermo per aprire le "App recenti".</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">Risparmio batteria</string>
     <string name="battery_saver_text">Attiva per risparmiare batteria</string>
     <string name="text_saving_battery">Risparmio batteria…</string>
-    <string name="icon_pack_support">Usa il tuo pacchetto icone preferito</string>
 
+    <string name="title_open_source">Open Source</string>
+    <string name="title_view_github_repo">Tocca per visualizzare il codice</string>
 </resources>

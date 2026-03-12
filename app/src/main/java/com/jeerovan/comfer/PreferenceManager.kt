@@ -24,7 +24,6 @@ object PreferenceManager {
     private const val KEY_ICON_SIZE = "icon_size"
     private const val KEY_ICON_SHAPE = "icon_shape"
     private const val ICON_PACK_PACKAGE = "icon_pack_package"
-    private const val KEY_IMAGE_URL = "image_url"
     private const val DUMMY_NAME = "dummy_name"
     private const val USER_NAME = "user_name"
     private const val KEY_IMAGE_DATA = "image_data"
@@ -40,7 +39,6 @@ object PreferenceManager {
     private const val WALLPAPER_URI = "wallpaper_uri"
     private const val APPLIED_WALLPAPER_IMAGE = "applied_wallpaper_image"
     private const val ALPHABETICAL_ORDER = "alphabetical_order"
-    private const val HAS_PRO_VERSION = "has_pro_version"
     private const val THEMED_ICONS = "themed_icons"
     private const val WALLPAPER_LIGHT_BG = "wallpaper_light_bg"
     private const val WALLPAPER_LIGHT_FG = "wallpaper_light_fg"
@@ -51,7 +49,6 @@ object PreferenceManager {
     private const val WALLPAPER_TEXT_BG = "wallpaper_text_bg"
     private const val AUTO_WALLPAPER = "auto_wallpaper"
     private const val MONOCHROME = "monochrome"
-    private const val LIGHT_HOUR = "dark_mode"
     private const val APP_UPDATE_PROMPT_TIME = "app_update_prompt_time"
     private const val APP_UPDATE_PROMPT_COUNTER = "app_update_prompt_counter"
     private const val KEYBOARD_LOCALE = "keyboard_locale"
@@ -119,19 +116,8 @@ object PreferenceManager {
         setDummyName(context,dummyName)
         setQuickAppsLayout(context,"circular")
     }
-    fun setPro(context: Context, enabled: Boolean){
-        setBoolean(context,HAS_PRO_VERSION,enabled)
-    }
-    fun getPro(context: Context): Boolean {
-        return getBoolean(context,HAS_PRO_VERSION,false)
-    }
-    fun setLightHour(context: Context, enabled: Boolean){
-        setBoolean(context,LIGHT_HOUR,enabled)
-    }
     fun isLightHour(context: Context): Boolean {
-        if(isTesting) {
-            return getBoolean(context, LIGHT_HOUR, true)
-        } else if (isBatterySaver(context)) {
+        if (isBatterySaver(context)) {
             return false
         } else {
             val calendar = Calendar.getInstance()
@@ -220,8 +206,7 @@ object PreferenceManager {
         return getString(context,APPLIED_WALLPAPER_IMAGE,null)
     }
     fun getWallpaperDirectory(context: Context): String?{
-        val uriString = if(getPro(context)) { getString(context,WALLPAPER_DIRECTORY,null) } else { null }
-        return uriString
+        return getString(context,WALLPAPER_DIRECTORY,null)
     }
     fun setWallpaperDirectory(context: Context,directoryUri: String?){
         setString(context,WALLPAPER_DIRECTORY,directoryUri)
@@ -248,7 +233,7 @@ object PreferenceManager {
         setBoolean(context,CUSTOM_WIDGETS,enabled)
     }
     fun getCustomWidgets(context: Context):Boolean{
-        return if(getPro(context)){ getBoolean(context,CUSTOM_WIDGETS,false) } else { false }
+        return getBoolean(context,CUSTOM_WIDGETS,false)
     }
 
     fun setWallpaperMotion(context: Context, enabled: Boolean) {
@@ -306,7 +291,7 @@ object PreferenceManager {
         setString(context,ICON_PACK_PACKAGE,pack)
     }
     fun getIconPack(context: Context): String? {
-        return if(getPro(context)) getString(context,ICON_PACK_PACKAGE,null) else null
+        return getString(context,ICON_PACK_PACKAGE,null)
     }
 
     fun getBackgroundImagePath(context: Context): String? {
@@ -340,10 +325,6 @@ object PreferenceManager {
 
     fun setWidgetsOnSwipe(context:Context, swipeDirection:String,set: Boolean){
         setBoolean(context,"${swipeDirection}_swipe_widgets", set)
-    }
-
-    fun setUsername(context: Context,name:String){
-        setString(context,USER_NAME,name)
     }
 
     fun getUsername(context: Context):String? {

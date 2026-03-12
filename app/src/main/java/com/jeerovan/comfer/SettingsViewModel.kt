@@ -26,16 +26,13 @@ import androidx.compose.ui.text.googlefonts.GoogleFont
 import com.jeerovan.comfer.ui.theme.fontProvider
 import android.graphics.Bitmap
 import androidx.datastore.preferences.core.edit
-import com.revenuecat.purchases.Purchases
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
 data class SettingsUiState(
-    val hasPro: Boolean = false,
     val autoWallpapers: Boolean = false,
     val wallpaperMotionEnabled: Boolean = true,
     val wallpaperDirectory: String? = null,
@@ -192,19 +189,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     init {
         loadSettings()
         viewModelScope.launch {
-            BillingRepository.customerInfo
-                .filterNotNull()
-                .map { info ->
-                    // 1. Map to the boolean state you care about
-                    info?.entitlements?.active?.isNotEmpty() == true
-                }
-                .distinctUntilChanged() // 2. ONLY emit if the value is different from the last one
-                .collect { isPro ->
-                    // 3. Perform your side effect
-                    if(!isTesting)setPro(isPro)
-                }
-        }
-        viewModelScope.launch {
             application.dataStore.data
                 .map { it[PreferenceKeys.WALLPAPER_UPDATE] ?: 0L }
                 .distinctUntilChanged()
@@ -215,21 +199,16 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     fun loadSettings() {
         Log.i("SettingsViewModel","LoadSettings")
-        // refresh pro state
-        BillingRepository.refreshSubscription()
         viewModelScope.launch {
-            val hasPro = PreferenceManager.getPro(getApplication())
             val autoWallpapers = PreferenceManager.getAutoWallpapers(getApplication(),true)
             val monochrome = PreferenceManager.getMonochrome(getApplication(), default = false)
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val wallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(getApplication())
-            // PRO
             val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(getApplication())
             val wallpaperFrequency = PreferenceManager.getWallpaperFrequency(getApplication())
             val iconSize = PreferenceManager.getIconSize(getApplication())
             val iconShapeString  = PreferenceManager.getIconShapeString(getApplication())
             val iconShape  = PreferenceManager.getIconShape(getApplication())
-            // PRO
             val iconPackPackage = PreferenceManager.getIconPack(getApplication())
             val showThemedIcons = PreferenceManager.getThemedIcons(getApplication())
             val showThemedText = PreferenceManager.getBoolean(getApplication(),SHOW_THEMED_TEXT,false)
@@ -248,14 +227,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val isLeftSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"left")
             val isRightSwipeWidgets = PreferenceManager.getWidgetsOnSwipe(getApplication(),"right")
             val isNotificationServiceEnabled = isNotificationServiceEnabled(getApplication())
-            // PRO
             val hasCustomWidgets = PreferenceManager.getCustomWidgets(getApplication())
             val widgetPositions = widgetIds.associateWith { id ->
                 loadWidgetPosition(id)
             }
-            val patternApps = if(hasPro) patternIds.associateWith {id -> loadPatternApp(id)} else emptyMap() // pro is check on gesture call
-            // PRO
-            val showAnalog = if(hasPro)PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false) else false
+            val patternApps = patternIds.associateWith {id -> loadPatternApp(id)}
+            val showAnalog = PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false)
             val clockSize = PreferenceManager.getInt(getApplication(),CLOCK_SIZE,150)
             val clockBgColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_BG_COLOR,Color.Black.toArgb()))
             val clockBgAlpha = PreferenceManager.getInt(getApplication(),CLOCK_BG_ALPHA,40)
@@ -265,12 +242,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val timeFontSize = PreferenceManager.getInt(getApplication(),TIME_FONT_SIZE,100)
             val timeFontColor = Color(PreferenceManager.getInt(getApplication(),TIME_FONT_COLOR,Color.White.toArgb()))
             val timeFontAlpha = PreferenceManager.getInt(getApplication(),TIME_FONT_ALPHA,100)
-            // PRO
-            val timeFontName = if(hasPro){
+            val timeFontName =
                 PreferenceManager.getString(getApplication(),TIME_FONT_NAME,"Iter") ?: "Iter"
-            } else {
-                "Iter"
-            }
             val timeFontFamily = try {
                 FontFamily(
                     Font(
@@ -283,19 +256,16 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
             val timeFontWeight = PreferenceManager.getString(getApplication(),TIME_FONT_WEIGHT,
                 "Light") ?: "Light"
-            val timeLayoutId = if(hasPro)PreferenceManager.getInt(getApplication(),TIME_LAYOUT_ID,1) else 1
-            val timeAngle = if(hasPro)PreferenceManager.getInt(getApplication(),TIME_ANGLE,0) else 0
-            val timeRadius = if(hasPro)PreferenceManager.getInt(getApplication(),TIME_RADIUS,0) else 0
-            val timeHasShadow = if(hasPro)PreferenceManager.getBoolean(getApplication(),TIME_HAS_SHADOW,false) else false
+            val timeLayoutId = PreferenceManager.getInt(getApplication(),TIME_LAYOUT_ID,1)
+            val timeAngle = PreferenceManager.getInt(getApplication(),TIME_ANGLE,0)
+            val timeRadius = PreferenceManager.getInt(getApplication(),TIME_RADIUS,0)
+            val timeHasShadow = PreferenceManager.getBoolean(getApplication(),TIME_HAS_SHADOW,false)
             val timeShadowColor = Color(PreferenceManager.getInt(getApplication(),TIME_SHADOW_COLOR,Color.White.toArgb()))
             val dateFontSize = PreferenceManager.getInt(getApplication(),DATE_FONT_SIZE,30)
             val dateFontColor = Color(PreferenceManager.getInt(getApplication(),DATE_FONT_COLOR,Color.White.toArgb()))
             val dateFontAlpha = PreferenceManager.getInt(getApplication(),DATE_FONT_ALPHA,100)
-            val dateFontName = if(hasPro){
+            val dateFontName =
                 PreferenceManager.getString(getApplication(),DATE_FONT_NAME,"Iter") ?: "Iter"
-            } else {
-                "Iter"
-            }
             val dateFontFamily = try {
                 FontFamily(
                     Font(
@@ -307,21 +277,18 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 FontFamily.Default
             }
             val dateFontWeight = PreferenceManager.getString(getApplication(),DATE_FONT_WEIGHT,"Normal") ?: "Normal"
-            val dateLayoutId = if(hasPro)PreferenceManager.getInt(getApplication(),DATE_LAYOUT_ID,1) else 1
-            val dateAngle = if(hasPro)PreferenceManager.getInt(getApplication(),DATE_ANGLE,0) else 0
-            val dateRadius = if(hasPro)PreferenceManager.getInt(getApplication(),DATE_RADIUS,0) else 0
-            val dateHasShadow = if(hasPro)PreferenceManager.getBoolean(getApplication(),DATE_HAS_SHADOW,false) else false
+            val dateLayoutId = PreferenceManager.getInt(getApplication(),DATE_LAYOUT_ID,1)
+            val dateAngle = PreferenceManager.getInt(getApplication(),DATE_ANGLE,0)
+            val dateRadius = PreferenceManager.getInt(getApplication(),DATE_RADIUS,0)
+            val dateHasShadow = PreferenceManager.getBoolean(getApplication(),DATE_HAS_SHADOW,false)
             val dateShadowColor = Color(PreferenceManager.getInt(getApplication(),DATE_SHADOW_COLOR,Color.White.toArgb()))
 
             val showBatteryIcon = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_ICON,false)
             val batteryColor = Color(PreferenceManager.getInt(getApplication(),BATTERY_COLOR,Color.White.toArgb()))
             val batteryAlpha = PreferenceManager.getInt(getApplication(),BATTERY_ALPHA,100)
             val batteryFontSize = PreferenceManager.getInt(getApplication(),BATTERY_FONT_SIZE,20)
-            val batteryFontName = if(hasPro){
+            val batteryFontName =
                 PreferenceManager.getString(getApplication(),BATTERY_FONT_NAME,"Iter") ?: "Iter"
-            } else {
-                "Iter"
-            }
             val batteryFontFamily = try {
                 FontFamily(
                     Font(
@@ -349,7 +316,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val isBatterySaver = PreferenceManager.isBatterySaver(getApplication())
             _uiState.update {
                 it.copy(
-                    hasPro = hasPro,
                     autoWallpapers = autoWallpapers,
                     wallpaperMotionEnabled = wallpaperMotion,
                     wallpaperOnLockScreen = wallpaperOnLockScreen,
@@ -427,120 +393,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-
-    fun setPro(enabled:Boolean){
-        viewModelScope.launch {
-            Log.d("SettingsViewModel","SetPro:$enabled")
-            PreferenceManager.setPro(getApplication(),enabled)
-            val showAnalog = if(enabled)PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false) else false
-            val timeFontName = if(enabled){
-                PreferenceManager.getString(getApplication(),TIME_FONT_NAME,"Iter") ?: "Iter"
-            } else {
-                "Iter"
-            }
-            val timeFontFamily = try {
-                FontFamily(
-                    Font(
-                        googleFont = GoogleFont(timeFontName),
-                        fontProvider = fontProvider
-                    )
-                )
-            } catch (_: Exception) {
-                FontFamily.Default
-            }
-            val timeLayoutId = if (enabled){
-                PreferenceManager.getInt(getApplication(),TIME_LAYOUT_ID,1)
-            } else {
-                1
-            }
-            val timeAngle = if (enabled){
-                PreferenceManager.getInt(getApplication(),TIME_ANGLE,0)
-            } else {
-                0
-            }
-            val timeRadius = if (enabled) {
-                PreferenceManager.getInt(getApplication(),TIME_RADIUS,0)
-            } else {
-                0
-            }
-            val timeHasShadow = if (enabled) {
-                PreferenceManager.getBoolean(getApplication(),TIME_HAS_SHADOW,false)
-            } else {
-                false
-            }
-            val dateFontName = if(enabled){
-                PreferenceManager.getString(getApplication(),DATE_FONT_NAME,"Iter") ?: "Iter"
-            } else {
-                "Iter"
-            }
-            val dateFontFamily = try {
-                FontFamily(
-                    Font(
-                        googleFont = GoogleFont(dateFontName),
-                        fontProvider = fontProvider
-                    )
-                )
-            } catch (_: Exception) {
-                FontFamily.Default
-            }
-            val dateLayoutId = if (enabled){
-                PreferenceManager.getInt(getApplication(),DATE_LAYOUT_ID,1)
-            } else {
-                1
-            }
-            val dateAngle = if (enabled){
-                PreferenceManager.getInt(getApplication(),DATE_ANGLE,0)
-            } else {
-                0
-            }
-            val dateRadius = if (enabled) {
-                PreferenceManager.getInt(getApplication(),DATE_RADIUS,0)
-            } else {
-                0
-            }
-            val dateHasShadow = if (enabled) {
-                PreferenceManager.getBoolean(getApplication(),DATE_HAS_SHADOW,false)
-            } else {
-                false
-            }
-            val batteryFontName = if(enabled){
-                PreferenceManager.getString(getApplication(),BATTERY_FONT_NAME,"Iter") ?: "Iter"
-            } else {
-                "Iter"
-            }
-            val batteryFontFamily = try {
-                FontFamily(
-                    Font(
-                        googleFont = GoogleFont(batteryFontName),
-                        fontProvider = fontProvider
-                    )
-                )
-            } catch (_: Exception) {
-                FontFamily.Default
-            }
-            // set icon pack settings
-            val iconPackPackage = if (enabled) {
-                PreferenceManager.getIconPack(getApplication())
-            } else {
-                null
-            }
-            _uiState.update { it.copy(
-                hasPro = enabled,
-                showAnalog = showAnalog,
-                timeFontFamily = timeFontFamily,
-                timeLayoutId = timeLayoutId,
-                timeAngle = timeAngle,
-                timeRadius = timeRadius,
-                timeHasShadow = timeHasShadow,
-                dateFontFamily = dateFontFamily,
-                dateLayoutId = dateLayoutId,
-                dateAngle = dateAngle,
-                dateRadius = dateRadius,
-                dateHasShadow = dateHasShadow,
-                batteryFontFamily = batteryFontFamily,
-                iconPackPackage = iconPackPackage) }
-        }
-    }
     fun setThemedColors(){
         viewModelScope.launch {
             val themedColors = PreferenceManager.getThemedColors(getApplication())
@@ -575,12 +427,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             _uiState.update { it.copy(
                 showThemedText = enabled
             ) }
-        }
-    }
-    fun setLightHour(enabled: Boolean){
-        viewModelScope.launch {
-            PreferenceManager.setLightHour(getApplication(),enabled)
-            _uiState.update { it.copy(isLightHour = enabled) }
         }
     }
     fun setAlphabeticalOrder(enabled:Boolean){

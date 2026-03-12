@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Апп сонгохын тулд icon дээр товшино уу</string>
 
-    <string name="requires_subscription">Subscription шаардлагатай</string>
-
     <string name="button_to_move_app_to_quick_app_list">Home Apps руу зөөх</string>
     <string name="button_to_move_app_to_primary_app_list">App drawer руу зөөх</string>
     <string name="button_to_move_app_to_ghost_app_list">Нууц Apps руу зөөх</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Analog цаг</string>
     <string name="title_clock_size">Цагийн хэмжээ</string>
     <string name="clock_background_color">Цагийн арын өнгө</string>
-    <string name="background_transparency">Арын ил тод байдал</string>
     <string name="hour_hand_color">Цагийн заагчийн өнгө</string>
     <string name="minute_hand_color">Минутын заагчийн өнгө</string>
 
     <string name="title_time_format">Цагийн формат</string>
-    <string name="title_show_am_pm">AM/PM харуулах</string>
     <string name="title_font_size">Фонтын хэмжээ</string>
     <string name="title_font_weight">Фонтын зузаан</string>
     <string name="title_font_style">Фонтын хэв маяг</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Хадгалах</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Pro боломжууд</string>
     <string name="title_subscription">Subscription</string>
     <string name="go_to_page">Хуудас нээх</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Widgets screen</string>
     <string name="title_choose_action">Үйлдэл сонгох</string>
 
-    <string name="unable_to_load_subscriptions">
-        Subscription-ийн мэдээллийг ачаалж чадсангүй. Интернет холболтоо шалгаад дахин оролдоно уу.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Subscription ачаалж чадсангүй</string>
-    <string name="no_subscription_available">Идэвхтэй subscription алга</string>
-
-    <string name="title_active_subscription">Идэвхтэй subscription</string>
-    <string name="subscription_renews_on">Дахин сунгах өдөр</string>
-    <string name="subscription_expires_on">Дуусах өдөр</string>
-
-    <string name="subscription_benefit_one">Өөрийн dynamic wallpapers тохируулах</string>
-    <string name="subscription_benefit_two">Дуртай widgets-ээ Home screen дээр нэмэх</string>
-    <string name="subscription_benefit_three">Home screen-ийн default widgets-ийг өөрчлөн тохируулах</string>
-    <string name="subscription_benefit_four">Апп-уудыг gesture ашиглан хурдан нээх</string>
-
-    <string name="title_manage_your_subscription">Subscription-ээ удирдах</string>
-    <string name="title_pro_access">Pro access</string>
-    <string name="title_year">жил</string>
-
-    <string name="subscription_failed_prefix">Subscription амжилтгүй боллоо</string>
-    <string name="subscription_successful_prefix">Subscription амжилттай</string>
-    <string name="title_subscribe_now">Одоо subscribe хийх</string>
-
-    <string name="subscription_restore_failed_prefix">Subscription сэргээхэд амжилтгүй</string>
-    <string name="subscription_restore_successful_prefix">Subscription амжилттай сэргэж дууслаа</string>
-    <string name="subscription_not_found_to_restore">Сэргээх subscription олдсонгүй</string>
-    <string name="title_restore_subscription">Subscription сэргээх</string>
-
     <string name="guide_home_swipe_up">App drawer нээхийн тулд дээш swipe хийнэ.</string>
     <string name="guide_home_swipe_down">Мэдэгдлүүд харахын тулд доош swipe хийнэ.</string>
     <string name="guide_home_double_tap">"Recent Apps" нээхийн тулд дэлгэц дээр хоёр удаа товшино уу.</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">Зай хэмнэгч</string>
     <string name="battery_saver_text">Зай хэмнэхийн тулд асаана уу</string>
     <string name="text_saving_battery">Зай хэмнэж байна…</string>
-    <string name="icon_pack_support">Дуртай дүрсний багцаа ашиглаарай</string>
 
+    <string name="title_open_source">Нээлттэй эх</string>
+    <string name="title_view_github_repo">Кодыг харахын тулд товшино уу</string>
 </resources>

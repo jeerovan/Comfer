@@ -1791,17 +1791,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
     fun exitWidgetSettings() {
         showWidgetSettings = false
         view.playSoundEffect(SoundEffectConstants.CLICK)
-
-        if(!settings.hasPro){
-            //Reset date slider settings
-            settingsModel.setDateAngle(0)
-            settingsModel.setDateRadius(0)
-            settingsModel.setDateHasShadow(false)
-            //Reset time slider settings
-            settingsModel.setTimeAngle(0)
-            settingsModel.setTimeRadius(0)
-            settingsModel.setTimeHasShadow(false)
-        }
     }
 
     val launchSwipeIntentsCache = remember {
@@ -1823,7 +1812,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
         .fillMaxSize()
     ) {
         Column (modifier = Modifier) {
-            if(settings.hasPro && settings.hasCustomWidgets) {
+            if(settings.hasCustomWidgets) {
                 WidgetHostScreen(
                     modifier = Modifier.weight(1f),
                     appWidgetManager,
@@ -1946,7 +1935,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 },
                                 onCircular = {
                                     val appOnCircularPattern = settings.patternApps["Center"]
-                                    if (appOnCircularPattern != null && settings.hasPro) {
+                                    if (appOnCircularPattern != null ) {
                                         val launchIntent: Intent? =
                                             context.packageManager.getLaunchIntentForPackage(
                                                 appOnCircularPattern.packageName
@@ -1956,7 +1945,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 },
                                 onLPatternDetected = { pattern ->
                                     val patternApp = settings.patternApps[pattern]
-                                    if (patternApp != null && settings.hasPro) {
+                                    if (patternApp != null) {
                                         val launchIntent: Intent? =
                                             context.packageManager.getLaunchIntentForPackage(
                                                 patternApp.packageName

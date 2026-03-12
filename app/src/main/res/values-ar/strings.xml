@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">اضغط على الأيقونة لاختيار تطبيق</string>
 
-    <string name="requires_subscription">يتطلب اشتراكًا</string>
-
     <string name="button_to_move_app_to_quick_app_list">نقل إلى تطبيقات الشاشة الرئيسية</string>
     <string name="button_to_move_app_to_primary_app_list">نقل إلى تطبيقات الدرج</string>
     <string name="button_to_move_app_to_ghost_app_list">نقل إلى التطبيقات المخفية</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">ساعة تماثلية</string>
     <string name="title_clock_size">حجم الساعة</string>
     <string name="clock_background_color">لون خلفية الساعة</string>
-    <string name="background_transparency">شفافية الخلفية</string>
     <string name="hour_hand_color">لون عقرب الساعات</string>
     <string name="minute_hand_color">لون عقرب الدقائق</string>
 
     <string name="title_time_format">تنسيق الوقت</string>
-    <string name="title_show_am_pm">عرض ص/م</string>
     <string name="title_font_size">حجم الخط</string>
     <string name="title_font_weight">سُمك الخط</string>
     <string name="title_font_style">نمط الخط</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">حفظ</string>
 
-    <string name="title_premium">مميز</string>
-    <string name="title_pro_features">ميزات Pro</string>
     <string name="title_subscription">الاشتراك</string>
     <string name="go_to_page">فتح الصفحة</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">شاشة الأدوات</string>
     <string name="title_choose_action">اختر إجراءً</string>
 
-    <string name="unable_to_load_subscriptions">
-        تعذّر تحميل معلومات الاشتراك. يرجى التحقق من الاتصال والمحاولة مرة أخرى.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">فشل في تحميل الاشتراك</string>
-    <string name="no_subscription_available">لا توجد اشتراكات متاحة</string>
-
-    <string name="title_active_subscription">اشتراك فعّال</string>
-    <string name="subscription_renews_on">يتم التجديد في</string>
-    <string name="subscription_expires_on">ينتهي في</string>
-
-    <string name="subscription_benefit_one">تعيين خلفيات ديناميكية خاصة بك</string>
-    <string name="subscription_benefit_two">إضافة أدواتك المفضلة إلى الشاشة الرئيسية</string>
-    <string name="subscription_benefit_three">تخصيص الأدوات الافتراضية على الشاشة الرئيسية</string>
-    <string name="subscription_benefit_four">استخدام الإيماءات لفتح التطبيقات بسرعة</string>
-
-    <string name="title_manage_your_subscription">إدارة الاشتراك</string>
-    <string name="title_pro_access">وصول Pro</string>
-    <string name="title_year">سنة</string>
-
-    <string name="subscription_failed_prefix">فشل الاشتراك</string>
-    <string name="subscription_successful_prefix">تم الاشتراك بنجاح</string>
-    <string name="title_subscribe_now">اشترك الآن</string>
-
-    <string name="subscription_restore_failed_prefix">فشل استعادة الاشتراك</string>
-    <string name="subscription_restore_successful_prefix">تمت استعادة الاشتراك بنجاح</string>
-    <string name="subscription_not_found_to_restore">لا يوجد اشتراك لاستعادته</string>
-    <string name="title_restore_subscription">استعادة الاشتراك</string>
-
     <string name="guide_home_swipe_up">اسحب للأعلى لفتح درج التطبيقات.</string>
     <string name="guide_home_swipe_down">اسحب للأسفل لعرض الإشعارات.</string>
     <string name="guide_home_double_tap">اضغط مرتين على الشاشة لفتح "التطبيقات الحديثة".</string>
@@ -351,7 +316,7 @@
     <string name="title_battery_saver">موفر البطارية</string>
     <string name="battery_saver_text">شغّل للتوفير في البطارية</string>
     <string name="text_saving_battery">جارٍ توفير البطارية…</string>
-    <string name="icon_pack_support">استخدم حزمة الأيقونات المفضلة لديك</string>
 
-
+    <string name="title_open_source">مفتوح المصدر</string>
+    <string name="title_view_github_repo">اضغط لعرض الكود</string>
 </resources>

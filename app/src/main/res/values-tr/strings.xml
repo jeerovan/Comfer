@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Bir uygulama seçmek için simgeye dokunun</string>
 
-    <string name="requires_subscription">Abonelik gerektirir</string>
-
     <string name="button_to_move_app_to_quick_app_list">Ana ekran uygulamalarına taşı</string>
     <string name="button_to_move_app_to_primary_app_list">Uygulama çekmecesine taşı</string>
     <string name="button_to_move_app_to_ghost_app_list">Gizli uygulamalara taşı</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Analog saat</string>
     <string name="title_clock_size">Saat boyutu</string>
     <string name="clock_background_color">Saat arka plan rengi</string>
-    <string name="background_transparency">Arka plan saydamlığı</string>
     <string name="hour_hand_color">Saat ibresi rengi</string>
     <string name="minute_hand_color">Dakika ibresi rengi</string>
 
     <string name="title_time_format">Saat biçimi</string>
-    <string name="title_show_am_pm">ÖÖ/ÖS göster</string>
     <string name="title_font_size">Yazı tipi boyutu</string>
     <string name="title_font_weight">Yazı tipi kalınlığı</string>
     <string name="title_font_style">Yazı tipi stili</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Kaydet</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Pro özellikler</string>
     <string name="title_subscription">Abonelik</string>
     <string name="go_to_page">Sayfayı aç</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Widget ekranı</string>
     <string name="title_choose_action">Eylem seçin</string>
 
-    <string name="unable_to_load_subscriptions">
-        Abonelik bilgileri yüklenemedi. Lütfen bağlantınızı kontrol edip tekrar deneyin.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Abonelik yüklenemedi</string>
-    <string name="no_subscription_available">Kullanılabilir abonelik yok</string>
-
-    <string name="title_active_subscription">Aktif abonelik</string>
-    <string name="subscription_renews_on">Yenilenme tarihi</string>
-    <string name="subscription_expires_on">Bitiş tarihi</string>
-
-    <string name="subscription_benefit_one">Kendi dinamik duvar kâğıtlarınızı ayarlayın</string>
-    <string name="subscription_benefit_two">Favori widget\'larınızı ana ekrana ekleyin</string>
-    <string name="subscription_benefit_three">Ana ekrandaki varsayılan widget\'ları özelleştirin</string>
-    <string name="subscription_benefit_four">Uygulamaları hızlı açmak için hareketleri kullanın</string>
-
-    <string name="title_manage_your_subscription">Aboneliğinizi yönetin</string>
-    <string name="title_pro_access">Pro erişim</string>
-    <string name="title_year">yıl</string>
-
-    <string name="subscription_failed_prefix">Abonelik başarısız</string>
-    <string name="subscription_successful_prefix">Abonelik başarılı</string>
-    <string name="title_subscribe_now">Şimdi abone ol</string>
-
-    <string name="subscription_restore_failed_prefix">Abonelik geri yükleme başarısız</string>
-    <string name="subscription_restore_successful_prefix">Abonelik başarıyla geri yüklendi</string>
-    <string name="subscription_not_found_to_restore">Geri yüklenecek abonelik bulunamadı</string>
-    <string name="title_restore_subscription">Aboneliği geri yükle</string>
-
     <string name="guide_home_swipe_up">Uygulama çekmecesini açmak için yukarı kaydırın.</string>
     <string name="guide_home_swipe_down">Bildirimleri görmek için aşağı kaydırın.</string>
     <string name="guide_home_double_tap">"Son uygulamalar"ı açmak için ekrana iki kez dokunun.</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">Pil tasarrufu</string>
     <string name="battery_saver_text">Pil tasarrufu için açın</string>
     <string name="text_saving_battery">Pil tasarrufu yapılıyor…</string>
-    <string name="icon_pack_support">Favori simge paketinizi kullanın</string>
 
+    <string name="title_open_source">Açık Kaynak</string>
+    <string name="title_view_github_repo">Kodu görüntülemek için dokunun</string>
 </resources>

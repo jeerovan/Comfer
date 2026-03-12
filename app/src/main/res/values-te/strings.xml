@@ -80,8 +80,6 @@
 
     <string name="tap_icon_to_select_app">యాప్‌ను ఎంచుకోవడానికి ఐకాన్‌ను ట్యాప్ చేయండి</string>
 
-    <string name="requires_subscription">సబ్‌స్క్రిప్షన్ అవసరం</string>
-
     <string name="button_to_move_app_to_quick_app_list">హోమ్ యాప్‌లకు మార్చండి</string>
     <string name="button_to_move_app_to_primary_app_list">డ్రాయర్ యాప్‌లకు మార్చండి</string>
     <string name="button_to_move_app_to_ghost_app_list">దాచిన యాప్‌లకు మార్చండి</string>
@@ -93,12 +91,10 @@
     <string name="title_analog_clock">అనలాగ్ గడియారం</string>
     <string name="title_clock_size">గడియారం పరిమాణం</string>
     <string name="clock_background_color">గడియారం నేపథ్య రంగు</string>
-    <string name="background_transparency">నేపథ్య పారదర్శకత</string>
     <string name="hour_hand_color">గంట సూది రంగు</string>
     <string name="minute_hand_color">నిమిష సూది రంగు</string>
 
     <string name="title_time_format">సమయ ఫార్మాట్</string>
-    <string name="title_show_am_pm">AM/PM చూపించండి</string>
     <string name="title_font_size">ఫాంట్ పరిమాణం</string>
     <string name="title_font_weight">ఫాంట్ బరువు</string>
     <string name="title_font_style">ఫాంట్ శైలి</string>
@@ -122,8 +118,6 @@
 
     <string name="button_text_save">సేవ్ చేయండి</string>
 
-    <string name="title_premium">ప్రీమియం</string>
-    <string name="title_pro_features">ప్రో ఫీచర్‌లు</string>
     <string name="title_subscription">సబ్‌స్క్రిప్షన్</string>
     <string name="go_to_page">పేజీని తెరవండి</string>
 
@@ -255,35 +249,6 @@
     <string name="title_widgets_screen">విడ్జెట్ స్క్రీన్</string>
     <string name="title_choose_action">చర్యను ఎంచుకోండి</string>
 
-    <string name="unable_to_load_subscriptions">
-        సబ్‌స్క్రిప్షన్ సమాచారాన్ని లోడ్ చేయలేకపోయింది. దయచేసి మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">సబ్‌స్క్రిప్షన్ లోడ్ విఫలమైంది</string>
-    <string name="no_subscription_available">ఏ సబ్‌స్క్రిప్షన్ అందుబాటులో లేదు</string>
-
-    <string name="title_active_subscription">క్రియాశీల సబ్‌స్క్రిప్షన్</string>
-    <string name="subscription_renews_on">పునరుద్ధరించబడే తేదీ</string>
-    <string name="subscription_expires_on">గడువు ముగిసే తేదీ</string>
-
-    <string name="subscription_benefit_one">మీ స్వంత డైనమిక్ వాల్‌పేపర్‌లను సెట్ చేయండి</string>
-    <string name="subscription_benefit_two">హోమ్ స్క్రీన్‌పై మీకు ఇష్టమైన విడ్జెట్‌లను జోడించండి</string>
-    <string name="subscription_benefit_three">హోమ్ స్క్రీన్‌లోని డిఫాల్ట్ విడ్జెట్‌లను కస్టమైజ్ చేయండి</string>
-    <string name="subscription_benefit_four">జెస్చర్‌లను ఉపయోగించి యాప్‌లను త్వరగా తెరవండి</string>
-
-    <string name="title_manage_your_subscription">మీ సబ్‌స్క్రిప్షన్‌ను నిర్వహించండి</string>
-    <string name="title_pro_access">ప్రో యాక్సెస్</string>
-    <string name="title_year">సంవత్సరం</string>
-
-    <string name="subscription_failed_prefix">సబ్‌స్క్రిప్షన్ విఫలమైంది</string>
-    <string name="subscription_successful_prefix">సబ్‌స్క్రిప్షన్ విజయవంతమైంది</string>
-    <string name="title_subscribe_now">ఇప్పుడే సబ్‌స్క్రైబ్ చేయండి</string>
-
-    <string name="subscription_restore_failed_prefix">సబ్‌స్క్రిప్షన్ పునరుద్ధరణ విఫలమైంది</string>
-    <string name="subscription_restore_successful_prefix">సబ్‌స్క్రిప్షన్ విజయవంతంగా పునరుద్ధరించబడింది</string>
-    <string name="subscription_not_found_to_restore">పునరుద్ధరించడానికి సబ్‌స్క్రిప్షన్ లేదు</string>
-    <string name="title_restore_subscription">సబ్‌స్క్రిప్షన్‌ను పునరుద్ధరించండి</string>
-
     <string name="guide_home_swipe_up">యాప్ డ్రాయర్‌ను తెరవడానికి పైకి స్వైప్ చేయండి.</string>
     <string name="guide_home_swipe_down">నోటిఫికేషన్‌లను చూడడానికి కిందికి స్వైప్ చేయండి.</string>
     <string name="guide_home_double_tap">ఇటీవలి యాప్‌లను తెరవడానికి స్క్రీన్‌పై డబుల్-ట్యాప్ చేయండి.</string>
@@ -353,5 +318,7 @@
     <string name="title_battery_saver">బ్యాటరీ సేవర్</string>
     <string name="battery_saver_text">బ్యాటరీని ఆదా చేయడానికి ప్రారంభించండి</string>
     <string name="text_saving_battery">బ్యాటరీ సేవ్ అవుతోంది</string>
-    <string name="icon_pack_support">మీకు ఇష్టమైన ఐకాన్ ప్యాక్‌ను ఉపయోగించండి</string>
+
+    <string name="title_open_source">ఓపెన్ సోర్స్</string>
+    <string name="title_view_github_repo">కోడ్ చూడటానికి నొక్కండి</string>
 </resources>

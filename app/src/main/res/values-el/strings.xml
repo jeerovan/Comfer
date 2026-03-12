@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Πάτησε σε ένα εικονίδιο για να επιλέξεις εφαρμογή</string>
 
-    <string name="requires_subscription">Απαιτείται συνδρομή</string>
-
     <string name="button_to_move_app_to_quick_app_list">Μετακίνηση στις εφαρμογές αρχικής οθόνης</string>
     <string name="button_to_move_app_to_primary_app_list">Μετακίνηση στις εφαρμογές συρταριού</string>
     <string name="button_to_move_app_to_ghost_app_list">Μετακίνηση στις κρυφές εφαρμογές</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Αναλογικό ρολόι</string>
     <string name="title_clock_size">Μέγεθος ρολογιού</string>
     <string name="clock_background_color">Χρώμα φόντου ρολογιού</string>
-    <string name="background_transparency">Διαφάνεια φόντου</string>
     <string name="hour_hand_color">Χρώμα δείκτη ωρών</string>
     <string name="minute_hand_color">Χρώμα δείκτη λεπτών</string>
 
     <string name="title_time_format">Μορφή ώρας</string>
-    <string name="title_show_am_pm">Εμφάνιση π.μ./μ.μ.</string>
     <string name="title_font_size">Μέγεθος γραμματοσειράς</string>
     <string name="title_font_weight">Πάχος γραμματοσειράς</string>
     <string name="title_font_style">Είδος γραμματοσειράς</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Αποθήκευση</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Λειτουργίες Pro</string>
     <string name="title_subscription">Συνδρομή</string>
     <string name="go_to_page">Άνοιγμα σελίδας</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Οθόνη γραφικών στοιχείων</string>
     <string name="title_choose_action">Επιλογή ενέργειας</string>
 
-    <string name="unable_to_load_subscriptions">
-        Αδυναμία φόρτωσης πληροφοριών συνδρομής. Έλεγξε τη σύνδεση και προσπάθησε ξανά.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Αποτυχία φόρτωσης συνδρομής</string>
-    <string name="no_subscription_available">Δεν υπάρχει διαθέσιμη συνδρομή</string>
-
-    <string name="title_active_subscription">Ενεργή συνδρομή</string>
-    <string name="subscription_renews_on">Ανανεώνεται στις</string>
-    <string name="subscription_expires_on">Λήγει στις</string>
-
-    <string name="subscription_benefit_one">Ορισμός δικών σου δυναμικών ταπετσαριών</string>
-    <string name="subscription_benefit_two">Προσθήκη αγαπημένων γραφικών στοιχείων στην αρχική οθόνη</string>
-    <string name="subscription_benefit_three">Προσαρμογή προεπιλεγμένων γραφικών στοιχείων στην αρχική οθόνη</string>
-    <string name="subscription_benefit_four">Χρήση χειρονομιών για γρήγορο άνοιγμα εφαρμογών</string>
-
-    <string name="title_manage_your_subscription">Διαχείριση συνδρομής</string>
-    <string name="title_pro_access">Πρόσβαση Pro</string>
-    <string name="title_year">έτος</string>
-
-    <string name="subscription_failed_prefix">Αποτυχία συνδρομής</string>
-    <string name="subscription_successful_prefix">Επιτυχής συνδρομή</string>
-    <string name="title_subscribe_now">Εγγραφή τώρα</string>
-
-    <string name="subscription_restore_failed_prefix">Αποτυχία επαναφοράς συνδρομής</string>
-    <string name="subscription_restore_successful_prefix">Η συνδρομή επανήλθε με επιτυχία</string>
-    <string name="subscription_not_found_to_restore">Δεν βρέθηκε συνδρομή για επαναφορά</string>
-    <string name="title_restore_subscription">Επαναφορά συνδρομής</string>
-
     <string name="guide_home_swipe_up">Σάρωσε προς τα πάνω για να ανοίξεις το συρτάρι εφαρμογών.</string>
     <string name="guide_home_swipe_down">Σάρωσε προς τα κάτω για να δεις τις ειδοποιήσεις.</string>
     <string name="guide_home_double_tap">Κάνε διπλό πάτημα στην οθόνη για να ανοίξεις τις «Πρόσφατες εφαρμογές».</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">Εξοικονόμηση μπαταρίας</string>
     <string name="battery_saver_text">Ενεργοποιήστε για εξοικονόμηση μπαταρίας</string>
     <string name="text_saving_battery">Γίνεται εξοικονόμηση μπαταρίας…</string>
-    <string name="icon_pack_support">Χρησιμοποιήστε το αγαπημένο σας πακέτο εικονιδίων</string>
 
+    <string name="title_open_source">Ανοιχτού Κώδικα</string>
+    <string name="title_view_github_repo">Πατήστε για προβολή κώδικα</string>
 </resources>

@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">点击图标以选择应用</string>
 
-    <string name="requires_subscription">需要订阅</string>
-
     <string name="button_to_move_app_to_quick_app_list">移动到主屏应用</string>
     <string name="button_to_move_app_to_primary_app_list">移动到应用抽屉</string>
     <string name="button_to_move_app_to_ghost_app_list">移动到隐藏应用</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">指针时钟</string>
     <string name="title_clock_size">时钟大小</string>
     <string name="clock_background_color">时钟背景颜色</string>
-    <string name="background_transparency">背景透明度</string>
     <string name="hour_hand_color">时针颜色</string>
     <string name="minute_hand_color">分针颜色</string>
 
     <string name="title_time_format">时间格式</string>
-    <string name="title_show_am_pm">显示 AM/PM</string>
     <string name="title_font_size">字体大小</string>
     <string name="title_font_weight">字体粗细</string>
     <string name="title_font_style">字体样式</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">保存</string>
 
-    <string name="title_premium">高级版</string>
-    <string name="title_pro_features">Pro 功能</string>
     <string name="title_subscription">订阅</string>
     <string name="go_to_page">打开页面</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">小部件屏幕</string>
     <string name="title_choose_action">选择操作</string>
 
-    <string name="unable_to_load_subscriptions">
-        无法加载订阅信息。请检查网络连接后重试。
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">订阅加载失败</string>
-    <string name="no_subscription_available">暂无可用订阅</string>
-
-    <string name="title_active_subscription">当前订阅</string>
-    <string name="subscription_renews_on">续订日期</string>
-    <string name="subscription_expires_on">到期日期</string>
-
-    <string name="subscription_benefit_one">设置您自己的动态壁纸</string>
-    <string name="subscription_benefit_two">将喜爱的小部件添加到主屏幕</string>
-    <string name="subscription_benefit_three">自定义主屏幕的默认小部件</string>
-    <string name="subscription_benefit_four">使用手势快速打开应用</string>
-
-    <string name="title_manage_your_subscription">管理订阅</string>
-    <string name="title_pro_access">Pro 访问权限</string>
-    <string name="title_year">年</string>
-
-    <string name="subscription_failed_prefix">订阅失败</string>
-    <string name="subscription_successful_prefix">订阅成功</string>
-    <string name="title_subscribe_now">立即订阅</string>
-
-    <string name="subscription_restore_failed_prefix">恢复订阅失败</string>
-    <string name="subscription_restore_successful_prefix">订阅已成功恢复</string>
-    <string name="subscription_not_found_to_restore">未找到可恢复的订阅</string>
-    <string name="title_restore_subscription">恢复订阅</string>
-
     <string name="guide_home_swipe_up">向上滑动以打开应用抽屉。</string>
     <string name="guide_home_swipe_down">向下滑动以查看通知。</string>
     <string name="guide_home_double_tap">在屏幕上双击以打开“最近应用”。</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">省电模式</string>
     <string name="battery_saver_text">开启以节省电量</string>
     <string name="text_saving_battery">正在节省电量…</string>
-    <string name="icon_pack_support">使用你喜欢的图标包</string>
 
+    <string name="title_open_source">开源</string>
+    <string name="title_view_github_repo">点击查看代码</string>
 </resources>

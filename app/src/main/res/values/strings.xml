@@ -93,12 +93,10 @@
     <string name="title_analog_clock">Analog clock</string>
     <string name="title_clock_size">Clock size</string>
     <string name="clock_background_color">Clock background color</string>
-    <string name="background_transparency">Background transparency</string>
     <string name="hour_hand_color">Hour hand color</string>
     <string name="minute_hand_color">Minute hand color</string>
 
     <string name="title_time_format">Time format</string>
-    <string name="title_show_am_pm">Show AM/PM</string>
     <string name="title_font_size">Font size</string>
     <string name="title_font_weight">Font weight</string>
     <string name="title_font_style">Font style</string>
@@ -122,8 +120,6 @@
 
     <string name="button_text_save">Save</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Pro features</string>
     <string name="title_subscription">Subscription</string>
     <string name="go_to_page">Open page</string>
 
@@ -255,35 +251,6 @@
     <string name="title_widgets_screen">Widgets screen</string>
     <string name="title_choose_action">Choose action</string>
 
-    <string name="unable_to_load_subscriptions">
-        Unable to load subscription information. Please check your connection and try again.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Failed to load subscription</string>
-    <string name="no_subscription_available">No subscription available</string>
-
-    <string name="title_active_subscription">Active subscription</string>
-    <string name="subscription_renews_on">Renews on</string>
-    <string name="subscription_expires_on">Expires on</string>
-
-    <string name="subscription_benefit_one">Set your own dynamic wallpapers</string>
-    <string name="subscription_benefit_two">Add your favorite widgets to the Home screen</string>
-    <string name="subscription_benefit_three">Customize default widgets on the Home screen</string>
-    <string name="subscription_benefit_four">Use gestures to open apps quickly</string>
-
-    <string name="title_manage_your_subscription">Manage your subscription</string>
-    <string name="title_pro_access">Pro access</string>
-    <string name="title_year">year</string>
-
-    <string name="subscription_failed_prefix">Subscription failed</string>
-    <string name="subscription_successful_prefix">Subscription successful</string>
-    <string name="title_subscribe_now">Subscribe now</string>
-
-    <string name="subscription_restore_failed_prefix">Subscription restore failed</string>
-    <string name="subscription_restore_successful_prefix">Subscription restored successfully</string>
-    <string name="subscription_not_found_to_restore">No subscription found to restore</string>
-    <string name="title_restore_subscription">Restore subscription</string>
-
     <string name="guide_home_swipe_up">Swipe up to open the App drawer.</string>
     <string name="guide_home_swipe_down">Swipe down to see notifications.</string>
     <string name="guide_home_double_tap">Double-tap the screen to open Recent Apps.</string>
@@ -349,5 +316,6 @@
     <string name="title_battery_saver">Battery Saver</string>
     <string name="battery_saver_text">Enable to save battery</string>
     <string name="text_saving_battery">Saving battery</string>
-    <string name="icon_pack_support">Use your favorite icon pack</string>
+    <string name="title_open_source">Open Source</string>
+    <string name="title_view_github_repo">Tap to view code</string>
 </resources>

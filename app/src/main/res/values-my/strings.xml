@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">အပ်ကို ရွေးချယ်ရန် အိုင်ကွန်ကို တို့တ်နှိပ်ပါ</string>
 
-    <string name="requires_subscription">Subscription လိုအပ်နေပါသည်</string>
-
     <string name="button_to_move_app_to_quick_app_list">အသုံးများသော Home Apps သို႔ ရွှေ့ရန်</string>
     <string name="button_to_move_app_to_primary_app_list">App drawer ထဲသို့ ရွှေ့ရန်</string>
     <string name="button_to_move_app_to_ghost_app_list">ဝှက်ထားသော Apps သို့ ရွှေ့ရန်</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Analog နာရီ</string>
     <string name="title_clock_size">နာရီ အရွယ်အစား</string>
     <string name="clock_background_color">နာရီ နောက်ခံအရောင်</string>
-    <string name="background_transparency">နောက်ခံ တိပ်ညောင်းမှု</string>
     <string name="hour_hand_color">နာရီ ဆွဲကြိုး (hour hand) အရောင်</string>
     <string name="minute_hand_color">မိနစ် ဆွဲကြိုး (minute hand) အရောင်</string>
 
     <string name="title_time_format">အချိန်ဖော်ပြပုံ</string>
-    <string name="title_show_am_pm">AM/PM ကို ပြရန်</string>
     <string name="title_font_size">ဖောင့် အရွယ်အစား</string>
     <string name="title_font_weight">ဖောင့် ထူလေးမှု</string>
     <string name="title_font_style">ဖောင့် စတိုင်</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">သိမ်းဆည်းရန်</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Pro လုပ်ဆောင်ချက်များ</string>
     <string name="title_subscription">Subscription</string>
     <string name="go_to_page">စာမျက်နှာဖွင့်ရန်</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Widgets Screen</string>
     <string name="title_choose_action">လုပ်ဆောင်ချက်ကို ရွေးချယ်ရန်</string>
 
-    <string name="unable_to_load_subscriptions">
-        Subscription အချက်အလက်များကို မဖွင့်နိုင်ပါ။ သင့်ကွန်နက်ရှင်ကို စစ်ဆေးပြီး ထပ်မံကြိုးစားပါ။
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Subscription ဖွင့်ရာတွင် ချို့ယွင်းမူ ဖြစ်ပွားနေသည်</string>
-    <string name="no_subscription_available">အသုံးပြုရန် Subscription မရှိပါ</string>
-
-    <string name="title_active_subscription">Subscription လက်ရှိ သက်ဝင်နေဆဲ</string>
-    <string name="subscription_renews_on">သက်တမ်း သစ်တိုးမည့် ရက်စွဲ</string>
-    <string name="subscription_expires_on">သက်တမ်း ကုန်ဆုံးမည့် ရက်စွဲ</string>
-
-    <string name="subscription_benefit_one">ကိုယ်ပိုင် Dynamic Wallpapers များကို သတ်မှတ်နိုင်သည်</string>
-    <string name="subscription_benefit_two">သင်နှစ်သက်သော Widgets များကို Home screen ထဲသို့ ထည့်သွင်းနိုင်သည်</string>
-    <string name="subscription_benefit_three">Home screen ပေါ်ရှိ default Widgets များကို ပြင်ဆင် ကွဲပြားစွာ သတ်မှတ်နိုင်သည်</string>
-    <string name="subscription_benefit_four">Apps များကို လက်ရာ (Gestures) အသုံးပြုပြီး မြန်ဆန်စွာ ဖွင့်နိုင်သည်</string>
-
-    <string name="title_manage_your_subscription">သင့် Subscription ကို စီမံခန့်ခွဲရန်</string>
-    <string name="title_pro_access">Pro Access</string>
-    <string name="title_year">နှစ်</string>
-
-    <string name="subscription_failed_prefix">Subscription မအောင်မြင်ခဲ့ပါ</string>
-    <string name="subscription_successful_prefix">Subscription အောင်မြင်ခဲ့ပါပြီ</string>
-    <string name="title_subscribe_now">ယခု Subscribe လုပ်ရန်</string>
-
-    <string name="subscription_restore_failed_prefix">Subscription Restore မအောင်မြင်ခဲ့ပါ</string>
-    <string name="subscription_restore_successful_prefix">Subscription ကို ပြန်လည် ရရှိသည်</string>
-    <string name="subscription_not_found_to_restore">Restore ပြန်ရန် Subscription မတွေ့ရှိပါ</string>
-    <string name="title_restore_subscription">Subscription Restore ပြန်လုပ်ရန်</string>
-
     <string name="guide_home_swipe_up">App drawer ကို ဖွင့်ရန် အပေါ်သို့ swipe လုပ်ပါ။</string>
     <string name="guide_home_swipe_down">Notifications များကို ကြည့်ရန် အောက်သို့ swipe လုပ်ပါ။</string>
     <string name="guide_home_double_tap">"Recent Apps" ကို ဖွင့်ရန် မျက်နှာပြင်ကို နှစ်ကြိမ် တို့တ်နှိပ်ပါ။</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">ဘတ္ထရီထိန်းသိမ်းမှု</string>
     <string name="battery_saver_text">ဘတ္ထရီမသုံးရှားစေရန် ဖွင့်ပါ</string>
     <string name="text_saving_battery">ဘတ္ထရီထိန်းသိမ်းနေသည်…</string>
-    <string name="icon_pack_support">နှစ်သက်ရာ အိုင်ကွန်အုပ်စုကို အသုံးပြုပါ</string>
 
+    <string name="title_open_source">Open Source</string>
+    <string name="title_view_github_repo">ကုဒ်ကိုကြည့်ရန် နှိပ်ပါ</string>
 </resources>

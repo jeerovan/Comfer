@@ -80,8 +80,6 @@
 
     <string name="tap_icon_to_select_app">பயன்பாட்டை தேர்வு செய்ய ஐகானை தட்டவும்</string>
 
-    <string name="requires_subscription">சந்தா தேவை</string>
-
     <string name="button_to_move_app_to_quick_app_list">ஹோம் பயன்பாடுகளுக்கு நகர்த்தவும்</string>
     <string name="button_to_move_app_to_primary_app_list">டிராயர் பயன்பாடுகளுக்கு நகர்த்தவும்</string>
     <string name="button_to_move_app_to_ghost_app_list">மறைக்கப்பட்ட பயன்பாடுகளுக்கு நகர்த்தவும்</string>
@@ -93,12 +91,10 @@
     <string name="title_analog_clock">அனலாக் கடிகாரம்</string>
     <string name="title_clock_size">கடிகார அளவு</string>
     <string name="clock_background_color">கடிகார பின்னணி நிறம்</string>
-    <string name="background_transparency">பின்னணி தெளிவுத்தன்மை</string>
     <string name="hour_hand_color">மணிக்கட்டு நிறம்</string>
     <string name="minute_hand_color">நிமிடக் கை நிறம்</string>
 
     <string name="title_time_format">நேர வடிவம்</string>
-    <string name="title_show_am_pm">AM/PM காட்டு</string>
     <string name="title_font_size">எழுத்துரு அளவு</string>
     <string name="title_font_weight">எழுத்துரு எடை</string>
     <string name="title_font_style">எழுத்துரு பாணி</string>
@@ -122,8 +118,6 @@
 
     <string name="button_text_save">சேமிக்கவும்</string>
 
-    <string name="title_premium">பிரீமியம்</string>
-    <string name="title_pro_features">ப்ரோ அம்சங்கள்</string>
     <string name="title_subscription">சந்தா</string>
     <string name="go_to_page">பக்கத்தை திறக்கவும்</string>
 
@@ -255,35 +249,6 @@
     <string name="title_widgets_screen">விட்ஜெட் திரை</string>
     <string name="title_choose_action">செயலை தேர்வு செய்யவும்</string>
 
-    <string name="unable_to_load_subscriptions">
-        சந்தா தகவலை ஏற்ற முடியவில்லை. தயவுசெய்து உங்கள் இணைப்பை சரிபார்த்து மீண்டும் முயற்சிக்கவும்.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">சந்தாவை ஏற்ற முடியவில்லை</string>
-    <string name="no_subscription_available">எந்த சந்தாவும் கிடைக்கவில்லை</string>
-
-    <string name="title_active_subscription">செயலில் உள்ள சந்தா</string>
-    <string name="subscription_renews_on">புதுப்பிக்கப்படும் தேதி</string>
-    <string name="subscription_expires_on">காலாவதி ஆகும் தேதி</string>
-
-    <string name="subscription_benefit_one">உங்கள் சொந்த டைனமிக் வால்பேப்பர்களை அமைக்கவும்</string>
-    <string name="subscription_benefit_two">ஹோம் திரையில் உங்கள் விருப்பமான விட்ஜெட்களை சேர்க்கவும்</string>
-    <string name="subscription_benefit_three">ஹோம் திரையின் இயல்புநிலை விட்ஜெட்களை தனிப்பயனாக்கவும்</string>
-    <string name="subscription_benefit_four">கைசைகைகளை பயன்படுத்தி பயன்பாடுகளை விரைவாக திறக்கவும்</string>
-
-    <string name="title_manage_your_subscription">உங்கள் சந்தாவை நிர்வகிக்கவும்</string>
-    <string name="title_pro_access">ப்ரோ அணுகல்</string>
-    <string name="title_year">ஆண்டு</string>
-
-    <string name="subscription_failed_prefix">சந்தா தோல்வியடைந்தது</string>
-    <string name="subscription_successful_prefix">சந்தா வெற்றிகரமாக நிறைவேற்றப்பட்டது</string>
-    <string name="title_subscribe_now">இப்போது சந்தா செய்யவும்</string>
-
-    <string name="subscription_restore_failed_prefix">சந்தா மீட்டமைப்பு தோல்வியடைந்தது</string>
-    <string name="subscription_restore_successful_prefix">சந்தா வெற்றிகரமாக மீட்டமைக்கப்பட்டது</string>
-    <string name="subscription_not_found_to_restore">மீட்டமைக்க எந்த சந்தாவும் இல்லை</string>
-    <string name="title_restore_subscription">சந்தாவை மீட்டமைக்கவும்</string>
-
     <string name="guide_home_swipe_up">பயன்பாட்டு டிராயரை திறக்க மேலே ஸ்வைப் செய்யவும்.</string>
     <string name="guide_home_swipe_down">அறிவிப்புகளை பார்க்க கீழே ஸ்வைப் செய்யவும்.</string>
     <string name="guide_home_double_tap">சமீபத்திய பயன்பாடுகளை திறக்க திரையை இருமுறை தட்டவும்.</string>
@@ -353,5 +318,7 @@
     <string name="title_battery_saver">பேட்டரி சேமிப்பு</string>
     <string name="battery_saver_text">பேட்டரியை சேமிக்க இயக்கவும்</string>
     <string name="text_saving_battery">பேட்டரி சேமிக்கப்படுகிறது</string>
-    <string name="icon_pack_support">உங்கள் விருப்பமான ஐகான் பேக்கை பயன்படுத்தவும்</string>
+
+    <string name="title_open_source">ஓப்பன் சோர்ஸ்</string>
+    <string name="title_view_github_repo">குறியீட்டைக் காண தட்டவும்</string>
 </resources>

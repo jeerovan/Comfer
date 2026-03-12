@@ -81,8 +81,6 @@
 
     <string name="tap_icon_to_select_app">Tətbiq seçmək üçün ikonun üzərinə toxunun</string>
 
-    <string name="requires_subscription">Abunəlik tələb olunur</string>
-
     <string name="button_to_move_app_to_quick_app_list">Əsas səhifə tətbiqlərinə köçür</string>
     <string name="button_to_move_app_to_primary_app_list">Tətbiq siyahısına (App drawer) köçür</string>
     <string name="button_to_move_app_to_ghost_app_list">Gizli tətbiqlərə köçür</string>
@@ -94,12 +92,10 @@
     <string name="title_analog_clock">Analog saat</string>
     <string name="title_clock_size">Saat ölçüsü</string>
     <string name="clock_background_color">Saat fon rəngi</string>
-    <string name="background_transparency">Fon şəffaflığı</string>
     <string name="hour_hand_color">Saat əqrəbi rəngi</string>
     <string name="minute_hand_color">Dəqiqə əqrəbi rəngi</string>
 
     <string name="title_time_format">Vaxt formatı</string>
-    <string name="title_show_am_pm">AM/PM göstər</string>
     <string name="title_font_size">Şrift ölçüsü</string>
     <string name="title_font_weight">Şrift qalınlığı</string>
     <string name="title_font_style">Şrift stili</string>
@@ -123,8 +119,6 @@
 
     <string name="button_text_save">Yadda saxla</string>
 
-    <string name="title_premium">Premium</string>
-    <string name="title_pro_features">Pro funksiyalar</string>
     <string name="title_subscription">Abunəlik</string>
     <string name="go_to_page">Səhifəni aç</string>
 
@@ -256,35 +250,6 @@
     <string name="title_widgets_screen">Vidcet ekranı</string>
     <string name="title_choose_action">Əməliyyat seçin</string>
 
-    <string name="unable_to_load_subscriptions">
-        Abunəlik məlumatlarını yükləmək mümkün olmadı. Zəhmət olmasa bağlantınızı yoxlayın və yenidən cəhd edin.
-    </string>
-
-    <string name="unable_to_load_subscriptions_title">Abunəlik yüklənmədi</string>
-    <string name="no_subscription_available">Mövcud abunəlik yoxdur</string>
-
-    <string name="title_active_subscription">Aktiv abunəlik</string>
-    <string name="subscription_renews_on">Yenilənmə tarixi</string>
-    <string name="subscription_expires_on">Bitmə tarixi</string>
-
-    <string name="subscription_benefit_one">Öz dinamik divar kağızlarınızı təyin edin</string>
-    <string name="subscription_benefit_two">Sevimli vidcetlərinizi əsas ekrana əlavə edin</string>
-    <string name="subscription_benefit_three">Əsas ekrandakı standart vidcetləri fərdiləşdirin</string>
-    <string name="subscription_benefit_four">Tətbiqləri tez açmaq üçün jestlərdən istifadə edin</string>
-
-    <string name="title_manage_your_subscription">Abunəliyinizi idarə edin</string>
-    <string name="title_pro_access">Pro çıxışı</string>
-    <string name="title_year">il</string>
-
-    <string name="subscription_failed_prefix">Abunəlik alınmadı</string>
-    <string name="subscription_successful_prefix">Abunəlik uğurla tamamlandı</string>
-    <string name="title_subscribe_now">İndi abunə ol</string>
-
-    <string name="subscription_restore_failed_prefix">Abunəliyin bərpası alınmadı</string>
-    <string name="subscription_restore_successful_prefix">Abunəlik uğurla bərpa edildi</string>
-    <string name="subscription_not_found_to_restore">Bərpa etmək üçün abunəlik tapılmadı</string>
-    <string name="title_restore_subscription">Abunəliyi bərpa et</string>
-
     <string name="guide_home_swipe_up">Tətbiq siyahısını (App drawer) açmaq üçün yuxarı sürüşdürün.</string>
     <string name="guide_home_swipe_down">Bildirişləri görmək üçün aşağı sürüşdürün.</string>
     <string name="guide_home_double_tap">"Son tətbiqlər" ekranını açmaq üçün ekrana iki dəfə toxunun.</string>
@@ -351,6 +316,7 @@
     <string name="title_battery_saver">Batareya qənaəti</string>
     <string name="battery_saver_text">Batareyaya qənaət üçün aktiv edin</string>
     <string name="text_saving_battery">Batareyaya qənaət edilir…</string>
-    <string name="icon_pack_support">Sevdiyiniz ikon paketindən istifadə edin</string>
 
+    <string name="title_open_source">Açıq Mənbə</string>
+    <string name="title_view_github_repo">Kodu görmək üçün toxunun</string>
 </resources>

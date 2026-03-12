@@ -122,13 +122,6 @@ fun GestureShortcutScreen(settingsViewModel: SettingsViewModel) {
                 title = {
                     Row {
                         Text(stringResource(R.string.gesture_shortcuts_title))
-                        if(!settingsState.hasPro)Icon(Icons.Filled.Lock,
-                            contentDescription = stringResource(R.string.paid_feature_title),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .size(15.dp)
-                                .offset(x=10.dp,y=7.dp)
-                        )
                     }
                         },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -621,14 +614,10 @@ fun AppsLayout(
         }
     }
     fun selectSetApp(pattern:String){
-        if(settings.hasPro) {
-            val intent = Intent(context, AppSelectionActivity::class.java).apply {
-                putExtra("gesture_pattern", pattern)
-            }
-            appSelectionLauncher.launch(intent)
-        } else {
-            Toast.makeText(context, context.getString(R.string.requires_subscription), Toast.LENGTH_SHORT).show()
+        val intent = Intent(context, AppSelectionActivity::class.java).apply {
+            putExtra("gesture_pattern", pattern)
         }
+        appSelectionLauncher.launch(intent)
     }
     Box(modifier = Modifier.fillMaxSize()
     ) {
