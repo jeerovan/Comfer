@@ -473,8 +473,10 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun moveAppsToList(fromListName: String, toListName: String, appIndexes: List<Int>) {
+    fun moveAppsToList(fromListName: String, toListName: String, selectedPackageNames: Set<String>) {
         viewModelScope.launch {
+            if (selectedPackageNames.isEmpty()) return@launch
+
             val currentState = _uiState.value
             val alphabeticalOrder = PreferenceManager.getAlphabeticalOrder(getApplication())
             val fromList = when (fromListName) {
@@ -484,7 +486,9 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 else -> return@launch
             }
 
-            val appsToMove = appIndexes.map { fromList[it] }
+            val appsToMove = fromList.filter { it.packageName in selectedPackageNames }
+            if (appsToMove.isEmpty()) return@launch
+
             val appsToMovePackageNames = appsToMove.map { it.packageName }.toSet()
 
             var newQuickApps = currentState.quickApps

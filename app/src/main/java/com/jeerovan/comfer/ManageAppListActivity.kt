@@ -149,15 +149,6 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
         selectedPackageNames = emptySet()
     }
 
-    // Helper to get indices for the move operation (since ViewModel likely still expects indices)
-    // If your ViewModel can accept packageNames, refactor it to use those instead!
-    // For now, we map back to indices just for the action.
-    fun getSelectedIndices(sourceList: List<AppInfo>): List<Int> {
-        return sourceList
-            .mapIndexedNotNull { index, app -> if (selectedPackageNames.contains(app.packageName)) index else null }
-            .sortedDescending()
-    }
-
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -199,11 +190,10 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                                     snackbarHostState.showSnackbar("Maximum $MAX_QUICK_APPS apps only")
                                 }
                             } else {
-                                val indices = getSelectedIndices(uiState.primaryApps) // Source is Primary
                                 viewModel.moveAppsToList(
                                     AppInfoManager.PRIMARY_APPS_LIST_NAME,
                                     AppInfoManager.QUICK_APPS_LIST_NAME,
-                                    indices // VM expects indices
+                                    selectedPackageNames
                                 )
                                 clearSelection()
                             }
@@ -223,11 +213,10 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
                         onClick = {
-                            val indices = getSelectedIndices(uiState.quickApps)
                             viewModel.moveAppsToList(
                                 AppInfoManager.QUICK_APPS_LIST_NAME,
                                 AppInfoManager.PRIMARY_APPS_LIST_NAME,
-                                indices
+                                selectedPackageNames
                             )
                             clearSelection()
                         },
@@ -261,11 +250,10 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
                         onClick = {
-                            val indices = getSelectedIndices(uiState.restApps)
                             viewModel.moveAppsToList(
                                 REST_LIST_NAME,
                                 AppInfoManager.PRIMARY_APPS_LIST_NAME,
-                                indices
+                                selectedPackageNames
                             )
                             clearSelection()
                         },
@@ -284,11 +272,10 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                         modifier = Modifier.size(40.dp),
                         contentPadding = PaddingValues(0.dp),
                         onClick = {
-                            val indices = getSelectedIndices(primaryApps)
                             viewModel.moveAppsToList(
                                 AppInfoManager.PRIMARY_APPS_LIST_NAME,
                                 REST_LIST_NAME,
-                                indices
+                                selectedPackageNames
                             )
                             clearSelection()
                         },
