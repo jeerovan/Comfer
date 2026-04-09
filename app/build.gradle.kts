@@ -12,6 +12,15 @@ android {
     namespace = "com.jeerovan.comfer"
     compileSdk = 36
 
+    val releaseKeystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+    val releaseKeystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+    val releaseKeyAlias = System.getenv("ANDROID_KEY_ALIAS")
+    val releaseKeyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+    val hasReleaseSigning = !releaseKeystorePath.isNullOrBlank() &&
+        !releaseKeystorePassword.isNullOrBlank() &&
+        !releaseKeyAlias.isNullOrBlank() &&
+        !releaseKeyPassword.isNullOrBlank()
+
     defaultConfig {
         applicationId = "com.jeerovan.comfer"
         minSdk = 23
@@ -20,6 +29,17 @@ android {
         versionName = "33.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseKeystorePath!!)
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
     }
 
     buildTypes {
@@ -32,6 +52,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             ndk {
                 debugSymbolLevel = NdkOptions.DebugSymbolLevel.SYMBOL_TABLE.toString()
             }
