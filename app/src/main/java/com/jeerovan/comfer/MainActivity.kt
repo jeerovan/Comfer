@@ -19,11 +19,13 @@ import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationEndReason
-import androidx.compose.animation.core.exponentialDecay
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.calculateTargetValue
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -2471,11 +2473,13 @@ fun AppListOverlay(apps: List<AppInfo>,
     }
 
     val scrollAnimatable = remember { Animatable(0f) }
+    val flingDecay = rememberSplineBasedDecay<Float>()
     var centerAppIndex by remember { mutableIntStateOf(0) }
     var lastCenterAppIndex by remember { mutableIntStateOf(0) }
     var centerIconX by remember { mutableFloatStateOf(0f) }
     var centerIconY by remember { mutableFloatStateOf(0f) }
     var centerIconSize by remember { mutableFloatStateOf(0f) }
+    val snapSpacing = 20f
 
     fun updateCenterAppIndex(index:Int){
         centerAppIndex = index
@@ -2496,6 +2500,25 @@ fun AppListOverlay(apps: List<AppInfo>,
         if (max <= 0f) return 0f // Avoid division by zero
         return (this % max + max) % max
     }
+
+    suspend fun settleOnNearestApp(initialVelocity: Float = 0f) {
+        if (apps.isEmpty()) return
+
+        val totalScrollWidth = apps.size * snapSpacing
+        val projectedTarget = flingDecay.calculateTargetValue(scrollAnimatable.value, initialVelocity)
+        val snapTarget = (projectedTarget / snapSpacing).roundToInt() * snapSpacing
+
+        scrollAnimatable.animateTo(
+            targetValue = snapTarget,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMediumLow
+            ),
+            initialVelocity = initialVelocity
+        )
+        scrollAnimatable.snapTo(scrollAnimatable.value.wrap(totalScrollWidth))
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -2568,7 +2591,7 @@ fun AppListOverlay(apps: List<AppInfo>,
                                 velocityTracker.addPosition(change.uptimeMillis, change.position)
 
                                 val increment = dragAmount.x * 0.3f
-                                val totalScrollWidth = apps.size * 20f
+                                val totalScrollWidth = apps.size * snapSpacing
 
                                 // Launching a coroutine is necessary to call the suspend function `snapTo`.
                                 scope.launch {
@@ -2599,21 +2622,18 @@ fun AppListOverlay(apps: List<AppInfo>,
                         if (dragAxis == DragAxis.HORIZONTAL) {
                             val velocity = velocityTracker.calculateVelocity().x * 0.3f
                             scope.launch {
-                                // Animate the fling with the calculated velocity.
-                                val result =
-                                    scrollAnimatable.animateDecay(velocity, exponentialDecay())
-
-                                // After the decay animation, ensure the final value is wrapped correctly.
-                                if (result.endReason == AnimationEndReason.Finished) {
-                                    val totalScrollWidth = apps.size * 20f
-                                    val finalValue = scrollAnimatable.value.wrap(totalScrollWidth)
-                                    scrollAnimatable.snapTo(finalValue)
-                                }
+                                settleOnNearestApp(velocity)
                             }
                         }
+                        velocityTracker.resetTracking()
                     },
                     onDragCancel = {
                         velocityTracker.resetTracking()
+                        if (dragAxis == DragAxis.HORIZONTAL) {
+                            scope.launch {
+                                settleOnNearestApp()
+                            }
+                        }
                     }
                 )
             }
