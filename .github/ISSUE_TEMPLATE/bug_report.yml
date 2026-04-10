@@ -1,0 +1,59 @@
+name: Bug report
+description: Report something that is not working as expected
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a problem.
+        Please include enough detail for someone else to reproduce it.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly and include the expected behavior.
+      placeholder: When I try to ..., the app instead ...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the exact steps that trigger the issue.
+      placeholder: |
+        1. Open ...
+        2. Tap ...
+        3. Notice ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: If you know the version, add it here.
+      placeholder: e.g. 33.0
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      description: Phone or tablet model
+      placeholder: e.g. Pixel 8
+  - type: input
+    id: android
+    attributes:
+      label: Android version
+      description: Android version on the affected device
+      placeholder: e.g. Android 15
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots or screen recordings
+      description: Add anything visual that helps explain the issue.
+      placeholder: Drag and drop files here if available.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Extra context
+      description: Add logs, workarounds, or anything else that may help.

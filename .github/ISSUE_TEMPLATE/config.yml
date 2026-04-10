@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contribution guide
+    url: https://github.com/B67687/Comfer/blob/main/CONTRIBUTING.md
+    about: Read the local setup and pull request guidance before contributing.
+  - name: Code of Conduct
+    url: https://github.com/B67687/Comfer/blob/main/CODE_OF_CONDUCT.md
+    about: Community expectations for collaboration in this fork.
