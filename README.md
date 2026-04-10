@@ -21,6 +21,11 @@ This repository is an actively maintained fork of [jeerovan/Comfer](https://gith
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, build commands, and pull request expectations.
 
+## Community
+
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening pull requests.
+- Be respectful and collaborative by following [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
 ## Releases
 
 This fork can publish GitHub releases directly. Signed release APKs require repository secrets for the Android keystore; otherwise the release workflow still builds artifacts so changes can be verified in CI.
