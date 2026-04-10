@@ -1,7 +1,6 @@
 package com.jeerovan.comfer
 
 import com.jeerovan.comfer.utils.FlowerShape
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -97,7 +96,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.ContextCompat
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import androidx.core.net.toUri
@@ -1044,15 +1042,6 @@ fun SelectSetOwnWallpapersDirectory(
         }
     )
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            if (isGranted) {
-                directoryPickerLauncher.launch(null)
-            }
-        }
-    )
-
     ListItem(
         headlineContent = {
             Row {
@@ -1073,16 +1062,8 @@ fun SelectSetOwnWallpapersDirectory(
                 checked = isChecked, // The UI is driven by the single source of truth.
                 onCheckedChange = { checked ->
                     if (checked) {
-                        // When user tries to turn the switch ON, launch the picker.
-                        if (ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.READ_EXTERNAL_STORAGE
-                            ) == PackageManager.PERMISSION_GRANTED
-                        ) {
-                            directoryPickerLauncher.launch(null)
-                        } else {
-                            permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                        }
+                        // The Storage Access Framework grants access through the picker itself.
+                        directoryPickerLauncher.launch(null)
                     } else {
                         // When user turns the switch OFF, clear the directory.
                         onSelectDirectory(null)
@@ -1096,15 +1077,7 @@ fun SelectSetOwnWallpapersDirectory(
                 if(isChecked){
                     onSelectDirectory(null)
                 } else {
-                    if (ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.READ_EXTERNAL_STORAGE
-                        ) == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        directoryPickerLauncher.launch(null)
-                    } else {
-                        permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                    }
+                    directoryPickerLauncher.launch(null)
                 }
             } else {
                 Toast.makeText(context, stringSetLauncherFirst, Toast.LENGTH_SHORT).show()
