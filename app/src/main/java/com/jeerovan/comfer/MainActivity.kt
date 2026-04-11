@@ -175,6 +175,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.ContextThemeWrapper
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.border
@@ -247,7 +248,12 @@ import kotlinx.coroutines.flow.flowOn
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.pow
+import kotlinx.coroutines.CancellationException
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
+// 1. Define a custom exception to safely interrupt the animation
+private class SnapEarlyException : CancellationException("Handing off to snap phase")
 
 data class Contact(
     val id: Long,
@@ -2505,17 +2511,45 @@ fun AppListOverlay(apps: List<AppInfo>,
         if (apps.isEmpty()) return
 
         val totalScrollWidth = apps.size * snapSpacing
-        val projectedTarget = flingDecay.calculateTargetValue(scrollAnimatable.value, initialVelocity)
-        val snapTarget = (projectedTarget / snapSpacing).roundToInt() * snapSpacing
+        var handoffVelocity = initialVelocity
 
-        scrollAnimatable.animateTo(
-            targetValue = snapTarget,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioNoBouncy,
-                stiffness = Spring.StiffnessMediumLow
-            ),
-            initialVelocity = initialVelocity
-        )
+        // Phase 1: Natural smooth fling
+        if (abs(initialVelocity) > 10f) {
+            try {
+                scrollAnimatable.animateDecay(
+                    initialVelocity = initialVelocity,
+                    animationSpec = exponentialDecay()
+                ) {
+                    // 'this' is the Animatable. Monitor velocity frame-by-frame.
+                    // When velocity drops we abort the decay to start the snap.
+                    if (abs(velocity) < 10f) {
+                        throw SnapEarlyException()
+                    }
+                }
+            } catch (e: SnapEarlyException) {
+                // Animation gracefully interrupted exactly when we wanted
+            }
+
+            // Capture the exact velocity at the exact frame the decay stopped
+            handoffVelocity = scrollAnimatable.velocity
+        }
+
+        // Phase 2: Settle precisely onto the nearest app icon
+        val currentOffset = scrollAnimatable.value
+        val snapTarget = (currentOffset / snapSpacing).roundToInt() * snapSpacing
+
+        if (currentOffset != snapTarget) {
+            scrollAnimatable.animateTo(
+                targetValue = snapTarget,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioNoBouncy,
+                    stiffness = Spring.StiffnessLow
+                ),
+                initialVelocity = handoffVelocity // Seamless transfer of momentum
+            )
+        }
+
+        // Wrap the values correctly to maintain the infinite loop illusion
         scrollAnimatable.snapTo(scrollAnimatable.value.wrap(totalScrollWidth))
     }
 
