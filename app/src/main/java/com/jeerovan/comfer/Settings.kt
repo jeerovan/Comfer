@@ -1029,27 +1029,47 @@ fun SelectSetOwnWallpapersDirectory(
     val directoryPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree(),
         onResult = { uri ->
-            // ROBUST CHECK: Ensure the URI is not null AND has a valid path.
-            // This handles edge cases where a non-null but empty URI is returned on cancel.
             if (uri?.path?.isNotEmpty() == true) {
-                // This block only runs for a valid directory selection.
-                context.contentResolver.takePersistableUriPermission(
-                    uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-                onSelectDirectory(uri.toString())
+                try {
+                    // Take persistable URI permission so you can read the directory later
+                    // across device restarts without prompting the user again.
+                    val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+
+                    context.contentResolver.takePersistableUriPermission(uri, takeFlags)
+                    onSelectDirectory(uri.toString())
+                } catch (e: SecurityException) {
+                    e.printStackTrace()
+                    // If persistable permission fails on specific custom ROMs,
+                    // still try to pass the URI for temporary session usage.
+                    onSelectDirectory(uri.toString())
+                }
+            } else {
+                // Handle the case where the user cancels the picker.
+                // If it was toggled from OFF to ON and cancelled, we revert the state.
+                if (!isChecked) {
+                    onSelectDirectory(null)
+                }
             }
         }
     )
 
+    // Helper function to avoid repeating the launch logic
+    fun handleDirectoryToggle(check: Boolean) {
+        if (check) {
+            // Launch directly. The system picker handles all privacy boundaries.
+            directoryPickerLauncher.launch(null)
+        } else {
+            onSelectDirectory(null)
+        }
+    }
+
     ListItem(
         headlineContent = {
-            Row {
-                Text(stringResource(R.string.title_own_wallpapers))
-            }
-                          },
-        // Use the .path property for a cleaner display string.
-        supportingContent = { Text(getUriPath(selectedDirectory) ?: stringResource(R.string.wallpaper_directory_select)) },
+            Text(stringResource(R.string.title_own_wallpapers))
+        },
+        supportingContent = {
+            Text(getUriPath(selectedDirectory) ?: stringResource(R.string.wallpaper_directory_select))
+        },
         leadingContent = {
             Icon(
                 painter = painterResource(R.drawable.outline_wallpaper_directory),
@@ -1059,26 +1079,14 @@ fun SelectSetOwnWallpapersDirectory(
         trailingContent = {
             Switch(
                 enabled = isDefaultLauncher,
-                checked = isChecked, // The UI is driven by the single source of truth.
-                onCheckedChange = { checked ->
-                    if (checked) {
-                        // The Storage Access Framework grants access through the picker itself.
-                        directoryPickerLauncher.launch(null)
-                    } else {
-                        // When user turns the switch OFF, clear the directory.
-                        onSelectDirectory(null)
-                    }
-                }
+                checked = isChecked,
+                onCheckedChange = { checked -> handleDirectoryToggle(checked) }
             )
         },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.clickable {
-            if(isDefaultLauncher){
-                if(isChecked){
-                    onSelectDirectory(null)
-                } else {
-                    directoryPickerLauncher.launch(null)
-                }
+            if (isDefaultLauncher) {
+                handleDirectoryToggle(!isChecked)
             } else {
                 Toast.makeText(context, stringSetLauncherFirst, Toast.LENGTH_SHORT).show()
             }
