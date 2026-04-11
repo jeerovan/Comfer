@@ -197,11 +197,16 @@ suspend fun getAppInfo(
 
 private fun calculateLegacyForegroundScale(bitmap: Bitmap): Float {
     val bounds = findOpaqueBounds(bitmap) ?: return 1f
+
     val contentFraction = max(
         bounds.width().toFloat() / bitmap.width,
         bounds.height().toFloat() / bitmap.height
     )
-    return (0.84f / contentFraction).coerceIn(0.92f, 1.32f)
+
+    // 0.707f (1/√2) ensures the corners of a square bounds will perfectly
+    // fit inside a circular mask without clipping.
+    // Adjust the coerce upper limit down so smaller icons don't over-scale and clip.
+    return (0.707f / contentFraction).coerceIn(0.8f, 1.15f)
 }
 
 private fun derivePropagatedBackgroundColor(bitmap: Bitmap, fallbackColor: Int): Int {
