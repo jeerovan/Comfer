@@ -1,0 +1,19 @@
+name: Bug Report
+description: File a bug report with a required screenshot.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Issue Description
+      description: Please provide the content and details of your issue.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: Please drag and drop your screenshot here.
+    validations:
+      required: false
