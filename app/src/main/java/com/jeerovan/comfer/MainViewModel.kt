@@ -122,9 +122,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     delay(500)
                     // update uiState
-                    val imageData = PreferenceManager.getImageData(applicationContext)
                     val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
-                    if (imageData != null && filePath != null) {
+                    if (filePath != null) {
                         withContext(Dispatchers.IO){
                             val imageFile = File(filePath)
                             setWallpaperThemedColors(applicationContext, imageFile)
