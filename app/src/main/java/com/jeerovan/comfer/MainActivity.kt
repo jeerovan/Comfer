@@ -2512,7 +2512,7 @@ fun AppListOverlay(apps: List<AppInfo>,
             targetValue = snapTarget,
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioNoBouncy,
-                stiffness = Spring.StiffnessMediumLow
+                stiffness = Spring.StiffnessHigh
             ),
             initialVelocity = initialVelocity
         )
@@ -2620,7 +2620,7 @@ fun AppListOverlay(apps: List<AppInfo>,
                     },
                     onDragEnd = {
                         if (dragAxis == DragAxis.HORIZONTAL) {
-                            val velocity = velocityTracker.calculateVelocity().x * 0.3f
+                            val velocity = velocityTracker.calculateVelocity().x * 0.15f
                             scope.launch {
                                 settleOnNearestApp(velocity)
                             }
