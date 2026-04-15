@@ -19,11 +19,13 @@ import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationEndReason
-import androidx.compose.animation.core.exponentialDecay
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.calculateTargetValue
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -90,7 +92,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import coil.request.ImageRequest
+import com.jeerovan.comfer.data.widgets.WidgetLayoutEntry
+import com.jeerovan.comfer.data.widgets.WidgetLayoutRepository
+import com.jeerovan.comfer.data.widgets.WidgetLayoutState
+import com.jeerovan.comfer.data.widgets.WidgetLayoutValidator
+import com.jeerovan.comfer.data.widgets.InstalledWidgetProvider
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import com.jeerovan.comfer.core.appContainer
+import com.jeerovan.comfer.feature.home.CircularSelectorSnap
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import com.jeerovan.comfer.utils.GuideUtil.GuideDialog
@@ -158,8 +167,6 @@ import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
-import android.content.Context.MODE_PRIVATE
-import android.content.SharedPreferences
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.os.Build
@@ -191,9 +198,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlin.math.max
 import kotlin.math.roundToInt
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import androidx.core.content.edit
 import kotlin.text.ifEmpty
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -264,19 +268,6 @@ data class BatteryState(val level: Int, val isCharging: Boolean)
 private const val MAIN_WIDGET_HOST_ID = 1025
 private const val LEFT_SIDE_WIDGET_HOST_ID = 1024
 private const val RIGHT_SIDE_WIDGET_HOST_ID = 1026
-private const val BOUND_WIDGETS_KEY = "bound_widgets_v2"
-
-@Serializable
-data class PersistableBoundWidget(
-    val widgetId: Int,
-    val providerPackage: String,
-    val providerClass: String,
-    val gridX: Int,
-    val gridY: Int,
-    val spanX: Int,
-    val spanY: Int
-)
-
 data class BoundWidget(
     val widgetId: Int,
     val providerInfo: AppWidgetProviderInfo,
@@ -391,9 +382,7 @@ fun WidgetHostScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val stringWidgetBindingCancelled = stringResource(R.string.widget_binding_cancelled)
-    val prefs = remember {
-        context.getSharedPreferences(widgetPrefsTitle, MODE_PRIVATE)
-    }
+    val widgetLayoutRepository = remember(context) { context.appContainer.widgetLayoutRepository }
     val lifecycleOwner = LocalLifecycleOwner.current
     val haptic = LocalHapticFeedback.current
     var editMode by remember { mutableStateOf(false) }
@@ -455,8 +444,7 @@ fun WidgetHostScreen(
                         appWidgetHost.deleteAppWidgetId(widget.widgetId)
                     }
                     boundWidgets.removeAll(widgetsToRemove)
-                    // Persist the cleaned list to SharedPreferences.
-                    saveWidgetsToPrefs(prefs, boundWidgets)
+                    saveWidgetsToPrefs(widgetLayoutRepository, widgetPrefsTitle, boundWidgets)
                 }
             }
 
@@ -577,7 +565,7 @@ fun WidgetHostScreen(
                 val newWidget = BoundWidget(widgetId, provider, position.first, position.second, 3, 3)
                 boundWidgets.add(newWidget)
                 coroutineScope.launch {
-                    saveWidgetsToPrefs(prefs, boundWidgets)
+                    saveWidgetsToPrefs(widgetLayoutRepository, widgetPrefsTitle, boundWidgets)
                     updateWidgetGroups()
                 }
             } else {
@@ -663,10 +651,10 @@ fun WidgetHostScreen(
             }
         }
 
-        // Load widgets from SharedPreferences on startup
+        // Load widgets from repository-backed persistence on startup
         LaunchedEffect(Unit) {
             withContext(Dispatchers.IO) {
-                val loadedWidgets = loadWidgetsFromPrefs(prefs, appWidgetManager)
+                val loadedWidgets = loadWidgetsFromPrefs(widgetLayoutRepository, widgetPrefsTitle, appWidgetManager)
                 withContext(Dispatchers.Main) {
                     boundWidgets.clear()
                     boundWidgets.addAll(loadedWidgets)
@@ -705,13 +693,13 @@ fun WidgetHostScreen(
                 totalGridRows,
                 editMode = editMode,
                 onWidgetUpdate = {
-                    coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
+                    coroutineScope.launch { saveWidgetsToPrefs(widgetLayoutRepository, widgetPrefsTitle, boundWidgets) }
                 },
                 onWidgetRemove = { widgetToRemove ->
                     appWidgetHost.deleteAppWidgetId(widgetToRemove.widgetId)
                     boundWidgets.remove(widgetToRemove)
                     coroutineScope.launch {
-                        saveWidgetsToPrefs(prefs, boundWidgets)
+                        saveWidgetsToPrefs(widgetLayoutRepository, widgetPrefsTitle, boundWidgets)
                         updateWidgetGroups()
                     }
                 },
@@ -1445,12 +1433,12 @@ private suspend fun getGroupedWidgetProviders(context: Context): List<WidgetProv
 }
 
 private suspend fun loadWidgetsFromPrefs(
-    prefs: SharedPreferences,
+    widgetLayoutRepository: WidgetLayoutRepository,
+    widgetPrefsTitle: String,
     appWidgetManager: AppWidgetManager
 ): List<BoundWidget> = withContext(Dispatchers.IO) {
-    val jsonString = prefs.getString(BOUND_WIDGETS_KEY, null) ?: return@withContext emptyList()
     try {
-        val persistableList = Json.decodeFromString<List<PersistableBoundWidget>>(jsonString)
+        val persistedEntries = widgetLayoutRepository.load(widgetPrefsTitle).entries
 
         // SAFEGUARD: Isolate the risky IPC call
         val installedProviders = try {
@@ -1459,7 +1447,18 @@ private suspend fun loadWidgetsFromPrefs(
             return@withContext emptyList()
         }
 
-        persistableList.mapNotNull { persist ->
+        val installedProviderKeys = installedProviders.mapTo(mutableSetOf()) { providerInfo ->
+            InstalledWidgetProvider(
+                providerPackage = providerInfo.provider.packageName,
+                providerClass = providerInfo.provider.className,
+            )
+        }
+        val validEntries = WidgetLayoutValidator.retainInstalledEntries(
+            entries = persistedEntries,
+            installedProviders = installedProviderKeys,
+        )
+
+        validEntries.mapNotNull { persist ->
             val provider = installedProviders.find {
                 it.provider == ComponentName(persist.providerPackage, persist.providerClass)
             }
@@ -1475,11 +1474,12 @@ private suspend fun loadWidgetsFromPrefs(
     }
 }
 private suspend fun saveWidgetsToPrefs(
-    prefs: SharedPreferences,
+    widgetLayoutRepository: WidgetLayoutRepository,
+    widgetPrefsTitle: String,
     widgets: List<BoundWidget>
 ) = withContext(Dispatchers.IO) {
     val persistableList = widgets.map {
-        PersistableBoundWidget(
+        WidgetLayoutEntry(
             it.widgetId,
             it.providerInfo.provider.packageName,
             it.providerInfo.provider.className,
@@ -1489,8 +1489,7 @@ private suspend fun saveWidgetsToPrefs(
             it.spanY
         )
     }
-    val jsonString = Json.encodeToString(persistableList)
-    prefs.edit { putString(BOUND_WIDGETS_KEY, jsonString) }
+    widgetLayoutRepository.save(widgetPrefsTitle, WidgetLayoutState(persistableList))
 }
 
 
@@ -1689,6 +1688,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
     val guideKeyword = "quick_guide_1"
     var canShowGuide by remember { mutableStateOf(false) }
     val settings by settingsModel.uiState.collectAsState()
+    val launcherPreferences = remember(context) { context.appContainer.launcherPreferencesRepository }
 
     fun openDefaultLauncherSettings() {
         val intent = Intent(Settings.ACTION_HOME_SETTINGS)
@@ -1698,8 +1698,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             isDefault = isDefaultLauncher(context)
-            guideShown = PreferenceManager.getBoolean(context, guideKeyword, false)
-            feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
+            guideShown = launcherPreferences.getBoolean(guideKeyword, false)
+            feedbackShown = launcherPreferences.getFeedbackDialogShown()
         }
         delay(500)
         canShowGuide = true
@@ -1710,14 +1710,14 @@ fun QuickListOverlay(apps: List<AppInfo>,
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    val newIconSize = PreferenceManager.getIconSize(context).dp
-                    val newIconShape = PreferenceManager.getIconShape(context)
+                    val newIconSize = launcherPreferences.getIconSize().dp
+                    val newIconShape = launcherPreferences.getIconShape()
                     withContext(Dispatchers.Main) {
                         iconSize = newIconSize
                         iconShape = newIconShape
                     }
-                    guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
-                    feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
+                    guideShown = launcherPreferences.getBoolean(guideKeyword,false)
+                    feedbackShown = launcherPreferences.getFeedbackDialogShown()
                     isDefault = isDefaultLauncher(context)
                 }
             }
@@ -1729,7 +1729,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
     }
 
     fun onGuideDismiss(){
-        PreferenceManager.setBoolean(context,guideKeyword,true)
+        launcherPreferences.setBoolean(guideKeyword,true)
         guideShown = true
         val intent = Intent(context, SettingsActivity::class.java)
         handleStartActivity(context,intent,null)
@@ -1745,12 +1745,12 @@ fun QuickListOverlay(apps: List<AppInfo>,
 
     fun onFeedbackDismiss(){
         feedbackShown = true
-        PreferenceManager.setFeedbackDialogShown(context)
+        launcherPreferences.setFeedbackDialogShown()
     }
     fun onFeedbackRateIt(){
         val packageName = context.packageName
         feedbackShown = true
-        PreferenceManager.setFeedbackDialogShown(context)
+        launcherPreferences.setFeedbackDialogShown()
         try {
             // Try to open the Play Store app directly
             val playStoreIntent = Intent(Intent.ACTION_VIEW,
@@ -1770,7 +1770,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
     )
     val lowerPartHeight = 400.dp
 
-    val isLightHour = PreferenceManager.isLightHour(context)
+    val isLightHour = launcherPreferences.isLightHour()
     val hourFgColor = if (isLightHour) {
         if(settings.monochrome) Color.Black else Color.White
     } else Color.White.copy(alpha = 0.7f)
@@ -1798,11 +1798,11 @@ fun QuickListOverlay(apps: List<AppInfo>,
     }
     LaunchedEffect(settings.rightSwipeApp,settings.leftSwipeApp) {
         withContext(Dispatchers.IO) {
-            val leftPackage = PreferenceManager.getSwipeApp(context, "left")
+            val leftPackage = launcherPreferences.getSwipeApp("left")
             if (leftPackage != null) {
                 launchSwipeIntentsCache["left"] = context.packageManager.getLaunchIntentForPackage(leftPackage)
             }
-            val rightPackage = PreferenceManager.getSwipeApp(context, "right")
+            val rightPackage = launcherPreferences.getSwipeApp("right")
             if (rightPackage != null) {
                 launchSwipeIntentsCache["right"] = context.packageManager.getLaunchIntentForPackage(rightPackage)
             }
@@ -1911,7 +1911,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 },
                                 onSwipeLeft = {
                                     val showWidget =
-                                        PreferenceManager.getWidgetsOnSwipe(context, "left")
+                                        launcherPreferences.getWidgetsOnSwipe("left")
                                     if (showWidget) {
                                         onSwipeLeft()
                                     } else {
@@ -1923,7 +1923,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 },
                                 onSwipeRight = {
                                     val showWidget =
-                                        PreferenceManager.getWidgetsOnSwipe(context, "right")
+                                        launcherPreferences.getWidgetsOnSwipe("right")
                                     if (showWidget) {
                                         onSwipeRight()
                                     } else {
@@ -2046,6 +2046,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
     }
     // Coroutine scope to run suspend functions like scrolling
     val coroutineScope = rememberCoroutineScope()
+    val launcherPreferences = remember(context) { context.appContainer.launcherPreferencesRepository }
 
     // The scroll handle for the LazyColumn
     val lazyListState = rememberLazyListState()
@@ -2085,8 +2086,8 @@ fun SearchListOverlay(apps: List<AppInfo>,
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            iconSize = PreferenceManager.getIconSize(context).dp
-            iconShape = PreferenceManager.getIconShape(context)
+            iconSize = launcherPreferences.getIconSize().dp
+            iconShape = launcherPreferences.getIconShape()
         }
     }
 
@@ -2114,10 +2115,10 @@ fun SearchListOverlay(apps: List<AppInfo>,
     val scrollThreshold = with(LocalDensity.current) { 50.dp.toPx() }
 
     var showLocaleSelection by remember { mutableStateOf(false)}
-    var keyboardLocale by remember { mutableStateOf(PreferenceManager.getKeyboardLocale(context)) }
+    var keyboardLocale by remember { mutableStateOf(launcherPreferences.getKeyboardLocale()) }
     fun onLocaleSelected(locale:Locale) {
         keyboardLocale = locale
-        PreferenceManager.setKeyboardLocale(context,locale)
+        launcherPreferences.setKeyboardLocale(locale)
         showLocaleSelection = false
     }
     fun onLocaleSelection(){
@@ -2462,20 +2463,23 @@ fun AppListOverlay(apps: List<AppInfo>,
     val scope = rememberCoroutineScope()
     var iconSize by remember { mutableStateOf(48.dp) }
     var iconShape: Shape by remember { mutableStateOf(CircleShape) }
+    val launcherPreferences = remember(context) { context.appContainer.launcherPreferencesRepository }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            iconSize = PreferenceManager.getIconSize(context).dp
-            iconShape = PreferenceManager.getIconShape(context)
+            iconSize = launcherPreferences.getIconSize().dp
+            iconShape = launcherPreferences.getIconShape()
         }
     }
 
     val scrollAnimatable = remember { Animatable(0f) }
+    val flingDecay = rememberSplineBasedDecay<Float>()
     var centerAppIndex by remember { mutableIntStateOf(0) }
     var lastCenterAppIndex by remember { mutableIntStateOf(0) }
     var centerIconX by remember { mutableFloatStateOf(0f) }
     var centerIconY by remember { mutableFloatStateOf(0f) }
     var centerIconSize by remember { mutableFloatStateOf(0f) }
+    val snapSpacing = CircularSelectorSnap.DefaultSnapSpacing
 
     fun updateCenterAppIndex(index:Int){
         centerAppIndex = index
@@ -2491,11 +2495,24 @@ fun AppListOverlay(apps: List<AppInfo>,
             centerAppIndex = apps.lastIndex.coerceAtLeast(0)
         }
     }
-    // A robust helper function to wrap a value within a given range [0, max)
-    fun Float.wrap(max: Float): Float {
-        if (max <= 0f) return 0f // Avoid division by zero
-        return (this % max + max) % max
+    suspend fun settleOnNearestApp(initialVelocity: Float = 0f) {
+        if (apps.isEmpty()) return
+
+        val totalScrollWidth = CircularSelectorSnap.totalScrollWidth(apps.size, snapSpacing)
+        val projectedTarget = flingDecay.calculateTargetValue(scrollAnimatable.value, initialVelocity)
+        val snapTarget = CircularSelectorSnap.nearestSnapTarget(projectedTarget, snapSpacing)
+
+        scrollAnimatable.animateTo(
+            targetValue = snapTarget,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessHigh
+            ),
+            initialVelocity = initialVelocity
+        )
+        scrollAnimatable.snapTo(CircularSelectorSnap.wrapOffset(scrollAnimatable.value, totalScrollWidth))
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -2568,12 +2585,14 @@ fun AppListOverlay(apps: List<AppInfo>,
                                 velocityTracker.addPosition(change.uptimeMillis, change.position)
 
                                 val increment = dragAmount.x * 0.3f
-                                val totalScrollWidth = apps.size * 20f
+                                val totalScrollWidth = CircularSelectorSnap.totalScrollWidth(apps.size, snapSpacing)
 
                                 // Launching a coroutine is necessary to call the suspend function `snapTo`.
                                 scope.launch {
-                                    val newPosition =
-                                        (scrollAnimatable.value + increment).wrap(totalScrollWidth)
+                                    val newPosition = CircularSelectorSnap.wrapOffset(
+                                        scrollAnimatable.value + increment,
+                                        totalScrollWidth
+                                    )
                                     scrollAnimatable.snapTo(newPosition)
                                 }
                             }
@@ -2597,23 +2616,20 @@ fun AppListOverlay(apps: List<AppInfo>,
                     },
                     onDragEnd = {
                         if (dragAxis == DragAxis.HORIZONTAL) {
-                            val velocity = velocityTracker.calculateVelocity().x * 0.3f
+                            val velocity = velocityTracker.calculateVelocity().x * 0.15f
                             scope.launch {
-                                // Animate the fling with the calculated velocity.
-                                val result =
-                                    scrollAnimatable.animateDecay(velocity, exponentialDecay())
-
-                                // After the decay animation, ensure the final value is wrapped correctly.
-                                if (result.endReason == AnimationEndReason.Finished) {
-                                    val totalScrollWidth = apps.size * 20f
-                                    val finalValue = scrollAnimatable.value.wrap(totalScrollWidth)
-                                    scrollAnimatable.snapTo(finalValue)
-                                }
+                                settleOnNearestApp(velocity)
                             }
                         }
+                        velocityTracker.resetTracking()
                     },
                     onDragCancel = {
                         velocityTracker.resetTracking()
+                        if (dragAxis == DragAxis.HORIZONTAL) {
+                            scope.launch {
+                                settleOnNearestApp()
+                            }
+                        }
                     }
                 )
             }
@@ -5037,8 +5053,9 @@ fun EffectTextBlock(
     val context = LocalContext.current
     val density = LocalDensity.current
     val resolver = LocalFontFamilyResolver.current
-    val themedColors = PreferenceManager.getThemedColors(context)
-    val isLightHour = PreferenceManager.isLightHour(context)
+    val launcherPreferences = remember(context) { context.appContainer.launcherPreferencesRepository }
+    val themedColors = launcherPreferences.getThemedColors()
+    val isLightHour = launcherPreferences.isLightHour()
     val backgroundColorInt = getThemedBackgroundColor(themedColors,isLightHour)
     val foregroundColorInt = getThemedIconColor(themedColors,isLightHour)
     val reverse = radius < 0
