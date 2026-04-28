@@ -76,7 +76,6 @@
     <string name="select_an_application">ఒక యాప్‌ను ఎంచుకోండి</string>
 
     <string name="gesture_shortcuts_title">జెస్చర్ షార్ట్‌కట్‌లు</string>
-    <string name="paid_feature_title">ప్రీమియం ఫీచర్</string>
 
     <string name="tap_icon_to_select_app">యాప్‌ను ఎంచుకోవడానికి ఐకాన్‌ను ట్యాప్ చేయండి</string>
 
@@ -318,7 +317,8 @@
     <string name="title_battery_saver">బ్యాటరీ సేవర్</string>
     <string name="battery_saver_text">బ్యాటరీని ఆదా చేయడానికి ప్రారంభించండి</string>
     <string name="text_saving_battery">బ్యాటరీ సేవ్ అవుతోంది</string>
-
     <string name="title_open_source">ఓపెన్ సోర్స్</string>
     <string name="title_view_github_repo">కోడ్ చూడటానికి నొక్కండి</string>
+    <string name="title_status_bar">స్టేటస్ బార్</string>
+    <string name="show_hide_status_bar">స్టేటస్ బార్‌ను చూపించు/దాచు</string>
 </resources>

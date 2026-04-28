@@ -77,7 +77,6 @@
     <string name="select_an_application">ເລືອກແອັບ</string>
 
     <string name="gesture_shortcuts_title">Gesture shortcuts</string>
-    <string name="paid_feature_title">ຟີຈເຈີມີຄ່າ</string>
 
     <string name="tap_icon_to_select_app">ແຕະໄອຄອນເພື່ອເລືອກແອັບ</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">ປະຫຍັດແບັດ</string>
     <string name="battery_saver_text">ເປີດເພື່ອປະຫຍັດແບັດ</string>
     <string name="text_saving_battery">ກໍາລັງປະຫຍັດແບັດ…</string>
-
     <string name="title_open_source">ໂອເພນຊອສ໌</string>
     <string name="title_view_github_repo">ແຕະເພື່ອເບິ່ງລະຫັດ</string>
+    <string name="title_status_bar">ແຖບສະຖານະ</string>
+    <string name="show_hide_status_bar">ສະແດງ/ເຊື່ອງແຖບສະຖານະ</string>
 </resources>

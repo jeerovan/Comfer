@@ -77,7 +77,6 @@
     <string name="select_an_application">Επιλογή εφαρμογής</string>
 
     <string name="gesture_shortcuts_title">Συντομεύσεις χειρονομιών</string>
-    <string name="paid_feature_title">Πληρωμένη δυνατότητα</string>
 
     <string name="tap_icon_to_select_app">Πάτησε σε ένα εικονίδιο για να επιλέξεις εφαρμογή</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">Εξοικονόμηση μπαταρίας</string>
     <string name="battery_saver_text">Ενεργοποιήστε για εξοικονόμηση μπαταρίας</string>
     <string name="text_saving_battery">Γίνεται εξοικονόμηση μπαταρίας…</string>
-
     <string name="title_open_source">Ανοιχτού Κώδικα</string>
     <string name="title_view_github_repo">Πατήστε για προβολή κώδικα</string>
+    <string name="title_status_bar">Γραμμή κατάστασης</string>
+    <string name="show_hide_status_bar">Εμφάνιση/Απόκρυψη γραμμής κατάστασης</string>
 </resources>

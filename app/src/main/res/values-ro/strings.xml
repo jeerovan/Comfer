@@ -77,7 +77,6 @@
     <string name="select_an_application">Selectează o aplicație</string>
 
     <string name="gesture_shortcuts_title">Shortcuturi prin gesturi</string>
-    <string name="paid_feature_title">Funcție Premium</string>
 
     <string name="tap_icon_to_select_app">Atinge o pictogramă pentru a selecta aplicația</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">Economisire baterie</string>
     <string name="battery_saver_text">Activați pentru a economisi bateria</string>
     <string name="text_saving_battery">Se economisește bateria…</string>
-
     <string name="title_open_source">Sursă deschisă</string>
     <string name="title_view_github_repo">Atingeți pentru a vizualiza codul</string>
+    <string name="title_status_bar">Bara de stare</string>
+    <string name="show_hide_status_bar">Afișare/Ascundere bară de stare</string>
 </resources>

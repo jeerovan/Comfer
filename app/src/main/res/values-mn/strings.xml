@@ -77,7 +77,6 @@
     <string name="select_an_application">Апп сонгох</string>
 
     <string name="gesture_shortcuts_title">Gesture shortcuts</string>
-    <string name="paid_feature_title">Төлбөртэй боломж</string>
 
     <string name="tap_icon_to_select_app">Апп сонгохын тулд icon дээр товшино уу</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">Зай хэмнэгч</string>
     <string name="battery_saver_text">Зай хэмнэхийн тулд асаана уу</string>
     <string name="text_saving_battery">Зай хэмнэж байна…</string>
-
     <string name="title_open_source">Нээлттэй эх</string>
     <string name="title_view_github_repo">Кодыг харахын тулд товшино уу</string>
+    <string name="title_status_bar">Төлөвийн талбар</string>
+    <string name="show_hide_status_bar">Төлөвийн талбарыг харуулах/нуух</string>
 </resources>

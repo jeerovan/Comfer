@@ -77,7 +77,6 @@
     <string name="select_an_application">یک برنامه انتخاب کنید</string>
 
     <string name="gesture_shortcuts_title">میان‌بُرهای حرکتی</string>
-    <string name="paid_feature_title">امکان پولی</string>
 
     <string name="tap_icon_to_select_app">برای انتخاب برنامه، روی آیکون آن ضربه بزنید</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">صرفه‌جوی باتری</string>
     <string name="battery_saver_text">برای صرفه‌جویی باتری روشن کنید</string>
     <string name="text_saving_battery">در حال صرفه‌جویی باتری…</string>
-
     <string name="title_open_source">متن‌باز</string>
     <string name="title_view_github_repo">برای مشاهده کد ضربه بزنید</string>
+    <string name="title_status_bar">نوار وضعیت</string>
+    <string name="show_hide_status_bar">نمایش/مخفی کردن نوار وضعیت</string>
 </resources>

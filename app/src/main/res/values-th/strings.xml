@@ -77,7 +77,6 @@
     <string name="select_an_application">เลือกแอป</string>
 
     <string name="gesture_shortcuts_title">ทางลัดด้วยท่าทาง (Gesture)</string>
-    <string name="paid_feature_title">ฟีเจอร์แบบชำระเงิน</string>
 
     <string name="tap_icon_to_select_app">แตะไอคอนเพื่อเลือกแอป</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">ประหยัดแบตเตอรี่</string>
     <string name="battery_saver_text">เปิดเพื่อประหยัดแบตเตอรี่</string>
     <string name="text_saving_battery">กำลังประหยัดแบตเตอรี่…</string>
-
     <string name="title_open_source">โอเพนซอร์ส</string>
     <string name="title_view_github_repo">แตะเพื่อดูโค้ด</string>
+    <string name="title_status_bar">แถบสถานะ</string>
+    <string name="show_hide_status_bar">แสดง/ซ่อนแถบสถานะ</string>
 </resources>

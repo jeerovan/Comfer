@@ -76,7 +76,6 @@
     <string name="select_an_application">Pilih aplikasi</string>
 
     <string name="gesture_shortcuts_title">Pintasan gestur</string>
-    <string name="paid_feature_title">Fitur premium</string>
 
     <string name="tap_icon_to_select_app">Ketuk ikon untuk memilih aplikasi</string>
 
@@ -318,7 +317,8 @@
     <string name="title_battery_saver">Penghemat baterai</string>
     <string name="battery_saver_text">Aktifkan untuk menghemat baterai</string>
     <string name="text_saving_battery">Menghemat baterai</string>
-
     <string name="title_open_source">Sumber Terbuka</string>
     <string name="title_view_github_repo">Ketuk untuk melihat kode</string>
+    <string name="title_status_bar">Bilah Status</string>
+    <string name="show_hide_status_bar">Tampilkan/Sembunyikan bilah status</string>
 </resources>

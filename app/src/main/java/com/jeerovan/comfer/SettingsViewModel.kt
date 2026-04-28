@@ -109,6 +109,7 @@ data class SettingsUiState(
     val shouldAppUpdatePromptUserCounter: Int = 0,
     val themedColors: WallpaperThemeColors? = null,
     val isBatterySaver: Boolean = false,
+    val topBarVisible: Boolean = false,
 )
 
 data class KeyTextObject(
@@ -314,6 +315,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val shouldAppUpdatePromptUserCounter = PreferenceManager.getAppUpdatePromptUserCounter(getApplication())
             val themedColors = PreferenceManager.getThemedColors(getApplication())
             val isBatterySaver = PreferenceManager.isBatterySaver(getApplication())
+            val isTopBarVisible = PreferenceManager.isTopBarVisible(getApplication())
             _uiState.update {
                 it.copy(
                     autoWallpapers = autoWallpapers,
@@ -388,7 +390,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     arrangeInAlphabeticalOrder = alphabeticalOrder,
                     shouldAppUpdatePromptUserCounter = shouldAppUpdatePromptUserCounter,
                     themedColors = themedColors,
-                    isBatterySaver = isBatterySaver
+                    isBatterySaver = isBatterySaver,
+                    topBarVisible = isTopBarVisible
                 )
             }
         }
@@ -994,6 +997,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 )
             }
             setMonochrome(enabled)
+        }
+    }
+    fun setTopBarVisible(enabled: Boolean){
+        viewModelScope.launch {
+            PreferenceManager.setTopBarVisible(getApplication(),enabled)
+            _uiState.update { it.copy(topBarVisible = enabled) }
         }
     }
     // Function to check if the notification listener permission is enabled

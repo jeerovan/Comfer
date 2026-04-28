@@ -77,7 +77,6 @@
     <string name="select_an_application">Aplikasiýa saýlaň</string>
 
     <string name="gesture_shortcuts_title">Gesture shortcuts</string>
-    <string name="paid_feature_title">Tölegli mümkinçilik</string>
 
     <string name="tap_icon_to_select_app">Aplikasiýa saýlamak üçin ikonanyň üstüne basyň</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">Batareýa tygşytlaýjy</string>
     <string name="battery_saver_text">Batareýa tygşytlamak üçin açyň</string>
     <string name="text_saving_battery">Batareýa tygşytlanýar…</string>
-
     <string name="title_open_source">Açyk çeşme</string>
     <string name="title_view_github_repo">Kody görmek üçin basyň</string>
+    <string name="title_status_bar">Ýagdaý zolagy</string>
+    <string name="show_hide_status_bar">Ýagdaý zolagyny görkez/gizle</string>
 </resources>

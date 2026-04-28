@@ -76,7 +76,6 @@
     <string name="select_an_application">ایک ایپ منتخب کریں</string>
 
     <string name="gesture_shortcuts_title">جیسچر شارٹ کٹس</string>
-    <string name="paid_feature_title">پریمیم فیچر</string>
 
     <string name="tap_icon_to_select_app">ایپ منتخب کرنے کے لیے آئیکن پر ٹیپ کریں</string>
 
@@ -318,7 +317,8 @@
     <string name="title_battery_saver">بیٹری سیور</string>
     <string name="battery_saver_text">بیٹری بچانے کے لیے فعال کریں</string>
     <string name="text_saving_battery">بیٹری محفوظ کی جا رہی ہے</string>
-
     <string name="title_open_source">اوپن سورس</string>
     <string name="title_view_github_repo">کوڈ دیکھنے کے لیے ٹیپ کریں</string>
+    <string name="title_status_bar">اسٹیٹس بار</string>
+    <string name="show_hide_status_bar">اسٹیٹس بار دکھائیں/چھپائیں</string>
 </resources>

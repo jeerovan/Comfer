@@ -77,7 +77,6 @@
     <string name="select_an_application">Seleccionar una app</string>
 
     <string name="gesture_shortcuts_title">Atajos por gestos</string>
-    <string name="paid_feature_title">Función de pago</string>
 
     <string name="tap_icon_to_select_app">Toca un icono para seleccionar una app</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">Ahorro de batería</string>
     <string name="battery_saver_text">Activa para ahorrar batería</string>
     <string name="text_saving_battery">Ahorrando batería…</string>
-
     <string name="title_open_source">Código abierto</string>
     <string name="title_view_github_repo">Toca para ver el código</string>
+    <string name="title_status_bar">Barra de estado</string>
+    <string name="show_hide_status_bar">Mostrar/Ocultar barra de estado</string>
 </resources>

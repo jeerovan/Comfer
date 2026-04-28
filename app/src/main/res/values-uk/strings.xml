@@ -77,7 +77,6 @@
     <string name="select_an_application">Виберіть додаток</string>
 
     <string name="gesture_shortcuts_title">Жести-ярлики</string>
-    <string name="paid_feature_title">Платна функція</string>
 
     <string name="tap_icon_to_select_app">Натисніть на іконку, щоб вибрати додаток</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">Режим економії батареї</string>
     <string name="battery_saver_text">Увімкніть для економії батареї</string>
     <string name="text_saving_battery">Економія батареї…</string>
-
     <string name="title_open_source">Відкритий вихідний код</string>
     <string name="title_view_github_repo">Натисніть, щоб переглянути код</string>
+    <string name="title_status_bar">Рядок стану</string>
+    <string name="show_hide_status_bar">Показати/сховати рядок стану</string>
 </resources>

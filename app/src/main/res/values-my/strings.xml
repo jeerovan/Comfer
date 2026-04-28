@@ -77,7 +77,6 @@
     <string name="select_an_application">အပ်တစ်ခု ကို ရွေးချယ်ပါ</string>
 
     <string name="gesture_shortcuts_title">လက်حر حر (Gesture) shortcut များ</string>
-    <string name="paid_feature_title">အခကြေးငွေဖြင့် အသုံးပြုသည့်လုပ်ဆောင်ချက်</string>
 
     <string name="tap_icon_to_select_app">အပ်ကို ရွေးချယ်ရန် အိုင်ကွန်ကို တို့တ်နှိပ်ပါ</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">ဘတ္ထရီထိန်းသိမ်းမှု</string>
     <string name="battery_saver_text">ဘတ္ထရီမသုံးရှားစေရန် ဖွင့်ပါ</string>
     <string name="text_saving_battery">ဘတ္ထရီထိန်းသိမ်းနေသည်…</string>
-
     <string name="title_open_source">Open Source</string>
     <string name="title_view_github_repo">ကုဒ်ကိုကြည့်ရန် နှိပ်ပါ</string>
+    <string name="title_status_bar">အခြေအနေပြဘား</string>
+    <string name="show_hide_status_bar">အခြေအနေပြဘားကို ပြရန်/ဖျောက်ရန်</string>
 </resources>

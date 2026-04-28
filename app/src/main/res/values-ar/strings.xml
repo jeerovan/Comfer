@@ -77,7 +77,6 @@
     <string name="select_an_application">اختر تطبيقًا</string>
 
     <string name="gesture_shortcuts_title">اختصارات الإيماءات</string>
-    <string name="paid_feature_title">ميزة مدفوعة</string>
 
     <string name="tap_icon_to_select_app">اضغط على الأيقونة لاختيار تطبيق</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">موفر البطارية</string>
     <string name="battery_saver_text">شغّل للتوفير في البطارية</string>
     <string name="text_saving_battery">جارٍ توفير البطارية…</string>
-
     <string name="title_open_source">مفتوح المصدر</string>
     <string name="title_view_github_repo">اضغط لعرض الكود</string>
+    <string name="title_status_bar">شريط الحالة</string>
+    <string name="show_hide_status_bar">إظهار/إخفاء شريط الحالة</string>
 </resources>

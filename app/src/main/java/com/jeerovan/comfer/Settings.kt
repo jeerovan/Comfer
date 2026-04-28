@@ -56,6 +56,7 @@ import androidx.compose.material.icons.filled.InvertColors
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.SmartButton
 import androidx.compose.material.icons.filled.Support
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.Wallpaper
@@ -113,6 +114,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.vectorResource
 
 data class IconPackInfo(
     val name: String,
@@ -224,27 +230,8 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 Spacer(Modifier.height(24.dp))
             }
-            item { SectionHeader("Github")}
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_open_source)) },
-                    supportingContent = { Text(stringResource(R.string.title_view_github_repo)) },
-                    leadingContent = {
-                        Icon(painter = painterResource(R.drawable.outline_star_shine_24),
-                            contentDescription = "Github") },
-                    trailingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.go_to_page)
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        openUrl("https://github.com/jeerovan/Comfer",context)
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
             item { SectionHeader(stringResource(R.string.title_support))}
+            item { SocialLinksRow() }
             item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_how_to)) },
@@ -626,6 +613,26 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     modifier = Modifier.clickable {
                         context.startActivity(Intent(context, GestureShortcutActivity::class.java))
                     },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.title_status_bar)) },
+                    supportingContent = { Text(stringResource(R.string.show_hide_status_bar)) },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.SmartButton,
+                            contentDescription = stringResource(R.string.title_status_bar)
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = settingsState.topBarVisible,
+                            onCheckedChange = { settingsViewModel.setTopBarVisible(it) }
+                        )
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.setTopBarVisible(!settingsState.topBarVisible) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
@@ -1481,4 +1488,56 @@ private suspend fun getInstalledIconPacks(context: Context): List<IconPackInfo> 
 
     // Sort alphabetically
     iconPacks.sortedBy { it.name }
+}
+
+
+@Composable
+fun SocialLinksRow(
+    modifier: Modifier = Modifier,
+    redditUrl: String = "https://www.reddit.com/r/ComferLauncher",
+    githubUrl: String = "https://github.com/jeerovan/Comfer",
+    telegramUrl: String = "https://t.me/s/comfer_launcher"
+) {
+    val uriHandler = LocalUriHandler.current
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        SocialIconButton(
+            icon = R.drawable.reddit_icon,
+            contentDescription = "Reddit",
+            onClick = { uriHandler.openUri(redditUrl) }
+        )
+
+        SocialIconButton(
+            icon = R.drawable.github_icon,
+            contentDescription = "GitHub",
+            onClick = { uriHandler.openUri(githubUrl) }
+        )
+
+        SocialIconButton(
+            icon = R.drawable.telegram_icon,
+            contentDescription = "Telegram",
+            onClick = { uriHandler.openUri(telegramUrl) }
+        )
+    }
+}
+
+@Composable
+private fun SocialIconButton(
+    icon: Int,
+    contentDescription: String,
+    onClick: () -> Unit
+) {
+    IconButton(onClick = onClick) {
+        Image(
+            ImageVector.vectorResource(icon),
+            contentDescription = contentDescription,
+            modifier = Modifier.size(35.dp),
+        )
+    }
 }

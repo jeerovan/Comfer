@@ -53,6 +53,7 @@ object PreferenceManager {
     private const val APP_UPDATE_PROMPT_COUNTER = "app_update_prompt_counter"
     private const val KEYBOARD_LOCALE = "keyboard_locale"
     private const val BATTERY_SAVER_MODE = "battery_saver_mode"
+    private const val TOP_BAR_VISIBLE = "top_bar_visible"
 
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -437,5 +438,11 @@ object PreferenceManager {
     }
     fun isBatterySaver(context: Context): Boolean {
         return getBoolean(context,BATTERY_SAVER_MODE,false)
+    }
+    fun setTopBarVisible(context: Context,enabled: Boolean){
+        setBoolean(context,TOP_BAR_VISIBLE,enabled)
+    }
+    fun isTopBarVisible(context: Context): Boolean {
+        return getBoolean(context,TOP_BAR_VISIBLE,false);
     }
 }

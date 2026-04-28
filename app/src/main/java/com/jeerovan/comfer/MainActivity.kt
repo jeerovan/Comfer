@@ -239,6 +239,7 @@ import com.jeerovan.comfer.utils.KeyboardLayoutEngine
 import com.jeerovan.comfer.utils.KeyboardLocale
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.resolveAsTypeface
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -335,6 +336,18 @@ class MainActivity : AppCompatActivity() {
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
         windowInsetsController.hide(WindowInsetsCompat.Type.navigationBars())
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsViewModel.uiState.collect { settings ->
+                    if (settings.topBarVisible) {
+                        windowInsetsController.show(WindowInsetsCompat.Type.statusBars())
+                    } else {
+                        windowInsetsController.hide(WindowInsetsCompat.Type.statusBars())
+                    }
+                }
+            }
+        }
 
         setContent {
             ComferTheme {

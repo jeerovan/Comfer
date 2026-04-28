@@ -77,7 +77,6 @@
     <string name="select_an_application">アプリを選択</string>
 
     <string name="gesture_shortcuts_title">ジェスチャーショートカット</string>
-    <string name="paid_feature_title">有料機能</string>
 
     <string name="tap_icon_to_select_app">アイコンをタップしてアプリを選択</string>
 
@@ -316,8 +315,9 @@
     <string name="title_battery_saver">バッテリー節約</string>
     <string name="battery_saver_text">節電のためオンにしてください</string>
     <string name="text_saving_battery">バッテリー節約中…</string>
-
     <string name="title_open_source">オープンソース</string>
     <string name="title_view_github_repo">タップしてコードを表示</string>
+    <string name="title_status_bar">ステータスバー</string>
+    <string name="show_hide_status_bar">ステータスバーの表示/非表示</string>
 
 </resources>

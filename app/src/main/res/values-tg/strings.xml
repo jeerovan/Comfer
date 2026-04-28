@@ -77,7 +77,6 @@
     <string name="select_an_application">Интихоби барнома</string>
 
     <string name="gesture_shortcuts_title">Shortcut–ҳои gesture</string>
-    <string name="paid_feature_title">Функсияи пулакӣ</string>
 
     <string name="tap_icon_to_select_app">Барои интихоб кардани барнома иконаи онро зер кунед</string>
 
@@ -318,7 +317,8 @@
     <string name="title_battery_saver">Ҳифзи батарея</string>
     <string name="battery_saver_text">Барои сарфа кардани батарея фаъол кунед</string>
     <string name="text_saving_battery">Дар ҳоли сарфа кардани батарея…</string>
-
     <string name="title_open_source">Манбаи кушода</string>
     <string name="title_view_github_repo">Барои дидани код пахш кунед</string>
+    <string name="title_status_bar">Сатри ҳолат</string>
+    <string name="show_hide_status_bar">Нишон додан/Пинҳон кардани сатри ҳолат</string>
 </resources>

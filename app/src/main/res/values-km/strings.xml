@@ -77,7 +77,6 @@
     <string name="select_an_application">ជ្រើសរើស​កម្មវិធី​មួយ</string>
 
     <string name="gesture_shortcuts_title">ផ្លូវកាត់​ដោយ Gesture</string>
-    <string name="paid_feature_title">មុខងារ​មានថ្លៃ</string>
 
     <string name="tap_icon_to_select_app">ចុច​លើ​រូបតំណាង ដើម្បី​ជ្រើស​កម្មវិធី</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">សន្សំថាមពលថ្ម</string>
     <string name="battery_saver_text">បើកដើម្បីសន្សំថ្ម</string>
     <string name="text_saving_battery">កំពុងសន្សំថ្ម…</string>
-
     <string name="title_open_source">កូដបើកចំហ</string>
     <string name="title_view_github_repo">ចុចដើម្បីមើលកូដ</string>
+    <string name="title_status_bar">របារស្ថានភាព</string>
+    <string name="show_hide_status_bar">បង្ហាញ/លាក់របារស្ថានភាព</string>
 </resources>

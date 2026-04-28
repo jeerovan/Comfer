@@ -77,7 +77,6 @@
     <string name="select_an_application">בחר אפליקציה</string>
 
     <string name="gesture_shortcuts_title">קיצורי דרך במחוות</string>
-    <string name="paid_feature_title">תכונה בתשלום</string>
 
     <string name="tap_icon_to_select_app">הקש על אייקון כדי לבחור אפליקציה</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">חיסכון בסוללה</string>
     <string name="battery_saver_text">הפעילו לחיסכון בסוללה</string>
     <string name="text_saving_battery">חוסך בסוללה…</string>
-
     <string name="title_open_source">קוד פתוח</string>
     <string name="title_view_github_repo">הקש להצגת הקוד</string>
+    <string name="title_status_bar">שורת מצב</string>
+    <string name="show_hide_status_bar">הצג/הסתר שורת מצב</string>
 </resources>

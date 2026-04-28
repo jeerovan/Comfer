@@ -76,11 +76,8 @@
     <string name="select_an_application">Select an app</string>
 
     <string name="gesture_shortcuts_title">Gesture shortcuts</string>
-    <string name="paid_feature_title">Premium feature</string>
 
     <string name="tap_icon_to_select_app">Tap an icon to select an app</string>
-
-    <string name="requires_subscription">Requires subscription</string>
 
     <string name="button_to_move_app_to_quick_app_list">Move to Home Apps</string>
     <string name="button_to_move_app_to_primary_app_list">Move to Drawer Apps</string>
@@ -318,4 +315,6 @@
     <string name="text_saving_battery">Saving battery</string>
     <string name="title_open_source">Open Source</string>
     <string name="title_view_github_repo">Tap to view code</string>
+    <string name="title_status_bar">Status Bar</string>
+    <string name="show_hide_status_bar">Show/Hide status bar</string>
 </resources>

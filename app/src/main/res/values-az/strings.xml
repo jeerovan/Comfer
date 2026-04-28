@@ -77,7 +77,6 @@
     <string name="select_an_application">Tətbiq seçin</string>
 
     <string name="gesture_shortcuts_title">Jest qısayolları</string>
-    <string name="paid_feature_title">Ödənişli funksiya</string>
 
     <string name="tap_icon_to_select_app">Tətbiq seçmək üçün ikonun üzərinə toxunun</string>
 
@@ -319,4 +318,6 @@
 
     <string name="title_open_source">Açıq Mənbə</string>
     <string name="title_view_github_repo">Kodu görmək üçün toxunun</string>
+    <string name="title_status_bar">Vəziyyət paneli</string>
+    <string name="show_hide_status_bar">Vəziyyət panelini göstər/gizlət</string>
 </resources>

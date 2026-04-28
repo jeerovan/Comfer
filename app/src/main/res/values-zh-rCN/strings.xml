@@ -77,7 +77,6 @@
     <string name="select_an_application">选择应用</string>
 
     <string name="gesture_shortcuts_title">手势快捷方式</string>
-    <string name="paid_feature_title">付费功能</string>
 
     <string name="tap_icon_to_select_app">点击图标以选择应用</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">省电模式</string>
     <string name="battery_saver_text">开启以节省电量</string>
     <string name="text_saving_battery">正在节省电量…</string>
-
     <string name="title_open_source">开源</string>
     <string name="title_view_github_repo">点击查看代码</string>
+    <string name="title_status_bar">状态栏</string>
+    <string name="show_hide_status_bar">显示/隐藏状态栏</string>
 </resources>

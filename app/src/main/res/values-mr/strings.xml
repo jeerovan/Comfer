@@ -76,7 +76,6 @@
     <string name="select_an_application">अ‍ॅप निवडा</string>
 
     <string name="gesture_shortcuts_title">जेस्चर शॉर्टकट</string>
-    <string name="paid_feature_title">प्रीमियम वैशिष्ट्य</string>
 
     <string name="tap_icon_to_select_app">अ‍ॅप निवडण्यासाठी आयकॉनवर टॅप करा</string>
 
@@ -318,7 +317,8 @@
     <string name="title_battery_saver">बॅटरी सेव्हर</string>
     <string name="battery_saver_text">बॅटरी वाचवण्यासाठी सक्षम करा</string>
     <string name="text_saving_battery">बॅटरी वाचवत आहे</string>
-
     <string name="title_open_source">ओपन सोर्स</string>
     <string name="title_view_github_repo">कोड पाहण्यासाठी टॅप करा</string>
+    <string name="title_status_bar">स्टेटस बार</string>
+    <string name="show_hide_status_bar">स्टेटस बार दाखवा/लपवा</string>
 </resources>

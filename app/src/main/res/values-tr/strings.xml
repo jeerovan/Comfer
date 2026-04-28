@@ -77,7 +77,6 @@
     <string name="select_an_application">Bir uygulama seçin</string>
 
     <string name="gesture_shortcuts_title">Hareket kısayolları</string>
-    <string name="paid_feature_title">Ücretli özellik</string>
 
     <string name="tap_icon_to_select_app">Bir uygulama seçmek için simgeye dokunun</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">Pil tasarrufu</string>
     <string name="battery_saver_text">Pil tasarrufu için açın</string>
     <string name="text_saving_battery">Pil tasarrufu yapılıyor…</string>
-
     <string name="title_open_source">Açık Kaynak</string>
     <string name="title_view_github_repo">Kodu görüntülemek için dokunun</string>
+    <string name="title_status_bar">Durum Çubuğu</string>
+    <string name="show_hide_status_bar">Durum çubuğunu göster/gizle</string>
 </resources>

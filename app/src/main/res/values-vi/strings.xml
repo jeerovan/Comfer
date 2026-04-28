@@ -77,7 +77,6 @@
     <string name="select_an_application">Chọn ứng dụng</string>
 
     <string name="gesture_shortcuts_title">Lối tắt bằng cử chỉ</string>
-    <string name="paid_feature_title">Tính năng trả phí</string>
 
     <string name="tap_icon_to_select_app">Chạm vào biểu tượng để chọn ứng dụng</string>
 
@@ -316,7 +315,8 @@
     <string name="title_battery_saver">Tiết kiệm pin</string>
     <string name="battery_saver_text">Bật để tiết kiệm pin</string>
     <string name="text_saving_battery">Đang tiết kiệm pin…</string>
-
     <string name="title_open_source">Mã nguồn mở</string>
     <string name="title_view_github_repo">Nhấn để xem mã</string>
+    <string name="title_status_bar">Thanh trạng thái</string>
+    <string name="show_hide_status_bar">Hiện/Ẩn thanh trạng thái</string>
 </resources>

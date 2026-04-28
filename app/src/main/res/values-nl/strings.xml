@@ -76,7 +76,6 @@
     <string name="select_an_application">Selecteer een app</string>
 
     <string name="gesture_shortcuts_title">Gebarensnelkoppelingen</string>
-    <string name="paid_feature_title">Premiumfunctie</string>
 
     <string name="tap_icon_to_select_app">Tik op een pictogram om een app te selecteren</string>
 
@@ -318,7 +317,8 @@
     <string name="title_battery_saver">Batterijbesparing</string>
     <string name="battery_saver_text">Inschakelen om batterij te besparen</string>
     <string name="text_saving_battery">Batterij besparen</string>
-
     <string name="title_open_source">Open source</string>
     <string name="title_view_github_repo">Tik om code te bekijken</string>
+    <string name="title_status_bar">Statusbalk</string>
+    <string name="show_hide_status_bar">Statusbalk tonen/verbergen</string>
 </resources>
