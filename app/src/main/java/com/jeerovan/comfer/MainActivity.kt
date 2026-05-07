@@ -3048,7 +3048,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         ) {
             if (settingInfoUiState.appDrawerLayout == "circular") {
                 AppListOverlay(
-                    apps = sortedPrimaryApps,
+                    apps = quickApps + sortedPrimaryApps,
                     notificationPackages,
                     onSwipeDown = { isAppListVisible = false })
             } else {
@@ -3066,7 +3066,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             enter = layer2Enter,
             exit = layer2Exit
         ) {
-            SearchListOverlay (apps = primaryApps+hiddenApps,
+            SearchListOverlay (apps = quickApps + primaryApps + hiddenApps,
                 notificationPackages,
                 contacts,
                 onSwipeDown = { isSearchListVisible = false },
