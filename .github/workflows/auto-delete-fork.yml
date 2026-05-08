@@ -1,0 +1,51 @@
+name: Auto-delete fork after PR merge
+
+on:
+  schedule:
+    # Check every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Delete fork even if PRs are open?'
+        required: true
+        default: 'false'
+
+jobs:
+  check-and-delete:
+    runs-on: ubuntu-latest
+    if: github.repository_owner == 'B67687'
+    steps:
+      - name: Check if fork should be deleted
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          UPSTREAM="jeerovan/Comfer"
+          FORK="${{ github.repository }}"
+
+          # List open PRs from this fork to the upstream
+          OPEN_PRS=$(gh pr list \
+            --repo "$UPSTREAM" \
+            --head "B67687:fix/show-quick-apps-in-app-drawer" \
+            --state open \
+            --json number \
+            --jq 'length')
+
+          echo "Open PRs from this fork: $OPEN_PRS"
+
+          if [ "$OPEN_PRS" -eq 0 ]; then
+            echo "No open PRs — safe to delete fork."
+            echo "delete=true" >> $GITHUB_OUTPUT
+          else
+            echo "Open PRs still exist — keeping fork."
+            echo "delete=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Delete this repository
+        if: steps.check.outputs.delete == 'true' || (github.event_name == 'workflow_dispatch' && github.event.inputs.force == 'true')
+        env:
+          GH_TOKEN: ${{ secrets.FORK_DELETE_TOKEN }}
+        run: |
+          echo "Deleting repository ${{ github.repository }}..."
+          gh api -X DELETE "repos/${{ github.repository }}"
