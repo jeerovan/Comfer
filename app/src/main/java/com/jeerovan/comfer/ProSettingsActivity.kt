@@ -1706,7 +1706,7 @@ fun AppDrawerScreen(
     val hapticFeedback = LocalHapticFeedback.current
     val settings by settingsViewModel.uiState.collectAsState()
     val appsInfo by appInfoViewModel.uiState.collectAsState()
-    val sortedPrimaryApps = if(settings.arrangeInAlphabeticalOrder) appsInfo.primaryApps.sortedBy { it.label } else appsInfo.primaryApps
+    val sortedPrimaryApps = if(settings.arrangeInAlphabeticalOrder) (appsInfo.quickApps + appsInfo.primaryApps).sortedBy { it.label } else appsInfo.quickApps + appsInfo.primaryApps
 
     var currentApps by remember(sortedPrimaryApps) { mutableStateOf(sortedPrimaryApps) }
     val maxScreenHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp }
@@ -1740,7 +1740,12 @@ fun AppDrawerScreen(
             canReOrder = !settings.arrangeInAlphabeticalOrder,
             notificationPackages = notificationPackages,
             onAppsReordered = { from,to ->
-                appInfoViewModel.moveAppInList(AppInfoManager.PRIMARY_APPS_LIST_NAME,from,to)
+                val quickSize = appsInfo.quickApps.size
+                if (from >= quickSize && to >= quickSize) {
+                    appInfoViewModel.moveAppInList(AppInfoManager.PRIMARY_APPS_LIST_NAME, from - quickSize, to - quickSize)
+                } else if (from < quickSize && to < quickSize) {
+                    appInfoViewModel.moveAppInList(AppInfoManager.QUICK_APPS_LIST_NAME, from, to)
+                }
             },
             initialHeight = drawerHeight,
             initialOffsetY = drawerOffset,
