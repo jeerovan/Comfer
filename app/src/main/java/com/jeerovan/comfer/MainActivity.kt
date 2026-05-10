@@ -4370,6 +4370,7 @@ fun TextClock(
     customColor: Boolean,
     backgroundColor: Color = Color.Black
 ) {
+    val context = LocalContext.current
     val color = if (customColor) settings.timeFontColor.copy(alpha=settings.timeFontAlpha/100f) else foregroundColor
     val shadowColor = if(customColor) {
         if(settings.timeHasShadow) settings.timeShadowColor.toArgb()
@@ -4378,13 +4379,30 @@ fun TextClock(
     val fontWeight = getFontWeightFromString(settings.timeFontWeight)
     val fontFamily = settings.timeFontFamily
     var time by remember { mutableStateOf("") }
-    LaunchedEffect(settings.timeFormat) {
-        while (true) {
-            val pattern = if (settings.timeFormat == "H12") "hh:mm" else "HH:mm"
-            val timeFormat = SimpleDateFormat(pattern, Locale.getDefault())
-            val now = System.currentTimeMillis()
-            time = timeFormat.format(now)
-            delay(60000L - (System.currentTimeMillis() % 60000L))
+    val timeFormat = remember(settings.timeFormat) {
+        val pattern = if (settings.timeFormat == "H12") "hh:mm" else "HH:mm"
+        SimpleDateFormat(pattern, Locale.getDefault())
+    }
+    DisposableEffect(timeFormat, context) {
+        // Set the initial time immediately
+        time = timeFormat.format(System.currentTimeMillis())
+
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                time = timeFormat.format(System.currentTimeMillis())
+            }
+        }
+
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_TIME_TICK)        // System fires this exactly on the minute mark
+            addAction(Intent.ACTION_TIME_CHANGED)     // Triggers if user manually adjusts device time
+            addAction(Intent.ACTION_TIMEZONE_CHANGED) // Triggers if timezone changes (e.g., traveling)
+        }
+
+        context.registerReceiver(receiver, filter)
+
+        onDispose {
+            context.unregisterReceiver(receiver)
         }
     }
     val timeParts = remember(time) { time.split(":") }
@@ -4449,12 +4467,29 @@ fun AnalogClock(
     minuteHandColor: Color,
     hourHandColor: Color
 ) {
+    val context = LocalContext.current
     var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(60000L - (System.currentTimeMillis() % 60000L))
-            currentTime = System.currentTimeMillis()
+    DisposableEffect(context) {
+        // Set the initial time immediately
+        currentTime = System.currentTimeMillis()
+
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                currentTime = System.currentTimeMillis()
+            }
+        }
+
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_TIME_TICK)
+            addAction(Intent.ACTION_TIME_CHANGED)
+            addAction(Intent.ACTION_TIMEZONE_CHANGED)
+        }
+
+        context.registerReceiver(receiver, filter)
+
+        onDispose {
+            context.unregisterReceiver(receiver)
         }
     }
 
