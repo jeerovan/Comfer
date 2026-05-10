@@ -1499,6 +1499,16 @@ fun SocialLinksRow(
     telegramUrl: String = "https://t.me/s/comfer_launcher"
 ) {
     val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current // Needed for the Toast
+
+    // Helper function to safely open URLs
+    fun safeOpenUri(url: String) {
+        try {
+            uriHandler.openUri(url)
+        } catch (e: Exception) {
+            Toast.makeText(context, "No app found to open this link.", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Row(
         modifier = modifier
@@ -1510,19 +1520,19 @@ fun SocialLinksRow(
         SocialIconButton(
             icon = R.drawable.reddit_icon,
             contentDescription = "Reddit",
-            onClick = { uriHandler.openUri(redditUrl) }
+            onClick = { safeOpenUri(redditUrl) }
         )
 
         SocialIconButton(
             icon = R.drawable.github_icon,
             contentDescription = "GitHub",
-            onClick = { uriHandler.openUri(githubUrl) }
+            onClick = { safeOpenUri(githubUrl) }
         )
 
         SocialIconButton(
             icon = R.drawable.telegram_icon,
             contentDescription = "Telegram",
-            onClick = { uriHandler.openUri(telegramUrl) }
+            onClick = { safeOpenUri(telegramUrl) }
         )
     }
 }

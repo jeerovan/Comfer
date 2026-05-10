@@ -12,13 +12,18 @@ import com.google.android.play.core.install.InstallStateUpdatedListener
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flowOn
 
 class AppUpdateHandler(private val context: Context) {
-    val appUpdateManager: AppUpdateManager = AppUpdateManagerFactory.create(context)
-    // Check if we should prompt based on 48-hour cooldown
+    // Lazy initialization ensures this is only created when needed
+    val appUpdateManager: AppUpdateManager by lazy {
+        AppUpdateManagerFactory.create(context)
+    }
+
     private fun shouldPromptUser(): Boolean {
         return PreferenceManager.shouldAppUpdatePromptUser(context)
     }
@@ -28,16 +33,14 @@ class AppUpdateHandler(private val context: Context) {
         onUpdateDownloaded: () -> Unit
     ) {
         appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
-            // 1. Check if update is available AND allowed
             val isAvailable = info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
             val isAllowed = info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)
-            // 2. Check if already downloaded (in case app was killed during download)
+
             if (info.installStatus() == InstallStatus.DOWNLOADED) {
                 onUpdateDownloaded()
                 return@addOnSuccessListener
             }
 
-            // 3. Show prompt only if available, allowed, and cooldown passed
             if (isAvailable && isAllowed && shouldPromptUser()) {
                 onUpdateAvailable(info)
             }
@@ -59,15 +62,19 @@ class AppUpdateHandler(private val context: Context) {
         val listener = InstallStateUpdatedListener { state ->
             trySend(state.installStatus())
         }
+        // Registering listener is a binder call, it must be executed in IO
         appUpdateManager.registerListener(listener)
-        awaitClose { appUpdateManager.unregisterListener(listener) }
-    }
+
+        awaitClose {
+            appUpdateManager.unregisterListener(listener)
+        }
+    }.flowOn(Dispatchers.IO) // <--- THIS FIXES THE ANR
 
     fun completeUpdate() {
         appUpdateManager.completeUpdate()
     }
 
     fun saveLastPromptTime() {
-        PreferenceManager.setAppUpdatePromptTime(context,System.currentTimeMillis())
+        PreferenceManager.setAppUpdatePromptTime(context, System.currentTimeMillis())
     }
 }
