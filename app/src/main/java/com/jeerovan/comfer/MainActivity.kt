@@ -908,7 +908,7 @@ private fun WidgetInstance(
 ) {
     val view = LocalView.current
     val context = LocalContext.current
-
+    val coroutineScope = rememberCoroutineScope()
     // Capture density and providerInfo during composition
     val density = LocalDensity.current
     val appWidgetProviderInfo = remember { widget.providerInfo }
@@ -943,48 +943,44 @@ private fun WidgetInstance(
         val width = with(density) { size.width.toDp().value.toInt() }
         val height = with(density) { size.height.toDp().value.toInt() }
 
-        withContext(Dispatchers.Default) {
+        val options = Bundle().apply {
+            putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, width)
+            putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, height)
+            putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, width)
+            putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, height)
+        }
+
+        // 1. Execute heavy Binder (IPC) calls in the IO dispatcher
+        withContext(Dispatchers.IO) {
             try {
-                // Create themed context off main thread
+                val appWidgetManager = AppWidgetManager.getInstance(context)
+                appWidgetManager.updateAppWidgetOptions(widget.widgetId, options)
+            } catch (e: Exception) {
+                Log.e("WidgetInstance", "Error updating widget options", e)
+            }
+        }
+
+        // 2. Switch to Main thread exclusively for View creation
+        withContext(Dispatchers.Main) {
+            try {
                 val themedContext = ContextThemeWrapper(
                     context.applicationContext,
                     android.R.style.Theme_DeviceDefault
                 )
 
-                // Switch to main thread for widget view creation
-                withContext(Dispatchers.Main) {
-                    try {
-                        // Create widget view with providerInfo
-                        val view = appWidgetHost.createView(
-                            themedContext,
-                            widget.widgetId,
-                            appWidgetProviderInfo  // This was missing!
-                        )
+                // This inflates the RemoteViews. It MUST be on Main
+                val view = appWidgetHost.createView(
+                    themedContext,
+                    widget.widgetId,
+                    appWidgetProviderInfo
+                )
 
-                        val options = Bundle().apply {
-                            putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, width)
-                            putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, height)
-                            putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, width)
-                            putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, height)
-                        }
-
-                        view.updateAppWidgetOptions(options)
-                        view.setAppWidget(widget.widgetId, appWidgetProviderInfo)
-
-                        hostView = view
-                        isLoading = false
-                    } catch (e: Exception) {
-                        Log.e("WidgetInstance", "Error setting up widget", e)
-                        hasError = true
-                        isLoading = false
-                    }
-                }
+                hostView = view
+                isLoading = false
             } catch (e: Exception) {
-                Log.e("WidgetInstance", "Error creating widget view", e)
-                withContext(Dispatchers.Main) {
-                    hasError = true
-                    isLoading = false
-                }
+                Log.e("WidgetInstance", "Error setting up widget view", e)
+                hasError = true
+                isLoading = false
             }
         }
     }
@@ -1089,10 +1085,13 @@ private fun WidgetInstance(
                         update = { view ->
                             if (!widgetUpdated) {
                                 widgetUpdated = true
-                                try {
-                                    view.updateAppWidgetOptions(getBundleOptionsFromCurrentSize())
-                                } catch (e: Exception) {
-                                    Log.e("WidgetInstance", "Error updating widget options", e)
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    try {
+                                        val manager = AppWidgetManager.getInstance(context)
+                                        manager.updateAppWidgetOptions(widget.widgetId, getBundleOptionsFromCurrentSize())
+                                    } catch (e: Exception) {
+                                        Log.e("WidgetInstance", "Error updating widget options on resize", e)
+                                    }
                                 }
                             }
                         },
