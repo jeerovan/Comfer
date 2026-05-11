@@ -371,6 +371,7 @@ fun AppListColumn(
 
                         Surface(
                             shape = iconShape,
+                            color = Color.Transparent,
                             modifier = Modifier
                                 .graphicsLayer {
                                     scaleX = scale
@@ -400,6 +401,7 @@ fun AppListColumn(
                     )
                     Surface(
                         shape = iconShape,
+                        color = Color.Transparent,
                         modifier = Modifier
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
@@ -421,18 +423,33 @@ fun AppListColumn(
 }
 
 @Composable
-fun AppCard(app: AppInfo, isSelected: Boolean,iconSize: Dp,iconShape: Shape) {
-    val themedModifier = if(isSelected){
+fun AppCard(
+    app: AppInfo,
+    isSelected: Boolean,
+    iconSize: Dp,
+    iconShape: Shape
+) {
+    val borderWidth = 3.dp
+    val gapWidth = 2.dp
+
+    val themedModifier = if(isSelected) {
         Modifier
+            // Draw the outer border
+            .border(width = borderWidth, color = MaterialTheme.colorScheme.primary, shape = iconShape)
+            // Add padding to create the gap, and also account for the border thickness itself
+            .padding(borderWidth + gapWidth)
             .clip(iconShape)
-            .border(width = 2.dp,Color.Cyan,iconShape)
     } else {
-        Modifier.clip(iconShape)
+        Modifier
+            // Apply the exact same structural size changes so the layout does not jump
+            .padding(borderWidth + gapWidth)
+            .clip(iconShape)
     }
+
     Box(
         modifier = themedModifier,
         contentAlignment = Alignment.Center
     ) {
-        AppIcon(app,emptyList(),iconShape,iconSize=iconSize, clickable = false)
+        AppIcon(app, emptyList(), iconShape, iconSize = iconSize, clickable = false)
     }
 }
