@@ -49,7 +49,10 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.min
-private const val REST_LIST_NAME = "Rest"
+import android.graphics.Paint
+import android.graphics.Typeface
+import kotlin.collections.map
+
 private const val ICON_ANALYSIS_SIZE = 192
 private const val ICON_ALPHA_THRESHOLD = 32
 
@@ -57,6 +60,7 @@ data class AppInfoUiState(
     val quickApps: List<AppInfo> = emptyList(),
     val primaryApps: List<AppInfo> = emptyList(),
     val restApps: List<AppInfo> = emptyList(),
+    val folders: Map<String, List<AppInfo>> = emptyMap()
 )
 data class WallpaperThemeColors(
     val lightBg: Int,
@@ -72,9 +76,9 @@ data class AppInfo(
     val label: String,
     val scale: Float,
     val packageName: String,
-    val icon: Drawable,
-    val componentName: ComponentName,
-    val user: UserHandle // Important for work profiles
+    val icon: Drawable?,
+    val componentName: ComponentName?,
+    val user: UserHandle? // Important for work profiles
 )
 
 private data class LegacyIconAnalysis(
@@ -103,13 +107,10 @@ suspend fun getAppInfo(
     try {
         val packageName = info.componentName.packageName
         val user = info.user
-        val cacheKey = "$packageName" // Add userId here if you support work profiles
+        val cacheKey = "$packageName" // Add userId here to support work profiles
 
-        // 1. Check Cache
         val cachedIcon = AppIconCache.getIcon(cacheKey)
 
-        // 2. Load Drawable (Heavy I/O & IPC)
-        // Wrapped strictly in limited parallelism to avoid ResourcesManager ANR
         val loadedDrawable = withContext(packageManagerDispatcher) {
             val customIcon = if (iconPackPackage != null) {
                 IconPackManager.getCustomIcon(context, info.componentName)
@@ -218,6 +219,78 @@ suspend fun getAppInfo(
         Log.e("getAppInfo", "Failed to load ${info.componentName.packageName}: ${e.message}")
         null
     }
+}
+
+fun generateFolderForeground(context: Context,
+                             title: String,
+                             appIcons: List<Drawable>,
+                             foregroundColor: Int): Drawable {
+    val size = 192 // Ensure this matches your ICON_ANALYSIS_SIZE constant
+    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+
+    if (appIcons.isEmpty()) {
+        val displayText = title.take(2).lowercase().replaceFirstChar { it.uppercase() }
+
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = foregroundColor
+            textSize = 72f
+            textAlign = Paint.Align.CENTER
+            typeface = Typeface.DEFAULT_BOLD
+        }
+
+        val xPos = canvas.width / 2f
+        val yPos = (canvas.height / 2f) - ((paint.descent() + paint.ascent()) / 2f)
+        canvas.drawText(displayText, xPos, yPos, paint)
+
+    } else {
+        val padding = 8
+        val iconSize = (size - (padding * 4)) / 3
+        val iconsToDraw = appIcons.take(8)
+
+        // Determine row layout dynamically based on constraints
+        val rowCounts = when (iconsToDraw.size) {
+            1 -> listOf(1)
+            2 -> listOf(2)
+            3 -> listOf(2, 1)
+            4 -> listOf(2, 2)
+            5 -> listOf(3, 2)
+            else -> {
+                // 6, 7, 8: 3x3 grid chunking
+                val list = mutableListOf<Int>()
+                var remaining = iconsToDraw.size
+                while (remaining > 0) {
+                    val count = minOf(3, remaining)
+                    list.add(count)
+                    remaining -= count
+                }
+                list
+            }
+        }
+
+        val totalRows = rowCounts.size
+        val totalHeight = (totalRows * iconSize) + ((totalRows - 1) * padding)
+        val startY = (size - totalHeight) / 2
+
+        var iconIndex = 0
+        for ((rowIndex, countInRow) in rowCounts.withIndex()) {
+            val totalWidth = (countInRow * iconSize) + ((countInRow - 1) * padding)
+            val startX = (size - totalWidth) / 2
+            val currentY = startY + (rowIndex * (iconSize + padding))
+
+            for (colIndex in 0 until countInRow) {
+                val currentX = startX + (colIndex * (iconSize + padding))
+                val drawable = iconsToDraw[iconIndex]
+
+                drawable.setBounds(currentX, currentY, currentX + iconSize, currentY + iconSize)
+                drawable.draw(canvas)
+
+                iconIndex++
+            }
+        }
+    }
+
+    return BitmapDrawable(context.resources, bitmap)
 }
 
 private fun calculateLegacyForegroundScale(bitmap: Bitmap): Float {
@@ -502,6 +575,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val themedColors = PreferenceManager.getThemedColors(context)
             val isLightHour = PreferenceManager.isLightHour(context)
             val iconPackPackage = PreferenceManager.getIconPack(context)
+            val savedFolders = AppInfoManager.getFolders(context)
             // Function to map package names to your UI models
             // NOTE: handle if a package exists on multiple profiles (Work + Personal)
             val semaphore = Semaphore(8)
@@ -511,16 +585,33 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     async {
                         // Acquire a permit before entering the heavy lifting
                         semaphore.withPermit {
-                            val activityInfo = allActivitiesMap[packageName] ?: return@withPermit null
-                            createAppInfo(
-                                context,
-                                activityInfo,
-                                showThemedIcons,
-                                themedColors,
-                                isLightHour,
-                                iconPackPackage,
-                                themedIconProcessor
-                            )
+                            if(packageName.startsWith("folder")){
+                                val folderData = savedFolders[packageName] ?: return@withPermit null
+                                val packages = folderData.packages
+                                val activitiesMap = allActivitiesMap.filter { it.key in packages }
+                                val activities = activitiesMap.values.toList()
+                                createFolderAppInfo(
+                                    context,
+                                    folderData,
+                                    activities,
+                                    showThemedIcons,
+                                    themedColors,
+                                    isLightHour,
+                                    iconPackPackage,
+                                    themedIconProcessor)
+                            } else {
+                                val activityInfo =
+                                    allActivitiesMap[packageName] ?: return@withPermit null
+                                createAppInfo(
+                                    context,
+                                    activityInfo,
+                                    showThemedIcons,
+                                    themedColors,
+                                    isLightHour,
+                                    iconPackPackage,
+                                    themedIconProcessor
+                                )
+                            }
                         }
                     }
                 }.awaitAll().filterNotNull()
@@ -536,6 +627,12 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             // 2. Primary Apps
             val primaryApps = mapPackagesToAppInfo(finalPrimaryPackageNames.toSet().toList())
 
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(primaryApps = primaryApps)
+                }
+            }
+
             // 3. Rest Apps
             val quickAndPrimaryPackages = finalQuickPackageNames.toSet() + finalPrimaryPackageNames.toSet()
             val restPackages = allCurrentPackageNames - quickAndPrimaryPackages
@@ -544,7 +641,22 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             // Final UI Update
             withContext(Dispatchers.Main) {
                 _uiState.update {
-                    it.copy(primaryApps = primaryApps, restApps = restApps)
+                    it.copy(restApps = restApps)
+                }
+            }
+
+            val restAppMap = restApps.associateBy { it.packageName }
+
+            // for each FolderData, map its packages to find AppInfo with matching packageName
+            val foldersWithAppInfo: Map<String, List<AppInfo>> = savedFolders.mapValues { (_, folderData) ->
+                folderData.packages.mapNotNull { pkgName ->
+                    restAppMap[pkgName]
+                }
+            }
+
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(folders = foldersWithAppInfo)
                 }
             }
 
@@ -573,12 +685,62 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         )
     }
 
+    suspend fun createFolderAppInfo(
+        context: Context,
+        folderData: FolderData,
+        activities: List<LauncherActivityInfo>,
+        showThemedIcons: Boolean,
+        themedColors: WallpaperThemeColors,
+        isLightHour: Boolean,
+        iconPackPackage: String?,
+        themedIconProcessor: ThemedIconProcessor
+    ): AppInfo? {
+        val appInfos = activities.mapNotNull { info ->
+            getAppInfo(
+                context,
+                info,
+                showThemedIcons,
+                themedColors,
+                isLightHour,
+                iconPackPackage,
+                themedIconProcessor
+            )
+        }
+        val drawables = appInfos.mapNotNull { it -> it.foreground }
+        val foregroundColorInt = if (showThemedIcons) {
+            getThemedIconColor(themedColors, isLightHour)
+        } else {
+            getForegroundColor(isLightHour).toArgb()
+        }
+        val foreground = generateFolderForeground(context,
+            folderData.title,
+            drawables,
+            foregroundColorInt)
+        val backgroundColorInt = if (showThemedIcons) {
+            getThemedBackgroundColor(themedColors, isLightHour)
+        } else {
+            getBackgroundColor(isLightHour).toArgb()
+        }
+        val background = backgroundColorInt.toDrawable()
+
+        return AppInfo(
+            background,
+            foreground,
+            folderData.title,
+            1.0f,
+            folderData.id,
+            foreground,
+            null,
+            null,
+        )
+    }
+
     fun moveAppInList(listName: String, fromIndex: Int, toIndex: Int) {
         viewModelScope.launch {
             val currentList = when (listName) {
                 AppInfoManager.QUICK_APPS_LIST_NAME -> _uiState.value.quickApps
                 AppInfoManager.PRIMARY_APPS_LIST_NAME -> _uiState.value.primaryApps
-                REST_LIST_NAME -> _uiState.value.restApps
+                AppInfoManager.REST_APPS_LIST_NAME -> _uiState.value.restApps
                 else -> return@launch
             }.toMutableList()
 
@@ -597,11 +759,51 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     _uiState.update { it.copy(primaryApps = currentList) }
                 }
 
-                REST_LIST_NAME -> {
+                AppInfoManager.REST_APPS_LIST_NAME -> {
                     _uiState.update { it.copy(restApps = currentList) }
                 }
             }
             PreferenceManager.increaseAppListVersion(getApplication()) // triggers UI update
+        }
+    }
+
+    fun moveAppsInFolder(folderName: String, fromIndex: Int, toIndex: Int) {
+        viewModelScope.launch {
+            val context: Context = getApplication()
+
+            // 1. Update persisted folder data
+            val savedFolders = AppInfoManager.getFolders(context).toMutableMap()
+            val folderData = savedFolders[folderName] ?: return@launch
+
+            val packages = folderData.packages.toMutableList()
+
+            // Ensure indices are within valid bounds
+            if (fromIndex !in packages.indices) return@launch
+            val validToIndex = toIndex.coerceIn(0, packages.size - 1)
+
+            // Move app package position
+            val pkgToMove = packages.removeAt(fromIndex)
+            packages.add(validToIndex, pkgToMove)
+
+            // Save back to preferences
+            savedFolders[folderName] = folderData.copy(packages = packages)
+            AppInfoManager.saveFolders(context, savedFolders)
+
+            // 2. Update UI state
+            val currentFolders = _uiState.value.folders.toMutableMap()
+            val appInfos = currentFolders[folderName]?.toMutableList() ?: return@launch
+
+            if (fromIndex in appInfos.indices) {
+                // Move appInfo position
+                val appToMove = appInfos.removeAt(fromIndex)
+                appInfos.add(validToIndex, appToMove)
+
+                // 3. Update _uiState atomically
+                currentFolders[folderName] = appInfos
+                _uiState.update {
+                    it.copy(folders = currentFolders)
+                }
+            }
         }
     }
 
@@ -614,11 +816,14 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val fromList = when (fromListName) {
                 AppInfoManager.QUICK_APPS_LIST_NAME -> currentState.quickApps
                 AppInfoManager.PRIMARY_APPS_LIST_NAME -> if(alphabeticalOrder) currentState.primaryApps.sortedBy { it.label.toString() } else currentState.primaryApps
-                REST_LIST_NAME -> currentState.restApps
+                AppInfoManager.REST_APPS_LIST_NAME -> currentState.restApps
                 else -> return@launch
             }
 
-            val appsToMove = fromList.filter { it.packageName in selectedPackageNames }
+            var appsToMove = fromList.filter { it.packageName in selectedPackageNames }
+            if(toListName == AppInfoManager.REST_APPS_LIST_NAME){
+                appsToMove = appsToMove.filter { !it.packageName.startsWith("folder") }
+            }
             if (appsToMove.isEmpty()) return@launch
 
             val appsToMovePackageNames = appsToMove.map { it.packageName }.toSet()
@@ -632,7 +837,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     newQuickApps = newQuickApps.filter { it.packageName !in appsToMovePackageNames }
                 AppInfoManager.PRIMARY_APPS_LIST_NAME ->
                     newPrimaryApps = newPrimaryApps.filter { it.packageName !in appsToMovePackageNames }
-                REST_LIST_NAME -> {
+                AppInfoManager.REST_APPS_LIST_NAME -> {
                     // No change to quick/primary lists when removing from rest.
                     // The apps will be added to a target list below.
                 }
@@ -641,10 +846,10 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             // Add to destination list
             when (toListName) {
                 AppInfoManager.QUICK_APPS_LIST_NAME ->
-                    newQuickApps = newQuickApps + appsToMove
+                    newQuickApps = appsToMove + newQuickApps
                 AppInfoManager.PRIMARY_APPS_LIST_NAME ->
-                    newPrimaryApps = newPrimaryApps + appsToMove
-                REST_LIST_NAME -> {
+                    newPrimaryApps = appsToMove + newPrimaryApps
+                AppInfoManager.REST_APPS_LIST_NAME -> {
                     // Moving to REST_LIST_NAME means removing from a persisted list.
                     // This is already handled in the "Remove from source list" block.
                 }
@@ -667,6 +872,214 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 )
             }
             PreferenceManager.increaseAppListVersion(getApplication()) // triggers UI update
+        }
+    }
+
+    fun createNewFolder(title: String) {
+        viewModelScope.launch {
+            val context:Context = getApplication()
+            val currentFolders = _uiState.value.folders.toMutableMap()
+            if (currentFolders.size >= 8) return@launch // Max 8 folders restriction
+
+            val newFolderId = "folder_${System.currentTimeMillis()}" // Ensuring unique Number/ID
+            val newFolder = FolderData(id = newFolderId, title = title, packages = emptyList())
+            val allFolders = AppInfoManager.getFolders(context).toMutableMap()
+            allFolders[newFolderId] = newFolder
+            AppInfoManager.saveFolders(context, allFolders)
+
+            val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
+            val monochrome = PreferenceManager.getMonochrome(context)
+            val showThemedIcons = PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
+            val themedColors = PreferenceManager.getThemedColors(context)
+            val isLightHour = PreferenceManager.isLightHour(context)
+
+            val activities:List<LauncherActivityInfo> = emptyList()
+            val themedIconProcessor = ThemedIconProcessor()
+
+            val folderAppInfo = createFolderAppInfo(
+                context,
+                newFolder,
+                activities,
+                showThemedIcons,
+                themedColors,
+                isLightHour,
+                null,
+                themedIconProcessor)
+            val primaryApps = _uiState.value.primaryApps.toMutableList()
+            if(folderAppInfo != null){ primaryApps.add(0,folderAppInfo)}
+            currentFolders[newFolderId] = emptyList()
+            _uiState.update { it.copy(primaryApps = primaryApps, folders = currentFolders) }
+            AppInfoManager.saveAppPackageNames(
+                getApplication(),
+                AppInfoManager.PRIMARY_APPS_LIST_NAME, primaryApps.map { it.packageName }
+            )
+
+        }
+    }
+
+    fun moveAppsToFolder(selectedList: String?, folderPackageName: String, selectedPackageNames: Set<String>) {
+        viewModelScope.launch {
+            if (selectedList == null || selectedPackageNames.isEmpty()) return@launch
+            val context: Context = getApplication()
+
+            val currentFolders = _uiState.value.folders.toMutableMap()
+            val folderAppInfos = currentFolders[folderPackageName]?.toMutableList() ?: return@launch
+            val existingPackages = folderAppInfos.map { it.packageName }
+
+            // Prevent adding duplicates and putting folders inside folders
+            val packagesToAdd = selectedPackageNames.filter {
+                it !in existingPackages && !it.startsWith("folder_")
+            }.take(8 - existingPackages.size) // Enforce max 8 limit
+
+            if (packagesToAdd.isEmpty()) return@launch
+
+            // Grab AppInfos from the source list
+            val fromAppInfos = when (selectedList) {
+                AppInfoManager.QUICK_APPS_LIST_NAME -> _uiState.value.quickApps
+                AppInfoManager.PRIMARY_APPS_LIST_NAME -> _uiState.value.primaryApps
+                AppInfoManager.REST_APPS_LIST_NAME -> _uiState.value.restApps
+                else -> return@launch
+            }
+
+            val appInfosToAdd = fromAppInfos.filter { it.packageName in packagesToAdd }
+            folderAppInfos.addAll(0,appInfosToAdd)
+            currentFolders[folderPackageName] = folderAppInfos
+
+            // Update Preferences
+            val savedFolders = AppInfoManager.getFolders(context).toMutableMap()
+            val folderData = savedFolders[folderPackageName]
+            var folderTitle = "??"
+            if (folderData != null) {
+                folderTitle = folderData.title
+                val updatedPackages = folderAppInfos.map { it.packageName }
+                savedFolders[folderPackageName] = folderData.copy(packages = updatedPackages)
+                AppInfoManager.saveFolders(context, savedFolders)
+            }
+
+            // Atomically update folders map
+            _uiState.update { it.copy(folders = currentFolders) }
+
+            // Move to Rest list to hide them from the primary/quick lists
+            moveAppsToList(
+                fromListName = selectedList,
+                toListName = AppInfoManager.REST_APPS_LIST_NAME,
+                selectedPackageNames = packagesToAdd.toSet()
+            )
+
+            // Regenerate visual folder icon
+            updateFolderIcon(context,
+                selectedList,
+                folderTitle,
+                folderPackageName,
+                folderAppInfos)
+        }
+    }
+
+    fun moveAppsFromFolder(selectedList: String?, folderPackageName: String, selectedPackageNames: Set<String>) {
+        viewModelScope.launch {
+            if (selectedPackageNames.isEmpty() || selectedList == null) return@launch
+            val context: Context = getApplication()
+
+            val currentFolders = _uiState.value.folders.toMutableMap()
+            val folderAppInfos = currentFolders[folderPackageName]?.toMutableList() ?: return@launch
+
+            val remainingAppInfos = folderAppInfos.filter { it.packageName !in selectedPackageNames }
+            currentFolders[folderPackageName] = remainingAppInfos
+
+            // Update Preferences
+            val savedFolders = AppInfoManager.getFolders(context).toMutableMap()
+            val folderData = savedFolders[folderPackageName]
+            var folderTitle = "??"
+            if (folderData != null) {
+                folderTitle = folderData.title
+                val updatedPackages = remainingAppInfos.map { it.packageName }
+                savedFolders[folderPackageName] = folderData.copy(packages = updatedPackages)
+                AppInfoManager.saveFolders(context, savedFolders)
+            }
+
+            // Atomically update folders map
+            _uiState.update { it.copy(folders = currentFolders) }
+
+            // Add back to primaryApps (pulling them out of the Rest list)
+            moveAppsToList(
+                fromListName = AppInfoManager.REST_APPS_LIST_NAME,
+                toListName = AppInfoManager.PRIMARY_APPS_LIST_NAME,
+                selectedPackageNames = selectedPackageNames
+            )
+
+            // Regenerate visual folder icon
+            updateFolderIcon(context,
+                selectedList,
+                folderTitle,
+                folderPackageName,
+                remainingAppInfos)
+        }
+    }
+
+    // Helper function to regenerate the composite icon so the folder reflects its new contents
+    private fun updateFolderIcon(context: Context,
+                                 selectedList:  String,
+                                 folderTitle: String,
+                                 folderPackageName: String,
+                                 folderApps: List<AppInfo>) {
+        val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
+        val monochrome = PreferenceManager.getMonochrome(context)
+        val showThemedIcons =
+            PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
+        val themedColors = PreferenceManager.getThemedColors(context)
+        val isLightHour = PreferenceManager.isLightHour(context)
+
+        val drawables = folderApps.mapNotNull { it -> it.foreground }
+        val foregroundColorInt = if (showThemedIcons) {
+            getThemedIconColor(themedColors, isLightHour)
+        } else {
+            getForegroundColor(isLightHour).toArgb()
+        }
+        val folderForeground = generateFolderForeground(
+            context,
+            folderTitle,
+            drawables,
+            foregroundColorInt
+        )
+        when (selectedList) {
+            AppInfoManager.QUICK_APPS_LIST_NAME -> {
+                _uiState.update { currentState ->
+                    val updatedQuickApps = currentState.quickApps.map { app ->
+                        if (app.packageName == folderPackageName) {
+                            app.copy(foreground = folderForeground)
+                        } else {
+                            app
+                        }
+                    }
+                    currentState.copy(quickApps = updatedQuickApps)
+                }
+            }
+
+            AppInfoManager.PRIMARY_APPS_LIST_NAME -> {
+                _uiState.update { currentState ->
+                    val updatedPrimaryApps = currentState.primaryApps.map { app ->
+                        if (app.packageName == folderPackageName) {
+                            app.copy(foreground = folderForeground)
+                        } else {
+                            app
+                        }
+                    }
+                    currentState.copy(primaryApps = updatedPrimaryApps)
+                }
+            }
+
+            else -> {
+                _uiState.update { currentState ->
+                    val updatedRestApps = currentState.restApps.map { app ->
+                        if (app.packageName == folderPackageName) {
+                            app.copy(foreground = folderForeground)
+                        } else {
+                            app
+                        }
+                    }
+                    currentState.copy(restApps = updatedRestApps)
+                }
+            }
         }
     }
 }
@@ -742,11 +1155,17 @@ fun getThemedBackgroundColor(
 }
 
 fun getBackgroundColor(isLightHour: Boolean):Color {
-    //return Color.Cyan
     return if (isLightHour) {
         Color.White.copy(alpha = 0.5f)
     } else {
         Color.Black.copy(alpha = 0.5f)
+    }
+}
+fun getForegroundColor(isLightHour: Boolean):Color {
+    return if (isLightHour) {
+        Color.Black.copy(alpha = 0.5f)
+    } else {
+        Color.White.copy(alpha = 0.5f)
     }
 }
 

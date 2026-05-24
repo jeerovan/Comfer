@@ -50,9 +50,6 @@
             android:name=".SettingsActivity"
             android:exported="false" />
         <activity
-            android:name=".SubscriptionActivity"
-            android:exported="false" />
-        <activity
             android:name=".GestureShortcutActivity"
             android:exported="false" />
         <activity
