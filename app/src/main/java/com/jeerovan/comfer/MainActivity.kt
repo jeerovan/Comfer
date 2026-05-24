@@ -1690,6 +1690,7 @@ fun BatteryStatus(
 
 @Composable
 fun QuickListOverlay(apps: List<AppInfo>,
+                     folders: Map<String,List<AppInfo>>,
                      appWidgetManager: AppWidgetManager,
                      mainWidgetHost: AppWidgetHost,
                      notificationIcons: List<Pair<String, Drawable>>,
@@ -1709,6 +1710,13 @@ fun QuickListOverlay(apps: List<AppInfo>,
     val guideKeyword = "quick_guide_1"
     var canShowGuide by remember { mutableStateOf(false) }
     val settings by settingsModel.uiState.collectAsState()
+
+    var activeFolderId by remember { mutableStateOf<String?>(null) }
+    val displayApps = if (activeFolderId != null) folders[activeFolderId] ?: emptyList() else apps
+
+    val handleFolderTap: (String) -> Unit = { folderId ->
+        activeFolderId = folderId
+    }
 
     fun openDefaultLauncherSettings() {
         val intent = Intent(Settings.ACTION_HOME_SETTINGS)
@@ -1996,27 +2004,38 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     )
                                 }
                             }
+                            val onCenterAction = {
+                                if (activeFolderId != null) {
+                                    activeFolderId = null
+                                } else {
+                                    onShowSearch()
+                                }
+                            }
                             when (settings.quickAppsLayout) {
                                 "linear" -> FiveColumnLayout(
-                                    apps,
+                                    displayApps,
                                     notificationPackages,
                                     iconSize,
                                     iconShape,
-                                    onShowSearch,
+                                    onCenterAction,
                                     showThemedIcon,
                                     settings.themedColors,
-                                    settings.isLightHour
+                                    settings.isLightHour,
+                                    isFolderActive = activeFolderId != null,
+                                    onTappingFolder = handleFolderTap
                                 )
 
                                 "circular" -> CircularLayout(
-                                    apps,
+                                    displayApps,
                                     notificationPackages,
                                     iconSize,
                                     iconShape,
-                                    onShowSearch,
+                                    onCenterAction,
                                     showThemedIcon,
                                     settings.themedColors,
-                                    settings.isLightHour
+                                    settings.isLightHour,
+                                    isFolderActive = activeFolderId != null,
+                                    onTappingFolder = handleFolderTap
                                 )
                             }
                         }
@@ -2761,6 +2780,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val quickApps = appInfoUiState.quickApps
     val primaryApps = appInfoUiState.primaryApps
     val hiddenApps = appInfoUiState.restApps
+    val folders = appInfoUiState.folders
 
     val sortedPrimaryApps = if(settingInfoUiState.arrangeInAlphabeticalOrder) primaryApps.sortedBy { it.label.toString() } else primaryApps
 
@@ -3007,6 +3027,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             exit = exitTransition
         ) {
             QuickListOverlay(apps = quickApps,
+                folders,
                 widgetHosts.appWidgetManager,
                 widgetHosts.mainHost,
                 notificationIcons = notificationIcons,
@@ -3373,7 +3394,8 @@ fun AppIcon(app: AppInfo,
             x: Dp = 0.dp,
             y: Dp = 0.dp,
             iconSize: Dp,
-            clickable: Boolean = true) {
+            clickable: Boolean = true,
+            onTappingFolder: ((String) -> Unit)? = null) {
     val context = LocalContext.current
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
@@ -3403,26 +3425,31 @@ fun AppIcon(app: AppInfo,
                     if (clickable) detectTapGestures(
                         onTap = {
                             view.playSoundEffect(SoundEffectConstants.CLICK)
-                            scope.launch(Dispatchers.IO) {
-                                val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
-                                if (intent != null) {
-                                    val boundedRect = android.graphics.Rect(
-                                        iconBounds.left.toInt(),
-                                        iconBounds.top.toInt(),
-                                        iconBounds.right.toInt(),
-                                        iconBounds.bottom.toInt()
-                                    )
-                                    intent.sourceBounds = boundedRect
-
-                                    withContext(Dispatchers.Main) {
-                                        val options = ActivityOptions.makeClipRevealAnimation(
-                                            view,
+                            if (app.packageName.startsWith("folder_")) {
+                                onTappingFolder?.invoke(app.packageName)
+                            } else {
+                                scope.launch(Dispatchers.IO) {
+                                    val intent =
+                                        context.packageManager.getLaunchIntentForPackage(app.packageName)
+                                    if (intent != null) {
+                                        val boundedRect = android.graphics.Rect(
                                             iconBounds.left.toInt(),
                                             iconBounds.top.toInt(),
-                                            iconBounds.width.toInt(),
-                                            iconBounds.height.toInt()
+                                            iconBounds.right.toInt(),
+                                            iconBounds.bottom.toInt()
                                         )
-                                        handleStartActivity(context, intent, options)
+                                        intent.sourceBounds = boundedRect
+
+                                        withContext(Dispatchers.Main) {
+                                            val options = ActivityOptions.makeClipRevealAnimation(
+                                                view,
+                                                iconBounds.left.toInt(),
+                                                iconBounds.top.toInt(),
+                                                iconBounds.width.toInt(),
+                                                iconBounds.height.toInt()
+                                            )
+                                            handleStartActivity(context, intent, options)
+                                        }
                                     }
                                 }
                             }
@@ -3478,7 +3505,8 @@ fun SearchIcon(
     onShowSearch: () -> Unit,
     showThemedIcon: Boolean,
     themedColors: WallpaperThemeColors?,
-    isLightMode: Boolean
+    isLightMode: Boolean,
+    isFolderActive: Boolean = false
 ) {
     val view = LocalView.current
 
@@ -3501,6 +3529,9 @@ fun SearchIcon(
 
     val shape = remember(iconShape, iconSize) { getShapeFromShape(iconShape, iconSize) }
 
+    val iconResource = if (isFolderActive) R.drawable.outline_close_24 else R.drawable.outline_search_24
+    val iconDescription = if (isFolderActive) stringResource(R.string.close) else stringResource(R.string.search)
+
     Box(
         modifier = Modifier
             .clip(shape)
@@ -3516,8 +3547,8 @@ fun SearchIcon(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painter = painterResource(R.drawable.outline_search_24),
-            contentDescription = stringResource(R.string.search),
+            painter = painterResource(iconResource),
+            contentDescription = iconDescription,
             modifier = Modifier.size(iconSize),
             tint = foregroundColor
         )
@@ -3944,106 +3975,99 @@ fun CircularLayout(
     onShowSearch: () -> Unit,
     showThemedIcon: Boolean,
     themedColors: WallpaperThemeColors?,
-    isLightMode: Boolean
+    isLightMode: Boolean,
+    isFolderActive: Boolean = false,
+    onTappingFolder: ((String) -> Unit)? = null
 ) {
-    // Radius calculated to maintain a 20.dp gap between 56.dp icons.
-    val radius =  iconSize * 1.768f
-    // Angles in degrees for each app icon, corresponding to the apps list index.
-    // Assumes a coordinate system where 0° is right and 90° is down.
-    val angles = listOf(
-        180f, // apps[0]: left
-        0f,   // apps[1]: right
-        270f, // apps[2]: top
-        90f,  // apps[3]: bottom
-        225f, // apps[4]: top-left (-45° from top)
-        315f, // apps[5]: top-right (+45° from top)
-        135f, // apps[6]: bottom-left (-45° from left)
-        45f   // apps[7]: bottom-right (+45° from right)
-    )
+    val radius = iconSize * 1.768f
+    val angles = listOf(180f, 0f, 270f, 90f, 225f, 315f, 135f, 45f)
     val boxSize = iconSize * 4.8f
+
     Box(
-        modifier = Modifier
-            .size(boxSize),
+        modifier = Modifier.size(boxSize),
         contentAlignment = Alignment.Center
     ) {
-        SearchIcon(iconSize,
-            iconShape,
-            onShowSearch,
-            showThemedIcon,
-            themedColors,
-            isLightMode)
+        SearchIcon(
+            iconSize = iconSize,
+            iconShape = iconShape,
+            onShowSearch = onShowSearch,
+            showThemedIcon = showThemedIcon,
+            themedColors = themedColors,
+            isLightMode = isLightMode,
+            isFolderActive = isFolderActive
+        )
 
-        // Place up to 8 app icons in a circle
         apps.take(8).forEachIndexed { index, app ->
             val angleRad = Math.toRadians(angles[index].toDouble())
             val xOffset = (radius.value * cos(angleRad)).dp
             val yOffset = (radius.value * sin(angleRad)).dp
 
-            Box(
-                modifier = Modifier.offset(x = xOffset, y = yOffset)
-            ) {
-                AppIcon(iconSize = iconSize,
+            Box(modifier = Modifier.offset(x = xOffset, y = yOffset)) {
+                AppIcon(
+                    iconSize = iconSize,
                     shape = iconShape,
                     notificationPackages = notificationPackages,
-                    app = app)
+                    app = app,
+                    onTappingFolder = onTappingFolder
+                )
             }
         }
     }
 }
 
 @Composable
-fun FiveColumnLayout(apps:List<AppInfo>,
-                     notificationPackages: List<String>,
-                     iconSize: Dp,
-                     iconShape: Shape,
-                     onShowSearch: () -> Unit,
-                     showThemedIcon: Boolean,
-                     themedColors: WallpaperThemeColors?,
-                     isLightMode: Boolean
+fun FiveColumnLayout(
+    apps: List<AppInfo>,
+    notificationPackages: List<String>,
+    iconSize: Dp,
+    iconShape: Shape,
+    onShowSearch: () -> Unit,
+    showThemedIcon: Boolean,
+    themedColors: WallpaperThemeColors?,
+    isLightMode: Boolean,
+    isFolderActive: Boolean = false,
+    onTappingFolder: ((String) -> Unit)? = null
 ) {
     val gap = 20.dp
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically // Aligns the middle box with the stacked columns
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(gap)
-        ) {
-            if(apps.size >= 3)AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[2])
-            if(apps.size >= 7)AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[6])
+        Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+            if(apps.size >= 3) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[2], onTappingFolder = onTappingFolder)
+            if(apps.size >= 7) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[6], onTappingFolder = onTappingFolder)
         }
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
-        Column(
-            verticalArrangement = Arrangement.spacedBy(gap)
-        ) {
-            if(apps.isNotEmpty())AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[0])
-            if(apps.size >= 5)AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[4])
+        Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+            if(apps.isNotEmpty()) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[0], onTappingFolder = onTappingFolder)
+            if(apps.size >= 5) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[4], onTappingFolder = onTappingFolder)
         }
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
-        // --- Middle column (single box) ---
-        SearchIcon(iconSize,
-            iconShape,
-            onShowSearch,
-            showThemedIcon,
-            themedColors,
-            isLightMode)
+
+        SearchIcon(
+            iconSize = iconSize,
+            iconShape = iconShape,
+            onShowSearch = onShowSearch,
+            showThemedIcon = showThemedIcon,
+            themedColors = themedColors,
+            isLightMode = isLightMode,
+            isFolderActive = isFolderActive
+        )
+
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
-        Column(
-            verticalArrangement = Arrangement.spacedBy(gap)
-        ) {
-            if(apps.size >= 2)AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[1])
-            if(apps.size >= 6)AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[5])
+        Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+            if(apps.size >= 2) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[1], onTappingFolder = onTappingFolder)
+            if(apps.size >= 6) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[5], onTappingFolder = onTappingFolder)
         }
         Box(modifier = Modifier.size(width = gap, height = 1.dp))
-        Column(
-            verticalArrangement = Arrangement.spacedBy(gap)
-        ) {
-            if(apps.size >= 4)AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[3])
-            if(apps.size >= 8)AppIcon(iconSize=iconSize,shape=iconShape, notificationPackages = notificationPackages,app=apps[7])
+        Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+            if(apps.size >= 4) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[3], onTappingFolder = onTappingFolder)
+            if(apps.size >= 8) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[7], onTappingFolder = onTappingFolder)
         }
     }
 }
+
 @Composable
 fun rememberNotificationDrawables(
     notifications: List<StatusBarNotification>,
