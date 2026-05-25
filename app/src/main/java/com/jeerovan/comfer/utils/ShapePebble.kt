@@ -24,6 +24,7 @@ class PebbleShape(
     private val complexity: Int = 6,
     private val smoothness: Float = 0.2f,
     private val irregularity: Float = 0.2f,
+    private val zoom: Float = 1.25f,
     private val seed: Long = 1L
 ) : Shape {
 
@@ -34,7 +35,8 @@ class PebbleShape(
     ): Outline {
         val path = Path()
         val center = size.center
-        val radius = minOf(size.width, size.height) / 2f
+        val maxOvershootScale = 1.0f + (irregularity / 2f) + smoothness
+        val radius = ((minOf(size.width, size.height) / 2f) / maxOvershootScale ) * zoom
 
         // Generate anchor points
         val points = generatePebblePoints(center, radius, complexity, irregularity, seed)
