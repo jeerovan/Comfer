@@ -25,6 +25,8 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -178,6 +180,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.PressInteraction
@@ -1963,7 +1966,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 },
                                 onCircular = {
                                     val appOnCircularPattern = settings.patternApps["Center"]
-                                    if (appOnCircularPattern != null ) {
+                                    if (appOnCircularPattern != null) {
                                         val launchIntent: Intent? =
                                             context.packageManager.getLaunchIntentForPackage(
                                                 appOnCircularPattern.packageName
@@ -2191,18 +2194,21 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                 if (isAtTop) {
                                     dragAccumulator += dragAmount
                                     if (dragAccumulator > scrollThreshold) {
-                                        selectedContactIndex = (selectedContactIndex - 1).coerceAtLeast(0)
+                                        selectedContactIndex =
+                                            (selectedContactIndex - 1).coerceAtLeast(0)
                                         dragAccumulator = 0f
                                     }
                                 } else {
                                     lazyListState.dispatchRawDelta(-2 * dragAmount)
                                 }
                             }
+
                             dragAmount < 0 -> { // Dragging Up
                                 if (isAtBottom) {
                                     dragAccumulator += dragAmount
                                     if (dragAccumulator < -scrollThreshold) {
-                                        selectedContactIndex = (selectedContactIndex + 1).coerceAtMost(filteredContacts.lastIndex)
+                                        selectedContactIndex =
+                                            (selectedContactIndex + 1).coerceAtMost(filteredContacts.lastIndex)
                                         dragAccumulator = 0f
                                     }
                                 } else {
@@ -2493,7 +2499,9 @@ fun PermissionRequestView(onRequestPermission: () -> Unit) {
 
 @Composable
 fun AppListOverlay(apps: List<AppInfo>,
+                   folders: Map<String,List<AppInfo>>,
                    notificationPackages: List<String>,
+                   settingsModel: SettingsViewModel,
                    onSwipeDown: () -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
@@ -2501,6 +2509,10 @@ fun AppListOverlay(apps: List<AppInfo>,
     val scope = rememberCoroutineScope()
     var iconSize by remember { mutableStateOf(48.dp) }
     var iconShape: Shape by remember { mutableStateOf(CircleShape) }
+    val settings by settingsModel.uiState.collectAsState()
+    val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
+    // State to hold the ID of the currently active folder
+    var activeFolderId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
@@ -2510,7 +2522,6 @@ fun AppListOverlay(apps: List<AppInfo>,
     }
 
     val scrollAnimatable = remember { Animatable(0f) }
-    val flingDecay = rememberSplineBasedDecay<Float>()
     var centerAppIndex by remember { mutableIntStateOf(0) }
     var lastCenterAppIndex by remember { mutableIntStateOf(0) }
     var centerIconX by remember { mutableFloatStateOf(0f) }
@@ -2587,120 +2598,137 @@ fun AppListOverlay(apps: List<AppInfo>,
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = {
-                        scope.launch {
-                            scrollAnimatable.stop()
-                        }
-                    },
-                    onDoubleTap = {
-                        if (apps.isNotEmpty()) {
-                            if (centerAppIndex < apps.size) {
-                                val app = apps[centerAppIndex]
-                                scope.launch(Dispatchers.Default) {
-                                    val launchIntent = packageManager.getLaunchIntentForPackage(app.packageName)
-                                    if (launchIntent != null) {
-                                        withContext(Dispatchers.Main) {
-                                            val opts = ActivityOptions.makeClipRevealAnimation(
-                                                view,
-                                                centerIconX.toInt(),
-                                                centerIconY.toInt(),
-                                                centerIconSize.toInt(),
-                                                centerIconSize.toInt()
-                                            )
-                                            context.startActivity(launchIntent, opts.toBundle())
+            .pointerInput(activeFolderId) {
+                if (activeFolderId == null) {
+                    detectTapGestures(
+                        onPress = {
+                            scope.launch {
+                                scrollAnimatable.stop()
+                            }
+                        },
+                        onDoubleTap = {
+                            if (apps.isNotEmpty()) {
+                                if (centerAppIndex < apps.size) {
+                                    val app = apps[centerAppIndex]
+                                    if (app.packageName.startsWith("folder_")) {
+                                        activeFolderId = app.packageName
+                                    } else {
+                                        scope.launch(Dispatchers.Default) {
+                                            val launchIntent =
+                                                packageManager.getLaunchIntentForPackage(app.packageName)
+                                            if (launchIntent != null) {
+                                                withContext(Dispatchers.Main) {
+                                                    val opts =
+                                                        ActivityOptions.makeClipRevealAnimation(
+                                                            view,
+                                                            centerIconX.toInt(),
+                                                            centerIconY.toInt(),
+                                                            centerIconSize.toInt(),
+                                                            centerIconSize.toInt()
+                                                        )
+                                                    context.startActivity(
+                                                        launchIntent,
+                                                        opts.toBundle()
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
-                )
+                    )
+                }
             }
-            .pointerInput(Unit) {
-                // These state variables are scoped to the gesture detection session
-                val velocityTracker = VelocityTracker()
-                var dragAxis: DragAxis? = null
-                var verticalDragAmount = 0f
-                var isSwipeDownTriggered = false
+            .pointerInput(activeFolderId) {
+                if (activeFolderId == null) {
+                    val velocityTracker = VelocityTracker()
+                    var dragAxis: DragAxis? = null
+                    var verticalDragAmount = 0f
+                    var isSwipeDownTriggered = false
 
-                detectDragGestures(
-                    onDragStart = {
-                        // Reset state for the new gesture
-                        dragAxis = null
-                        verticalDragAmount = 0f
-                        isSwipeDownTriggered = false
-                        velocityTracker.resetTracking()
-                        scope.launch {
-                            scrollAnimatable.stop() // Stop any ongoing animation
-                        }
-                    },
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-
-                        // Lock the drag axis after a small initial movement
-                        if (dragAxis == null) {
-                            if (dragAmount.x.absoluteValue > 4f || dragAmount.y.absoluteValue > 4f) {
-                                dragAxis =
-                                    if (dragAmount.x.absoluteValue > dragAmount.y.absoluteValue) {
-                                        DragAxis.HORIZONTAL
-                                    } else {
-                                        DragAxis.VERTICAL
-                                    }
+                    detectDragGestures(
+                        onDragStart = {
+                            // Reset state for the new gesture
+                            dragAxis = null
+                            verticalDragAmount = 0f
+                            isSwipeDownTriggered = false
+                            velocityTracker.resetTracking()
+                            scope.launch {
+                                scrollAnimatable.stop() // Stop any ongoing animation
                             }
-                        }
+                        },
+                        onDrag = { change, dragAmount ->
+                            change.consume()
 
-                        when (dragAxis) {
-                            DragAxis.HORIZONTAL -> {
-                                velocityTracker.addPosition(change.uptimeMillis, change.position)
+                            // Lock the drag axis after a small initial movement
+                            if (dragAxis == null) {
+                                if (dragAmount.x.absoluteValue > 4f || dragAmount.y.absoluteValue > 4f) {
+                                    dragAxis =
+                                        if (dragAmount.x.absoluteValue > dragAmount.y.absoluteValue) {
+                                            DragAxis.HORIZONTAL
+                                        } else {
+                                            DragAxis.VERTICAL
+                                        }
+                                }
+                            }
 
-                                val increment = dragAmount.x * 0.3f
-                                val totalScrollWidth = apps.size * snapSpacing
+                            when (dragAxis) {
+                                DragAxis.HORIZONTAL -> {
+                                    velocityTracker.addPosition(
+                                        change.uptimeMillis,
+                                        change.position
+                                    )
 
-                                // Launching a coroutine is necessary to call the suspend function `snapTo`.
+                                    val increment = dragAmount.x * 0.3f
+                                    val totalScrollWidth = apps.size * snapSpacing
+
+                                    // Launching a coroutine is necessary to call the suspend function `snapTo`.
+                                    scope.launch {
+                                        val newPosition =
+                                            (scrollAnimatable.value + increment).wrap(
+                                                totalScrollWidth
+                                            )
+                                        scrollAnimatable.snapTo(newPosition)
+                                    }
+                                }
+
+                                DragAxis.VERTICAL -> {
+                                    // Only process vertical drag if the action hasn't been triggered yet.
+                                    if (!isSwipeDownTriggered) {
+                                        verticalDragAmount += dragAmount.y
+                                        // Trigger the action once the threshold is passed.
+                                        if (verticalDragAmount > 80f) {
+                                            onSwipeDown()
+                                            isSwipeDownTriggered =
+                                                true // Prevents repeated calls in this gesture.
+                                        }
+                                    }
+                                }
+
+                                null -> { /* Wait for axis to be locked */
+                                }
+                            }
+                        },
+                        onDragEnd = {
+                            if (dragAxis == DragAxis.HORIZONTAL) {
+                                val velocity = velocityTracker.calculateVelocity().x * 0.3f
                                 scope.launch {
-                                    val newPosition =
-                                        (scrollAnimatable.value + increment).wrap(totalScrollWidth)
-                                    scrollAnimatable.snapTo(newPosition)
+                                    settleOnNearestApp(velocity)
                                 }
                             }
-
-                            DragAxis.VERTICAL -> {
-                                // Only process vertical drag if the action hasn't been triggered yet.
-                                if (!isSwipeDownTriggered) {
-                                    verticalDragAmount += dragAmount.y
-                                    // Trigger the action once the threshold is passed.
-                                    if (verticalDragAmount > 80f) {
-                                        onSwipeDown()
-                                        isSwipeDownTriggered =
-                                            true // Prevents repeated calls in this gesture.
-                                    }
+                            velocityTracker.resetTracking()
+                        },
+                        onDragCancel = {
+                            velocityTracker.resetTracking()
+                            if (dragAxis == DragAxis.HORIZONTAL) {
+                                scope.launch {
+                                    settleOnNearestApp()
                                 }
                             }
-
-                            null -> { /* Wait for axis to be locked */
-                            }
                         }
-                    },
-                    onDragEnd = {
-                        if (dragAxis == DragAxis.HORIZONTAL) {
-                            val velocity = velocityTracker.calculateVelocity().x * 0.3f
-                            scope.launch {
-                                settleOnNearestApp(velocity)
-                            }
-                        }
-                        velocityTracker.resetTracking()
-                    },
-                    onDragCancel = {
-                        velocityTracker.resetTracking()
-                        if (dragAxis == DragAxis.HORIZONTAL) {
-                            scope.launch {
-                                settleOnNearestApp()
-                            }
-                        }
-                    }
-                )
+                    )
+                }
             }
     ) {
         if (apps.isNotEmpty()) {
@@ -2715,6 +2743,9 @@ fun AppListOverlay(apps: List<AppInfo>,
                     centerIconX = x
                     centerIconY = y
                     centerIconSize = size
+                },
+                onTappingFolder = { folderId ->
+                    activeFolderId = folderId
                 }
             )
             Row(
@@ -2746,6 +2777,36 @@ fun AppListOverlay(apps: List<AppInfo>,
                                     shape = RoundedCornerShape(16.dp)
                                 )
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                    }
+                }
+            }
+            AnimatedVisibility(
+                visible = activeFolderId != null,
+                enter = fadeIn() + scaleIn(initialScale = 0.8f),
+                exit = fadeOut() + scaleOut(targetScale = 0.8f),
+                        modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.3f))
+                        .padding(bottom = 64.dp),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    activeFolderId?.let { folderId ->
+                        val folderApps = folders[folderId] ?: emptyList()
+                        CircularLayout(
+                            folderApps,
+                            notificationPackages,
+                            iconSize,
+                            iconShape,
+                            { activeFolderId = null },
+                            showThemedIcon,
+                            settings.themedColors,
+                            settings.isLightHour,
+                            isFolderActive = activeFolderId != null,
+                            onTappingFolder = null
                         )
                     }
                 }
@@ -2992,7 +3053,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                     onLongPress = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         val intent = Intent(context, SettingsActivity::class.java)
-                        handleStartActivity(context,intent,null)
+                        handleStartActivity(context, intent, null)
                     },
                     onDoubleTap = {
                         coroutineScope.launch(Dispatchers.Default) {
@@ -3069,7 +3130,9 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             if (settingInfoUiState.appDrawerLayout == "circular") {
                 AppListOverlay(
                     apps = sortedPrimaryApps,
+                    folders,
                     notificationPackages,
+                    settingsViewModel,
                     onSwipeDown = { isAppListVisible = false })
             } else {
                 AppDrawerScreen(
@@ -3227,7 +3290,8 @@ fun UshapedAppList(
     scrollOffset: Float,
     iconSize: Dp,
     iconShape: Shape,
-    updateCenterIconGeom: (x: Float, y: Float, size: Float) -> Unit
+    updateCenterIconGeom: (x: Float, y: Float, size: Float) -> Unit,
+    onTappingFolder: ((String) -> Unit)? = null
 ) {
     val sidePadding = 18.dp
     val topPadding = 70.dp
@@ -3364,6 +3428,7 @@ fun UshapedAppList(
                     x = x.toDp(),
                     y = y.toDp(),
                     iconSize = size,
+                    onTappingFolder = onTappingFolder
                 )
             }
         }
@@ -3748,27 +3813,27 @@ fun CircularButton(
             .background(buttonColor)
             .background(gradient) // Subtle gradient for a "sheen" effect
             .pointerInput(char) {
-            detectTapGestures(
-                onTap = {
-                    // Handle Click
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    view.playSoundEffect(SoundEffectConstants.CLICK)
-                    onClick()
-                },
-                onLongPress = {
-                    // Handle Long Press
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    showLocaleSelection()
-                },
-                onPress = { press ->
-                    // Handle Press state for animation manually
-                    val pressInteraction = PressInteraction.Press(press)
-                    interactionSource.emit(pressInteraction)
-                    tryAwaitRelease()
-                    interactionSource.emit(PressInteraction.Release(pressInteraction))
-                }
-            )
-        },
+                detectTapGestures(
+                    onTap = {
+                        // Handle Click
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        view.playSoundEffect(SoundEffectConstants.CLICK)
+                        onClick()
+                    },
+                    onLongPress = {
+                        // Handle Long Press
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        showLocaleSelection()
+                    },
+                    onPress = { press ->
+                        // Handle Press state for animation manually
+                        val pressInteraction = PressInteraction.Press(press)
+                        interactionSource.emit(pressInteraction)
+                        tryAwaitRelease()
+                        interactionSource.emit(PressInteraction.Release(pressInteraction))
+                    }
+                )
+            },
         contentAlignment = Alignment.Center
     ) {
         if (char != null) {
@@ -3827,7 +3892,7 @@ fun CircularKeyboard(
             }
             .detectSwipes(
                 locale,
-                onSwipeUp = {onSwipeUp()},
+                onSwipeUp = { onSwipeUp() },
                 onSwipeDown = onSwipeDown,
                 onSwipeLeft = onSwipeLeft,
                 onSwipeRight = onSwipeRight

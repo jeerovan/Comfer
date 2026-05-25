@@ -37,6 +37,7 @@ appcompat = "1.7.1"
 uiText = "1.10.0"
 animation = "1.10.0"
 runtime = "1.10.0"
+animationVersion = "1.11.2"
 
 [libraries]
 # Core AndroidX
@@ -97,6 +98,7 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
 androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 androidx-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
+animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animationVersion" }
 
 
 
