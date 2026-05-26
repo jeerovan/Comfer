@@ -20,14 +20,12 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.calculateTargetValue
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -135,12 +133,10 @@ import android.provider.ContactsContract
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -180,7 +176,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.PressInteraction
@@ -206,7 +201,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.TextUnit
 import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 import kotlin.math.abs
 
@@ -249,12 +243,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import kotlin.math.pow
 import kotlinx.coroutines.CancellationException
-import kotlin.math.abs
-import kotlin.math.roundToInt
 
 // 1. Define a custom exception to safely interrupt the animation
 private class SnapEarlyException : CancellationException("Handing off to snap phase")
@@ -2841,7 +2831,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val quickApps = appInfoUiState.quickApps
     val primaryApps = appInfoUiState.primaryApps
     val hiddenApps = appInfoUiState.restApps
-    val folders = appInfoUiState.folders
+    val folders = appInfoUiState.folderApps
 
     val sortedPrimaryApps = if(settingInfoUiState.arrangeInAlphabeticalOrder) primaryApps.sortedBy { it.label.toString() } else primaryApps
 

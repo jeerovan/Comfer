@@ -77,6 +77,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 
 private const val MAX_QUICK_APPS = 8
 
@@ -109,7 +111,6 @@ class ManageAppListActivity : AppCompatActivity() {
         }
     }
 }
-
 @Composable
 fun ManageLayersScreen(viewModel: AppInfoViewModel) {
     val uiState by viewModel.uiState.collectAsState()
@@ -124,6 +125,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
     val iconShape = getShapeFromShape(shape, iconSize.dp)
 
     var showFolderDialog by rememberSaveable { mutableStateOf(false) }
+    var isEditingFolder by rememberSaveable { mutableStateOf(false) }
     var folderTitle by rememberSaveable { mutableStateOf("") }
     var folderSelected by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -136,10 +138,10 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
     }
     // Stable sorted lists
     val primaryApps = remember(uiState.primaryApps, alphabeticalOrder) {
-        if (alphabeticalOrder) uiState.primaryApps.sortedBy { it.label.toString() } else uiState.primaryApps
+        if (alphabeticalOrder) uiState.primaryApps.sortedBy { it.label } else uiState.primaryApps
     }
 
-    val foldersCount = remember(uiState.folders){uiState.folders.size}
+    val foldersCount = remember(uiState.folderApps) { uiState.folderApps.size }
 
     // Changed to track Package Names instead of Indices for stability
     var selectedList by rememberSaveable { mutableStateOf<String?>(null) }
@@ -163,6 +165,14 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
             } else {
                 packageName
             }
+            if(folderSelected != null){
+                val folder:FolderData? = uiState.folders[folderSelected]
+                if(folder != null){
+                    folderTitle = folder.title
+                }
+            } else {
+                folderTitle = ""
+            }
         }
     }
 
@@ -182,8 +192,10 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
 
     if (showFolderDialog) {
         AlertDialog(
-            onDismissRequest = { showFolderDialog = false },
-            title = { Text(text = "Create Folder") },
+            onDismissRequest = {
+                showFolderDialog = false
+                isEditingFolder = false
+            },
             text = {
                 OutlinedTextField(
                     value = folderTitle,
@@ -196,15 +208,28 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 OutlinedButton(
                     onClick = {
                         if (folderTitle.isNotBlank()) {
-                            viewModel.createNewFolder(folderTitle)
+                            if (isEditingFolder && folderSelected != null) {
+                                viewModel.renameFolder(folderSelected!!, folderTitle)
+                            } else {
+                                viewModel.createNewFolder(folderTitle)
+                            }
                             showFolderDialog = false
-                            folderTitle = ""
+                            isEditingFolder = false
                         }
                     }
-                ) { Text("Create") }
+                ) { Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = stringResource(R.string.continue_text),
+                ) }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showFolderDialog = false }) { Text("Cancel") }
+                OutlinedButton(onClick = {
+                    showFolderDialog = false
+                    isEditingFolder = false
+                }) { Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = stringResource(R.string.close),
+                ) }
             }
         )
     }
@@ -306,7 +331,11 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                     onItemSelect = onItemSelect,
                     iconShape = iconShape,
                     iconSize = iconSize.dp,
-                    onAddFolderClick = { showFolderDialog = true },
+                    onAddFolderClick = {
+                        folderTitle = ""
+                        isEditingFolder = false
+                        showFolderDialog = true
+                    },
                     folders = foldersCount
                 )
                 Column(
@@ -376,7 +405,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
             }
             if (folderSelected != null) {
                 // Folder Contents Horizontal View
-                val folderAppInfos = uiState.folders[folderSelected] ?: emptyList()
+                val folderAppInfos = uiState.folderApps[folderSelected] ?: emptyList()
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -391,7 +420,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                             contentPadding = PaddingValues(0.dp),
                             enabled = selectedPackageNames.isNotEmpty(),
                             onClick = {
-                                viewModel.moveAppsToFolder(selectedList,folderSelected!!, selectedPackageNames)
+                                viewModel.moveAppsToFolder(selectedList, folderSelected!!, selectedPackageNames)
                                 clearFolderSelection()
                             }
                         ) {
@@ -404,13 +433,29 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                             contentPadding = PaddingValues(0.dp),
                             enabled = selectedPackageNames.isNotEmpty(),
                             onClick = {
-                                viewModel.moveAppsFromFolder(selectedList,folderSelected!!, selectedPackageNames)
+                                viewModel.moveAppsFromFolder(selectedList, folderSelected!!, selectedPackageNames)
                                 clearFolderSelection()
                             }
                         ) {
                             Icon(imageVector = Icons.Rounded.ArrowUpward, contentDescription = "Move to Primary")
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Selected Folder Title - Tap to Edit
+                    Text(
+                        text = folderTitle,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                isEditingFolder = true
+                                showFolderDialog = true
+                            }
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -422,7 +467,8 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                         selectedPackageNames,
                         iconSize.dp,
                         iconShape,
-                        onItemSelect)
+                        onItemSelect
+                    )
                 }
             }
             SnackbarHost(

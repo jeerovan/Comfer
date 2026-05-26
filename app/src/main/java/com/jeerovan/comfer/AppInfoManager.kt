@@ -12,7 +12,7 @@ import org.json.JSONObject
 
 data class FolderData(
     val id: String,
-    val title: String,
+    var title: String,
     var packages: List<String>
 )
 object AppInfoManager {

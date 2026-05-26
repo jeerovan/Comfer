@@ -60,7 +60,8 @@ data class AppInfoUiState(
     val quickApps: List<AppInfo> = emptyList(),
     val primaryApps: List<AppInfo> = emptyList(),
     val restApps: List<AppInfo> = emptyList(),
-    val folders: Map<String, List<AppInfo>> = emptyMap()
+    val folderApps: Map<String, List<AppInfo>> = emptyMap(),
+    val folders : Map<String, FolderData> = emptyMap()
 )
 data class WallpaperThemeColors(
     val lightBg: Int,
@@ -656,7 +657,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
             withContext(Dispatchers.Main) {
                 _uiState.update {
-                    it.copy(folders = foldersWithAppInfo)
+                    it.copy(folderApps = foldersWithAppInfo,folders = savedFolders)
                 }
             }
 
@@ -790,7 +791,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             AppInfoManager.saveFolders(context, savedFolders)
 
             // 2. Update UI state
-            val currentFolders = _uiState.value.folders.toMutableMap()
+            val currentFolders = _uiState.value.folderApps.toMutableMap()
             val appInfos = currentFolders[folderName]?.toMutableList() ?: return@launch
 
             if (fromIndex in appInfos.indices) {
@@ -801,7 +802,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 // 3. Update _uiState atomically
                 currentFolders[folderName] = appInfos
                 _uiState.update {
-                    it.copy(folders = currentFolders)
+                    it.copy(folderApps = currentFolders)
                 }
             }
         }
@@ -878,14 +879,14 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
     fun createNewFolder(title: String) {
         viewModelScope.launch {
             val context:Context = getApplication()
-            val currentFolders = _uiState.value.folders.toMutableMap()
+            val currentFolders = _uiState.value.folderApps.toMutableMap()
             if (currentFolders.size >= 8) return@launch // Max 8 folders restriction
 
             val newFolderId = "folder_${System.currentTimeMillis()}" // Ensuring unique Number/ID
             val newFolder = FolderData(id = newFolderId, title = title, packages = emptyList())
-            val allFolders = AppInfoManager.getFolders(context).toMutableMap()
-            allFolders[newFolderId] = newFolder
-            AppInfoManager.saveFolders(context, allFolders)
+            val savedFolders = AppInfoManager.getFolders(context).toMutableMap()
+            savedFolders[newFolderId] = newFolder
+            AppInfoManager.saveFolders(context, savedFolders)
 
             val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
             val monochrome = PreferenceManager.getMonochrome(context)
@@ -908,7 +909,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val primaryApps = _uiState.value.primaryApps.toMutableList()
             if(folderAppInfo != null){ primaryApps.add(0,folderAppInfo)}
             currentFolders[newFolderId] = emptyList()
-            _uiState.update { it.copy(primaryApps = primaryApps, folders = currentFolders) }
+            _uiState.update { it.copy(primaryApps = primaryApps, folderApps = currentFolders, folders = savedFolders) }
             AppInfoManager.saveAppPackageNames(
                 getApplication(),
                 AppInfoManager.PRIMARY_APPS_LIST_NAME, primaryApps.map { it.packageName }
@@ -917,12 +918,26 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun renameFolder(folderId: String, title: String){
+        viewModelScope.launch {
+            val context:Context = getApplication()
+            val currentFolders = _uiState.value.folders.toMutableMap()
+            var folder: FolderData? = currentFolders[folderId]
+            if(folder != null) {
+                folder?.title = title
+                currentFolders[folderId] = folder
+                _uiState.update { it.copy( folders = currentFolders) }
+                AppInfoManager.saveFolders(context, currentFolders)
+            }
+        }
+    }
+
     fun moveAppsToFolder(selectedList: String?, folderPackageName: String, selectedPackageNames: Set<String>) {
         viewModelScope.launch {
             if (selectedList == null || selectedPackageNames.isEmpty()) return@launch
             val context: Context = getApplication()
 
-            val currentFolders = _uiState.value.folders.toMutableMap()
+            val currentFolders = _uiState.value.folderApps.toMutableMap()
             val folderAppInfos = currentFolders[folderPackageName]?.toMutableList() ?: return@launch
             val existingPackages = folderAppInfos.map { it.packageName }
 
@@ -957,7 +972,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             }
 
             // Atomically update folders map
-            _uiState.update { it.copy(folders = currentFolders) }
+            _uiState.update { it.copy(folderApps = currentFolders) }
 
             // Move to Rest list to hide them from the primary/quick lists
             moveAppsToList(
@@ -980,7 +995,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             if (selectedPackageNames.isEmpty() || selectedList == null) return@launch
             val context: Context = getApplication()
 
-            val currentFolders = _uiState.value.folders.toMutableMap()
+            val currentFolders = _uiState.value.folderApps.toMutableMap()
             val folderAppInfos = currentFolders[folderPackageName]?.toMutableList() ?: return@launch
 
             val remainingAppInfos = folderAppInfos.filter { it.packageName !in selectedPackageNames }
@@ -998,7 +1013,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             }
 
             // Atomically update folders map
-            _uiState.update { it.copy(folders = currentFolders) }
+            _uiState.update { it.copy(folderApps = currentFolders) }
 
             // Add back to primaryApps (pulling them out of the Rest list)
             moveAppsToList(
