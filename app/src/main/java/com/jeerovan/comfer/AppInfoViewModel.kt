@@ -51,7 +51,14 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.min
 import android.graphics.Paint
 import android.graphics.Typeface
+import androidx.compose.ui.graphics.Shape
 import kotlin.collections.map
+
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 
 private const val ICON_ANALYSIS_SIZE = 192
 private const val ICON_ALPHA_THRESHOLD = 32
@@ -222,13 +229,17 @@ suspend fun getAppInfo(
     }
 }
 
-fun generateFolderForeground(context: Context,
-                             title: String,
-                             appIcons: List<Drawable>,
-                             foregroundColor: Int): Drawable {
+
+fun generateFolderForeground(
+    context: Context,
+    title: String,
+    appIcons: List<AppInfo>,
+    foregroundColor: Int,
+    shape: Shape
+): Drawable {
     val size = 192 // Ensure this matches your ICON_ANALYSIS_SIZE constant
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(bitmap)
+    val mainCanvas = Canvas(bitmap)
 
     if (appIcons.isEmpty()) {
         val displayText = title.take(2).lowercase().replaceFirstChar { it.uppercase() }
@@ -240,16 +251,14 @@ fun generateFolderForeground(context: Context,
             typeface = Typeface.DEFAULT_BOLD
         }
 
-        val xPos = canvas.width / 2f
-        val yPos = (canvas.height / 2f) - ((paint.descent() + paint.ascent()) / 2f)
-        canvas.drawText(displayText, xPos, yPos, paint)
+        val xPos = mainCanvas.width / 2f
+        val yPos = (mainCanvas.height / 2f) - ((paint.descent() + paint.ascent()) / 2f)
+        mainCanvas.drawText(displayText, xPos, yPos, paint)
 
     } else {
         val padding = 8
-        val iconSize = (size - (padding * 4)) / 3
         val iconsToDraw = appIcons.take(8)
 
-        // Determine row layout dynamically based on constraints
         val rowCounts = when (iconsToDraw.size) {
             1 -> listOf(1)
             2 -> listOf(2)
@@ -257,7 +266,6 @@ fun generateFolderForeground(context: Context,
             4 -> listOf(2, 2)
             5 -> listOf(3, 2)
             else -> {
-                // 6, 7, 8: 3x3 grid chunking
                 val list = mutableListOf<Int>()
                 var remaining = iconsToDraw.size
                 while (remaining > 0) {
@@ -270,8 +278,41 @@ fun generateFolderForeground(context: Context,
         }
 
         val totalRows = rowCounts.size
+        val maxCols = rowCounts.maxOrNull() ?: 1
+
+        val maxIconWidth = (size - (padding * (maxCols + 1))) / maxCols
+        val maxIconHeight = (size - (padding * (totalRows + 1))) / totalRows
+        val iconSize = minOf(maxIconWidth, maxIconHeight)
+
         val totalHeight = (totalRows * iconSize) + ((totalRows - 1) * padding)
         val startY = (size - totalHeight) / 2
+
+        // 1. Create the clip path based on the calculated mini-icon size
+        val density = Density(context.resources.displayMetrics.density)
+        val outline = shape.createOutline(
+            Size(iconSize.toFloat(), iconSize.toFloat()),
+            layoutDirection = LayoutDirection.Ltr,
+            density = density
+        )
+
+        val clipPath = when (outline) {
+            is Outline.Rounded -> android.graphics.Path().apply {
+                addRoundRect(
+                    outline.roundRect.left, outline.roundRect.top,
+                    outline.roundRect.right, outline.roundRect.bottom,
+                    outline.roundRect.topLeftCornerRadius.x, outline.roundRect.topLeftCornerRadius.y,
+                    android.graphics.Path.Direction.CW
+                )
+            }
+            is Outline.Rectangle -> android.graphics.Path().apply {
+                addRect(outline.rect.left, outline.rect.top, outline.rect.right, outline.rect.bottom, android.graphics.Path.Direction.CW)
+            }
+            is Outline.Generic -> outline.path.asAndroidPath()
+        }
+
+        // 2. Prepare a reusable buffer to render each individual shaped mini-icon
+        val miniBitmap = Bitmap.createBitmap(iconSize, iconSize, Bitmap.Config.ARGB_8888)
+        val miniCanvas = Canvas(miniBitmap)
 
         var iconIndex = 0
         for ((rowIndex, countInRow) in rowCounts.withIndex()) {
@@ -281,14 +322,41 @@ fun generateFolderForeground(context: Context,
 
             for (colIndex in 0 until countInRow) {
                 val currentX = startX + (colIndex * (iconSize + padding))
-                val drawable = iconsToDraw[iconIndex]
+                val app = iconsToDraw[iconIndex]
 
-                drawable.setBounds(currentX, currentY, currentX + iconSize, currentY + iconSize)
-                drawable.draw(canvas)
+                // Clear the reusable buffer for the next icon
+                miniBitmap.eraseColor(android.graphics.Color.TRANSPARENT)
+
+                miniCanvas.save()
+                miniCanvas.clipPath(clipPath) // Apply shape clip
+
+                // Draw background layer inside the shape
+                app.background?.let { bg ->
+                    bg.mutate()
+                    bg.setBounds(0, 0, iconSize, iconSize)
+                    bg.draw(miniCanvas)
+                }
+
+                // Draw foreground layer inside the shape
+                val fg = app.foreground ?: app.icon
+                val scaledSize = (iconSize * app.scale).toInt()
+                val offset = (iconSize - scaledSize) / 2
+
+                fg?.mutate()
+                fg?.setBounds(offset, offset, offset + scaledSize, offset + scaledSize)
+                fg?.draw(miniCanvas)
+
+                miniCanvas.restore()
+
+                // Stamp the fully rendered, shaped mini-icon onto the main folder canvas
+                mainCanvas.drawBitmap(miniBitmap, currentX.toFloat(), currentY.toFloat(), null)
 
                 iconIndex++
             }
         }
+
+        // Clean up the buffer to immediately free memory
+        miniBitmap.recycle()
     }
 
     return BitmapDrawable(context.resources, bitmap)
@@ -576,6 +644,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val themedColors = PreferenceManager.getThemedColors(context)
             val isLightHour = PreferenceManager.isLightHour(context)
             val iconPackPackage = PreferenceManager.getIconPack(context)
+            val shape = PreferenceManager.getIconShape(context)
+
             val savedFolders = AppInfoManager.getFolders(context)
             // Function to map package names to your UI models
             // NOTE: handle if a package exists on multiple profiles (Work + Personal)
@@ -599,7 +669,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                                     themedColors,
                                     isLightHour,
                                     iconPackPackage,
-                                    themedIconProcessor)
+                                    themedIconProcessor,
+                                    shape)
                             } else {
                                 val activityInfo =
                                     allActivitiesMap[packageName] ?: return@withPermit null
@@ -694,7 +765,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         themedColors: WallpaperThemeColors,
         isLightHour: Boolean,
         iconPackPackage: String?,
-        themedIconProcessor: ThemedIconProcessor
+        themedIconProcessor: ThemedIconProcessor,
+        shape: Shape
     ): AppInfo? {
         val appInfos = activities.mapNotNull { info ->
             getAppInfo(
@@ -707,7 +779,6 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 themedIconProcessor
             )
         }
-        val drawables = appInfos.mapNotNull { it -> it.foreground }
         val foregroundColorInt = if (showThemedIcons) {
             getThemedIconColor(themedColors, isLightHour)
         } else {
@@ -715,8 +786,10 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         }
         val foreground = generateFolderForeground(context,
             folderData.title,
-            drawables,
-            foregroundColorInt)
+            appInfos,
+            foregroundColorInt,
+            shape
+            )
         val backgroundColorInt = if (showThemedIcons) {
             getThemedBackgroundColor(themedColors, isLightHour)
         } else {
@@ -893,7 +966,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val showThemedIcons = PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
             val themedColors = PreferenceManager.getThemedColors(context)
             val isLightHour = PreferenceManager.isLightHour(context)
-
+            val shape = PreferenceManager.getIconShape(context)
             val activities:List<LauncherActivityInfo> = emptyList()
             val themedIconProcessor = ThemedIconProcessor()
 
@@ -905,7 +978,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 themedColors,
                 isLightHour,
                 null,
-                themedIconProcessor)
+                themedIconProcessor,
+                shape)
             val primaryApps = _uiState.value.primaryApps.toMutableList()
             if(folderAppInfo != null){ primaryApps.add(0,folderAppInfo)}
             currentFolders[newFolderId] = emptyList()
@@ -1051,8 +1125,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
         val themedColors = PreferenceManager.getThemedColors(context)
         val isLightHour = PreferenceManager.isLightHour(context)
-
-        val drawables = folderApps.mapNotNull { it -> it.foreground }
+        val shape = PreferenceManager.getIconShape(context)
         val foregroundColorInt = if (showThemedIcons) {
             getThemedIconColor(themedColors, isLightHour)
         } else {
@@ -1061,8 +1134,9 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         val folderForeground = generateFolderForeground(
             context,
             folderTitle,
-            drawables,
-            foregroundColorInt
+            folderApps,
+            foregroundColorInt,
+            shape
         )
         when (selectedList) {
             AppInfoManager.QUICK_APPS_LIST_NAME -> {
