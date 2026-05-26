@@ -3126,6 +3126,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                     onSwipeDown = { isAppListVisible = false })
             } else {
                 AppDrawerScreen(
+                    folders,
                     notificationPackages,
                     settingsViewModel,
                     appInfoViewModel,

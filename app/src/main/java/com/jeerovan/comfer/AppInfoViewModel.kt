@@ -918,16 +918,24 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun renameFolder(folderId: String, title: String){
-        viewModelScope.launch {
-            val context:Context = getApplication()
-            val currentFolders = _uiState.value.folders.toMutableMap()
-            var folder: FolderData? = currentFolders[folderId]
-            if(folder != null) {
-                folder?.title = title
-                currentFolders[folderId] = folder
-                _uiState.update { it.copy( folders = currentFolders) }
-                AppInfoManager.saveFolders(context, currentFolders)
+    fun renameFolder(folderId: String, title: String) {
+        viewModelScope.launch(Dispatchers.IO) { // Saving preferences should be on IO dispatcher
+            val context = getApplication<Application>()
+
+            _uiState.update { currentState ->
+                val currentFolders = currentState.folders.toMutableMap()
+
+                // Check if folder exists
+                val folder = currentFolders[folderId]
+                if (folder != null) {
+                    currentFolders[folderId] = folder.copy(title = title)
+
+                    // Save asynchronously
+                    AppInfoManager.saveFolders(context, currentFolders)
+                }
+
+                // Return updated state
+                currentState.copy(folders = currentFolders)
             }
         }
     }

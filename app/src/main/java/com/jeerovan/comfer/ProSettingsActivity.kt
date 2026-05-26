@@ -10,6 +10,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -68,6 +70,8 @@ import com.jeerovan.comfer.ui.theme.fontProvider
 import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
 import com.jeerovan.comfer.utils.CommonUtil.getKeyTextObject
 import com.jeerovan.comfer.utils.CommonUtil.isColorDark
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyGridState
 
@@ -1425,7 +1429,8 @@ fun AppDrawer(
     enterEditMode: () -> Unit,
     exitEditMode: () -> Unit,
     iconSize: Dp,
-    iconShape: Shape
+    iconShape: Shape,
+    onTappingFolder: ((String) -> Unit)? = null
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val density = LocalDensity.current
@@ -1529,11 +1534,18 @@ fun AppDrawer(
                                 isDragging = isDragging,
                                 iconSize = iconSize,
                                 iconShape,
-                                dragHandle = this
+                                dragHandle = this,
+                                onTappingFolder = onTappingFolder
                             )
                         }
                     } else {
-                        AppIconWrapperWoDragging(app,notificationPackages,isEditMode,iconSize,iconShape)
+                        AppIconWrapperWoDragging(
+                            app,
+                            notificationPackages,
+                            isEditMode,
+                            iconSize,
+                            iconShape,
+                            onTappingFolder = onTappingFolder)
                     }
                 }
             }
@@ -1624,7 +1636,8 @@ private fun AppIconWrapper(
     isDragging: Boolean,
     iconSize: Dp,
     iconShape: Shape,
-    dragHandle: sh.calvin.reorderable.ReorderableCollectionItemScope
+    dragHandle: sh.calvin.reorderable.ReorderableCollectionItemScope,
+    onTappingFolder: ((String) -> Unit)? = null
 ) {
     val scale by animateFloatAsState(if (isDragging) 1.2f else 1f, label = "scale")
     Column(
@@ -1648,7 +1661,8 @@ private fun AppIconWrapper(
             notificationPackages,
             iconShape,
             iconSize = iconSize,
-            clickable = !isEditMode)
+            clickable = !isEditMode,
+            onTappingFolder = onTappingFolder)
 
         Spacer(modifier = Modifier.height(4.dp))
         Text(
@@ -1670,6 +1684,7 @@ private fun AppIconWrapperWoDragging(
     isEditMode: Boolean,
     iconSize: Dp,
     iconShape: Shape,
+    onTappingFolder: ((String) -> Unit)? = null
 ) {
     Column(
         modifier = Modifier
@@ -1680,7 +1695,8 @@ private fun AppIconWrapperWoDragging(
             notificationPackages,
             iconShape,
             iconSize = iconSize,
-            clickable = !isEditMode)
+            clickable = !isEditMode,
+            onTappingFolder = onTappingFolder)
 
         Spacer(modifier = Modifier.height(4.dp))
         Text(
@@ -1698,11 +1714,13 @@ private fun AppIconWrapperWoDragging(
 // Usage example
 @Composable
 fun AppDrawerScreen(
+    folders: Map<String,List<AppInfo>>,
     notificationPackages: List<String>,
     settingsViewModel: SettingsViewModel,
     appInfoViewModel: AppInfoViewModel,
     onSwipeDown: () -> Unit
 ) {
+    val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
     val settings by settingsViewModel.uiState.collectAsState()
     val appsInfo by appInfoViewModel.uiState.collectAsState()
@@ -1715,7 +1733,19 @@ fun AppDrawerScreen(
     var drawerHeight by remember { mutableStateOf(initialHeight) }
     var drawerOffset by remember { mutableStateOf(initialOffset) }
 
+    val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
+    var activeFolderId by remember { mutableStateOf<String?>(null) }
     var isEditMode by remember { mutableStateOf(false) }
+
+    var iconSize by remember { mutableStateOf(48.dp) }
+    var iconShape: Shape by remember { mutableStateOf(CircleShape) }
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            iconSize = PreferenceManager.getIconSize(context).dp
+            iconShape = PreferenceManager.getIconShape(context)
+        }
+    }
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -1762,8 +1792,41 @@ fun AppDrawerScreen(
                 if(isEditMode)isEditMode = false
             },
             iconSize = settings.iconSize.dp,
-            iconShape = settings.iconShape
+            iconShape = settings.iconShape,
+            onTappingFolder = { folderId ->
+                activeFolderId = folderId
+            }
         )
+        AnimatedVisibility(
+            visible = activeFolderId != null,
+            enter = fadeIn() + scaleIn(initialScale = 0.8f),
+            exit = fadeOut() + scaleOut(targetScale = 0.8f),
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .padding(bottom = 64.dp,top = 12.dp),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                activeFolderId?.let { folderId ->
+                    val folderApps = folders[folderId] ?: emptyList()
+                    FiveColumnLayout(
+                        folderApps,
+                        notificationPackages,
+                        iconSize,
+                        iconShape,
+                        { activeFolderId = null },
+                        showThemedIcon,
+                        settings.themedColors,
+                        settings.isLightHour,
+                        isFolderActive = true,
+                        onTappingFolder = null
+                    )
+                }
+            }
+        }
     }
 }
 
