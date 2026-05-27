@@ -953,7 +953,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             val context:Context = getApplication()
             val currentFolders = _uiState.value.folderApps.toMutableMap()
-            if (currentFolders.size >= 8) return@launch // Max 8 folders restriction
+            if (currentFolders.size >= 10) return@launch // Max 10 folders restriction
 
             val newFolderId = "folder_${System.currentTimeMillis()}" // Ensuring unique Number/ID
             val newFolder = FolderData(id = newFolderId, title = title, packages = emptyList())

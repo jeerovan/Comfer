@@ -199,8 +199,8 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
             text = {
                 OutlinedTextField(
                     value = folderTitle,
-                    onValueChange = { if (it.length <= 10) folderTitle = it },
-                    label = { Text("Folder Name (Max 10 chars)") },
+                    onValueChange = { if (it.length <= 20) folderTitle = it },
+                    label = { Text("Folder Name (Max 20 chars)") },
                     singleLine = true
                 )
             },
@@ -590,7 +590,7 @@ fun AppListColumn(
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(15.dp)
         )
-        if(listName == AppInfoManager.PRIMARY_APPS_LIST_NAME && folders < 8)AddFolderIcon(onAddFolderClick = onAddFolderClick)
+        if(listName == AppInfoManager.PRIMARY_APPS_LIST_NAME && folders < 10)AddFolderIcon(onAddFolderClick = onAddFolderClick)
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxHeight(),
