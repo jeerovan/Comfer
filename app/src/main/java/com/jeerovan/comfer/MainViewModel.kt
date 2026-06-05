@@ -3,6 +3,7 @@ package com.jeerovan.comfer
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.jeerovan.comfer.utils.CommonUtil.downloadImage
@@ -64,6 +65,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     if(timestamp > 0L) {
                         Log.d("MainViewModel", "Wallpaper Changed At: $timestamp")
                         changeWallpaper()
+                        // Consume the event so it doesn't replay on app restart
+                        application.dataStore.edit { preferences ->
+                            preferences[PreferenceKeys.WALLPAPER_CHANGE] = 0L
+                        }
                     }
                 }
         }
@@ -76,6 +81,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     if(timestamp > 0L) {
                         Log.d("MainViewModel", "Wallpaper Reset At: $timestamp")
                         reapplyWallpaper()
+                        // Consume the event so it doesn't replay on app restart
+                        application.dataStore.edit { preferences ->
+                            preferences[PreferenceKeys.WALLPAPER_RESET] = 0L
+                        }
                     }
                 }
         }
