@@ -2780,24 +2780,32 @@ fun AppListOverlay(apps: List<AppInfo>,
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.Black.copy(alpha = 0.3f))
                         .padding(bottom = 64.dp),
                     contentAlignment = Alignment.BottomCenter
                 ) {
                     activeFolderId?.let { folderId ->
                         val folderApps = folders[folderId] ?: emptyList()
-                        CircularLayout(
-                            folderApps,
-                            notificationPackages,
-                            iconSize,
-                            iconShape,
-                            { activeFolderId = null },
-                            showThemedIcon,
-                            settings.themedColors,
-                            settings.isLightHour,
-                            isFolderActive = activeFolderId != null,
-                            onTappingFolder = null
-                        )
+                        // Wrap the CircularLayout in its own Box for the background
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    color = Color.Black.copy(alpha = 0.3f),
+                                    shape = CircleShape
+                                ).padding(16.dp)
+                        ) {
+                            CircularLayout(
+                                folderApps,
+                                notificationPackages,
+                                iconSize,
+                                iconShape,
+                                { activeFolderId = null },
+                                showThemedIcon,
+                                settings.themedColors,
+                                settings.isLightHour,
+                                isFolderActive = activeFolderId != null,
+                                onTappingFolder = null
+                            )
+                        }
                     }
                 }
             }
@@ -3140,7 +3148,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             enter = layer2Enter,
             exit = layer2Exit
         ) {
-            SearchListOverlay (apps = primaryApps+hiddenApps,
+            val primaryAppsWOFolders = primaryApps.filter { !it.packageName.startsWith("folder") }
+            SearchListOverlay (apps = primaryAppsWOFolders+hiddenApps,
                 notificationPackages,
                 contacts,
                 onSwipeDown = { isSearchListVisible = false },
