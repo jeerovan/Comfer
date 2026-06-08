@@ -123,7 +123,7 @@ object PreferenceManager {
         } else {
             val calendar = Calendar.getInstance()
             val hour = calendar.get(Calendar.HOUR_OF_DAY)
-            return hour > 6 && hour < 19
+            return hour in 7..<19
         }
     }
     fun setThemedColors(context: Context,

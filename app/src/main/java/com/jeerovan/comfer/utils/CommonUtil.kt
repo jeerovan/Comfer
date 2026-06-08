@@ -62,68 +62,35 @@ data class VibrantTextColorStyle(
 
 object CommonUtil {
     fun handleStartActivity(context:Context, intent:Intent?, options: ActivityOptions?){
+        if (intent == null) return
         try {
-            if (intent != null) {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                CoroutineScope(Dispatchers.Main).launch {
-                    withContext(Dispatchers.Default) {
-                        // The actual startActivity call happens here
-                        // but we're not blocking the UI thread waiting for response
-                        try {
-                            if (options != null) {
-                                context.startActivity(intent, options.toBundle())
-                            } else {
-                                context.startActivity(intent)
-                            }
-                        } catch (e: ActivityNotFoundException) {
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(
-                                    context,
-                                    "App not found",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        } catch (e: Exception){
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(
-                                    context,
-                                    "Error",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-                    }
-                }
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (options != null) {
+                context.startActivity(intent, options.toBundle())
+            } else {
+                context.startActivity(intent)
             }
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(context, "App not found", Toast.LENGTH_SHORT).show()
         } catch (e: SecurityException) {
-            // The permission was denied by the system.
-            // Inform the user gracefully instead of crashing.
-            e.printStackTrace() // Log the error for debugging
             Toast.makeText(
                 context,
                 "App could not be launched. Please check your device App Launch settings.",
                 Toast.LENGTH_LONG
             ).show()
         } catch (e: Exception) {
-            // Catch other potential exceptions for robustness
-            e.printStackTrace()
-            Toast.makeText(
-                context,
-                "An unexpected error occurred while launching the app.",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(context, "An unexpected error occurred while launching the app.", Toast.LENGTH_SHORT).show()
         }
     }
-    fun openUrl(url: String,context: Context) {
+    fun openUrl(url: String, context: Context) {
         try {
-            var validUrl = url
-            if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                validUrl = "http://$url"
-            }
-            val intent = Intent(Intent.ACTION_VIEW, validUrl.toUri())
+            val validUrl = if (url.startsWith("http://") || url.startsWith("https://")) url else "http://$url"
+            val intent = Intent(Intent.ACTION_VIEW, validUrl.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
         } catch (_: ActivityNotFoundException) {
             Toast.makeText(context, "No application to open URL", Toast.LENGTH_SHORT).show()
+        } catch (_: SecurityException) {
+            Toast.makeText(context, "Permission denied to open URL", Toast.LENGTH_SHORT).show()
         }
     }
     fun getUriPath(encodedUri: String?): String? {
@@ -439,14 +406,9 @@ object CommonUtil {
                     if (drawable != null) {
                         val filename = "comfer_${tempImageData.id}.jpg"
                         val file = File(applicationContext.filesDir, filename)
-                        val stream = FileOutputStream(file)
-                        drawable.toBitmap()
-                            .compress(
-                                Bitmap.CompressFormat.JPEG,
-                                100,
-                                stream
-                            )
-                        stream.close()
+                        FileOutputStream(file).use { stream ->
+                            drawable.toBitmap().compress(Bitmap.CompressFormat.JPEG, 100, stream)
+                        }
                         Log.i("DownloadImage","Downloaded: $filename")
                         val oldFilePath:String? = PreferenceManager.getBackgroundImagePath(applicationContext)
                         PreferenceManager.setBackgroundImagePath(
@@ -477,38 +439,30 @@ object CommonUtil {
             }
         }
     }
-    suspend fun reloadWallpaper(applicationContext: Context){
-        withContext(Dispatchers.IO) {
-            setWallpaper(applicationContext)
-        }
-    }
-    fun setWallpaper(context: Context){
-        val filePath = PreferenceManager.getBackgroundImagePath(context)
-        val bitmap = BitmapFactory.decodeFile(filePath)
-        if(bitmap != null) {
-            if (isDefaultLauncher(context)) {
-                val setWallpaperOnLockScreen =
-                    PreferenceManager.getWallpaperOnLockScreen(context)
-                val wallpaperManager =
-                    WallpaperManager.getInstance(context)
+    suspend fun setWallpaper(context: Context) = withContext(Dispatchers.IO) {
+        val filePath = PreferenceManager.getBackgroundImagePath(context) ?: return@withContext
+        val bitmap = BitmapFactory.decodeFile(filePath) ?: return@withContext
+
+        try {
+            val isLauncherDefault = isDefaultLauncher(context)
+            if (isLauncherDefault) {
+                val setWallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(context)
+                val wallpaperManager = WallpaperManager.getInstance(context)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     var flag = WallpaperManager.FLAG_SYSTEM
                     if (setWallpaperOnLockScreen) {
                         flag = WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
                     }
-                    wallpaperManager.setBitmap(
-                        bitmap,
-                        null,
-                        true,
-                        flag
-                    )
+                    wallpaperManager.setBitmap(bitmap, null, true, flag)
                 } else {
                     wallpaperManager.setBitmap(bitmap)
                 }
-                PreferenceManager.setAppliedWallpaperImage(context,filePath)
+                PreferenceManager.setAppliedWallpaperImage(context, filePath)
             } else {
-                PreferenceManager.setAppliedWallpaperImage(context,null)
+                PreferenceManager.setAppliedWallpaperImage(context, null)
             }
+        } finally {
+            bitmap.recycle()
         }
     }
 

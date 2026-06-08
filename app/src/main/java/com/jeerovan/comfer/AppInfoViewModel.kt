@@ -102,7 +102,8 @@ private object LegacyIconAnalysisCache {
     }
 }
 
-private val packageManagerDispatcher = Dispatchers.IO.limitedParallelism(2)
+private val packageManagerDispatcher = Dispatchers.IO.limitedParallelism(4)
+private val iconLoadingDispatcher = Dispatchers.IO.limitedParallelism(8)
 suspend fun getAppInfo(
     context: Context,
     info: LauncherActivityInfo,
@@ -111,7 +112,7 @@ suspend fun getAppInfo(
     isLightHour: Boolean,
     iconPackPackage: String?,
     iconProcessor: ThemedIconProcessor
-): AppInfo? = withContext(Dispatchers.Default) {
+): AppInfo? = withContext(Dispatchers.IO) {
     try {
         val packageName = info.componentName.packageName
         val user = info.user
@@ -237,7 +238,7 @@ fun generateFolderForeground(
     foregroundColor: Int,
     shape: Shape
 ): Drawable {
-    val size = 192 // Ensure this matches your ICON_ANALYSIS_SIZE constant
+    val size = 192 // Ensure this matches ICON_ANALYSIS_SIZE constant
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val mainCanvas = Canvas(bitmap)
 
@@ -520,7 +521,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 }
         }
     }
-    private fun loadIconPack(){
+    private suspend fun loadIconPack(){
         val iconPackPackage = PreferenceManager.getIconPack(getApplication())
         if(iconPackPackage != null) {
             IconPackManager.loadIconPack(getApplication(), iconPackPackage)
@@ -565,7 +566,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             refreshAppLists()
         }
     }
-    private suspend fun refreshAppLists() = withContext(Dispatchers.Default) {
+    private suspend fun refreshAppLists() = withContext(Dispatchers.IO) {
         try {
             Log.i("LoadAppLists", "Loading started")
 
@@ -649,15 +650,12 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val savedFolders = AppInfoManager.getFolders(context)
             // Function to map package names to your UI models
             // NOTE: handle if a package exists on multiple profiles (Work + Personal)
-            val semaphore = Semaphore(8)
             val themedIconProcessor = ThemedIconProcessor()
-            suspend fun mapPackagesToAppInfo(packageNames: List<String>): List<AppInfo> {
-                return packageNames.map { packageName ->
+            suspend fun mapPackagesToAppInfo(packageNames: List<String>): List<AppInfo> = withContext(iconLoadingDispatcher) {
+                packageNames.map { packageName ->
                     async {
-                        // Acquire a permit before entering the heavy lifting
-                        semaphore.withPermit {
                             if(packageName.startsWith("folder")){
-                                val folderData = savedFolders[packageName] ?: return@withPermit null
+                                val folderData = savedFolders[packageName] ?: return@async null
                                 val packages = folderData.packages
                                 val activitiesMap = allActivitiesMap.filter { it.key in packages }
                                 val activities = activitiesMap.values.toList()
@@ -673,7 +671,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                                     shape)
                             } else {
                                 val activityInfo =
-                                    allActivitiesMap[packageName] ?: return@withPermit null
+                                    allActivitiesMap[packageName] ?: return@async null
                                 createAppInfo(
                                     context,
                                     activityInfo,
@@ -684,7 +682,6 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                                     themedIconProcessor
                                 )
                             }
-                        }
                     }
                 }.awaitAll().filterNotNull()
             }
@@ -810,7 +807,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun moveAppInList(listName: String, fromIndex: Int, toIndex: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val currentList = when (listName) {
                 AppInfoManager.QUICK_APPS_LIST_NAME -> _uiState.value.quickApps
                 AppInfoManager.PRIMARY_APPS_LIST_NAME -> _uiState.value.primaryApps
@@ -825,16 +822,22 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             when (listName) {
                 AppInfoManager.QUICK_APPS_LIST_NAME -> {
                     AppInfoManager.saveAppPackageNames(getApplication(), listName, packageNames)
-                    _uiState.update { it.copy(quickApps = currentList) }
+                    withContext(Dispatchers.Main) {
+                        _uiState.update { it.copy(quickApps = currentList) }
+                    }
                 }
 
                 AppInfoManager.PRIMARY_APPS_LIST_NAME -> {
                     AppInfoManager.saveAppPackageNames(getApplication(), listName, packageNames)
-                    _uiState.update { it.copy(primaryApps = currentList) }
+                    withContext(Dispatchers.Main) {
+                        _uiState.update { it.copy(primaryApps = currentList) }
+                    }
                 }
 
                 AppInfoManager.REST_APPS_LIST_NAME -> {
-                    _uiState.update { it.copy(restApps = currentList) }
+                    withContext(Dispatchers.Main) {
+                        _uiState.update { it.copy(restApps = currentList) }
+                    }
                 }
             }
             PreferenceManager.increaseAppListVersion(getApplication()) // triggers UI update
@@ -842,7 +845,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun moveAppsInFolder(folderName: String, fromIndex: Int, toIndex: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val context: Context = getApplication()
 
             // 1. Update persisted folder data
@@ -874,22 +877,24 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
                 // 3. Update _uiState atomically
                 currentFolders[folderName] = appInfos
-                _uiState.update {
-                    it.copy(folderApps = currentFolders)
+                withContext(Dispatchers.Main) {
+                    _uiState.update {
+                        it.copy(folderApps = currentFolders)
+                    }
                 }
             }
         }
     }
 
     fun moveAppsToList(fromListName: String, toListName: String, selectedPackageNames: Set<String>) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             if (selectedPackageNames.isEmpty()) return@launch
 
             val currentState = _uiState.value
             val alphabeticalOrder = PreferenceManager.getAlphabeticalOrder(getApplication())
             val fromList = when (fromListName) {
                 AppInfoManager.QUICK_APPS_LIST_NAME -> currentState.quickApps
-                AppInfoManager.PRIMARY_APPS_LIST_NAME -> if(alphabeticalOrder) currentState.primaryApps.sortedBy { it.label.toString() } else currentState.primaryApps
+                AppInfoManager.PRIMARY_APPS_LIST_NAME -> if(alphabeticalOrder) currentState.primaryApps.sortedBy { it.label } else currentState.primaryApps
                 AppInfoManager.REST_APPS_LIST_NAME -> currentState.restApps
                 else -> return@launch
             }
@@ -938,19 +943,21 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val quickAndPrimaryPackages = newQuickApps.map { it.packageName }.toSet() + newPrimaryApps.map { it.packageName }.toSet()
             val newRestApps = allApps.filter { it.packageName !in quickAndPrimaryPackages }.distinctBy { it.packageName }
 
-            _uiState.update {
-                it.copy(
-                    quickApps = newQuickApps,
-                    primaryApps = newPrimaryApps,
-                    restApps = newRestApps,
-                )
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(
+                        quickApps = newQuickApps,
+                        primaryApps = newPrimaryApps,
+                        restApps = newRestApps,
+                    )
+                }
             }
             PreferenceManager.increaseAppListVersion(getApplication()) // triggers UI update
         }
     }
 
     fun createNewFolder(title: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val context:Context = getApplication()
             val currentFolders = _uiState.value.folderApps.toMutableMap()
             if (currentFolders.size >= 10) return@launch // Max 10 folders restriction
@@ -983,12 +990,19 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val primaryApps = _uiState.value.primaryApps.toMutableList()
             if(folderAppInfo != null){ primaryApps.add(0,folderAppInfo)}
             currentFolders[newFolderId] = emptyList()
-            _uiState.update { it.copy(primaryApps = primaryApps, folderApps = currentFolders, folders = savedFolders) }
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(
+                        primaryApps = primaryApps,
+                        folderApps = currentFolders,
+                        folders = savedFolders
+                    )
+                }
+            }
             AppInfoManager.saveAppPackageNames(
                 getApplication(),
                 AppInfoManager.PRIMARY_APPS_LIST_NAME, primaryApps.map { it.packageName }
             )
-
         }
     }
 
@@ -998,16 +1012,13 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
             _uiState.update { currentState ->
                 val currentFolders = currentState.folders.toMutableMap()
-
                 // Check if folder exists
                 val folder = currentFolders[folderId]
                 if (folder != null) {
                     currentFolders[folderId] = folder.copy(title = title)
-
                     // Save asynchronously
                     AppInfoManager.saveFolders(context, currentFolders)
                 }
-
                 // Return updated state
                 currentState.copy(folders = currentFolders)
             }
@@ -1015,7 +1026,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun moveAppsToFolder(selectedList: String?, folderPackageName: String, selectedPackageNames: Set<String>) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             if (selectedList == null || selectedPackageNames.isEmpty()) return@launch
             val context: Context = getApplication()
 
@@ -1054,7 +1065,9 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             }
 
             // Atomically update folders map
-            _uiState.update { it.copy(folderApps = currentFolders) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(folderApps = currentFolders) }
+            }
 
             // Move to Rest list to hide them from the primary/quick lists
             moveAppsToList(
@@ -1073,7 +1086,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun moveAppsFromFolder(selectedList: String?, folderPackageName: String, selectedPackageNames: Set<String>) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             if (selectedPackageNames.isEmpty() || selectedList == null) return@launch
             val context: Context = getApplication()
 
@@ -1095,7 +1108,9 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             }
 
             // Atomically update folders map
-            _uiState.update { it.copy(folderApps = currentFolders) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(folderApps = currentFolders) }
+            }
 
             // Add back to primaryApps (pulling them out of the Rest list)
             moveAppsToList(
@@ -1114,7 +1129,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
     }
 
     // Helper function to regenerate the composite icon so the folder reflects its new contents
-    private fun updateFolderIcon(context: Context,
+    private suspend fun updateFolderIcon(context: Context,
                                  selectedList:  String,
                                  folderTitle: String,
                                  folderPackageName: String,
@@ -1140,41 +1155,47 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         )
         when (selectedList) {
             AppInfoManager.QUICK_APPS_LIST_NAME -> {
-                _uiState.update { currentState ->
-                    val updatedQuickApps = currentState.quickApps.map { app ->
-                        if (app.packageName == folderPackageName) {
-                            app.copy(foreground = folderForeground)
-                        } else {
-                            app
+                withContext(Dispatchers.Main) {
+                    _uiState.update { currentState ->
+                        val updatedQuickApps = currentState.quickApps.map { app ->
+                            if (app.packageName == folderPackageName) {
+                                app.copy(foreground = folderForeground)
+                            } else {
+                                app
+                            }
                         }
+                        currentState.copy(quickApps = updatedQuickApps)
                     }
-                    currentState.copy(quickApps = updatedQuickApps)
                 }
             }
 
             AppInfoManager.PRIMARY_APPS_LIST_NAME -> {
-                _uiState.update { currentState ->
-                    val updatedPrimaryApps = currentState.primaryApps.map { app ->
-                        if (app.packageName == folderPackageName) {
-                            app.copy(foreground = folderForeground)
-                        } else {
-                            app
+                withContext(Dispatchers.Main) {
+                    _uiState.update { currentState ->
+                        val updatedPrimaryApps = currentState.primaryApps.map { app ->
+                            if (app.packageName == folderPackageName) {
+                                app.copy(foreground = folderForeground)
+                            } else {
+                                app
+                            }
                         }
+                        currentState.copy(primaryApps = updatedPrimaryApps)
                     }
-                    currentState.copy(primaryApps = updatedPrimaryApps)
                 }
             }
 
             else -> {
-                _uiState.update { currentState ->
-                    val updatedRestApps = currentState.restApps.map { app ->
-                        if (app.packageName == folderPackageName) {
-                            app.copy(foreground = folderForeground)
-                        } else {
-                            app
+                withContext(Dispatchers.Main) {
+                    _uiState.update { currentState ->
+                        val updatedRestApps = currentState.restApps.map { app ->
+                            if (app.packageName == folderPackageName) {
+                                app.copy(foreground = folderForeground)
+                            } else {
+                                app
+                            }
                         }
+                        currentState.copy(restApps = updatedRestApps)
                     }
-                    currentState.copy(restApps = updatedRestApps)
                 }
             }
         }

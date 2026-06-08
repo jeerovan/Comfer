@@ -9,7 +9,6 @@ import androidx.lifecycle.viewModelScope
 import com.jeerovan.comfer.utils.CommonUtil.downloadImage
 import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
-import com.jeerovan.comfer.utils.CommonUtil.reloadWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaperThemedColors
 import kotlinx.coroutines.Dispatchers
@@ -89,21 +88,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
         }
     }
-    fun reloadImagePath() { // reloads after screen turns on
+    fun reloadImagePath() {
         viewModelScope.launch {
             val context: Context = getApplication()
-            val backgroundImage = PreferenceManager.getBackgroundImagePath(context)
-            if(_uiState.value.imagePath == null) {
+            val backgroundImage = withContext(Dispatchers.IO) {
+                PreferenceManager.getBackgroundImagePath(context)
+            }
+
+            if (_uiState.value.imagePath == null) {
                 _uiState.update { it.copy(imagePath = backgroundImage) }
             }
-            PreferenceManager.setWallpaperApplied(context, true)
-            val isDefaultLauncher = isDefaultLauncher(context)
-            _uiState.update {
-                it.copy(isDefaultLauncher = isDefaultLauncher)
+
+            withContext(Dispatchers.IO) {
+                PreferenceManager.setWallpaperApplied(context, true)
             }
-            if (isDefaultLauncher){
-                val appliedWallpaperImage = PreferenceManager.getAppliedWallpaperImage(context)
-                if (appliedWallpaperImage != backgroundImage){
+
+            val defaultLauncher = withContext(Dispatchers.IO) {
+                isDefaultLauncher(context)
+            }
+            _uiState.update { it.copy(isDefaultLauncher = defaultLauncher) }
+
+            if (defaultLauncher) {
+                val appliedWallpaperImage = withContext(Dispatchers.IO) {
+                    PreferenceManager.getAppliedWallpaperImage(context)
+                }
+                if (appliedWallpaperImage != backgroundImage) {
                     reapplyWallpaper()
                 }
             }
@@ -167,7 +176,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun reapplyWallpaper(){
         viewModelScope.launch {
-            reloadWallpaper(getApplication())
+            setWallpaper(getApplication())
         }
     }
     fun changeWallpaper(){

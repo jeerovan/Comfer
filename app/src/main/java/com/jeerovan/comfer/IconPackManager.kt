@@ -4,62 +4,80 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.xmlpull.v1.XmlPullParser
 
 object IconPackManager {
-    private var iconPackPackage: String? = null
-    private var iconPackRes: Resources? = null
-    // Map ComponentName (String) -> Drawable Name (String)
-    private val appFilterMap = mutableMapOf<String, String>()
 
-    // Call this when the user selects an icon pack
-    fun loadIconPack(context: Context, packageName: String) {
-        if(iconPackPackage != null && iconPackPackage == packageName){
-            return
+    // Encapsulate state immutably to prevent race conditions during reads
+    private data class IconPackState(
+        val packageName: String,
+        val resources: Resources,
+        val appFilterMap: Map<String, String>
+    )
+
+    @Volatile
+    private var currentState: IconPackState? = null
+
+    // Now a suspend function enforcing Dispatchers.IO
+    suspend fun loadIconPack(context: Context, packageName: String) = withContext(Dispatchers.IO) {
+        val current = currentState
+        if (current != null && current.packageName == packageName) {
+            return@withContext
         }
-        iconPackPackage = packageName
-        appFilterMap.clear()
+
         try {
             val pm = context.packageManager
-            iconPackRes = pm.getResourcesForApplication(packageName)
-            val appFilterId = iconPackRes?.getIdentifier("appfilter", "xml", packageName) ?: 0
+            // BINDER CALL: Moved off Main thread
+            val res = pm.getResourcesForApplication(packageName)
+            val appFilterId = res.getIdentifier("appfilter", "xml", packageName)
+
+            // Parse into a local map first, so we don't mutate state while others are reading
+            val newMap = mutableMapOf<String, String>()
 
             if (appFilterId != 0) {
-                val xpp = iconPackRes?.getXml(appFilterId)
-                if (xpp != null) {
-                    var eventType = xpp.eventType
-                    while (eventType != XmlPullParser.END_DOCUMENT) {
-                        if (eventType == XmlPullParser.START_TAG && xpp.name == "item") {
-                            val component = xpp.getAttributeValue(null, "component")
-                            val drawableName = xpp.getAttributeValue(null, "drawable")
-                            if (component != null && drawableName != null) {
-                                appFilterMap[component] = drawableName
-                            }
+                val xpp = res.getXml(appFilterId) // HEAVY DISK/XML I/O
+                var eventType = xpp.eventType
+                while (eventType != XmlPullParser.END_DOCUMENT) {
+                    if (eventType == XmlPullParser.START_TAG && xpp.name == "item") {
+                        val component = xpp.getAttributeValue(null, "component")
+                        val drawableName = xpp.getAttributeValue(null, "drawable")
+                        if (component != null && drawableName != null) {
+                            newMap[component] = drawableName
                         }
-                        eventType = xpp.next()
                     }
+                    eventType = xpp.next()
                 }
             }
-            PreferenceManager.increaseAppListVersion(context)// will reload app list
+
+            // Atomically swap the state. Background threads reading icons instantly see the new map.
+            currentState = IconPackState(packageName, res, newMap)
+
+            withContext(Dispatchers.Main) {
+                PreferenceManager.increaseAppListVersion(context)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    fun unloadIconPack(context: Context){
-        iconPackPackage = null
-        appFilterMap.clear()
-        PreferenceManager.increaseAppListVersion(context)// will reload app list
+    fun unloadIconPack(context: Context) {
+        currentState = null
+        PreferenceManager.increaseAppListVersion(context)
     }
 
     fun getCustomIcon(context: Context, componentName: ComponentName): Drawable? {
+        // Grab local reference to volatile state to ensure it doesn't change mid-execution
+        val state = currentState ?: return null
+
         // Format: ComponentInfo{package/class}
         val componentKey = "ComponentInfo{${componentName.packageName}/${componentName.className}}"
-        val drawableName = appFilterMap[componentKey] ?: return null
+        val drawableName = state.appFilterMap[componentKey] ?: return null
 
         return try {
-            val resId = iconPackRes?.getIdentifier(drawableName, "drawable", iconPackPackage) ?: 0
-            if (resId != 0) iconPackRes?.getDrawable(resId, null) else null
+            val resId = state.resources.getIdentifier(drawableName, "drawable", state.packageName)
+            if (resId != 0) state.resources.getDrawable(resId, null) else null
         } catch (e: Exception) {
             null
         }
