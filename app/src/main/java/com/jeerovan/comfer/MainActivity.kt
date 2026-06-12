@@ -246,6 +246,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlin.math.pow
 import kotlinx.coroutines.CancellationException
 
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.ui.platform.LocalLayoutDirection
 // 1. Define a custom exception to safely interrupt the animation
 private class SnapEarlyException : CancellationException("Handing off to snap phase")
 
@@ -3655,45 +3657,83 @@ fun isAccessibilityServiceEnabled(context: Context, serviceClass: Class<*>): Boo
     return false
 }
 
-
 @Composable
 fun FeedbackDialog(
     onDismissRequest: () -> Unit,
     onConfirmation: () -> Unit,
     dialogTitle: String = stringResource(R.string.feedback),
-    dialogText: String = stringResource(R.string.feedback_text),
-    icon: ImageVector = Icons.Outlined.Star
+    dialogText: String = stringResource(R.string.feedback_text)
 ) {
+    val layoutDirection = LocalLayoutDirection.current
+
+    val ratingGuide = listOf(
+        "😡",
+        "😞",
+        "😐",
+        "🙂",
+        "🤩"
+    )
+
     AlertDialog(
-        icon = {
-            Icon(icon, contentDescription = stringResource(R.string.feedback_icon))
-        },
+        onDismissRequest = onDismissRequest,
         title = {
-            Text(text = dialogTitle, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(
+                text = dialogTitle,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
         },
         text = {
-            Text(text = dialogText, style = MaterialTheme.typography.bodyMedium)
-        },
-        onDismissRequest = {
-            onDismissRequest()
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = dialogText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    repeat(5) {
+                        Icon(
+                            imageVector = Icons.Filled.Star,
+                            contentDescription = null,
+                            tint = Color(0xFFFFB300),
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    ratingGuide.forEach { emoji ->
+                        Text(
+                            text = emoji,
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                    }
+                }
+            }
         },
         confirmButton = {
-            // The primary action button, styled to stand out
-            Button(
-                onClick = {
-                    onConfirmation()
-                }
-            ) {
+            Button(onClick = onConfirmation) {
                 Text(stringResource(R.string.rate_comfer))
             }
         },
         dismissButton = {
-            // The secondary action button, with less emphasis
-            TextButton(
-                onClick = {
-                    onDismissRequest()
-                }
-            ) {
+            TextButton(onClick = onDismissRequest) {
                 Text(stringResource(R.string.not_now))
             }
         }

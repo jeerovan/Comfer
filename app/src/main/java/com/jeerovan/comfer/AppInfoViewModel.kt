@@ -900,6 +900,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             }
 
             var appsToMove = fromList.filter { it.packageName in selectedPackageNames }
+            // Rest app list is derived from quick+primary and not saved
             if(toListName == AppInfoManager.REST_APPS_LIST_NAME){
                 appsToMove = appsToMove.filter { !it.packageName.startsWith("folder") }
             }
@@ -1007,9 +1008,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun renameFolder(folderId: String, title: String) {
-        viewModelScope.launch(Dispatchers.IO) { // Saving preferences should be on IO dispatcher
+        viewModelScope.launch(Dispatchers.Main) { // Saving preferences should be on IO dispatcher
             val context = getApplication<Application>()
-
             _uiState.update { currentState ->
                 val currentFolders = currentState.folders.toMutableMap()
                 // Check if folder exists
@@ -1022,6 +1022,55 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 // Return updated state
                 currentState.copy(folders = currentFolders)
             }
+        }
+    }
+
+    fun deleteFolder(selectedList: String?, folderPackageName: String) {
+        // 1. Move to Dispatchers.IO for safe disk operations
+        viewModelScope.launch(Dispatchers.IO) {
+            val context = getApplication<Application>()
+            // Grab a snapshot of the current state
+            val currentState = _uiState.value
+            val appList = when (selectedList) {
+                AppInfoManager.QUICK_APPS_LIST_NAME -> currentState.quickApps
+                AppInfoManager.PRIMARY_APPS_LIST_NAME -> currentState.primaryApps
+                AppInfoManager.REST_APPS_LIST_NAME -> currentState.restApps
+                else -> return@launch
+            }
+
+            val currentFolders = currentState.folders.toMutableMap()
+            val currentFolderApps = currentState.folderApps.toMutableMap()
+
+            currentFolders.remove(folderPackageName)
+            currentFolderApps.remove(folderPackageName)
+
+            val newList = appList.filter { it.packageName != folderPackageName }
+
+            // 2. Perform a single batch update to the UI state
+            withContext(Dispatchers.Main){
+                _uiState.update { state ->
+                    val updatedState = state.copy(
+                        folders = currentFolders,
+                        folderApps = currentFolderApps
+                    )
+                    when (selectedList) {
+                        AppInfoManager.QUICK_APPS_LIST_NAME -> updatedState.copy(quickApps = newList)
+                        AppInfoManager.PRIMARY_APPS_LIST_NAME -> updatedState.copy(primaryApps = newList)
+                        AppInfoManager.REST_APPS_LIST_NAME -> updatedState.copy(restApps = newList)
+                        else -> updatedState
+                    }
+                }
+            }
+
+            // 3. Persist list changes to disk safely in the IO thread
+            AppInfoManager.saveAppPackageNames(
+                context,
+                selectedList,
+                newList.map { it.packageName }
+            )
+
+            // 4. Persist folder deletions to disk using our already modified map
+            AppInfoManager.saveFolders(context, currentFolders)
         }
     }
 
@@ -1168,7 +1217,6 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     }
                 }
             }
-
             AppInfoManager.PRIMARY_APPS_LIST_NAME -> {
                 withContext(Dispatchers.Main) {
                     _uiState.update { currentState ->

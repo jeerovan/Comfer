@@ -79,6 +79,8 @@ import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.ui.text.style.TextAlign
 
 private const val MAX_QUICK_APPS = 8
 
@@ -443,19 +445,46 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Selected Folder Title - Tap to Edit
-                    Text(
-                        text = folderTitle,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable {
-                                isEditingFolder = true
-                                showFolderDialog = true
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Spacer(modifier = Modifier.size(40.dp))
+
+                        Text(
+                            text = folderTitle,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    isEditingFolder = true
+                                    showFolderDialog = true
+                                }
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            textAlign = TextAlign.Center
+                        )
+
+                        if (folderAppInfos.isEmpty()) {
+                            OutlinedButton(
+                                shape = CircleShape,
+                                modifier = Modifier.size(40.dp),
+                                contentPadding = PaddingValues(0.dp),
+                                onClick = {
+                                    viewModel.deleteFolder(selectedList, folderSelected!!)
+                                    clearSelection()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Delete,
+                                    contentDescription = "Delete Folder"
+                                )
                             }
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
+                        } else {
+                            Spacer(modifier = Modifier.size(40.dp))
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
