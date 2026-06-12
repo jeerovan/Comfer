@@ -319,4 +319,6 @@
     <string name="title_view_github_repo">Tippen, um Code anzuzeigen</string>
     <string name="title_status_bar">Statusleiste</string>
     <string name="show_hide_status_bar">Statusleiste ein-/ausblenden</string>
+    <string name="more_from_jeerovan">Weitere Apps von Jeerovan</string>
+    <string name="fife_subtitle">Verschlüsselter Cloud-Speicher</string>
 </resources>

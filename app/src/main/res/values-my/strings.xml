@@ -319,4 +319,6 @@
     <string name="title_view_github_repo">ကုဒ်ကိုကြည့်ရန် နှိပ်ပါ</string>
     <string name="title_status_bar">အခြေအနေပြဘား</string>
     <string name="show_hide_status_bar">အခြေအနေပြဘားကို ပြရန်/ဖျောက်ရန်</string>
+    <string name="more_from_jeerovan">Jeerovan မှ အခြားအက်ပ်များ</string>
+    <string name="fife_subtitle">ကုဒ်ဝှက်ထားသော Cloud Storage</string>
 </resources>

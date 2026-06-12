@@ -319,4 +319,6 @@
     <string name="title_view_github_repo">Натисніть, щоб переглянути код</string>
     <string name="title_status_bar">Рядок стану</string>
     <string name="show_hide_status_bar">Показати/сховати рядок стану</string>
+    <string name="more_from_jeerovan">Інші застосунки від Jeerovan</string>
+    <string name="fife_subtitle">Зашифроване хмарне сховище</string>
 </resources>

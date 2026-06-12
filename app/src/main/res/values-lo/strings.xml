@@ -319,4 +319,6 @@
     <string name="title_view_github_repo">ແຕະເພື່ອເບິ່ງລະຫັດ</string>
     <string name="title_status_bar">ແຖບສະຖານະ</string>
     <string name="show_hide_status_bar">ສະແດງ/ເຊື່ອງແຖບສະຖານະ</string>
+    <string name="more_from_jeerovan">ແອັບອື່ນໆຈາກ Jeerovan</string>
+    <string name="fife_subtitle">ພື້ນທີ່ເກັບຂໍ້ມູນຄລາວທີ່ເຂົ້າລະຫັດ</string>
 </resources>

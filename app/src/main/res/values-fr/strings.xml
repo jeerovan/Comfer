@@ -319,4 +319,6 @@
     <string name="title_view_github_repo">Appuyez pour voir le code</string>
     <string name="title_status_bar">Barre d\'état</string>
     <string name="show_hide_status_bar">Afficher/Masquer la barre d\'état</string>
+    <string name="more_from_jeerovan">Plus d\'applications de Jeerovan</string>
+    <string name="fife_subtitle">Stockage cloud chiffré</string>
 </resources>

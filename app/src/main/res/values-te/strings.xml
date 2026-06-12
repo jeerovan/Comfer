@@ -321,4 +321,6 @@
     <string name="title_view_github_repo">కోడ్ చూడటానికి నొక్కండి</string>
     <string name="title_status_bar">స్టేటస్ బార్</string>
     <string name="show_hide_status_bar">స్టేటస్ బార్‌ను చూపించు/దాచు</string>
+    <string name="more_from_jeerovan">Jeerovan నుండి మరిన్ని యాప్‌లు</string>
+    <string name="fife_subtitle">ఎన్‌క్రిప్ట్ చేయబడిన క్లౌడ్ నిల్వ</string>
 </resources>

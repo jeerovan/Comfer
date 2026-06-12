@@ -319,4 +319,6 @@
     <string name="title_view_github_repo">Кодыг харахын тулд товшино уу</string>
     <string name="title_status_bar">Төлөвийн талбар</string>
     <string name="show_hide_status_bar">Төлөвийн талбарыг харуулах/нуух</string>
+    <string name="more_from_jeerovan">Jeerovan-ийн бусад аппууд</string>
+    <string name="fife_subtitle">Шифрлэгдсэн үүлэн хадгалалт</string>
 </resources>

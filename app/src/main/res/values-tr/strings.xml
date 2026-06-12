@@ -319,4 +319,6 @@
     <string name="title_view_github_repo">Kodu görüntülemek için dokunun</string>
     <string name="title_status_bar">Durum Çubuğu</string>
     <string name="show_hide_status_bar">Durum çubuğunu göster/gizle</string>
+    <string name="more_from_jeerovan">Jeerovan\'dan Daha Fazla Uygulama</string>
+    <string name="fife_subtitle">Şifrelenmiş Bulut Depolama</string>
 </resources>

@@ -319,4 +319,6 @@
     <string name="title_view_github_repo">Πατήστε για προβολή κώδικα</string>
     <string name="title_status_bar">Γραμμή κατάστασης</string>
     <string name="show_hide_status_bar">Εμφάνιση/Απόκρυψη γραμμής κατάστασης</string>
+    <string name="more_from_jeerovan">Περισσότερες εφαρμογές από τον Jeerovan</string>
+    <string name="fife_subtitle">Κρυπτογραφημένος Χώρος Αποθήκευσης στο Cloud</string>
 </resources>

@@ -321,4 +321,6 @@
     <string name="title_view_github_repo">কোড দেখতে ট্যাপ করুন</string>
     <string name="title_status_bar">স্ট্যাটাস বার</string>
     <string name="show_hide_status_bar">স্ট্যাটাস বার দেখান/লুকান</string>
+    <string name="more_from_jeerovan">Jeerovan-এর আরও অ্যাপ</string>
+    <string name="fife_subtitle">এনক্রিপ্টেড ক্লাউড স্টোরেজ</string>
 </resources>

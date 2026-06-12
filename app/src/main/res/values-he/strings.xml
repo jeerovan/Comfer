@@ -319,4 +319,6 @@
     <string name="title_view_github_repo">הקש להצגת הקוד</string>
     <string name="title_status_bar">שורת מצב</string>
     <string name="show_hide_status_bar">הצג/הסתר שורת מצב</string>
+    <string name="more_from_jeerovan">אפליקציות נוספות מאת Jeerovan</string>
+    <string name="fife_subtitle">אחסון ענן מוצפן</string>
 </resources>

@@ -319,4 +319,6 @@
     <string name="title_view_github_repo">कोड देखने के लिए टैप करें</string>
     <string name="title_status_bar">स्टेटस बार</string>
     <string name="show_hide_status_bar">स्टेटस बार दिखाएं/छिपाएं</string>
+    <string name="more_from_jeerovan">Jeerovan से और भी ऐप्स</string>
+    <string name="fife_subtitle">एन्क्रिप्टेड क्लाउड स्टोरेज</string>
 </resources>

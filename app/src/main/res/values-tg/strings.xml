@@ -321,4 +321,6 @@
     <string name="title_view_github_repo">Барои дидани код пахш кунед</string>
     <string name="title_status_bar">Сатри ҳолат</string>
     <string name="show_hide_status_bar">Нишон додан/Пинҳон кардани сатри ҳолат</string>
+    <string name="more_from_jeerovan">Барномаҳои дигари Jeerovan</string>
+    <string name="fife_subtitle">Анбори абрии рамзгузоришуда</string>
 </resources>

@@ -319,4 +319,6 @@
     <string name="title_view_github_repo">코드를 보려면 탭하세요</string>
     <string name="title_status_bar">상태표시줄</string>
     <string name="show_hide_status_bar">상태표시줄 표시/숨기기</string>
+    <string name="more_from_jeerovan">Jeerovan의 다른 앱</string>
+    <string name="fife_subtitle">암호화된 클라우드 스토리지</string>
 </resources>

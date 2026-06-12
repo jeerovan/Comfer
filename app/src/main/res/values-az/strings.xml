@@ -320,4 +320,6 @@
     <string name="title_view_github_repo">Kodu görmək üçün toxunun</string>
     <string name="title_status_bar">Vəziyyət paneli</string>
     <string name="show_hide_status_bar">Vəziyyət panelini göstər/gizlət</string>
+    <string name="more_from_jeerovan">Jeerovan-dan daha çox tətbiq</string>
+    <string name="fife_subtitle">Şifrələnmiş Bulud Yaddaşı</string>
 </resources>

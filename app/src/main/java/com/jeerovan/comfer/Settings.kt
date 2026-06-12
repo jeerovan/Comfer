@@ -2,10 +2,12 @@ package com.jeerovan.comfer
 
 import com.jeerovan.comfer.utils.FlowerShape
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Build
 import androidx.compose.ui.graphics.Shape
 import android.os.Bundle
@@ -63,6 +65,8 @@ import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -119,6 +123,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.style.TextOverflow
 
 data class IconPackInfo(
     val name: String,
@@ -691,7 +696,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             item {
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
+                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp),
                     thickness = DividerDefaults.Thickness,
                     color = DividerDefaults.color
                 )
@@ -818,6 +823,24 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
+            item { SectionHeader(stringResource(R.string.more_from_jeerovan)) }
+            item { Spacer(Modifier.height(18.dp)) }
+            item {
+                PromoAppSection(
+                    title = "FiFe",
+                    subtitle = stringResource(R.string.fife_subtitle),
+                    logoPainter = painterResource(R.drawable.fife_logo),
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.jeerovan.fife"))
+                        try {
+                            context.startActivity(intent)
+                        } catch (_: ActivityNotFoundException) {
+                            // Play Store not available – fallback to browser or ignore
+                        }
+                    }
+                )
+            }
+            item { Spacer(Modifier.height(24.dp)) }
         }
     }
     if (showDisclosure) {
@@ -1550,4 +1573,47 @@ private fun SocialIconButton(
             modifier = Modifier.size(35.dp),
         )
     }
+}
+
+@Composable
+fun PromoAppSection(
+    title: String,
+    subtitle: String,
+    logoPainter: Painter,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+
+        Row(
+            modifier = modifier.padding(16.dp).clickable(onClick = onClick),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = logoPainter,
+                contentDescription = title,
+                modifier = Modifier.size(48.dp)
+            )
+            Spacer(Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = stringResource(R.string.go_to_page),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
 }

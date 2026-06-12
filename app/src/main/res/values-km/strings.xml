@@ -319,4 +319,6 @@
     <string name="title_view_github_repo">ចុចដើម្បីមើលកូដ</string>
     <string name="title_status_bar">របារស្ថានភាព</string>
     <string name="show_hide_status_bar">បង្ហាញ/លាក់របារស្ថានភាព</string>
+    <string name="more_from_jeerovan">កម្មវិធីផ្សេងទៀតពី Jeerovan</string>
+    <string name="fife_subtitle">ការផ្ទុកទិន្នន័យលើពពកដែលបានអ៊ិនគ្រីប</string>
 </resources>

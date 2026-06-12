@@ -319,4 +319,6 @@
     <string name="title_view_github_repo">اضغط لعرض الكود</string>
     <string name="title_status_bar">شريط الحالة</string>
     <string name="show_hide_status_bar">إظهار/إخفاء شريط الحالة</string>
+    <string name="more_from_jeerovan">المزيد من تطبيقات Jeerovan</string>
+    <string name="fife_subtitle">تخزين سحابي مشفر</string>
 </resources>

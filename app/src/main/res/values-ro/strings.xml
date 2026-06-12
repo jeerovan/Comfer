@@ -319,4 +319,6 @@
     <string name="title_view_github_repo">Atingeți pentru a vizualiza codul</string>
     <string name="title_status_bar">Bara de stare</string>
     <string name="show_hide_status_bar">Afișare/Ascundere bară de stare</string>
+    <string name="more_from_jeerovan">Mai multe aplicații de la Jeerovan</string>
+    <string name="fife_subtitle">Stocare cloud criptată</string>
 </resources>

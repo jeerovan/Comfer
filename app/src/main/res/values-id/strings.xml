@@ -321,4 +321,6 @@
     <string name="title_view_github_repo">Ketuk untuk melihat kode</string>
     <string name="title_status_bar">Bilah Status</string>
     <string name="show_hide_status_bar">Tampilkan/Sembunyikan bilah status</string>
+    <string name="more_from_jeerovan">Aplikasi lainnya dari Jeerovan</string>
+    <string name="fife_subtitle">Penyimpanan Cloud Terenkripsi</string>
 </resources>
