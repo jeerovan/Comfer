@@ -157,6 +157,7 @@ import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
+import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
@@ -2618,10 +2619,20 @@ fun AppListOverlay(apps: List<AppInfo>,
                                                             centerIconSize.toInt(),
                                                             centerIconSize.toInt()
                                                         )
-                                                    context.startActivity(
-                                                        launchIntent,
-                                                        opts.toBundle()
-                                                    )
+                                                    try {
+                                                        context.startActivity(launchIntent,
+                                                            opts.toBundle())
+                                                    } catch (e: ActivityNotFoundException) {
+                                                        Toast.makeText(context, "App not found", Toast.LENGTH_SHORT).show()
+                                                    } catch (e: SecurityException) {
+                                                        Toast.makeText(
+                                                            context,
+                                                            "App could not be launched. Please check your device App Launch settings.",
+                                                            Toast.LENGTH_LONG
+                                                        ).show()
+                                                    } catch (e: Exception) {
+                                                        Toast.makeText(context, "An unexpected error occurred while launching the app.", Toast.LENGTH_SHORT).show()
+                                                    }
                                                 }
                                             }
                                         }
@@ -4527,10 +4538,17 @@ fun TextClock(
             addAction(Intent.ACTION_TIMEZONE_CHANGED) // Triggers if timezone changes (e.g., traveling)
         }
 
-        context.registerReceiver(receiver, filter)
+        val job = CoroutineScope(Dispatchers.IO).launch {
+            context.registerReceiver(receiver, filter)
+        }
 
         onDispose {
-            context.unregisterReceiver(receiver)
+            job.cancel() // Cancel the registration coroutine if it hasn’t finished
+            try {
+                context.unregisterReceiver(receiver) // Always unregister on dispose
+            } catch (e: IllegalArgumentException) {
+                // Receiver might not be registered if the coroutine was cancelled early
+            }
         }
     }
     val timeParts = remember(time) { time.split(":") }
@@ -4614,10 +4632,17 @@ fun AnalogClock(
             addAction(Intent.ACTION_TIMEZONE_CHANGED)
         }
 
-        context.registerReceiver(receiver, filter)
+        val job = CoroutineScope(Dispatchers.IO).launch {
+            context.registerReceiver(receiver, filter)
+        }
 
         onDispose {
-            context.unregisterReceiver(receiver)
+            job.cancel() // Cancel the registration coroutine if it hasn’t finished
+            try {
+                context.unregisterReceiver(receiver) // Always unregister on dispose
+            } catch (e: IllegalArgumentException) {
+                // Receiver might not be registered if the coroutine was cancelled early
+            }
         }
     }
 
