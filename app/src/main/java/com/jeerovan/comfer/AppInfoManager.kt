@@ -37,7 +37,7 @@ object AppInfoManager {
 
     fun saveAppPackageNames(context: Context, listName: String, packageNames: Collection<String>) {
         CoroutineScope(Dispatchers.IO).launch {
-            getSharedPreferences(context).edit(commit = true) {
+            getSharedPreferences(context).edit {
                 val stringToSave = packageNames.joinToString(DELIMITER)
                 putString(listName, stringToSave)
             }
