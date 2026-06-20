@@ -67,15 +67,13 @@ object IconPackManager {
         PreferenceManager.increaseAppListVersion(context)
     }
 
-    fun getCustomIcon(context: Context, componentName: ComponentName): Drawable? {
-        // Grab local reference to volatile state to ensure it doesn't change mid-execution
-        val state = currentState ?: return null
+    suspend fun getCustomIcon(context: Context, componentName: ComponentName): Drawable? = withContext(Dispatchers.IO) {
+        val state = currentState ?: return@withContext null
 
-        // Format: ComponentInfo{package/class}
         val componentKey = "ComponentInfo{${componentName.packageName}/${componentName.className}}"
-        val drawableName = state.appFilterMap[componentKey] ?: return null
+        val drawableName = state.appFilterMap[componentKey] ?: return@withContext null
 
-        return try {
+        try {
             val resId = state.resources.getIdentifier(drawableName, "drawable", state.packageName)
             if (resId != 0) state.resources.getDrawable(resId, null) else null
         } catch (e: Exception) {
