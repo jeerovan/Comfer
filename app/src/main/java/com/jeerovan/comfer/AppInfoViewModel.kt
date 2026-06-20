@@ -110,8 +110,7 @@ suspend fun getAppInfo(
     showThemedIcons: Boolean,
     themedColors: WallpaperThemeColors,
     isLightHour: Boolean,
-    iconPackPackage: String?,
-    iconProcessor: ThemedIconProcessor
+    iconPackPackage: String?
 ): AppInfo? = withContext(Dispatchers.IO) {
     try {
         val packageName = info.componentName.packageName
@@ -158,12 +157,12 @@ suspend fun getAppInfo(
                         colorFilter = PorterDuffColorFilter(foregroundColor, PorterDuff.Mode.SRC_IN)
                     }
                 } else {
-                    iconProcessor.applyThemedColor(
-                        iconDrawable.foreground,
-                        foregroundColor,
-                        backgroundColor,
-                        isLightHour
-                    )
+                        ThemedIconProcessor.applyThemedColor(
+                            iconDrawable.foreground,
+                            foregroundColor,
+                            backgroundColor,
+                            isLightHour
+                        )
                 }
             } else {
                 // Original adaptive icon
@@ -202,12 +201,12 @@ suspend fun getAppInfo(
             backgroundDrawable = backgroundColor.toDrawable()
 
             foregroundDrawable = if (showThemedIcons && iconDrawable != null) {
-                iconProcessor.applyThemedColor(
-                    iconDrawable,
-                    foregroundColor,
-                    backgroundColor,
-                    isLightHour
-                )
+                    ThemedIconProcessor.applyThemedColor(
+                        iconDrawable,
+                        foregroundColor,
+                        backgroundColor,
+                        isLightHour
+                    )
             } else {
                 iconDrawable
             }
@@ -482,7 +481,6 @@ suspend fun mapPackageNameToAppInfo(
 
         val activityInfo = activityList.find { it.componentName.packageName == packageName }
 
-        val themedIconProcessor = ThemedIconProcessor()
         if (activityInfo != null) {
             getAppInfo(
                 context,
@@ -490,8 +488,7 @@ suspend fun mapPackageNameToAppInfo(
                 showThemedIcons,
                 themedColors,
                 isLightHour,
-                iconPackPackage,
-                themedIconProcessor
+                iconPackPackage
             )
         } else {
             null
@@ -650,38 +647,35 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val savedFolders = AppInfoManager.getFolders(context)
             // Function to map package names to your UI models
             // NOTE: handle if a package exists on multiple profiles (Work + Personal)
-            val themedIconProcessor = ThemedIconProcessor()
             suspend fun mapPackagesToAppInfo(packageNames: List<String>): List<AppInfo> = withContext(iconLoadingDispatcher) {
                 packageNames.map { packageName ->
                     async {
                             if(packageName.startsWith("folder")){
-                                val folderData = savedFolders[packageName] ?: return@async null
-                                val packages = folderData.packages
-                                val activitiesMap = allActivitiesMap.filter { it.key in packages }
-                                val activities = activitiesMap.values.toList()
-                                createFolderAppInfo(
-                                    context,
-                                    folderData,
-                                    activities,
-                                    showThemedIcons,
-                                    themedColors,
-                                    isLightHour,
-                                    iconPackPackage,
-                                    themedIconProcessor,
-                                    shape)
-                            } else {
-                                val activityInfo =
-                                    allActivitiesMap[packageName] ?: return@async null
-                                createAppInfo(
-                                    context,
-                                    activityInfo,
-                                    showThemedIcons,
-                                    themedColors,
-                                    isLightHour,
-                                    iconPackPackage,
-                                    themedIconProcessor
-                                )
-                            }
+                                 val folderData = savedFolders[packageName] ?: return@async null
+                                 val packages = folderData.packages
+                                 val activitiesMap = allActivitiesMap.filter { it.key in packages }
+                                 val activities = activitiesMap.values.toList()
+                                 createFolderAppInfo(
+                                     context,
+                                     folderData,
+                                     activities,
+                                     showThemedIcons,
+                                     themedColors,
+                                     isLightHour,
+                                     iconPackPackage,
+                                     shape)
+                             } else {
+                                 val activityInfo =
+                                     allActivitiesMap[packageName] ?: return@async null
+                                 createAppInfo(
+                                     context,
+                                     activityInfo,
+                                     showThemedIcons,
+                                     themedColors,
+                                     isLightHour,
+                                     iconPackPackage
+                                 )
+                             }
                     }
                 }.awaitAll().filterNotNull()
             }
@@ -740,8 +734,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         showThemedIcons: Boolean,
         themedColors: WallpaperThemeColors,
         isLightHour: Boolean,
-        iconPackPackage: String?,
-        themedIconProcessor: ThemedIconProcessor
+        iconPackPackage: String?
     ): AppInfo? {
         return getAppInfo(
             context,
@@ -749,8 +742,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             showThemedIcons,
             themedColors,
             isLightHour,
-            iconPackPackage,
-            themedIconProcessor
+            iconPackPackage
         )
     }
 
@@ -762,7 +754,6 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         themedColors: WallpaperThemeColors,
         isLightHour: Boolean,
         iconPackPackage: String?,
-        themedIconProcessor: ThemedIconProcessor,
         shape: Shape
     ): AppInfo? {
         val appInfos = activities.mapNotNull { info ->
@@ -772,8 +763,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 showThemedIcons,
                 themedColors,
                 isLightHour,
-                iconPackPackage,
-                themedIconProcessor
+                iconPackPackage
             )
         }
         val foregroundColorInt = if (showThemedIcons) {
@@ -976,8 +966,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val isLightHour = PreferenceManager.isLightHour(context)
             val shape = PreferenceManager.getIconShape(context)
             val activities:List<LauncherActivityInfo> = emptyList()
-            val themedIconProcessor = ThemedIconProcessor()
-
+            
             val folderAppInfo = createFolderAppInfo(
                 context,
                 newFolder,
@@ -986,7 +975,6 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 themedColors,
                 isLightHour,
                 null,
-                themedIconProcessor,
                 shape)
             val primaryApps = _uiState.value.primaryApps.toMutableList()
             if(folderAppInfo != null){ primaryApps.add(0,folderAppInfo)}
@@ -1335,7 +1323,7 @@ fun getForegroundColor(isLightHour: Boolean):Color {
     }
 }
 
-class ThemedIconProcessor {
+object ThemedIconProcessor {
     fun applyThemedColor(drawable: Drawable,
                          foregroundColor: Int,
                          backgroundColor: Int,
@@ -1343,9 +1331,7 @@ class ThemedIconProcessor {
         return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && drawable is AdaptiveIconDrawable){
             handleAdaptiveIcon(
                 drawable,
-                foregroundColor,
-                backgroundColor,
-                isLightHour)
+                foregroundColor)
         } else {
             val bitmap = drawableToBitmap(drawable)
             if (hasSignificantTransparency(bitmap)) {
@@ -1363,8 +1349,6 @@ class ThemedIconProcessor {
     private fun handleAdaptiveIcon(
         adaptiveIcon: AdaptiveIconDrawable,
         foregroundColor: Int,
-        backgroundColor: Int,
-        isLightHour: Boolean
     ): Drawable {
         val foreground = adaptiveIcon.foreground ?: return adaptiveIcon
         // Convert to bitmap
@@ -1410,8 +1394,8 @@ class ThemedIconProcessor {
     }
 
     private fun drawableToBitmap(drawable: Drawable): Bitmap {
-        val width = 284
-        val height = 284
+        val width = 64
+        val height = 64
 
         if (drawable is BitmapDrawable) {
             return drawable.bitmap.scale(width = width, height = height)
