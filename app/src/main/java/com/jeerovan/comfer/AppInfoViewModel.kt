@@ -1347,10 +1347,15 @@ class ThemedIconProcessor {
                 backgroundColor,
                 isLightHour)
         } else {
-            applyColorWithMask(drawable,
-                foregroundColor,
-                backgroundColor,
-                isLightHour)
+            val bitmap = drawableToBitmap(drawable)
+            if (hasSignificantTransparency(bitmap)) {
+                drawable
+                    .apply {
+                        colorFilter = PorterDuffColorFilter(foregroundColor, PorterDuff.Mode.SRC_IN)
+                    }
+            } else {
+                drawable
+            }
         }
     }
 
@@ -1374,118 +1379,9 @@ class ThemedIconProcessor {
                     )
                 }
         } else {
-            getThemedIconWithShades(bitmap,
-                foregroundColor,
-                backgroundColor,
-                isLightHour)
+            foreground
         }
     }
-
-    private fun applyColorWithMask(drawable: Drawable,
-                                   foregroundColor: Int,
-                                   backgroundColor: Int,
-                                   isLightHour: Boolean): Drawable {
-        val bitmap = drawableToBitmap(drawable)
-        return if (hasSignificantTransparency(bitmap)) {
-            drawable
-                .apply {
-                colorFilter = PorterDuffColorFilter(foregroundColor, PorterDuff.Mode.SRC_IN)
-            }
-        } else {
-            getThemedIconWithShades(bitmap,
-                foregroundColor,
-                backgroundColor,
-                isLightHour)
-        }
-    }
-
-    fun getThemedIconWithShades(icon: Bitmap,
-                                foregroundColor: Int,
-                                backgroundColor: Int,
-                                isLightHour: Boolean
-    ): Drawable {
-        val width = icon.width
-        val height = icon.height
-        val pixels = IntArray(width * height)
-        icon.getPixels(pixels, 0, width, 0, 0, width, height)
-
-        val fgHsl = FloatArray(3)
-        ColorUtils.colorToHSL(foregroundColor, fgHsl)
-        val bgLuminance = ColorUtils.calculateLuminance(backgroundColor)
-
-        val opaqueBackgroundColor = ColorUtils.setAlphaComponent(backgroundColor, 255)
-
-        // Define the luminance range to simulate system theming (avoids pure black/white)
-        val minLuminance = 0.1f
-        val maxLuminance = 0.9f
-
-        for (i in pixels.indices) {
-            val pixel = pixels[i]
-            val alpha = android.graphics.Color.alpha(pixel)
-
-            // Skip fully transparent pixels
-            if (alpha == 0) continue
-
-            val pixelLuminance = ColorUtils.calculateLuminance(pixel)
-
-            val hsv = FloatArray(3)
-            android.graphics.Color.colorToHSV(pixel, hsv)
-
-            // 1. Check for and replace the icon's own background plate
-            if (hsv[1] < 0.1) { // Low saturation indicates a grayscale/white/black pixel
-                if (pixelLuminance < 0.1) { // Near-black background
-                    // Replace with a DARK shade of the foreground color
-                    val fghslAlpha = 0.3f
-                    val newHsl = floatArrayOf(fgHsl[0], fgHsl[1], fghslAlpha)
-                    val newColor = ColorUtils.HSLToColor(newHsl)
-                    pixels[i] = android.graphics.Color.argb(alpha, android.graphics.Color.red(newColor), android.graphics.Color.green(newColor), android.graphics.Color.blue(newColor))
-                    continue // Move to the next pixel
-                } else if (pixelLuminance > 0.90) { // Near-white background
-                    // Replace with a LIGHT shade of the foreground color
-                    val fghslAlpha = 0.7f
-                    val newHsl = floatArrayOf(fgHsl[0], fgHsl[1], fghslAlpha)
-                    val newColor = ColorUtils.HSLToColor(newHsl)
-                    pixels[i] = android.graphics.Color.argb(alpha, android.graphics.Color.red(newColor), android.graphics.Color.green(newColor), android.graphics.Color.blue(newColor))
-                    continue // Move to the next pixel
-                }
-            }
-
-            // 2. Map original brightness to the constrained luminance range
-            val targetLuminance = minLuminance + (pixelLuminance * (maxLuminance - minLuminance)).toFloat()
-
-            // Create the new HSL color by applying the target luminance to the foreground hue/saturation
-            val newHsl = floatArrayOf(fgHsl[0], fgHsl[1], targetLuminance)
-            var newColor = ColorUtils.HSLToColor(newHsl)
-
-            // 3. Contrast Guarantee: Check contrast against the background and adjust if needed
-            val contrast = ColorUtils.calculateContrast(newColor, opaqueBackgroundColor)
-            if (contrast < 2.0) { // 3.0:1 is a good minimum contrast for icons
-                // If contrast is too low, shift the lightness away from the background's luminance
-                val adjustedLuminance = if (bgLuminance > 0.5) {
-                    (targetLuminance - 0.2f).coerceAtLeast(minLuminance) // Make it darker
-                } else {
-                    (targetLuminance + 0.2f).coerceAtMost(maxLuminance) // Make it lighter
-                }
-                newHsl[2] = adjustedLuminance
-                newColor = ColorUtils.HSLToColor(newHsl)
-            }
-
-            // 4. Alpha Enhancement: Boost alpha for better visibility of semi-transparent edges
-            val scaledAlpha = (alpha + 100).coerceAtMost(255)
-
-            pixels[i] = android.graphics.Color.argb(
-                scaledAlpha,
-                android.graphics.Color.red(newColor),
-                android.graphics.Color.green(newColor),
-                android.graphics.Color.blue(newColor)
-            )
-        }
-
-        val themedBitmap = Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888)
-        val themedDrawable = BitmapDrawable(null,themedBitmap)
-        return themedDrawable
-    }
-
 
     /**
      * Check if bitmap has meaningful transparency
@@ -1520,9 +1416,6 @@ class ThemedIconProcessor {
         if (drawable is BitmapDrawable) {
             return drawable.bitmap.scale(width = width, height = height)
         }
-
-        //val width = drawable.intrinsicWidth.coerceAtLeast(1)
-        //val height = drawable.intrinsicHeight.coerceAtLeast(1)
 
         val bitmap = createBitmap(width, height)
         val canvas = Canvas(bitmap)
