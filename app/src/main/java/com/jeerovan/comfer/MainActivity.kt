@@ -5302,13 +5302,8 @@ fun EffectTextBlock(
     radius: Float = 0f,
     shadowColor: Int = Color.Black.toArgb()
 ) {
-    val context = LocalContext.current
     val density = LocalDensity.current
     val resolver = LocalFontFamilyResolver.current
-    val themedColors = PreferenceManager.getThemedColors(context)
-    val isLightHour = PreferenceManager.isLightHour(context)
-    val backgroundColorInt = getThemedBackgroundColor(themedColors,isLightHour)
-    val foregroundColorInt = getThemedIconColor(themedColors,isLightHour)
     val reverse = radius < 0
     val absRadius = if (radius < 0) {
         500f + radius
