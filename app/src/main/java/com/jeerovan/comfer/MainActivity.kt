@@ -597,10 +597,12 @@ fun WidgetHostScreen(
                     saveWidgetsToPrefs(prefs, boundWidgets)
                     updateWidgetGroups()
                 }
-            } else {
+        } else {
+            coroutineScope.launch(Dispatchers.IO) {
                 appWidgetHost.deleteAppWidgetId(widgetId)
             }
         }
+    }
 
         val configureWidgetLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult()
@@ -625,7 +627,9 @@ fun WidgetHostScreen(
                 }
             } else {
                 if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                    appWidgetHost.deleteAppWidgetId(appWidgetId)
+                    coroutineScope.launch(Dispatchers.IO) {
+                        appWidgetHost.deleteAppWidgetId(appWidgetId)
+                    }
                 }
                 Toast.makeText(context, stringWidgetBindingCancelled, Toast.LENGTH_SHORT).show()
             }
@@ -674,7 +678,9 @@ fun WidgetHostScreen(
             } else {
                 // User cancelled the binding. Clean up the allocated ID.
                 if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                    appWidgetHost.deleteAppWidgetId(appWidgetId)
+                    coroutineScope.launch(Dispatchers.IO) {
+                        appWidgetHost.deleteAppWidgetId(appWidgetId)
+                    }
                 }
                 Toast.makeText(context, stringWidgetBindingCancelled, Toast.LENGTH_SHORT).show()
             }
@@ -741,25 +747,32 @@ fun WidgetHostScreen(
                 onDismiss = { showPicker = false },
                 onWidgetSelected = { provider ->
                     showPicker = false
-                    val appWidgetId = appWidgetHost.allocateAppWidgetId()
-                    Log.i("WidgetHost","Allocated WidgetId: $appWidgetId")
-                    val canBind = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, provider.provider)
-                    if (canBind) {
-                        checkConfigureWidget(provider,appWidgetId)
-                    } else {
-                        Log.i("WidgetHost","Can NOT bind: $appWidgetId")
-                        val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
-                            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-                            putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
-                        }
-                        try {
-                            Log.i("WidgetHost","Calling bindWidgetLauncher")
-                            bindWidgetLauncher.launch(intent)
-                        } catch (e:Exception){
-                            if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                                appWidgetHost.deleteAppWidgetId(appWidgetId)
+                    coroutineScope.launch(Dispatchers.IO) {
+                        val appWidgetId = appWidgetHost.allocateAppWidgetId()
+                        Log.i("WidgetHost","Allocated WidgetId: $appWidgetId")
+                        val canBind = appWidgetManager.bindAppWidgetIdIfAllowed(appWidgetId, provider.provider)
+                        
+                        withContext(Dispatchers.Main) {
+                            if (canBind) {
+                                checkConfigureWidget(provider,appWidgetId)
+                            } else {
+                                Log.i("WidgetHost","Can NOT bind: $appWidgetId")
+                                val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
+                                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, provider.provider)
+                                }
+                                try {
+                                    Log.i("WidgetHost","Calling bindWidgetLauncher")
+                                    bindWidgetLauncher.launch(intent)
+                                } catch (e:Exception){
+                                    launch(Dispatchers.IO) {
+                                        if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                                            appWidgetHost.deleteAppWidgetId(appWidgetId)
+                                        }
+                                    }
+                                    Log.i("bindWidgetLauncher.launch failed", e.toString())
+                                }
                             }
-                            Log.i("bindWidgetLauncher.launch failed", e.toString())
                         }
                     }
                 },

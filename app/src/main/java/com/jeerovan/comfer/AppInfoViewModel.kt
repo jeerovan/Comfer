@@ -103,7 +103,7 @@ private object LegacyIconAnalysisCache {
 }
 
 private val packageManagerDispatcher = Dispatchers.IO.limitedParallelism(4)
-private val iconLoadingDispatcher = Dispatchers.IO.limitedParallelism(8)
+private val iconLoadingDispatcher = Dispatchers.IO.limitedParallelism(4)
 suspend fun getAppInfo(
     context: Context,
     info: LauncherActivityInfo,
