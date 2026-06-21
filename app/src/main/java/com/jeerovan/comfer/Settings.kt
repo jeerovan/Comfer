@@ -1568,7 +1568,7 @@ private fun SocialIconButton(
 ) {
     IconButton(onClick = onClick) {
         Image(
-            ImageVector.vectorResource(icon),
+            painter = painterResource(icon),
             contentDescription = contentDescription,
             modifier = Modifier.size(35.dp),
         )
