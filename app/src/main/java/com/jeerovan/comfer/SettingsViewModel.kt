@@ -165,6 +165,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val DRAWER_HEIGHT = "drawer_height"
     private val DRAWER_OFFSET = "drawer_offset"
     private val SHOW_THEMED_TEXT = "show_themed_text"
+    private val FIXED_WIDGET_POSITIONS = "fixed_widget_positions"
     val predefinedColors = listOf(
         Color.Red, Color.Green, Color.Blue, Color.Yellow,
         Color.Cyan, Color.Magenta, Color.Black, Color.Gray,
@@ -201,6 +202,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun loadSettings() {
         Log.i("SettingsViewModel","LoadSettings")
         viewModelScope.launch {
+            // Run any migrations to fix things
+            resetWidgetPositions()
+            
             val autoWallpapers = PreferenceManager.getAutoWallpapers(getApplication(),true)
             val monochrome = PreferenceManager.getMonochrome(getApplication(), default = false)
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
@@ -396,6 +400,17 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
+    // Migration functions
+    fun resetWidgetPositions() {
+        val fixedWidgetPositions = PreferenceManager.getBoolean(getApplication(),FIXED_WIDGET_POSITIONS,false)
+        if(!fixedWidgetPositions){
+            for (id in widgetIds){
+                PreferenceManager.clear(getApplication(),"widget_${id}_x")
+                PreferenceManager.clear(getApplication(),"widget_${id}_y")
+            }
+            PreferenceManager.setBoolean(getApplication(),FIXED_WIDGET_POSITIONS,true)
+        }
+    }
     fun setThemedColors(){
         viewModelScope.launch {
             val themedColors = PreferenceManager.getThemedColors(getApplication())
@@ -493,7 +508,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-
     fun hasWidgetPosition(id: String): Boolean {
         return PreferenceManager.hasKey(getApplication(),"widget_${id}_x")
     }

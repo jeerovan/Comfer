@@ -4983,7 +4983,7 @@ private fun detectCircularPattern(path: List<Offset>,swipeThreshold:Float): Stri
 private fun isCircularPattern(points: List<Offset>, width: Float, height: Float): Boolean {
     // Check if aspect ratio is close to square
     val aspectRatio = width / height
-    if (aspectRatio < 0.7f || aspectRatio > 1.3f) return false
+    if (aspectRatio !in 0.7f..1.3f) return false
 
     // Calculate center
     val centerX = points.map { it.x }.average().toFloat()
@@ -5140,10 +5140,10 @@ fun DraggableQuickWidgetsContainer(
                 widgetIds.forEach { id ->
                     if (widgetPositions[id] == null) {
                         val size = measuredSizes[id] ?: IntSize.Zero
-                        val centerX = (containerWidthPx - size.width) / 2f
+                        val centerX = containerWidthPx / 2f
+                        val centerY = currentY + size.height / 2f
 
-                        // Only update if it's different to avoid loops (though remember check handles this implicitly)
-                        initialPositions[id] = Offset(centerX, currentY)
+                        initialPositions[id] = Offset(centerX, centerY)
                         currentY += size.height
                     }
                 }
@@ -5211,8 +5211,8 @@ fun DraggableQuickWidgets(
         modifier = Modifier
             .offset {
                 IntOffset(
-                    currentOffset.x.roundToInt(),
-                    currentOffset.y.roundToInt()
+                    (currentOffset.x - composableSize.width / 2f).roundToInt(),
+                    (currentOffset.y - composableSize.height / 2f).roundToInt()
                 )
             }
             .onGloballyPositioned { coordinates ->
