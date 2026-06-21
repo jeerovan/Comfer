@@ -53,6 +53,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(libs.androidx.compose.ui.unit)
     implementation(libs.app.update)
     implementation(libs.app.update.ktx)
     implementation(libs.androidx.ui.text.google.fonts)
