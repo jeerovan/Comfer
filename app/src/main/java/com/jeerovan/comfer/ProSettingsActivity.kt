@@ -1749,7 +1749,8 @@ fun AppDrawerScreen(
 
     Box(modifier = Modifier
         .fillMaxSize()
-        .detectGestures(
+        .detectSwipes(
+            updateOn = Unit,
             onSwipeDown = onSwipeDown
         )
         .pointerInput(Unit) {

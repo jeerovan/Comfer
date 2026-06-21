@@ -4867,7 +4867,7 @@ fun Modifier.detectGestures(
     )
 }
 private fun detectLPatternWithCorner(points: List<Offset>,swipeThreshold: Float): LPatternType? {
-    if (points.size < 15) return null
+    if (points.size < 10) return null
 
     // Helper function to normalize angle difference
     fun normalizeAngleDiff(angle1: Float, angle2: Float): Float {
@@ -4879,17 +4879,17 @@ private fun detectLPatternWithCorner(points: List<Offset>,swipeThreshold: Float)
     var maxDirectionChange = 0f
     var cornerIndex = 0
 
-    for (i in 5 until points.size - 5) {
-        val beforeStartIdx = i - 5
-        val afterEndIdx = i + 5
+    for (i in 3 until points.size - 3) {
+        val beforeStartIdx = (i - 3).coerceAtLeast(0)
+        val afterEndIdx = (i + 3).coerceAtMost(points.size - 1)
 
         val beforeAngle = atan2(
             points[i - 1].y - points[beforeStartIdx].y,
             points[i - 1].x - points[beforeStartIdx].x
         )
         val afterAngle = atan2(
-            points[afterEndIdx - 1].y - points[i].y,
-            points[afterEndIdx - 1].x - points[i].x
+            points[afterEndIdx].y - points[i].y,
+            points[afterEndIdx].x - points[i].x
         )
 
         val directionChange = normalizeAngleDiff(beforeAngle, afterAngle)
@@ -4913,7 +4913,7 @@ private fun detectLPatternWithCorner(points: List<Offset>,swipeThreshold: Float)
     val secondVertical = points[secondEndIdx - 1].y - points[secondStartIdx].y
     val secondHorizontal = points[secondEndIdx - 1].x - points[secondStartIdx].x
 
-    val threshold = 1.5f
+    val threshold = 1.2f
 
     // Check if segments are long enough
     val firstSegmentLength = kotlin.math.sqrt(firstVertical * firstVertical + firstHorizontal * firstHorizontal)
@@ -4983,7 +4983,7 @@ private fun detectCircularPattern(path: List<Offset>,swipeThreshold:Float): Stri
 private fun isCircularPattern(points: List<Offset>, width: Float, height: Float): Boolean {
     // Check if aspect ratio is close to square
     val aspectRatio = width / height
-    if (aspectRatio !in 0.7f..1.3f) return false
+    if (aspectRatio !in 0.6f..1.6f) return false
 
     // Calculate center
     val centerX = points.map { it.x }.average().toFloat()
@@ -4998,12 +4998,34 @@ private fun isCircularPattern(points: List<Offset>, width: Float, height: Float)
         )
     }
 
-    val avgDistance = distances.average()
+    val avgDistance = distances.average().toFloat()
     val variance = distances.map { (it - avgDistance) * (it - avgDistance) }.average()
-    val stdDev = kotlin.math.sqrt(variance)
+    val stdDev = kotlin.math.sqrt(variance).toFloat()
 
     // Low standard deviation indicates circular path
-    return stdDev / avgDistance < 0.25
+    if (stdDev / avgDistance > 0.25f) return false
+
+    // Check if the path is closed (start and end points are relatively close)
+    val startPoint = points.first()
+    val endPoint = points.last()
+    val closureDistance = kotlin.math.sqrt(
+        (startPoint.x - endPoint.x) * (startPoint.x - endPoint.x) +
+                (startPoint.y - endPoint.y) * (startPoint.y - endPoint.y)
+    )
+    if (closureDistance > avgDistance * 1.2f) return false
+
+    // Check total angle swept to ensure it's a loop, not just a small arc
+    var totalAngle = 0f
+    for (i in 0 until points.size - 1) {
+        val p1 = Offset(points[i].x - center.x, points[i].y - center.y)
+        val p2 = Offset(points[i + 1].x - center.x, points[i + 1].y - center.y)
+        var angle = atan2(p2.y, p2.x) - atan2(p1.y, p1.x)
+        if (angle > PI) angle -= 2 * PI.toFloat()
+        if (angle < -PI) angle += 2 * PI.toFloat()
+        totalAngle += angle
+    }
+
+    return abs(totalAngle) > 1.5 * PI.toFloat()
 }
 private fun detectSimpleSwipe(
     path: List<Offset>,
