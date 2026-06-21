@@ -60,7 +60,7 @@ import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 
-private const val ICON_ANALYSIS_SIZE = 192
+private const val ICON_ANALYSIS_SIZE = 64
 private const val ICON_ALPHA_THRESHOLD = 32
 
 data class AppInfoUiState(
@@ -141,10 +141,10 @@ suspend fun getAppInfo(
         val foregroundColor = getThemedIconColor(themedColors, isLightHour)
 
         val isAdaptive = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && iconDrawable is AdaptiveIconDrawable
-        var scale = if (isAdaptive) 1.5f else 1f
+        var scale = if (isAdaptive) 1.5f else 0.8f
 
         // 4. Heavy Image Processing (CPU bound, but fine inside IO context)
-        if (isAdaptive && iconDrawable is AdaptiveIconDrawable) {
+        if (isAdaptive) {
             if (showThemedIcons) {
                 val backgroundColor = getThemedBackgroundColor(themedColors, isLightHour)
                 backgroundDrawable = backgroundColor.toDrawable()
@@ -170,33 +170,10 @@ suspend fun getAppInfo(
                 foregroundDrawable = iconDrawable.foreground
             }
         } else {
-            // Legacy / Standard Icons
-            val legacyAnalysis = LegacyIconAnalysisCache.getOrPut(
-                "$cacheKey|${iconPackPackage.orEmpty()}"
-            ) {
-                val iconBitmap = iconDrawable.toBitmap(
-                    width = ICON_ANALYSIS_SIZE,
-                    height = ICON_ANALYSIS_SIZE,
-                    config = Bitmap.Config.ARGB_8888
-                )
-                LegacyIconAnalysis(
-                    scale = calculateLegacyForegroundScale(iconBitmap),
-                    propagatedColor = derivePropagatedSourceColor(iconBitmap),
-                )
-            }
-            val fallbackBackgroundColor = if (showThemedIcons) {
+            val backgroundColor = if (showThemedIcons) {
                 getThemedBackgroundColor(themedColors, isLightHour)
             } else {
                 getBackgroundColor(isLightHour).toArgb()
-            }
-            scale = legacyAnalysis.scale
-            val backgroundColor = if (showThemedIcons) {
-                fallbackBackgroundColor
-            } else {
-                blendLegacyBackgroundColor(
-                    propagatedColor = legacyAnalysis.propagatedColor,
-                    fallbackColor = fallbackBackgroundColor,
-                )
             }
             backgroundDrawable = backgroundColor.toDrawable()
 
@@ -237,7 +214,7 @@ fun generateFolderForeground(
     foregroundColor: Int,
     shape: Shape
 ): Drawable {
-    val size = 192 // Ensure this matches ICON_ANALYSIS_SIZE constant
+    val size = 128
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val mainCanvas = Canvas(bitmap)
 
@@ -361,99 +338,6 @@ fun generateFolderForeground(
 
     return BitmapDrawable(context.resources, bitmap)
 }
-
-private fun calculateLegacyForegroundScale(bitmap: Bitmap): Float {
-    val bounds = findOpaqueBounds(bitmap) ?: return 1f
-    val contentFraction = max(
-        bounds.width().toFloat() / bitmap.width,
-        bounds.height().toFloat() / bitmap.height
-    )
-    return (0.707f / contentFraction).coerceIn(0.8f, 1.15f)
-}
-
-private fun derivePropagatedSourceColor(bitmap: Bitmap): Int? {
-    val edgeColor = sampleEdgeColor(bitmap)
-    return edgeColor ?: Palette.from(bitmap)
-        .clearFilters()
-        .maximumColorCount(12)
-        .generate()
-        .run {
-            dominantSwatch?.rgb
-                ?: mutedSwatch?.rgb
-                ?: vibrantSwatch?.rgb
-                ?: lightMutedSwatch?.rgb
-                ?: darkMutedSwatch?.rgb
-        }
-}
-
-private fun blendLegacyBackgroundColor(propagatedColor: Int?, fallbackColor: Int): Int {
-    val sourceColor = propagatedColor ?: fallbackColor
-    return ColorUtils.blendARGB(
-        ColorUtils.setAlphaComponent(sourceColor, 255),
-        ColorUtils.setAlphaComponent(fallbackColor, 255),
-        0.15f
-    )
-}
-
-private fun sampleEdgeColor(bitmap: Bitmap): Int? {
-    val edgeInsetX = max(1, bitmap.width / 8)
-    val edgeInsetY = max(1, bitmap.height / 8)
-    var red = 0L
-    var green = 0L
-    var blue = 0L
-    var sampleCount = 0
-
-    for (y in 0 until bitmap.height) {
-        for (x in 0 until bitmap.width) {
-            val isEdgePixel =
-                x < edgeInsetX || x >= bitmap.width - edgeInsetX ||
-                    y < edgeInsetY || y >= bitmap.height - edgeInsetY
-            if (!isEdgePixel) continue
-
-            val pixel = bitmap[x, y]
-            if (android.graphics.Color.alpha(pixel) < ICON_ALPHA_THRESHOLD) continue
-
-            red += android.graphics.Color.red(pixel)
-            green += android.graphics.Color.green(pixel)
-            blue += android.graphics.Color.blue(pixel)
-            sampleCount++
-        }
-    }
-
-    if (sampleCount < 24) return null
-
-    return android.graphics.Color.argb(
-        255,
-        (red / sampleCount).toInt(),
-        (green / sampleCount).toInt(),
-        (blue / sampleCount).toInt()
-    )
-}
-
-
-private fun findOpaqueBounds(bitmap: Bitmap): android.graphics.Rect? {
-    var minX = bitmap.width
-    var minY = bitmap.height
-    var maxX = -1
-    var maxY = -1
-
-    for (y in 0 until bitmap.height) {
-        for (x in 0 until bitmap.width) {
-            val pixel = bitmap[x, y]
-            if (android.graphics.Color.alpha(pixel) < ICON_ALPHA_THRESHOLD) continue
-
-            minX = min(minX, x)
-            minY = min(minY, y)
-            maxX = max(maxX, x)
-            maxY = max(maxY, y)
-        }
-    }
-
-    if (maxX < minX || maxY < minY) return null
-
-    return android.graphics.Rect(minX, minY, maxX + 1, maxY + 1)
-}
-
 
 /**
  * Legacy helper: Tries to find an app by string package name.
