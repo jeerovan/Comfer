@@ -172,6 +172,8 @@ import android.view.WindowManager
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import android.view.ContextThemeWrapper
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.exponentialDecay
@@ -248,7 +250,13 @@ import kotlin.math.pow
 import kotlinx.coroutines.CancellationException
 
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ProgressIndicatorDefaults
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.tooling.preview.Preview
+
 // 1. Define a custom exception to safely interrupt the animation
 private class SnapEarlyException : CancellationException("Handing off to snap phase")
 
@@ -262,6 +270,132 @@ data class Contact(
 // Enum to manage the active tab state
 enum class SearchTab {
     APPS, CONTACTS
+}
+
+enum class SwipeDirection {
+    TOP, LEFT, BOTTOM, RIGHT
+}
+
+@Composable
+fun SwipeHelper(
+    start: SwipeDirection,
+    end: SwipeDirection,
+    handSize: Dp = 48.dp
+) {
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        val width = constraints.maxWidth.toFloat()
+        val height = constraints.maxHeight.toFloat()
+        val handSizePx = with(LocalDensity.current) { handSize.toPx() }
+        val centerX = width / 2f - handSizePx / 2f
+        val centerY = height / 2f - handSizePx / 2f
+
+        val transition = rememberInfiniteTransition(label = "swipeTransition")
+        val progress by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 1500, easing = CubicBezierEasing(
+                    0.4f,
+                    0.0f,
+                    1.0f,
+                    1.0f
+                )
+                ),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "progress"
+        )
+
+        val startOffset = when (start) {
+            SwipeDirection.TOP -> Offset(centerX, 0f)
+            SwipeDirection.BOTTOM -> Offset(centerX, height - handSizePx)
+            SwipeDirection.LEFT -> Offset(0f, centerY)
+            SwipeDirection.RIGHT -> Offset(width - handSizePx, centerY)
+        }
+
+        val endOffset = when (end) {
+            SwipeDirection.TOP -> Offset(centerX, -handSizePx)
+            SwipeDirection.BOTTOM -> Offset(centerX, height)
+            SwipeDirection.LEFT -> Offset(-handSizePx, centerY)
+            SwipeDirection.RIGHT -> Offset(width, centerY)
+        }
+
+        val currentOffset = Offset(
+            x = startOffset.x + (endOffset.x - startOffset.x) * progress,
+            y = startOffset.y + (endOffset.y - startOffset.y) * progress
+        )
+
+        val alpha = 1f - progress/2
+
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(currentOffset.x.roundToInt(), currentOffset.y.roundToInt()) }
+                .size(handSize)
+                .graphicsLayer(alpha = alpha)
+                .background(Color.Black, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Filled.TouchApp,
+                contentDescription = null,
+                tint = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+fun LongPressHint(modifier: Modifier = Modifier) {
+    val infiniteTransition = rememberInfiniteTransition()
+
+    // Scale animation for the 'Press' feel
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.8f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    // Progress animation for the 'Long Press' duration
+    val progress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        )
+    )
+
+    Box(contentAlignment = Alignment.Center,
+        modifier = modifier
+            .background(Color.Black.copy(alpha = 0.7f), CircleShape)
+            .padding(8.dp)
+    ) {
+        // Circular Progress Ring
+        CircularProgressIndicator(
+        progress = { progress },
+        modifier = Modifier.size(70.dp),
+        color = Color.White,
+        strokeWidth = 4.dp,
+        trackColor = ProgressIndicatorDefaults.circularIndeterminateTrackColor,
+        strokeCap = ProgressIndicatorDefaults.CircularDeterminateStrokeCap,
+        )
+
+        // Hand/Touch Icon
+        Icon(
+            imageVector = Icons.Default.TouchApp,
+            contentDescription = null,
+            modifier = Modifier
+                .size(50.dp)
+                .scale(scale),
+            tint = Color.White
+        )
+    }
 }
 
 data class BatteryState(val level: Int, val isCharging: Boolean)
@@ -1716,7 +1850,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
     var isDefault by remember { mutableStateOf(false) }
     var guideShown by remember { mutableStateOf(true) }
     var feedbackShown by remember { mutableStateOf(true)}
-    val guideKeyword = "quick_guide_1"
     var canShowGuide by remember { mutableStateOf(false) }
     val settings by settingsModel.uiState.collectAsState()
 
@@ -1735,10 +1868,9 @@ fun QuickListOverlay(apps: List<AppInfo>,
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             isDefault = isDefaultLauncher(context)
-            guideShown = PreferenceManager.getBoolean(context, guideKeyword, false)
+            guideShown = settingsModel.isGuideShown(context)
             feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
         }
-        delay(500)
         canShowGuide = true
     }
 
@@ -1753,7 +1885,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         iconSize = newIconSize
                         iconShape = newIconShape
                     }
-                    guideShown = PreferenceManager.getBoolean(context,guideKeyword,false)
+                    guideShown = settingsModel.isGuideShown(context)
                     feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
                     isDefault = isDefaultLauncher(context)
                 }
@@ -1766,7 +1898,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
     }
 
     fun onGuideDismiss(){
-        PreferenceManager.setBoolean(context,guideKeyword,true)
+        settingsModel.setGuideShown(context)
         guideShown = true
         val intent = Intent(context, SettingsActivity::class.java)
         handleStartActivity(context,intent,null)
@@ -1800,7 +1932,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
             context.startActivity(webIntent)
         }
     }
-    if (guideShown && canShowGuide && !feedbackShown && isDefault)
+    if (!feedbackShown && isDefault)
         FeedbackDialog(
         {onFeedbackDismiss()},
         {onFeedbackRateIt()}
@@ -2048,6 +2180,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 )
                             }
                         }
+
                     }
                 }
             }
@@ -3688,7 +3821,6 @@ fun FeedbackDialog(
     dialogTitle: String = stringResource(R.string.feedback),
     dialogText: String = stringResource(R.string.feedback_text)
 ) {
-    val layoutDirection = LocalLayoutDirection.current
 
     val ratingGuide = listOf(
         "😡",
@@ -4094,7 +4226,6 @@ fun Modifier.detectSwipes(
     }
 
 
-
 @Composable
 fun CircularLayout(
     apps: List<AppInfo>,
@@ -4125,7 +4256,6 @@ fun CircularLayout(
             isLightMode = isLightMode,
             isFolderActive = isFolderActive
         )
-
         apps.take(8).forEachIndexed { index, app ->
             val angleRad = Math.toRadians(angles[index].toDouble())
             val xOffset = (radius.value * cos(angleRad)).dp
@@ -4141,8 +4271,19 @@ fun CircularLayout(
                 )
             }
         }
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .offset(x=-boxSize/2 + 24.dp,y=-boxSize/2 + 48.dp),
+            contentAlignment = Alignment.Center
+        ){
+            SwipeHelper(
+                start = SwipeDirection.BOTTOM,
+                end = SwipeDirection.TOP
+            )
+        }
     }
 }
+
 
 @Composable
 fun FiveColumnLayout(

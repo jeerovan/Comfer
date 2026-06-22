@@ -411,6 +411,19 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             PreferenceManager.setBoolean(getApplication(),FIXED_WIDGET_POSITIONS,true)
         }
     }
+
+    fun isGuideShown(context:Context): Boolean {
+        return PreferenceManager.getBoolean(context, "quick_guide_1", default = false)
+    }
+    fun setGuideShown(context: Context){
+        PreferenceManager.setBoolean(context,"quick_guide_1", true)
+    }
+    fun isGuideStepShown(context: Context, step: String): Boolean {
+        return PreferenceManager.getBoolean(context, step, default = false)
+    }
+    fun setGuideStepShown(context: Context,step:String){
+        PreferenceManager.setBoolean(context,step, true)
+    }
     fun setThemedColors(){
         viewModelScope.launch {
             val themedColors = PreferenceManager.getThemedColors(getApplication())
