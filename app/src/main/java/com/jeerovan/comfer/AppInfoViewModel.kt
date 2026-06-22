@@ -68,7 +68,8 @@ data class AppInfoUiState(
     val primaryApps: List<AppInfo> = emptyList(),
     val restApps: List<AppInfo> = emptyList(),
     val folderApps: Map<String, List<AppInfo>> = emptyMap(),
-    val folders : Map<String, FolderData> = emptyMap()
+    val folders : Map<String, FolderData> = emptyMap(),
+    val settings: Map<String, Any> = emptyMap()
 )
 data class WallpaperThemeColors(
     val lightBg: Int,
@@ -93,14 +94,6 @@ private data class LegacyIconAnalysis(
     val scale: Float,
     val propagatedColor: Int?,
 )
-
-private object LegacyIconAnalysisCache {
-    private val analyses = ConcurrentHashMap<String, LegacyIconAnalysis>()
-
-    fun getOrPut(cacheKey: String, block: () -> LegacyIconAnalysis): LegacyIconAnalysis {
-        return analyses.getOrPut(cacheKey, block)
-    }
-}
 
 private val packageManagerDispatcher = Dispatchers.IO.limitedParallelism(4)
 private val iconLoadingDispatcher = Dispatchers.IO.limitedParallelism(4)
@@ -400,6 +393,30 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 .collect { timestamp ->
                     loadIconPack()
                 }
+        }
+        loadSettings()
+    }
+    fun loadSettings() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val context:Context = getApplication()
+            val iconSize = PreferenceManager.getIconSize(context)
+            val shape = PreferenceManager.getIconShape(context)
+            val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
+            val monochrome = PreferenceManager.getMonochrome(context)
+            val showThemedIcons = PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
+            val themedColors = PreferenceManager.getThemedColors(context)
+            val isLightHour = PreferenceManager.isLightHour(context)
+            withContext(Dispatchers.Main){
+                _uiState.update {
+                    it.copy(settings = mutableMapOf<String,Any>(
+                        "iconSize" to iconSize,
+                        "shape" to shape,
+                        "showThemedIcons" to showThemedIcons,
+                        "themedColors" to themedColors,
+                        "isLightHour" to isLightHour
+                    ))
+                }
+            }
         }
     }
     private suspend fun loadIconPack(){

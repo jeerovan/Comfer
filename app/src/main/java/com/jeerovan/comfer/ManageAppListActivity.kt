@@ -619,7 +619,7 @@ fun AppListColumn(
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(15.dp)
         )
-        if(listName == AppInfoManager.PRIMARY_APPS_LIST_NAME && folders < 10)AddFolderIcon(onAddFolderClick = onAddFolderClick)
+        if(listName == AppInfoManager.PRIMARY_APPS_LIST_NAME && folders < 10)AddFolderIcon(viewModel = viewModel,onAddFolderClick = onAddFolderClick)
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxHeight(),
@@ -731,16 +731,22 @@ fun AppCard(
 }
 
 @Composable
-fun AddFolderIcon(onAddFolderClick: () -> Unit){
-    val context = LocalContext.current
-    val iconSize = PreferenceManager.getIconSize(context)
-    val shape = PreferenceManager.getIconShape(context)
+fun AddFolderIcon(viewModel: AppInfoViewModel, onAddFolderClick: () -> Unit){
+    val infoViewState by viewModel.uiState.collectAsState()
+    val settings = infoViewState.settings
+    val iconSize = settings["iconSize"] as? Int ?: 48
+    val shape = settings["shape"] as? Shape ?: CircleShape
     val iconShape = getShapeFromShape(shape, iconSize.dp)
-    val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
-    val monochrome = PreferenceManager.getMonochrome(context)
-    val showThemedIcons = PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
-    val themedColors = PreferenceManager.getThemedColors(context)
-    val isLightHour = PreferenceManager.isLightHour(context)
+    val showThemedIcons = settings["showThemedIcons"] as? Boolean ?: false
+    val themedColors = settings["themedColors"] as? WallpaperThemeColors ?: WallpaperThemeColors(
+        Color.White.copy(alpha = 0.7f).toArgb(),
+        Color.Black.toArgb(),
+        Color.Black.copy(alpha = 0.7f).toArgb(),
+        Color.White.toArgb(),
+        Color.White.toArgb(),
+        Color.Black.toArgb()
+    )
+    val isLightHour = settings["isLightHour"] as? Boolean ?: true
 
     val foregroundColorInt = if (showThemedIcons) {
         getThemedIconColor(themedColors, isLightHour)

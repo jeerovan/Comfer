@@ -17,43 +17,43 @@ import java.io.File
 import java.util.Locale
 
 object PreferenceManager {
-    private const val PREF_BACKGROUND_IMAGE = "background_image"
+    const val PREF_BACKGROUND_IMAGE = "background_image"
     private const val PREFS_NAME = "com.jeerovan.comfer.Prefs"
-    private const val KEY_WALLPAPER_MOTION = "wallpaper_motion"
-    private const val WALLPAPER_ON_LOCK_SCREEN = "wallpaper_on_lock_screen"
-    private const val KEY_ICON_SIZE = "icon_size"
-    private const val KEY_ICON_SHAPE = "icon_shape"
-    private const val ICON_PACK_PACKAGE = "icon_pack_package"
-    private const val DUMMY_NAME = "dummy_name"
-    private const val USER_NAME = "user_name"
-    private const val KEY_IMAGE_DATA = "image_data"
-    private const  val KEY_TEMP_IMAGE_DATA = "temp_image_data"
-    private const val IMAGE_AVAILABLE = "image_available"
-    private const val FEEDBACK_DIALOG = "feedback_dialog"
-    private const val WALLPAPER_SET = "wallpaper_set"
-    private const val QUICK_APPS_LAYOUT = "quick_apps_layout"
-    private const val APP_DRAWER_LAYOUT = "app_drawer_layout"
-    private const val CUSTOM_WIDGETS = "custom_widgets"
-    private const val WALLPAPER_DIRECTORY = "wallpaper_directory"
-    private const val WALLPAPER_FREQUENCY = "wallpaper_frequency"
-    private const val WALLPAPER_URI = "wallpaper_uri"
-    private const val APPLIED_WALLPAPER_IMAGE = "applied_wallpaper_image"
-    private const val ALPHABETICAL_ORDER = "alphabetical_order"
-    private const val THEMED_ICONS = "themed_icons"
-    private const val WALLPAPER_LIGHT_BG = "wallpaper_light_bg"
-    private const val WALLPAPER_LIGHT_FG = "wallpaper_light_fg"
-    private const val APP_LIST_UPDATE_COUNTER = "apps_list_update_counter"
-    private const val WALLPAPER_DARK_BG = "wallpaper_dark_bg"
-    private const val WALLPAPER_DARK_FG = "wallpaper_dark_fg"
-    private const val WALLPAPER_TEXT_FG = "wallpaper_text_fg"
-    private const val WALLPAPER_TEXT_BG = "wallpaper_text_bg"
-    private const val AUTO_WALLPAPER = "auto_wallpaper"
-    private const val MONOCHROME = "monochrome"
-    private const val APP_UPDATE_PROMPT_TIME = "app_update_prompt_time"
-    private const val APP_UPDATE_PROMPT_COUNTER = "app_update_prompt_counter"
-    private const val KEYBOARD_LOCALE = "keyboard_locale"
-    private const val BATTERY_SAVER_MODE = "battery_saver_mode"
-    private const val TOP_BAR_VISIBLE = "top_bar_visible"
+    const val KEY_WALLPAPER_MOTION = "wallpaper_motion"
+    const val WALLPAPER_ON_LOCK_SCREEN = "wallpaper_on_lock_screen"
+    const val KEY_ICON_SIZE = "icon_size"
+    const val KEY_ICON_SHAPE = "icon_shape"
+    const val ICON_PACK_PACKAGE = "icon_pack_package"
+    const val DUMMY_NAME = "dummy_name"
+    const val USER_NAME = "user_name"
+    const val KEY_IMAGE_DATA = "image_data"
+    const val KEY_TEMP_IMAGE_DATA = "temp_image_data"
+    const val IMAGE_AVAILABLE = "image_available"
+    const val FEEDBACK_DIALOG = "feedback_dialog"
+    const val WALLPAPER_SET = "wallpaper_set"
+    const val QUICK_APPS_LAYOUT = "quick_apps_layout"
+    const val APP_DRAWER_LAYOUT = "app_drawer_layout"
+    const val CUSTOM_WIDGETS = "custom_widgets"
+    const val WALLPAPER_DIRECTORY = "wallpaper_directory"
+    const val WALLPAPER_FREQUENCY = "wallpaper_frequency"
+    const val WALLPAPER_URI = "wallpaper_uri"
+    const val APPLIED_WALLPAPER_IMAGE = "applied_wallpaper_image"
+    const val ALPHABETICAL_ORDER = "alphabetical_order"
+    const val THEMED_ICONS = "themed_icons"
+    const val WALLPAPER_LIGHT_BG = "wallpaper_light_bg"
+    const val WALLPAPER_LIGHT_FG = "wallpaper_light_fg"
+    const val APP_LIST_UPDATE_COUNTER = "apps_list_update_counter"
+    const val WALLPAPER_DARK_BG = "wallpaper_dark_bg"
+    const val WALLPAPER_DARK_FG = "wallpaper_dark_fg"
+    const val WALLPAPER_TEXT_FG = "wallpaper_text_fg"
+    const val WALLPAPER_TEXT_BG = "wallpaper_text_bg"
+    const val AUTO_WALLPAPER = "auto_wallpaper"
+    const val MONOCHROME = "monochrome"
+    const val APP_UPDATE_PROMPT_TIME = "app_update_prompt_time"
+    const val APP_UPDATE_PROMPT_COUNTER = "app_update_prompt_counter"
+    const val KEYBOARD_LOCALE = "keyboard_locale"
+    const val BATTERY_SAVER_MODE = "battery_saver_mode"
+    const val TOP_BAR_VISIBLE = "top_bar_visible"
 
     private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -113,8 +113,8 @@ object PreferenceManager {
     fun onFirstOpen(context: Context){
         val milliseconds = System.currentTimeMillis()
         val millisecondsString = milliseconds.toString()
-        val dummyName = CommonUtil.randomCode(millisecondsString,10)
-        setDummyName(context,dummyName)
+        val dummyName = CommonUtil.randomCode(millisecondsString,20)
+        setString(context,DUMMY_NAME,dummyName)
         setQuickAppsLayout(context,"circular")
     }
     fun isLightHour(context: Context): Boolean {
@@ -126,6 +126,7 @@ object PreferenceManager {
             return hour in 7..<19
         }
     }
+    // on IO
     fun setThemedColors(context: Context,
                         lightBg:Int,
                         lightFg:Int,
@@ -330,10 +331,6 @@ object PreferenceManager {
 
     fun getUsername(context: Context):String? {
         return getString(context,USER_NAME,getDummyName(context))
-    }
-
-    fun setDummyName(context: Context,name:String){
-        setString(context,DUMMY_NAME,name)
     }
 
     fun getDummyName(context: Context):String? {
