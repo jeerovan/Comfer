@@ -250,6 +250,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ProgressIndicatorDefaults
+import androidx.compose.ui.hapticfeedback.HapticFeedback
 
 // 1. Define a custom exception to safely interrupt the animation
 private class SnapEarlyException : CancellationException("Handing off to snap phase")
@@ -368,14 +369,14 @@ fun LongPressHint(modifier: Modifier = Modifier) {
     Box(contentAlignment = Alignment.Center,
         modifier = modifier
             .background(Color.Black.copy(alpha = 0.7f), CircleShape)
-            .padding(8.dp)
+            .padding(4.dp)
     ) {
         // Circular Progress Ring
         CircularProgressIndicator(
         progress = { progress },
-        modifier = Modifier.size(70.dp),
+        modifier = Modifier.size(50.dp),
         color = Color.White,
-        strokeWidth = 4.dp,
+        strokeWidth = 2.dp,
         trackColor = ProgressIndicatorDefaults.circularIndeterminateTrackColor,
         strokeCap = ProgressIndicatorDefaults.CircularDeterminateStrokeCap,
         )
@@ -385,7 +386,7 @@ fun LongPressHint(modifier: Modifier = Modifier) {
             imageVector = Icons.Default.TouchApp,
             contentDescription = null,
             modifier = Modifier
-                .size(50.dp)
+                .size(40.dp)
                 .scale(scale),
             tint = Color.White
         )
@@ -1836,7 +1837,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                      onSwipeUp: () -> Unit,
                      onSwipeRight: () -> Unit,
                      onSwipeLeft: () -> Unit,
-                     onShowSearch:() -> Unit) {
+                     onShowSearch:() -> Unit,
+                     onDoubleTap:() -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
     var iconSize by remember { mutableStateOf(48.dp) }
@@ -1844,7 +1846,11 @@ fun QuickListOverlay(apps: List<AppInfo>,
     var isDefault by remember { mutableStateOf(false) }
     var guideShown by remember { mutableStateOf(true) }
     val quickAppsGestureKey = "quick_apps_swipe"
+    val settingsLongPressKey = "settings_long_press_key"
+    val widgetsLongPressKey = "widgets_long_press_key"
     var quickGestureShown by remember { mutableStateOf(true)}
+    var settingsLongPressShown by remember { mutableStateOf(true) }
+    var widgetsLongPressShown by remember { mutableStateOf(true) }
     var feedbackShown by remember { mutableStateOf(true)}
     var canShowGuide by remember { mutableStateOf(false) }
     val settings by settingsModel.uiState.collectAsState()
@@ -1866,6 +1872,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
             isDefault = isDefaultLauncher(context)
             guideShown = settingsModel.isGuideShown(context)
             quickGestureShown = settingsModel.isStepGuideShown(context,quickAppsGestureKey)
+            settingsLongPressShown = settingsModel.isStepGuideShown(context, settingsLongPressKey)
+            widgetsLongPressShown = settingsModel.isStepGuideShown(context,widgetsLongPressKey)
             feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
         }
         canShowGuide = true
@@ -1883,6 +1891,9 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         iconShape = newIconShape
                     }
                     guideShown = settingsModel.isGuideShown(context)
+                    quickGestureShown = settingsModel.isStepGuideShown(context,quickAppsGestureKey)
+                    settingsLongPressShown = settingsModel.isStepGuideShown(context, settingsLongPressKey)
+                    widgetsLongPressShown = settingsModel.isStepGuideShown(context,widgetsLongPressKey)
                     feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
                     isDefault = isDefaultLauncher(context)
                 }
@@ -1959,6 +1970,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
             }
         }
     }
+    val haptic = LocalHapticFeedback.current
     Box(modifier = Modifier
         .fillMaxSize()
     ) {
@@ -2007,6 +2019,10 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 backgroundColor = backgroundColor)
                         }
                     },
+                    onWidgetLongPressShown = {
+                        settingsModel.setStepGuideShown(context, widgetsLongPressKey)
+                        widgetsLongPressShown = true
+                    }
                 )
             }
             AnimatedContent(
@@ -2042,8 +2058,22 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            //.border(1.dp, color = Color.Cyan)
+                            //.border(1.dp, color = Color.Red)
                             .height(lowerPartHeight)
+                            .pointerInput(Unit){
+                                detectTapGestures (
+                                    onLongPress = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        settingsModel.setStepGuideShown(context,settingsLongPressKey)
+                                        settingsLongPressShown = true
+                                        val intent = Intent(context, SettingsActivity::class.java)
+                                        handleStartActivity(context, intent, null)
+                                    },
+                                    onDoubleTap = {
+                                        onDoubleTap()
+                                    }
+                                )
+                            }
                             .detectGestures(
                                 onSwipeUp = {
                                     settingsModel.setStepGuideShown(context,quickAppsGestureKey)
@@ -2166,7 +2196,12 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 )
                             }
                         }
-
+                        if(!guideShown && !settingsLongPressShown)Box(modifier = Modifier
+                            .fillMaxWidth()
+                            .height(lowerPartHeight)
+                            .offset(x=20.dp,y=64.dp)){
+                            LongPressHint()
+                        }
                     }
                 }
             }
@@ -3243,38 +3278,29 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-    val haptic = LocalHapticFeedback.current
+
+    fun showRecents(){
+        coroutineScope.launch(Dispatchers.IO) {
+            val hasAccess = isAccessibilityServiceEnabled(
+                context,
+                RecentsAccessibilityService::class.java
+            )
+            if (hasAccess) {
+                withContext(Dispatchers.Main) {
+                    showRecentApps()
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    showDisclosure = true
+                }
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
             //.border(width=1.dp,Color.White)
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onLongPress = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        val intent = Intent(context, SettingsActivity::class.java)
-                        handleStartActivity(context, intent, null)
-                    },
-                    onDoubleTap = {
-                        coroutineScope.launch(Dispatchers.Default) {
-                            val hasAccess = isAccessibilityServiceEnabled(
-                                context,
-                                RecentsAccessibilityService::class.java
-                            )
-                            if (hasAccess) {
-                                withContext(Dispatchers.Main) {
-                                    showRecentApps()
-                                }
-                            } else {
-                                withContext(Dispatchers.Main) {
-                                    showDisclosure = true
-                                }
-                            }
-                        }
-                    }
-                )
-            }) {
+            .fillMaxSize()) {
         val maxWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
         val maxHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
@@ -3318,7 +3344,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                     enterTransition = slideDownEnter
                     exitTransition = slideUpExit
                     isSearchListVisible = true
-                }
+                },
+                onDoubleTap = { showRecents() }
             )
         }
 
@@ -5307,7 +5334,8 @@ fun DraggableQuickWidgetsContainer(
     widgetPositions: Map<String, Offset?>,
     onPositionChanged: (String, Offset) -> Unit,
     onEditModeChanged: (Boolean) -> Unit,
-    composableContent: @Composable (String, Boolean) -> Unit
+    composableContent: @Composable (String, Boolean) -> Unit,
+    onWidgetLongPressShown: () -> Unit
 ) {
     val hapticService = LocalHapticFeedback.current
     // Track measured sizes for initial column layout calculation
@@ -5329,6 +5357,7 @@ fun DraggableQuickWidgetsContainer(
                     onLongPress = {
                         hapticService.performHapticFeedback(HapticFeedbackType.LongPress)
                         onEditModeChanged(true)
+                        onWidgetLongPressShown()
                     }
                 )
             }
