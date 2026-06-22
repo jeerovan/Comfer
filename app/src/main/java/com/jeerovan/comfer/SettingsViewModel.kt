@@ -427,13 +427,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         PreferenceManager.setBoolean(context,step, true)
     }
     fun setThemedColors(){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val themedColors = PreferenceManager.getThemedColors(getApplication())
-            _uiState.update { it.copy(themedColors = themedColors) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(themedColors = themedColors) }
+            }
         }
     }
     fun setThemedIcons(enabled: Boolean){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             if (!PreferenceManager.isBatterySaver(getApplication())) {
                 PreferenceManager.setThemedIcons(getApplication(), enabled)
                 val leftSwipeApp = mapPackageNameToAppInfo(
@@ -444,40 +446,48 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     getApplication(),
                     PreferenceManager.getSwipeApp(getApplication(), "right")
                 )
-                _uiState.update {
-                    it.copy(
-                        showThemedIcons = enabled,
-                        leftSwipeApp = leftSwipeApp,
-                        rightSwipeApp = rightSwipeApp
-                    )
+                withContext(Dispatchers.Main) {
+                    _uiState.update {
+                        it.copy(
+                            showThemedIcons = enabled,
+                            leftSwipeApp = leftSwipeApp,
+                            rightSwipeApp = rightSwipeApp
+                        )
+                    }
                 }
             }
         }
     }
     fun setThemedText(enabled: Boolean){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setBoolean(getApplication(),SHOW_THEMED_TEXT,enabled)
-            _uiState.update { it.copy(
-                showThemedText = enabled
-            ) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(
+                    showThemedText = enabled
+                ) }
+            }
         }
     }
     fun setAlphabeticalOrder(enabled:Boolean){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setAlphabeticalOrder(getApplication(),enabled)
-            _uiState.update { it.copy(arrangeInAlphabeticalOrder = enabled) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(arrangeInAlphabeticalOrder = enabled) }
+            }
         }
     }
     fun saveWidgetPosition(id: String, offsetX: Float, offsetY: Float) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setFloat(getApplication(),"widget_${id}_x",offsetX)
             PreferenceManager.setFloat(getApplication(),"widget_${id}_y",offsetY)
             // Update state with new position
-            _uiState.update { currentState ->
-                val updatedPositions = currentState.widgetPositions.toMutableMap().apply {
-                    this[id] = Offset(offsetX, offsetY)
+            withContext(Dispatchers.Main) {
+                _uiState.update { currentState ->
+                    val updatedPositions = currentState.widgetPositions.toMutableMap().apply {
+                        this[id] = Offset(offsetX, offsetY)
+                    }
+                    currentState.copy(widgetPositions = updatedPositions)
                 }
-                currentState.copy(widgetPositions = updatedPositions)
             }
         }
     }
@@ -491,17 +501,19 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         )
     }
     fun setPatternApp(id: String, app: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val patternKey = "Pattern_$id"
             PreferenceManager.setString(getApplication(),patternKey,app)
             val appInfo = withContext(Dispatchers.Default){
                 mapPackageNameToAppInfo(getApplication(),app)
             }
-            _uiState.update { currentState ->
-                val updatedPatternApps = currentState.patternApps.toMutableMap().apply {
-                    this[id] = appInfo
+            withContext(Dispatchers.Main) {
+                _uiState.update { currentState ->
+                    val updatedPatternApps = currentState.patternApps.toMutableMap().apply {
+                        this[id] = appInfo
+                    }
+                    currentState.copy(patternApps = updatedPatternApps)
                 }
-                currentState.copy(patternApps = updatedPatternApps)
             }
         }
     }
@@ -513,13 +525,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
     fun clearAllWidgetPositions() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             for (id in widgetIds){
                 PreferenceManager.clear(getApplication(),"widget_${id}_x")
                 PreferenceManager.clear(getApplication(),"widget_${id}_y")
             }
-            _uiState.update {
-                it.copy(widgetPositions = emptyMap())
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(widgetPositions = emptyMap())
+                }
             }
         }
     }
@@ -527,13 +541,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         return PreferenceManager.hasKey(getApplication(),"widget_${id}_x")
     }
     fun setBatterySize(size: Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),BATTERY_FONT_SIZE,size)
-            _uiState.update { it.copy(batteryFontSize = size) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(batteryFontSize = size) }
+            }
         }
     }
     fun setBatteryFontName(fontName: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             // Save the new font name to preferences
             PreferenceManager.setString(getApplication(), BATTERY_FONT_NAME, fontName)
 
@@ -551,160 +567,208 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
 
             // Update the UI state with the new font name and family
-            _uiState.update {
-                it.copy(
-                    batteryFontName = fontName,
-                    batteryFontFamily = dateFontFamily
-                )
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(
+                        batteryFontName = fontName,
+                        batteryFontFamily = dateFontFamily
+                    )
+                }
             }
         }
     }
     fun setBatteryFontWeight(style: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setString(getApplication(),BATTERY_FONT_WEIGHT,style)
-            _uiState.update { it.copy(batteryFontWeight = style) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(batteryFontWeight = style) }
+            }
         }
     }
     fun setNotificationSize(size: Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),NOTIFICATION_SIZE,size)
-            _uiState.update { it.copy(notificationSize = size) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(notificationSize = size) }
+            }
         }
     }
     fun setNotificationLayoutId(id:Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),NOTIFICATION_LAYOUT_ID,id)
-            _uiState.update { it.copy(notificationLayoutId = id) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(notificationLayoutId = id) }
+            }
         }
     }
     fun setTimeFontColor(color: Color){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),TIME_FONT_COLOR,color.toArgb())
-            _uiState.update { it.copy(timeFontColor = color) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(timeFontColor = color) }
+            }
         }
     }
     fun setTimeFontAlpha(alpha: Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),TIME_FONT_ALPHA,alpha)
-            _uiState.update { it.copy(timeFontAlpha = alpha) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(timeFontAlpha = alpha) }
+            }
         }
     }
     fun setDateFontColor(color: Color){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),DATE_FONT_COLOR,color.toArgb())
-            _uiState.update { it.copy(dateFontColor = color) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(dateFontColor = color) }
+            }
         }
     }
     fun setDateFontAlpha(alpha: Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),DATE_FONT_ALPHA,alpha)
-            _uiState.update { it.copy(dateFontAlpha = alpha) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(dateFontAlpha = alpha) }
+            }
         }
     }
     fun setBatteryColor(color: Color){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),BATTERY_COLOR,color.toArgb())
-            _uiState.update { it.copy(batteryColor = color) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(batteryColor = color) }
+            }
         }
     }
     fun setBatteryAlpha(alpha: Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),BATTERY_ALPHA,alpha)
-            _uiState.update { it.copy(batteryAlpha = alpha) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(batteryAlpha = alpha) }
+            }
         }
     }
     fun setNotificationColor(color: Color){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),NOTIFICATION_COLOR,color.toArgb())
-            _uiState.update { it.copy(notificationColor = color) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(notificationColor = color) }
+            }
         }
     }
     fun setNotificationAlpha(alpha: Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),NOTIFICATION_ALPHA,alpha)
-            _uiState.update { it.copy(notificationAlpha = alpha) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(notificationAlpha = alpha) }
+            }
         }
     }
     fun setWallpaperFrequency(frequency: String){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setWallpaperFrequency(getApplication(),frequency)
-            _uiState.update { it.copy(wallpaperFrequency = frequency) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(wallpaperFrequency = frequency) }
+            }
         }
     }
     fun setWallpaperDirectory(directoryUri: String?){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val context: Context = getApplication()
             PreferenceManager.setWallpaperDirectory(context,directoryUri)
-            _uiState.update { it.copy(wallpaperDirectory = directoryUri) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(wallpaperDirectory = directoryUri) }
+            }
             if(directoryUri != null) {
                 signalToChangeWallpaper()
             }
         }
     }
     fun showAnalog(show: Boolean){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setBoolean(getApplication(),ANALOG_CLOCK,show)
-            _uiState.update { it.copy(showAnalog = show) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(showAnalog = show) }
+            }
         }
     }
     fun setClockSize(size: Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),CLOCK_SIZE,size)
-            _uiState.update { it.copy(clockSize = size) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(clockSize = size) }
+            }
         }
     }
     fun setClockBgColor(color: Color){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),CLOCK_BG_COLOR,color.toArgb())
-            _uiState.update { it.copy(clockBgColor = color) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(clockBgColor = color) }
+            }
         }
     }
     fun setClockBgAlpha(alpha: Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),CLOCK_BG_ALPHA,alpha)
-            _uiState.update { it.copy(clockBgAlpha = alpha) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(clockBgAlpha = alpha) }
+            }
         }
     }
     fun setClockHourColor(color: Color){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),CLOCK_HOUR_COLOR,color.toArgb())
-            _uiState.update { it.copy(clockHourColor = color) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(clockHourColor = color) }
+            }
         }
     }
     fun setClockHourAlpha(alpha: Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),CLOCK_HOUR_ALPHA,alpha)
-            _uiState.update { it.copy(clockHourAlpha = alpha) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(clockHourAlpha = alpha) }
+            }
         }
     }
     fun setClockMinuteColor(color: Color){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),CLOCK_MINUTE_COLOR,color.toArgb())
-            _uiState.update { it.copy(clockMinuteColor = color) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(clockMinuteColor = color) }
+            }
         }
     }
     fun setClockMinuteAlpha(alpha: Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),CLOCK_MINUTE_ALPHA,alpha)
-            _uiState.update { it.copy(clockMinuteAlpha = alpha) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(clockMinuteAlpha = alpha) }
+            }
         }
     }
     fun setTimeFormat(format: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setString(getApplication(),TIME_FORMAT,format)
-            _uiState.update { it.copy(timeFormat = format) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(timeFormat = format) }
+            }
         }
     }
 
     fun setTimeFontSize(size: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),TIME_FONT_SIZE,size)
-            _uiState.update { it.copy(timeFontSize = size) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(timeFontSize = size) }
+            }
         }
     }
 
     fun setTimeFontName(fontName: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             // Save the new font name to preferences
             PreferenceManager.setString(getApplication(), TIME_FONT_NAME, fontName)
 
@@ -722,61 +786,77 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
 
             // Update the UI state with the new font name and family
-            _uiState.update {
-                it.copy(
-                    timeFontName = fontName,
-                    timeFontFamily = timeFontFamily
-                )
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(
+                        timeFontName = fontName,
+                        timeFontFamily = timeFontFamily
+                    )
+                }
             }
         }
     }
 
     fun setTimeFontWeight(style: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setString(getApplication(),TIME_FONT_WEIGHT,style)
-            _uiState.update { it.copy(timeFontWeight = style) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(timeFontWeight = style) }
+            }
         }
     }
     fun setTimeLayoutId(id:Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),TIME_LAYOUT_ID,id)
-            _uiState.update { it.copy(timeLayoutId = id) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(timeLayoutId = id) }
+            }
         }
     }
     fun setTimeAngle(value:Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),TIME_ANGLE,value)
-            _uiState.update { it.copy(timeAngle = value) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(timeAngle = value) }
+            }
         }
     }
     fun setTimeRadius(value:Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),TIME_RADIUS,value)
-            _uiState.update { it.copy(timeRadius = value) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(timeRadius = value) }
+            }
         }
     }
     fun setTimeHasShadow(has:Boolean){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setBoolean(getApplication(),TIME_HAS_SHADOW,has)
-            _uiState.update { it.copy(timeHasShadow = has) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(timeHasShadow = has) }
+            }
         }
     }
     fun setTimeShadow(color:Color){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),TIME_SHADOW_COLOR,color.toArgb())
-            _uiState.update { it.copy(timeShadowColor = color) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(timeShadowColor = color) }
+            }
         }
     }
 
     fun setDateFontSize(size: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),DATE_FONT_SIZE,size)
-            _uiState.update { it.copy(dateFontSize = size) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(dateFontSize = size) }
+            }
         }
     }
 
     fun setDateFontName(fontName: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             // Save the new font name to preferences
             PreferenceManager.setString(getApplication(), DATE_FONT_NAME, fontName)
 
@@ -794,162 +874,202 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
 
             // Update the UI state with the new font name and family
-            _uiState.update {
-                it.copy(
-                    dateFontName = fontName,
-                    dateFontFamily = dateFontFamily
-                )
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(
+                        dateFontName = fontName,
+                        dateFontFamily = dateFontFamily
+                    )
+                }
             }
         }
     }
     fun setDateFontWeight(style: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setString(getApplication(),DATE_FONT_WEIGHT,style)
-            _uiState.update { it.copy(dateFontWeight = style) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(dateFontWeight = style) }
+            }
         }
     }
     fun setDateLayoutId(id:Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),DATE_LAYOUT_ID,id)
-            _uiState.update { it.copy(dateLayoutId = id) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(dateLayoutId = id) }
+            }
         }
     }
     fun setDateAngle(value:Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),DATE_ANGLE,value)
-            _uiState.update { it.copy(dateAngle = value) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(dateAngle = value) }
+            }
         }
     }
     fun setDateRadius(value:Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),DATE_RADIUS,value)
-            _uiState.update { it.copy(dateRadius = value) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(dateRadius = value) }
+            }
         }
     }
     fun setDateHasShadow(has:Boolean){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setBoolean(getApplication(),DATE_HAS_SHADOW,has)
-            _uiState.update { it.copy(dateHasShadow = has) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(dateHasShadow = has) }
+            }
         }
     }
     fun setDateShadow(color:Color){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),DATE_SHADOW_COLOR,color.toArgb())
-            _uiState.update { it.copy(dateShadowColor = color) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(dateShadowColor = color) }
+            }
         }
     }
 
     fun setShowBatteryIcon(show: Boolean) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setBoolean(getApplication(),SHOW_BATTERY_ICON,show)
             val isNotificationServiceEnabled = _uiState.value.hasNotificationAccess
             val showBatteryPercentage = _uiState.value.showBatteryPercentage
             val showNotificationRow = _uiState.value.showNotificationRow
             val widgetIds = getWidgetIds(show,
                 showBatteryPercentage,isNotificationServiceEnabled,showNotificationRow)
-            _uiState.update { it.copy(showBatteryIcon = show, widgetIds = widgetIds) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(showBatteryIcon = show, widgetIds = widgetIds) }
+            }
         }
     }
 
     fun setShowBatteryPercentage(show: Boolean) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setBoolean(getApplication(),SHOW_BATTERY_PERCENTAGE,show)
             val showBatteryIcon = _uiState.value.showBatteryIcon
             val isNotificationServiceEnabled = _uiState.value.hasNotificationAccess
             val showNotificationRow = _uiState.value.showNotificationRow
             val widgetIds = getWidgetIds(showBatteryIcon,
                 show,isNotificationServiceEnabled,showNotificationRow)
-            _uiState.update { it.copy(showBatteryPercentage = show, widgetIds = widgetIds) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(showBatteryPercentage = show, widgetIds = widgetIds) }
+            }
         }
     }
 
     fun setShowNotificationRow(show: Boolean) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setBoolean(getApplication(),SHOW_NOTIFICATIONS_ROW,show)
             val showBatteryIcon = _uiState.value.showBatteryIcon
             val showBatteryPercentage = _uiState.value.showBatteryPercentage
             val isNotificationServiceEnabled = _uiState.value.hasNotificationAccess
             val widgetIds = getWidgetIds(showBatteryIcon,
                 showBatteryPercentage,isNotificationServiceEnabled,show)
-            _uiState.update { it.copy(showNotificationRow = show, widgetIds = widgetIds) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(showNotificationRow = show, widgetIds = widgetIds) }
+            }
         }
     }
 
     fun setCustomWidgets(enabled: Boolean){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setCustomWidgets(getApplication(),enabled)
-            _uiState.update { it.copy(hasCustomWidgets = enabled) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(hasCustomWidgets = enabled) }
+            }
         }
     }
     fun setQuickAppsLayout(layout:String){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setQuickAppsLayout(getApplication(),layout)
-            _uiState.update { it.copy(quickAppsLayout = layout) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(quickAppsLayout = layout) }
+            }
         }
     }
     fun setAppDrawerLayout(layout:String){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setAppDrawerLayout(getApplication(),layout)
-            _uiState.update { it.copy(appDrawerLayout = layout) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(appDrawerLayout = layout) }
+            }
         }
     }
     fun setDrawerHeight(height:Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),DRAWER_HEIGHT,height)
-            _uiState.update { it.copy(drawerHeight = height) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(drawerHeight = height) }
+            }
         }
     }
     fun setDrawerOffset(offset:Int){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setInt(getApplication(),DRAWER_OFFSET,offset)
-            _uiState.update { it.copy(drawerOffset = offset) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(drawerOffset = offset) }
+            }
         }
     }
     fun setSwipeApp(swipeDirection:String, appName: String){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setSwipeApp(getApplication(),swipeDirection,appName)
             PreferenceManager.setWidgetsOnSwipe(getApplication(),swipeDirection,false)
             val swipeApp = mapPackageNameToAppInfo(
                 getApplication(),
                 PreferenceManager.getSwipeApp(getApplication(),swipeDirection))
-            if( swipeDirection == "left"){
-                _uiState.update { it.copy( leftSwipeApp =  swipeApp, isLeftSwipeWidgets = false) }
-            }
-            if( swipeDirection == "right"){
-                _uiState.update { it.copy( rightSwipeApp =  swipeApp, isRightSwipeWidgets = false) }
+            withContext(Dispatchers.Main) {
+                if( swipeDirection == "left"){
+                    _uiState.update { it.copy( leftSwipeApp =  swipeApp, isLeftSwipeWidgets = false) }
+                }
+                if( swipeDirection == "right"){
+                    _uiState.update { it.copy( rightSwipeApp =  swipeApp, isRightSwipeWidgets = false) }
+                }
             }
         }
     }
 
     fun setWidgetsOnSwipe(swipeDirection: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setWidgetsOnSwipe(getApplication(),swipeDirection,true)
             PreferenceManager.setSwipeApp(getApplication(),swipeDirection,null)
-            if( swipeDirection == "left"){
-                _uiState.update { it.copy( isLeftSwipeWidgets = true, leftSwipeApp = null) }
-            }
-            if( swipeDirection == "right"){
-                _uiState.update { it.copy( isRightSwipeWidgets = true, rightSwipeApp = null) }
+            withContext(Dispatchers.Main) {
+                if( swipeDirection == "left"){
+                    _uiState.update { it.copy( isLeftSwipeWidgets = true, leftSwipeApp = null) }
+                }
+                if( swipeDirection == "right"){
+                    _uiState.update { it.copy( isRightSwipeWidgets = true, rightSwipeApp = null) }
+                }
             }
         }
     }
     fun setAutoWallpapers(enabled: Boolean) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setAutoWallpapers(getApplication(),enabled)
-            _uiState.update { it.copy(autoWallpapers = enabled) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(autoWallpapers = enabled) }
+            }
         }
     }
     fun setWallpaperMotion(enabled: Boolean) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setWallpaperMotion(getApplication(), enabled)
-            _uiState.update { it.copy(wallpaperMotionEnabled = enabled) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(wallpaperMotionEnabled = enabled) }
+            }
         }
     }
     fun setWallpaperOnLockScreen(enabled: Boolean) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val context: Context = getApplication()
             PreferenceManager.setWallpaperOnLockScreen(context, enabled)
-            _uiState.update { it.copy(wallpaperOnLockScreen = enabled) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(wallpaperOnLockScreen = enabled) }
+            }
             if(enabled){
                 context.dataStore.edit { preferences ->
                     preferences[PreferenceKeys.WALLPAPER_RESET] = System.currentTimeMillis()
@@ -959,49 +1079,51 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun setMonochrome(enabled: Boolean) {
-        viewModelScope.launch {
-            viewModelScope.launch {
-                val context:Context = getApplication()
-                PreferenceManager.setMonochrome(context,enabled)
+        viewModelScope.launch(Dispatchers.IO) {
+            val context:Context = getApplication()
+            PreferenceManager.setMonochrome(context,enabled)
+            withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(monochrome = enabled) }
-                if(enabled) {
-                    withContext(Dispatchers.IO) {
-                        generateMonochromeColorWallpapers(context)
-                    }
-                    // to load wallpaper
-                    PreferenceManager.setHour(getApplication(),0)
-                    context.dataStore.edit { preferences ->
-                        preferences[PreferenceKeys.WALLPAPER_CHANGE] = System.currentTimeMillis()
-                    }
-                } else {
-                    context.dataStore.edit { preferences ->
-                        preferences[PreferenceKeys.WALLPAPER_RESET] = System.currentTimeMillis()
-                    }
+            }
+            if(enabled) {
+                generateMonochromeColorWallpapers(context)
+                // to load wallpaper
+                PreferenceManager.setHour(getApplication(),0)
+                context.dataStore.edit { preferences ->
+                    preferences[PreferenceKeys.WALLPAPER_CHANGE] = System.currentTimeMillis()
+                }
+            } else {
+                context.dataStore.edit { preferences ->
+                    preferences[PreferenceKeys.WALLPAPER_RESET] = System.currentTimeMillis()
                 }
             }
         }
     }
     fun setIconShape(shapeString: String){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setIconShape(getApplication(),shapeString)
             val iconShape = getShapeFromString(shapeString)
-            _uiState.update { it.copy(iconShapeString = shapeString, iconShape = iconShape) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(iconShapeString = shapeString, iconShape = iconShape) }
+            }
         }
     }
     fun setIconPackPackage(pack: String?){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val context: Context = getApplication()
             PreferenceManager.setIconPack(context,pack)
-            _uiState.update { it.copy(
-                iconPackPackage = pack
-            ) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(
+                    iconPackPackage = pack
+                ) }
+            }
             context.dataStore.edit { preferences ->
                 preferences[PreferenceKeys.ICON_PACK_LOAD] = System.currentTimeMillis()
             }
         }
     }
     fun changeIconSize(increase: Boolean) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val currentSize = _uiState.value.iconSize
             val newSize = if (increase) {
                 (currentSize + 4).coerceAtMost(56) // Max size 56
@@ -1010,28 +1132,34 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
             if (newSize != currentSize) {
                 PreferenceManager.setIconSize(getApplication(), newSize)
-                _uiState.update { it.copy(iconSize = newSize) }
+                withContext(Dispatchers.Main) {
+                    _uiState.update { it.copy(iconSize = newSize) }
+                }
             }
         }
     }
     fun setBatterySaver(enabled: Boolean){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setBatterySaver(getApplication(),enabled)
             val showThemedIcons = if (enabled) false else PreferenceManager.getThemedIcons(getApplication())
             val autoWallpapers = if (enabled) false else PreferenceManager.getAutoWallpapers(getApplication())
-            _uiState.update { it.copy(
-                isBatterySaver = enabled,
-                showThemedIcons = showThemedIcons,
-                autoWallpapers = autoWallpapers
-                )
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(
+                    isBatterySaver = enabled,
+                    showThemedIcons = showThemedIcons,
+                    autoWallpapers = autoWallpapers
+                    )
+                }
             }
             setMonochrome(enabled)
         }
     }
     fun setTopBarVisible(enabled: Boolean){
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setTopBarVisible(getApplication(),enabled)
-            _uiState.update { it.copy(topBarVisible = enabled) }
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(topBarVisible = enabled) }
+            }
         }
     }
     // Function to check if the notification listener permission is enabled
