@@ -95,7 +95,6 @@ import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
-import com.jeerovan.comfer.utils.GuideUtil.GuideDialog
 import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.asin
@@ -117,7 +116,6 @@ import androidx.compose.material3.MaterialTheme
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
-import androidx.compose.ui.graphics.vector.ImageVector
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -212,7 +210,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.outlined.Star
 import androidx.compose.ui.graphics.StrokeCap
 import java.util.Calendar
 
@@ -253,9 +250,6 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ProgressIndicatorDefaults
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.tooling.preview.Preview
 
 // 1. Define a custom exception to safely interrupt the animation
 private class SnapEarlyException : CancellationException("Handing off to snap phase")
@@ -1849,6 +1843,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
     var iconShape: Shape by remember { mutableStateOf(CircleShape)}
     var isDefault by remember { mutableStateOf(false) }
     var guideShown by remember { mutableStateOf(true) }
+    val quickAppsGestureKey = "quick_apps_swipe"
+    var quickGestureShown by remember { mutableStateOf(true)}
     var feedbackShown by remember { mutableStateOf(true)}
     var canShowGuide by remember { mutableStateOf(false) }
     val settings by settingsModel.uiState.collectAsState()
@@ -1869,6 +1865,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
         withContext(Dispatchers.IO) {
             isDefault = isDefaultLauncher(context)
             guideShown = settingsModel.isGuideShown(context)
+            quickGestureShown = settingsModel.isStepGuideShown(context,quickAppsGestureKey)
             feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
         }
         canShowGuide = true
@@ -1896,21 +1893,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-
-    fun onGuideDismiss(){
-        settingsModel.setGuideShown(context)
-        guideShown = true
-        val intent = Intent(context, SettingsActivity::class.java)
-        handleStartActivity(context,intent,null)
-    }
-
-    if(!guideShown && canShowGuide)GuideDialog(
-        onDismiss = {onGuideDismiss()},
-        title = stringResource(R.string.welcome),
-        steps = listOf(
-            stringResource(R.string.checkout_how_to_guide)
-        )
-    )
 
     fun onFeedbackDismiss(){
         feedbackShown = true
@@ -2063,7 +2045,10 @@ fun QuickListOverlay(apps: List<AppInfo>,
                             //.border(1.dp, color = Color.Cyan)
                             .height(lowerPartHeight)
                             .detectGestures(
-                                onSwipeUp = onSwipeUp,
+                                onSwipeUp = {
+                                    settingsModel.setStepGuideShown(context,quickAppsGestureKey)
+                                    onSwipeUp()
+                                },
                                 onSwipeDown = {
                                     try {
                                         @SuppressLint("WrongConstant")
@@ -2176,7 +2161,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     settings.themedColors,
                                     settings.isLightHour,
                                     isFolderActive = activeFolderId != null,
-                                    onTappingFolder = handleFolderTap
+                                    onTappingFolder = handleFolderTap,
+                                    !guideShown && !quickGestureShown
                                 )
                             }
                         }
@@ -2644,6 +2630,7 @@ fun AppListOverlay(apps: List<AppInfo>,
                    onSwipeDown: () -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
+    val configuration = LocalConfiguration.current
     val packageManager = context.packageManager
     val scope = rememberCoroutineScope()
     var iconSize by remember { mutableStateOf(48.dp) }
@@ -2652,11 +2639,19 @@ fun AppListOverlay(apps: List<AppInfo>,
     val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
     // State to hold the ID of the currently active folder
     var activeFolderId by remember { mutableStateOf<String?>(null) }
+    var guideShown by remember { mutableStateOf(true) }
+    var horizontalSwipeShown by remember { mutableStateOf(true) }
+    var verticalSwipeShown by remember { mutableStateOf(true) }
+    val horizontalSwipeKey = "app_drawer_circular_horizontal_swipe"
+    val verticalSwipeKey = "app_drawer_circular_vertical_swipe"
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             iconSize = PreferenceManager.getIconSize(context).dp
             iconShape = PreferenceManager.getIconShape(context)
+            guideShown = settingsModel.isGuideShown(context)
+            horizontalSwipeShown = settingsModel.isStepGuideShown(context, horizontalSwipeKey)
+            verticalSwipeShown = settingsModel.isStepGuideShown(context, verticalSwipeKey)
         }
     }
 
@@ -2666,13 +2661,21 @@ fun AppListOverlay(apps: List<AppInfo>,
     var centerIconX by remember { mutableFloatStateOf(0f) }
     var centerIconY by remember { mutableFloatStateOf(0f) }
     var centerIconSize by remember { mutableFloatStateOf(0f) }
+    var lastSoundTime by remember { mutableLongStateOf(0L) }
     val snapSpacing = 20f
 
     fun updateCenterAppIndex(index:Int){
         centerAppIndex = index
         if(centerAppIndex != lastCenterAppIndex) {
+            val currentTime = System.currentTimeMillis()
+
+            // Check if at least 50ms have passed since the last sound
+            if (currentTime - lastSoundTime >= 50) {
+                view.playSoundEffect(SoundEffectConstants.CLICK)
+                lastSoundTime = currentTime
+            }
+
             lastCenterAppIndex = centerAppIndex
-            view.playSoundEffect(SoundEffectConstants.CLICK)
         }
     }
 
@@ -2839,6 +2842,13 @@ fun AppListOverlay(apps: List<AppInfo>,
                                                 totalScrollWidth
                                             )
                                         scrollAnimatable.snapTo(newPosition)
+                                        if(!horizontalSwipeShown) {
+                                            settingsModel.setStepGuideShown(
+                                                context,
+                                                horizontalSwipeKey
+                                            )
+                                            horizontalSwipeShown = true
+                                        }
                                     }
                                 }
 
@@ -2851,6 +2861,13 @@ fun AppListOverlay(apps: List<AppInfo>,
                                             onSwipeDown()
                                             isSwipeDownTriggered =
                                                 true // Prevents repeated calls in this gesture.
+                                            if(!verticalSwipeShown) {
+                                                settingsModel.setStepGuideShown(
+                                                    context,
+                                                    verticalSwipeKey
+                                                )
+                                                verticalSwipeShown = true
+                                            }
                                         }
                                     }
                                 }
@@ -2880,6 +2897,8 @@ fun AppListOverlay(apps: List<AppInfo>,
                 }
             }
     ) {
+        val screenWidthInDp = configuration.screenWidthDp.dp
+        val screenHeightInDp = configuration.screenHeightDp.dp
         if (apps.isNotEmpty()) {
             UshapedAppList(
                 apps = apps,
@@ -2930,6 +2949,30 @@ fun AppListOverlay(apps: List<AppInfo>,
                     }
                 }
             }
+            if(!guideShown && !horizontalSwipeShown) Box(modifier = Modifier
+                // Layout -> Decoration -> Transformation
+                .width(screenWidthInDp/2)
+                .padding(bottom = 64.dp)
+                .offset(y = -(50.dp)),
+                contentAlignment = Alignment.Center
+            ){
+                SwipeHelper(
+                    start = SwipeDirection.LEFT,
+                    end = SwipeDirection.RIGHT
+                )
+            }
+            if(!guideShown && horizontalSwipeShown && !verticalSwipeShown)Box(modifier = Modifier
+                // Layout -> Decoration -> Transformation
+                .height(screenHeightInDp/2)
+                //.border(width = 1.dp,color = Color.Cyan)
+                .offset(x = -screenWidthInDp/2 + 24.dp, y = screenHeightInDp/2),
+                contentAlignment = Alignment.Center
+            ){
+                SwipeHelper(
+                    start = SwipeDirection.TOP,
+                    end = SwipeDirection.BOTTOM
+                )
+            }
             AnimatedVisibility(
                 visible = activeFolderId != null,
                 enter = fadeIn() + scaleIn(initialScale = 0.8f),
@@ -2962,7 +3005,8 @@ fun AppListOverlay(apps: List<AppInfo>,
                                 settings.themedColors,
                                 settings.isLightHour,
                                 isFolderActive = activeFolderId != null,
-                                onTappingFolder = null
+                                onTappingFolder = null,
+                                false
                             )
                         }
                     }
@@ -4237,7 +4281,8 @@ fun CircularLayout(
     themedColors: WallpaperThemeColors?,
     isLightMode: Boolean,
     isFolderActive: Boolean = false,
-    onTappingFolder: ((String) -> Unit)? = null
+    onTappingFolder: ((String) -> Unit)? = null,
+    showGestureGuide: Boolean
 ) {
     val radius = iconSize * 1.768f
     val angles = listOf(180f, 0f, 270f, 90f, 225f, 315f, 135f, 45f)
@@ -4271,7 +4316,7 @@ fun CircularLayout(
                 )
             }
         }
-        Box(modifier = Modifier
+        if(showGestureGuide)Box(modifier = Modifier
             .fillMaxSize()
             .offset(x=-boxSize/2 + 24.dp,y=-boxSize/2 + 48.dp),
             contentAlignment = Alignment.Center

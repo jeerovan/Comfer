@@ -166,6 +166,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val DRAWER_OFFSET = "drawer_offset"
     private val SHOW_THEMED_TEXT = "show_themed_text"
     private val FIXED_WIDGET_POSITIONS = "fixed_widget_positions"
+    private val ONBOARDING_GUIDE_SHOWN = "quick_guide_1"
     val predefinedColors = listOf(
         Color.Red, Color.Green, Color.Blue, Color.Yellow,
         Color.Cyan, Color.Magenta, Color.Black, Color.Gray,
@@ -415,16 +416,20 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun isGuideShown(context:Context): Boolean {
-        return PreferenceManager.getBoolean(context, "quick_guide_1", default = false)
+        return PreferenceManager.getBoolean(context, ONBOARDING_GUIDE_SHOWN, default = false)
     }
     fun setGuideShown(context: Context){
-        PreferenceManager.setBoolean(context,"quick_guide_1", true)
+        viewModelScope.launch(Dispatchers.IO) {
+            PreferenceManager.setBoolean(context,ONBOARDING_GUIDE_SHOWN, true)
+        }
     }
-    fun isGuideStepShown(context: Context, step: String): Boolean {
-        return PreferenceManager.getBoolean(context, step, default = false)
+    fun isStepGuideShown(context: Context, swipeKey: String): Boolean {
+        return PreferenceManager.getBoolean(context, swipeKey, default = false)
     }
-    fun setGuideStepShown(context: Context,step:String){
-        PreferenceManager.setBoolean(context,step, true)
+    fun setStepGuideShown(context: Context,swipeKey:String){
+        viewModelScope.launch(Dispatchers.IO) {
+            PreferenceManager.setBoolean(context, swipeKey, true)
+        }
     }
     fun setThemedColors(){
         viewModelScope.launch(Dispatchers.IO) {
