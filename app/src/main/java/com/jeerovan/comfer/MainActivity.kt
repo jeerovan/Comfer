@@ -1841,6 +1841,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                      onDoubleTap:() -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
+    val configuration = LocalConfiguration.current
     var iconSize by remember { mutableStateOf(48.dp) }
     var iconShape: Shape by remember { mutableStateOf(CircleShape)}
     var isDefault by remember { mutableStateOf(false) }
@@ -1930,7 +1931,9 @@ fun QuickListOverlay(apps: List<AppInfo>,
         {onFeedbackDismiss()},
         {onFeedbackRateIt()}
     )
+    val screenHeightInDp = configuration.screenHeightDp.dp
     val lowerPartHeight = 400.dp
+    val topPartHeight = screenHeightInDp - lowerPartHeight
 
     val isLightHour = PreferenceManager.isLightHour(context)
     val hourFgColor = if (isLightHour) {
@@ -2205,6 +2208,13 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     }
                 }
             }
+        }
+        if(!guideShown && settingsLongPressShown && !widgetsLongPressShown)Box(modifier = Modifier
+            .height(topPartHeight)
+            .offset(x=20.dp,y = -(64.dp)),
+            contentAlignment = Alignment.BottomStart
+            ){
+            LongPressHint()
         }
     }
 }
