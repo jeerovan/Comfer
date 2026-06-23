@@ -105,8 +105,8 @@ object CommonUtil {
             return null
         }
     }
-    fun copyFileFromUri(context: Context, sourceUri: Uri, destinationFile: File): Boolean {
-        return try {
+    suspend fun copyFileFromUri(context: Context, sourceUri: Uri, destinationFile: File): Boolean = withContext(Dispatchers.IO) {
+        return@withContext try {
             // Open an InputStream from the source URI
             context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
                 // Open a FileOutputStream to the destination file
@@ -121,7 +121,7 @@ object CommonUtil {
             false // Indicate failure
         }
     }
-    fun getFileNameFromUri(context: Context, uri: Uri): String? {
+    suspend fun getFileNameFromUri(context: Context, uri: Uri): String? = withContext(Dispatchers.IO) {
         var fileName: String? = null
         val cursor = context.contentResolver.query(uri, null, null, null, null)
         cursor?.use {
@@ -132,19 +132,19 @@ object CommonUtil {
                 }
             }
         }
-        return fileName
+        return@withContext fileName
     }
-    fun getNextWallpaperImageUri(
+    suspend fun getNextWallpaperImageUri(
         context: Context,
         directoryUri: Uri,
         currentWallpaperUri: Uri?
-    ): Uri? {
+    ): Uri? = withContext(Dispatchers.IO) {
         // Get a DocumentFile representing the directory from its Uri
         val directory = DocumentFile.fromTreeUri(context, directoryUri)
 
         // Check if the directory is valid and readable
         if (directory == null || !directory.isDirectory || !directory.canRead()) {
-            return null
+            return@withContext null
         }
 
         // Define common image file extensions
@@ -157,12 +157,12 @@ object CommonUtil {
 
         // If there are no image files, return null
         if (imageFiles.isEmpty()) {
-            return null
+            return@withContext null
         }
 
         // If there is no current wallpaper, return the first one
         if (currentWallpaperUri == null) {
-            return imageFiles.first().uri
+            return@withContext imageFiles.first().uri
         }
 
         // Find the index of the current wallpaper
@@ -175,7 +175,7 @@ object CommonUtil {
             currentIndex + 1
         }
 
-        return imageFiles[nextIndex].uri
+        return@withContext imageFiles[nextIndex].uri
     }
 
     fun isColorDark(color: Color): Boolean {
@@ -202,23 +202,6 @@ object CommonUtil {
             .take(length)
             .lowercase()
     }
-    fun stringToColor(colorString: String): Color {
-        return when (colorString) {
-            "White" -> Color.White
-            "Black" -> Color.Black
-            "Red" -> Color.Red
-            "Green" -> Color.Green
-            "Blue" -> Color.Blue
-            "Yellow" -> Color.Yellow
-            "Cyan" -> Color.Cyan
-            "Magenta" -> Color.Magenta
-            "Gray" -> Color.Gray
-            "DarkGray" -> Color.DarkGray
-            "LightGray" -> Color.LightGray
-            // Add more colors as needed
-            else -> Color.Unspecified // A default or error case
-        }
-    }
     fun String.removeAccents(): String {
         val normalized = Normalizer.normalize(this, Normalizer.Form.NFD)
         return normalized.replace(Regex("\\p{Mn}+"), "") // Remove non-spacing marks
@@ -231,10 +214,15 @@ object CommonUtil {
         return cleanText.contains(cleanQuery, ignoreCase = true)
     }
     fun isDefaultLauncher(context: Context): Boolean {
-        val intent = Intent(Intent.ACTION_MAIN)
-        intent.addCategory(Intent.CATEGORY_HOME)
-        val resolveInfo = context.packageManager.resolveActivity(intent, 0)
-        return resolveInfo?.activityInfo?.packageName == context.packageName
+        return try {
+            val intent = Intent(Intent.ACTION_MAIN)
+            intent.addCategory(Intent.CATEGORY_HOME)
+            val resolveInfo = context.packageManager.resolveActivity(intent, 0)
+            resolveInfo?.activityInfo?.packageName == context.packageName
+        } catch (e: Exception) {
+            Log.e("CommonUtil", "Error checking if default launcher", e)
+            false // Default to false if we cannot determine status
+        }
     }
     suspend fun setBackgroundImageFromImageUri(context:Context, wallpaperDirectory:Uri) {
         val currentWallpaperImageUri = PreferenceManager.getBackgroundImageUri(context)
@@ -336,6 +324,14 @@ object CommonUtil {
     }
     fun canSetLockScreenWallpaper(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+    }
+    fun getLaunchIntentSafe(context: Context, packageName: String): Intent? {
+        return try {
+            context.packageManager.getLaunchIntentForPackage(packageName)
+        } catch (e: Exception) {
+            Log.e("CommonUtil", "Error getting launch intent for $packageName", e)
+            null
+        }
     }
     suspend fun setWallpaperThemedColors(context: Context, file: File){
         withContext(Dispatchers.IO) {

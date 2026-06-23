@@ -253,6 +253,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
+import com.jeerovan.comfer.utils.CommonUtil
 import kotlinx.coroutines.Job
 
 // 1. Define a custom exception to safely interrupt the animation
@@ -2008,11 +2009,11 @@ fun QuickListOverlay(apps: List<AppInfo>,
         withContext(Dispatchers.IO) {
             val leftPackage = PreferenceManager.getSwipeApp(context, "left")
             if (leftPackage != null) {
-                launchSwipeIntentsCache["left"] = context.packageManager.getLaunchIntentForPackage(leftPackage)
+                launchSwipeIntentsCache["left"] = CommonUtil.getLaunchIntentSafe(context, leftPackage)
             }
             val rightPackage = PreferenceManager.getSwipeApp(context, "right")
             if (rightPackage != null) {
-                launchSwipeIntentsCache["right"] = context.packageManager.getLaunchIntentForPackage(rightPackage)
+                launchSwipeIntentsCache["right"] = CommonUtil.getLaunchIntentSafe(context, rightPackage)
             }
         }
     }
@@ -2180,9 +2181,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     val appOnCircularPattern = settings.patternApps["Center"]
                                     if (appOnCircularPattern != null) {
                                         val launchIntent: Intent? =
-                                            context.packageManager.getLaunchIntentForPackage(
-                                                appOnCircularPattern.packageName
-                                            )
+                                            CommonUtil.getLaunchIntentSafe(context, appOnCircularPattern.packageName)
                                         handleStartActivity(context, launchIntent, null)
                                     }
                                 },
@@ -2190,7 +2189,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     val patternApp = settings.patternApps[pattern]
                                     if (patternApp != null) {
                                         val launchIntent: Intent? =
-                                            context.packageManager.getLaunchIntentForPackage(
+                                            CommonUtil.getLaunchIntentSafe(context,
                                                 patternApp.packageName
                                             )
                                         handleStartActivity(context, launchIntent, null)
@@ -2343,7 +2342,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
         if (filteredApps.size == 1) {
             val singleApp = filteredApps.first()
             // Launch the app
-            val launchIntent: Intent? = context.packageManager.getLaunchIntentForPackage(singleApp.packageName)
+            val launchIntent: Intent? = CommonUtil.getLaunchIntentSafe(context, singleApp.packageName)
             if (launchIntent != null) {
                 handleStartActivity(context,launchIntent,null)
                 // Optional: Clear the input text after launching
@@ -2861,7 +2860,7 @@ fun AppListOverlay(apps: List<AppInfo>,
                                     } else {
                                         scope.launch(Dispatchers.Default) {
                                             val launchIntent =
-                                                packageManager.getLaunchIntentForPackage(app.packageName)
+                                                CommonUtil.getLaunchIntentSafe(context, app.packageName)
                                             if (launchIntent != null) {
                                                 withContext(Dispatchers.Main) {
                                                     val opts =
@@ -3804,7 +3803,7 @@ fun AppIcon(app: AppInfo,
                             } else {
                                 scope.launch(Dispatchers.IO) {
                                     val intent =
-                                        context.packageManager.getLaunchIntentForPackage(app.packageName)
+                                        CommonUtil.getLaunchIntentSafe(context,app.packageName)
                                     if (intent != null) {
                                         val boundedRect = android.graphics.Rect(
                                             iconBounds.left.toInt(),
