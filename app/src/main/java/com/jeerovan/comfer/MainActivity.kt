@@ -2202,20 +2202,21 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         if(!guideShown && quickGestureShown && !settingsLongPressShown)Box(modifier = Modifier
                             .fillMaxWidth()
                             .height(lowerPartHeight)
-                            .offset(x=20.dp,y=64.dp)){
+                            .offset(x=20.dp,y=80.dp)){
+                            LongPressHint()
+                        }
+                        if(!guideShown && settingsLongPressShown && !widgetsLongPressShown)Box(modifier = Modifier
+                            .fillMaxWidth()
+                            .height(lowerPartHeight)
+                            .offset(x=20.dp,y = -(64.dp)),
+                        ){
                             LongPressHint()
                         }
                     }
                 }
             }
         }
-        if(!guideShown && settingsLongPressShown && !widgetsLongPressShown)Box(modifier = Modifier
-            .height(topPartHeight)
-            .offset(x=20.dp,y = -(64.dp)),
-            contentAlignment = Alignment.BottomStart
-            ){
-            LongPressHint()
-        }
+
     }
 }
 
