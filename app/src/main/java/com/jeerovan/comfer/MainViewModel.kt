@@ -128,36 +128,36 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         backgroundLoadJob = viewModelScope.launch {
             try {
                 val applicationContext: Application = getApplication()
-                val imageData = PreferenceManager.getImageData(applicationContext)
-                val backgroundImagePath = PreferenceManager.getBackgroundImagePath(applicationContext)
+                
+                // Move preferences access to IO
+                val (imageData, backgroundImagePath) = withContext(Dispatchers.IO) {
+                    PreferenceManager.getImageData(applicationContext) to 
+                    PreferenceManager.getBackgroundImagePath(applicationContext)
+                }
+
                 if (imageData == null || backgroundImagePath == null) {
                     withContext(Dispatchers.IO) {
                         fetchImageData(applicationContext)
-                    }
-                    delay(500)
-                    withContext(Dispatchers.IO) {
+                        delay(500)
                         downloadImage(applicationContext)
-                    }
-                    delay(500)
-                    // update uiState
-                    val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
-                    if (filePath != null) {
-                        withContext(Dispatchers.IO){
+                        delay(500)
+                        
+                        // update uiState
+                        val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
+                        if (filePath != null) {
                             val imageFile = File(filePath)
                             setWallpaperThemedColors(applicationContext, imageFile)
                             // check if current image was already set as wallpaper
                             if (PreferenceManager.getAppliedWallpaperImage(applicationContext) != filePath){
                                 setWallpaper(applicationContext)
                             }
-                        }
-                        // let themed colors generate before we change the background
-                        _uiState.update {
-                            it.copy(
-                                imagePath = filePath
-                            )
+                            PreferenceManager.setWallpaperApplied(applicationContext, true)
+                            
+                            withContext(Dispatchers.Main) {
+                                _uiState.update { it.copy(imagePath = filePath) }
+                            }
                         }
                     }
-                    PreferenceManager.setWallpaperApplied(applicationContext, true)
                 } else {
                     if (_uiState.value.imagePath != backgroundImagePath) {
                         _uiState.update {
