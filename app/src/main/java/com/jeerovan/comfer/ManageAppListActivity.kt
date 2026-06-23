@@ -211,7 +211,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                     onClick = {
                         if (folderTitle.isNotBlank()) {
                             if (isEditingFolder && folderSelected != null) {
-                                viewModel.renameFolder(folderSelected!!, folderTitle)
+                                viewModel.renameFolder(selectedList,folderSelected!!, folderTitle)
                             } else {
                                 viewModel.createNewFolder(folderTitle)
                             }
