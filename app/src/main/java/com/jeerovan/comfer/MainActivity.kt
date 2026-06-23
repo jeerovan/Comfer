@@ -22,6 +22,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -251,6 +252,7 @@ import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.ui.hapticfeedback.HapticFeedback
+import androidx.compose.ui.tooling.preview.Preview
 
 // 1. Define a custom exception to safely interrupt the animation
 private class SnapEarlyException : CancellationException("Handing off to snap phase")
@@ -342,6 +344,7 @@ fun SwipeHelper(
     }
 }
 
+
 @Composable
 fun LongPressHint(modifier: Modifier = Modifier) {
     val infiniteTransition = rememberInfiniteTransition()
@@ -382,6 +385,42 @@ fun LongPressHint(modifier: Modifier = Modifier) {
         )
 
         // Hand/Touch Icon
+        Icon(
+            imageVector = Icons.Default.TouchApp,
+            contentDescription = null,
+            modifier = Modifier
+                .size(40.dp)
+                .scale(scale),
+            tint = Color.White
+        )
+    }
+}
+
+@Composable
+fun DoubleTapHint(modifier: Modifier = Modifier) {
+    val infiniteTransition = rememberInfiniteTransition()
+
+    // Pulse animation for the 'Double Tap' feel (two quick pulses)
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 1000
+                0.8f at 100
+                1f at 200
+                0.8f at 300
+                1f at 400
+            },
+            repeatMode = RepeatMode.Restart
+        )
+    )
+
+    Box(contentAlignment = Alignment.Center,
+        modifier = modifier
+            .background(Color.Black.copy(alpha = 0.7f), CircleShape)
+            .padding(4.dp)
+    ) {
         Icon(
             imageVector = Icons.Default.TouchApp,
             contentDescription = null,
@@ -2023,8 +2062,10 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         }
                     },
                     onWidgetLongPressShown = {
-                        settingsModel.setStepGuideShown(context, widgetsLongPressKey)
-                        widgetsLongPressShown = true
+                        if(!widgetsLongPressShown && settingsLongPressShown) {
+                            settingsModel.setStepGuideShown(context, widgetsLongPressKey)
+                            widgetsLongPressShown = true
+                        }
                     }
                 )
             }
@@ -2067,8 +2108,13 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 detectTapGestures (
                                     onLongPress = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        settingsModel.setStepGuideShown(context,settingsLongPressKey)
-                                        settingsLongPressShown = true
+                                        if(!settingsLongPressShown && quickGestureShown) {
+                                            settingsModel.setStepGuideShown(
+                                                context,
+                                                settingsLongPressKey
+                                            )
+                                            settingsLongPressShown = true
+                                        }
                                         val intent = Intent(context, SettingsActivity::class.java)
                                         handleStartActivity(context, intent, null)
                                     },
@@ -2079,7 +2125,13 @@ fun QuickListOverlay(apps: List<AppInfo>,
                             }
                             .detectGestures(
                                 onSwipeUp = {
-                                    settingsModel.setStepGuideShown(context,quickAppsGestureKey)
+                                    if(!quickGestureShown) {
+                                        settingsModel.setStepGuideShown(
+                                            context,
+                                            quickAppsGestureKey
+                                        )
+                                        quickGestureShown = true
+                                    }
                                     onSwipeUp()
                                 },
                                 onSwipeDown = {
@@ -2687,8 +2739,10 @@ fun AppListOverlay(apps: List<AppInfo>,
     var activeFolderId by remember { mutableStateOf<String?>(null) }
     var guideShown by remember { mutableStateOf(true) }
     var horizontalSwipeShown by remember { mutableStateOf(true) }
+    var doubleTapShown by remember { mutableStateOf(true) }
     var verticalSwipeShown by remember { mutableStateOf(true) }
     val horizontalSwipeKey = "app_drawer_circular_horizontal_swipe"
+    val doubleTapKey = "double_tap_circular_drawer"
     val verticalSwipeKey = "app_drawer_circular_vertical_swipe"
 
     LaunchedEffect(Unit) {
@@ -2697,6 +2751,7 @@ fun AppListOverlay(apps: List<AppInfo>,
             iconShape = PreferenceManager.getIconShape(context)
             guideShown = settingsModel.isGuideShown(context)
             horizontalSwipeShown = settingsModel.isStepGuideShown(context, horizontalSwipeKey)
+            doubleTapShown = settingsModel.isStepGuideShown(context,doubleTapKey)
             verticalSwipeShown = settingsModel.isStepGuideShown(context, verticalSwipeKey)
         }
     }
@@ -2778,7 +2833,6 @@ fun AppListOverlay(apps: List<AppInfo>,
                 initialVelocity = handoffVelocity // Seamless transfer of momentum
             )
         }
-
         // Wrap the values correctly to maintain the infinite loop illusion
         scrollAnimatable.snapTo(scrollAnimatable.value.wrap(totalScrollWidth))
     }
@@ -2831,6 +2885,10 @@ fun AppListOverlay(apps: List<AppInfo>,
                                                 }
                                             }
                                         }
+                                    }
+                                    if(!doubleTapShown && horizontalSwipeShown){
+                                        settingsModel.setStepGuideShown(context,doubleTapKey)
+                                        doubleTapShown = true
                                     }
                                 }
                             }
@@ -2907,7 +2965,7 @@ fun AppListOverlay(apps: List<AppInfo>,
                                             onSwipeDown()
                                             isSwipeDownTriggered =
                                                 true // Prevents repeated calls in this gesture.
-                                            if(!verticalSwipeShown) {
+                                            if(!verticalSwipeShown && horizontalSwipeShown && doubleTapShown) {
                                                 settingsModel.setStepGuideShown(
                                                     context,
                                                     verticalSwipeKey
@@ -3007,7 +3065,13 @@ fun AppListOverlay(apps: List<AppInfo>,
                     end = SwipeDirection.RIGHT
                 )
             }
-            if(!guideShown && horizontalSwipeShown && !verticalSwipeShown)Box(modifier = Modifier
+            if(!guideShown && horizontalSwipeShown && !doubleTapShown)Box(modifier = Modifier
+                .height(screenHeightInDp/2)
+                .offset(x = screenWidthInDp/2 - 24.dp,y = screenHeightInDp/3),
+                contentAlignment = Alignment.BottomCenter){
+                DoubleTapHint()
+            }
+            if(!guideShown && horizontalSwipeShown && doubleTapShown && !verticalSwipeShown)Box(modifier = Modifier
                 // Layout -> Decoration -> Transformation
                 .height(screenHeightInDp/2)
                 //.border(width = 1.dp,color = Color.Cyan)
