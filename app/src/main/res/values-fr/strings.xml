@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Comfer</string>
-    <string name="welcome">Bienvenue</string>
-
-    <string name="checkout_how_to_guide">
-        Appuyez longuement sur la moitié inférieure de l’écran pour ouvrir le menu et afficher le guide “Comment faire”.\nAvertissement : Certaines traductions peuvent avoir été générées automatiquement. Si vous remarquez un texte incorrect, veuillez nous contacter par email.
-    </string>
 
     <string name="accessibility_service_description">
         Ce service est nécessaire pour ouvrir l\'écran "Applications récentes" du système. Comfer utilise cette autorisation uniquement pour fournir ce raccourci et ne collecte ni ne surveille aucune donnée personnelle.

@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Comfer</string>
-    <string name="welcome">환영합니다</string>
-
-    <string name="checkout_how_to_guide">
-        화면 하단을 길게 눌러 메뉴를 열고 “사용 방법” 가이드를 확인하세요.\n안내: 일부 번역은 자동 생성되었을 수 있습니다. 잘못된 문구가 보이면 이메일로 연락해 주세요.
-    </string>
 
     <string name="accessibility_service_description">
         이 서비스는 시스템의 "최근 앱" 화면을 열기 위해 필요합니다. Comfer는 이 권한을 이 바로가기를 제공하는 데에만 사용하며, 어떠한 개인 정보도 수집하거나 모니터링하지 않습니다.

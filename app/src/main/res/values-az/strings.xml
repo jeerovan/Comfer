@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Comfer</string>
-    <string name="welcome">Xoş gəlmisiniz</string>
-
-    <string name="checkout_how_to_guide">
-        Menyunu açmaq və “Necə etməli” bələdçisinə baxmaq üçün ekranın alt hissəsinə uzun basın.\nQeyd: Bəzi tərcümələr avtomatik yaradılmış ola bilər. Səhv mətn görsəniz, zəhmət olmasa e-poçt vasitəsilə bizimlə əlaqə saxlayın.
-    </string>
 
     <string name="accessibility_service_description">
         Bu servis sistemin "Son tətbiqlər" ekranını açmaq üçün tələb olunur. Comfer bu icazədən yalnız bu qısayolu təmin etmək üçün istifadə edir və heç bir şəxsi məlumatınızı toplamır və ya izləmir.

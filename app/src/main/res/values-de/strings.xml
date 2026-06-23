@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Comfer</string>
-    <string name="welcome">Willkommen</string>
-
-    <string name="checkout_how_to_guide">
-        Drücken Sie lange auf die untere Bildschirmhälfte, um das Menü zu öffnen und die „Anleitung“ anzuzeigen.\nHinweis: Einige Übersetzungen wurden möglicherweise automatisch erstellt. Wenn Sie einen Fehler bemerken, kontaktieren Sie uns bitte per E-Mail.
-    </string>
 
     <string name="accessibility_service_description">
         Dieser Dienst wird benötigt, um die Systemansicht "Zuletzt verwendete Apps" zu öffnen. Comfer verwendet diese Berechtigung nur für diese Verknüpfung und sammelt oder überwacht keine persönlichen Daten.

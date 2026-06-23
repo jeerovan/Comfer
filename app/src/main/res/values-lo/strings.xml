@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Comfer</string>
-    <string name="welcome">ຍິນດີຕ້ອນຮັບ</string>
-
-    <string name="checkout_how_to_guide">
-        ກົດຄ້າງທີ່ຄື່ນລຸ່ມຂອງຈໍເພື່ອເປີດເມນູແລະເບິ່ງຄູ່ມື “ວິທີໃຊ້”。\nແຈ້ງເຕືອນ: ການແປບາງຢ່າງອາດຈະຖືກສ້າງອັດຕະໂນມັດ. ຖ້າພົບຂໍ້ຄວາມຜິດ, ກະລຸນາຕິດຕໍ່ທາງອີເມວ.
-    </string>
 
     <string name="accessibility_service_description">
         ບໍລິການນີ້ຈໍາເປັນສໍາລັບການເປີດໜ້າ "Recent Apps" ຂອງລະບົບ. Comfer ໃຊ້ສິດນີ້ພຽງເພື່ອສ້າງ shortcut ນີ້ເທົ່ານັ້ນ ແລະບໍ່ເກັບກໍາ ຫຼື ຕິດຕາມຂໍ້ມູນສ່ວນຕົວຂອງທ່ານ.

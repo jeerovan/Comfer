@@ -1,10 +1,5 @@
 <resources>
     <string name="app_name">Comfer</string>
-    <string name="welcome">Welkom</string>
-
-    <string name="checkout_how_to_guide">
-        Houd het onderste deel van het scherm ingedrukt om het menu te openen en de “Hoe werkt het”-gids te bekijken.\nDisclaimer: Sommige vertalingen zijn mogelijk automatisch gegenereerd. Als u onjuiste tekst opmerkt, neem dan contact met ons op via e-mail.
-    </string>
 
     <string name="accessibility_service_description">
         Deze service is nodig om het systeemscherm “Recente apps” te openen. Comfer gebruikt deze toestemming uitsluitend om de snelkoppeling te bieden en verzamelt of monitort geen persoonlijke gegevens.

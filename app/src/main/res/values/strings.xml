@@ -1,10 +1,5 @@
 <resources>
     <string name="app_name">Comfer</string>
-    <string name="welcome">Welcome</string>
-
-    <string name="checkout_how_to_guide">
-        Long-press lower half screen to open the menu and view the “How-to” guide.\nDisclaimer: Some translations may have been generated automatically. If you notice any incorrect text, please contact us by email.
-    </string>
 
     <string name="accessibility_service_description">
         This service is needed to open the system “Recent Apps” screen. Comfer uses this permission only to provide the shortcut and does not collect or monitor any personal data.

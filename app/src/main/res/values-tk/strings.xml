@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Comfer</string>
-    <string name="welcome">Hoş geldiňiz</string>
-
-    <string name="checkout_how_to_guide">
-        Menýuny açmak we “Näme etmeli” gollanmasyny görmek üçin ekranyň aşaky bölegine uzak basyň.\nDuýduryş: Käbir terjimeler awtomatiki döredilen bolup biler. Nädogry tekst görseňiz, e-mail arkaly habar beriň.
-    </string>
 
     <string name="accessibility_service_description">
         Bu hyzmat ulgamdaky "Recent Apps" (Soňky aplikasiýalar) ekranlaryny açmak üçin gerek. Comfer bu rugsady diňe şu shortcut-y taýýarlamak üçin ulanýar we hiç hili şahsy maglumatlaryňyzy ýygnamaýar ýa-da gözegçilik etmeýär.

@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Comfer</string>
-    <string name="welcome">Хуш омадед</string>
-
-    <string name="checkout_how_to_guide">
-        Барои кушодани меню ва дидани дастури “Чӣ гуна”, қисми поёнии экранро дароз пахш кунед.\nЭзоҳ: Баъзе тарҷумаҳо метавонанд худкор тавлид шуда бошанд. Агар матни нодуруст бинед, лутфан тавассути email ба мо муроҷиат кунед.
-    </string>
 
     <string name="accessibility_service_description">
         Ин сервис барои кушодани экрани "Recent Apps" – и система лозим аст. Comfer ин иҷозатро фақат барои таъмин кардани ин shortcut истифода мебарад ва ҳеҷ гуна маълумоти шахсии шуморо ҷамъоварӣ ё назорат намекунад.

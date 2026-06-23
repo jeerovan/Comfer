@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Comfer</string>
-    <string name="welcome">ようこそ</string>
-
-    <string name="checkout_how_to_guide">
-        メニューを開いて「使い方」ガイドを見るには、画面下部を長押ししてください。\n注意：一部の翻訳は自動生成された可能性があります。誤りを見つけた場合はメールでご連絡ください。
-    </string>
 
     <string name="accessibility_service_description">
         このサービスは、システムの「最近使用したアプリ」画面を開くために必要です。Comfer はこの権限をショートカットの提供のみに使用し、いかなる個人情報も収集・監視しません。

@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Comfer</string>
-    <string name="welcome">Xush kelibsiz</string>
-
-    <string name="checkout_how_to_guide">
-        Menyuni ochish va “Qanday qilish” qo‘llanmasini ko‘rish uchun ekraning pastki qismiga uzoq bosib turing.\nEslatma: Ba’zi tarjimalar avtomatik yaratilgan bo‘lishi mumkin. Noto‘g‘ri matn ko‘rsangiz, bizga email orqali murojaat qiling.
-    </string>
 
     <string name="accessibility_service_description">
         Bu xizmat tizimning "Recent Apps" ekranini ochish uchun kerak bo‘ladi. Comfer bu ruxsatni faqat shu yorliqni (shortcut) taʼminlash uchun ishlatadi va hech qanday shaxsiy maʼlumotlaringizni yig‘maydi yoki kuzatmaydi.

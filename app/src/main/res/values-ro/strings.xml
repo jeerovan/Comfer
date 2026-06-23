@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Comfer</string>
-    <string name="welcome">Bun venit</string>
-
-    <string name="checkout_how_to_guide">
-        Apăsați lung pe jumătatea inferioară a ecranului pentru a deschide meniul și a vedea ghidul „Cum să”.\nAtenționare: Unele traduceri pot fi generate automat. Dacă observați text incorect, contactați-ne prin email.
-    </string>
 
     <string name="accessibility_service_description">
         Acest serviciu este necesar pentru a deschide ecranul de sistem "Aplicații recente". Comfer folosește această permisiune doar pentru a oferi acest shortcut și nu colectează sau monitorizează niciun fel de date personale.

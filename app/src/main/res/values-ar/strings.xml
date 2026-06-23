@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Comfer</string>
-    <string name="welcome">مرحبًا</string>
-
-    <string name="checkout_how_to_guide">
-        اضغط مطولًا على النصف السفلي من الشاشة لفتح القائمة وعرض دليل "كيفية الاستخدام".\nتنويه: قد تكون بعض الترجمات تم إنشاؤها تلقائيًا. إذا لاحظت أي نص غير صحيح، يرجى التواصل معنا عبر البريد الإلكتروني.
-    </string>
 
     <string name="accessibility_service_description">
         هذه الخدمة مطلوبة لفتح شاشة "التطبيقات الحديثة" في النظام. يستخدم Comfer هذا الإذن فقط لتوفير هذا الاختصار ولا يجمع أو يراقب أي بيانات شخصية.
