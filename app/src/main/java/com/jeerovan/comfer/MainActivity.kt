@@ -2199,7 +2199,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 )
                             }
                         }
-                        if(!guideShown && !settingsLongPressShown)Box(modifier = Modifier
+                        if(!guideShown && quickGestureShown && !settingsLongPressShown)Box(modifier = Modifier
                             .fillMaxWidth()
                             .height(lowerPartHeight)
                             .offset(x=20.dp,y=64.dp)){

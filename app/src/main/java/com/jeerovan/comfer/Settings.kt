@@ -18,6 +18,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -119,6 +128,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.platform.LocalUriHandler
@@ -225,6 +235,34 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         }
         context.startActivity(intent)
     }
+
+    val infiniteTransition = rememberInfiniteTransition()
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1.07f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    var howtoGuideShown by remember { mutableStateOf(true) }
+    val howtoGuideKey = "howto_guide_shown_key"
+    var howtoGuideModifier  = Modifier
+        .then(if (!howtoGuideShown) Modifier.graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        } else Modifier)
+        .clickable {
+            if(!howtoGuideShown) {
+                settingsViewModel.setStepGuideShown(context, howtoGuideKey)
+                howtoGuideShown = true
+            }
+            context.startActivity(Intent(context, GuideActivity::class.java))
+        }
+    LaunchedEffect(Unit) {
+        howtoGuideShown = settingsViewModel.isStepGuideShown(context, howtoGuideKey)
+    }
     Box( modifier = Modifier
         .fillMaxSize()
     ) {
@@ -239,6 +277,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item { SocialLinksRow() }
             item {
                 ListItem(
+                    modifier = howtoGuideModifier,
                     headlineContent = { Text(stringResource(R.string.title_how_to)) },
                     supportingContent = { Text(stringResource(R.string.title_app_guide)) },
                     leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
@@ -248,9 +287,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
                             contentDescription = stringResource(R.string.icon_arrow_right)
                         )
-                    },
-                    modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, GuideActivity::class.java))
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
