@@ -779,73 +779,77 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
     fun moveAppsToList(fromListName: String, toListName: String, selectedPackageNames: Set<String>) {
         viewModelScope.launch(Dispatchers.IO) {
-            if (selectedPackageNames.isEmpty()) return@launch
-
-            val currentState = _uiState.value
-            val alphabeticalOrder = PreferenceManager.getAlphabeticalOrder(getApplication())
-            val fromList = when (fromListName) {
-                AppInfoManager.QUICK_APPS_LIST_NAME -> currentState.quickApps
-                AppInfoManager.PRIMARY_APPS_LIST_NAME -> if(alphabeticalOrder) currentState.primaryApps.sortedBy { it.label } else currentState.primaryApps
-                AppInfoManager.REST_APPS_LIST_NAME -> currentState.restApps
-                else -> return@launch
-            }
-
-            var appsToMove = fromList.filter { it.packageName in selectedPackageNames }
-            // Rest app list is derived from quick+primary and not saved
-            if(toListName == AppInfoManager.REST_APPS_LIST_NAME){
-                appsToMove = appsToMove.filter { !it.packageName.startsWith("folder") }
-            }
-            if (appsToMove.isEmpty()) return@launch
-
-            val appsToMovePackageNames = appsToMove.map { it.packageName }.toSet()
-
-            var newQuickApps = currentState.quickApps
-            var newPrimaryApps = currentState.primaryApps
-
-            // Remove from source list
-            when (fromListName) {
-                AppInfoManager.QUICK_APPS_LIST_NAME ->
-                    newQuickApps = newQuickApps.filter { it.packageName !in appsToMovePackageNames }
-                AppInfoManager.PRIMARY_APPS_LIST_NAME ->
-                    newPrimaryApps = newPrimaryApps.filter { it.packageName !in appsToMovePackageNames }
-                AppInfoManager.REST_APPS_LIST_NAME -> {
-                    // No change to quick/primary lists when removing from rest.
-                    // The apps will be added to a target list below.
-                }
-            }
-
-            // Add to destination list
-            when (toListName) {
-                AppInfoManager.QUICK_APPS_LIST_NAME ->
-                    newQuickApps = appsToMove + newQuickApps
-                AppInfoManager.PRIMARY_APPS_LIST_NAME ->
-                    newPrimaryApps = appsToMove + newPrimaryApps
-                AppInfoManager.REST_APPS_LIST_NAME -> {
-                    // Moving to REST_LIST_NAME means removing from a persisted list.
-                    // This is already handled in the "Remove from source list" block.
-                }
-            }
-
-            // Save the updated persisted lists
-            AppInfoManager.saveAppPackageNames(getApplication(), AppInfoManager.QUICK_APPS_LIST_NAME, newQuickApps.map { it.packageName })
-            AppInfoManager.saveAppPackageNames(getApplication(), AppInfoManager.PRIMARY_APPS_LIST_NAME, newPrimaryApps.map { it.packageName })
-
-            // Recalculate restApps
-            val allApps = currentState.quickApps + currentState.primaryApps + currentState.restApps
-            val quickAndPrimaryPackages = newQuickApps.map { it.packageName }.toSet() + newPrimaryApps.map { it.packageName }.toSet()
-            val newRestApps = allApps.filter { it.packageName !in quickAndPrimaryPackages }.distinctBy { it.packageName }
-
-            withContext(Dispatchers.Main) {
-                _uiState.update {
-                    it.copy(
-                        quickApps = newQuickApps,
-                        primaryApps = newPrimaryApps,
-                        restApps = newRestApps,
-                    )
-                }
-            }
-            PreferenceManager.increaseAppListVersion(getApplication()) // triggers UI update
+            performMoveAppsToList(fromListName, toListName, selectedPackageNames)
         }
+    }
+
+    suspend fun performMoveAppsToList(fromListName: String, toListName: String, selectedPackageNames: Set<String>) = withContext(Dispatchers.IO) {
+        if (selectedPackageNames.isEmpty()) return@withContext
+
+        val currentState = _uiState.value
+        val alphabeticalOrder = PreferenceManager.getAlphabeticalOrder(getApplication())
+        val fromList = when (fromListName) {
+            AppInfoManager.QUICK_APPS_LIST_NAME -> currentState.quickApps
+            AppInfoManager.PRIMARY_APPS_LIST_NAME -> if(alphabeticalOrder) currentState.primaryApps.sortedBy { it.label } else currentState.primaryApps
+            AppInfoManager.REST_APPS_LIST_NAME -> currentState.restApps
+            else -> return@withContext
+        }
+
+        var appsToMove = fromList.filter { it.packageName in selectedPackageNames }
+        // Rest app list is derived from quick+primary and not saved
+        if(toListName == AppInfoManager.REST_APPS_LIST_NAME){
+            appsToMove = appsToMove.filter { !it.packageName.startsWith("folder") }
+        }
+        if (appsToMove.isEmpty()) return@withContext
+
+        val appsToMovePackageNames = appsToMove.map { it.packageName }.toSet()
+
+        var newQuickApps = currentState.quickApps
+        var newPrimaryApps = currentState.primaryApps
+
+        // Remove from source list
+        when (fromListName) {
+            AppInfoManager.QUICK_APPS_LIST_NAME ->
+                newQuickApps = newQuickApps.filter { it.packageName !in appsToMovePackageNames }
+            AppInfoManager.PRIMARY_APPS_LIST_NAME ->
+                newPrimaryApps = newPrimaryApps.filter { it.packageName !in appsToMovePackageNames }
+            AppInfoManager.REST_APPS_LIST_NAME -> {
+                // No change to quick/primary lists when removing from rest.
+                // The apps will be added to a target list below.
+            }
+        }
+
+        // Add to destination list
+        when (toListName) {
+            AppInfoManager.QUICK_APPS_LIST_NAME ->
+                newQuickApps = appsToMove + newQuickApps
+            AppInfoManager.PRIMARY_APPS_LIST_NAME ->
+                newPrimaryApps = appsToMove + newPrimaryApps
+            AppInfoManager.REST_APPS_LIST_NAME -> {
+                // Moving to REST_LIST_NAME means removing from a persisted list.
+                // This is already handled in the "Remove from source list" block.
+            }
+        }
+
+        // Save the updated persisted lists
+        AppInfoManager.saveAppPackageNames(getApplication(), AppInfoManager.QUICK_APPS_LIST_NAME, newQuickApps.map { it.packageName })
+        AppInfoManager.saveAppPackageNames(getApplication(), AppInfoManager.PRIMARY_APPS_LIST_NAME, newPrimaryApps.map { it.packageName })
+
+        // Recalculate restApps
+        val allApps = currentState.quickApps + currentState.primaryApps + currentState.restApps
+        val quickAndPrimaryPackages = newQuickApps.map { it.packageName }.toSet() + newPrimaryApps.map { it.packageName }.toSet()
+        val newRestApps = allApps.filter { it.packageName !in quickAndPrimaryPackages }.distinctBy { it.packageName }
+
+        withContext(Dispatchers.Main) {
+            _uiState.update {
+                it.copy(
+                    quickApps = newQuickApps,
+                    primaryApps = newPrimaryApps,
+                    restApps = newRestApps,
+                )
+            }
+        }
+        PreferenceManager.increaseAppListVersion(getApplication()) // triggers UI update
     }
 
     fun createNewFolder(title: String) {
@@ -897,19 +901,22 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun renameFolder(folderId: String, title: String) {
-        viewModelScope.launch(Dispatchers.Main) { // Saving preferences should be on IO dispatcher
+        viewModelScope.launch(Dispatchers.IO) { // Changed to IO
             val context = getApplication<Application>()
-            _uiState.update { currentState ->
-                val currentFolders = currentState.folders.toMutableMap()
-                // Check if folder exists
-                val folder = currentFolders[folderId]
-                if (folder != null) {
-                    currentFolders[folderId] = folder.copy(title = title)
-                    // Save asynchronously
-                    AppInfoManager.saveFolders(context, currentFolders)
+            val updatedFolders = _uiState.value.folders.toMutableMap()
+            // Check if folder exists
+            val folder = updatedFolders[folderId]
+            if (folder != null) {
+                updatedFolders[folderId] = folder.copy(title = title)
+                // Save on IO thread
+                AppInfoManager.saveFolders(context, updatedFolders)
+            }
+            
+            // Return updated state on Main
+            withContext(Dispatchers.Main) {
+                _uiState.update { currentState ->
+                    currentState.copy(folders = updatedFolders)
                 }
-                // Return updated state
-                currentState.copy(folders = currentFolders)
             }
         }
     }
@@ -1008,7 +1015,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             }
 
             // Move to Rest list to hide them from the primary/quick lists
-            moveAppsToList(
+            performMoveAppsToList(
                 fromListName = selectedList,
                 toListName = AppInfoManager.REST_APPS_LIST_NAME,
                 selectedPackageNames = packagesToAdd.toSet()
@@ -1051,7 +1058,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             }
 
             // Add back to primaryApps (pulling them out of the Rest list)
-            moveAppsToList(
+            performMoveAppsToList(
                 fromListName = AppInfoManager.REST_APPS_LIST_NAME,
                 toListName = AppInfoManager.PRIMARY_APPS_LIST_NAME,
                 selectedPackageNames = selectedPackageNames
