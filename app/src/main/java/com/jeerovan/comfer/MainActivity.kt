@@ -253,6 +253,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
+import kotlinx.coroutines.Job
 
 // 1. Define a custom exception to safely interrupt the animation
 private class SnapEarlyException : CancellationException("Handing off to snap phase")
@@ -660,9 +661,11 @@ fun WidgetHostScreen(
     }
     // Hook into the onResume lifecycle event.
     DisposableEffect(lifecycleOwner) {
+        var syncJob: Job? = null
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                coroutineScope.launch(Dispatchers.IO) {
+                syncJob?.cancel()
+                syncJob = coroutineScope.launch(Dispatchers.IO) {
                     syncAndRefreshProviders()
                 }
             }
@@ -671,6 +674,7 @@ fun WidgetHostScreen(
 
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+            syncJob?.cancel()
         }
     }
     fun refreshWidgets(){
