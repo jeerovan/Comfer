@@ -2450,6 +2450,10 @@ fun SearchListOverlay(apps: List<AppInfo>,
                     onDoubleTap = {
                         if (selectedContact != null) {
                             onTapSelectedContact()
+                            if(!contactDoubleTapShown && hasContactPermission && activeTab == SearchTab.CONTACTS && contactSwipeGestureShown){
+                                settingsModel.setStepGuideShown(context,contactDoubleTapKey)
+                                contactDoubleTapShown = true
+                            }
                         }
                     }
                 )
@@ -2709,6 +2713,14 @@ fun SearchListOverlay(apps: List<AppInfo>,
                     start = SwipeDirection.BOTTOM,
                     end = SwipeDirection.TOP
                 )
+            }
+            if(!contactDoubleTapShown && contactSwipeGestureShown && hasContactPermission && activeTab == SearchTab.CONTACTS)Box(modifier = Modifier
+                // Layout -> Decoration -> Transformation
+                .height(screenHeightInDp/2)
+                .width(screenWidthInDp),
+                contentAlignment = Alignment.CenterStart
+            ){
+                DoubleTapHint()
             }
         }
 }
