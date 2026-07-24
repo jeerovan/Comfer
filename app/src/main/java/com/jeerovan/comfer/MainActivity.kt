@@ -2311,6 +2311,10 @@ fun SearchListOverlay(apps: List<AppInfo>,
     var inputText by remember { mutableStateOf("") }
     val searchSwipeDownGestureKey = "search_swipe_down_gesture_key"
     val searchTabSwipeGestureKey = "search_tab_swipe_gesture_key"
+    val contactSwipeGestureKey = "contact_swipe_gesture_key"
+    val contactDoubleTapKey = "contact_double_tap_key"
+    var contactDoubleTapShown by remember { mutableStateOf(true)}
+    var contactSwipeGestureShown by remember { mutableStateOf(true)}
     var searchTabSwipeDownGestureShown by remember { mutableStateOf(true)}
     var searchSwipeDownGestureShown by remember { mutableStateOf(true)}
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
@@ -2399,6 +2403,8 @@ fun SearchListOverlay(apps: List<AppInfo>,
             iconShape = PreferenceManager.getIconShape(context)
             searchSwipeDownGestureShown = settingsModel.isStepGuideShown(context,searchSwipeDownGestureKey)
             searchTabSwipeDownGestureShown = settingsModel.isStepGuideShown(context,searchTabSwipeGestureKey)
+            contactSwipeGestureShown = settingsModel.isStepGuideShown(context,contactSwipeGestureKey)
+            contactDoubleTapShown = settingsModel.isStepGuideShown(context,contactDoubleTapKey)
         }
     }
 
@@ -2485,6 +2491,10 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                     lazyListState.dispatchRawDelta(-2 * dragAmount)
                                 }
                             }
+                        }
+                        if(!contactSwipeGestureShown && hasContactPermission && activeTab == SearchTab.CONTACTS){
+                            settingsModel.setStepGuideShown(context,contactSwipeGestureKey)
+                            contactSwipeGestureShown = true
                         }
                     }
 
@@ -2686,6 +2696,18 @@ fun SearchListOverlay(apps: List<AppInfo>,
                 SwipeHelper(
                     start = SwipeDirection.LEFT,
                     end = SwipeDirection.RIGHT
+                )
+            }
+            if(!contactSwipeGestureShown && hasContactPermission && activeTab == SearchTab.CONTACTS)Box(modifier = Modifier
+                // Layout -> Decoration -> Transformation
+                .height(screenHeightInDp/3)
+                //.border(width = 1.dp,color = Color.Cyan)
+                .offset(x = -(screenWidthInDp - 50.dp), y = -(screenHeightInDp/5 - 48.dp)),
+                contentAlignment = Alignment.Center
+            ){
+                SwipeHelper(
+                    start = SwipeDirection.BOTTOM,
+                    end = SwipeDirection.TOP
                 )
             }
         }
