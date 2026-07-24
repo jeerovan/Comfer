@@ -2302,12 +2302,15 @@ fun SearchListOverlay(apps: List<AppInfo>,
                       contacts: List<Contact>,
                       onRequestContactsPermission: () -> Unit,
                       onSwipeDown: () -> Unit,
+                      settingsModel: SettingsViewModel,
                       hasContactPermission: Boolean) {
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
     var iconSize by remember { mutableStateOf(48.dp) }
     var iconShape: Shape by remember { mutableStateOf(CircleShape) }
     var inputText by remember { mutableStateOf("") }
-
+    val searchSwipeDownGestureKey = "search_swipe_down_gesture_key"
+    var searchSwipeDownGestureShown by remember { mutableStateOf(true)}
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
     val filteredApps by remember {
         derivedStateOf {
@@ -2358,7 +2361,16 @@ fun SearchListOverlay(apps: List<AppInfo>,
         activeTab = SearchTab.APPS
         inputText = ""
     }
-
+    fun swipeDownOnKeyboard() {
+        if(!searchSwipeDownGestureShown){
+            settingsModel.setStepGuideShown(
+                context,
+                searchSwipeDownGestureKey
+            )
+            searchSwipeDownGestureShown = true
+        }
+        onSwipeDown()
+    }
     LaunchedEffect(filteredApps) {
         if (filteredApps.size == 1) {
             val singleApp = filteredApps.first()
@@ -2376,6 +2388,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
         withContext(Dispatchers.IO) {
             iconSize = PreferenceManager.getIconSize(context).dp
             iconShape = PreferenceManager.getIconShape(context)
+            searchSwipeDownGestureShown = settingsModel.isStepGuideShown(context,searchSwipeDownGestureKey)
         }
     }
 
@@ -2469,6 +2482,8 @@ fun SearchListOverlay(apps: List<AppInfo>,
             },
         contentAlignment = Alignment.BottomCenter
         ) {
+            val screenWidthInDp = configuration.screenWidthDp.dp
+            val screenHeightInDp = configuration.screenHeightDp.dp
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(5.dp),
@@ -2592,11 +2607,10 @@ fun SearchListOverlay(apps: List<AppInfo>,
                         }
                     },
                     {onLocaleSelection()},
-                    onSwipeDown = onSwipeDown,
+                    onSwipeDown = { swipeDownOnKeyboard() },
                     onSwipeRight = { swipeRightOnKeyboard() },
                     onSwipeLeft = { swipeLeftOnKeyboard() }
                 )
-
                 AnimatedContent(
                     targetState = activeTab,
                     transitionSpec = {
@@ -2637,6 +2651,19 @@ fun SearchListOverlay(apps: List<AppInfo>,
                         { locale -> onLocaleSelected(locale) }
                     )
                 }
+            }
+
+            if(!searchSwipeDownGestureShown)Box(modifier = Modifier
+                // Layout -> Decoration -> Transformation
+                .height(screenHeightInDp/3)
+                //.border(width = 1.dp,color = Color.Cyan)
+                .offset(x = -screenWidthInDp/2 + 24.dp, y = -screenHeightInDp/4),
+                contentAlignment = Alignment.Center
+            ){
+                SwipeHelper(
+                    start = SwipeDirection.TOP,
+                    end = SwipeDirection.BOTTOM
+                )
             }
         }
 }
@@ -3483,6 +3510,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 contacts,
                 onSwipeDown = { isSearchListVisible = false },
                 onRequestContactsPermission = { onRequestContactsPermission() },
+                settingsModel = settingsViewModel,
                 hasContactPermission = hasContactsPermission
             )
         }
