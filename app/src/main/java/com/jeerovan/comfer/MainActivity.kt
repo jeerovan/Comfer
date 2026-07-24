@@ -150,6 +150,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import androidx.compose.runtime.withFrameNanos
 
 import android.app.Activity
 import android.appwidget.AppWidgetHost
@@ -441,6 +444,12 @@ private const val LEFT_SIDE_WIDGET_HOST_ID = 1024
 private const val RIGHT_SIDE_WIDGET_HOST_ID = 1026
 private const val BOUND_WIDGETS_KEY = "bound_widgets_v2"
 
+// Serializes AppWidgetHost.createView calls across all WidgetInstance composables
+// so N widgets don't pile onto the Main thread at once. Waiting coroutines
+// suspend off-Main instead of blocking the message queue. Reduces ANR risk
+// from RemoteViews inflation bursts.
+private val widgetCreateMutex = Mutex()
+
 @Serializable
 data class PersistableBoundWidget(
     val widgetId: Int,
@@ -478,9 +487,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Consolidated Widget Host Management
-        widgetHosts = WidgetHostManager(applicationContext).apply {
-            initHosts()
-        }
+        // App-scoped singleton: hosts created once per process, reused across
+        // Activity recreations (avoids repeated Binder registration + leaks).
+        widgetHosts = (application as ComferApp).widgetHostManager
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 mainViewModel.onBackButtonPressed()
@@ -1116,7 +1125,13 @@ private fun WidgetInstance(
         size = IntSize(initialWidth.roundToInt(), initialHeight.roundToInt())
     }
 
-    // Async widget initialization to prevent ANR
+    // Async widget initialization to prevent ANR.
+    // createView must run on Main (View creation constraint), so we:
+    //  - run the options Binder call on IO
+    //  - yield to the next frame so the first frame (window focus) is never
+    //    delayed by RemoteViews inflation
+    //  - serialize createView across widgets so only one inflates at a time;
+    //    waiting coroutines suspend off-Main instead of piling onto the queue
     LaunchedEffect(widget.widgetId) {
         isLoading = true
         hasError = false
@@ -1132,7 +1147,7 @@ private fun WidgetInstance(
             putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, height)
         }
 
-        // 1. Execute heavy Binder (IPC) calls in the IO dispatcher
+        // 1. Heavy Binder (IPC) calls on the IO dispatcher
         withContext(Dispatchers.IO) {
             try {
                 val appWidgetManager = AppWidgetManager.getInstance(context)
@@ -1142,27 +1157,33 @@ private fun WidgetInstance(
             }
         }
 
-        // 2. Switch to Main thread exclusively for View creation
-        withContext(Dispatchers.Main) {
-            try {
-                val themedContext = ContextThemeWrapper(
-                    context.applicationContext,
-                    android.R.style.Theme_DeviceDefault
-                )
+        // 2. Yield to the next frame so the first frame (window focus) is never
+        //    delayed by widget RemoteViews inflation.
+        withFrameNanos { }
 
-                // This inflates the RemoteViews. It MUST be on Main
-                val view = appWidgetHost.createView(
-                    themedContext,
-                    widget.widgetId,
-                    appWidgetProviderInfo
-                )
+        // 3. Serialize createView so N widgets don't pile onto Main at once.
+        widgetCreateMutex.withLock {
+            withContext(Dispatchers.Main) {
+                try {
+                    val themedContext = ContextThemeWrapper(
+                        context.applicationContext,
+                        android.R.style.Theme_DeviceDefault
+                    )
 
-                hostView = view
-                isLoading = false
-            } catch (e: Exception) {
-                Log.e("WidgetInstance", "Error setting up widget view", e)
-                hasError = true
-                isLoading = false
+                    // This inflates the RemoteViews. It MUST be on Main.
+                    val view = appWidgetHost.createView(
+                        themedContext,
+                        widget.widgetId,
+                        appWidgetProviderInfo
+                    )
+
+                    hostView = view
+                    isLoading = false
+                } catch (e: Exception) {
+                    Log.e("WidgetInstance", "Error setting up widget view", e)
+                    hasError = true
+                    isLoading = false
+                }
             }
         }
     }
