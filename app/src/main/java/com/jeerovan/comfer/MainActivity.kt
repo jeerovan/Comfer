@@ -2310,6 +2310,8 @@ fun SearchListOverlay(apps: List<AppInfo>,
     var iconShape: Shape by remember { mutableStateOf(CircleShape) }
     var inputText by remember { mutableStateOf("") }
     val searchSwipeDownGestureKey = "search_swipe_down_gesture_key"
+    val searchTabSwipeGestureKey = "search_tab_swipe_gesture_key"
+    var searchTabSwipeDownGestureShown by remember { mutableStateOf(true)}
     var searchSwipeDownGestureShown by remember { mutableStateOf(true)}
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
     val filteredApps by remember {
@@ -2356,6 +2358,13 @@ fun SearchListOverlay(apps: List<AppInfo>,
     fun swipeRightOnKeyboard() {
         activeTab = SearchTab.CONTACTS
         inputText = ""
+        if(!searchTabSwipeDownGestureShown){
+            settingsModel.setStepGuideShown(
+                context,
+                searchTabSwipeGestureKey
+            )
+            searchTabSwipeDownGestureShown = true
+        }
     }
     fun swipeLeftOnKeyboard() {
         activeTab = SearchTab.APPS
@@ -2389,6 +2398,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
             iconSize = PreferenceManager.getIconSize(context).dp
             iconShape = PreferenceManager.getIconShape(context)
             searchSwipeDownGestureShown = settingsModel.isStepGuideShown(context,searchSwipeDownGestureKey)
+            searchTabSwipeDownGestureShown = settingsModel.isStepGuideShown(context,searchTabSwipeGestureKey)
         }
     }
 
@@ -2663,6 +2673,19 @@ fun SearchListOverlay(apps: List<AppInfo>,
                 SwipeHelper(
                     start = SwipeDirection.TOP,
                     end = SwipeDirection.BOTTOM
+                )
+            }
+            if(searchSwipeDownGestureShown && !searchTabSwipeDownGestureShown && activeTab == SearchTab.APPS)Box(modifier = Modifier
+                // Layout -> Decoration -> Transformation
+                .height(screenHeightInDp/2)
+                .width(screenWidthInDp/2)
+                //.border(width = 1.dp,color = Color.Cyan)
+                .offset(x = -screenWidthInDp/4, y = -(screenHeightInDp/4 + 28.dp)),
+                contentAlignment = Alignment.Center
+            ){
+                SwipeHelper(
+                    start = SwipeDirection.LEFT,
+                    end = SwipeDirection.RIGHT
                 )
             }
         }
