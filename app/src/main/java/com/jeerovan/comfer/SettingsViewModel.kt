@@ -167,6 +167,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val SHOW_THEMED_TEXT = "show_themed_text"
     private val FIXED_WIDGET_POSITIONS = "fixed_widget_positions"
     private val ONBOARDING_GUIDE_SHOWN = "quick_guide_1"
+    private val CIRCULAR_DRAWER_SCROLL_SPEED = "circular_drawer_scroll_speed"
     val predefinedColors = listOf(
         Color.Red, Color.Green, Color.Blue, Color.Yellow,
         Color.Cyan, Color.Magenta, Color.Black, Color.Gray,
@@ -414,7 +415,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             PreferenceManager.setBoolean(getApplication(),FIXED_WIDGET_POSITIONS,true)
         }
     }
-
+    fun getDrawerScrollSpeed(context: Context): Float {
+        return PreferenceManager.getFloat(context,CIRCULAR_DRAWER_SCROLL_SPEED, default = 1.0f)
+    }
+    fun setDrawerScrollSpeed(context: Context,speed: Float){
+        viewModelScope.launch(Dispatchers.IO) {
+            PreferenceManager.setFloat(context,CIRCULAR_DRAWER_SCROLL_SPEED,speed)
+        }
+    }
     fun isGuideShown(context:Context): Boolean {
         return PreferenceManager.getBoolean(context, ONBOARDING_GUIDE_SHOWN, default = false)
     }

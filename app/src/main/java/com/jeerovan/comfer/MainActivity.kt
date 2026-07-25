@@ -2839,6 +2839,7 @@ fun AppListOverlay(apps: List<AppInfo>,
     val configuration = LocalConfiguration.current
     val packageManager = context.packageManager
     val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
     var iconSize by remember { mutableStateOf(48.dp) }
     var iconShape: Shape by remember { mutableStateOf(CircleShape) }
     val settings by settingsModel.uiState.collectAsState()
@@ -2853,17 +2854,8 @@ fun AppListOverlay(apps: List<AppInfo>,
     val doubleTapKey = "double_tap_circular_drawer"
     val verticalSwipeKey = "app_drawer_circular_vertical_swipe"
 
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            iconSize = PreferenceManager.getIconSize(context).dp
-            iconShape = PreferenceManager.getIconShape(context)
-            guideShown = settingsModel.isGuideShown(context)
-            horizontalSwipeShown = settingsModel.isStepGuideShown(context, horizontalSwipeKey)
-            doubleTapShown = settingsModel.isStepGuideShown(context,doubleTapKey)
-            verticalSwipeShown = settingsModel.isStepGuideShown(context, verticalSwipeKey)
-        }
-    }
-
+    var animationSpeed by remember { mutableFloatStateOf(1.0f) }
+    var showSpeedDialog by remember { mutableStateOf(false) }
     val scrollAnimatable = remember { Animatable(0f) }
     var centerAppIndex by remember { mutableIntStateOf(0) }
     var lastCenterAppIndex by remember { mutableIntStateOf(0) }
@@ -2873,6 +2865,17 @@ fun AppListOverlay(apps: List<AppInfo>,
     var lastSoundTime by remember { mutableLongStateOf(0L) }
     val snapSpacing = 20f
 
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            iconSize = PreferenceManager.getIconSize(context).dp
+            iconShape = PreferenceManager.getIconShape(context)
+            guideShown = settingsModel.isGuideShown(context)
+            animationSpeed = settingsModel.getDrawerScrollSpeed(context)
+            horizontalSwipeShown = settingsModel.isStepGuideShown(context, horizontalSwipeKey)
+            doubleTapShown = settingsModel.isStepGuideShown(context,doubleTapKey)
+            verticalSwipeShown = settingsModel.isStepGuideShown(context, verticalSwipeKey)
+        }
+    }
     fun updateCenterAppIndex(index:Int){
         centerAppIndex = index
         if(centerAppIndex != lastCenterAppIndex) {
@@ -2944,7 +2947,10 @@ fun AppListOverlay(apps: List<AppInfo>,
         // Wrap the values correctly to maintain the infinite loop illusion
         scrollAnimatable.snapTo(scrollAnimatable.value.wrap(totalScrollWidth))
     }
-
+    fun onLongPress(){
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        showSpeedDialog = true
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -2956,6 +2962,7 @@ fun AppListOverlay(apps: List<AppInfo>,
                                 scrollAnimatable.stop()
                             }
                         },
+                        onLongPress = { onLongPress() },
                         onDoubleTap = {
                             if (apps.isNotEmpty()) {
                                 if (centerAppIndex < apps.size) {
@@ -3044,7 +3051,7 @@ fun AppListOverlay(apps: List<AppInfo>,
                                         change.position
                                     )
 
-                                    val increment = dragAmount.x * 0.3f
+                                    val increment = dragAmount.x * 0.3f * animationSpeed
                                     val totalScrollWidth = apps.size * snapSpacing
 
                                     // Launching a coroutine is necessary to call the suspend function `snapTo`.
@@ -3090,7 +3097,7 @@ fun AppListOverlay(apps: List<AppInfo>,
                         },
                         onDragEnd = {
                             if (dragAxis == DragAxis.HORIZONTAL) {
-                                val velocity = velocityTracker.calculateVelocity().x * 0.3f
+                                val velocity = velocityTracker.calculateVelocity().x * 0.3f * animationSpeed
                                 scope.launch {
                                     settleOnNearestApp(velocity)
                                 }
@@ -3231,9 +3238,171 @@ fun AppListOverlay(apps: List<AppInfo>,
                 }
             }
         }
+        }
+
+    if (showSpeedDialog) {
+        SensitivityDialog(
+            currentSpeed = animationSpeed,
+            onDismiss = { showSpeedDialog = false },
+            onSave = { newSpeed ->
+                animationSpeed = newSpeed
+                showSpeedDialog = false
+                settingsModel.setDrawerScrollSpeed(context,newSpeed)
+            }
+        )
     }
 }
+
 private enum class DragAxis { HORIZONTAL, VERTICAL }
+
+@Composable
+fun SensitivityDialog(
+    currentSpeed: Float,
+    onDismiss: () -> Unit,
+    onSave: (Float) -> Unit
+) {
+    var localSpeed by remember { mutableFloatStateOf(currentSpeed) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 40.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Surface(
+                shape = MaterialTheme.shapes.extraLarge,
+                tonalElevation = 6.dp,
+                shadowElevation = 8.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(20.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Sensitivity",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    CircularSeekBar(
+                        value = localSpeed,
+                        onValueChange = { localSpeed = it },
+                        minValue = 0.1f,
+                        maxValue = 3.0f
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "%.2fx".format(localSpeed),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = onDismiss) { Text("Cancel") }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        TextButton(onClick = { onSave(localSpeed) }) { Text("Save") }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CircularSeekBar(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    minValue: Float = 0.1f,
+    maxValue: Float = 3.0f,
+    modifier: Modifier = Modifier,
+    size: Dp = 180.dp,
+    strokeWidth: Dp = 12.dp,
+    handleRadius: Dp = 14.dp
+) {
+    val range = maxValue - minValue
+    val normalized = ((value - minValue) / range).coerceIn(0f, 1f)
+
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val trackColor = MaterialTheme.colorScheme.surfaceVariant
+    val handleColor = MaterialTheme.colorScheme.onPrimary
+    val handleBorderColor = MaterialTheme.colorScheme.primary
+
+    val scope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    val sizePx = with(density) { size.toPx() }
+    val strokeWidthPx = with(density) { strokeWidth.toPx() }
+    val handleRadiusPx = with(density) { handleRadius.toPx() }
+    val center = Offset(sizePx / 2f, sizePx / 2f)
+    val radius = (sizePx - strokeWidthPx) / 2f
+
+    // Sweep from -90deg (top) clockwise for full 360 range
+    val sweepAngle = 360f * normalized
+    val handleAngleDeg = -90f + sweepAngle
+    val handleAngleRad = Math.toRadians(handleAngleDeg.toDouble()).toFloat()
+    val handlePos = Offset(
+        center.x + radius * cos(handleAngleRad),
+        center.y + radius * sin(handleAngleRad)
+    )
+
+    Box(
+        modifier = modifier
+            .size(size)
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = { },
+                    onDrag = { change, _ ->
+                        change.consume()
+                        val dx = change.position.x - center.x
+                        val dy = change.position.y - center.y
+                        var ang = Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat()
+                        // Shift so 0deg = top, range 0..360
+                        ang = (ang + 90f + 360f) % 360f
+                        val newNormalized = (ang / 360f).coerceIn(0f, 1f)
+                        onValueChange(minValue + newNormalized * range)
+                    }
+                )
+            }
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            // Track
+            drawCircle(
+                color = trackColor,
+                radius = radius,
+                center = center,
+                style = Stroke(width = strokeWidthPx)
+            )
+            // Progress arc
+            drawArc(
+                color = primaryColor,
+                startAngle = -90f,
+                sweepAngle = sweepAngle,
+                useCenter = false,
+                topLeft = Offset(center.x - radius, center.y - radius),
+                size = Size(radius * 2, radius * 2),
+                style = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
+            )
+            // Handle border ring
+            drawCircle(
+                color = handleBorderColor,
+                radius = handleRadiusPx,
+                center = handlePos,
+                style = Fill
+            )
+            // Handle inner
+            drawCircle(
+                color = handleColor,
+                radius = handleRadiusPx * 0.7f,
+                center = handlePos,
+                style = Fill
+            )
+        }
+    }
+}
+
 
 @Composable
 fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
