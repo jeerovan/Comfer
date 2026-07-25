@@ -2850,10 +2850,11 @@ fun AppListOverlay(apps: List<AppInfo>,
     var horizontalSwipeShown by remember { mutableStateOf(true) }
     var doubleTapShown by remember { mutableStateOf(true) }
     var verticalSwipeShown by remember { mutableStateOf(true) }
+    var longPressGestureShown by remember { mutableStateOf(true) }
     val horizontalSwipeKey = "app_drawer_circular_horizontal_swipe"
     val doubleTapKey = "double_tap_circular_drawer"
     val verticalSwipeKey = "app_drawer_circular_vertical_swipe"
-
+    val longPressGestureKey = "circular_drawer_long_press_gesture"
     var animationSpeed by remember { mutableFloatStateOf(1.0f) }
     var showSpeedDialog by remember { mutableStateOf(false) }
     val scrollAnimatable = remember { Animatable(0f) }
@@ -2874,6 +2875,7 @@ fun AppListOverlay(apps: List<AppInfo>,
             horizontalSwipeShown = settingsModel.isStepGuideShown(context, horizontalSwipeKey)
             doubleTapShown = settingsModel.isStepGuideShown(context,doubleTapKey)
             verticalSwipeShown = settingsModel.isStepGuideShown(context, verticalSwipeKey)
+            longPressGestureShown = settingsModel.isStepGuideShown(context,longPressGestureKey)
         }
     }
     fun updateCenterAppIndex(index:Int){
@@ -2950,6 +2952,10 @@ fun AppListOverlay(apps: List<AppInfo>,
     fun onLongPress(){
         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         showSpeedDialog = true
+        if(!longPressGestureShown && horizontalSwipeShown && doubleTapShown && verticalSwipeShown){
+            settingsModel.setStepGuideShown(context,longPressGestureKey)
+            longPressGestureShown = true
+        }
     }
     Box(
         modifier = Modifier
@@ -3197,6 +3203,12 @@ fun AppListOverlay(apps: List<AppInfo>,
                     start = SwipeDirection.TOP,
                     end = SwipeDirection.BOTTOM
                 )
+            }
+            if(!longPressGestureShown && horizontalSwipeShown && doubleTapShown && verticalSwipeShown)Box(modifier = Modifier
+                .height(screenHeightInDp/2)
+                .offset(x = screenWidthInDp/2 - 24.dp,y = screenHeightInDp/3),
+                contentAlignment = Alignment.BottomCenter){
+                LongPressHint()
             }
             AnimatedVisibility(
                 visible = activeFolderId != null,
