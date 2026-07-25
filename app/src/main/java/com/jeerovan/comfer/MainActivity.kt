@@ -1914,6 +1914,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
     val quickAppsGestureKey = "quick_apps_swipe"
     val settingsLongPressKey = "settings_long_press_key"
     val widgetsLongPressKey = "widgets_long_press_key"
+    val recentAppsGestureKey = "double_tap_recent_apps_gesture_key"
+    var recentAppsGestureShown by remember { mutableStateOf(true)}
     var quickGestureShown by remember { mutableStateOf(true)}
     var settingsLongPressShown by remember { mutableStateOf(true) }
     var widgetsLongPressShown by remember { mutableStateOf(true) }
@@ -1940,6 +1942,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
             quickGestureShown = settingsModel.isStepGuideShown(context,quickAppsGestureKey)
             settingsLongPressShown = settingsModel.isStepGuideShown(context, settingsLongPressKey)
             widgetsLongPressShown = settingsModel.isStepGuideShown(context,widgetsLongPressKey)
+            recentAppsGestureShown = settingsModel.isStepGuideShown(context,recentAppsGestureKey)
             feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
         }
         canShowGuide = true
@@ -1960,6 +1963,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     quickGestureShown = settingsModel.isStepGuideShown(context,quickAppsGestureKey)
                     settingsLongPressShown = settingsModel.isStepGuideShown(context, settingsLongPressKey)
                     widgetsLongPressShown = settingsModel.isStepGuideShown(context,widgetsLongPressKey)
+                    recentAppsGestureShown = settingsModel.isStepGuideShown(context,recentAppsGestureKey)
                     feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
                     isDefault = isDefaultLauncher(context)
                 }
@@ -2145,6 +2149,10 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                         handleStartActivity(context, intent, null)
                                     },
                                     onDoubleTap = {
+                                        if(!recentAppsGestureShown && widgetsLongPressShown){
+                                            settingsModel.setStepGuideShown(context,recentAppsGestureKey)
+                                            recentAppsGestureShown = true
+                                        }
                                         onDoubleTap()
                                     }
                                 )
@@ -2287,6 +2295,12 @@ fun QuickListOverlay(apps: List<AppInfo>,
                             .offset(x=20.dp,y = -(64.dp)),
                         ){
                             LongPressHint()
+                        }
+                        if(!guideShown && widgetsLongPressShown && !recentAppsGestureShown)Box(modifier = Modifier
+                            .fillMaxWidth()
+                            .height(lowerPartHeight)
+                            .offset(x=20.dp,y=80.dp)){
+                            DoubleTapHint()
                         }
                     }
                 }
