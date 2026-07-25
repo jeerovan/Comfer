@@ -19,6 +19,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.jeerovan.comfer.ui.theme.ComferTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class LogcatViewActivity : AppCompatActivity() {
@@ -36,8 +38,13 @@ class LogcatViewActivity : AppCompatActivity() {
 @Composable
 fun LogcatLogScreen() {
     val context = LocalContext.current
-    // State to hold the raw string logs
-    var rawLogs by remember { mutableStateOf(getLogcatLogs(context)) }
+    // State to hold the raw string logs. Load asynchronously to avoid blocking the main thread.
+    var rawLogs by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        rawLogs = withContext(Dispatchers.IO) { getLogcatLogs(context) }
+        isLoading = false
+    }
 
     // Convert raw string to AnnotatedString with colors.
     // formattedLogs updates automatically whenever rawLogs changes.
@@ -60,7 +67,16 @@ fun LogcatLogScreen() {
             )
         }
     ) { padding ->
-        if (rawLogs.isEmpty()) {
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (rawLogs.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()

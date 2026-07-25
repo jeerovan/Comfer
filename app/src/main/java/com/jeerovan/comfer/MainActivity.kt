@@ -542,14 +542,17 @@ class MainActivity : AppCompatActivity() {
             settingsViewModel.loadSettings()
             mainViewModel.reloadImagePath()
         }
-        try {
-            widgetHosts.startListening()
-        } catch (e: RuntimeException) {
-            // Log the error if needed, but safe to ignore as it's a system-side failure
-            Log.e("MainActivity", "System widget service crash in stopListening", e)
-        } catch (e: NullPointerException) {
-            // Some variations of this crash might throw NPE directly
-            Log.e("MainActivity", "System widget service NPE in stopListening", e)
+        // Move binder IPC (AppWidgetHost.startListening) off the main thread.
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                widgetHosts.startListening()
+            } catch (e: RuntimeException) {
+                // Log the error if needed, but safe to ignore as it's a system-side failure
+                Log.e("MainActivity", "System widget service crash in startListening", e)
+            } catch (e: NullPointerException) {
+                // Some variations of this crash might throw NPE directly
+                Log.e("MainActivity", "System widget service NPE in startListening", e)
+            }
         }
     }
 
@@ -562,14 +565,17 @@ class MainActivity : AppCompatActivity() {
                 mainViewModel.clearImagePath()
             }
         }
-        try {
-            widgetHosts.stopListening()
-        } catch (e: RuntimeException) {
-            // Log the error if needed, but safe to ignore as it's a system-side failure
-            Log.e("MainActivity", "System widget service crash in stopListening", e)
-        } catch (e: NullPointerException) {
-            // Some variations of this crash might throw NPE directly
-            Log.e("MainActivity", "System widget service NPE in stopListening", e)
+        // Move binder IPC (AppWidgetHost.stopListening) off the main thread.
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                widgetHosts.stopListening()
+            } catch (e: RuntimeException) {
+                // Log the error if needed, but safe to ignore as it's a system-side failure
+                Log.e("MainActivity", "System widget service crash in stopListening", e)
+            } catch (e: NullPointerException) {
+                // Some variations of this crash might throw NPE directly
+                Log.e("MainActivity", "System widget service NPE in stopListening", e)
+            }
         }
     }
 }

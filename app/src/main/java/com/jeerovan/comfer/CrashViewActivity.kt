@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -19,6 +20,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.jeerovan.comfer.ui.theme.ComferTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class CrashViewActivity : AppCompatActivity() {
@@ -36,8 +39,13 @@ class CrashViewActivity : AppCompatActivity() {
 @Composable
 fun CrashLogScreen() {
     val context = LocalContext.current
-    // Load logs into state. Note: For very large files, consider loading this inside a LaunchedEffect(Dispatchers.IO)
-    var logs by remember { mutableStateOf(getCrashLogs(context)) }
+    // Load logs into state asynchronously to avoid blocking the main thread.
+    var logs by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        logs = withContext(Dispatchers.IO) { getCrashLogs(context) }
+        isLoading = false
+    }
 
     Scaffold(
         topBar = {
@@ -54,7 +62,16 @@ fun CrashLogScreen() {
             )
         }
     ) { padding ->
-        if (logs.isEmpty()) {
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (logs.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()

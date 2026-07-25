@@ -262,6 +262,54 @@ object CommonUtil {
             }
         }
     }
+    @Volatile
+    private var httpClientCache: HttpClient? = null
+
+    /**
+     * Returns a cached HttpClient configured with the custom SSL trust store.
+     * HttpClient creation (connection pool, SSL context) is expensive, so we
+     * reuse a single instance per process instead of rebuilding it on every
+     * fetchImageData() call.
+     */
+    private fun getHttpClient(context: Context): HttpClient {
+        httpClientCache?.let { return it }
+        return synchronized(this) {
+            httpClientCache?.let { return it }
+            val (sslSocketFactory, trustManager) = SSLHelper.createSslSocketFactory(
+                context.applicationContext,
+                R.raw.cacert
+            )
+            val connectionSpecs = listOf(
+                ConnectionSpec.MODERN_TLS,
+                ConnectionSpec.COMPATIBLE_TLS
+            )
+            HttpClient(OkHttp) {
+                engine {
+                    config {
+                        sslSocketFactory(sslSocketFactory, trustManager)
+                        connectionSpecs(connectionSpecs)
+                    }
+                }
+                install(ContentNegotiation) {
+                    json(Json {
+                        ignoreUnknownKeys = true
+                    })
+                }
+            }.also { httpClientCache = it }
+        }
+    }
+
+    /**
+     * Closes the cached HttpClient. Safe to call when the app is being
+     * torn down (e.g. from Application.onTerminate or a lifecycle observer).
+     */
+    fun closeHttpClient() {
+        synchronized(this) {
+            httpClientCache?.close()
+            httpClientCache = null
+        }
+    }
+
     suspend fun fetchImageData(applicationContext: Context,manualChange: Boolean = false){
         val autoWallpapers = PreferenceManager.getAutoWallpapers(applicationContext)
         if(!autoWallpapers) return
@@ -282,37 +330,12 @@ object CommonUtil {
                 if(changeFrequency == "Hourly" || hourNow == 7 || hourNow == 19 || manualChange) {
                     try {
                         val name = PreferenceManager.getUsername(applicationContext)
-                        val (sslSocketFactory, trustManager) = SSLHelper.createSslSocketFactory(
-                            applicationContext,
-                            R.raw.cacert // Use the name of your certificate file
-                        )
-                        // 2. Define connection specs, including one for compatibility with older devices
-                        val connectionSpecs = listOf(
-                            ConnectionSpec.MODERN_TLS,
-                            ConnectionSpec.COMPATIBLE_TLS
-                        )
-                        val client = HttpClient(OkHttp) {
-                            engine {
-                                config {
-                                    // Attach the custom SSLSocketFactory
-                                    sslSocketFactory(sslSocketFactory, trustManager)
-
-                                    // Set the compatible connection specifications
-                                    connectionSpecs(connectionSpecs)
-                                }
-                            }
-                            install(ContentNegotiation) {
-                                json(Json {
-                                    ignoreUnknownKeys = true
-                                })
-                            }
-                        }
+                        val client = getHttpClient(applicationContext)
                         val response: ImageData = client.get("https://comfer.jeerovan.com/api") {
                             parameter("name", name)
                             parameter("hour", hourNow)
                         }.body()
                         Log.i("FetchImageData", response.toString())
-                        client.close()
                         PreferenceManager.saveImageData(applicationContext, response)
                         if(!manualChange)PreferenceManager.setHour(applicationContext, hourNow)
                     } catch (e: Exception) {

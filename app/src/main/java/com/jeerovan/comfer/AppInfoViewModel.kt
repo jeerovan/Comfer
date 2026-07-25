@@ -755,7 +755,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
             // Save back to preferences
             savedFolders[folderName] = folderData.copy(packages = packages)
-            AppInfoManager.saveFolders(context, savedFolders)
+            AppInfoManager.saveFolders(context, savedFolders, viewModelScope)
 
             // 2. Update UI state
             val currentFolders = _uiState.value.folderApps.toMutableMap()
@@ -862,7 +862,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val newFolder = FolderData(id = newFolderId, title = title, packages = emptyList())
             val savedFolders = AppInfoManager.getFolders(context).toMutableMap()
             savedFolders[newFolderId] = newFolder
-            AppInfoManager.saveFolders(context, savedFolders)
+            AppInfoManager.saveFolders(context, savedFolders, viewModelScope)
 
             val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
             val monochrome = PreferenceManager.getMonochrome(context)
@@ -909,7 +909,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             
             // 1. Update data
             updatedFolders[folderId] = folderData.copy(title = title)
-            AppInfoManager.saveFolders(context, updatedFolders)
+            AppInfoManager.saveFolders(context, updatedFolders, viewModelScope)
             
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(folders = updatedFolders) }
@@ -967,7 +967,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             )
 
             // 4. Persist folder deletions to disk using our already modified map
-            AppInfoManager.saveFolders(context, currentFolders)
+            AppInfoManager.saveFolders(context, currentFolders, viewModelScope)
         }
     }
 
@@ -1007,7 +1007,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 folderTitle = folderData.title
                 val updatedPackages = folderAppInfos.map { it.packageName }
                 savedFolders[folderPackageName] = folderData.copy(packages = updatedPackages)
-                AppInfoManager.saveFolders(context, savedFolders)
+                AppInfoManager.saveFolders(context, savedFolders, viewModelScope)
             }
 
             // Atomically update folders map
@@ -1050,7 +1050,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 folderTitle = folderData.title
                 val updatedPackages = remainingAppInfos.map { it.packageName }
                 savedFolders[folderPackageName] = folderData.copy(packages = updatedPackages)
-                AppInfoManager.saveFolders(context, savedFolders)
+                AppInfoManager.saveFolders(context, savedFolders, viewModelScope)
             }
 
             // Atomically update folders map

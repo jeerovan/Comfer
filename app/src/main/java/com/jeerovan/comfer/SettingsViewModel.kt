@@ -1192,11 +1192,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-    fun generateMonochromeColorWallpapers(context: Context) {
+    suspend fun generateMonochromeColorWallpapers(context: Context) = withContext(Dispatchers.IO) {
         // 1. Define the files
         val fileBlack = File(context.filesDir, "comfer_black.jpg")
         val fileWhite = File(context.filesDir, "comfer_white.jpg")
-        if(fileBlack.exists() && fileWhite.exists()) return
+        if(fileBlack.exists() && fileWhite.exists()) return@withContext
         // 2. Create a helper function to save a solid color
         // We use 100x100 for efficiency; it scales perfectly as a solid color.
         fun saveColorToFile(file: File, color: Color) {

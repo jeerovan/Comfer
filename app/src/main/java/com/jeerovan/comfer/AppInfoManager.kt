@@ -7,6 +7,8 @@ import androidx.core.content.edit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -24,6 +26,10 @@ object AppInfoManager {
     private const val DELIMITER = "‚��‚"
 
     private const val FOLDERS_PREF_KEY = "folders_data"
+
+    // Serializes rapid saveFolders calls so the last writer truly wins and
+    // we don't pile up unmanaged IO work.
+    private val saveFoldersMutex = Mutex()
 
 
     private fun getSharedPreferences(context: Context): SharedPreferences {
@@ -68,25 +74,33 @@ object AppInfoManager {
         return map
     }
 
-    fun saveFolders(context: Context, folders: Map<String, FolderData>) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val jsonObject = JSONObject()
-            try {
-                for ((key, folder) in folders) {
-                    val folderObj = JSONObject().apply {
-                        put("title", folder.title)
-                        val packagesArray = JSONArray()
-                        folder.packages.forEach { packagesArray.put(it) }
-                        put("packages", packagesArray)
+    /**
+     * Persist folders using the supplied [scope] (e.g. viewModelScope) so the
+     * work is tied to the caller's lifecycle instead of an unmanaged
+     * CoroutineScope. Writes are serialized via [saveFoldersMutex] and use
+     * apply() (default of androidx.core.content.edit) to avoid blocking the
+     * IO thread with a synchronous commit().
+     */
+    fun saveFolders(context: Context, folders: Map<String, FolderData>, scope: CoroutineScope) {
+        scope.launch(Dispatchers.IO) {
+            saveFoldersMutex.withLock {
+                val jsonObject = JSONObject()
+                try {
+                    for ((key, folder) in folders) {
+                        val folderObj = JSONObject().apply {
+                            put("title", folder.title)
+                            val packagesArray = JSONArray()
+                            folder.packages.forEach { packagesArray.put(it) }
+                            put("packages", packagesArray)
+                        }
+                        jsonObject.put(key, folderObj)
                     }
-                    jsonObject.put(key, folderObj)
+                    getSharedPreferences(context).edit {
+                        putString(FOLDERS_PREF_KEY, jsonObject.toString())
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-                getSharedPreferences(context).edit {
-                    putString(FOLDERS_PREF_KEY, jsonObject.toString())
-                    commit() // Keep commit() as true was in your original code to avoid ANRs in quick sequence changes
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
     }

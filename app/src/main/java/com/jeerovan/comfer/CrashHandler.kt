@@ -44,16 +44,25 @@ class CrashHandler(private val context: Context) : Thread.UncaughtExceptionHandl
     }
 
     private fun saveCrashLogToFile(crashLog: String) {
-        try {
-            val file = File(context.filesDir, crashFileName)
-
-            // FileWriter(file, true) enables append mode
-            FileWriter(file, true).use { writer ->
-                writer.append(crashLog)
+        // Run I/O in a worker thread with a hard timeout so the crashing thread
+        // (often the main thread) is not blocked before the process terminates.
+        val writeThread = Thread {
+            try {
+                val file = File(context.filesDir, crashFileName)
+                FileWriter(file, true).use { writer ->
+                    writer.append(crashLog)
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
             }
-        } catch (e: IOException) {
-            // Fallback: Print to standard error if file write fails
-            e.printStackTrace()
+        }
+        writeThread.start()
+        try {
+            // Wait at most 2 seconds for the write to complete before letting
+            // the default handler terminate the process.
+            writeThread.join(2000)
+        } catch (_: InterruptedException) {
+            // Ignore; the default handler will terminate anyway
         }
     }
 }
