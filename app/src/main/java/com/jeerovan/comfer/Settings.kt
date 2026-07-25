@@ -273,6 +273,22 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 Spacer(Modifier.height(24.dp))
             }
+            item { SectionHeader(stringResource(R.string.more_from_jeerovan)) }
+            item {
+                PromoAppSection(
+                    title = "FiFe",
+                    subtitle = stringResource(R.string.fife_subtitle),
+                    logoPainter = painterResource(R.drawable.fife_logo),
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.jeerovan.fife"))
+                        try {
+                            context.startActivity(intent)
+                        } catch (_: ActivityNotFoundException) {
+                            // Play Store not available – fallback to browser or ignore
+                        }
+                    }
+                )
+            }
             item { SectionHeader(stringResource(R.string.title_support))}
             item { SocialLinksRow() }
             item {
@@ -857,23 +873,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         context.startActivity(Intent(context, CrashViewActivity::class.java))
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            item { SectionHeader(stringResource(R.string.more_from_jeerovan)) }
-            item { Spacer(Modifier.height(18.dp)) }
-            item {
-                PromoAppSection(
-                    title = "FiFe",
-                    subtitle = stringResource(R.string.fife_subtitle),
-                    logoPainter = painterResource(R.drawable.fife_logo),
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.jeerovan.fife"))
-                        try {
-                            context.startActivity(intent)
-                        } catch (_: ActivityNotFoundException) {
-                            // Play Store not available – fallback to browser or ignore
-                        }
-                    }
                 )
             }
             item { Spacer(Modifier.height(24.dp)) }
