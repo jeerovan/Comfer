@@ -2444,8 +2444,11 @@ fun SearchListOverlay(apps: List<AppInfo>,
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
-                // Combine multiple gesture detectors in one pointerInput
+            .pointerInput(hasContactPermission) {
+                // Combine multiple gesture detectors in one pointerInput.
+                // Key on hasContactPermission (plain Boolean param, not State) so the
+                // lambda re-captures a fresh value when permission is granted at runtime;
+                // otherwise the contactDoubleTapShown persist block below never runs.
                 detectTapGestures(
                     onDoubleTap = {
                         if (selectedContact != null) {
@@ -2458,9 +2461,11 @@ fun SearchListOverlay(apps: List<AppInfo>,
                     }
                 )
             }
-            .pointerInput(
-                lazyListState
-            ) { // Relaunch gesture detection if state or data changes
+            .pointerInput(lazyListState, hasContactPermission) {
+                // Relaunch gesture detection if scroll state or contact permission changes.
+                // hasContactPermission is a plain Boolean param (not State), so it must be
+                // part of the key or the gesture lambda captures a stale value and the
+                // contactSwipeGestureShown persist block never runs.
                 detectVerticalDragGestures(
                     onDragStart = { dragAccumulator = 0f },
                     onDragEnd = { dragAccumulator = 0f },
