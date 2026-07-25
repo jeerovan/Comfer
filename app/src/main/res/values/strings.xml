@@ -312,7 +312,7 @@
     <string name="title_view_github_repo">Tap to view code</string>
     <string name="title_status_bar">Status Bar</string>
     <string name="show_hide_status_bar">Show/Hide status bar</string>
-
     <string name="more_from_jeerovan">More from Jeerovan</string>
     <string name="fife_subtitle">Encrypted Cloud Storage</string>
+    <string name="scroll_speed">Scroll Speed</string>
 </resources>

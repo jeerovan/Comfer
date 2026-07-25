@@ -316,4 +316,5 @@
     <string name="show_hide_status_bar">Показать/скрыть строку состояния</string>
     <string name="more_from_jeerovan">Другие приложения от Jeerovan</string>
     <string name="fife_subtitle">Зашифрованное облачное хранилище</string>
+    <string name="scroll_speed">Скорость прокрутки</string>
 </resources>

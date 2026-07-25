@@ -316,4 +316,5 @@
     <string name="show_hide_status_bar">Hiện/Ẩn thanh trạng thái</string>
     <string name="more_from_jeerovan">Các ứng dụng khác từ Jeerovan</string>
     <string name="fife_subtitle">Lưu trữ đám mây được mã hóa</string>
+    <string name="scroll_speed">Tốc độ cuộn</string>
 </resources>

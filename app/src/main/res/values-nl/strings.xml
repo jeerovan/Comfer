@@ -318,4 +318,5 @@
     <string name="show_hide_status_bar">Statusbalk tonen/verbergen</string>
     <string name="more_from_jeerovan">Meer apps van Jeerovan</string>
     <string name="fife_subtitle">Versleutelde cloudopslag</string>
+    <string name="scroll_speed">Scrollsnelheid</string>
 </resources>

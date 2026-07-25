@@ -316,4 +316,5 @@
     <string name="show_hide_status_bar">ステータスバーの表示/非表示</string>
     <string name="more_from_jeerovan">Jeerovanのその他のアプリ</string>
     <string name="fife_subtitle">暗号化クラウドストレージ</string>
+    <string name="scroll_speed">スクロール速度</string>
 </resources>

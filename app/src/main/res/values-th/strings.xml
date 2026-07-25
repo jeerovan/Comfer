@@ -316,4 +316,5 @@
     <string name="show_hide_status_bar">แสดง/ซ่อนแถบสถานะ</string>
     <string name="more_from_jeerovan">แอปอื่น ๆ จาก Jeerovan</string>
     <string name="fife_subtitle">พื้นที่เก็บข้อมูลบนคลาวด์แบบเข้ารหัส</string>
+    <string name="scroll_speed">ความเร็วในการเลื่อน</string>
 </resources>

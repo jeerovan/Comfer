@@ -316,4 +316,5 @@
     <string name="show_hide_status_bar">Ýagdaý zolagyny görkez/gizle</string>
     <string name="more_from_jeerovan">Jeerovan-dan beýleki programmalar</string>
     <string name="fife_subtitle">Şifrlenen bulut ammary</string>
+    <string name="scroll_speed">Süýşürme tizligi</string>
 </resources>

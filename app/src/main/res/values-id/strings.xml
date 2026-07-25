@@ -318,4 +318,5 @@
     <string name="show_hide_status_bar">Tampilkan/Sembunyikan bilah status</string>
     <string name="more_from_jeerovan">Aplikasi lainnya dari Jeerovan</string>
     <string name="fife_subtitle">Penyimpanan Cloud Terenkripsi</string>
+    <string name="scroll_speed">Kecepatan gulir</string>
 </resources>

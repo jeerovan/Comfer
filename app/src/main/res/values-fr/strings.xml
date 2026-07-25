@@ -316,4 +316,5 @@
     <string name="show_hide_status_bar">Afficher/Masquer la barre d\'état</string>
     <string name="more_from_jeerovan">Plus d\'applications de Jeerovan</string>
     <string name="fife_subtitle">Stockage cloud chiffré</string>
+    <string name="scroll_speed">Vitesse de défilement</string>
 </resources>

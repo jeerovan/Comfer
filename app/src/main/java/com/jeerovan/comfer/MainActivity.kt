@@ -3313,7 +3313,7 @@ fun SensitivityDialog(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Sensitivity",
+                        text = stringResource(R.string.scroll_speed),
                         style = MaterialTheme.typography.titleLarge
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -3333,9 +3333,9 @@ fun SensitivityDialog(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End
                     ) {
-                        TextButton(onClick = onDismiss) { Text("Cancel") }
+                        TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_text)) }
                         Spacer(modifier = Modifier.width(8.dp))
-                        TextButton(onClick = { onSave(localSpeed) }) { Text("Save") }
+                        TextButton(onClick = { onSave(localSpeed) }) { Text(stringResource(R.string.button_text_save)) }
                     }
                 }
             }

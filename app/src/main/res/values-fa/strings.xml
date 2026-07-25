@@ -316,4 +316,5 @@
     <string name="show_hide_status_bar">نمایش/مخفی کردن نوار وضعیت</string>
     <string name="more_from_jeerovan">برنامه‌های بیشتر از Jeerovan</string>
     <string name="fife_subtitle">فضای ذخیره‌سازی ابری رمزگذاری‌شده</string>
+    <string name="scroll_speed">سرعت پیمایش</string>
 </resources>
