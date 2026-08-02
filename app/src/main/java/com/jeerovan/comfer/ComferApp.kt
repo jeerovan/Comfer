@@ -13,15 +13,15 @@ class ComferApp : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
+        // One-time import of legacy SharedPreferences into Room + DataStore.
+        PrefMigrator.runOnce(this)
+        // Load scalar settings snapshot (DataStore-backed) for sync reads.
+        PreferenceManager.load(this)
         if(saveCrashes) {
             Thread.setDefaultUncaughtExceptionHandler(CrashHandler(this))
             LogcatRecorder(this).startLogging()
         }
         setupImageWorker()
-        // Pre-warm SharedPreferences used by WidgetHostScreen composables on a
-        // background thread so their first getSharedPreferences() call (which
-        // parses XML from disk) never blocks the Main thread during composition.
-        warmWidgetPrefs()
     }
 
     private fun setupImageWorker() {
@@ -39,15 +39,6 @@ class ComferApp : Application(), ImageLoaderFactory {
             ExistingPeriodicWorkPolicy.KEEP,
             periodicWorkRequest
         )
-    }
-
-    private fun warmWidgetPrefs() {
-        val widgetPrefsNames = listOf("widgets_center", "widgets_prefs_left", "widgets_prefs_right")
-        Thread {
-            for (name in widgetPrefsNames) {
-                try { getSharedPreferences(name, MODE_PRIVATE) } catch (_: Exception) {}
-            }
-        }.start()
     }
 
     // App-scoped singleton: the 3 AppWidgetHosts + AppWidgetManager are created

@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toArgb
-import androidx.core.content.edit
 import com.jeerovan.comfer.utils.CommonUtil
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import kotlinx.serialization.json.Json
@@ -13,12 +12,19 @@ import java.util.Calendar
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import com.jeerovan.comfer.utils.KeyboardLocale
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import java.io.File
 import java.util.Locale
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 object PreferenceManager {
     const val PREF_BACKGROUND_IMAGE = "background_image"
-    private const val PREFS_NAME = "com.jeerovan.comfer.Prefs"
     const val KEY_WALLPAPER_MOTION = "wallpaper_motion"
     const val WALLPAPER_ON_LOCK_SCREEN = "wallpaper_on_lock_screen"
     const val KEY_ICON_SIZE = "icon_size"
@@ -55,59 +61,93 @@ object PreferenceManager {
     const val BATTERY_SAVER_MODE = "battery_saver_mode"
     const val TOP_BAR_VISIBLE = "top_bar_visible"
 
-    private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    // Backed by Preferences DataStore ("comfer_settings").
+    //
+    // An in-memory snapshot keeps synchronous reads fast and off disk (they were
+    // previously served from the SharedPreferences in-memory cache anyway). Writes
+    // update the snapshot immediately and flush to DataStore on a background scope,
+    // so the facade keeps the exact same synchronous API for existing callers.
+    @Volatile
+    private var snapshot: Map<String, String> = emptyMap()
 
-    fun clear(context: Context,key: String){
-        getPrefs(context).edit { remove(key) }
-    }
-    fun hasKey(context: Context,key:String): Boolean{
-        return getPrefs(context).contains(key)
-    }
-    fun getBoolean(context: Context,key:String,default: Boolean):Boolean{
-        val prefValue = getPrefs(context).getBoolean(key,default)
-        return prefValue
-    }
-    fun setBoolean(context: Context,key:String,state:Boolean) {
-        getPrefs(context).edit {
-            putBoolean(key,state)
+    private val writeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * One-time initial load from disk into the in-memory snapshot. Called from
+     * [ComferApp.onCreate] (and after the one-time prefs migration). Blocking.
+     */
+    fun load(context: Context) {
+        runBlocking(Dispatchers.IO) {
+            reload(context)
         }
-    }
-    fun getFloat(context: Context,key:String,default: Float):Float{
-        val prefValue = getPrefs(context).getFloat(key,default)
-        return prefValue
-    }
-    fun setFloat(context: Context,key:String,value:Float) {
-        getPrefs(context).edit {
-            putFloat(key,value)
-        }
-    }
-    fun getLong(context: Context,key:String,default: Long): Long {
-        val prefValue = getPrefs(context).getLong(key,default)
-        return prefValue
-    }
-    fun setLong(context: Context,key:String,value:Long) {
-        getPrefs(context).edit {
-            putLong(key,value)
-        }
-    }
-    fun setString(context: Context,key:String,string: String?) {
-        getPrefs(context).edit {
-            putString(key,string)
-        }
-    }
-    fun getString(context: Context,key:String,default: String?):String?{
-        val prefValue = getPrefs(context).getString(key,default) ?: default
-        return prefValue
     }
 
-    fun setInt(context: Context,key:String,int: Int) {
-        getPrefs(context).edit {
-            putInt(key,int)
+    /** Re-sync the snapshot from DataStore. Suspend; DO NOT call from Main thread. */
+    suspend fun reload(context: Context) {
+        val data = context.settingsDataStore.data.first()
+        val map = mutableMapOf<String, String>()
+        data.asMap().forEach { (key, value) -> map[key.name] = value.toString() }
+        snapshot = map
+    }
+
+    private fun write(context: Context, key: String, value: String?) {
+        val next = snapshot.toMutableMap()
+        if (value == null) next.remove(key) else next[key] = value
+        snapshot = next
+        val prefKey = stringPreferencesKey(key)
+        writeScope.launch {
+            context.settingsDataStore.edit { prefs ->
+                if (value == null) prefs.remove(prefKey) else prefs[prefKey] = value
+            }
         }
     }
-    fun getInt(context: Context,key:String,default: Int ):Int{
-        val prefValue = getPrefs(context).getInt(key,default)
-        return prefValue
+
+    fun clear(context: Context, key: String) {
+        write(context, key, null)
+    }
+
+    fun hasKey(context: Context, key: String): Boolean {
+        return snapshot.containsKey(key)
+    }
+
+    fun getBoolean(context: Context, key: String, default: Boolean): Boolean {
+        return snapshot[key]?.toBooleanStrictOrNull() ?: default
+    }
+
+    fun setBoolean(context: Context, key: String, state: Boolean) {
+        write(context, key, state.toString())
+    }
+
+    fun getFloat(context: Context, key: String, default: Float): Float {
+        return snapshot[key]?.toFloatOrNull() ?: default
+    }
+
+    fun setFloat(context: Context, key: String, value: Float) {
+        write(context, key, value.toString())
+    }
+
+    fun getLong(context: Context, key: String, default: Long): Long {
+        return snapshot[key]?.toLongOrNull() ?: default
+    }
+
+    fun setLong(context: Context, key: String, value: Long) {
+        write(context, key, value.toString())
+    }
+
+    fun setString(context: Context, key: String, string: String?) {
+        write(context, key, string)
+    }
+
+    fun getString(context: Context, key: String, default: String?): String? {
+        return snapshot[key] ?: default
+    }
+
+    fun setInt(context: Context, key: String, int: Int) {
+        write(context, key, int.toString())
+    }
+
+    fun getInt(context: Context, key: String, default: Int): Int {
+        return snapshot[key]?.toIntOrNull() ?: default
     }
 
     fun onFirstOpen(context: Context){

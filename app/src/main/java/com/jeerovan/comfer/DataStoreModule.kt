@@ -2,11 +2,15 @@ package com.jeerovan.comfer
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 
 // 1. Create the DataStore extension
 val Context.dataStore by preferencesDataStore(name = "wallpaper_settings")
+
+// Scalar settings store (replaces com.jeerovan.comfer.Prefs SharedPreferences).
+val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "comfer_settings")
 
 // 2. Define your keys
 object PreferenceKeys {

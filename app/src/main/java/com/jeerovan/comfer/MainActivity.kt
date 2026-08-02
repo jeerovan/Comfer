@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import com.jeerovan.comfer.data.ComferRepository
 import android.content.res.Resources
 import android.os.BatteryManager
 import android.os.Bundle
@@ -162,7 +163,6 @@ import android.appwidget.AppWidgetProviderInfo
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Context.MODE_PRIVATE
-import android.content.SharedPreferences
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.os.Build
@@ -593,9 +593,6 @@ fun WidgetHostScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val stringWidgetBindingCancelled = stringResource(R.string.widget_binding_cancelled)
-    val prefs = remember {
-        context.getSharedPreferences(widgetPrefsTitle, MODE_PRIVATE)
-    }
     val lifecycleOwner = LocalLifecycleOwner.current
     val haptic = LocalHapticFeedback.current
     var editMode by remember { mutableStateOf(false) }
@@ -657,8 +654,8 @@ fun WidgetHostScreen(
                         appWidgetHost.deleteAppWidgetId(widget.widgetId)
                     }
                     boundWidgets.removeAll(widgetsToRemove)
-                    // Persist the cleaned list to SharedPreferences.
-                    saveWidgetsToPrefs(prefs, boundWidgets)
+                    // Persist the cleaned list.
+                    saveWidgets(context, widgetPrefsTitle, boundWidgets)
                 }
             }
 
@@ -782,7 +779,7 @@ fun WidgetHostScreen(
                 val newWidget = BoundWidget(widgetId, provider, position.first, position.second, 3, 3)
                 boundWidgets.add(newWidget)
                 coroutineScope.launch {
-                    saveWidgetsToPrefs(prefs, boundWidgets)
+                    saveWidgets(context, widgetPrefsTitle, boundWidgets)
                     updateWidgetGroups()
                 }
         } else {
@@ -874,10 +871,10 @@ fun WidgetHostScreen(
             }
         }
 
-        // Load widgets from SharedPreferences on startup
+        // Load widgets from Room on startup
         LaunchedEffect(Unit) {
             withContext(Dispatchers.IO) {
-                val loadedWidgets = loadWidgetsFromPrefs(prefs, appWidgetManager)
+                val loadedWidgets = loadWidgets(context, widgetPrefsTitle, appWidgetManager)
                 withContext(Dispatchers.Main) {
                     boundWidgets.clear()
                     boundWidgets.addAll(loadedWidgets)
@@ -916,13 +913,13 @@ fun WidgetHostScreen(
                 totalGridRows,
                 editMode = editMode,
                 onWidgetUpdate = {
-                    coroutineScope.launch { saveWidgetsToPrefs(prefs, boundWidgets) }
+                    coroutineScope.launch { saveWidgets(context, widgetPrefsTitle, boundWidgets) }
                 },
                 onWidgetRemove = { widgetToRemove ->
                     appWidgetHost.deleteAppWidgetId(widgetToRemove.widgetId)
                     boundWidgets.remove(widgetToRemove)
                     coroutineScope.launch {
-                        saveWidgetsToPrefs(prefs, boundWidgets)
+                        saveWidgets(context, widgetPrefsTitle, boundWidgets)
                         updateWidgetGroups()
                     }
                 },
@@ -1673,22 +1670,24 @@ private suspend fun getGroupedWidgetProviders(context: Context): List<WidgetProv
     }
 }
 
-private suspend fun loadWidgetsFromPrefs(
-    prefs: SharedPreferences,
+private suspend fun loadWidgets(
+    context: Context,
+    slot: String,
     appWidgetManager: AppWidgetManager
-): List<BoundWidget> = withContext(Dispatchers.IO) {
-    val jsonString = prefs.getString(BOUND_WIDGETS_KEY, null) ?: return@withContext emptyList()
+): List<BoundWidget> {
+    val entity = ComferRepository.getWidgetPlacement(context, slot)
+        ?: return emptyList()
     try {
-        val persistableList = Json.decodeFromString<List<PersistableBoundWidget>>(jsonString)
+        val persistableList = Json.decodeFromString<List<PersistableBoundWidget>>(entity.widgetsJson)
 
         // SAFEGUARD: Isolate the risky IPC call
         val installedProviders = try {
             appWidgetManager.installedProviders
         } catch (e: RuntimeException) {
-            return@withContext emptyList()
+            return emptyList()
         }
 
-        persistableList.mapNotNull { persist ->
+        val result: List<BoundWidget> = persistableList.mapNotNull<PersistableBoundWidget, BoundWidget> { persist ->
             val provider = installedProviders.find {
                 it.provider == ComponentName(persist.providerPackage, persist.providerClass)
             }
@@ -1698,15 +1697,18 @@ private suspend fun loadWidgetsFromPrefs(
                 null // Provider not found, maybe app was uninstalled
             }
         }
+        return result
     } catch (e: Exception) {
-        Log.e("LoadWidgetsFromPrefs", "Error loading widgets", e)
-        emptyList()
+        Log.e("LoadWidgets", "Error loading widgets", e)
+        return emptyList()
     }
 }
-private suspend fun saveWidgetsToPrefs(
-    prefs: SharedPreferences,
+
+private suspend fun saveWidgets(
+    context: Context,
+    slot: String,
     widgets: List<BoundWidget>
-) = withContext(Dispatchers.IO) {
+) {
     val persistableList = widgets.map {
         PersistableBoundWidget(
             it.widgetId,
@@ -1719,7 +1721,7 @@ private suspend fun saveWidgetsToPrefs(
         )
     }
     val jsonString = Json.encodeToString(persistableList)
-    prefs.edit { putString(BOUND_WIDGETS_KEY, jsonString) }
+    ComferRepository.saveWidgetPlacement(context, slot, jsonString)
 }
 
 
