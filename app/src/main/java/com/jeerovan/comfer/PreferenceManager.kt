@@ -21,7 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 object PreferenceManager {
     const val PREF_BACKGROUND_IMAGE = "background_image"
@@ -72,17 +71,9 @@ object PreferenceManager {
 
     private val writeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    /**
-     * One-time initial load from disk into the in-memory snapshot. Called from
-     * [ComferApp.onCreate] (and after the one-time prefs migration). Blocking.
-     */
-    fun load(context: Context) {
-        runBlocking(Dispatchers.IO) {
-            reload(context)
-        }
-    }
-
-    /** Re-sync the snapshot from DataStore. Suspend; DO NOT call from Main thread. */
+    /** Re-sync the snapshot from DataStore. Suspend; DO NOT call from the Main
+     *  thread. Removed the old blocking [load] wrapper so this never stalls the
+     *  UI thread. Callers (e.g. [ComferApp.onCreate]) run it on a background scope. */
     suspend fun reload(context: Context) {
         val data = context.settingsDataStore.data.first()
         val map = mutableMapOf<String, String>()

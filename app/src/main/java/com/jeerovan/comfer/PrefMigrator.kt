@@ -7,9 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.jeerovan.comfer.data.AppFolderEntity
 import com.jeerovan.comfer.data.ComferRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 
 /**
@@ -50,25 +48,22 @@ object PrefMigrator {
             false
         }
     }
-    /** Blocking; call from [ComferApp.onCreate] before any UI reads settings. */
-    fun runOnce(context: Context) {
-        val already = runBlocking(Dispatchers.IO) {
-            context.settingsDataStore.data.first()[migratedFlag] == true
-        }
-        if (already) return
+    /** Non-blocking; call from a background coroutine (e.g. [ComferApp.onCreate]).
+     *  Must never be run on the main thread — the first-ever Room build + full
+     *  import can exceed the input-dispatch timeout. */
+    suspend fun runOnce(context: Context) {
+        if (context.settingsDataStore.data.first()[migratedFlag] == true) return
 
-        runBlocking(Dispatchers.IO) {
-            importSettings(context)
-            importAppInfo(context)
-            importWidgets(context)
+        importSettings(context)
+        importAppInfo(context)
+        importWidgets(context)
 
-            // Only delete source files once the new stores hold the data.
-            context.deleteSharedPreferencesCompat(SETTINGS_PREFS)
-            context.deleteSharedPreferencesCompat(APP_INFO_PREFS)
-            widgetSlots.forEach { context.deleteSharedPreferencesCompat(it) }
+        // Only delete source files once the new stores hold the data.
+        context.deleteSharedPreferencesCompat(SETTINGS_PREFS)
+        context.deleteSharedPreferencesCompat(APP_INFO_PREFS)
+        widgetSlots.forEach { context.deleteSharedPreferencesCompat(it) }
 
-            context.settingsDataStore.edit { it[migratedFlag] = true }
-        }
+        context.settingsDataStore.edit { it[migratedFlag] = true }
     }
 
     private suspend fun importSettings(context: Context) {

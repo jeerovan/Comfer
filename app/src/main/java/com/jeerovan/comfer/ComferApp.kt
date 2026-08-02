@@ -1,27 +1,70 @@
 package com.jeerovan.comfer
 
 import android.app.Application
+import android.content.pm.ApplicationInfo
 import android.os.StrictMode
+import android.util.Log
 import androidx.work.*
 import coil.ImageLoaderFactory
 import java.util.concurrent.TimeUnit
 import coil.ImageLoader
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 const val saveCrashes = false
 const val saveLogs = false
 class ComferApp : Application(), ImageLoaderFactory {
 
+    // App-wide background scope for one-time startup work (prefs migration + the
+    // DataStore->snapshot load). Running this on the main thread was the #1
+    // cold-start ANR source: the first-ever Room build + full migration could
+    // exceed the input-dispatch timeout.
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     override fun onCreate() {
         super.onCreate()
-        // One-time import of legacy SharedPreferences into Room + DataStore.
-        PrefMigrator.runOnce(this)
-        // Load scalar settings snapshot (DataStore-backed) for sync reads.
-        PreferenceManager.load(this)
+        enableStrictMode()
+        // One-time import of legacy SharedPreferences into Room + DataStore, then
+        // load the scalar settings snapshot. Both are suspend and run off the main
+        // thread; the in-memory snapshot fills in and the UI updates when done.
+        appScope.launch {
+            try {
+                PrefMigrator.runOnce(applicationContext)
+            } catch (e: Exception) {
+                Log.e("ComferApp", "One-time prefs migration failed", e)
+            }
+            PreferenceManager.reload(applicationContext)
+        }
         if(saveCrashes) {
             Thread.setDefaultUncaughtExceptionHandler(CrashHandler(this))
             LogcatRecorder(this).startLogging()
         }
         setupImageWorker()
+    }
+
+    /** Debug-only enforcement so any main-thread I/O / implicit work that could
+     *  cause an ANR becomes a loud, visible failure instead of shipping silently. */
+    private fun enableStrictMode() {
+        if ((applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+            StrictMode.setThreadPolicy(
+                StrictMode.ThreadPolicy.Builder()
+                    .detectDiskReads()
+                    .detectDiskWrites()
+                    .detectNetwork()
+                    .penaltyLog()
+                    .penaltyDeath()
+                    .build()
+            )
+            StrictMode.setVmPolicy(
+                StrictMode.VmPolicy.Builder()
+                    .detectLeakedSqlLiteObjects()
+                    .detectLeakedClosableObjects()
+                    .penaltyLog()
+                    .build()
+            )
+        }
     }
 
     private fun setupImageWorker() {

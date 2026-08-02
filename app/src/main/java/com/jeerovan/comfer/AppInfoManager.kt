@@ -3,9 +3,6 @@ package com.jeerovan.comfer
 import android.content.Context
 import com.jeerovan.comfer.data.AppFolderEntity
 import com.jeerovan.comfer.data.ComferRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -30,8 +27,8 @@ object AppInfoManager {
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    fun getAppPackageNames(context: Context, listName: String): List<String>? {
-        val entity = ComferRepository.getAppListBlocking(context, listName) ?: return null
+    suspend fun getAppPackageNames(context: Context, listName: String): List<String>? {
+        val entity = ComferRepository.getAppList(context, listName) ?: return null
         return try {
             json.decodeFromString<List<String>>(entity.packagesJson)
         } catch (e: Exception) {
@@ -39,14 +36,12 @@ object AppInfoManager {
         }
     }
 
-    fun saveAppPackageNames(context: Context, listName: String, packageNames: Collection<String>) {
-        CoroutineScope(Dispatchers.IO).launch {
-            ComferRepository.saveAppList(context, listName, json.encodeToString(packageNames.toList()))
-        }
+    suspend fun saveAppPackageNames(context: Context, listName: String, packageNames: Collection<String>) {
+        ComferRepository.saveAppList(context, listName, json.encodeToString(packageNames.toList()))
     }
 
-    fun getFolders(context: Context): Map<String, FolderData> {
-        val entities = ComferRepository.getFoldersBlocking(context)
+    suspend fun getFolders(context: Context): Map<String, FolderData> {
+        val entities = ComferRepository.getFolders(context)
         val map = mutableMapOf<String, FolderData>()
         for (e in entities) {
             val packages = try {
@@ -59,12 +54,8 @@ object AppInfoManager {
         return map
     }
 
-    /**
-     * Persist folders using the supplied [scope] (e.g. viewModelScope). Room
-     * serializes writes at the DB level, preserving last-writer-wins without an
-     * app-level Mutex.
-     */
-    fun saveFolders(context: Context, folders: Map<String, FolderData>, scope: CoroutineScope) {
+    /** Persist folders directly; the caller provides the coroutine context. */
+    suspend fun saveFolders(context: Context, folders: Map<String, FolderData>) {
         val entities = folders.values.map { f ->
             AppFolderEntity(
                 f.id,
@@ -72,9 +63,7 @@ object AppInfoManager {
                 try { json.encodeToString(f.packages) } catch (e: Exception) { "[]" }
             )
         }
-        scope.launch(Dispatchers.IO) {
-            ComferRepository.saveFolders(context, entities)
-        }
+        ComferRepository.saveFolders(context, entities)
     }
 }
 

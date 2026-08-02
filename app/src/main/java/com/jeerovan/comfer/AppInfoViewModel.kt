@@ -97,6 +97,10 @@ private data class LegacyIconAnalysis(
 
 private val packageManagerDispatcher = Dispatchers.IO.limitedParallelism(4)
 private val iconLoadingDispatcher = Dispatchers.IO.limitedParallelism(4)
+// True concurrency cap for icon loads. The heavy per-app work switches to
+// Dispatchers.IO (unbounded) internally, which defeats limitedParallelism
+// alone — the semaphore is what actually bounds how many loads run at once.
+private val iconLoadSemaphore = Semaphore(4)
 suspend fun getAppInfo(
     context: Context,
     info: LauncherActivityInfo,
@@ -551,32 +555,46 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             suspend fun mapPackagesToAppInfo(packageNames: List<String>): List<AppInfo> = withContext(iconLoadingDispatcher) {
                 packageNames.map { packageName ->
                     async {
-                            if(packageName.startsWith("folder")){
-                                 val folderData = savedFolders[packageName] ?: return@async null
-                                 val packages = folderData.packages
-                                 val activitiesMap = allActivitiesMap.filter { it.key in packages }
-                                 val activities = activitiesMap.values.toList()
-                                 createFolderAppInfo(
-                                     context,
-                                     folderData,
-                                     activities,
-                                     showThemedIcons,
-                                     themedColors,
-                                     isLightHour,
-                                     iconPackPackage,
-                                     shape)
-                             } else {
-                                 val activityInfo =
-                                     allActivitiesMap[packageName] ?: return@async null
-                                 createAppInfo(
-                                     context,
-                                     activityInfo,
-                                     showThemedIcons,
-                                     themedColors,
-                                     isLightHour,
-                                     iconPackPackage
-                                 )
-                             }
+                        // Bound concurrent icon loads. The heavy per-app work
+                        // switches to Dispatchers.IO internally (unbounded), so a
+                        // limited-parallelism dispatcher alone does NOT cap
+                        // concurrency — the semaphore does. Early "null" returns
+                        // stay inside withPermit so no permit is ever leaked.
+                        iconLoadSemaphore.withPermit {
+                            if (packageName.startsWith("folder")) {
+                                val folderData = savedFolders[packageName] ?: null
+                                if (folderData == null) {
+                                    null
+                                } else {
+                                    val packages = folderData.packages
+                                    val activitiesMap = allActivitiesMap.filter { it.key in packages }
+                                    val activities = activitiesMap.values.toList()
+                                    createFolderAppInfo(
+                                        context,
+                                        folderData,
+                                        activities,
+                                        showThemedIcons,
+                                        themedColors,
+                                        isLightHour,
+                                        iconPackPackage,
+                                        shape)
+                                }
+                            } else {
+                                val activityInfo = allActivitiesMap[packageName] ?: null
+                                if (activityInfo == null) {
+                                    null
+                                } else {
+                                    createAppInfo(
+                                        context,
+                                        activityInfo,
+                                        showThemedIcons,
+                                        themedColors,
+                                        isLightHour,
+                                        iconPackPackage
+                                    )
+                                }
+                            }
+                        }
                     }
                 }.awaitAll().filterNotNull()
             }
@@ -755,7 +773,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
             // Save back to preferences
             savedFolders[folderName] = folderData.copy(packages = packages)
-            AppInfoManager.saveFolders(context, savedFolders, viewModelScope)
+            AppInfoManager.saveFolders(context, savedFolders)
 
             // 2. Update UI state
             val currentFolders = _uiState.value.folderApps.toMutableMap()
@@ -862,7 +880,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val newFolder = FolderData(id = newFolderId, title = title, packages = emptyList())
             val savedFolders = AppInfoManager.getFolders(context).toMutableMap()
             savedFolders[newFolderId] = newFolder
-            AppInfoManager.saveFolders(context, savedFolders, viewModelScope)
+            AppInfoManager.saveFolders(context, savedFolders)
 
             val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
             val monochrome = PreferenceManager.getMonochrome(context)
@@ -909,7 +927,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             
             // 1. Update data
             updatedFolders[folderId] = folderData.copy(title = title)
-            AppInfoManager.saveFolders(context, updatedFolders, viewModelScope)
+            AppInfoManager.saveFolders(context, updatedFolders)
             
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(folders = updatedFolders) }
@@ -967,7 +985,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             )
 
             // 4. Persist folder deletions to disk using our already modified map
-            AppInfoManager.saveFolders(context, currentFolders, viewModelScope)
+            AppInfoManager.saveFolders(context, currentFolders)
         }
     }
 
@@ -1007,7 +1025,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 folderTitle = folderData.title
                 val updatedPackages = folderAppInfos.map { it.packageName }
                 savedFolders[folderPackageName] = folderData.copy(packages = updatedPackages)
-                AppInfoManager.saveFolders(context, savedFolders, viewModelScope)
+                AppInfoManager.saveFolders(context, savedFolders)
             }
 
             // Atomically update folders map
@@ -1050,7 +1068,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 folderTitle = folderData.title
                 val updatedPackages = remainingAppInfos.map { it.packageName }
                 savedFolders[folderPackageName] = folderData.copy(packages = updatedPackages)
-                AppInfoManager.saveFolders(context, savedFolders, viewModelScope)
+                AppInfoManager.saveFolders(context, savedFolders)
             }
 
             // Atomically update folders map

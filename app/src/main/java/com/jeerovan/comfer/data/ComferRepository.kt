@@ -1,14 +1,12 @@
 package com.jeerovan.comfer.data
 
 import android.content.Context
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 
 /**
- * Thin data-access layer over Room. Exposes suspend functions for coroutine
- * callers and blocking helpers for the legacy synchronous facades
- * (AppInfoManager, image-data readers) so existing call sites keep working
- * during migration.
+ * Thin data-access layer over Room. All functions are suspend and must be
+ * called from a coroutine (e.g. viewModelScope/Dispatchers.IO) — never from the
+ * main thread. The former synchronous `runBlocking` facades were removed
+ * because any accidental main-thread call stalled/ANR'd the UI.
  */
 object ComferRepository {
 
@@ -64,18 +62,4 @@ object ComferRepository {
     suspend fun saveSetting(context: Context, setting: SettingEntity) {
         db(context).settingDao().upsert(setting)
     }
-
-    // ---------- Blocking (legacy synchronous facades) ----------
-
-    fun getFoldersBlocking(context: Context): List<AppFolderEntity> =
-        runBlocking(Dispatchers.IO) { getFolders(context) }
-
-    fun getAppListBlocking(context: Context, name: String): AppListEntity? =
-        runBlocking(Dispatchers.IO) { getAppList(context, name) }
-
-    fun getWidgetPlacementBlocking(context: Context, slot: String): WidgetPlacementEntity? =
-        runBlocking(Dispatchers.IO) { getWidgetPlacement(context, slot) }
-
-    fun getImageEntryBlocking(context: Context, id: String): ImageDataEntity? =
-        runBlocking(Dispatchers.IO) { getImageEntry(context, id) }
 }
