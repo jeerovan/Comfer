@@ -437,6 +437,40 @@ fun DoubleTapHint(modifier: Modifier = Modifier) {
     }
 }
 
+@Composable
+fun SingleTapHint(modifier: Modifier = Modifier) {
+    val infiniteTransition = rememberInfiniteTransition()
+
+    // Single pulse animation for the 'Single Tap' feel
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 1000
+                0.8f at 200
+                1f at 400
+            },
+            repeatMode = RepeatMode.Restart
+        )
+    )
+
+    Box(contentAlignment = Alignment.Center,
+        modifier = modifier
+            .background(Color.Black.copy(alpha = 0.7f), CircleShape)
+            .padding(4.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.TouchApp,
+            contentDescription = null,
+            modifier = Modifier
+                .size(40.dp)
+                .scale(scale),
+            tint = Color.White
+        )
+    }
+}
+
 data class BatteryState(val level: Int, val isCharging: Boolean)
 
 private const val MAIN_WIDGET_HOST_ID = 1025
@@ -1923,10 +1957,14 @@ fun QuickListOverlay(apps: List<AppInfo>,
     val settingsLongPressKey = "settings_long_press_key"
     val widgetsLongPressKey = "widgets_long_press_key"
     val recentAppsGestureKey = "double_tap_recent_apps_gesture_key"
+    val widgetClockTapKey = "widget_clock_tap_key"
+    val widgetClockLongPressKey = "widget_clock_long_press_key"
     var recentAppsGestureShown by remember { mutableStateOf(true)}
     var quickGestureShown by remember { mutableStateOf(true)}
     var settingsLongPressShown by remember { mutableStateOf(true) }
     var widgetsLongPressShown by remember { mutableStateOf(true) }
+    var widgetClockTapShown by remember { mutableStateOf(true) }
+    var widgetClockLongPressShown by remember { mutableStateOf(true) }
     var feedbackShown by remember { mutableStateOf(true)}
     var canShowGuide by remember { mutableStateOf(false) }
     val settings by settingsModel.uiState.collectAsState()
@@ -1951,6 +1989,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
             settingsLongPressShown = settingsModel.isStepGuideShown(context, settingsLongPressKey)
             widgetsLongPressShown = settingsModel.isStepGuideShown(context,widgetsLongPressKey)
             recentAppsGestureShown = settingsModel.isStepGuideShown(context,recentAppsGestureKey)
+            widgetClockTapShown = settingsModel.isStepGuideShown(context,widgetClockTapKey)
+            widgetClockLongPressShown = settingsModel.isStepGuideShown(context,widgetClockLongPressKey)
             feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
         }
         canShowGuide = true
@@ -1972,6 +2012,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     settingsLongPressShown = settingsModel.isStepGuideShown(context, settingsLongPressKey)
                     widgetsLongPressShown = settingsModel.isStepGuideShown(context,widgetsLongPressKey)
                     recentAppsGestureShown = settingsModel.isStepGuideShown(context,recentAppsGestureKey)
+                    widgetClockTapShown = settingsModel.isStepGuideShown(context,widgetClockTapKey)
+                    widgetClockLongPressShown = settingsModel.isStepGuideShown(context,widgetClockLongPressKey)
                     feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
                     isDefault = isDefaultLauncher(context)
                 }
@@ -2076,11 +2118,45 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     onEditModeChanged = { editMode ->  showWidgetSettings = editMode},
                     composableContent = { id, editMode ->
                         when (id) {
-                            "time" -> WidgetClock(
-                                settings,
-                                foregroundColor,
-                                editMode = editMode,
-                                backgroundColor)
+                            "time" -> Box {
+                                WidgetClock(
+                                    settings,
+                                    foregroundColor,
+                                    editMode = editMode,
+                                    backgroundColor,
+                                    onTap = {
+                                        if(!editMode && recentAppsGestureShown && !widgetClockTapShown) {
+                                            settingsModel.setStepGuideShown(context, widgetClockTapKey)
+                                            widgetClockTapShown = true
+                                        }
+                                    },
+                                    onLongPress = {
+                                        if(!editMode && recentAppsGestureShown && !widgetClockLongPressShown && widgetClockTapShown) {
+                                            settingsModel.setStepGuideShown(context, widgetClockLongPressKey)
+                                            widgetClockLongPressShown = true
+                                        }
+                                    }
+                                )
+                                if(!editMode && recentAppsGestureShown && !widgetClockTapShown) {
+                                    Box(
+                                        modifier = Modifier
+                                            .matchParentSize()
+                                            .padding(16.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        SingleTapHint()
+                                    }
+                                } else if(!editMode && recentAppsGestureShown && widgetClockTapShown && !widgetClockLongPressShown) {
+                                    Box(
+                                        modifier = Modifier
+                                            .matchParentSize()
+                                            .padding(16.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        LongPressHint()
+                                    }
+                                }
+                            }
                             "date" -> WidgetDate(
                                 settings,
                                 foregroundColor,
@@ -5064,7 +5140,9 @@ fun WidgetClock(
     settings: SettingsUiState,
     foregroundColor: Color,
     editMode: Boolean,
-    backgroundColor: Color = Color.Black
+    backgroundColor: Color = Color.Black,
+    onTap: () -> Unit = {},
+    onLongPress: () -> Unit = {}
 ){
     val context = LocalContext.current
     val view = LocalView.current
@@ -5087,6 +5165,7 @@ fun WidgetClock(
                         if (intent.resolveActivity(context.packageManager) != null) {
                             handleStartActivity(context, intent, null)
                         }
+                        onTap()
                     },
                     onLongPress = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -5098,6 +5177,7 @@ fun WidgetClock(
                         if (calendarIntent.resolveActivity(context.packageManager) != null) {
                             handleStartActivity(context, calendarIntent, null)
                         }
+                        onLongPress()
                     }
                 )
             }
