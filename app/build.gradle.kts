@@ -11,7 +11,7 @@ plugins {
 android {
     namespace = "com.jeerovan.comfer"
     compileSdk = 37
-
+    ndkVersion = "29.0.14206865"
     defaultConfig {
         applicationId = "com.jeerovan.comfer"
         minSdk = 23

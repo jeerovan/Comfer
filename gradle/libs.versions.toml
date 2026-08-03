@@ -2,7 +2,7 @@
 agp = "9.2.1"
 appUpdate = "2.1.0"
 appUpdateKtx = "2.1.0"
-datastorePreferences = "1.2.0"
+datastorePreferences = "1.2.1"
 kotlin = "2.2.20"
 coreKtx = "1.17.0"
 lifecycleRuntimeKtx = "2.9.4"
