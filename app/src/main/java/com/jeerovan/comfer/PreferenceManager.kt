@@ -427,7 +427,7 @@ object PreferenceManager {
         setInt(context, "now_hour", hour)
     }
     fun getFeedbackDialogShown(context: Context):Boolean {
-        return getBoolean(context,FEEDBACK_DIALOG,false)
+        return getBoolean(context,FEEDBACK_DIALOG,true)
     }
     fun setFeedbackDialogShown(context: Context){
         setBoolean(context,FEEDBACK_DIALOG,true)

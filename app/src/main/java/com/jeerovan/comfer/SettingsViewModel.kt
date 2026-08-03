@@ -424,7 +424,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
     fun isGuideShown(context:Context): Boolean {
-        return PreferenceManager.getBoolean(context, ONBOARDING_GUIDE_SHOWN, default = false)
+        return PreferenceManager.getBoolean(context, ONBOARDING_GUIDE_SHOWN, default = true)
     }
     fun setGuideShown(context: Context){
         viewModelScope.launch(Dispatchers.IO) {
