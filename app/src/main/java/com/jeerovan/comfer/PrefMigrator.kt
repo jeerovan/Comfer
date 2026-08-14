@@ -8,8 +8,24 @@ import com.jeerovan.comfer.data.AppFolderEntity
 import com.jeerovan.comfer.data.ComferRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+
+internal const val LEGACY_SETTINGS_PREFS = "com.jeerovan.comfer.Prefs"
+internal const val LEGACY_APP_INFO_PREFS = "com.jeerovan.comfer.AppInfoPrefs"
+internal const val LEGACY_WIDGET_PREFS_KEY = "bound_widgets_v2"
+internal const val LEGACY_FOLDERS_PREF_KEY = "folders_data"
+internal const val LEGACY_APP_LIST_DELIMITER = "\u201A\uFFFD\uFFFD\u201A"
+internal const val PREFS_MIGRATED_FLAG = "prefs_migrated_v2"
+
+internal fun shouldRunLegacyMigration(migrated: Boolean?): Boolean = migrated != true
+
+internal val LEGACY_WIDGET_SLOTS = listOf(
+    "widgets_center",
+    "widgets_prefs_left",
+    "widgets_prefs_right",
+)
 
 @Serializable
 internal data class LegacyFolderData(
@@ -21,6 +37,63 @@ internal fun parseLegacyFolders(jsonString: String): List<AppFolderEntity> =
     Json.decodeFromString<Map<String, LegacyFolderData>>(jsonString).map { (id, folder) ->
         AppFolderEntity(id, folder.title, Json.encodeToString(folder.packages))
     }
+
+internal data class LegacyMigrationPayload(
+    val settings: Map<String, String>,
+    val appListsJson: Map<String, String>,
+    val folders: List<AppFolderEntity>,
+    val widgetsJson: Map<String, String>,
+)
+
+internal suspend fun executeLegacyMigration(
+    migrated: Boolean?,
+    readAndValidate: () -> LegacyMigrationPayload,
+    persist: suspend (LegacyMigrationPayload) -> Unit,
+    deleteLegacySources: () -> Unit,
+    markComplete: suspend () -> Unit,
+): Boolean {
+    if (!shouldRunLegacyMigration(migrated)) return false
+    val payload = readAndValidate()
+    persist(payload)
+    deleteLegacySources()
+    markComplete()
+    return true
+}
+
+/** Preflight the complete v39 payload before mutating any v41 destination. */
+internal fun prepareLegacyMigration(
+    settings: Map<String, *>,
+    appInfo: Map<String, *>,
+    widgetValues: Map<String, String?>,
+): LegacyMigrationPayload {
+    val scalarSettings = settings.mapNotNull { (key, value) ->
+        value?.let { key to it.toString() }
+    }.toMap()
+
+    val appListsJson = appInfo
+        .filterKeys { it != LEGACY_FOLDERS_PREF_KEY }
+        .mapValues { (_, value) ->
+            val packages = value?.toString().orEmpty()
+                .split(LEGACY_APP_LIST_DELIMITER)
+                .filter(String::isNotEmpty)
+            Json.encodeToString(packages)
+        }
+
+    val folders = parseLegacyFolders(
+        appInfo[LEGACY_FOLDERS_PREF_KEY]?.toString() ?: "{}",
+    )
+
+    val widgetsJson = widgetValues.mapNotNull { (slot, jsonString) ->
+        jsonString?.takeIf(String::isNotEmpty)?.let { json ->
+            // v39 and v41 share PersistableBoundWidget. Decode only for validation;
+            // retain the original JSON so no widget IDs/options are transformed.
+            Json.decodeFromString<List<PersistableBoundWidget>>(json)
+            slot to json
+        }
+    }.toMap()
+
+    return LegacyMigrationPayload(scalarSettings, appListsJson, folders, widgetsJson)
+}
 
 /**
  * One-time importer of legacy SharedPreferences data into the new stores
@@ -34,82 +107,60 @@ internal fun parseLegacyFolders(jsonString: String): List<AppFolderEntity> =
  * build. getAll()/getString() reads can never run again after the flag is set.
  */
 object PrefMigrator {
-    private const val SETTINGS_PREFS = "com.jeerovan.comfer.Prefs"
-    private const val APP_INFO_PREFS = "com.jeerovan.comfer.AppInfoPrefs"
-    private const val WIDGET_PREFS_KEY = "bound_widgets_v2"
-    private const val FOLDERS_PREF_KEY = "folders_data"
+    private val migratedFlag = booleanPreferencesKey(PREFS_MIGRATED_FLAG)
 
-    // Legacy per-list delimiter in AppInfoManager (U+201A U+FFFD U+FFFD U+201A).
-    private const val OLD_DELIMITER = "\u201A\uFFFD\uFFFD\u201A"
-
-    private val migratedFlag = booleanPreferencesKey("prefs_migrated_v2")
-
-    private val widgetSlots = listOf(
-        "widgets_center",
-        "widgets_prefs_left",
-        "widgets_prefs_right"
-    )
     /** Non-blocking; call from a background coroutine (e.g. [ComferApp.onCreate]).
      *  Must never be run on the main thread — the first-ever Room build + full
      *  import can exceed the input-dispatch timeout. */
     suspend fun runOnce(context: Context) {
-        if (context.settingsDataStore.data.first()[migratedFlag] == true) return
-
-        importSettings(context)
-        importAppInfo(context)
-        importWidgets(context)
-
-        // Only delete source files once the new stores hold the data.
-        context.deleteSharedPreferences(SETTINGS_PREFS)
-        context.deleteSharedPreferences(APP_INFO_PREFS)
-        widgetSlots.forEach(context::deleteSharedPreferences)
-
-        context.settingsDataStore.edit { it[migratedFlag] = true }
-    }
-
-    private suspend fun importSettings(context: Context) {
-        val source = context.getSharedPreferences(SETTINGS_PREFS, Context.MODE_PRIVATE)
-        val all = source.all ?: return
-        for ((key, value) in all) {
-            if (value == null) continue
-            val prefKey = stringPreferencesKey(key)
-            context.settingsDataStore.edit { it[prefKey] = value.toString() }
-        }
-    }
-
-    private suspend fun importAppInfo(context: Context) {
-        val source = context.getSharedPreferences(APP_INFO_PREFS, Context.MODE_PRIVATE)
-        val all = source.all ?: return
-
-        // App lists: every key except the folders blob.
-        for ((key, value) in all) {
-            if (key == FOLDERS_PREF_KEY) continue
-            val joined = value?.toString().orEmpty()
-            val packages = joined.split(OLD_DELIMITER).filter { it.isNotEmpty() }
-            if (packages.isNotEmpty()) {
-                ComferRepository.saveAppList(context, key, packagesToJson(packages))
+        val migrated = context.settingsDataStore.data.first()[migratedFlag]
+        executeLegacyMigration(
+            migrated = migrated,
+            readAndValidate = { readAndValidateLegacyData(context) },
+            persist = { payload ->
+                // One DataStore transaction imports all v39 scalar values. Room
+                // upserts make retries safe if the process stops before the flag.
+                context.settingsDataStore.edit { preferences ->
+                    payload.settings.forEach { (key, value) ->
+                        preferences[stringPreferencesKey(key)] = value
+                    }
+                }
+                payload.appListsJson.forEach { (key, packagesJson) ->
+                    // Preserve present-but-empty v39 lists as [] instead of
+                    // allowing first-launch defaults to repopulate them.
+                    ComferRepository.saveAppList(context, key, packagesJson)
+                }
+                if (payload.folders.isNotEmpty()) {
+                    ComferRepository.saveFolders(context, payload.folders)
+                }
+                payload.widgetsJson.forEach { (slot, widgetsJson) ->
+                    ComferRepository.saveWidgetPlacement(context, slot, widgetsJson)
+                }
+            },
+            deleteLegacySources = {
+                context.deleteSharedPreferences(LEGACY_SETTINGS_PREFS)
+                context.deleteSharedPreferences(LEGACY_APP_INFO_PREFS)
+                LEGACY_WIDGET_SLOTS.forEach(context::deleteSharedPreferences)
+            },
+            markComplete = {
+                context.settingsDataStore.edit { it[migratedFlag] = true }
             }
-        }
-
-        // Folders: JSON map { id -> {title, packages[]} }.
-        val foldersJson = all[FOLDERS_PREF_KEY]?.toString() ?: "{}"
-        // Malformed folder data must abort migration. runOnce then preserves all
-        // legacy files and leaves the flag unset so a corrected build can retry.
-        val entities = parseLegacyFolders(foldersJson)
-        if (entities.isNotEmpty()) {
-            ComferRepository.saveFolders(context, entities)
-        }
+        )
     }
 
-    private suspend fun importWidgets(context: Context) {
-        for (slot in widgetSlots) {
-            val source = context.getSharedPreferences(slot, Context.MODE_PRIVATE)
-            val jsonString = source.getString(WIDGET_PREFS_KEY, null)
-            if (!jsonString.isNullOrEmpty()) {
-                ComferRepository.saveWidgetPlacement(context, slot, jsonString)
-            }
+    private fun readAndValidateLegacyData(context: Context): LegacyMigrationPayload {
+        val settings = context.getSharedPreferences(
+            LEGACY_SETTINGS_PREFS,
+            Context.MODE_PRIVATE,
+        ).all
+        val appInfo = context.getSharedPreferences(
+            LEGACY_APP_INFO_PREFS,
+            Context.MODE_PRIVATE,
+        ).all
+        val widgets = LEGACY_WIDGET_SLOTS.associateWith { slot ->
+            context.getSharedPreferences(slot, Context.MODE_PRIVATE)
+                .getString(LEGACY_WIDGET_PREFS_KEY, null)
         }
+        return prepareLegacyMigration(settings, appInfo, widgets)
     }
-
-    private fun packagesToJson(packages: List<String>): String = Json.encodeToString(packages)
 }

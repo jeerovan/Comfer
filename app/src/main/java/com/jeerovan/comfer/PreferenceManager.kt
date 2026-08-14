@@ -14,6 +14,7 @@ import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import com.jeerovan.comfer.utils.KeyboardLocale
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import java.io.File
 import java.util.Locale
@@ -24,6 +25,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+
+internal fun preferencesToSnapshot(data: Preferences): Map<String, String> =
+    data.asMap().mapKeys { (key, _) -> key.name }.mapValues { (_, value) -> value.toString() }
 
 object PreferenceManager {
     const val PREF_BACKGROUND_IMAGE = "background_image"
@@ -127,9 +131,7 @@ object PreferenceManager {
      *  UI thread. Callers (e.g. [ComferApp.onCreate]) run it on a background scope. */
     suspend fun reload(context: Context) {
         val data = context.settingsDataStore.data.first()
-        val map = mutableMapOf<String, String>()
-        data.asMap().forEach { (key, value) -> map[key.name] = value.toString() }
-        snapshot = map
+        snapshot = preferencesToSnapshot(data)
     }
 
     private fun write(context: Context, key: String, value: String?) {

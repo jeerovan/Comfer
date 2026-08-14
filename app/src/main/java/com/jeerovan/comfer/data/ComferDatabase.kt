@@ -6,6 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
+internal const val COMFER_DATABASE_NAME = "comfer.db"
+
 @Database(
     entities = [
         AppListEntity::class,
@@ -38,7 +40,7 @@ abstract class ComferDatabase : RoomDatabase() {
                 instance ?: Room.databaseBuilder(
                     context.applicationContext,
                     ComferDatabase::class.java,
-                    "comfer.db"
+                    COMFER_DATABASE_NAME
                 ).build().also { instance = it }
             }
     }

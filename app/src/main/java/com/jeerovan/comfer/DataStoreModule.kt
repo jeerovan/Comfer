@@ -10,7 +10,8 @@ import androidx.datastore.preferences.preferencesDataStore
 val Context.dataStore by preferencesDataStore(name = "wallpaper_settings")
 
 // Scalar settings store (replaces com.jeerovan.comfer.Prefs SharedPreferences).
-val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "comfer_settings")
+internal const val SETTINGS_DATASTORE_NAME = "comfer_settings"
+val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = SETTINGS_DATASTORE_NAME)
 
 // 2. Define your keys
 object PreferenceKeys {
