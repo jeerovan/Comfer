@@ -2040,7 +2040,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
     var iconSize by remember { mutableStateOf(48.dp) }
     var iconShape: Shape by remember { mutableStateOf(CircleShape)}
     var isDefault by remember { mutableStateOf(false) }
-    var guideShown by remember { mutableStateOf(true) }
     val quickAppsGestureKey = "quick_apps_swipe"
     val settingsLongPressKey = "settings_long_press_key"
     val widgetsLongPressKey = "widgets_long_press_key"
@@ -2072,7 +2071,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             isDefault = isDefaultLauncher(context)
-            guideShown = settingsModel.isGuideShown(context)
             quickGestureShown = settingsModel.isStepGuideShown(context,quickAppsGestureKey)
             settingsLongPressShown = settingsModel.isStepGuideShown(context, settingsLongPressKey)
             widgetsLongPressShown = settingsModel.isStepGuideShown(context,widgetsLongPressKey)
@@ -2095,7 +2093,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         iconSize = newIconSize
                         iconShape = newIconShape
                     }
-                    guideShown = settingsModel.isGuideShown(context)
                     quickGestureShown = settingsModel.isStepGuideShown(context,quickAppsGestureKey)
                     settingsLongPressShown = settingsModel.isStepGuideShown(context, settingsLongPressKey)
                     widgetsLongPressShown = settingsModel.isStepGuideShown(context,widgetsLongPressKey)
@@ -2451,24 +2448,24 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     settings.isLightHour,
                                     isFolderActive = activeFolderId != null,
                                     onTappingFolder = handleFolderTap,
-                                    !guideShown && !quickGestureShown
+                                    !quickGestureShown
                                 )
                             }
                         }
-                        if(!guideShown && quickGestureShown && !settingsLongPressShown)Box(modifier = Modifier
+                        if(quickGestureShown && !settingsLongPressShown)Box(modifier = Modifier
                             .fillMaxWidth()
                             .height(lowerPartHeight)
                             .offset(x=20.dp,y=80.dp)){
                             LongPressHint()
                         }
-                        if(!guideShown && settingsLongPressShown && !widgetsLongPressShown)Box(modifier = Modifier
+                        if(settingsLongPressShown && !widgetsLongPressShown)Box(modifier = Modifier
                             .fillMaxWidth()
                             .height(lowerPartHeight)
                             .offset(x=20.dp,y = -(64.dp)),
                         ){
                             LongPressHint()
                         }
-                        if(!guideShown && widgetsLongPressShown && !recentAppsGestureShown)Box(modifier = Modifier
+                        if(widgetsLongPressShown && !recentAppsGestureShown)Box(modifier = Modifier
                             .fillMaxWidth()
                             .height(lowerPartHeight)
                             .offset(x=20.dp,y=80.dp)){
@@ -3040,7 +3037,6 @@ fun AppListOverlay(apps: List<AppInfo>,
     val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
     // State to hold the ID of the currently active folder
     var activeFolderId by remember { mutableStateOf<String?>(null) }
-    var guideShown by remember { mutableStateOf(true) }
     var horizontalSwipeShown by remember { mutableStateOf(true) }
     var doubleTapShown by remember { mutableStateOf(true) }
     var verticalSwipeShown by remember { mutableStateOf(true) }
@@ -3064,7 +3060,6 @@ fun AppListOverlay(apps: List<AppInfo>,
         withContext(Dispatchers.IO) {
             iconSize = PreferenceManager.getIconSize(context).dp
             iconShape = PreferenceManager.getIconShape(context)
-            guideShown = settingsModel.isGuideShown(context)
             animationSpeed = settingsModel.getDrawerScrollSpeed(context)
             horizontalSwipeShown = settingsModel.isStepGuideShown(context, horizontalSwipeKey)
             doubleTapShown = settingsModel.isStepGuideShown(context,doubleTapKey)
@@ -3368,7 +3363,7 @@ fun AppListOverlay(apps: List<AppInfo>,
                     }
                 }
             }
-            if(!guideShown && !horizontalSwipeShown) Box(modifier = Modifier
+            if(!horizontalSwipeShown) Box(modifier = Modifier
                 // Layout -> Decoration -> Transformation
                 .width(screenWidthInDp/2)
                 .padding(bottom = 64.dp)
@@ -3380,13 +3375,13 @@ fun AppListOverlay(apps: List<AppInfo>,
                     end = SwipeDirection.RIGHT
                 )
             }
-            if(!guideShown && horizontalSwipeShown && !doubleTapShown)Box(modifier = Modifier
+            if(horizontalSwipeShown && !doubleTapShown)Box(modifier = Modifier
                 .height(screenHeightInDp/2)
                 .offset(x = screenWidthInDp/2 - 24.dp,y = screenHeightInDp/3),
                 contentAlignment = Alignment.BottomCenter){
                 DoubleTapHint()
             }
-            if(!guideShown && horizontalSwipeShown && doubleTapShown && !verticalSwipeShown)Box(modifier = Modifier
+            if(horizontalSwipeShown && doubleTapShown && !verticalSwipeShown)Box(modifier = Modifier
                 // Layout -> Decoration -> Transformation
                 .height(screenHeightInDp/2)
                 //.border(width = 1.dp,color = Color.Cyan)

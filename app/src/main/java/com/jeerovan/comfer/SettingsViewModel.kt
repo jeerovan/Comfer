@@ -204,7 +204,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val DRAWER_OFFSET = "drawer_offset"
     private val SHOW_THEMED_TEXT = "show_themed_text"
     private val FIXED_WIDGET_POSITIONS = "fixed_widget_positions"
-    private val ONBOARDING_GUIDE_SHOWN = "quick_guide_1"
     private val CIRCULAR_DRAWER_SCROLL_SPEED = "circular_drawer_scroll_speed"
     val predefinedColors = listOf(
         Color.Red, Color.Green, Color.Blue, Color.Yellow,
@@ -469,14 +468,6 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setDrawerScrollSpeed(context: Context,speed: Float){
         viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setFloat(context,CIRCULAR_DRAWER_SCROLL_SPEED,speed)
-        }
-    }
-    fun isGuideShown(context:Context): Boolean {
-        return PreferenceManager.getBoolean(context, ONBOARDING_GUIDE_SHOWN, default = true)
-    }
-    fun setGuideShown(context: Context){
-        viewModelScope.launch(Dispatchers.IO) {
-            PreferenceManager.setBoolean(context,ONBOARDING_GUIDE_SHOWN, true)
         }
     }
     fun isStepGuideShown(context: Context, swipeKey: String): Boolean {
