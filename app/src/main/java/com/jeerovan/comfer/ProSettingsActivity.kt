@@ -1051,17 +1051,23 @@ fun SettingSwitch(label: String,
 fun SettingSlider(label: String,
                   value: Int,
                   range: ClosedFloatingPointRange<Float>,
+                  modifier: Modifier = Modifier,
                   onValueChange: (Int) -> Unit) {
+    var previewValue by remember(value) { mutableIntStateOf(value) }
     Column(modifier = Modifier.padding( vertical = 8.dp)) {
         Text(label,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
         Slider(
-            value = value.toFloat(),
+            modifier = modifier,
+            value = previewValue.toFloat(),
             onValueChange = {
-                onValueChange(it.toInt())
-                            },
+                previewValue = it.toInt()
+            },
+            onValueChangeFinished = {
+                if (previewValue != value) onValueChange(previewValue)
+            },
             valueRange = range,
             steps = ((range.endInclusive - range.start) / 2).toInt() -1
         )
@@ -1075,6 +1081,7 @@ fun CurveRadiusSlider(
     onValueChange: (Int) -> Unit
 ) {
     val range = -250f..250f
+    var previewValue by remember(value) { mutableIntStateOf(value) }
 
     // Total integer values = 501 (-250 to 250).
     // Steps are the ticks *between* the ends.
@@ -1089,8 +1096,11 @@ fun CurveRadiusSlider(
         )
 
         Slider(
-            value = value.toFloat(),
-            onValueChange = { onValueChange(it.toInt()) },
+            value = previewValue.toFloat(),
+            onValueChange = { previewValue = it.toInt() },
+            onValueChangeFinished = {
+                if (previewValue != value) onValueChange(previewValue)
+            },
             valueRange = range,
             steps = steps,
         )
@@ -1724,7 +1734,13 @@ fun AppDrawerScreen(
     val hapticFeedback = LocalHapticFeedback.current
     val settings by settingsViewModel.uiState.collectAsState()
     val appsInfo by appInfoViewModel.uiState.collectAsState()
-    val sortedPrimaryApps = if(settings.arrangeInAlphabeticalOrder) appsInfo.primaryApps.sortedBy { it.label } else appsInfo.primaryApps
+    val sortedPrimaryApps = remember(appsInfo.primaryApps, settings.arrangeInAlphabeticalOrder) {
+        if (settings.arrangeInAlphabeticalOrder) {
+            appsInfo.primaryApps.sortedBy { it.label }
+        } else {
+            appsInfo.primaryApps
+        }
+    }
 
     var currentApps by remember(sortedPrimaryApps) { mutableStateOf(sortedPrimaryApps) }
     val maxScreenHeightDp = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp }

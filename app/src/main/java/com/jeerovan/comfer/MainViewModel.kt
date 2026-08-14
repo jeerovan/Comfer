@@ -46,6 +46,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     init {
         // Observer for Wallpaper Updates
         viewModelScope.launch {
+            StartupCoordinator.awaitReady()
             application.dataStore.data
                 .map { it[PreferenceKeys.WALLPAPER_UPDATE] ?: 0L }
                 .distinctUntilChanged() // Critical: ignore unrelated DataStore updates
@@ -57,6 +58,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
         // Observer for Wallpaper Changes
         viewModelScope.launch {
+            StartupCoordinator.awaitReady()
             application.dataStore.data
                 .map { it[PreferenceKeys.WALLPAPER_CHANGE] ?: 0L }
                 .distinctUntilChanged() // Critical: ignore unrelated DataStore updates
@@ -73,6 +75,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         // Observer for Wallpaper Changes
         viewModelScope.launch {
+            StartupCoordinator.awaitReady()
             application.dataStore.data
                 .map { it[PreferenceKeys.WALLPAPER_RESET] ?: 0L }
                 .distinctUntilChanged() // Critical: ignore unrelated DataStore updates
@@ -90,6 +93,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun reloadImagePath() {
         viewModelScope.launch {
+            StartupCoordinator.awaitReady()
             val context: Context = getApplication()
             val backgroundImage = withContext(Dispatchers.IO) {
                 PreferenceManager.getBackgroundImagePath(context)
@@ -127,6 +131,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if(backgroundLoadJob?.isActive == true) return
         backgroundLoadJob = viewModelScope.launch {
             try {
+                StartupCoordinator.awaitReady()
                 val applicationContext: Application = getApplication()
                 
                 // Move preferences access to IO
@@ -136,11 +141,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 if (imageData == null || backgroundImagePath == null) {
-                    withContext(Dispatchers.IO) {
+                    WallpaperWorkCoordinator.runExclusive {
                         fetchImageData(applicationContext)
-                        delay(500)
                         downloadImage(applicationContext)
-                        delay(500)
                         
                         // update uiState
                         val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
@@ -153,9 +156,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             }
                             PreferenceManager.setWallpaperApplied(applicationContext, true)
                             
-                            withContext(Dispatchers.Main) {
-                                _uiState.update { it.copy(imagePath = filePath) }
-                            }
+                            _uiState.update { it.copy(imagePath = filePath) }
                         }
                     }
                 } else {
@@ -169,6 +170,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
             }
+            catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            }
             catch (e: Exception){
                 Log.e("MainViewModel",e.toString())
             }
@@ -176,7 +180,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
     fun reapplyWallpaper(){
         viewModelScope.launch {
-            setWallpaper(getApplication())
+            StartupCoordinator.awaitReady()
+            WallpaperWorkCoordinator.runExclusive {
+                val context: Context = getApplication()
+                // A lifecycle resume may enqueue this while a download/apply still owns
+                // the coordinator. Re-check after acquiring it so the completed apply's
+                // marker can invalidate this now-stale request.
+                val desiredImage = PreferenceManager.getBackgroundImagePath(context)
+                val appliedImage = PreferenceManager.getAppliedWallpaperImage(context)
+                if (desiredImage != null && desiredImage != appliedImage) {
+                    setWallpaper(context)
+                }
+            }
         }
     }
     fun changeWallpaper(){
@@ -184,14 +199,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         wallpaperChangeJob = viewModelScope.launch {
             val context:Context = getApplication()
             try {
-                delay(100)
-                withContext(Dispatchers.IO) {
+                StartupCoordinator.awaitReady()
+                WallpaperWorkCoordinator.runExclusive {
                     fetchImageData(context, manualChange = true)
-                }
-                delay(100)
-                withContext(Dispatchers.IO) {
                     downloadImage(context)
                 }
+            }
+            catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             }
             catch (e: Exception){
                 Log.e("MainViewModel",e.toString())

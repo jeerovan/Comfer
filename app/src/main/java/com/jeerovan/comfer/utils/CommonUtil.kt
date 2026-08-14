@@ -25,9 +25,6 @@ import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
 import androidx.documentfile.provider.DocumentFile
 import androidx.palette.graphics.Palette
-import coil.Coil
-import coil.request.ImageRequest
-import coil.request.ImageResult
 import com.jeerovan.comfer.KeyTextObject
 import com.jeerovan.comfer.ImageData
 import com.jeerovan.comfer.PreferenceKeys
@@ -41,8 +38,12 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.client.statement.bodyAsChannel
+import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -51,9 +52,32 @@ import okhttp3.ConnectionSpec
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 import java.net.URLDecoder
 import java.security.MessageDigest
 import java.text.Normalizer
+
+private const val MAX_WALLPAPER_DIMENSION = 2048
+internal const val MAX_WALLPAPER_SOURCE_BYTES = 25L * 1024L * 1024L
+private val wallpaperProcessingDispatcher = Dispatchers.Default.limitedParallelism(1)
+
+internal fun copyStreamWithLimit(
+    input: InputStream,
+    output: OutputStream,
+    maxBytes: Long,
+): Boolean {
+    require(maxBytes >= 0)
+    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+    var totalBytes = 0L
+    while (true) {
+        val count = input.read(buffer)
+        if (count < 0) return true
+        totalBytes += count
+        if (totalBytes > maxBytes) return false
+        output.write(buffer, 0, count)
+    }
+}
 
 data class VibrantTextColorStyle(
     val textColor: Color,
@@ -106,20 +130,26 @@ object CommonUtil {
         }
     }
     suspend fun copyFileFromUri(context: Context, sourceUri: Uri, destinationFile: File): Boolean = withContext(Dispatchers.IO) {
-        return@withContext try {
+        val copied = try {
             // Open an InputStream from the source URI
             context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
                 // Open a FileOutputStream to the destination file
                 FileOutputStream(destinationFile).use { outputStream ->
-                    // Copy the data from the input stream to the output stream
-                    inputStream.copyTo(outputStream)
+                    copyStreamWithLimit(
+                        inputStream,
+                        outputStream,
+                        MAX_WALLPAPER_SOURCE_BYTES,
+                    )
                 }
-            }
-            true // Indicate success
+            } ?: false
         } catch (e: IOException) {
-            e.printStackTrace()
-            false // Indicate failure
+            Log.e("WallpaperCopy", "Failed to copy local wallpaper", e)
+            false
         }
+        if (!copied) {
+            destinationFile.delete()
+        }
+        return@withContext copied
     }
     suspend fun getFileNameFromUri(context: Context, uri: Uri): String? = withContext(Dispatchers.IO) {
         var fileName: String? = null
@@ -231,10 +261,6 @@ object CommonUtil {
             wallpaperDirectory,
             currentWallpaperImageUri)
         if(nextLocalImageUri != null && currentWallpaperImageUri != nextLocalImageUri){
-            PreferenceManager.setBackgroundImageUri(
-                context,
-                nextLocalImageUri
-            )
             //copy file to app files
             val filename = getFileNameFromUri(context, nextLocalImageUri)
             if (filename != null) {
@@ -243,6 +269,7 @@ object CommonUtil {
                 // 3. Copy the file
                 val success = copyFileFromUri(context, nextLocalImageUri, destinationFile)
                 if (success) {
+                    PreferenceManager.setBackgroundImageUri(context, nextLocalImageUri)
                     val newFilePath = destinationFile.absolutePath
                     val oldFilePath:String? = PreferenceManager.getBackgroundImagePath(context)
                     PreferenceManager.setBackgroundImagePath(
@@ -310,12 +337,15 @@ object CommonUtil {
         }
     }
 
-    suspend fun fetchImageData(applicationContext: Context,manualChange: Boolean = false){
+    suspend fun fetchImageData(
+        applicationContext: Context,
+        manualChange: Boolean = false
+    ): Boolean {
         val autoWallpapers = PreferenceManager.getAutoWallpapers(applicationContext)
-        if(!autoWallpapers) return
+        if(!autoWallpapers) return true
         val previousWallpaperApplied = PreferenceManager.getWallpaperApplied(applicationContext)
         if(!previousWallpaperApplied && !manualChange) {
-            return
+            return true
         }
         val changeFrequency = PreferenceManager.getWallpaperFrequency(applicationContext)
         val hourNow = PreferenceManager.getHour(applicationContext)
@@ -338,15 +368,16 @@ object CommonUtil {
                         Log.i("FetchImageData", response.toString())
                         PreferenceManager.saveImageData(applicationContext, response)
                         if(!manualChange)PreferenceManager.setHour(applicationContext, hourNow)
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         Log.e("FetchImageData", e.toString())
+                        return false
                     }
                 }
             }
         }
-    }
-    fun canSetLockScreenWallpaper(): Boolean {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+        return true
     }
     fun getLaunchIntentSafe(context: Context, packageName: String): Intent? {
         return try {
@@ -375,58 +406,40 @@ object CommonUtil {
             options.inJustDecodeBounds = false
             val bitmap = BitmapFactory.decodeFile(file.absolutePath, options) ?: return@withContext null
             try {
-                // Optional: resizeBitmapArea is the internal limiter (default is usually fine)
-                // but since we already downsampled, we can just generate.
-                val palette = Palette.from(bitmap).generate()
-                // Light theme colors
-                val lightBg = palette.lightMutedSwatch?.rgb ?: Color.White.copy(alpha = 0.7f).toArgb()
-                val lightFg = palette.lightMutedSwatch?.bodyTextColor
-                    ?: palette.darkVibrantSwatch?.rgb
-                    ?: Color.Black.toArgb()
-
-                // Dark theme colors
-                val darkBg = palette.darkMutedSwatch?.rgb ?: Color.Black.copy(alpha = 0.7f).toArgb()
-                val darkFg = palette.darkMutedSwatch?.titleTextColor
-                    ?: palette.lightVibrantSwatch?.rgb
-                    ?: Color.White.toArgb()
-                val textColors = getThemedColorForUpperHalf(palette)
-                PreferenceManager.setThemedColors(
-                    context,
-                    lightBg,
-                    lightFg,
-                    darkBg,
-                    darkFg,
-                    textColors.textColor.toArgb(),
-                    textColors.shadowColor.toArgb()
-                )
-                //signal to update
-                context.dataStore.edit { preferences ->
-                    preferences[PreferenceKeys.WALLPAPER_UPDATE] = System.currentTimeMillis()
-                }
+                setWallpaperThemedColors(context, bitmap)
             } finally {
                 // 5. Important: Recycle the bitmap immediately as we only needed it for colors
                 bitmap.recycle()
             }
         }
     }
-    suspend fun downloadImage(applicationContext: Context){
+    suspend fun downloadImage(applicationContext: Context): Boolean {
         if (PreferenceManager.newImageAvailable(applicationContext)) {
             Log.i("DownloadImage", "Downloading New Image")
             val tempImageData: ImageData? =
                 PreferenceManager.getTempImageData(applicationContext)
             if (tempImageData != null) {
                 val imageUrl = tempImageData.imageUrl
-                val request = ImageRequest.Builder(applicationContext)
-                    .data(imageUrl)
-                    .build()
-                val result = Coil.imageLoader(applicationContext).execute(request)
-                if (result is ImageResult) {
-                    val drawable = result.drawable
-                    if (drawable != null) {
+                val (targetWidth, targetHeight) = getWallpaperTargetSize(applicationContext)
+                val sourceFile = File.createTempFile(
+                    "comfer_wallpaper_source_",
+                    ".tmp",
+                    applicationContext.cacheDir,
+                )
+                try {
+                    if (!downloadFileWithinLimit(applicationContext, imageUrl, sourceFile)) {
+                        return false
+                    }
+                    val bitmap = decodeWallpaperBitmap(sourceFile, targetWidth, targetHeight)
+                        ?: return false
+                    try {
                         val filename = "comfer_${tempImageData.id}.jpg"
                         val file = File(applicationContext.filesDir, filename)
                         FileOutputStream(file).use { stream ->
-                            drawable.toBitmap().compress(Bitmap.CompressFormat.JPEG, 100, stream)
+                            if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 92, stream)) {
+                                file.delete()
+                                return false
+                            }
                         }
                         Log.i("DownloadImage","Downloaded: $filename")
                         val oldFilePath:String? = PreferenceManager.getBackgroundImagePath(applicationContext)
@@ -442,47 +455,161 @@ object CommonUtil {
                             oldFile.delete()
                             Log.i("DownloadImage","Deleted: $oldFilePath")
                         }
-                        setWallpaperThemedColors(applicationContext, file)
-                        withContext(Dispatchers.IO){
-                            setWallpaper(applicationContext)
-                        }
+                        setWallpaperThemedColors(applicationContext, bitmap)
+                        applyWallpaperBitmap(applicationContext, bitmap, file.absolutePath)
+                    } finally {
+                        bitmap.recycle()
                     }
+                } finally {
+                    sourceFile.delete()
                 }
+            } else {
+                return false
             }
         } else if (PreferenceManager.getMonochrome(applicationContext)){
             val currentWallpaperFilePath = PreferenceManager.getBackgroundImagePath(applicationContext)
             if( PreferenceManager.getAppliedWallpaperImage(applicationContext) != currentWallpaperFilePath){
-                withContext(Dispatchers.IO) {
-                    setWallpaper(applicationContext)
-                }
+                setWallpaper(applicationContext)
             }
         }
+        return true
     }
     suspend fun setWallpaper(context: Context) = withContext(Dispatchers.IO) {
         val filePath = PreferenceManager.getBackgroundImagePath(context) ?: return@withContext
-        val bitmap = BitmapFactory.decodeFile(filePath) ?: return@withContext
-
+        val (targetWidth, targetHeight) = getWallpaperTargetSize(context)
+        val bitmap = decodeWallpaperBitmap(File(filePath), targetWidth, targetHeight)
+            ?: return@withContext
         try {
-            val isLauncherDefault = isDefaultLauncher(context)
-            if (isLauncherDefault) {
-                val setWallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(context)
-                val wallpaperManager = WallpaperManager.getInstance(context)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    var flag = WallpaperManager.FLAG_SYSTEM
-                    if (setWallpaperOnLockScreen) {
-                        flag = WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
-                    }
-                    wallpaperManager.setBitmap(bitmap, null, true, flag)
-                } else {
-                    wallpaperManager.setBitmap(bitmap)
-                }
-                PreferenceManager.setAppliedWallpaperImage(context, filePath)
-            } else {
-                PreferenceManager.setAppliedWallpaperImage(context, null)
-            }
+            applyWallpaperBitmap(context, bitmap, filePath)
         } finally {
             bitmap.recycle()
         }
+    }
+
+    private suspend fun downloadFileWithinLimit(
+        context: Context,
+        imageUrl: String,
+        destination: File,
+    ): Boolean {
+        return try {
+            val response = getHttpClient(context).get(imageUrl)
+            if (!response.status.isSuccess()) return false
+            val channel = response.bodyAsChannel()
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            var totalBytes = 0L
+            try {
+                FileOutputStream(destination).use { output ->
+                    while (true) {
+                        val count = channel.readAvailable(buffer, 0, buffer.size)
+                        if (count < 0) break
+                        totalBytes += count
+                        if (totalBytes > MAX_WALLPAPER_SOURCE_BYTES) {
+                            Log.e("DownloadImage", "Wallpaper exceeds source byte limit")
+                            return false
+                        }
+                        output.write(buffer, 0, count)
+                    }
+                }
+            } finally {
+                channel.cancel(null)
+            }
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e("DownloadImage", "Wallpaper download failed", e)
+            false
+        }
+    }
+
+    private fun decodeWallpaperBitmap(
+        file: File,
+        targetWidth: Int,
+        targetHeight: Int,
+    ): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        val decodeOptions = BitmapFactory.Options().apply {
+            inSampleSize = calculateInSampleSize(bounds, targetWidth, targetHeight)
+            inPreferredConfig = Bitmap.Config.RGB_565
+        }
+        val decoded = BitmapFactory.decodeFile(file.absolutePath, decodeOptions) ?: return null
+        val bitmap = if (decoded.width > targetWidth || decoded.height > targetHeight) {
+            val scale = minOf(
+                targetWidth.toFloat() / decoded.width,
+                targetHeight.toFloat() / decoded.height
+            )
+            Bitmap.createScaledBitmap(
+                decoded,
+                (decoded.width * scale).toInt().coerceAtLeast(1),
+                (decoded.height * scale).toInt().coerceAtLeast(1),
+                true
+            ).also { decoded.recycle() }
+        } else {
+            decoded
+        }
+        return bitmap
+    }
+
+    private suspend fun applyWallpaperBitmap(context: Context, bitmap: Bitmap, filePath: String) {
+        if (isDefaultLauncher(context)) {
+            val setWallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(context)
+            val wallpaperManager = WallpaperManager.getInstance(context)
+            val flag = if (setWallpaperOnLockScreen) {
+                WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
+            } else {
+                WallpaperManager.FLAG_SYSTEM
+            }
+            wallpaperManager.setBitmap(bitmap, null, true, flag)
+            PreferenceManager.setAppliedWallpaperImage(context, filePath)
+        } else {
+            PreferenceManager.setAppliedWallpaperImage(context, null)
+        }
+    }
+
+    private suspend fun setWallpaperThemedColors(context: Context, bitmap: Bitmap) {
+        val colors = withContext(wallpaperProcessingDispatcher) {
+            val palette = Palette.from(bitmap).generate()
+            val textColors = getThemedColorForUpperHalf(palette)
+            intArrayOf(
+                palette.lightMutedSwatch?.rgb
+                    ?: Color.White.copy(alpha = 0.7f).toArgb(),
+                palette.lightMutedSwatch?.bodyTextColor
+                    ?: palette.darkVibrantSwatch?.rgb
+                    ?: Color.Black.toArgb(),
+                palette.darkMutedSwatch?.rgb
+                    ?: Color.Black.copy(alpha = 0.7f).toArgb(),
+                palette.darkMutedSwatch?.titleTextColor
+                    ?: palette.lightVibrantSwatch?.rgb
+                    ?: Color.White.toArgb(),
+                textColors.textColor.toArgb(),
+                textColors.shadowColor.toArgb(),
+            )
+        }
+        PreferenceManager.setThemedColors(
+            context,
+            colors[0],
+            colors[1],
+            colors[2],
+            colors[3],
+            colors[4],
+            colors[5],
+        )
+        context.dataStore.edit { preferences ->
+            preferences[PreferenceKeys.WALLPAPER_UPDATE] = System.currentTimeMillis()
+        }
+    }
+
+    private fun getWallpaperTargetSize(context: Context): Pair<Int, Int> {
+        val wallpaperManager = WallpaperManager.getInstance(context)
+        val metrics = context.resources.displayMetrics
+        val desiredWidth = wallpaperManager.desiredMinimumWidth
+            .takeIf { it > 0 } ?: (metrics.widthPixels * 2)
+        val desiredHeight = wallpaperManager.desiredMinimumHeight
+            .takeIf { it > 0 } ?: metrics.heightPixels
+        return desiredWidth.coerceIn(1, MAX_WALLPAPER_DIMENSION) to
+            desiredHeight.coerceIn(1, MAX_WALLPAPER_DIMENSION)
     }
 
     fun getShapeFromString(iconShape:String?="circle"): Shape{
@@ -566,4 +693,3 @@ object CommonUtil {
         return VibrantTextColorStyle(textColor, shadowColor)
     }
 }
-

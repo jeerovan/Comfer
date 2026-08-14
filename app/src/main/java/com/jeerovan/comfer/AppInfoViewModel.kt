@@ -23,11 +23,20 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.palette.graphics.Palette
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -44,10 +53,11 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.min
 import android.graphics.Paint
 import android.graphics.Typeface
@@ -62,6 +72,7 @@ import androidx.compose.ui.unit.LayoutDirection
 
 private const val ICON_ANALYSIS_SIZE = 64
 private const val ICON_ALPHA_THRESHOLD = 32
+private const val APP_REFRESH_DEBOUNCE_MS = 300L
 
 data class AppInfoUiState(
     val quickApps: List<AppInfo> = emptyList(),
@@ -70,6 +81,12 @@ data class AppInfoUiState(
     val folderApps: Map<String, List<AppInfo>> = emptyMap(),
     val folders : Map<String, FolderData> = emptyMap(),
     val settings: Map<String, Any> = emptyMap()
+)
+data class LauncherAppsUiState(
+    val quickApps: List<AppInfo> = emptyList(),
+    val primaryApps: List<AppInfo> = emptyList(),
+    val restApps: List<AppInfo> = emptyList(),
+    val folderApps: Map<String, List<AppInfo>> = emptyMap(),
 )
 data class WallpaperThemeColors(
     val lightBg: Int,
@@ -95,11 +112,15 @@ private data class LegacyIconAnalysis(
     val propagatedColor: Int?,
 )
 
-private val packageManagerDispatcher = Dispatchers.IO.limitedParallelism(4)
-private val iconLoadingDispatcher = Dispatchers.IO.limitedParallelism(4)
-// True concurrency cap for icon loads. The heavy per-app work switches to
-// Dispatchers.IO (unbounded) internally, which defeats limitedParallelism
-// alone — the semaphore is what actually bounds how many loads run at once.
+// LauncherActivityInfo icon/label reads eventually enter Android's process-global
+// ResourcesManager. Parallel reads can hold that lock behind other workers and
+// indirectly block main-thread resource/input work, even though these calls are
+// dispatched off main. Keep resource acquisition serial; bitmap processing below
+// remains parallel on iconProcessingDispatcher.
+private val packageManagerDispatcher = Dispatchers.IO.limitedParallelism(1)
+private val iconProcessingDispatcher = Dispatchers.Default.limitedParallelism(4)
+// Cap complete icon jobs as well as CPU dispatcher parallelism. Resource reads
+// switch to the serialized package-manager IO dispatcher above.
 private val iconLoadSemaphore = Semaphore(4)
 suspend fun getAppInfo(
     context: Context,
@@ -108,19 +129,27 @@ suspend fun getAppInfo(
     themedColors: WallpaperThemeColors,
     isLightHour: Boolean,
     iconPackPackage: String?
-): AppInfo? = withContext(Dispatchers.IO) {
+): AppInfo? = withContext(iconProcessingDispatcher) {
     try {
+        PerformanceTrace.iconLoaded()
         val packageName = info.componentName.packageName
         val user = info.user
-        val cacheKey = "$packageName" // Add userId here to support work profiles
+        val cacheKey = AppIconCache.Key(
+            packageName = packageName,
+            componentName = info.componentName.flattenToString(),
+            userHash = user.hashCode(),
+        )
 
-        val cachedIcon = AppIconCache.getIcon(cacheKey)
+        val cachedIcon = AppIconCache.getIcon(cacheKey, context.resources)
 
-        val loadedDrawable = withContext(packageManagerDispatcher) {
+        val (loadedDrawable, appLabel) = withContext(packageManagerDispatcher) {
             val customIcon = if (iconPackPackage != null) {
                 IconPackManager.getCustomIcon(context, info.componentName)
             } else null
-            customIcon ?: cachedIcon ?: info.getBadgedIcon(0).also { AppIconCache.cacheIcon(cacheKey, it) }
+            val drawable = customIcon ?: cachedIcon ?: info.getBadgedIcon(0).also {
+                AppIconCache.cacheIcon(cacheKey, it)
+            }
+            drawable to info.label.toString().trim()
         }
 
         // 3. Create a mutable copy for processing to ensure thread safety
@@ -131,10 +160,6 @@ suspend fun getAppInfo(
         var backgroundDrawable: Drawable?
         var foregroundDrawable: Drawable?
 
-        // Wrapped label extraction in limited parallelism for the same lock-contention reasons
-        val appLabel = withContext(packageManagerDispatcher) {
-            info.label.toString().trim()
-        }
         val foregroundColor = getThemedIconColor(themedColors, isLightHour)
 
         val isAdaptive = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && iconDrawable is AdaptiveIconDrawable
@@ -196,6 +221,8 @@ suspend fun getAppInfo(
             componentName = info.componentName,
             user = user
         )
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         // Log generic error to avoid spamming logs with specific package failures
         Log.e("getAppInfo", "Failed to load ${info.componentName.packageName}: ${e.message}")
@@ -382,45 +409,76 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
     private val _uiState = MutableStateFlow(AppInfoUiState())
     val uiState: StateFlow<AppInfoUiState> = _uiState.asStateFlow()
+    val launcherAppsState: StateFlow<LauncherAppsUiState> = uiState
+        .map { state ->
+            LauncherAppsUiState(
+                state.quickApps,
+                state.primaryApps,
+                state.restApps,
+                state.folderApps,
+            )
+        }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LauncherAppsUiState())
 
     // System Services for modern launcher tracking
     private val launcherApps = application.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
     private val userManager = application.getSystemService(Context.USER_SERVICE) as UserManager
+    private val refreshRequests = MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    private val refreshGeneration = AtomicLong(0L)
+    private val inventoryRefreshTracker = InventoryRefreshTracker()
+    @Volatile
+    private var activityInventory: Map<String, LauncherActivityInfo> = emptyMap()
+    private var settingsLoadJob: Job? = null
 
     init {
-        // Start observing system changes immediately
-        observePackageChanges()
         viewModelScope.launch {
+            StartupCoordinator.awaitReady()
+            observeRefreshRequests()
+        }
+        viewModelScope.launch {
+            StartupCoordinator.awaitReady()
             application.dataStore.data
                 .map { it[PreferenceKeys.ICON_PACK_LOAD] ?: 0L }
                 .distinctUntilChanged()
-                .collect { timestamp ->
+                .collect {
                     loadIconPack()
                 }
         }
-        loadSettings()
+        settingsLoadJob = viewModelScope.launch {
+            StartupCoordinator.awaitReady()
+            loadSettingsSnapshot()
+        }
     }
+
     fun loadSettings() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val context:Context = getApplication()
-            val iconSize = PreferenceManager.getIconSize(context)
-            val shape = PreferenceManager.getIconShape(context)
-            val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
-            val monochrome = PreferenceManager.getMonochrome(context)
-            val showThemedIcons = PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
-            val themedColors = PreferenceManager.getThemedColors(context)
-            val isLightHour = PreferenceManager.isLightHour(context)
-            withContext(Dispatchers.Main){
-                _uiState.update {
-                    it.copy(settings = mutableMapOf<String,Any>(
-                        "iconSize" to iconSize,
-                        "shape" to shape,
-                        "showThemedIcons" to showThemedIcons,
-                        "themedColors" to themedColors,
-                        "isLightHour" to isLightHour
-                    ))
-                }
-            }
+        if (settingsLoadJob?.isActive == true) return
+        settingsLoadJob = viewModelScope.launch {
+            StartupCoordinator.awaitReady()
+            loadSettingsSnapshot()
+        }
+    }
+
+    private suspend fun loadSettingsSnapshot() = withContext(Dispatchers.IO) {
+        val context:Context = getApplication()
+        val iconSize = PreferenceManager.getIconSize(context)
+        val shape = PreferenceManager.getIconShape(context)
+        val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
+        val monochrome = PreferenceManager.getMonochrome(context)
+        val showThemedIcons = PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
+        val themedColors = PreferenceManager.getThemedColors(context)
+        val isLightHour = PreferenceManager.isLightHour(context)
+        _uiState.update {
+            it.copy(settings = mapOf(
+                "iconSize" to iconSize,
+                "shape" to shape,
+                "showThemedIcons" to showThemedIcons,
+                "themedColors" to themedColors,
+                "isLightHour" to isLightHour
+            ))
         }
     }
     private suspend fun loadIconPack(){
@@ -431,60 +489,94 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             IconPackManager.unloadIconPack(getApplication())
         }
     }
-    private fun observePackageChanges() {
-        viewModelScope.launch {
-            callbackFlow {
+    private fun packageChanges() = callbackFlow {
+                fun requestInventoryRefresh(packageNames: Collection<String>, user: UserHandle?) {
+                    if (user != null) {
+                        packageNames.forEach { packageName ->
+                            AppIconCache.removePackage(packageName, user.hashCode())
+                        }
+                    }
+                    inventoryRefreshTracker.requestReload()
+                    trySend(Unit)
+                }
                 val callback = object : LauncherApps.Callback() {
-                    override fun onPackageAdded(packageName: String, user: UserHandle) { trySend(Unit) }
-                    override fun onPackageRemoved(packageName: String, user: UserHandle) { trySend(Unit) }
-                    override fun onPackageChanged(packageName: String, user: UserHandle) { trySend(Unit) }
-                    override fun onPackagesAvailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) { trySend(Unit) }
-                    override fun onPackagesUnavailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) { trySend(Unit) }
+                    override fun onPackageAdded(packageName: String, user: UserHandle) { requestInventoryRefresh(listOf(packageName), user) }
+                    override fun onPackageRemoved(packageName: String, user: UserHandle) { requestInventoryRefresh(listOf(packageName), user) }
+                    override fun onPackageChanged(packageName: String, user: UserHandle) { requestInventoryRefresh(listOf(packageName), user) }
+                    override fun onPackagesAvailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) { requestInventoryRefresh(packageNames?.asList().orEmpty(), user) }
+                    override fun onPackagesUnavailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) { requestInventoryRefresh(packageNames?.asList().orEmpty(), user) }
                 }
 
                 // 1. Registration MUST happen on a thread with a Looper (Main)
                 launcherApps.registerCallback(callback)
 
-                trySend(Unit) // Initial load
-
                 awaitClose {
                     // Unregister is safe to call here
                     launcherApps.unregisterCallback(callback)
                 }
-            }
-                // 2. Remove .flowOn(Dispatchers.IO) here!
-                // callbackFlow block runs on the collector's context (Main, since launched in viewModelScope).
-                // This allows registerCallback to succeed.
-                .collectLatest {
-                    // 3. Move the background thread switch inside refreshAppLists()
-                    // or use flowOn just for the collection part if needed, but simpler is:
-                    refreshAppLists()
-                }
-        }
     }
 
     fun reloadList() {
-        viewModelScope.launch {
-            refreshAppLists()
+        refreshRequests.tryEmit(Unit)
+    }
+
+    private suspend fun observeRefreshRequests() {
+        merge(packageChanges(), refreshRequests)
+            .onStart { emit(Unit) }
+            .collectLatest {
+                val generation = refreshGeneration.incrementAndGet()
+                // Cancel the old generation immediately, then coalesce callback
+                // bursts before doing PackageManager, Room, and icon work.
+                delay(APP_REFRESH_DEBOUNCE_MS)
+                val inventoryRequest =
+                    inventoryRefreshTracker.snapshot(activityInventory.isNotEmpty())
+                val traceCookie = PerformanceTrace.appRefreshStarted()
+                val traceName = "appRefresh:$generation"
+                PerformanceTrace.beginAsync(traceName, traceCookie)
+                try {
+                    refreshAppLists(generation, inventoryRequest)
+                } finally {
+                    PerformanceTrace.endAsync(traceName, traceCookie)
+                    PerformanceTrace.appRefreshFinished()
+                }
+            }
+    }
+
+    private fun isCurrentGeneration(generation: Long): Boolean {
+        return refreshGeneration.get() == generation
+    }
+
+    private inline fun publishIfCurrent(generation: Long, update: (AppInfoUiState) -> AppInfoUiState) {
+        if (isCurrentGeneration(generation)) {
+            _uiState.update(update)
         }
     }
-    private suspend fun refreshAppLists() = withContext(Dispatchers.IO) {
+
+    private suspend fun refreshAppLists(
+        generation: Long,
+        inventoryRequest: InventoryRefreshRequest
+    ) = withContext(Dispatchers.IO) {
         try {
             Log.i("LoadAppLists", "Loading started")
+            val reloadInventory = inventoryRequest.shouldReload
 
             // --- Stage 1: Fetch All Launchable Activities (Personal + Work) ---
-            val allActivitiesMap = mutableMapOf<String, LauncherActivityInfo>()
-
-            val profiles = userManager.userProfiles
-            for (user in profiles) {
-                val activities = launcherApps.getActivityList(null, user)
-                for (info in activities) {
-                    val pkg = info.componentName.packageName
-                    if (!allActivitiesMap.containsKey(pkg)) {
-                        allActivitiesMap[pkg] = info
+            val allActivitiesMap = if (reloadInventory) {
+                val freshInventory = mutableMapOf<String, LauncherActivityInfo>()
+                val profiles = userManager.userProfiles
+                for (user in profiles) {
+                    val activities = launcherApps.getActivityList(null, user)
+                    for (info in activities) {
+                        val pkg = info.componentName.packageName
+                        if (!freshInventory.containsKey(pkg)) {
+                            freshInventory[pkg] = info
+                        }
+                        // TODO: key by component + user to preserve multiple activities/profiles.
                     }
-                    //Original allActivitiesMap[pkg]?.add(info) not adding multiple
                 }
+                freshInventory.toMap().also { activityInventory = it }
+            } else {
+                activityInventory
             }
 
             val allCurrentPackageNames = allActivitiesMap.keys.toSet()
@@ -493,54 +585,85 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             // --- Stage 2: List Management (Quick/Primary/Rest) ---
             val savedQuickPackageNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME) ?: emptyList()
             val savedPrimaryPackageNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME) ?: emptyList()
-            val savedAllPackageNames = AppInfoManager.getAppPackageNames(context, AppInfoManager.ALL_APPS_LIST_NAME)?.toSet() ?: emptySet()
-
-            val isFirstLaunch = savedAllPackageNames.isEmpty()
             val finalQuickPackageNames: List<String>
             val finalPrimaryPackageNames: List<String>
 
-            if (isFirstLaunch) {
-                PreferenceManager.onFirstOpen(context)
-                val allStandardApps = filterStandardApps(allCurrentPackageNames).toList()
-                var eightStandardApps = allStandardApps.take(8)
-
-                if (eightStandardApps.size < 8) {
-                    val remainingSpace = 8 - eightStandardApps.size
-                    val remainingPackageNames = allCurrentPackageNames.filter { it !in eightStandardApps }
-                    eightStandardApps = eightStandardApps + remainingPackageNames.take(remainingSpace)
-                }
-                finalQuickPackageNames = eightStandardApps
-                finalPrimaryPackageNames = allCurrentPackageNames.filter { it !in finalQuickPackageNames }
+            if (!reloadInventory) {
+                // Theme/icon-only refresh: reuse cached LauncherApps inventory and
+                // persisted placement without repeating Binder queries or writes.
+                finalQuickPackageNames = savedQuickPackageNames
+                finalPrimaryPackageNames = savedPrimaryPackageNames
             } else {
-                val addedPackages = allCurrentPackageNames - savedAllPackageNames
-                val removedPackages = savedAllPackageNames - allCurrentPackageNames
+                val savedAllPackageNames = AppInfoManager.getAppPackageNames(
+                    context,
+                    AppInfoManager.ALL_APPS_LIST_NAME
+                )?.toSet() ?: emptySet()
+                val isFirstLaunch = savedAllPackageNames.isEmpty()
 
-                // Unload app icons loaded from icon pack
-                val iconPackApp = PreferenceManager.getIconPack(context)
-                if(iconPackApp != null && removedPackages.contains(iconPackApp)){
-                    IconPackManager.unloadIconPack(context)
-                }
+                if (isFirstLaunch) {
+                    PreferenceManager.onFirstOpen(context)
+                    val allStandardApps = filterStandardApps(allCurrentPackageNames).toList()
+                    var eightStandardApps = allStandardApps.take(8)
 
-                var currentQuickPackages = savedQuickPackageNames.filter { it !in removedPackages }
-                var currentPrimaryPackages = savedPrimaryPackageNames.filter { it !in removedPackages }
-
-                if (addedPackages.isNotEmpty()) {
-                    val quickAppsCapacity = 8
-                    val quickAppsSpace = quickAppsCapacity - currentQuickPackages.size
-                    if (quickAppsSpace > 0) {
-                        currentQuickPackages = currentQuickPackages + addedPackages.take(quickAppsSpace)
+                    if (eightStandardApps.size < 8) {
+                        val remainingSpace = 8 - eightStandardApps.size
+                        val remainingPackageNames =
+                            allCurrentPackageNames.filter { it !in eightStandardApps }
+                        eightStandardApps =
+                            eightStandardApps + remainingPackageNames.take(remainingSpace)
                     }
-                    currentPrimaryPackages = currentPrimaryPackages + addedPackages.drop(quickAppsSpace)
+                    finalQuickPackageNames = eightStandardApps
+                    finalPrimaryPackageNames =
+                        allCurrentPackageNames.filter { it !in finalQuickPackageNames }
+                } else {
+                    val addedPackages = allCurrentPackageNames - savedAllPackageNames
+                    val removedPackages = savedAllPackageNames - allCurrentPackageNames
+
+                    val iconPackApp = PreferenceManager.getIconPack(context)
+                    if (iconPackApp != null && removedPackages.contains(iconPackApp)) {
+                        IconPackManager.unloadIconPack(context)
+                    }
+
+                    var currentQuickPackages =
+                        savedQuickPackageNames.filter { it !in removedPackages }
+                    var currentPrimaryPackages =
+                        savedPrimaryPackageNames.filter { it !in removedPackages }
+
+                    if (addedPackages.isNotEmpty()) {
+                        val quickAppsCapacity = 8
+                        val quickAppsSpace = quickAppsCapacity - currentQuickPackages.size
+                        if (quickAppsSpace > 0) {
+                            currentQuickPackages =
+                                currentQuickPackages + addedPackages.take(quickAppsSpace)
+                        }
+                        currentPrimaryPackages =
+                            currentPrimaryPackages + addedPackages.drop(quickAppsSpace)
+                    }
+                    finalQuickPackageNames = currentQuickPackages
+                    finalPrimaryPackageNames = currentPrimaryPackages
                 }
-                finalQuickPackageNames = currentQuickPackages
-                finalPrimaryPackageNames = currentPrimaryPackages
+
+                AppInfoManager.saveAppPackageNames(
+                    context,
+                    AppInfoManager.QUICK_APPS_LIST_NAME,
+                    finalQuickPackageNames.toSet()
+                )
+                AppInfoManager.saveAppPackageNames(
+                    context,
+                    AppInfoManager.PRIMARY_APPS_LIST_NAME,
+                    finalPrimaryPackageNames.toSet()
+                )
+                AppInfoManager.saveAppPackageNames(
+                    context,
+                    AppInfoManager.ALL_APPS_LIST_NAME,
+                    allCurrentPackageNames.toSet()
+                )
+                inventoryRefreshTracker.markCompleted(inventoryRequest.version)
             }
-            // Save updated lists
-            AppInfoManager.saveAppPackageNames(context, AppInfoManager.QUICK_APPS_LIST_NAME, finalQuickPackageNames.toSet())
-            AppInfoManager.saveAppPackageNames(context, AppInfoManager.PRIMARY_APPS_LIST_NAME, finalPrimaryPackageNames.toSet())
-            AppInfoManager.saveAppPackageNames(context, AppInfoManager.ALL_APPS_LIST_NAME, allCurrentPackageNames.toSet())
 
             // --- Stage 3: Load App Info / Icons Concurrently ---
+            PerformanceTrace.counter("launcherActivities", allActivitiesMap.size)
+            PerformanceTrace.resetIconLoads()
             val autoWallpapers = PreferenceManager.getAutoWallpapers(context)
             val monochrome = PreferenceManager.getMonochrome(context)
             val showThemedIcons = PreferenceManager.getThemedIcons(context) && (autoWallpapers || monochrome)
@@ -550,50 +673,60 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val shape = PreferenceManager.getIconShape(context)
 
             val savedFolders = AppInfoManager.getFolders(context)
-            // Function to map package names to your UI models
-            // NOTE: handle if a package exists on multiple profiles (Work + Personal)
-            suspend fun mapPackagesToAppInfo(packageNames: List<String>): List<AppInfo> = withContext(iconLoadingDispatcher) {
-                packageNames.map { packageName ->
-                    async {
-                        // Bound concurrent icon loads. The heavy per-app work
-                        // switches to Dispatchers.IO internally (unbounded), so a
-                        // limited-parallelism dispatcher alone does NOT cap
-                        // concurrency — the semaphore does. Early "null" returns
-                        // stay inside withPermit so no permit is ever leaked.
+            // One deferred model per real package for this generation. Folder
+            // previews and list membership share the same result, so an app icon
+            // is never loaded/analysed twice during one refresh.
+            val appInfoJobs = mutableMapOf<String, Deferred<AppInfo?>>()
+
+            fun appInfoJob(packageName: String): Deferred<AppInfo?> {
+                synchronized(appInfoJobs) {
+                    appInfoJobs[packageName]?.let { return it }
+                    return async(iconProcessingDispatcher) {
                         iconLoadSemaphore.withPermit {
-                            if (packageName.startsWith("folder")) {
-                                val folderData = savedFolders[packageName] ?: null
-                                if (folderData == null) {
-                                    null
-                                } else {
-                                    val packages = folderData.packages
-                                    val activitiesMap = allActivitiesMap.filter { it.key in packages }
-                                    val activities = activitiesMap.values.toList()
-                                    createFolderAppInfo(
-                                        context,
-                                        folderData,
-                                        activities,
-                                        showThemedIcons,
-                                        themedColors,
-                                        isLightHour,
-                                        iconPackPackage,
-                                        shape)
-                                }
-                            } else {
-                                val activityInfo = allActivitiesMap[packageName] ?: null
-                                if (activityInfo == null) {
-                                    null
-                                } else {
-                                    createAppInfo(
-                                        context,
-                                        activityInfo,
-                                        showThemedIcons,
-                                        themedColors,
-                                        isLightHour,
-                                        iconPackPackage
-                                    )
-                                }
+                            allActivitiesMap[packageName]?.let { activityInfo ->
+                                createAppInfo(
+                                    context,
+                                    activityInfo,
+                                    showThemedIcons,
+                                    themedColors,
+                                    isLightHour,
+                                    iconPackPackage
+                                )
                             }
+                        }
+                    }.also { appInfoJobs[packageName] = it }
+                }
+            }
+
+            suspend fun folderAppInfo(folderData: FolderData): AppInfo {
+                val childApps = folderData.packages
+                    .distinct()
+                    .map { appInfoJob(it) }
+                    .awaitAll()
+                    .filterNotNull()
+
+                return iconLoadSemaphore.withPermit {
+                    createFolderAppInfoFromApps(
+                        context,
+                        folderData,
+                        childApps,
+                        showThemedIcons,
+                        themedColors,
+                        isLightHour,
+                        shape
+                    )
+                }
+            }
+
+            suspend fun mapPackagesToAppInfo(
+                packageNames: List<String>
+            ): List<AppInfo> = withContext(iconProcessingDispatcher) {
+                packageNames.distinct().map { packageName ->
+                    async {
+                        if (packageName.startsWith("folder_")) {
+                            savedFolders[packageName]?.let { folderAppInfo(it) }
+                        } else {
+                            appInfoJob(packageName).await()
                         }
                     }
                 }.awaitAll().filterNotNull()
@@ -602,17 +735,13 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             // 1. Quick Apps - Update Immediately
             val quickApps = mapPackagesToAppInfo(finalQuickPackageNames.toSet().toList())
 
-            withContext(Dispatchers.Main) {
-                _uiState.update { it.copy(quickApps = quickApps) }
-            }
+            publishIfCurrent(generation) { it.copy(quickApps = quickApps) }
 
             // 2. Primary Apps
             val primaryApps = mapPackagesToAppInfo(finalPrimaryPackageNames.toSet().toList())
 
-            withContext(Dispatchers.Main) {
-                _uiState.update {
+            publishIfCurrent(generation) {
                     it.copy(primaryApps = primaryApps)
-                }
             }
 
             // 3. Rest Apps
@@ -621,10 +750,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
             val restApps = mapPackagesToAppInfo(restPackages.toList())
 
             // Final UI Update
-            withContext(Dispatchers.Main) {
-                _uiState.update {
+            publishIfCurrent(generation) {
                     it.copy(restApps = restApps)
-                }
             }
 
             val restAppMap = restApps.associateBy { it.packageName }
@@ -636,12 +763,12 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 }
             }
 
-            withContext(Dispatchers.Main) {
-                _uiState.update {
+            publishIfCurrent(generation) {
                     it.copy(folderApps = foldersWithAppInfo,folders = savedFolders)
-                }
             }
 
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e("AppInfoViewModel", e.toString())
         }
@@ -685,17 +812,40 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 iconPackPackage
             )
         }
+        return createFolderAppInfoFromApps(
+            context,
+            folderData,
+            appInfos,
+            showThemedIcons,
+            themedColors,
+            isLightHour,
+            shape
+        )
+    }
+
+    private suspend fun createFolderAppInfoFromApps(
+        context: Context,
+        folderData: FolderData,
+        appInfos: List<AppInfo>,
+        showThemedIcons: Boolean,
+        themedColors: WallpaperThemeColors,
+        isLightHour: Boolean,
+        shape: Shape
+    ): AppInfo {
         val foregroundColorInt = if (showThemedIcons) {
             getThemedIconColor(themedColors, isLightHour)
         } else {
             getForegroundColor(isLightHour).toArgb()
         }
-        val foreground = generateFolderForeground(context,
-            folderData.title,
-            appInfos,
-            foregroundColorInt,
-            shape
+        val foreground = withContext(iconProcessingDispatcher) {
+            generateFolderForeground(
+                context,
+                folderData.title,
+                appInfos,
+                foregroundColorInt,
+                shape
             )
+        }
         val backgroundColorInt = if (showThemedIcons) {
             getThemedBackgroundColor(themedColors, isLightHour)
         } else {
@@ -1110,13 +1260,15 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         } else {
             getForegroundColor(isLightHour).toArgb()
         }
-        val folderForeground = generateFolderForeground(
-            context,
-            folderTitle,
-            folderApps,
-            foregroundColorInt,
-            shape
-        )
+        val folderForeground = withContext(iconProcessingDispatcher) {
+            generateFolderForeground(
+                context,
+                folderTitle,
+                folderApps,
+                foregroundColorInt,
+                shape
+            )
+        }
         when (selectedList) {
             AppInfoManager.QUICK_APPS_LIST_NAME -> {
                 withContext(Dispatchers.Main) {
@@ -1261,13 +1413,16 @@ object ThemedIconProcessor {
                 foregroundColor)
         } else {
             val bitmap = drawableToBitmap(drawable)
-            if (hasSignificantTransparency(bitmap)) {
-                drawable
-                    .apply {
+            try {
+                if (hasSignificantTransparency(bitmap)) {
+                    drawable.apply {
                         colorFilter = PorterDuffColorFilter(foregroundColor, PorterDuff.Mode.SRC_IN)
                     }
-            } else {
-                drawable
+                } else {
+                    drawable
+                }
+            } finally {
+                bitmap.recycle()
             }
         }
     }
@@ -1281,16 +1436,19 @@ object ThemedIconProcessor {
         // Convert to bitmap
         val bitmap = drawableToBitmap(foreground)
         // Check if it has meaningful transparency
-        return if (hasSignificantTransparency(bitmap)) {
-            foreground
-                .apply {
+        return try {
+            if (hasSignificantTransparency(bitmap)) {
+                foreground.apply {
                     colorFilter = PorterDuffColorFilter(
                         foregroundColor,
                         PorterDuff.Mode.SRC_IN
                     )
                 }
-        } else {
-            foreground
+            } else {
+                foreground
+            }
+        } finally {
+            bitmap.recycle()
         }
     }
 
@@ -1324,14 +1482,12 @@ object ThemedIconProcessor {
         val width = 64
         val height = 64
 
-        if (drawable is BitmapDrawable) {
-            return drawable.bitmap.scale(width = width, height = height)
-        }
-
         val bitmap = createBitmap(width, height)
         val canvas = Canvas(bitmap)
+        val oldBounds = drawable.copyBounds()
         drawable.setBounds(0, 0, width, height)
         drawable.draw(canvas)
+        drawable.bounds = oldBounds
 
         return bitmap
     }

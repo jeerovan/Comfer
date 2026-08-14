@@ -2,6 +2,7 @@ package com.jeerovan.comfer
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.toArgb
@@ -21,6 +22,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 
 object PreferenceManager {
     const val PREF_BACKGROUND_IMAGE = "background_image"
@@ -70,6 +73,54 @@ object PreferenceManager {
     private var snapshot: Map<String, String> = emptyMap()
 
     private val writeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val snapshotLock = Any()
+    private val pendingWriteLock = Any()
+    private val pendingWrites = mutableMapOf<String, PendingWrite>()
+    private val writeSignal = Channel<Unit>(Channel.CONFLATED)
+
+    private data class PendingWrite(
+        val context: Context,
+        val value: String?,
+        val snapshotNeedsUpdate: Boolean,
+    )
+
+    init {
+        writeScope.launch {
+            for (signal in writeSignal) {
+                delay(50)
+                StartupCoordinator.awaitReady()
+                val batch = synchronized(pendingWriteLock) {
+                    pendingWrites.toMap().also { pendingWrites.clear() }
+                }
+                if (batch.isEmpty()) continue
+                batch.forEach { (key, write) ->
+                    if (write.snapshotNeedsUpdate) updateSnapshot(key, write.value)
+                }
+                val context = batch.values.first().context
+                try {
+                    context.settingsDataStore.edit { prefs ->
+                        batch.forEach { (key, write) ->
+                            val prefKey = stringPreferencesKey(key)
+                            if (write.value == null) {
+                                prefs.remove(prefKey)
+                            } else {
+                                prefs[prefKey] = write.value
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("PreferenceManager", "Failed to persist preference batch", e)
+                    synchronized(pendingWriteLock) {
+                        batch.forEach { (key, write) ->
+                            if (!pendingWrites.containsKey(key)) pendingWrites[key] = write
+                        }
+                    }
+                    delay(250)
+                    writeSignal.trySend(Unit)
+                }
+            }
+        }
+    }
 
     /** Re-sync the snapshot from DataStore. Suspend; DO NOT call from the Main
      *  thread. Removed the old blocking [load] wrapper so this never stalls the
@@ -82,14 +133,25 @@ object PreferenceManager {
     }
 
     private fun write(context: Context, key: String, value: String?) {
-        val next = snapshot.toMutableMap()
-        if (value == null) next.remove(key) else next[key] = value
-        snapshot = next
-        val prefKey = stringPreferencesKey(key)
-        writeScope.launch {
-            context.settingsDataStore.edit { prefs ->
-                if (value == null) prefs.remove(prefKey) else prefs[prefKey] = value
-            }
+        val updateAfterStartup = !StartupCoordinator.isReady
+        if (!updateAfterStartup) {
+            updateSnapshot(key, value)
+        }
+        synchronized(pendingWriteLock) {
+            pendingWrites[key] = PendingWrite(
+                context = context.applicationContext,
+                value = value,
+                snapshotNeedsUpdate = updateAfterStartup,
+            )
+        }
+        writeSignal.trySend(Unit)
+    }
+
+    private fun updateSnapshot(key: String, value: String?) {
+        synchronized(snapshotLock) {
+            val next = snapshot.toMutableMap()
+            if (value == null) next.remove(key) else next[key] = value
+            snapshot = next
         }
     }
 

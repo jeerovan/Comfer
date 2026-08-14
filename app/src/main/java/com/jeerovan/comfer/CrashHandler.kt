@@ -2,7 +2,6 @@ package com.jeerovan.comfer
 
 import android.content.Context
 import java.io.File
-import java.io.FileWriter
 import java.io.IOException
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -49,9 +48,7 @@ class CrashHandler(private val context: Context) : Thread.UncaughtExceptionHandl
         val writeThread = Thread {
             try {
                 val file = File(context.filesDir, crashFileName)
-                FileWriter(file, true).use { writer ->
-                    writer.append(crashLog)
-                }
+                BoundedLogFile.appendBounded(file, crashLog)
             } catch (e: IOException) {
                 e.printStackTrace()
             }

@@ -166,6 +166,8 @@ import android.content.Context.MODE_PRIVATE
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.os.SystemClock
+import android.os.Trace
 import android.os.PowerManager
 import android.provider.AlarmClock
 import android.service.notification.StatusBarNotification
@@ -207,6 +209,7 @@ import androidx.compose.ui.unit.TextUnit
 import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.WeakHashMap
 import kotlin.math.abs
 
 import androidx.compose.material.icons.Icons
@@ -249,6 +252,8 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlin.math.pow
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TouchApp
@@ -484,6 +489,28 @@ private const val BOUND_WIDGETS_KEY = "bound_widgets_v2"
 // from RemoteViews inflation bursts.
 private val widgetCreateMutex = Mutex()
 
+// AnimatedVisibility disposes a side widget screen after its exit animation.
+// Keep the already-inflated host views for the lifetime of their AppWidgetHost so
+// reopening the same screen can reattach them instead of reinflating RemoteViews
+// on Main. Weak host keys avoid extending a host/activity lifetime.
+private object WidgetHostViewCache {
+    private val views = WeakHashMap<AppWidgetHost, MutableMap<Int, AppWidgetHostView>>()
+
+    fun get(host: AppWidgetHost, widgetId: Int): AppWidgetHostView? =
+        views[host]?.get(widgetId)
+
+    fun put(host: AppWidgetHost, widgetId: Int, view: AppWidgetHostView) {
+        views.getOrPut(host) { mutableMapOf() }[widgetId] = view
+    }
+
+    fun remove(host: AppWidgetHost, widgetId: Int) {
+        views[host]?.let { hostViews ->
+            hostViews.remove(widgetId)
+            if (hostViews.isEmpty()) views.remove(host)
+        }
+    }
+}
+
 @Serializable
 data class PersistableBoundWidget(
     val widgetId: Int,
@@ -514,6 +541,7 @@ class MainActivity : AppCompatActivity() {
     private val appInfoViewModel: AppInfoViewModel by viewModels()
     private val settingsViewModel:SettingsViewModel by viewModels()
     private val mainViewModel: MainViewModel by viewModels()
+    private val contactsViewModel: ContactsViewModel by viewModels()
 
     // Widgets
     private lateinit var widgetHosts: WidgetHostManager
@@ -564,6 +592,7 @@ class MainActivity : AppCompatActivity() {
                     appInfoViewModel,
                     settingsViewModel,
                     mainViewModel,
+                    contactsViewModel,
                     widgetHosts = widgetHosts
                 )
             }
@@ -950,6 +979,7 @@ fun WidgetHostScreen(
                     coroutineScope.launch { saveWidgets(context, widgetPrefsTitle, boundWidgets) }
                 },
                 onWidgetRemove = { widgetToRemove ->
+                    WidgetHostViewCache.remove(appWidgetHost, widgetToRemove.widgetId)
                     appWidgetHost.deleteAppWidgetId(widgetToRemove.widgetId)
                     boundWidgets.remove(widgetToRemove)
                     coroutineScope.launch {
@@ -1140,6 +1170,9 @@ private fun WidgetInstance(
     // Capture density and providerInfo during composition
     val density = LocalDensity.current
     val appWidgetProviderInfo = remember { widget.providerInfo }
+    val providerName = remember(appWidgetProviderInfo) {
+        appWidgetProviderInfo.provider.flattenToShortString()
+    }
 
     // Initial grid-based calculations
     val initialX = (widget.gridX * (cellWidthPx + gapPx))
@@ -1152,9 +1185,15 @@ private fun WidgetInstance(
     var widgetUpdated by remember { mutableStateOf(false) }
 
     // Widget view state management
-    var hostView by remember { mutableStateOf<AppWidgetHostView?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
+    var hostView by remember(widget.widgetId, appWidgetHost) {
+        mutableStateOf(WidgetHostViewCache.get(appWidgetHost, widget.widgetId))
+    }
+    var isLoading by remember(widget.widgetId, appWidgetHost) {
+        mutableStateOf(hostView == null)
+    }
     var hasError by remember { mutableStateOf(false) }
+    var isQuarantined by remember { mutableStateOf(false) }
+    var retryGeneration by remember { mutableIntStateOf(0) }
 
     // Re-sync position and size if the widget's grid properties change externally
     LaunchedEffect(widget.gridX, widget.gridY, widget.spanX, widget.spanY) {
@@ -1169,9 +1208,26 @@ private fun WidgetInstance(
     //    delayed by RemoteViews inflation
     //  - serialize createView across widgets so only one inflates at a time;
     //    waiting coroutines suspend off-Main instead of piling onto the queue
-    LaunchedEffect(widget.widgetId) {
+    LaunchedEffect(widget.widgetId, retryGeneration) {
+        WidgetHostViewCache.get(appWidgetHost, widget.widgetId)?.let { cachedView ->
+            hostView = cachedView
+            isLoading = false
+            hasError = false
+            isQuarantined = false
+            return@LaunchedEffect
+        }
+
         isLoading = true
         hasError = false
+        isQuarantined = false
+
+        if (withContext(Dispatchers.IO) {
+                WidgetInflationGuard.isQuarantined(context, providerName)
+            }) {
+            isQuarantined = true
+            isLoading = false
+            return@LaunchedEffect
+        }
 
         // Capture size values during composition context
         val width = with(density) { size.width.toDp().value.toInt() }
@@ -1207,13 +1263,30 @@ private fun WidgetInstance(
                         android.R.style.Theme_DeviceDefault
                     )
 
-                    // This inflates the RemoteViews. It MUST be on Main.
-                    val view = appWidgetHost.createView(
-                        themedContext,
-                        widget.widgetId,
-                        appWidgetProviderInfo
-                    )
+                    val startedAt = SystemClock.elapsedRealtime()
+                    Trace.beginSection("widgetInflate:${providerName.take(80)}")
+                    val view = try {
+                        // This inflates RemoteViews and MUST remain on Main.
+                        appWidgetHost.createView(
+                            themedContext,
+                            widget.widgetId,
+                            appWidgetProviderInfo
+                        )
+                    } finally {
+                        Trace.endSection()
+                        val durationMs = SystemClock.elapsedRealtime() - startedAt
+                        if (durationMs >= 500) {
+                            Log.w(
+                                "WidgetInstance",
+                                "Slow widget inflation provider=$providerName durationMs=$durationMs"
+                            )
+                        }
+                        withContext(Dispatchers.IO) {
+                            WidgetInflationGuard.recordDuration(context, providerName, durationMs)
+                        }
+                    }
 
+                    WidgetHostViewCache.put(appWidgetHost, widget.widgetId, view)
                     hostView = view
                     isLoading = false
                 } catch (e: Exception) {
@@ -1319,9 +1392,25 @@ private fun WidgetInstance(
                         textAlign = TextAlign.Center
                     )
                 }
+                isQuarantined -> {
+                    TextButton(
+                        onClick = {
+                            coroutineScope.launch(Dispatchers.IO) {
+                                WidgetInflationGuard.clear(context, providerName)
+                                withContext(Dispatchers.Main) { retryGeneration++ }
+                            }
+                        },
+                    ) {
+                        Text("Retry slow widget")
+                    }
+                }
                 hostView != null -> {
                     AndroidView(
-                        factory = { hostView!! },
+                        factory = {
+                            hostView!!.also { view ->
+                                (view.parent as? android.view.ViewGroup)?.removeView(view)
+                            }
+                        },
                         update = { view ->
                             if (!widgetUpdated) {
                                 widgetUpdated = true
@@ -1624,16 +1713,15 @@ private fun WidgetPreviewItem(
 ) {
     val context = LocalContext.current
     var previewDrawable by remember { mutableStateOf<Drawable?>(null) }
-    val label = remember(provider) { provider.loadLabel(context.packageManager) }
+    var label by remember(provider) { mutableStateOf("") }
 
     LaunchedEffect(provider) {
-        withContext(Dispatchers.IO) {
-            val drawable = provider.loadPreviewImage(context, 0)
-                ?: provider.loadIcon(context, 0)
-            withContext(Dispatchers.Main) {
-                previewDrawable = drawable
-            }
+        val (loadedLabel, drawable) = withContext(Dispatchers.IO) {
+            provider.loadLabel(context.packageManager).orEmpty() to
+                (provider.loadPreviewImage(context, 0) ?: provider.loadIcon(context, 0))
         }
+        label = loadedLabel
+        previewDrawable = drawable
     }
 
     Column(
@@ -2416,29 +2504,23 @@ fun SearchListOverlay(apps: List<AppInfo>,
     var searchTabSwipeDownGestureShown by remember { mutableStateOf(true)}
     var searchSwipeDownGestureShown by remember { mutableStateOf(true)}
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
-    val filteredApps by remember {
-        derivedStateOf {
-            if(activeTab == SearchTab.APPS && inputText.isNotBlank()) {
-                apps.filter { app -> doesMatchSearch(inputText.trim(), app.label) }
-            } else {
-                apps
-            }
+    val filteredApps = remember(apps, activeTab, inputText) {
+        if(activeTab == SearchTab.APPS && inputText.isNotBlank()) {
+            apps.filter { app -> doesMatchSearch(inputText.trim(), app.label) }
+        } else {
+            apps
         }
     }
-    val filteredContacts by remember {
-        derivedStateOf {
-            if(activeTab == SearchTab.CONTACTS){
-                searchContacts(inputText, contacts)
-            } else {
-                contacts
-            }
+    val filteredContacts = remember(contacts, activeTab, inputText) {
+        if(activeTab == SearchTab.CONTACTS){
+            searchContacts(inputText, contacts)
+        } else {
+            contacts
         }
     }
     var selectedContactIndex by remember { mutableIntStateOf(0) }
-    val selectedContact by remember {
-        derivedStateOf {
-            filteredContacts.getOrNull(selectedContactIndex)
-        }
+    val selectedContact = remember(filteredContacts, selectedContactIndex) {
+        filteredContacts.getOrNull(selectedContactIndex)
     }
     // Coroutine scope to run suspend functions like scrolling
     val coroutineScope = rememberCoroutineScope()
@@ -2448,7 +2530,9 @@ fun SearchListOverlay(apps: List<AppInfo>,
 
     // Function to handle the double-tap action
     fun onTapSelectedContact() {
-        placeCallWithDialer(context,selectedContact?.number)
+        coroutineScope.launch {
+            placeCallWithDialer(context, selectedContact?.number)
+        }
     }
 
     fun onTabSelected(tab:SearchTab){
@@ -2486,7 +2570,9 @@ fun SearchListOverlay(apps: List<AppInfo>,
         if (filteredApps.size == 1) {
             val singleApp = filteredApps.first()
             // Launch the app
-            val launchIntent: Intent? = CommonUtil.getLaunchIntentSafe(context, singleApp.packageName)
+            val launchIntent: Intent? = withContext(Dispatchers.IO) {
+                CommonUtil.getLaunchIntentSafe(context, singleApp.packageName)
+            }
             if (launchIntent != null) {
                 handleStartActivity(context,launchIntent,null)
                 // Optional: Clear the input text after launching
@@ -2693,7 +2779,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                         .fillMaxSize()
                                         .padding(horizontal = 16.dp)
                                 ) {
-                                    items(filteredContacts) { contact ->
+                                    items(filteredContacts, key = { contact -> contact.id }) { contact ->
                                         ContactListItem(contact,
                                             isSelected = (contact.id == selectedContact?.id))
                                     }
@@ -2763,7 +2849,9 @@ fun SearchListOverlay(apps: List<AppInfo>,
                             // Add spacing between the items
                             horizontalArrangement = Arrangement.spacedBy(20.dp)
                         ) {
-                            items(filteredApps,key = { app -> app.packageName }) { app ->
+                            items(filteredApps, key = { app ->
+                                "${app.componentName?.flattenToString() ?: app.packageName}:${app.user?.hashCode()}"
+                            }) { app ->
                                 AppIcon(app,
                                     notificationPackages,
                                     iconShape,
@@ -2831,6 +2919,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
 @Composable
 fun ContactListItem(contact: Contact,isSelected:Boolean) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     ListItem(
         modifier = Modifier
             .fillMaxWidth()
@@ -2839,7 +2928,9 @@ fun ContactListItem(contact: Contact,isSelected:Boolean) {
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        placeCallWithDialer(context, contact.number)
+                        scope.launch {
+                            placeCallWithDialer(context, contact.number)
+                        }
                     }
                 )
             }, // Rounded corners for each item
@@ -3523,6 +3614,7 @@ fun CircularSeekBar(
 fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                    settingsViewModel: SettingsViewModel,
                    mainViewModel: MainViewModel,
+                   contactsViewModel: ContactsViewModel,
                    widgetHosts: WidgetHostManager) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -3536,8 +3628,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     //var backgroundImage by remember { mutableStateOf<String?>(null) }
     var showDisclosure by remember { mutableStateOf(false) }
 
-    val appInfoUiState by appInfoViewModel.uiState.collectAsState()
-    val settingInfoUiState by settingsViewModel.uiState.collectAsState()
+    val appInfoUiState by appInfoViewModel.launcherAppsState.collectAsState()
+    val settingInfoUiState by settingsViewModel.launcherSettingsState.collectAsState()
     val mainUiState by mainViewModel.uiState.collectAsState()
     val notifications by MyNotificationListenerService.activeNotifications.collectAsState()
 
@@ -3546,7 +3638,16 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     val hiddenApps = appInfoUiState.restApps
     val folders = appInfoUiState.folderApps
 
-    val sortedPrimaryApps = if(settingInfoUiState.arrangeInAlphabeticalOrder) primaryApps.sortedBy { it.label.toString() } else primaryApps
+    val sortedPrimaryApps = remember(primaryApps, settingInfoUiState.arrangeInAlphabeticalOrder) {
+        if (settingInfoUiState.arrangeInAlphabeticalOrder) {
+            primaryApps.sortedBy { it.label }
+        } else {
+            primaryApps
+        }
+    }
+    val searchableApps = remember(primaryApps, hiddenApps) {
+        primaryApps.filterNot { it.packageName.startsWith("folder") } + hiddenApps
+    }
 
     val wallpaperMotionEnabled = settingInfoUiState.autoWallpapers && settingInfoUiState.wallpaperMotionEnabled
     val hasNotificationAccess = settingInfoUiState.hasNotificationAccess
@@ -3617,9 +3718,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
 
     val backgroundImage = mainUiState.imagePath
 
-    val contacts = remember {
-        mutableStateListOf<Contact>()
-    }
+    val contacts by contactsViewModel.contacts.collectAsState()
     var hasContactsPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -3637,103 +3736,13 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     fun onRequestContactsPermission(){
         contactsPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
     }
-    fun fetchContacts() {
-        coroutineScope.launch {
-            val fetchedContacts = withContext(Dispatchers.IO) {
-                val contactsList = mutableListOf<Contact>()
-                val contentResolver = context.contentResolver
-
-                // Step 1: Query all phone numbers in a single batch query
-                val phoneMap = mutableMapOf<Long, String>()
-                val phoneCursor = contentResolver.query(
-                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                    arrayOf(
-                        ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
-                        ContactsContract.CommonDataKinds.Phone.NUMBER
-                    ),
-                    null,
-                    null,
-                    null
-                )
-
-                phoneCursor?.use { cursor ->
-                    val contactIdIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
-                    val numberIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-
-                    if (contactIdIndex != -1 && numberIndex != -1) {
-                        while (cursor.moveToNext()) {
-                            val contactId = cursor.getLong(contactIdIndex)
-                            val number = cursor.getString(numberIndex)
-                            // Store first phone number for each contact (if not already stored)
-                            if (!phoneMap.containsKey(contactId) && number != null) {
-                                phoneMap[contactId] = number
-                            }
-                        }
-                    }
-                }
-
-                // Step 2: Query all contacts
-                val projection = arrayOf(
-                    ContactsContract.Contacts._ID,
-                    ContactsContract.Contacts.DISPLAY_NAME,
-                    ContactsContract.Contacts.PHOTO_URI,
-                    ContactsContract.Contacts.HAS_PHONE_NUMBER
-                )
-
-                val cursor = contentResolver.query(
-                    ContactsContract.Contacts.CONTENT_URI,
-                    projection,
-                    null,
-                    null,
-                    null
-                )
-
-                cursor?.use { contactCursor ->
-                    val idIndex = contactCursor.getColumnIndex(ContactsContract.Contacts._ID)
-                    val nameIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
-                    val photoUriIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
-                    val hasPhoneNumberIndex = contactCursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)
-
-                    // Check if any column is not found
-                    if (idIndex == -1 || nameIndex == -1 || photoUriIndex == -1 || hasPhoneNumberIndex == -1) {
-                        return@withContext emptyList()
-                    }
-
-                    while (contactCursor.moveToNext()) {
-                        val id = contactCursor.getLong(idIndex)
-                        val name = contactCursor.getString(nameIndex)
-                        val photoUriString = contactCursor.getString(photoUriIndex)
-                        val photoUri = photoUriString?.toUri()
-                        val hasPhoneNumber = contactCursor.getInt(hasPhoneNumberIndex) > 0
-
-                        // Look up the phone number from our pre-built map
-                        val number = if (hasPhoneNumber) phoneMap[id] else null
-
-                        if (name != null && number != null && name.isNotEmpty()) {
-                            contactsList.add(Contact(id, name, photoUri, number))
-                        }
-                    }
-                }
-
-                contactsList
-            }
-
-            // Update the state list on the main thread
-            contacts.clear()
-            val uniqueAndSortedContacts = fetchedContacts
-                .sortedBy { it.name }
-            contacts.addAll(uniqueAndSortedContacts)
-        }
-    }
-
-
     DisposableEffect(lifecycleOwner, hasContactsPermission) {
         val observer = LifecycleEventObserver { _, event ->
             // Trigger on resume
             if (event == Lifecycle.Event.ON_RESUME) {
                 // Only fetch if permission has been granted
                 if (hasContactsPermission) {
-                    fetchContacts()
+                    contactsViewModel.refreshIfNeeded(true)
                 }
             }
         }
@@ -3772,7 +3781,13 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         val maxHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
         if(settingInfoUiState.autoWallpapers || settingInfoUiState.monochrome){
-            AnimatedBackground(backgroundImage,wallpaperMotionEnabled,maxWidthPx,maxHeightPx)
+            AnimatedBackground(
+                backgroundImage,
+                mainUiState.iconVersion,
+                wallpaperMotionEnabled,
+                maxWidthPx,
+                maxHeightPx,
+            )
         }
 
         // Quick-list layer, goes up and hides, come down and shows up
@@ -3845,8 +3860,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             enter = layer2Enter,
             exit = layer2Exit
         ) {
-            val primaryAppsWOFolders = primaryApps.filter { !it.packageName.startsWith("folder") }
-            SearchListOverlay (apps = primaryAppsWOFolders+hiddenApps,
+            SearchListOverlay (apps = searchableApps,
                 notificationPackages,
                 contacts,
                 onSwipeDown = { isSearchListVisible = false },
@@ -3918,6 +3932,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
 @Composable
 fun AnimatedBackground(
     background: Any?,
+    cacheVersion: Int,
     wallpaperMotionEnabled: Boolean,
     maxWidthPx: Float,
     maxHeightPx: Float
@@ -3926,9 +3941,12 @@ fun AnimatedBackground(
 
     // 1. Optimize Image Request: Remember it so it doesn't rebuild constantly.
     // Also, limit memory usage by resizing the image to the screen dimensions (fixes "Unresponsive GPU").
-    val imageRequest = remember(background, context, maxWidthPx, maxHeightPx) {
+    val imageRequest = remember(background, cacheVersion, context, maxWidthPx, maxHeightPx) {
+        val cacheKey = "launcher-wallpaper:$background:$cacheVersion"
         ImageRequest.Builder(context)
             .data(background)
+            .memoryCacheKey(cacheKey)
+            .diskCacheKey(cacheKey)
             .size(width = maxWidthPx.toInt(), height = maxHeightPx.toInt()) // Crucial for GPU performance
             .crossfade(true)
             .build()
@@ -4693,7 +4711,7 @@ fun searchContacts(query: String, contactList: List<Contact>): List<Contact> {
         contact -> doesMatchSearch(query,contact.name)
     }
 }
-fun placeCallWithDialer(context: Context, number: String?) {
+suspend fun placeCallWithDialer(context: Context, number: String?) {
     if (number.isNullOrBlank()) {
         Toast.makeText(context, context.getString(R.string.contact_number_not_available), Toast.LENGTH_SHORT).show()
         return
@@ -4704,7 +4722,10 @@ fun placeCallWithDialer(context: Context, number: String?) {
     }
 
     // Check if there's an app that can handle this intent
-    if (intent.resolveActivity(context.packageManager) != null) {
+    val canHandle = withContext(Dispatchers.IO) {
+        intent.resolveActivity(context.packageManager) != null
+    }
+    if (canHandle) {
         handleStartActivity(context,intent,null)
     } else {
         Toast.makeText(context, context.getString(R.string.no_app_to_place_calls), Toast.LENGTH_SHORT).show()
@@ -5147,6 +5168,7 @@ fun WidgetClock(
     val context = LocalContext.current
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
+    val scope = rememberCoroutineScope()
     val customColor = !settings.autoWallpapers && !settings.monochrome
     val borderColor = if (editMode) {
         if (customColor) {
@@ -5162,10 +5184,13 @@ fun WidgetClock(
                         view.playSoundEffect(SoundEffectConstants.CLICK)
                         // Open Alarms
                         val intent = Intent(AlarmClock.ACTION_SHOW_ALARMS)
-                        if (intent.resolveActivity(context.packageManager) != null) {
-                            handleStartActivity(context, intent, null)
+                        scope.launch {
+                            val canHandle = withContext(Dispatchers.IO) {
+                                intent.resolveActivity(context.packageManager) != null
+                            }
+                            if (canHandle) handleStartActivity(context, intent, null)
+                            onTap()
                         }
-                        onTap()
                     },
                     onLongPress = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -5174,10 +5199,13 @@ fun WidgetClock(
                             addCategory(Intent.CATEGORY_APP_CALENDAR)
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK
                         }
-                        if (calendarIntent.resolveActivity(context.packageManager) != null) {
-                            handleStartActivity(context, calendarIntent, null)
+                        scope.launch {
+                            val canHandle = withContext(Dispatchers.IO) {
+                                calendarIntent.resolveActivity(context.packageManager) != null
+                            }
+                            if (canHandle) handleStartActivity(context, calendarIntent, null)
+                            onLongPress()
                         }
-                        onLongPress()
                     }
                 )
             }

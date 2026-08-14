@@ -10,6 +10,7 @@ gradle/gradle-daemon-jvm.properties
 /.idea/assetWizardSettings.xml
 .DS_Store
 /build
+/macrobenchmark/build/
 /captures
 .externalNativeBuild
 .cxx
@@ -18,3 +19,5 @@ local.properties
 .kotlin/
 .env
 /app/release
+
+validation-artifacts/

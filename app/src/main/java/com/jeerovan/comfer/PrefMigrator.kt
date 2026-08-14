@@ -1,14 +1,26 @@
 package com.jeerovan.comfer
 
 import android.content.Context
-import android.os.Build
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.jeerovan.comfer.data.AppFolderEntity
 import com.jeerovan.comfer.data.ComferRepository
 import kotlinx.coroutines.flow.first
-import org.json.JSONObject
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
+@Serializable
+internal data class LegacyFolderData(
+    val title: String,
+    val packages: List<String>,
+)
+
+internal fun parseLegacyFolders(jsonString: String): List<AppFolderEntity> =
+    Json.decodeFromString<Map<String, LegacyFolderData>>(jsonString).map { (id, folder) ->
+        AppFolderEntity(id, folder.title, Json.encodeToString(folder.packages))
+    }
 
 /**
  * One-time importer of legacy SharedPreferences data into the new stores
@@ -37,17 +49,6 @@ object PrefMigrator {
         "widgets_prefs_left",
         "widgets_prefs_right"
     )
-    fun Context.deleteSharedPreferencesCompat(name: String): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            // For API 24+ (Android 7.0+)
-            deleteSharedPreferences(name)
-        } else {
-            // 1. Clear preference data from memory/cache
-            getSharedPreferences(name, Context.MODE_PRIVATE).edit().clear().apply()
-
-            false
-        }
-    }
     /** Non-blocking; call from a background coroutine (e.g. [ComferApp.onCreate]).
      *  Must never be run on the main thread — the first-ever Room build + full
      *  import can exceed the input-dispatch timeout. */
@@ -59,9 +60,9 @@ object PrefMigrator {
         importWidgets(context)
 
         // Only delete source files once the new stores hold the data.
-        context.deleteSharedPreferencesCompat(SETTINGS_PREFS)
-        context.deleteSharedPreferencesCompat(APP_INFO_PREFS)
-        widgetSlots.forEach { context.deleteSharedPreferencesCompat(it) }
+        context.deleteSharedPreferences(SETTINGS_PREFS)
+        context.deleteSharedPreferences(APP_INFO_PREFS)
+        widgetSlots.forEach(context::deleteSharedPreferences)
 
         context.settingsDataStore.edit { it[migratedFlag] = true }
     }
@@ -92,34 +93,12 @@ object PrefMigrator {
 
         // Folders: JSON map { id -> {title, packages[]} }.
         val foldersJson = all[FOLDERS_PREF_KEY]?.toString() ?: "{}"
-        val entities = parseFolders(foldersJson)
+        // Malformed folder data must abort migration. runOnce then preserves all
+        // legacy files and leaves the flag unset so a corrected build can retry.
+        val entities = parseLegacyFolders(foldersJson)
         if (entities.isNotEmpty()) {
             ComferRepository.saveFolders(context, entities)
         }
-    }
-
-    private fun parseFolders(jsonString: String): List<AppFolderEntity> {
-        val result = mutableListOf<AppFolderEntity>()
-        try {
-            val root = JSONObject(jsonString)
-            val keys = root.keys()
-            while (keys.hasNext()) {
-                val key = keys.next()
-                val folderObj = root.getJSONObject(key)
-                val title = folderObj.getString("title")
-                val packagesArray = folderObj.getJSONArray("packages")
-                val packages = mutableListOf<String>()
-                for (i in 0 until packagesArray.length()) {
-                    packages.add(packagesArray.getString(i))
-                }
-                result.add(AppFolderEntity(key, title, packagesToJson(packages)))
-            }
-        } catch (e: Exception) {
-            // Ignore malformed folders; user data is preserved in the old file
-            // only until the flag is set, so a parse failure leaves them orphaned
-            // at worst (packages still exist in the app lists).
-        }
-        return result
     }
 
     private suspend fun importWidgets(context: Context) {
@@ -132,13 +111,5 @@ object PrefMigrator {
         }
     }
 
-    private fun packagesToJson(packages: List<String>): String {
-        val sb = StringBuilder("[")
-        packages.forEachIndexed { index, pkg ->
-            if (index > 0) sb.append(',')
-            sb.append('"').append(pkg.replace("\"", "\\\"")).append('"')
-        }
-        sb.append(']')
-        return sb.toString()
-    }
+    private fun packagesToJson(packages: List<String>): String = Json.encodeToString(packages)
 }

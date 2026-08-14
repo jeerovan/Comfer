@@ -11,6 +11,8 @@ import android.net.Uri
 import android.os.Build
 import androidx.compose.ui.graphics.Shape
 import android.os.Bundle
+import android.os.SystemClock
+import android.util.Log
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -95,6 +97,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -114,9 +117,11 @@ import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
-import com.jeerovan.comfer.utils.CommonUtil.canSetLockScreenWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.getKeyTextObject
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
@@ -130,6 +135,7 @@ import java.util.Locale
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.vectorResource
@@ -143,9 +149,18 @@ data class IconPackInfo(
 
 class SettingsActivity : AppCompatActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
+    private val launchStartedAtMs = SystemClock.elapsedRealtime()
+    private val launchTraceCookie = hashCode()
+    private var firstLayoutReported = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        PerformanceTrace.beginAsync("settingsLaunch", launchTraceCookie)
+        PerformanceTrace.begin("settingsActivityCreate")
+        // Start the activity-scoped snapshot load before Compose first accesses the
+        // ViewModel. Warm preference/package stages finish while window setup runs,
+        // avoiding a second full settings publication after first layout.
+        settingsViewModel.loadSettings()
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
         // Only set colors for Android 14 and below to avoid deprecation warnings
@@ -163,12 +178,30 @@ class SettingsActivity : AppCompatActivity() {
             ComferTheme {
                 Surface(
                     modifier = Modifier
-                        .fillMaxSize(),
+                        .fillMaxSize()
+                        .onGloballyPositioned {
+                            if (!firstLayoutReported) {
+                                firstLayoutReported = true
+                                val elapsedMs = SystemClock.elapsedRealtime() - launchStartedAtMs
+                                if (BuildConfig.DEBUG) {
+                                    Log.i("SettingsLaunch", "firstLayoutMs=$elapsedMs")
+                                }
+                                PerformanceTrace.endAsync("settingsLaunch", launchTraceCookie)
+                                reportFullyDrawn()
+                            }
+                        },
                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
                 ) {
                     SettingsScreen(settingsViewModel)
                 }
             }
+        }
+        PerformanceTrace.end()
+        if (BuildConfig.DEBUG) {
+            Log.i(
+                "SettingsLaunch",
+                "setContentReturnMs=${SystemClock.elapsedRealtime() - launchStartedAtMs}",
+            )
         }
     }
     override fun onResume() {
@@ -184,6 +217,19 @@ class SettingsActivity : AppCompatActivity() {
 fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val settingsState by settingsViewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val isDefaultLauncherState by produceState(
+        initialValue = false,
+        lifecycleOwner,
+        context
+    ) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            value = withContext(Dispatchers.IO) { isDefaultLauncher(context) }
+        }
+    }
+    val appVersion by produceState<String?>(initialValue = null, context) {
+        value = withContext(Dispatchers.IO) { getAppVersion(context) }
+    }
     val stringShareWith = stringResource(R.string.title_share_with)
     val appSelectionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -236,17 +282,21 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         context.startActivity(intent)
     }
 
-    val infiniteTransition = rememberInfiniteTransition()
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 1.07f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
-
     var howtoGuideShown by remember { mutableStateOf(true) }
+    val scale = if (!howtoGuideShown) {
+        val infiniteTransition = rememberInfiniteTransition(label = "howToGuidePulse")
+        infiniteTransition.animateFloat(
+            initialValue = 1.07f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1000, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "howToGuideScale",
+        ).value
+    } else {
+        1f
+    }
     val howtoGuideKey = "howto_guide_shown_key"
     var howtoGuideModifier  = Modifier
         .then(if (!howtoGuideShown) Modifier.graphicsLayer {
@@ -429,11 +479,11 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             if(settingsState.autoWallpapers)item{
                 SelectSetOwnWallpapersDirectory(
-                    isDefaultLauncher = isDefaultLauncher(context),
+                    isDefaultLauncher = isDefaultLauncherState,
                     onSelectDirectory = { directoryUri -> settingsViewModel.setWallpaperDirectory(directoryUri)},
                     selectedDirectory = settingsState.wallpaperDirectory)
             }
-            if(isDefaultLauncher(context) && canSetLockScreenWallpaper()){
+            if(isDefaultLauncherState){
                 item {
                     ListItem(
                         headlineContent = { Text(stringResource(R.string.title_lock_screen)) },
@@ -832,7 +882,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_app_version)) },
-                    supportingContent = { Text(getAppVersion(context) ?: "") },
+                    supportingContent = { Text(appVersion.orEmpty()) },
                     leadingContent = { Icon(Icons.Default.Info, contentDescription = stringResource(R.string.icon_app_version)) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )

@@ -5,8 +5,8 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -40,10 +41,11 @@ class CrashViewActivity : AppCompatActivity() {
 fun CrashLogScreen() {
     val context = LocalContext.current
     // Load logs into state asynchronously to avoid blocking the main thread.
-    var logs by remember { mutableStateOf("") }
+    var logLines by remember { mutableStateOf<List<String>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
-        logs = withContext(Dispatchers.IO) { getCrashLogs(context) }
+        logLines = withContext(Dispatchers.IO) { getCrashLogLines(context) }
         isLoading = false
     }
 
@@ -53,8 +55,10 @@ fun CrashLogScreen() {
                 title = { Text("Crash Logs") },
                 actions = {
                     Button(onClick = {
-                        clearCrashLogs(context)
-                        logs = "" // Clear the state to update UI immediately
+                        scope.launch {
+                            withContext(Dispatchers.IO) { clearCrashLogs(context) }
+                            logLines = emptyList()
+                        }
                     }) {
                         Text("Clear Logs")
                     }
@@ -71,7 +75,7 @@ fun CrashLogScreen() {
             ) {
                 CircularProgressIndicator()
             }
-        } else if (logs.isEmpty()) {
+        } else if (logLines.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -81,37 +85,29 @@ fun CrashLogScreen() {
                 Text("No crash logs found.")
             }
         } else {
-            Box(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(16.dp)
+                    .padding(16.dp),
             ) {
-                Text(
-                    text = logs,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState()), // Enable scrolling
-                    fontFamily = FontFamily.Monospace, // Monospace is better for stack traces
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                itemsIndexed(logLines, key = { index, _ -> index }) { _, line ->
+                    Text(
+                        text = line,
+                        fontFamily = FontFamily.Monospace,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
             }
         }
     }
 }
 
-private fun getCrashLogs(context: Context): String {
+private fun getCrashLogLines(context: Context): List<String> {
     val file = File(context.filesDir, "crash_logs.txt")
-    return if (file.exists()) {
-        try {
-            file.readText()
-        } catch (e: Exception) {
-            "Error reading log file: ${e.localizedMessage}"
-        }
-    } else {
-        ""
-    }
+    return runCatching { BoundedLogFile.readTailLines(file) }
+        .getOrElse { listOf("Error reading log file: ${it.localizedMessage}") }
 }
 
 private fun clearCrashLogs(context: Context) {

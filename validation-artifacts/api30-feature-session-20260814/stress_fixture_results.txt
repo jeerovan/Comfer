@@ -1,0 +1,27 @@
+Physical stress fixture results — Samsung SM-A305F, Android 11/API 30
+Date: 2026-08-14
+
+Settings slider
+- Compose instrumentation: 1,000 drag move events, exactly 1 commit, final value 100; PASS (6.166 s).
+- Macrobenchmark: 5 iterations, 20 alternating gestures per iteration; PASS.
+- Frame CPU P50/P90/P95/P99: 20.4157/27.1338/30.4989/39.2823 ms.
+- App-main slices >=100 ms: 0 in all five traces.
+- Traces: LauncherInteractionBenchmark_settingsSliderDragFrames_iter000_2026-08-14-07-21-05.perfetto-trace through iter004_2026-08-14-07-24-31.perfetto-trace.
+
+8K wallpaper
+- Fixture: 7680 x 4320 JPEG, 1,151,551 bytes.
+- Baseline/peak PSS: 185,734/202,958 KiB; delta 17,224 KiB (16.82 MiB).
+- Budget: <=32 MiB; PASS.
+- Applied marker matched fixture; original wallpaper restored in finally.
+
+App refresh burst
+- Requests: 100; actual refreshes: 1; maximum active refreshes: 1; elapsed: 1,019 ms; PASS.
+
+Widget health guard
+- <1 s inflation: no strike; first >=1 s: one strike; second: quarantined; explicit retry: quarantine cleared; PASS.
+- Connected normal fixture observed five widgets across center/side screens, not the required ten. Real 10-widget restoration and a deliberately slow provider remain unexecuted.
+
+Deterministic regression suite
+- Legacy folder migration: valid and malformed fixtures PASS; malformed source remains retryable.
+- ImageWorker pipeline: success, retry, fetch short-circuit, and cancellation propagation PASS.
+- Notification debounce coordinator: 100-event burst and pending-stop cancellation PASS.

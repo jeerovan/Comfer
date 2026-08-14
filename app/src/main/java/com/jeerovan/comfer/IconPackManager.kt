@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import org.xmlpull.v1.XmlPullParser
 
@@ -57,6 +58,8 @@ object IconPackManager {
             withContext(Dispatchers.Main) {
                 PreferenceManager.increaseAppListVersion(context)
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -76,6 +79,8 @@ object IconPackManager {
         try {
             val resId = state.resources.getIdentifier(drawableName, "drawable", state.packageName)
             if (resId != 0) state.resources.getDrawable(resId, null) else null
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             null
         }

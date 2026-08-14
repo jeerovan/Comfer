@@ -41,6 +41,8 @@ appcompat = "1.7.1"
 uiText = "1.10.0"
 animation = "1.10.0"
 runtime = "1.10.0"
+benchmark = "1.4.1"
+uiautomator = "2.3.0"
 animationVersion = "1.11.2"
 uiUnit = "1.11.3"
 
@@ -112,14 +114,16 @@ androidx-animation = { group = "androidx.compose.animation", name = "animation",
 androidx-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
 animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animationVersion" }
 androidx-compose-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.ref = "uiUnit" }
+androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark" }
+androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
 
 
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-test = { id = "com.android.test", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-
 

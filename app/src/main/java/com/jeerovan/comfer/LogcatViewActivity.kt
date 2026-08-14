@@ -4,22 +4,19 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -39,17 +36,12 @@ class LogcatViewActivity : AppCompatActivity() {
 fun LogcatLogScreen() {
     val context = LocalContext.current
     // State to hold the raw string logs. Load asynchronously to avoid blocking the main thread.
-    var rawLogs by remember { mutableStateOf("") }
+    var logLines by remember { mutableStateOf<List<String>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
-        rawLogs = withContext(Dispatchers.IO) { getLogcatLogs(context) }
+        logLines = withContext(Dispatchers.IO) { getLogcatLogLines(context) }
         isLoading = false
-    }
-
-    // Convert raw string to AnnotatedString with colors.
-    // formattedLogs updates automatically whenever rawLogs changes.
-    val formattedLogs = remember(rawLogs) {
-        parseLogToAnnotatedString(rawLogs)
     }
 
     Scaffold(
@@ -58,8 +50,10 @@ fun LogcatLogScreen() {
                 title = { Text("System Error Logs") },
                 actions = {
                     Button(onClick = {
-                        clearLogcatLogs(context)
-                        rawLogs = "" // Update state to clear the view immediately
+                        scope.launch {
+                            withContext(Dispatchers.IO) { clearLogcatLogs(context) }
+                            logLines = emptyList()
+                        }
                     }) {
                         Text("Clear Logs")
                     }
@@ -76,7 +70,7 @@ fun LogcatLogScreen() {
             ) {
                 CircularProgressIndicator()
             }
-        } else if (rawLogs.isEmpty()) {
+        } else if (logLines.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -86,20 +80,20 @@ fun LogcatLogScreen() {
                 Text("No system error logs found.")
             }
         } else {
-            Box(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
             ) {
-                Text(
-                    text = formattedLogs, // Use the annotated string here
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
-                    fontFamily = FontFamily.Monospace,
-                    style = MaterialTheme.typography.bodySmall
-                )
+                itemsIndexed(logLines, key = { index, _ -> index }) { _, line ->
+                    Text(
+                        text = line,
+                        color = logLineColor(line),
+                        fontFamily = FontFamily.Monospace,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
         }
     }
@@ -111,11 +105,9 @@ fun LogcatLogScreen() {
  * Debug -> Blue
  * Info -> Black
  */
-private fun parseLogToAnnotatedString(logContent: String) = buildAnnotatedString {
-    logContent.lines().forEach { line ->
-        val lowerLine = line.lowercase()
-
-        val lineColor = when {
+private fun logLineColor(line: String): Color {
+    val lowerLine = line.lowercase()
+    return when {
             // Check for "Error" or standard Logcat " E/" tag
             lowerLine.contains("error") || line.contains(" E/") -> Color.Red
 
@@ -127,26 +119,14 @@ private fun parseLogToAnnotatedString(logContent: String) = buildAnnotatedString
 
             // Default color for lines that don't match specific tags (e.g., stack trace continuation)
             // You might want to use Color.Red here if you want stack traces to follow the error color
-            else -> Color.Black
-        }
-
-        withStyle(style = SpanStyle(color = lineColor)) {
-            append(line + "\n")
-        }
+        else -> Color.Black
     }
 }
 
-private fun getLogcatLogs(context: Context): String {
+private fun getLogcatLogLines(context: Context): List<String> {
     val file = File(context.filesDir, "app_error_logs.txt")
-    return if (file.exists()) {
-        try {
-            file.readText()
-        } catch (e: Exception) {
-            "Error reading log file: ${e.localizedMessage}"
-        }
-    } else {
-        ""
-    }
+    return runCatching { BoundedLogFile.readTailLines(file) }
+        .getOrElse { listOf("Error reading log file: ${it.localizedMessage}") }
 }
 
 private fun clearLogcatLogs(context: Context) {

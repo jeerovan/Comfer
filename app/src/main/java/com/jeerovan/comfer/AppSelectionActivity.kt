@@ -29,6 +29,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -84,7 +85,14 @@ class AppSelectionActivity : AppCompatActivity() {
 fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, swipeDirection: String?, gesturePattern: String?) {
     val appListState by appInfoViewModel.uiState.collectAsState()
     val context = LocalContext.current
-    val allApps = (appListState.quickApps + appListState.primaryApps + appListState.restApps).sortedBy { it.label.toString() }
+    val allApps = remember(
+        appListState.quickApps,
+        appListState.primaryApps,
+        appListState.restApps,
+    ) {
+        (appListState.quickApps + appListState.primaryApps + appListState.restApps)
+            .sortedBy { it.label }
+    }
     val iconSize = PreferenceManager.getIconSize(context)
     val iconShape = PreferenceManager.getIconShape(context)
     Scaffold(topBar = {
@@ -106,7 +114,9 @@ fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, swipeDirection: Strin
                 .fillMaxSize(),
             contentPadding = paddingValues
         ) {
-            items(allApps) { app ->
+            items(allApps, key = { app ->
+                "${app.componentName?.flattenToString() ?: app.packageName}:${app.user?.hashCode()}"
+            }) { app ->
                 SelectAppIcon(app,iconSize,iconShape) {
                     (context as? Activity)?.let { activity ->
                         val resultIntent = Intent()

@@ -5,7 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.jeerovan.comfer.utils.CommonUtil.downloadImage
 import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
@@ -18,14 +18,36 @@ data class ImageData(
     val imageUrl: String
 )
 
+internal enum class ImageWorkOutcome { SUCCESS, RETRY }
+
+internal suspend fun runImageWorkPipeline(
+    fetch: suspend () -> Boolean,
+    download: suspend () -> Boolean,
+): ImageWorkOutcome {
+    if (!fetch()) return ImageWorkOutcome.RETRY
+    return if (download()) ImageWorkOutcome.SUCCESS else ImageWorkOutcome.RETRY
+}
+
 class ImageWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
-        delay(5000)
-        fetchImageData(applicationContext)
-        delay(2000)
-        downloadImage(applicationContext)
-        return Result.success()
+        return try {
+            (applicationContext as? ComferApp)?.initializeApplicationData()
+            StartupCoordinator.awaitReady()
+            WallpaperWorkCoordinator.runExclusive {
+                when (runImageWorkPipeline(
+                    fetch = { fetchImageData(applicationContext) },
+                    download = { downloadImage(applicationContext) },
+                )) {
+                    ImageWorkOutcome.SUCCESS -> Result.success()
+                    ImageWorkOutcome.RETRY -> Result.retry()
+                }
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            Result.retry()
+        }
     }
 }

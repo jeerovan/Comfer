@@ -14,7 +14,7 @@ android {
     ndkVersion = "29.0.14206865"
     defaultConfig {
         applicationId = "com.jeerovan.comfer"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 36
         versionCode = 40
         versionName = "40.0"
@@ -35,6 +35,12 @@ android {
             ndk {
                 debugSymbolLevel = NdkOptions.DebugSymbolLevel.SYMBOL_TABLE.toString()
             }
+        }
+        create("benchmark") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+            isDebuggable = false
         }
     }
     compileOptions {

@@ -25,3 +25,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Comfer"
 include(":app")
+include(":macrobenchmark")

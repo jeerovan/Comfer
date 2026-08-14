@@ -26,6 +26,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Comfer">
+        <profileable
+            android:shell="true"
+            tools:targetApi="q" />
         <activity
             android:name=".MainActivity"
             android:configChanges="uiMode"
@@ -48,7 +51,10 @@
             android:exported="false" />
         <activity
             android:name=".SettingsActivity"
-            android:exported="false" />
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="${applicationId}.settings" />
         <activity
             android:name=".GestureShortcutActivity"
             android:exported="false" />

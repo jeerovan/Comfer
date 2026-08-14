@@ -7,7 +7,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -28,6 +30,7 @@ import android.graphics.Bitmap
 import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -117,9 +120,44 @@ data class KeyTextObject(
     val key: String
 )
 
+data class LauncherSettingsUiState(
+    val appDrawerLayout: String = "circular",
+    val appListsVersion: Int = 0,
+    val arrangeInAlphabeticalOrder: Boolean = false,
+    val autoWallpapers: Boolean = false,
+    val hasNotificationAccess: Boolean = false,
+    val iconPackPackage: String? = null,
+    val monochrome: Boolean = false,
+    val shouldAppUpdatePromptUserCounter: Int = 0,
+    val showThemedIcons: Boolean = false,
+    val wallpaperMotionEnabled: Boolean = true,
+)
+
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState = _uiState.asStateFlow()
+    val launcherSettingsState = uiState
+        .map { state ->
+            LauncherSettingsUiState(
+                state.appDrawerLayout,
+                state.appListsVersion,
+                state.arrangeInAlphabeticalOrder,
+                state.autoWallpapers,
+                state.hasNotificationAccess,
+                state.iconPackPackage,
+                state.monochrome,
+                state.shouldAppUpdatePromptUserCounter,
+                state.showThemedIcons,
+                state.wallpaperMotionEnabled,
+            )
+        }
+        .distinctUntilChanged()
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            LauncherSettingsUiState(),
+        )
+    private var settingsLoadJob: Job? = null
     // const
     private val ANALOG_CLOCK = "analog_clock"
     private val CLOCK_BG_COLOR = "clock_bg_color"
@@ -193,6 +231,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     init {
         loadSettings()
         viewModelScope.launch {
+            StartupCoordinator.awaitReady()
             application.dataStore.data
                 .map { it[PreferenceKeys.WALLPAPER_UPDATE] ?: 0L }
                 .distinctUntilChanged()
@@ -202,8 +241,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
     fun loadSettings() {
+        if (settingsLoadJob?.isActive == true) return
+        val loadStartedAtMs = android.os.SystemClock.elapsedRealtime()
         Log.i("SettingsViewModel","LoadSettings")
-        viewModelScope.launch(Dispatchers.IO) {
+        settingsLoadJob = viewModelScope.launch(Dispatchers.IO) {
+            StartupCoordinator.awaitReady()
             // Run any migrations to fix things
             resetWidgetPositions()
             
@@ -401,6 +443,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         topBarVisible = isTopBarVisible
                     )
                 }
+            }
+            if (BuildConfig.DEBUG) {
+                Log.i(
+                    "SettingsLaunch",
+                    "settingsLoadMs=${android.os.SystemClock.elapsedRealtime() - loadStartedAtMs}",
+                )
             }
         }
     }
