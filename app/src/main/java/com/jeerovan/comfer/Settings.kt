@@ -121,7 +121,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.utils.CommonUtil.getKeyTextObject
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
@@ -187,7 +186,13 @@ class SettingsActivity : AppCompatActivity() {
                                     Log.i("SettingsLaunch", "firstLayoutMs=$elapsedMs")
                                 }
                                 PerformanceTrace.endAsync("settingsLaunch", launchTraceCookie)
-                                reportFullyDrawn()
+                                try {
+                                    reportFullyDrawn()
+                                } catch (e: RuntimeException) {
+                                    // Some multi-user OEM builds reject the framework's
+                                    // internal report broadcast from secondary users.
+                                    Log.w("SettingsLaunch", "Could not report fully drawn", e)
+                                }
                             }
                         },
                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
@@ -330,12 +335,10 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     subtitle = stringResource(R.string.fife_subtitle),
                     logoPainter = painterResource(R.drawable.fife_logo),
                     onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.jeerovan.fife"))
-                        try {
-                            context.startActivity(intent)
-                        } catch (_: ActivityNotFoundException) {
-                            // Play Store not available – fallback to browser or ignore
-                        }
+                        openUrl(
+                            "https://play.google.com/store/apps/details?id=com.jeerovan.fife",
+                            context,
+                        )
                     }
                 )
             }
@@ -849,9 +852,10 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                             context.startActivity(playStoreIntent)
                         } catch (_: Exception) {
                             // If Play Store is not installed, open in a web browser
-                            val webIntent = Intent(Intent.ACTION_VIEW,
-                                "https://play.google.com/store/apps/details?id=$packageName".toUri())
-                            context.startActivity(webIntent)
+                            openUrl(
+                                "https://play.google.com/store/apps/details?id=$packageName",
+                                context,
+                            )
                         }
                     }
                 )
@@ -1172,7 +1176,23 @@ fun SelectSetOwnWallpapersDirectory(
     fun handleDirectoryToggle(check: Boolean) {
         if (check) {
             // Launch directly. The system picker handles all privacy boundaries.
-            directoryPickerLauncher.launch(null)
+            try {
+                directoryPickerLauncher.launch(null)
+            } catch (_: ActivityNotFoundException) {
+                Toast.makeText(
+                    context,
+                    R.string.wallpaper_directory_picker_unavailable,
+                    Toast.LENGTH_SHORT,
+                ).show()
+                onSelectDirectory(null)
+            } catch (_: SecurityException) {
+                Toast.makeText(
+                    context,
+                    R.string.wallpaper_directory_picker_unavailable,
+                    Toast.LENGTH_SHORT,
+                ).show()
+                onSelectDirectory(null)
+            }
         } else {
             onSelectDirectory(null)
         }
@@ -1511,7 +1531,7 @@ fun IconPackSelectionDialog(
                         ) {
                             // Display Icon Pack Icon
                             Image(
-                                painter = rememberDrawablePainter(drawable = pack.icon),
+                                painter = rememberDrawableBitmapPainter(pack.icon),
                                 contentDescription = null,
                                 modifier = Modifier.size(40.dp)
                             )

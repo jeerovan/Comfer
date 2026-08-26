@@ -99,7 +99,20 @@ class ComferApp : Application(), ImageLoaderFactory {
             .setConstraints(constraints)
             .build()
 
-        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+        val workManager = try {
+            WorkManager.getInstance(applicationContext)
+        } catch (uninitialized: IllegalStateException) {
+            // Some Play-protected/OEM installs omit WorkManagerInitializer even
+            // though the normal merged manifest includes it.
+            Log.w("ComferApp", "Initializing WorkManager explicitly", uninitialized)
+            WorkManager.initialize(
+                applicationContext,
+                Configuration.Builder().build(),
+            )
+            WorkManager.getInstance(applicationContext)
+        }
+
+        workManager.enqueueUniquePeriodicWork(
             "ImageWorker",
             ExistingPeriodicWorkPolicy.KEEP,
             periodicWorkRequest

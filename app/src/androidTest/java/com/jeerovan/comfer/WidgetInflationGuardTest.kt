@@ -10,6 +10,39 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class WidgetInflationGuardTest {
     @Test
+    fun knownCrashingHonorCalendarProviderIsRejected() {
+        assertTrue(
+            WidgetInflationGuard.isKnownUnsafe(
+                "com.hihonor.calendar/.widget.month.MonthWidgetProvider"
+            )
+        )
+        assertFalse(
+            WidgetInflationGuard.isKnownUnsafe(
+                "com.example.calendar/.SafeWidgetProvider"
+            )
+        )
+    }
+
+    @Test
+    fun otherCrashingOemWidgetPackagesAreRejected() {
+        assertTrue(
+            WidgetInflationGuard.isKnownUnsafe(
+                "com.hihonor.gallery/com.hihonor.gallery.widget.WonderfulPhotoProvider"
+            )
+        )
+        assertTrue(
+            WidgetInflationGuard.isKnownUnsafe(
+                "com.huawei.android.totemweather/.widget.WeatherWidgetProvider"
+            )
+        )
+        assertTrue(
+            WidgetInflationGuard.isKnownUnsafe(
+                "com.android.calendar/.widget.MonthWidgetProvider"
+            )
+        )
+    }
+
+    @Test
     fun twoSlowStrikesQuarantineAndManualRetryClearsProvider() {
         val context = ApplicationProvider.getApplicationContext<ComferApp>()
         val provider = "stress.fixture/.SlowWidgetProvider"

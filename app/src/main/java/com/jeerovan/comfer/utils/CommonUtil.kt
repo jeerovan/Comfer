@@ -31,7 +31,6 @@ import com.jeerovan.comfer.PreferenceKeys
 import com.jeerovan.comfer.PreferenceManager
 import com.jeerovan.comfer.R
 import com.jeerovan.comfer.dataStore
-import com.jeerovan.comfer.toBitmap
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
@@ -55,6 +54,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URLDecoder
+import java.net.ProxySelector
 import java.security.MessageDigest
 import java.text.Normalizer
 
@@ -315,6 +315,7 @@ object CommonUtil {
                     config {
                         sslSocketFactory(sslSocketFactory, trustManager)
                         connectionSpecs(connectionSpecs)
+                        proxySelector(SafeProxySelector(ProxySelector.getDefault()))
                     }
                 }
                 install(ContentNegotiation) {
@@ -456,7 +457,9 @@ object CommonUtil {
                             Log.i("DownloadImage","Deleted: $oldFilePath")
                         }
                         setWallpaperThemedColors(applicationContext, bitmap)
-                        applyWallpaperBitmap(applicationContext, bitmap, file.absolutePath)
+                        if (!applyWallpaperBitmap(applicationContext, bitmap, file.absolutePath)) {
+                            return false
+                        }
                     } finally {
                         bitmap.recycle()
                     }
@@ -469,16 +472,17 @@ object CommonUtil {
         } else if (PreferenceManager.getMonochrome(applicationContext)){
             val currentWallpaperFilePath = PreferenceManager.getBackgroundImagePath(applicationContext)
             if( PreferenceManager.getAppliedWallpaperImage(applicationContext) != currentWallpaperFilePath){
-                setWallpaper(applicationContext)
+                if (!setWallpaper(applicationContext)) return false
             }
         }
         return true
     }
-    suspend fun setWallpaper(context: Context) = withContext(Dispatchers.IO) {
-        val filePath = PreferenceManager.getBackgroundImagePath(context) ?: return@withContext
+    suspend fun setWallpaper(context: Context): Boolean = withContext(Dispatchers.IO) {
+        val filePath = PreferenceManager.getBackgroundImagePath(context)
+            ?: return@withContext false
         val (targetWidth, targetHeight) = getWallpaperTargetSize(context)
         val bitmap = decodeWallpaperBitmap(File(filePath), targetWidth, targetHeight)
-            ?: return@withContext
+            ?: return@withContext false
         try {
             applyWallpaperBitmap(context, bitmap, filePath)
         } finally {
@@ -552,7 +556,11 @@ object CommonUtil {
         return bitmap
     }
 
-    private suspend fun applyWallpaperBitmap(context: Context, bitmap: Bitmap, filePath: String) {
+    private suspend fun applyWallpaperBitmap(
+        context: Context,
+        bitmap: Bitmap,
+        filePath: String,
+    ): Boolean {
         if (isDefaultLauncher(context)) {
             val setWallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(context)
             val wallpaperManager = WallpaperManager.getInstance(context)
@@ -561,11 +569,22 @@ object CommonUtil {
             } else {
                 WallpaperManager.FLAG_SYSTEM
             }
-            wallpaperManager.setBitmap(bitmap, null, true, flag)
+            try {
+                wallpaperManager.setBitmap(bitmap, null, true, flag)
+            } catch (e: IOException) {
+                Log.e("CommonUtil", "Could not apply wallpaper", e)
+                return false
+            } catch (e: RuntimeException) {
+                // Android 16 OEM builds have thrown IllegalArgumentException from
+                // setBitmapWithCrops when their WallpaperDescription is invalid.
+                Log.e("CommonUtil", "Wallpaper service rejected bitmap", e)
+                return false
+            }
             PreferenceManager.setAppliedWallpaperImage(context, filePath)
         } else {
             PreferenceManager.setAppliedWallpaperImage(context, null)
         }
+        return true
     }
 
     private suspend fun setWallpaperThemedColors(context: Context, bitmap: Bitmap) {

@@ -94,9 +94,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import coil.request.ImageRequest
-import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
+import com.jeerovan.comfer.utils.CommonUtil.openUrl
 import kotlin.math.PI
 import kotlin.math.absoluteValue
 import kotlin.math.asin
@@ -144,7 +144,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.Dispatchers
@@ -1173,6 +1172,9 @@ private fun WidgetInstance(
     val providerName = remember(appWidgetProviderInfo) {
         appWidgetProviderInfo.provider.flattenToShortString()
     }
+    val isKnownUnsafeProvider = remember(providerName) {
+        WidgetInflationGuard.isKnownUnsafe(providerName)
+    }
 
     // Initial grid-based calculations
     val initialX = (widget.gridX * (cellWidthPx + gapPx))
@@ -1186,13 +1188,17 @@ private fun WidgetInstance(
 
     // Widget view state management
     var hostView by remember(widget.widgetId, appWidgetHost) {
-        mutableStateOf(WidgetHostViewCache.get(appWidgetHost, widget.widgetId))
+        mutableStateOf(
+            if (isKnownUnsafeProvider) null
+            else WidgetHostViewCache.get(appWidgetHost, widget.widgetId)
+        )
     }
     var isLoading by remember(widget.widgetId, appWidgetHost) {
-        mutableStateOf(hostView == null)
+        mutableStateOf(hostView == null && !isKnownUnsafeProvider)
     }
     var hasError by remember { mutableStateOf(false) }
     var isQuarantined by remember { mutableStateOf(false) }
+    var isUnsupported by remember { mutableStateOf(isKnownUnsafeProvider) }
     var retryGeneration by remember { mutableIntStateOf(0) }
 
     // Re-sync position and size if the widget's grid properties change externally
@@ -1209,6 +1215,14 @@ private fun WidgetInstance(
     //  - serialize createView across widgets so only one inflates at a time;
     //    waiting coroutines suspend off-Main instead of piling onto the queue
     LaunchedEffect(widget.widgetId, retryGeneration) {
+        if (isKnownUnsafeProvider) {
+            WidgetHostViewCache.remove(appWidgetHost, widget.widgetId)
+            hostView = null
+            isUnsupported = true
+            isLoading = false
+            return@LaunchedEffect
+        }
+
         WidgetHostViewCache.get(appWidgetHost, widget.widgetId)?.let { cachedView ->
             hostView = cachedView
             isLoading = false
@@ -1220,6 +1234,7 @@ private fun WidgetInstance(
         isLoading = true
         hasError = false
         isQuarantined = false
+        isUnsupported = false
 
         if (withContext(Dispatchers.IO) {
                 WidgetInflationGuard.isQuarantined(context, providerName)
@@ -1345,18 +1360,20 @@ private fun WidgetInstance(
                         ) { change, dragAmount ->
                             change.consume()
                             val newPos = Offset(
-                                x = (position.x + dragAmount.x).coerceIn(
+                                x = clampToAvailableRange(
+                                    position.x + dragAmount.x,
                                     0f,
                                     windowWidthPx - size.width
                                 ),
-                                y = (position.y + dragAmount.y).coerceIn(
+                                y = clampToAvailableRange(
+                                    position.y + dragAmount.y,
                                     gapPx,
                                     windowHeightPx - size.height
                                 )
                             )
 
                             val newGridX = ((newPos.x) / (cellWidthPx + gapPx)).roundToInt()
-                                .coerceIn(0, gridColumns - widget.spanX)
+                                .coerceIn(0, maximumWidgetGridStart(gridColumns, widget.spanX))
                             val newGridY =
                                 ((newPos.y - gapPx) / (cellHeightPx + gapPx)).roundToInt()
                                     .coerceAtLeast(0)
@@ -1386,6 +1403,15 @@ private fun WidgetInstance(
                 hasError -> {
                     Text(
                         text = stringResource(R.string.could_not_load_widget),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                isUnsupported -> {
+                    Text(
+                        text = stringResource(R.string.widget_provider_unsupported),
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(8.dp),
@@ -1472,13 +1498,14 @@ private fun WidgetInstance(
                 .pointerInput(Unit) {
                     detectDragGestures(onDragEnd = { onResizeEnd() }) { change, dragAmount ->
                         change.consume()
-                        val newWidth = (size.width + dragAmount.x).coerceIn(
+                        val newWidth = clampToAvailableRange(
+                            size.width + dragAmount.x,
                             minWidgetSizePx,
                             windowWidthPx - position.x
                         )
                         val newSpanX =
                             max(1, (newWidth / (cellWidthPx + gapPx)).roundToInt()).coerceAtMost(
-                                gridColumns - widget.gridX
+                                (gridColumns - widget.gridX).coerceAtLeast(1)
                             )
                         val proposedRect = IntRect(
                             widget.gridX,
@@ -1540,7 +1567,8 @@ private fun WidgetInstance(
                 .pointerInput(Unit) {
                     detectDragGestures(onDragEnd = { onResizeEnd() }) { change, dragAmount ->
                         change.consume()
-                        val newHeight = (size.height + dragAmount.y).coerceIn(
+                        val newHeight = clampToAvailableRange(
+                            size.height + dragAmount.y,
                             minWidgetSizePx,
                             windowHeightPx - position.y
                         )
@@ -1662,7 +1690,7 @@ fun WidgetPickerFullScreen(
                         Column(Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Image(
-                                    painter = rememberDrawablePainter(drawable = group.appIcon),
+                                    painter = rememberDrawableBitmapPainter(group.appIcon),
                                     contentDescription = null,
                                     modifier = Modifier.size(32.dp)
                                 )
@@ -1732,7 +1760,7 @@ private fun WidgetPreviewItem(
     ) {
         if (previewDrawable != null) {
             Image(
-                painter = rememberDrawablePainter(drawable = previewDrawable),
+                painter = rememberDrawableBitmapPainter(previewDrawable),
                 contentDescription = label,
                 modifier = Modifier
                     .height(100.dp)
@@ -2501,16 +2529,29 @@ fun SearchListOverlay(apps: List<AppInfo>,
     var searchTabSwipeDownGestureShown by remember { mutableStateOf(true)}
     var searchSwipeDownGestureShown by remember { mutableStateOf(true)}
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
-    val filteredApps = remember(apps, activeTab, inputText) {
-        if(activeTab == SearchTab.APPS && inputText.isNotBlank()) {
-            apps.filter { app -> doesMatchSearch(inputText.trim(), app.label) }
+    val filteredApps by produceState<List<AppInfo>>(
+        initialValue = apps,
+        key1 = apps,
+        key2 = activeTab,
+        key3 = inputText,
+    ) {
+        value = if (activeTab == SearchTab.APPS && inputText.isNotBlank()) {
+            withContext(Dispatchers.Default) {
+                val query = inputText.trim()
+                apps.filter { app -> doesMatchSearch(query, app.label) }
+            }
         } else {
             apps
         }
     }
-    val filteredContacts = remember(contacts, activeTab, inputText) {
-        if(activeTab == SearchTab.CONTACTS){
-            searchContacts(inputText, contacts)
+    val filteredContacts by produceState<List<Contact>>(
+        initialValue = contacts,
+        key1 = contacts,
+        key2 = activeTab,
+        key3 = inputText,
+    ) {
+        value = if (activeTab == SearchTab.CONTACTS) {
+            withContext(Dispatchers.Default) { searchContacts(inputText, contacts) }
         } else {
             contacts
         }
@@ -2986,7 +3027,7 @@ fun ContactListItem(contact: Contact,isSelected:Boolean) {
 }
 @Composable
 fun PermissionRequestView(onRequestPermission: () -> Unit) {
-    val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
     val privacyPolicyUrl = "https://comfer.jeerovan.com/privacy"
     Box(modifier = Modifier
         .fillMaxWidth()
@@ -3012,7 +3053,7 @@ fun PermissionRequestView(onRequestPermission: () -> Unit) {
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center,
                         modifier = Modifier.clickable {
-                    uriHandler.openUri(privacyPolicyUrl)
+                    openUrl(privacyPolicyUrl, context)
                 }
             )
         }
@@ -3074,7 +3115,11 @@ fun AppListOverlay(apps: List<AppInfo>,
 
             // Check if at least 50ms have passed since the last sound
             if (currentTime - lastSoundTime >= 50) {
-                view.playSoundEffect(SoundEffectConstants.CLICK)
+                try {
+                    view.playSoundEffect(SoundEffectConstants.CLICK)
+                } catch (e: RuntimeException) {
+                    Log.w("AppListOverlay", "System sound service unavailable", e)
+                }
                 lastSoundTime = currentTime
             }
 
@@ -4243,7 +4288,7 @@ fun AppIcon(app: AppInfo,
             // Background Layer
             if (app.background != null) {
                 Image(
-                    painter = rememberDrawablePainter(drawable = app.background),
+                    painter = rememberDrawableBitmapPainter(app.background),
                     contentDescription = "${app.label} background",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.FillBounds
@@ -4253,7 +4298,7 @@ fun AppIcon(app: AppInfo,
             // Foreground Layer
             if (app.foreground != null) {
                 Image(
-                    painter = rememberDrawablePainter(drawable = app.foreground),
+                    painter = rememberDrawableBitmapPainter(app.foreground),
                     contentDescription = app.label,
                     modifier = Modifier
                         .fillMaxSize()

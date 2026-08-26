@@ -41,7 +41,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import kotlin.math.min
@@ -149,7 +148,7 @@ fun SelectAppIcon(app: AppInfo, iconSize: Int, iconShape: Shape, onClick: () -> 
             // Background Layer
             if (app.background != null) {
                 Image(
-                    painter = rememberDrawablePainter(drawable = app.background),
+                    painter = rememberDrawableBitmapPainter(app.background),
                     contentDescription = "${app.label} background",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.FillBounds
@@ -159,7 +158,7 @@ fun SelectAppIcon(app: AppInfo, iconSize: Int, iconShape: Shape, onClick: () -> 
             // Foreground Layer
             if (app.foreground != null) {
                 Image(
-                    painter = rememberDrawablePainter(drawable = app.foreground),
+                    painter = rememberDrawableBitmapPainter(app.foreground),
                     contentDescription = app.label.toString(),
                     modifier = Modifier.fillMaxSize()
                         .scale(app.scale), // Let it fill the clipped Box

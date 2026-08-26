@@ -1,11 +1,68 @@
 import com.android.build.gradle.internal.dsl.NdkOptions
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+}
+
+val jksProperties = Properties().apply {
+    val propertiesFile = rootProject.file("jks-key.properties")
+    if (propertiesFile.isFile) {
+        propertiesFile.inputStream().use(::load)
+    }
+}
+
+fun releaseSigningValue(
+    jksProperty: String,
+    gradleProperty: String,
+    environmentVariable: String,
+): String? = jksProperties.getProperty(jksProperty)?.takeIf { it.isNotBlank() }
+    ?: providers.gradleProperty(gradleProperty).orNull?.takeIf { it.isNotBlank() }
+    ?: providers.environmentVariable(environmentVariable).orNull?.takeIf { it.isNotBlank() }
+
+val releaseStoreFile = releaseSigningValue(
+    "storeFile",
+    "comferUploadStoreFile",
+    "COMFER_UPLOAD_STORE_FILE",
+)
+val releaseStorePassword = releaseSigningValue(
+    "storePassword",
+    "comferUploadStorePassword",
+    "COMFER_UPLOAD_STORE_PASSWORD",
+)
+val releaseKeyAlias = releaseSigningValue(
+    "keyAlias",
+    "comferUploadKeyAlias",
+    "COMFER_UPLOAD_KEY_ALIAS",
+)
+val releaseKeyPassword = releaseSigningValue(
+    "keyPassword",
+    "comferUploadKeyPassword",
+    "COMFER_UPLOAD_KEY_PASSWORD",
+)
+val releaseSigningCredentials = listOf(
+    releaseStoreFile,
+    releaseStorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+)
+val configuredReleaseSigningCredentials = releaseSigningCredentials.count { !it.isNullOrBlank() }
+require(
+    configuredReleaseSigningCredentials == 0 ||
+        configuredReleaseSigningCredentials == releaseSigningCredentials.size,
+) {
+    "Configure all four Comfer upload signing values or none of them"
+}
+val hasReleaseSigningCredentials = configuredReleaseSigningCredentials ==
+    releaseSigningCredentials.size
+if (hasReleaseSigningCredentials) {
+    require(rootProject.file(requireNotNull(releaseStoreFile)).isFile) {
+        "Configured Comfer upload keystore does not exist"
+    }
 }
 
 android {
@@ -16,14 +73,27 @@ android {
         applicationId = "com.jeerovan.comfer"
         minSdk = 24
         targetSdk = 36
-        versionCode = 42
-        versionName = "42.0"
+        versionCode = 43
+        versionName = "43.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs {
+        if (hasReleaseSigningCredentials) {
+            create("release") {
+                storeFile = rootProject.file(requireNotNull(releaseStoreFile))
+                storePassword = requireNotNull(releaseStorePassword)
+                keyAlias = requireNotNull(releaseKeyAlias)
+                keyPassword = requireNotNull(releaseKeyPassword)
+            }
+        }
     }
 
     buildTypes {
         release {
+            if (hasReleaseSigningCredentials) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             // Enables code-related app optimization.
             isMinifyEnabled = true
             // Enables resource shrinking.
@@ -65,7 +135,6 @@ kotlin {
 }
 
 dependencies {
-    implementation(libs.androidx.compose.ui.unit)
     implementation(libs.app.update)
     implementation(libs.app.update.ktx)
     implementation(libs.androidx.ui.text.google.fonts)
@@ -83,7 +152,6 @@ dependencies {
     implementation(libs.material.icons.extended)
     implementation(libs.coil.compose)
     implementation(libs.ktor.client.okhttp)
-    implementation(libs.accompanist.drawablepainter)
     implementation(libs.reorderable)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.ktor.client.core)
@@ -101,10 +169,6 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.ui.text)
-    implementation(libs.androidx.animation)
-    implementation(libs.androidx.runtime)
-    implementation(libs.animation)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

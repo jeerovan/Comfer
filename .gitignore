@@ -18,6 +18,26 @@ local.properties
 .idea/
 .kotlin/
 .env
+.env.*
+!.env.example
 /app/release
 
 validation-artifacts/
+
+# Local Python/reporting state
+/venv/
+/.venv/
+__pycache__/
+*.py[cod]
+/play_reporting.db*
+
+# Credentials and release-signing material
+/service-account.json
+/service-account-*.json
+/jks-key.properties
+*.jks
+*.keystore
+
+# Release artifacts should be distributed through Google Play, not Git
+*.apk
+*.aab

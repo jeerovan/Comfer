@@ -148,6 +148,8 @@
 
     <string name="title_own_wallpapers">Set your own wallpapers</string>
     <string name="wallpaper_directory_select">Tap to select folder</string>
+    <string name="wallpaper_directory_picker_unavailable" translatable="false">No folder picker is available on this device</string>
+    <string name="widget_provider_unsupported" translatable="false">This widget is disabled because its provider crashes the launcher</string>
     <string name="icon_wallpaper_directory">Wallpaper folder icon</string>
 
     <string name="set_launcher_first">Set Comfer as the default launcher first</string>
