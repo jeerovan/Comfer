@@ -1,6 +1,7 @@
 package com.jeerovan.comfer
 
 import com.jeerovan.comfer.utils.FlowerShape
+import android.Manifest
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -62,6 +63,7 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BatterySaver
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.Grain
 import androidx.compose.material.icons.filled.Info
@@ -116,6 +118,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import androidx.core.net.toUri
+import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -247,6 +250,26 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     settingsViewModel.setSwipeApp(direction, packageName)
                 }
             }
+        }
+    }
+    val weatherLocationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        settingsViewModel.setWeatherWidgetEnabled(granted)
+    }
+
+    fun updateWeatherWidget(enabled: Boolean) {
+        if (!enabled) {
+            settingsViewModel.setWeatherWidgetEnabled(false)
+        } else if (
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            settingsViewModel.setWeatherWidgetEnabled(true)
+        } else {
+            weatherLocationPermissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
         }
     }
 
@@ -641,6 +664,34 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
+            }
+            if (!settingsState.hasCustomWidgets) {
+                item {
+                    ListItem(
+                        headlineContent = {
+                            Text(stringResource(R.string.weather_widget_title))
+                        },
+                        supportingContent = {
+                            Text(stringResource(R.string.weather_widget_summary))
+                        },
+                        leadingContent = {
+                            Icon(
+                                Icons.Filled.Cloud,
+                                contentDescription = stringResource(R.string.weather_widget_title),
+                            )
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = settingsState.showWeatherWidget,
+                                onCheckedChange = ::updateWeatherWidget,
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            updateWeatherWidget(!settingsState.showWeatherWidget)
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    )
+                }
             }
             item {
                 val layoutOptions:Map<String,Painter> = mapOf(

@@ -68,10 +68,10 @@ The largest actionable first-party main-thread groups are activity-launch Binder
 |---|---|---|
 | 0 | Establish version-42 database baseline and reproduce build graph | DONE |
 | 1 | Apply deterministic first-party crash and ANR fixes | IMPLEMENTED; full local verification complete |
-| 2 | Resolve Play-protected missing-class crash | unprotected Play v43 ARTIFACT VERIFIED; production exposure pending |
-| 3 | Attribute no-focus and remaining first-party ANRs | PENDING version-43 telemetry/device runs |
+| 2 | Resolve Play-protected missing-class crash | unprotected Play v44 artifact verified; production exposure pending |
+| 3 | Attribute no-focus and remaining first-party ANRs | PENDING version-44 telemetry/device runs |
 | 4 | Reduce residual OEM, Compose/View, native, and resource failures | SOURCE-FIXABLE WORK IMPLEMENTED; platform residuals monitor-only |
-| 5 | Stage rollout and close against version-42 baseline | v43 INTERNAL VERIFIED; 1% production blocked on publisher permission |
+| 5 | Stage rollout and close against version-42 baseline | v44 internal/Play artifact verified; 100% production replacement pending |
 
 ## Phase 1 — Implemented cumulative fixes
 
@@ -156,11 +156,11 @@ Confirmed evidence:
 - The protected artifact has a single `classes.dex`; this is not a missing feature-split or secondary-DEX case.
 - Play protection replaces the manifest application with a Pairip application subclass. That class is present, extends `ComferApp`, and invokes the Pairip license client. This is the meaningful protected/unprotected startup difference.
 
-Conclusion: there is no evidence for a missing Comfer keep rule or packaging defect. The remaining hypothesis is a Play automatic-protection interaction with Honor firmware or an abnormal/stale install state. The next controlled test is version 43 with automatic protection disabled for that release; do not add a speculative broad keep rule.
+Conclusion: there is no evidence for a missing Comfer keep rule or packaging defect. The remaining hypothesis is a Play automatic-protection interaction with Honor firmware or an abnormal/stale install state. The next controlled test is corrected version 44 with automatic protection disabled for that release; do not add a speculative broad keep rule.
 
 Implemented release guard: `scripts/verify_apk_components.py` compares every merged-manifest application component with the APK's defined DEX classes and fails on any omission.
 
-Exit criteria: the unprotected version-43 staged cohort receives sufficient Honor/API 34-35 exposure with zero recurrence of issue `7eed1be...`, while the new WorkManager/startup clusters remain absent. If it recurs unprotected, capture installation source/state and escalate the exact sample to Google/Honor because protection is no longer the differentiator.
+Exit criteria: the unprotected version-44 staged cohort receives sufficient Honor/API 34-35 exposure with zero recurrence of issue `7eed1be...`, while the new WorkManager/startup clusters remain absent. If it recurs unprotected, capture installation source/state and escalate the exact sample to Google/Honor because protection is no longer the differentiator.
 
 ## Phase 3 — Remaining ANRs
 
@@ -194,7 +194,7 @@ Monitor-only residuals:
 2. **Dead system/native/driver:** monitor by device/API after Compose alignment. Do not catch fatal VM/graphics corruption globally or suppress process corruption signals.
 3. **OEM widget detach internals:** `ViewFlipper`/`TextClock` receiver-unregistration failures happen inside vendor/system child views. The known crashing providers are blocked; there is no safe general app-level catch for an arbitrary child view's asynchronous detach work.
 4. **Profile installer/system resource failure:** the observed Choreographer/display event receiver failure is a system resource condition. Disabling profile installation would trade away startup performance without evidence that it fixes the device state.
-5. **Unknown/low-volume:** re-rank after one stable version-43 window and promote only recurring first-party roots.
+5. **Unknown/low-volume:** re-rank after one stable version-44 window and promote only recurring first-party roots.
 
 ## Phase 5 — Verification and rollout
 
@@ -216,21 +216,36 @@ Verified after Play processing:
 - Its manifest names `com.jeerovan.comfer.ComferApp` directly and neither its manifest nor DEX definitions contain Pairip classes. This confirms Automatic Protection is absent from the delivered artifact.
 - The Play-generated universal APK clean-installed on the API-24 emulator, cold-launched `MainActivity` in 883 ms, remained resumed, and emitted no inspected process exception/error.
 
+Production-policy correction:
+
+- Play rejected the v43 production submission because active artifacts requested broad photo/video permissions. Despite that review result, the Publisher API still reports v43 as an `inProgress` 2% production release alongside completed v42; do not assume the rejected review removed it from the track.
+- Version 44 removes `READ_EXTERNAL_STORAGE`, `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, and `READ_MEDIA_AUDIO` at manifest-merge time. Wallpaper-folder access already uses `OpenDocumentTree()` with a persisted URI grant and does not require broad media access.
+- The signed v44 release APK (`SHA-256 0fd880cc5da072bc618631f40f67d5de07804dec5dbf45d09687e6b47cf541a7`) and AAB (`SHA-256 b294719402fd5d70d659c2db87871294c24ea36fe9ed8fd6a33618e23e2756af`) build successfully. The packaged APK reports versionCode `44` / versionName `44.0`, contains none of those broad storage/media permissions, and passes APK Signature Scheme v2 verification with the expected upload certificate.
+- On 2026-08-26 the API reported internal v44 completed, production v43 at 2% plus completed v42, and an obsolete completed alpha v3 release. Deactivate alpha v3 unless it is intentionally needed, and keep Automatic Protection disabled for v44.
+- The former 2% Sudan production canary is superseded by the policy correction: a staged rollout would leave non-compliant v42 active in production. Verify v44 internally first, then replace production at 100% and monitor the previously defined crash/ANR gates closely.
+
+Verified after Play processing for version 44:
+
+- Google Play reports `44 (44.0)` completed on the internal track.
+- The Play-generated universal APK is versionCode `44` / versionName `44.0`, contains none of `READ_EXTERNAL_STORAGE`, `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, or `READ_MEDIA_AUDIO`, and names `com.jeerovan.comfer.ComferApp` directly. Its DEX contains `ComferApp` and no Pairip class was found, confirming Automatic Protection is absent.
+- The universal APK (`SHA-256 49e2bdb02469fb255719d3820370c0a293a8d54d1be66242019dc6b52e0d83f6`) is signed with Play's app-signing certificate (`SHA-256 7de810dc8919178d0642d7636f94e88abfead2d9416f6bd929981aaef32a4f4b`), passes APK v2/v3 and Source Stamp verification, and passes the 30-component manifest-to-DEX check.
+- It clean-installed on the available API-35 x86_64 emulator, cold-launched `MainActivity` in 400 ms, remained the resumed activity with a live process, and produced no inspected app exception, missing-class failure, fatal crash, or ANR. The only error-level launch lines were emulator `eglCodecCommon` parameter warnings.
+
 Unprotected release setup status:
 
-1. **Done:** upload signed v43 AAB to internal with Automatic Protection disabled.
-2. **Done:** download and verify the Play-generated unprotected universal and base APK variants.
-3. **Partial:** clean-install/cold-launch emulator smoke passed. HOME selection, upgrade from v42, package replacement, worker scheduling, compatibility-boundary scenarios, and physical-device checks remain.
+1. **Done:** upload signed v44 AAB to internal with Automatic Protection disabled.
+2. **Done:** download and verify the Play-generated unprotected v44 universal APK.
+3. **Partial:** v44 clean-install/cold-launch emulator smoke passed. HOME selection, upgrade from v42/v43, package replacement, worker scheduling, compatibility-boundary scenarios, and physical-device checks remain.
 4. **Manual release required:** the service account can inspect artifacts/tracks and construct a production edit, but Play rejects edit validation/commit with `PERMISSION_DENIED`. The initial production cohort is therefore started manually in Play Console.
 5. Because no Honor device is available and launcher apps are a poor fit for generic pre-launch automation, use a very small production cohort as the device-coverage experiment rather than pretending local testing covers the failing OEMs.
 
 Rollout gates:
 
-1. Internal track: install the Play-generated unprotected artifact and complete the available-device smoke matrix.
-2. 2% production in Sudan: hold at least 48 hours and until Honor/API 34-35 exposure appears. Fetch version-43 issues through the existing service-account flow at least daily.
-3. Stop/halt expansion for any new startup regression, a worse overall user-perceived crash/ANR rate, WorkManager initialization recurrence, or missing-class recurrence without enough diagnostic evidence.
-4. 5%, 25%, and 50%: repeat the same minimum-48-hour gate, comparing device/API mix and normalized rates rather than raw event totals.
-5. 100% only after the missing-class cluster is absent with meaningful Honor exposure and the WorkManager/first-party clusters are absent or materially reduced.
+1. Internal track: **passed** for upload, Play-generated artifact verification, and available-emulator cold-launch smoke.
+2. Deactivate the obsolete alpha v3 release unless intentionally retained, and ensure no other testing track contains a rejected permission artifact.
+3. Production policy replacement: release v44 at 100% so non-compliant v42 is no longer active; the previous 2% country canary cannot satisfy the all-version-codes requirement.
+4. Fetch version-44 issues through the existing service-account flow at least daily. Escalate immediately for any startup regression, worse overall user-perceived crash/ANR rate, WorkManager initialization recurrence, or missing-class recurrence.
+5. Close only after the missing-class cluster is absent with meaningful Honor/API 34-35 exposure and the WorkManager/first-party clusters remain absent or materially reduced.
 
 ## Local verification recorded for version 43
 

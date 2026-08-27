@@ -2275,6 +2275,19 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 foregroundColor,
                                 showBorder = editMode,
                                 backgroundColor)
+                            "weather" -> WeatherWidget(
+                                settings = settings,
+                                foregroundColor = foregroundColor,
+                                editMode = editMode,
+                                backgroundColor = backgroundColor,
+                                onLocationChanged = { coordinates ->
+                                    settingsModel.setWeatherCoordinates(
+                                        coordinates.latitude,
+                                        coordinates.longitude,
+                                    )
+                                },
+                                onTemperatureChanged = settingsModel::setWeatherTemperature,
+                            )
                             "battery" -> BatteryStatus(
                                 settings,
                                 foregroundColor,

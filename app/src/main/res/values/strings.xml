@@ -98,6 +98,14 @@
     <string name="date_example">Sat, Sept 16</string>
     <string name="date_font_color">Date font color</string>
 
+    <string name="weather_loading" translatable="false">Loading weather</string>
+    <string name="weather_unavailable" translatable="false">Weather unavailable</string>
+    <string name="weather_waiting_for_location" translatable="false">Waiting for location</string>
+    <string name="weather_current_location_label" translatable="false">Current location</string>
+    <string name="weather_attribution" translatable="false">Open-Meteo</string>
+    <string name="weather_widget_title" translatable="false">Weather widget</string>
+    <string name="weather_widget_summary" translatable="false">Uses approximate location · Data by Open-Meteo</string>
+
     <string name="title_battery">Battery</string>
     <string name="show_battery_icon">Show battery icon</string>
     <string name="show_battery_percentage">Show battery percentage</string>

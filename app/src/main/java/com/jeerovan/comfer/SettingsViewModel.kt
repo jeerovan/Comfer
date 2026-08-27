@@ -95,6 +95,13 @@ data class SettingsUiState(
     val dateRadius: Int = 0,
     val dateHasShadow: Boolean = false,
     val dateShadowColor: Color = Color.Transparent,
+    val showWeatherWidget: Boolean = false,
+    val weatherLatitude: Double? = null,
+    val weatherLongitude: Double? = null,
+    val weatherTemperatureC: Double? = null,
+    val weatherColor: Color = Color.White,
+    val weatherAlpha: Int = 100,
+    val weatherFontSize: Int = 26,
     val showBatteryIcon: Boolean  = false,
     val batteryColor: Color = Color.White,
     val batteryAlpha: Int = 100,
@@ -188,6 +195,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val DATE_RADIUS = "date_radius"
     private val DATE_HAS_SHADOW = "date_has_shadow"
     private val DATE_SHADOW_COLOR = "date_shadow_color"
+    private val SHOW_WEATHER_WIDGET = "show_weather_widget"
+    private val WEATHER_LATITUDE = "weather_latitude"
+    private val WEATHER_LONGITUDE = "weather_longitude"
+    private val WEATHER_TEMPERATURE_C = "weather_temperature_c"
+    private val WEATHER_COLOR = "weather_color"
+    private val WEATHER_ALPHA = "weather_alpha"
+    private val WEATHER_FONT_SIZE = "weather_font_size"
     private val SHOW_BATTERY_ICON = "show_battery_icon"
     private val SHOW_BATTERY_PERCENTAGE = "show_battery_percentage"
     private val BATTERY_COLOR = "battery_color"
@@ -210,15 +224,19 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         Color.Cyan, Color.Magenta, Color.Black, Color.Gray,
         Color.White, Color(0xFF_FFA500), Color(0xFF_800080), Color(0xFF_008080)
     )
-    val widgetIds = listOf("time", "date", "battery", "notifications")
+    val widgetIds = listOf("time", "date", "weather", "battery", "notifications")
     val patternIds = listOf("TopLeft","TopRight","BottomRight","BottomLeft","Center")
     fun getWidgetIds(showBatteryIcon:Boolean,
                      showBatteryPercentage:Boolean,
                      isNotificationServiceEnabled:Boolean,
-                     showNotificationRow:Boolean
+                     showNotificationRow:Boolean,
+                     showWeatherWidget:Boolean,
 
     ): List<String> {
         val widgetIds = mutableListOf("time", "date")
+        if (showWeatherWidget) {
+            widgetIds.add("weather")
+        }
         if(showBatteryIcon || showBatteryPercentage){
             widgetIds.add("battery")
         }
@@ -330,6 +348,43 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val dateRadius = PreferenceManager.getInt(getApplication(),DATE_RADIUS,0)
             val dateHasShadow = PreferenceManager.getBoolean(getApplication(),DATE_HAS_SHADOW,false)
             val dateShadowColor = Color(PreferenceManager.getInt(getApplication(),DATE_SHADOW_COLOR,Color.White.toArgb()))
+            val showWeatherWidget = PreferenceManager.getBoolean(
+                getApplication(),
+                SHOW_WEATHER_WIDGET,
+                false,
+            )
+            val weatherLatitude = PreferenceManager.getString(
+                getApplication(),
+                WEATHER_LATITUDE,
+                null,
+            )?.toDoubleOrNull()
+            val weatherLongitude = PreferenceManager.getString(
+                getApplication(),
+                WEATHER_LONGITUDE,
+                null,
+            )?.toDoubleOrNull()
+            val weatherTemperatureC = PreferenceManager.getString(
+                getApplication(),
+                WEATHER_TEMPERATURE_C,
+                null,
+            )?.toDoubleOrNull()
+            val weatherColor = Color(
+                PreferenceManager.getInt(
+                    getApplication(),
+                    WEATHER_COLOR,
+                    Color.White.toArgb(),
+                ),
+            )
+            val weatherAlpha = PreferenceManager.getInt(
+                getApplication(),
+                WEATHER_ALPHA,
+                100,
+            )
+            val weatherFontSize = PreferenceManager.getInt(
+                getApplication(),
+                WEATHER_FONT_SIZE,
+                26,
+            )
 
             val showBatteryIcon = PreferenceManager.getBoolean(getApplication(),SHOW_BATTERY_ICON,false)
             val batteryColor = Color(PreferenceManager.getInt(getApplication(),BATTERY_COLOR,Color.White.toArgb()))
@@ -357,7 +412,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val widgetIds = getWidgetIds(showBatteryIcon,
                 showBatteryPercentage,
                 isNotificationServiceEnabled,
-                showNotificationRow)
+                showNotificationRow,
+                showWeatherWidget)
             val alphabeticalOrder = PreferenceManager.getAlphabeticalOrder(getApplication())
             val shouldAppUpdatePromptUserCounter = PreferenceManager.getAppUpdatePromptUserCounter(getApplication())
             val themedColors = PreferenceManager.getThemedColors(getApplication())
@@ -422,6 +478,13 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         dateRadius = dateRadius,
                         dateHasShadow = dateHasShadow,
                         dateShadowColor = dateShadowColor,
+                        showWeatherWidget = showWeatherWidget,
+                        weatherLatitude = weatherLatitude,
+                        weatherLongitude = weatherLongitude,
+                        weatherTemperatureC = weatherTemperatureC,
+                        weatherColor = weatherColor,
+                        weatherAlpha = weatherAlpha,
+                        weatherFontSize = weatherFontSize,
                         showBatteryIcon = showBatteryIcon,
                         batteryColor = batteryColor,
                         batteryAlpha = batteryAlpha,
@@ -543,6 +606,42 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
+
+    fun setWeatherCoordinates(latitude: Double, longitude: Double) {
+        viewModelScope.launch(Dispatchers.IO) {
+            PreferenceManager.setString(getApplication(), WEATHER_LATITUDE, latitude.toString())
+            PreferenceManager.setString(getApplication(), WEATHER_LONGITUDE, longitude.toString())
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(
+                        weatherLatitude = latitude,
+                        weatherLongitude = longitude,
+                    )
+                }
+            }
+        }
+    }
+
+    fun setWeatherTemperature(temperatureC: Double) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (_uiState.value.weatherTemperatureC == temperatureC) return@launch
+            PreferenceManager.setString(
+                getApplication(),
+                WEATHER_TEMPERATURE_C,
+                temperatureC.toString(),
+            )
+            withContext(Dispatchers.Main) {
+                _uiState.update { current ->
+                    if (current.weatherTemperatureC == temperatureC) {
+                        current
+                    } else {
+                        current.copy(weatherTemperatureC = temperatureC)
+                    }
+                }
+            }
+        }
+    }
+
     fun loadWidgetPosition(id: String): Offset? {
         if(!hasWidgetPosition(id)){
             return null
@@ -597,6 +696,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             PreferenceManager.setInt(getApplication(),BATTERY_FONT_SIZE,size)
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(batteryFontSize = size) }
+            }
+        }
+    }
+    fun setWeatherSize(size: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            PreferenceManager.setInt(getApplication(), WEATHER_FONT_SIZE, size)
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(weatherFontSize = size) }
             }
         }
     }
@@ -690,6 +797,22 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             PreferenceManager.setInt(getApplication(),BATTERY_COLOR,color.toArgb())
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(batteryColor = color) }
+            }
+        }
+    }
+    fun setWeatherColor(color: Color) {
+        viewModelScope.launch(Dispatchers.IO) {
+            PreferenceManager.setInt(getApplication(), WEATHER_COLOR, color.toArgb())
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(weatherColor = color) }
+            }
+        }
+    }
+    fun setWeatherAlpha(alpha: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            PreferenceManager.setInt(getApplication(), WEATHER_ALPHA, alpha)
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(weatherAlpha = alpha) }
             }
         }
     }
@@ -991,8 +1114,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val isNotificationServiceEnabled = _uiState.value.hasNotificationAccess
             val showBatteryPercentage = _uiState.value.showBatteryPercentage
             val showNotificationRow = _uiState.value.showNotificationRow
+            val showWeatherWidget = _uiState.value.showWeatherWidget
             val widgetIds = getWidgetIds(show,
-                showBatteryPercentage,isNotificationServiceEnabled,showNotificationRow)
+                showBatteryPercentage,isNotificationServiceEnabled,showNotificationRow,showWeatherWidget)
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(showBatteryIcon = show, widgetIds = widgetIds) }
             }
@@ -1005,8 +1129,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val showBatteryIcon = _uiState.value.showBatteryIcon
             val isNotificationServiceEnabled = _uiState.value.hasNotificationAccess
             val showNotificationRow = _uiState.value.showNotificationRow
+            val showWeatherWidget = _uiState.value.showWeatherWidget
             val widgetIds = getWidgetIds(showBatteryIcon,
-                show,isNotificationServiceEnabled,showNotificationRow)
+                show,isNotificationServiceEnabled,showNotificationRow,showWeatherWidget)
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(showBatteryPercentage = show, widgetIds = widgetIds) }
             }
@@ -1019,10 +1144,30 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val showBatteryIcon = _uiState.value.showBatteryIcon
             val showBatteryPercentage = _uiState.value.showBatteryPercentage
             val isNotificationServiceEnabled = _uiState.value.hasNotificationAccess
+            val showWeatherWidget = _uiState.value.showWeatherWidget
             val widgetIds = getWidgetIds(showBatteryIcon,
-                showBatteryPercentage,isNotificationServiceEnabled,show)
+                showBatteryPercentage,isNotificationServiceEnabled,show,showWeatherWidget)
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(showNotificationRow = show, widgetIds = widgetIds) }
+            }
+        }
+    }
+
+    fun setWeatherWidgetEnabled(enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            PreferenceManager.setBoolean(getApplication(), SHOW_WEATHER_WIDGET, enabled)
+            val current = _uiState.value
+            val widgetIds = getWidgetIds(
+                current.showBatteryIcon,
+                current.showBatteryPercentage,
+                current.hasNotificationAccess,
+                current.showNotificationRow,
+                enabled,
+            )
+            withContext(Dispatchers.Main) {
+                _uiState.update {
+                    it.copy(showWeatherWidget = enabled, widgetIds = widgetIds)
+                }
             }
         }
     }

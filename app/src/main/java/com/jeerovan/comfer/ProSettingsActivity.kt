@@ -164,6 +164,7 @@ fun BasicSettings(
     var showClockBgPicker by remember { mutableStateOf(false) }
     var showClockHourPicker by remember { mutableStateOf(false) }
     var showClockMinutePicker by remember { mutableStateOf(false) }
+    var showWeatherColor by remember { mutableStateOf(false) }
     var showBatteryFontDialog by remember { mutableStateOf(false) }
     var showBatteryColor by remember { mutableStateOf(false) }
     var showNotificationColor by remember { mutableStateOf(false) }
@@ -551,6 +552,43 @@ fun BasicSettings(
                     thickness = DividerDefaults.Thickness,
                     color = DividerDefaults.color
                 )
+
+                if (settingsState.showWeatherWidget) {
+                    SettingSection(stringResource(R.string.weather_widget_title)) {
+                        SettingSlider(
+                            label = stringResource(R.string.title_font_size),
+                            value = settingsState.weatherFontSize,
+                            range = 10f..40f,
+                            onValueChange = { settingsViewModel.setWeatherSize(it) },
+                        )
+                        if (customWallpaper) {
+                            ColorPickerSettingItem(
+                                stringResource(R.string.title_color),
+                                settingsState.weatherColor.copy(
+                                    alpha = settingsState.weatherAlpha / 100f,
+                                ),
+                            ) { showWeatherColor = true }
+                        }
+                        if (showWeatherColor) {
+                            EnhancedColorPicker(
+                                predefinedColors = settingsViewModel.predefinedColors,
+                                initialColor = settingsState.weatherColor,
+                                initialAlpha = settingsState.weatherAlpha,
+                                onColorSelected = { color, alpha ->
+                                    settingsViewModel.setWeatherColor(color)
+                                    settingsViewModel.setWeatherAlpha(alpha)
+                                },
+                                onDismissRequest = { showWeatherColor = false },
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 16.dp),
+                        thickness = DividerDefaults.Thickness,
+                        color = DividerDefaults.color
+                    )
+                }
 
                 // Battery Settings
                 SettingSection(stringResource(R.string.title_battery)) {

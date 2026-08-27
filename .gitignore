@@ -41,3 +41,5 @@ __pycache__/
 # Release artifacts should be distributed through Google Play, not Git
 *.apk
 *.aab
+
+*.codex
