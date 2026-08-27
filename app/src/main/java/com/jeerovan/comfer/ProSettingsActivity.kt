@@ -1458,7 +1458,7 @@ fun ColorPickerSettingItem(
     }
 }
 
-// Horizontal App Drawer
+// Horizontally scrolling app drawer grid
 @Composable
 fun AppDrawer(
     modifier: Modifier = Modifier,
@@ -1478,6 +1478,8 @@ fun AppDrawer(
     exitEditMode: () -> Unit,
     iconSize: Dp,
     iconShape: Shape,
+    showAppTitles: Boolean,
+    titleColor: Color,
     onTappingFolder: ((String) -> Unit)? = null
 ) {
     val hapticFeedback = LocalHapticFeedback.current
@@ -1490,12 +1492,13 @@ fun AppDrawer(
 
     var appsList by remember { mutableStateOf(apps) }
     val lazyGridState = rememberLazyGridState()
-
-    val cellSize = iconSize + 16.dp
-    val totalIconHeight = cellSize + verticalSpacing
-    val verticalPadding = contentPadding.calculateTopPadding() + contentPadding.calculateBottomPadding()
-    val availableHeight = drawerHeight - verticalPadding
-    val numberOfRows = ((availableHeight / totalIconHeight).toInt()).coerceAtLeast(1)
+    val cellHeight = iconSize + if (showAppTitles) 34.dp else 8.dp
+    val verticalPadding = contentPadding.calculateTopPadding() +
+        contentPadding.calculateBottomPadding()
+    val availableHeight = (drawerHeight - verticalPadding).coerceAtLeast(cellHeight)
+    val numberOfRows = (
+        (availableHeight + verticalSpacing) / (cellHeight + verticalSpacing)
+    ).toInt().coerceAtLeast(1)
 
     // Reorderable state for the grid
     val reorderableLazyGridState = rememberReorderableLazyGridState(lazyGridState) { from, to ->
@@ -1583,6 +1586,8 @@ fun AppDrawer(
                                 iconSize = iconSize,
                                 iconShape,
                                 dragHandle = this,
+                                showAppTitles = showAppTitles,
+                                titleColor = titleColor,
                                 onTappingFolder = onTappingFolder
                             )
                         }
@@ -1593,6 +1598,8 @@ fun AppDrawer(
                             isEditMode,
                             iconSize,
                             iconShape,
+                            showAppTitles = showAppTitles,
+                            titleColor = titleColor,
                             onTappingFolder = onTappingFolder)
                     }
                 }
@@ -1685,13 +1692,19 @@ private fun AppIconWrapper(
     iconSize: Dp,
     iconShape: Shape,
     dragHandle: sh.calvin.reorderable.ReorderableCollectionItemScope,
+    showAppTitles: Boolean,
+    titleColor: Color,
     onTappingFolder: ((String) -> Unit)? = null
 ) {
     val scale by animateFloatAsState(if (isDragging) 1.2f else 1f, label = "scale")
+    val cellWidth = maxOf(88.dp, iconSize + 24.dp)
+    val cellHeight = iconSize + if (showAppTitles) 34.dp else 8.dp
     Column(
         modifier = with(dragHandle) {
             Modifier
-                .size(80.dp)
+                .width(cellWidth)
+                .height(cellHeight)
+                .padding(horizontal = 4.dp, vertical = 4.dp)
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
@@ -1712,17 +1725,22 @@ private fun AppIconWrapper(
             clickable = !isEditMode,
             onTappingFolder = onTappingFolder)
 
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = app.label,
-            style = MaterialTheme.typography.labelMedium,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            color = Color.White,
-            modifier = Modifier.widthIn(max = 80.dp),
-            lineHeight = 14.sp
-        )
+        if (showAppTitles) {
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = app.label,
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
+                color = titleColor,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+                lineHeight = 14.sp,
+            )
+        }
     }
 }
 @Composable
@@ -1732,11 +1750,17 @@ private fun AppIconWrapperWoDragging(
     isEditMode: Boolean,
     iconSize: Dp,
     iconShape: Shape,
+    showAppTitles: Boolean,
+    titleColor: Color,
     onTappingFolder: ((String) -> Unit)? = null
 ) {
+    val cellWidth = maxOf(88.dp, iconSize + 24.dp)
+    val cellHeight = iconSize + if (showAppTitles) 34.dp else 8.dp
     Column(
         modifier = Modifier
-            .size(80.dp),
+            .width(cellWidth)
+            .height(cellHeight)
+            .padding(horizontal = 4.dp, vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AppIcon(app,
@@ -1746,17 +1770,22 @@ private fun AppIconWrapperWoDragging(
             clickable = !isEditMode,
             onTappingFolder = onTappingFolder)
 
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = app.label,
-            style = MaterialTheme.typography.labelMedium,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            color = Color.White,
-            modifier = Modifier.widthIn(max = 80.dp),
-            lineHeight = 14.sp
-        )
+        if (showAppTitles) {
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = app.label,
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
+                color = titleColor,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+                lineHeight = 14.sp,
+            )
+        }
     }
 }
 // Usage example
@@ -1788,6 +1817,13 @@ fun AppDrawerScreen(
     var drawerOffset by remember { mutableStateOf(initialOffset) }
 
     val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
+    val appTitleColor = if (settings.showThemedText && settings.themedColors != null) {
+        Color(settings.themedColors!!.textFg)
+    } else if (settings.isLightHour) {
+        Color.Black.copy(alpha = 0.82f)
+    } else {
+        Color.White.copy(alpha = 0.88f)
+    }
     var activeFolderId by remember { mutableStateOf<String?>(null) }
     var isEditMode by remember { mutableStateOf(false) }
 
@@ -1829,9 +1865,9 @@ fun AppDrawerScreen(
             },
             initialHeight = drawerHeight,
             initialOffsetY = drawerOffset,
-            contentPadding = PaddingValues(16.dp),
-            horizontalSpacing = 16.dp,
-            verticalSpacing = 16.dp,
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+            horizontalSpacing = 12.dp,
+            verticalSpacing = 18.dp,
             onHeightChanged = { newHeight ->
                 drawerHeight = newHeight
                 settingsViewModel.setDrawerHeight(newHeight.value.toInt())
@@ -1848,6 +1884,8 @@ fun AppDrawerScreen(
             },
             iconSize = settings.iconSize.dp,
             iconShape = settings.iconShape,
+            showAppTitles = settings.showAppTitles,
+            titleColor = appTitleColor,
             onTappingFolder = { folderId ->
                 activeFolderId = folderId
             }

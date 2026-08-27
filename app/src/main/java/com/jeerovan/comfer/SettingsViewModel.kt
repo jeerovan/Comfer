@@ -52,6 +52,7 @@ data class SettingsUiState(
     val appListsVersion: Int = 0,
     val quickAppsLayout: String = "circular",
     val appDrawerLayout: String = "circular",
+    val showAppTitles: Boolean = true,
     val drawerHeight:Int = 0,
     val drawerOffset:Int = 0,
     val leftSwipeApp:AppInfo? = null,
@@ -216,6 +217,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val NOTIFICATION_LAYOUT_ID = "notification_layout_id"
     private val DRAWER_HEIGHT = "drawer_height"
     private val DRAWER_OFFSET = "drawer_offset"
+    private val SHOW_APP_TITLES = "show_app_titles"
     private val SHOW_THEMED_TEXT = "show_themed_text"
     private val FIXED_WIDGET_POSITIONS = "fixed_widget_positions"
     private val CIRCULAR_DRAWER_SCROLL_SPEED = "circular_drawer_scroll_speed"
@@ -282,6 +284,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val appListUpdateCounter = PreferenceManager.getAppListVersion(getApplication())
             val quickAppsLayout = PreferenceManager.getQuickAppsLayout(getApplication())
             val appDrawerLayout = PreferenceManager.getAppDrawerLayout(getApplication())
+            val showAppTitles = PreferenceManager.getBoolean(
+                getApplication(),
+                SHOW_APP_TITLES,
+                true,
+            )
             val drawerHeight = PreferenceManager.getInt(getApplication(),DRAWER_HEIGHT,0)
             val drawerOffset = PreferenceManager.getInt(getApplication(),DRAWER_OFFSET,0)
             val leftSwipeApp = mapPackageNameToAppInfo(
@@ -437,6 +444,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         appListsVersion = appListUpdateCounter,
                         quickAppsLayout = quickAppsLayout,
                         appDrawerLayout = appDrawerLayout,
+                        showAppTitles = showAppTitles,
                         drawerHeight = drawerHeight,
                         drawerOffset = drawerOffset,
                         iconShapeString = iconShapeString,
@@ -1193,6 +1201,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             PreferenceManager.setAppDrawerLayout(getApplication(),layout)
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(appDrawerLayout = layout) }
+            }
+        }
+    }
+    fun setShowAppTitles(show: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            PreferenceManager.setBoolean(getApplication(), SHOW_APP_TITLES, show)
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(showAppTitles = show) }
             }
         }
     }

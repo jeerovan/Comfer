@@ -73,6 +73,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SmartButton
 import androidx.compose.material.icons.filled.Support
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material3.AlertDialog
@@ -811,6 +812,32 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     selectedLayout = appDrawerLayout,
                     onLayoutSelected = { layout -> settingsViewModel.setAppDrawerLayout(layout)}
                 )
+            }
+            if (appDrawerLayout != "circular") {
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.show_app_titles)) },
+                        supportingContent = {
+                            Text(stringResource(R.string.show_app_titles_summary))
+                        },
+                        leadingContent = {
+                            Icon(
+                                Icons.Filled.TextFields,
+                                contentDescription = stringResource(R.string.show_app_titles),
+                            )
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = settingsState.showAppTitles,
+                                onCheckedChange = settingsViewModel::setShowAppTitles,
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            settingsViewModel.setShowAppTitles(!settingsState.showAppTitles)
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    )
+                }
             }
             item {
                 ListItem(

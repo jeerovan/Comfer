@@ -201,6 +201,8 @@
 
     <string name="title_app_drawer">App drawer</string>
     <string name="title_app_drawer_layouts">Layouts</string>
+    <string name="show_app_titles" translatable="false">Show app titles</string>
+    <string name="show_app_titles_summary" translatable="false">Display app names below icons</string>
     <string name="app_drawer_layouts_text">Styles to browse apps</string>
 
     <string name="title_alphabetical_order">Alphabetical order</string>
