@@ -2988,8 +2988,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .navigationBarsPadding()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 40.dp),
+                        .padding(start = 16.dp, end = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Bottom,
                 ) {
@@ -4484,55 +4483,30 @@ fun UshapedAppList(
     val totalIcons = apps.size
     if (totalIcons == 0) return
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
-        val configuration = LocalConfiguration.current
+        val availableWidthPx = with(density) { maxWidth.toPx() }
+        val availableHeightPx = with(density) { maxHeight.toPx() }
 
         // Cache all expensive calculations that don't depend on scrollOffset
-        val layoutParams = remember(configuration.screenWidthDp, configuration.screenHeightDp, iconSize) {
-            val width = with(density) { configuration.screenWidthDp.dp.toPx() }
-            val height = with(density) { configuration.screenHeightDp.dp.toPx() }
-            val sidePaddingPx = with(density) { sidePadding.toPx() }
-            val topPaddingPx = with(density) { topPadding.toPx() }
-            val smallIconPx = with(density) { smallIconSize.toPx() }
-            val largeIconPx = with(density) { largeIconSize.toPx() }
-            val minimumGapPx = with(density) { minimumGap.toPx() }
-
-            val arcRadius = width / 2f - sidePaddingPx - smallIconPx / 2f
-            val numTopIcons = 2 * floor(
-                PI / (4 * asin((smallIconPx / 2 + minimumGapPx / 2) / (arcRadius - smallIconPx / 2)))
-            ).toInt() + 1
-
-            val arcCenterY = topPaddingPx + arcRadius
-            val verticalSpacingPx = 2 * (2 * (arcRadius - smallIconPx / 2) *
-                    sin(PI / (2 * (numTopIcons - 1))).toFloat() - smallIconPx).absoluteValue
-            val angularSpacingRad = PI / (numTopIcons - 1)
-
-            val sideColumnY = arcCenterY + smallIconPx / 2
-            val availableHeight = height - sideColumnY
-            val iconWithSpace = smallIconPx + verticalSpacingPx
-            val numSideIcons = ceil(availableHeight / iconWithSpace).toInt()
-
-            LayoutParams(
-                width = width,
-                height = height,
-                sidePaddingPx = sidePaddingPx,
-                smallIconPx = smallIconPx,
-                largeIconPx = largeIconPx,
-                arcRadius = arcRadius,
-                arcCenterY = arcCenterY,
-                verticalSpacingPx = verticalSpacingPx,
-                angularSpacingRad = angularSpacingRad,
-                sideColumnY = sideColumnY,
-                iconWithSpace = iconWithSpace,
-                numTopIcons = numTopIcons,
-                numSideIcons = numSideIcons
+        val layoutParams = remember(
+            availableWidthPx,
+            availableHeightPx,
+            iconSize,
+            density.density,
+        ) {
+            calculateUShapeLayoutParams(
+                width = availableWidthPx,
+                height = availableHeightPx,
+                sidePadding = with(density) { sidePadding.toPx() },
+                topPadding = with(density) { topPadding.toPx() },
+                smallIconSize = with(density) { smallIconSize.toPx() },
+                largeIconSize = with(density) { largeIconSize.toPx() },
+                minimumGap = with(density) { minimumGap.toPx() },
             )
         }
 
-        if (layoutParams.numSideIcons <= 0 || layoutParams.numTopIcons <= 1) {
-            return@Box
-        }
+        if (layoutParams == null) return@BoxWithConstraints
 
         val numVisibleIcons = layoutParams.numSideIcons * 2 + layoutParams.numTopIcons + 1
 
@@ -4548,7 +4522,7 @@ fun UshapedAppList(
             { slot: Int, center: Int ->
                 when {
                     slot < layoutParams.numSideIcons -> {
-                        val xPos = layoutParams.sidePaddingPx
+                        val xPos = layoutParams.leftColumnX
                         val yPos = layoutParams.sideColumnY +
                                 (layoutParams.numSideIcons - 1) * layoutParams.iconWithSpace -
                                 (slot - 1) * layoutParams.verticalSpacingPx -
@@ -4571,7 +4545,7 @@ fun UshapedAppList(
                     }
                     else -> {
                         val sideIndex = slot - layoutParams.numSideIcons - layoutParams.numTopIcons
-                        val xPos = layoutParams.width - layoutParams.sidePaddingPx - layoutParams.smallIconPx
+                        val xPos = layoutParams.rightColumnX
                         val yPos = layoutParams.sideColumnY + layoutParams.verticalSpacingPx +
                                 sideIndex * layoutParams.verticalSpacingPx +
                                 sideIndex * layoutParams.smallIconPx
@@ -4616,11 +4590,89 @@ fun UshapedAppList(
         }
     }
 }
-// Data classes to hold cached values
-private data class LayoutParams(
+
+internal fun calculateUShapeLayoutParams(
+    width: Float,
+    height: Float,
+    sidePadding: Float,
+    topPadding: Float,
+    smallIconSize: Float,
+    largeIconSize: Float,
+    minimumGap: Float,
+): UShapeLayoutParams? {
+    if (
+        width <= 0f ||
+        height <= 0f ||
+        sidePadding < 0f ||
+        topPadding < 0f ||
+        smallIconSize <= 0f ||
+        largeIconSize < smallIconSize ||
+        minimumGap < 0f
+    ) {
+        return null
+    }
+
+    val horizontalArcRadius = width / 2f - sidePadding - smallIconSize / 2f
+    // Keep one transition slot just outside the bottom edge in height-constrained
+    // layouts. The regular portrait geometry remains width-constrained and is
+    // therefore unchanged by this value.
+    val bottomPadding = minimumGap
+    val verticalArcRadius =
+        height - topPadding - smallIconSize * 1.5f - minimumGap - bottomPadding
+    val arcRadius = minOf(horizontalArcRadius, verticalArcRadius)
+    val minimumArcRadius = smallIconSize + minimumGap / 2f
+    if (arcRadius <= minimumArcRadius) return null
+
+    val innerArcRadius = arcRadius - smallIconSize / 2f
+    val chordRatio = ((smallIconSize + minimumGap) / (2f * innerArcRadius))
+        .coerceIn(0f, 0.999f)
+    val iconsPerHalfArc = floor(PI / (4 * asin(chordRatio))).toInt().coerceAtLeast(1)
+    val numTopIcons = iconsPerHalfArc * 2 + 1
+    val angularSpacingRad = PI / (numTopIcons - 1)
+    val naturalVerticalSpacing = 2 * (
+        2 * innerArcRadius * sin(angularSpacingRad / 2).toFloat() - smallIconSize
+    ).absoluteValue
+    val isHeightConstrained = verticalArcRadius < horizontalArcRadius
+    val verticalSpacing = if (isHeightConstrained) minimumGap else naturalVerticalSpacing
+
+    val arcCenterY = topPadding + arcRadius
+    val sideColumnY = arcCenterY + smallIconSize / 2f
+    val iconWithSpace = smallIconSize + verticalSpacing
+    val numSideIcons = if (isHeightConstrained) {
+        val firstSideIconTop = sideColumnY + verticalSpacing
+        val fullyAvailableHeight = height - bottomPadding - firstSideIconTop - smallIconSize
+        if (fullyAvailableHeight < 0f) {
+            0
+        } else {
+            floor(fullyAvailableHeight / iconWithSpace).toInt() + 1
+        }
+    } else {
+        ceil((height - sideColumnY) / iconWithSpace).toInt()
+    }
+    if (numSideIcons <= 0) return null
+
+    return UShapeLayoutParams(
+        width = width,
+        height = height,
+        smallIconPx = smallIconSize,
+        largeIconPx = largeIconSize,
+        arcRadius = arcRadius,
+        arcCenterY = arcCenterY,
+        verticalSpacingPx = verticalSpacing,
+        angularSpacingRad = angularSpacingRad,
+        sideColumnY = sideColumnY,
+        iconWithSpace = iconWithSpace,
+        leftColumnX = width / 2f - arcRadius - smallIconSize / 2f,
+        rightColumnX = width / 2f + arcRadius - smallIconSize / 2f,
+        numTopIcons = numTopIcons,
+        numSideIcons = numSideIcons,
+        isHeightConstrained = isHeightConstrained,
+    )
+}
+
+internal data class UShapeLayoutParams(
     val width: Float,
     val height: Float,
-    val sidePaddingPx: Float,
     val smallIconPx: Float,
     val largeIconPx: Float,
     val arcRadius: Float,
@@ -4629,8 +4681,11 @@ private data class LayoutParams(
     val angularSpacingRad: Double,
     val sideColumnY: Float,
     val iconWithSpace: Float,
+    val leftColumnX: Float,
+    val rightColumnX: Float,
     val numTopIcons: Int,
-    val numSideIcons: Int
+    val numSideIcons: Int,
+    val isHeightConstrained: Boolean,
 )
 
 
