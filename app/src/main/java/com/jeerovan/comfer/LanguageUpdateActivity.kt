@@ -1,5 +1,6 @@
 package com.jeerovan.comfer
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -10,14 +11,20 @@ import kotlinx.coroutines.yield
 
 // LanguageUpdateActivity.kt
 class LanguageUpdateActivity : AppCompatActivity() {
+    companion object {
+        const val EXTRA_LOCALE_TAG = "LOCALE_TAG"
+        const val EXTRA_LAUNCH_MAIN = "LAUNCH_MAIN_AFTER_LOCALE_UPDATE"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // Optional: Keep it invisible/transparent in your theme (Theme.Translucent.NoTitleBar)
 
-        val localeTag = intent.getStringExtra("LOCALE_TAG")
+        val localeTag = intent.getStringExtra(EXTRA_LOCALE_TAG)
+        val launchMain = intent.getBooleanExtra(EXTRA_LAUNCH_MAIN, false)
 
-        if (localeTag.isNullOrEmpty()) {
+        if (localeTag == null) {
             finish()
             return
         }
@@ -25,7 +32,7 @@ class LanguageUpdateActivity : AppCompatActivity() {
         // Check if change is actually needed to avoid loops
         val currentTags = AppCompatDelegate.getApplicationLocales().toLanguageTags()
         if (currentTags == localeTag) {
-            finish()
+            finishFlow(launchMain)
             return
         }
 
@@ -44,7 +51,7 @@ class LanguageUpdateActivity : AppCompatActivity() {
                 // If you must finish this trampoline activity, do it AFTER the call succeeds.
                 // Note: The system might kill/recreate this activity immediately after
                 // setApplicationLocales, so finish() might be redundant or run on a detached instance.
-                finish()
+                finishFlow(launchMain)
 
             } catch (e: Exception) {
                 // Log error
@@ -52,5 +59,15 @@ class LanguageUpdateActivity : AppCompatActivity() {
             }
         }
     }
-}
 
+    private fun finishFlow(launchMain: Boolean) {
+        if (launchMain) {
+            startActivity(
+                Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                },
+            )
+        }
+        finish()
+    }
+}

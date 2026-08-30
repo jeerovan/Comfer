@@ -21,6 +21,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -62,6 +63,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BatterySaver
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.ColorLens
@@ -70,6 +72,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.InvertColors
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SmartButton
 import androidx.compose.material.icons.filled.Support
@@ -101,6 +104,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -108,6 +112,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -134,6 +139,7 @@ import com.jeerovan.comfer.utils.PebbleShape
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Date
 import java.util.Locale
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
@@ -149,6 +155,8 @@ data class IconPackInfo(
     val packageName: String,
     val icon: Drawable
 )
+
+private enum class BackupRestoreOperation { BACKUP, RESTORE }
 
 class SettingsActivity : AppCompatActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
@@ -226,6 +234,7 @@ class SettingsActivity : AppCompatActivity() {
 fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val settingsState by settingsViewModel.uiState.collectAsState()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val isDefaultLauncherState by produceState(
         initialValue = false,
@@ -238,6 +247,13 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     }
     val appVersion by produceState<String?>(initialValue = null, context) {
         value = withContext(Dispatchers.IO) { getAppVersion(context) }
+    }
+    val coroutineScope = rememberCoroutineScope()
+    var backupRestoreOperation by remember {
+        mutableStateOf<BackupRestoreOperation?>(null)
+    }
+    var pendingRestore by remember {
+        mutableStateOf<Pair<Uri, RestorePreview>?>(null)
     }
     val stringShareWith = stringResource(R.string.title_share_with)
     val appSelectionLauncher = rememberLauncherForActivityResult(
@@ -257,6 +273,66 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         contract = ActivityResultContracts.RequestPermission(),
     ) { granted ->
         settingsViewModel.setWeatherWidgetEnabled(granted)
+    }
+    val createBackupLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/zip"),
+    ) { destination ->
+        if (destination != null) {
+            backupRestoreOperation = BackupRestoreOperation.BACKUP
+            coroutineScope.launch {
+                try {
+                    val summary = BackupRestoreManager.createBackup(
+                        context = context,
+                        destination = destination,
+                        appLocaleTags = AppCompatDelegate.getApplicationLocales()
+                            .toLanguageTags(),
+                    )
+                    Toast.makeText(
+                        context,
+                        resources.getString(
+                            R.string.backup_success,
+                            summary.appListCount,
+                            summary.folderCount,
+                        ),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                } catch (error: Exception) {
+                    Toast.makeText(
+                        context,
+                        resources.getString(
+                            R.string.backup_failed,
+                            error.message ?: resources.getString(R.string.unknown_error),
+                        ),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                } finally {
+                    backupRestoreOperation = null
+                }
+            }
+        }
+    }
+    val openRestoreLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+    ) { source ->
+        if (source != null) {
+            backupRestoreOperation = BackupRestoreOperation.RESTORE
+            coroutineScope.launch {
+                try {
+                    pendingRestore = source to BackupRestoreManager.inspectBackup(context, source)
+                } catch (error: Exception) {
+                    Toast.makeText(
+                        context,
+                        resources.getString(
+                            R.string.restore_invalid,
+                            error.message ?: resources.getString(R.string.unknown_error),
+                        ),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                } finally {
+                    backupRestoreOperation = null
+                }
+            }
+        }
     }
 
     fun updateWeatherWidget(enabled: Boolean) {
@@ -304,7 +380,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         AppCompatDelegate.setApplicationLocales(appLocale)*/
         showLocaleSelection = false
         val intent = Intent(context, LanguageUpdateActivity::class.java).apply {
-            putExtra("LOCALE_TAG", locale.toLanguageTag())
+            putExtra(LanguageUpdateActivity.EXTRA_LOCALE_TAG, locale.toLanguageTag())
             // Add flags to ensure it starts a new clean flow if needed
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
@@ -877,6 +953,53 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
+            item { SectionHeader(stringResource(R.string.title_backup_section)) }
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.title_backup)) },
+                    supportingContent = { Text(stringResource(R.string.backup_summary)) },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.Backup,
+                            contentDescription = stringResource(R.string.title_backup),
+                        )
+                    },
+                    trailingContent = {
+                        if (backupRestoreOperation == BackupRestoreOperation.BACKUP) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        }
+                    },
+                    modifier = Modifier.clickable(enabled = backupRestoreOperation == null) {
+                        createBackupLauncher.launch(BackupRestoreManager.suggestedFileName())
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                )
+            }
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.title_restore)) },
+                    supportingContent = { Text(stringResource(R.string.restore_summary)) },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.Restore,
+                            contentDescription = stringResource(R.string.title_restore),
+                        )
+                    },
+                    trailingContent = {
+                        if (backupRestoreOperation == BackupRestoreOperation.RESTORE) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        }
+                    },
+                    modifier = Modifier.clickable(enabled = backupRestoreOperation == null) {
+                        // Older DocumentsUI providers report ZIP files with
+                        // vendor-specific MIME types. Let the user select any
+                        // file; the restore preflight strictly validates ZIP
+                        // structure, manifest, version, and checksums.
+                        openRestoreLauncher.launch(arrayOf("*/*"))
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                )
+            }
             item {
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp),
@@ -1010,6 +1133,69 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item { Spacer(Modifier.height(24.dp)) }
         }
     }
+    pendingRestore?.let { (source, preview) ->
+        val createdAt = remember(preview.createdAtEpochMs) {
+            java.text.DateFormat.getDateTimeInstance().format(Date(preview.createdAtEpochMs))
+        }
+        AlertDialog(
+            onDismissRequest = { pendingRestore = null },
+            title = { Text(stringResource(R.string.restore_confirmation_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        stringResource(
+                            R.string.restore_confirmation_message,
+                            preview.sourceVersionName,
+                            createdAt,
+                            preview.appListCount,
+                            preview.folderCount,
+                        ),
+                    )
+                    if (preview.wallpaperIncluded) {
+                        Text(stringResource(R.string.restore_confirmation_wallpaper))
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pendingRestore = null
+                        backupRestoreOperation = BackupRestoreOperation.RESTORE
+                        coroutineScope.launch {
+                            try {
+                                val result = BackupRestoreManager.restoreBackup(context, source)
+                                Toast.makeText(
+                                    context,
+                                    resources.getString(R.string.restore_success),
+                                    Toast.LENGTH_LONG,
+                                ).show()
+                                restartAfterRestore(context, result.appLocaleTags)
+                            } catch (error: Exception) {
+                                Toast.makeText(
+                                    context,
+                                    resources.getString(
+                                        R.string.restore_failed,
+                                        error.message
+                                            ?: resources.getString(R.string.unknown_error),
+                                    ),
+                                    Toast.LENGTH_LONG,
+                                ).show()
+                            } finally {
+                                backupRestoreOperation = null
+                            }
+                        }
+                    },
+                ) {
+                    Text(stringResource(R.string.title_restore))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingRestore = null }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
     if (showDisclosure) {
         NotificationServicePermissionDisclosureScreen(
             onContinue = {
@@ -1029,6 +1215,26 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             onLocaleSelected = { locale -> changeAppLanguage(locale)}
         )
     }
+}
+
+private fun restartAfterRestore(context: Context, localeTags: String) {
+    val currentLocaleTags = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+    if (currentLocaleTags != localeTags) {
+        context.startActivity(
+            Intent(context, LanguageUpdateActivity::class.java).apply {
+                putExtra(LanguageUpdateActivity.EXTRA_LOCALE_TAG, localeTags)
+                putExtra(LanguageUpdateActivity.EXTRA_LAUNCH_MAIN, true)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            },
+        )
+    } else {
+        context.startActivity(
+            Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            },
+        )
+    }
+    (context as? Activity)?.finish()
 }
 
 @Composable

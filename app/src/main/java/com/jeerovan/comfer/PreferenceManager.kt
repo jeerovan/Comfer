@@ -15,6 +15,7 @@ import androidx.core.os.LocaleListCompat
 import com.jeerovan.comfer.utils.KeyboardLocale
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import java.io.File
 import java.util.Locale
@@ -25,6 +26,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 internal fun preferencesToSnapshot(data: Preferences): Map<String, String> =
     data.asMap().mapKeys { (key, _) -> key.name }.mapValues { (_, value) -> value.toString() }
@@ -81,11 +84,14 @@ object PreferenceManager {
     private val pendingWriteLock = Any()
     private val pendingWrites = mutableMapOf<String, PendingWrite>()
     private val writeSignal = Channel<Unit>(Channel.CONFLATED)
+    private val dataStoreWriteMutex = Mutex()
+    @Volatile
+    private var writeGeneration = 0L
 
     private data class PendingWrite(
         val context: Context,
         val value: String?,
-        val snapshotNeedsUpdate: Boolean,
+        val generation: Long,
     )
 
     init {
@@ -97,18 +103,26 @@ object PreferenceManager {
                     pendingWrites.toMap().also { pendingWrites.clear() }
                 }
                 if (batch.isEmpty()) continue
-                batch.forEach { (key, write) ->
-                    if (write.snapshotNeedsUpdate) updateSnapshot(key, write.value)
-                }
                 val context = batch.values.first().context
                 try {
-                    context.settingsDataStore.edit { prefs ->
-                        batch.forEach { (key, write) ->
-                            val prefKey = stringPreferencesKey(key)
-                            if (write.value == null) {
-                                prefs.remove(prefKey)
-                            } else {
-                                prefs[prefKey] = write.value
+                    dataStoreWriteMutex.withLock {
+                        val currentGeneration = writeGeneration
+                        val validBatch = batch.filterValues {
+                            it.generation == currentGeneration
+                        }
+                        if (validBatch.isNotEmpty()) {
+                            context.settingsDataStore.edit { prefs ->
+                                validBatch.forEach { (key, write) ->
+                                    val prefKey = stringPreferencesKey(key)
+                                    if (write.value == null) {
+                                        prefs.remove(prefKey)
+                                    } else {
+                                        prefs[prefKey] = write.value
+                                    }
+                                }
+                            }
+                            validBatch.forEach { (key, write) ->
+                                updateSnapshot(key, write.value)
                             }
                         }
                     }
@@ -116,7 +130,12 @@ object PreferenceManager {
                     Log.e("PreferenceManager", "Failed to persist preference batch", e)
                     synchronized(pendingWriteLock) {
                         batch.forEach { (key, write) ->
-                            if (!pendingWrites.containsKey(key)) pendingWrites[key] = write
+                            if (
+                                write.generation == writeGeneration &&
+                                !pendingWrites.containsKey(key)
+                            ) {
+                                pendingWrites[key] = write
+                            }
                         }
                     }
                     delay(250)
@@ -143,7 +162,7 @@ object PreferenceManager {
             pendingWrites[key] = PendingWrite(
                 context = context.applicationContext,
                 value = value,
-                snapshotNeedsUpdate = updateAfterStartup,
+                generation = writeGeneration,
             )
         }
         writeSignal.trySend(Unit)
@@ -159,6 +178,31 @@ object PreferenceManager {
 
     fun clear(context: Context, key: String) {
         write(context, key, null)
+    }
+
+    internal fun snapshotForBackup(): Map<String, String> =
+        snapshot.filterKeys { it != PREFS_MIGRATED_FLAG }
+
+    internal suspend fun replaceSnapshot(
+        context: Context,
+        values: Map<String, String>,
+    ) {
+        synchronized(pendingWriteLock) {
+            writeGeneration += 1
+            pendingWrites.clear()
+        }
+        dataStoreWriteMutex.withLock {
+            context.settingsDataStore.edit { preferences ->
+                preferences.clear()
+                values.forEach { (key, value) ->
+                    preferences[stringPreferencesKey(key)] = value
+                }
+                preferences[booleanPreferencesKey(PREFS_MIGRATED_FLAG)] = true
+            }
+            synchronized(snapshotLock) {
+                snapshot = values.toMap()
+            }
+        }
     }
 
     fun hasKey(context: Context, key: String): Boolean {

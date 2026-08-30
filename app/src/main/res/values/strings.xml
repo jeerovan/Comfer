@@ -213,6 +213,20 @@
     <string name="title_manage_app_list">Manage apps</string>
     <string name="manage_app_list_text">Organize or reorder apps in lists</string>
     <string name="icon_manage_app_list">Manage app list icon</string>
+    <string name="title_backup_section" translatable="false">BACKUP</string>
+    <string name="title_backup" translatable="false">Backup</string>
+    <string name="backup_summary" translatable="false">Save settings and app lists to a ZIP file</string>
+    <string name="title_restore" translatable="false">Restore</string>
+    <string name="restore_summary" translatable="false">Replace current data from a Comfer backup</string>
+    <string name="backup_success" translatable="false">Backup saved: %1$d app lists and %2$d folders</string>
+    <string name="backup_failed" translatable="false">Backup failed: %1$s</string>
+    <string name="restore_invalid" translatable="false">Cannot restore this file: %1$s</string>
+    <string name="restore_confirmation_title" translatable="false">Replace current data?</string>
+    <string name="restore_confirmation_message" translatable="false">This backup was created with Comfer %1$s on %2$s. It contains %3$d app lists and %4$d folders. Your current settings, app lists, and folders will be overwritten.</string>
+    <string name="restore_confirmation_wallpaper" translatable="false">The backed-up automatic wallpaper will also be restored.</string>
+    <string name="restore_success" translatable="false">Restore complete. Restarting Comfer…</string>
+    <string name="restore_failed" translatable="false">Restore failed; your previous data was kept: %1$s</string>
+    <string name="unknown_error" translatable="false">Unknown error</string>
 
     <string name="title_feedback">Feedback</string>
     <string name="icon_feedback">Feedback icon</string>

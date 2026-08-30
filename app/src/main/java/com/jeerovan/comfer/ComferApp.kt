@@ -51,6 +51,7 @@ class ComferApp : Application(), ImageLoaderFactory {
             PerformanceTrace.beginAsync("startupInitialization", 1)
             try {
                 PrefMigrator.runOnce(applicationContext)
+                BackupRestoreManager.recoverInterruptedRestore(applicationContext)
                 PreferenceManager.reload(applicationContext)
                 StartupCoordinator.markReady()
                 Log.i("ComferApp", "Application data initialization complete")

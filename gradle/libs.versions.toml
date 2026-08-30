@@ -1,5 +1,5 @@
 [versions]
-agp = "9.2.1"
+agp = "9.3.2"
 appUpdate = "2.1.0"
 appUpdateKtx = "2.1.0"
 datastorePreferences = "1.2.1"

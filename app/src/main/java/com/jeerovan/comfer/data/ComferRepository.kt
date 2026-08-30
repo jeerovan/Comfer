@@ -1,6 +1,15 @@
 package com.jeerovan.comfer.data
 
 import android.content.Context
+import androidx.room.withTransaction
+
+data class RoomDataSnapshot(
+    val appLists: List<AppListEntity>,
+    val folders: List<AppFolderEntity>,
+    val widgetPlacements: List<WidgetPlacementEntity>,
+    val imageData: List<ImageDataEntity>,
+    val settings: List<SettingEntity>,
+)
 
 /**
  * Thin data-access layer over Room. All functions are suspend and must be
@@ -61,5 +70,37 @@ object ComferRepository {
 
     suspend fun saveSetting(context: Context, setting: SettingEntity) {
         db(context).settingDao().upsert(setting)
+    }
+
+    // ---------- Complete backup / restore snapshot ----------
+
+    suspend fun snapshot(context: Context): RoomDataSnapshot {
+        val database = db(context)
+        return database.withTransaction {
+            RoomDataSnapshot(
+                appLists = database.appListDao().getAll(),
+                folders = database.appFolderDao().getAll(),
+                widgetPlacements = database.widgetPlacementDao().getAll(),
+                imageData = database.imageDataDao().getAll(),
+                settings = database.settingDao().getAll(),
+            )
+        }
+    }
+
+    suspend fun replaceSnapshot(context: Context, snapshot: RoomDataSnapshot) {
+        val database = db(context)
+        database.withTransaction {
+            database.appListDao().deleteAll()
+            database.appFolderDao().deleteAll()
+            database.widgetPlacementDao().deleteAll()
+            database.imageDataDao().deleteAll()
+            database.settingDao().deleteAll()
+
+            database.appListDao().upsertAll(snapshot.appLists)
+            database.appFolderDao().upsertAll(snapshot.folders)
+            database.widgetPlacementDao().upsertAll(snapshot.widgetPlacements)
+            database.imageDataDao().upsertAll(snapshot.imageData)
+            database.settingDao().upsertAll(snapshot.settings)
+        }
     }
 }
