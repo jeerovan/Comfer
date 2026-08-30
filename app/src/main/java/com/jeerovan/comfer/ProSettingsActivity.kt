@@ -1,6 +1,7 @@
 package com.jeerovan.comfer
 
 import android.os.Bundle
+import android.content.res.Configuration
 import android.view.SoundEffectConstants
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -156,6 +157,13 @@ fun BasicSettings(
     onShowDateAdvanced: () -> Unit
 ){
     val context = LocalContext.current
+    val widgetOrientation = if (
+        LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    ) {
+        WidgetLayoutOrientation.LANDSCAPE
+    } else {
+        WidgetLayoutOrientation.PORTRAIT
+    }
     val settingsState by settingsViewModel.uiState.collectAsState()
     var showTimeFontDialog by remember { mutableStateOf(false) }
     var showTimeFontColor by remember { mutableStateOf(false) }
@@ -207,7 +215,7 @@ fun BasicSettings(
                             .fillMaxWidth()
                             .padding(vertical = 8.dp)
                             .clickable {
-                                settingsViewModel.clearAllWidgetPositions()
+                                settingsViewModel.clearAllWidgetPositions(widgetOrientation)
                             }
                     ) {
                         Text(

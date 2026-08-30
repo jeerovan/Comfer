@@ -35,6 +35,25 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
+enum class WidgetLayoutOrientation {
+    PORTRAIT,
+    LANDSCAPE,
+}
+
+internal fun widgetPositionPreferenceKey(
+    id: String,
+    axis: String,
+    orientation: WidgetLayoutOrientation,
+): String {
+    require(axis == "x" || axis == "y") { "Unsupported widget position axis: $axis" }
+    val orientationPrefix = if (orientation == WidgetLayoutOrientation.LANDSCAPE) {
+        "landscape_"
+    } else {
+        ""
+    }
+    return "widget_${orientationPrefix}${id}_$axis"
+}
+
 data class SettingsUiState(
     val autoWallpapers: Boolean = false,
     val wallpaperMotionEnabled: Boolean = true,
@@ -63,6 +82,7 @@ data class SettingsUiState(
     val hasCustomWidgets: Boolean = false,
     val widgetIds: List<String> = emptyList(),
     val widgetPositions: Map<String,Offset?> = emptyMap(),
+    val landscapeWidgetPositions: Map<String,Offset?> = emptyMap(),
     val patternApps: Map<String,AppInfo?> = emptyMap(),
     val showAnalog:Boolean = false,
     val clockSize: Int = 150,
@@ -306,6 +326,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val widgetPositions = widgetIds.associateWith { id ->
                 loadWidgetPosition(id)
             }
+            val landscapeWidgetPositions = widgetIds.associateWith { id ->
+                loadWidgetPosition(id, WidgetLayoutOrientation.LANDSCAPE)
+            }
             val patternApps = patternIds.associateWith {id -> loadPatternApp(id)}
             val showAnalog = PreferenceManager.getBoolean(getApplication(),ANALOG_CLOCK,false)
             val clockSize = PreferenceManager.getInt(getApplication(),CLOCK_SIZE,150)
@@ -464,6 +487,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         hasCustomWidgets = hasCustomWidgets,
                         widgetIds = widgetIds,
                         widgetPositions = widgetPositions,
+                        landscapeWidgetPositions = landscapeWidgetPositions,
                         showAnalog = showAnalog,
                         clockSize = clockSize,
                         clockBgColor = clockBgColor,
@@ -607,17 +631,39 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-    fun saveWidgetPosition(id: String, offsetX: Float, offsetY: Float) {
+    fun saveWidgetPosition(
+        id: String,
+        offsetX: Float,
+        offsetY: Float,
+        orientation: WidgetLayoutOrientation = WidgetLayoutOrientation.PORTRAIT,
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
-            PreferenceManager.setFloat(getApplication(),"widget_${id}_x",offsetX)
-            PreferenceManager.setFloat(getApplication(),"widget_${id}_y",offsetY)
+            PreferenceManager.setFloat(
+                getApplication(),
+                widgetPositionPreferenceKey(id, "x", orientation),
+                offsetX,
+            )
+            PreferenceManager.setFloat(
+                getApplication(),
+                widgetPositionPreferenceKey(id, "y", orientation),
+                offsetY,
+            )
             // Update state with new position
             withContext(Dispatchers.Main) {
                 _uiState.update { currentState ->
-                    val updatedPositions = currentState.widgetPositions.toMutableMap().apply {
+                    val currentPositions = if (orientation == WidgetLayoutOrientation.LANDSCAPE) {
+                        currentState.landscapeWidgetPositions
+                    } else {
+                        currentState.widgetPositions
+                    }
+                    val updatedPositions = currentPositions.toMutableMap().apply {
                         this[id] = Offset(offsetX, offsetY)
                     }
-                    currentState.copy(widgetPositions = updatedPositions)
+                    if (orientation == WidgetLayoutOrientation.LANDSCAPE) {
+                        currentState.copy(landscapeWidgetPositions = updatedPositions)
+                    } else {
+                        currentState.copy(widgetPositions = updatedPositions)
+                    }
                 }
             }
         }
@@ -672,13 +718,24 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun loadWidgetPosition(id: String): Offset? {
-        if(!hasWidgetPosition(id)){
+    fun loadWidgetPosition(
+        id: String,
+        orientation: WidgetLayoutOrientation = WidgetLayoutOrientation.PORTRAIT,
+    ): Offset? {
+        if(!hasWidgetPosition(id, orientation)){
             return null
         }
         return Offset(
-            x = PreferenceManager.getFloat(getApplication(),"widget_${id}_x",0f),
-            y = PreferenceManager.getFloat(getApplication(),"widget_${id}_y",0f)
+            x = PreferenceManager.getFloat(
+                getApplication(),
+                widgetPositionPreferenceKey(id, "x", orientation),
+                0f,
+            ),
+            y = PreferenceManager.getFloat(
+                getApplication(),
+                widgetPositionPreferenceKey(id, "y", orientation),
+                0f,
+            )
         )
     }
     fun setPatternApp(id: String, app: String) {
@@ -705,21 +762,39 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             mapPackageNameToAppInfo(getApplication(),packageName)
         }
     }
-    fun clearAllWidgetPositions() {
+    fun clearAllWidgetPositions(
+        orientation: WidgetLayoutOrientation = WidgetLayoutOrientation.PORTRAIT,
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             for (id in widgetIds){
-                PreferenceManager.clear(getApplication(),"widget_${id}_x")
-                PreferenceManager.clear(getApplication(),"widget_${id}_y")
+                PreferenceManager.clear(
+                    getApplication(),
+                    widgetPositionPreferenceKey(id, "x", orientation),
+                )
+                PreferenceManager.clear(
+                    getApplication(),
+                    widgetPositionPreferenceKey(id, "y", orientation),
+                )
             }
             withContext(Dispatchers.Main) {
                 _uiState.update {
-                    it.copy(widgetPositions = emptyMap())
+                    if (orientation == WidgetLayoutOrientation.LANDSCAPE) {
+                        it.copy(landscapeWidgetPositions = emptyMap())
+                    } else {
+                        it.copy(widgetPositions = emptyMap())
+                    }
                 }
             }
         }
     }
-    fun hasWidgetPosition(id: String): Boolean {
-        return PreferenceManager.hasKey(getApplication(),"widget_${id}_x")
+    fun hasWidgetPosition(
+        id: String,
+        orientation: WidgetLayoutOrientation = WidgetLayoutOrientation.PORTRAIT,
+    ): Boolean {
+        return PreferenceManager.hasKey(
+            getApplication(),
+            widgetPositionPreferenceKey(id, "x", orientation),
+        )
     }
     fun setBatterySize(size: Int){
         viewModelScope.launch(Dispatchers.IO) {

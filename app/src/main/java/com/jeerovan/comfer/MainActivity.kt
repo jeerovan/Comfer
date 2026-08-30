@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import com.jeerovan.comfer.data.ComferRepository
 import android.content.res.Resources
 import android.os.BatteryManager
@@ -77,6 +78,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -84,6 +86,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -2049,6 +2052,71 @@ fun BatteryStatus(
     }
 }
 
+internal data class LauncherPaneSizes(
+    val firstWidth: Int,
+    val firstHeight: Int,
+    val secondWidth: Int,
+    val secondHeight: Int,
+)
+
+internal fun calculateLauncherPaneSizes(
+    width: Int,
+    height: Int,
+    isLandscape: Boolean,
+    portraitSecondPaneHeight: Int,
+): LauncherPaneSizes {
+    require(width >= 0 && height >= 0) { "Pane dimensions must be non-negative" }
+    return if (isLandscape) {
+        val firstWidth = width / 2
+        LauncherPaneSizes(
+            firstWidth = firstWidth,
+            firstHeight = height,
+            secondWidth = width - firstWidth,
+            secondHeight = height,
+        )
+    } else {
+        val secondHeight = portraitSecondPaneHeight.coerceIn(0, height)
+        LauncherPaneSizes(
+            firstWidth = width,
+            firstHeight = height - secondHeight,
+            secondWidth = width,
+            secondHeight = secondHeight,
+        )
+    }
+}
+
+@Composable
+private fun LauncherTwoPaneLayout(
+    isLandscape: Boolean,
+    portraitSecondPaneHeight: Dp,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Layout(modifier = modifier, content = content) { measurables, constraints ->
+        require(measurables.size == 2) { "LauncherTwoPaneLayout requires exactly two panes" }
+        val paneSizes = calculateLauncherPaneSizes(
+            width = constraints.maxWidth,
+            height = constraints.maxHeight,
+            isLandscape = isLandscape,
+            portraitSecondPaneHeight = portraitSecondPaneHeight.roundToPx(),
+        )
+        val firstPane = measurables[0].measure(
+            Constraints.fixed(paneSizes.firstWidth, paneSizes.firstHeight),
+        )
+        val secondPane = measurables[1].measure(
+            Constraints.fixed(paneSizes.secondWidth, paneSizes.secondHeight),
+        )
+        layout(constraints.maxWidth, constraints.maxHeight) {
+            firstPane.placeRelative(0, 0)
+            if (isLandscape) {
+                secondPane.placeRelative(paneSizes.firstWidth, 0)
+            } else {
+                secondPane.placeRelative(0, paneSizes.firstHeight)
+            }
+        }
+    }
+}
+
 @Composable
 fun QuickListOverlay(apps: List<AppInfo>,
                      folders: Map<String,List<AppInfo>>,
@@ -2163,9 +2231,18 @@ fun QuickListOverlay(apps: List<AppInfo>,
         {onFeedbackDismiss()},
         {onFeedbackRateIt()}
     )
-    val screenHeightInDp = configuration.screenHeightDp.dp
     val lowerPartHeight = 400.dp
-    val topPartHeight = screenHeightInDp - lowerPartHeight
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val widgetOrientation = if (isLandscape) {
+        WidgetLayoutOrientation.LANDSCAPE
+    } else {
+        WidgetLayoutOrientation.PORTRAIT
+    }
+    val activeWidgetPositions = if (isLandscape) {
+        settings.landscapeWidgetPositions
+    } else {
+        settings.widgetPositions
+    }
 
     val isLightHour = PreferenceManager.isLightHour(context)
     val hourFgColor = if (isLightHour) {
@@ -2209,10 +2286,14 @@ fun QuickListOverlay(apps: List<AppInfo>,
     Box(modifier = Modifier
         .fillMaxSize()
     ) {
-        Column (modifier = Modifier) {
+        LauncherTwoPaneLayout(
+            isLandscape = isLandscape,
+            portraitSecondPaneHeight = lowerPartHeight,
+            modifier = Modifier.fillMaxSize(),
+        ) {
             if(settings.hasCustomWidgets) {
                 WidgetHostScreen(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxSize(),
                     appWidgetManager,
                     mainWidgetHost,
                     "widgets_center",
@@ -2220,17 +2301,23 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     onSwipeRight = {},
                     onSwipeLeft = {})
             } else {
-                DraggableQuickWidgetsContainer (
-                    modifier = Modifier.weight(1f),
-                    editMode = showWidgetSettings,
-                    widgetIds = settings.widgetIds,
-                    widgetPositions = settings.widgetPositions,
-                    onPositionChanged = { id, offset ->
-                        settingsModel.saveWidgetPosition(id, offset.x, offset.y)
-                    },
-                    onEditModeChanged = { editMode ->  showWidgetSettings = editMode},
-                    composableContent = { id, editMode ->
-                        when (id) {
+                key(widgetOrientation) {
+                    DraggableQuickWidgetsContainer (
+                        modifier = Modifier.fillMaxSize(),
+                        editMode = showWidgetSettings,
+                        widgetIds = settings.widgetIds,
+                        widgetPositions = activeWidgetPositions,
+                        onPositionChanged = { id, offset ->
+                            settingsModel.saveWidgetPosition(
+                                id,
+                                offset.x,
+                                offset.y,
+                                widgetOrientation,
+                            )
+                        },
+                        onEditModeChanged = { editMode ->  showWidgetSettings = editMode},
+                        composableContent = { id, editMode ->
+                            when (id) {
                             "time" -> Box {
                                 WidgetClock(
                                     settings,
@@ -2299,20 +2386,27 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 foregroundColor =  foregroundColor,
                                 showBorder = editMode,
                                 backgroundColor = backgroundColor)
+                            }
+                        },
+                        onWidgetLongPressShown = {
+                            if(!widgetsLongPressShown && settingsLongPressShown) {
+                                settingsModel.setStepGuideShown(context, widgetsLongPressKey)
+                                widgetsLongPressShown = true
+                            }
                         }
-                    },
-                    onWidgetLongPressShown = {
-                        if(!widgetsLongPressShown && settingsLongPressShown) {
-                            settingsModel.setStepGuideShown(context, widgetsLongPressKey)
-                            widgetsLongPressShown = true
-                        }
-                    }
-                )
+                    )
+                }
             }
             AnimatedContent(
                 targetState = showWidgetSettings,
                 transitionSpec = {
-                    if (targetState) {
+                    if (isLandscape && targetState) {
+                        slideInHorizontally(initialOffsetX = { it }) + fadeIn() togetherWith
+                                slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+                    } else if (isLandscape) {
+                        slideInHorizontally(initialOffsetX = { -it }) + fadeIn() togetherWith
+                                slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+                    } else if (targetState) {
                         slideInVertically(initialOffsetY = { it }) + fadeIn() togetherWith
                                 slideOutVertically(targetOffsetY = { -it }) + fadeOut()
                     } else {
@@ -2324,8 +2418,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                 if (isShowingSettings) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(lowerPartHeight)
+                            .fillMaxSize()
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onTap = {},
@@ -2340,10 +2433,14 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     }
                 } else {
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
+                        modifier = (if (isLandscape) {
+                            Modifier
+                                .fillMaxSize()
+                                .navigationBarsPadding()
+                        } else {
+                            Modifier.fillMaxSize()
+                        })
                             //.border(1.dp, color = Color.Red)
-                            .height(lowerPartHeight)
                             .pointerInput(Unit){
                                 detectTapGestures (
                                     onLongPress = {
@@ -2464,21 +2561,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     onShowSearch()
                                 }
                             }
-                            when (settings.quickAppsLayout) {
-                                "linear" -> FiveColumnLayout(
-                                    displayApps,
-                                    notificationPackages,
-                                    iconSize,
-                                    iconShape,
-                                    onCenterAction,
-                                    showThemedIcon,
-                                    settings.themedColors,
-                                    settings.isLightHour,
-                                    isFolderActive = activeFolderId != null,
-                                    onTappingFolder = handleFolderTap
-                                )
-
-                                "circular" -> CircularLayout(
+                            if(isLandscape || settings.quickAppsLayout == "circular") {
+                                CircularLayout(
                                     displayApps,
                                     notificationPackages,
                                     iconSize,
@@ -2491,6 +2575,19 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     onTappingFolder = handleFolderTap,
                                     !quickGestureShown
                                 )
+                            } else {
+                                FiveColumnLayout(
+                                    displayApps,
+                                    notificationPackages,
+                                    iconSize,
+                                    iconShape,
+                                    onCenterAction,
+                                    showThemedIcon,
+                                    settings.themedColors,
+                                    settings.isLightHour,
+                                    isFolderActive = activeFolderId != null,
+                                    onTappingFolder = handleFolderTap
+                                )
                             }
                         }
                         if(quickGestureShown && !settingsLongPressShown)Box(modifier = Modifier
@@ -2499,7 +2596,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                             .offset(x=20.dp,y=80.dp)){
                             LongPressHint()
                         }
-                        if(settingsLongPressShown && !widgetsLongPressShown)Box(modifier = Modifier
+                        if(!isLandscape && settingsLongPressShown && !widgetsLongPressShown)Box(modifier = Modifier
                             .fillMaxWidth()
                             .height(lowerPartHeight)
                             .offset(x=20.dp,y = -(64.dp)),
@@ -2516,7 +2613,17 @@ fun QuickListOverlay(apps: List<AppInfo>,
                 }
             }
         }
-
+        if (isLandscape && settingsLongPressShown && !widgetsLongPressShown) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.5f)
+                    .align(Alignment.CenterStart),
+                contentAlignment = Alignment.Center,
+            ) {
+                LongPressHint()
+            }
+        }
     }
 }
 
@@ -2676,7 +2783,313 @@ fun SearchListOverlay(apps: List<AppInfo>,
     fun onLocaleSelection(){
         showLocaleSelection = true
     }
-    Box(
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    if (isLandscape) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Row(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .padding(start = 8.dp, top = 8.dp, bottom = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    TabRow(
+                        selectedTabIndex = activeTab.ordinal,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f),
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        indicator = { tabPositions ->
+                            TabRowDefaults.SecondaryIndicator(
+                                modifier = Modifier
+                                    .tabIndicatorOffset(tabPositions[activeTab.ordinal])
+                                    .clip(RoundedCornerShape(100)),
+                                height = 4.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        },
+                        divider = {
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        },
+                    ) {
+                        Tab(
+                            selected = activeTab == SearchTab.APPS,
+                            onClick = { onTabSelected(SearchTab.APPS) },
+                            text = { Text(stringResource(R.string.applications)) },
+                            selectedContentColor = MaterialTheme.colorScheme.primary,
+                            unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Tab(
+                            selected = activeTab == SearchTab.CONTACTS,
+                            onClick = { onTabSelected(SearchTab.CONTACTS) },
+                            text = { Text(stringResource(R.string.contacts)) },
+                            selectedContentColor = MaterialTheme.colorScheme.primary,
+                            unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
+                    AnimatedContent(
+                        targetState = activeTab,
+                        modifier = Modifier.weight(1f),
+                        transitionSpec = {
+                            if (targetState == SearchTab.CONTACTS && initialState == SearchTab.APPS) {
+                                (slideInHorizontally(initialOffsetX = { -it }) + fadeIn()).togetherWith(
+                                    slideOutHorizontally(targetOffsetX = { it }) + fadeOut()
+                                )
+                            } else {
+                                (slideInHorizontally(initialOffsetX = { it }) + fadeIn()).togetherWith(
+                                    slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+                                )
+                            }
+                        },
+                    ) { targetTab ->
+                        when (targetTab) {
+                            SearchTab.APPS -> {
+                                LazyVerticalGrid(
+                                    columns = GridCells.Adaptive(minSize = iconSize + 24.dp),
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentPadding = PaddingValues(16.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                ) {
+                                    items(
+                                        items = filteredApps,
+                                        key = { app ->
+                                            "${app.componentName?.flattenToString() ?: app.packageName}:${app.user?.hashCode()}"
+                                        },
+                                    ) { app ->
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(iconSize + 16.dp),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            AppIcon(
+                                                app = app,
+                                                notificationPackages = notificationPackages,
+                                                shape = iconShape,
+                                                iconSize = iconSize,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            SearchTab.CONTACTS -> {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .pointerInput(hasContactPermission) {
+                                            detectTapGestures(
+                                                onDoubleTap = {
+                                                    if (selectedContact != null) {
+                                                        onTapSelectedContact()
+                                                        if (
+                                                            !contactDoubleTapShown &&
+                                                            hasContactPermission &&
+                                                            contactSwipeGestureShown
+                                                        ) {
+                                                            settingsModel.setStepGuideShown(
+                                                                context,
+                                                                contactDoubleTapKey,
+                                                            )
+                                                            contactDoubleTapShown = true
+                                                        }
+                                                    }
+                                                },
+                                            )
+                                        }
+                                        .pointerInput(lazyListState, hasContactPermission) {
+                                            detectVerticalDragGestures(
+                                                onDragStart = { dragAccumulator = 0f },
+                                                onDragEnd = { dragAccumulator = 0f },
+                                                onVerticalDrag = { change, dragAmount ->
+                                                    change.consume()
+                                                    val isAtTop = !lazyListState.canScrollBackward
+                                                    val isAtBottom = !lazyListState.canScrollForward
+                                                    when {
+                                                        dragAmount > 0 -> {
+                                                            if (isAtTop) {
+                                                                dragAccumulator += dragAmount
+                                                                if (dragAccumulator > scrollThreshold) {
+                                                                    selectedContactIndex =
+                                                                        (selectedContactIndex - 1).coerceAtLeast(0)
+                                                                    dragAccumulator = 0f
+                                                                }
+                                                            } else {
+                                                                lazyListState.dispatchRawDelta(-2 * dragAmount)
+                                                            }
+                                                        }
+
+                                                        dragAmount < 0 -> {
+                                                            if (isAtBottom) {
+                                                                dragAccumulator += dragAmount
+                                                                if (dragAccumulator < -scrollThreshold) {
+                                                                    selectedContactIndex =
+                                                                        (selectedContactIndex + 1)
+                                                                            .coerceAtMost(filteredContacts.lastIndex)
+                                                                    dragAccumulator = 0f
+                                                                }
+                                                            } else {
+                                                                lazyListState.dispatchRawDelta(-2 * dragAmount)
+                                                            }
+                                                        }
+                                                    }
+                                                    if (!contactSwipeGestureShown && hasContactPermission) {
+                                                        settingsModel.setStepGuideShown(
+                                                            context,
+                                                            contactSwipeGestureKey,
+                                                        )
+                                                        contactSwipeGestureShown = true
+                                                    }
+                                                },
+                                            )
+                                        },
+                                ) {
+                                    if (hasContactPermission) {
+                                        if (contacts.isEmpty()) {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center,
+                                            ) {
+                                                CircularProgressIndicator()
+                                            }
+                                        } else {
+                                            LazyColumn(
+                                                state = lazyListState,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .padding(horizontal = 8.dp),
+                                            ) {
+                                                items(
+                                                    items = filteredContacts,
+                                                    key = { contact -> contact.id },
+                                                ) { contact ->
+                                                    ContactListItem(
+                                                        contact,
+                                                        isSelected = contact.id == selectedContact?.id,
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        PermissionRequestView { onRequestContactsPermission() }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .navigationBarsPadding()
+                        .padding(start = 16.dp, end = 16.dp, bottom = 40.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Bottom,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                            .height(40.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.Black.copy(alpha = 0.5f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = inputText.ifEmpty { stringResource(R.string.search) },
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 20.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    CircularKeyboard(
+                        locale = keyboardLocale,
+                        onChar = { char -> inputText += char },
+                        onBackspace = {
+                            if (inputText.isNotEmpty()) inputText = inputText.dropLast(1)
+                        },
+                        showLocaleSelection = { onLocaleSelection() },
+                        onSwipeDown = { swipeDownOnKeyboard() },
+                        onSwipeRight = { swipeRightOnKeyboard() },
+                        onSwipeLeft = { swipeLeftOnKeyboard() },
+                    )
+                }
+            }
+
+            if (!searchSwipeDownGestureShown) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.5f)
+                        .align(Alignment.CenterEnd),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    SwipeHelper(start = SwipeDirection.TOP, end = SwipeDirection.BOTTOM)
+                }
+            }
+            if (
+                searchSwipeDownGestureShown &&
+                !searchTabSwipeDownGestureShown &&
+                activeTab == SearchTab.APPS
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.5f)
+                        .align(Alignment.CenterEnd),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    SwipeHelper(start = SwipeDirection.LEFT, end = SwipeDirection.RIGHT)
+                }
+            }
+            if (
+                !contactSwipeGestureShown &&
+                hasContactPermission &&
+                activeTab == SearchTab.CONTACTS
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.5f)
+                        .align(Alignment.CenterStart),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    SwipeHelper(start = SwipeDirection.BOTTOM, end = SwipeDirection.TOP)
+                }
+            }
+            if (
+                !contactDoubleTapShown &&
+                contactSwipeGestureShown &&
+                hasContactPermission &&
+                activeTab == SearchTab.CONTACTS
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.5f)
+                        .align(Alignment.CenterStart),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    DoubleTapHint()
+                }
+            }
+            if (showLocaleSelection) {
+                LocaleSelectionDialog(
+                    onDismissRequest = { showLocaleSelection = false },
+                    onLocaleSelected = { locale -> onLocaleSelected(locale) },
+                )
+            }
+        }
+    } else Box(
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(hasContactPermission) {
