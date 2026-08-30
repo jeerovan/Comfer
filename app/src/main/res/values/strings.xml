@@ -105,6 +105,15 @@
     <string name="weather_attribution" translatable="false">Open-Meteo</string>
     <string name="weather_widget_title" translatable="false">Weather widget</string>
     <string name="weather_widget_summary" translatable="false">Uses approximate location · Data by Open-Meteo</string>
+    <string name="weather_details_title" translatable="false">Current weather</string>
+    <string name="weather_temperature_unit" translatable="false">Temperature unit</string>
+    <string name="weather_celsius" translatable="false">Celsius</string>
+    <string name="weather_fahrenheit" translatable="false">Fahrenheit</string>
+    <string name="weather_feels_like" translatable="false">Feels like</string>
+    <string name="weather_humidity" translatable="false">Humidity</string>
+    <string name="weather_wind" translatable="false">Wind</string>
+    <string name="weather_more_details_loading" translatable="false">More weather details are loading…</string>
+    <string name="weather_close_details" translatable="false">Close weather details</string>
 
     <string name="title_battery">Battery</string>
     <string name="show_battery_icon">Show battery icon</string>

@@ -19,6 +19,7 @@ data class CurrentWeather(
     @SerialName("temperature_2m") val temperatureC: Double,
     @SerialName("apparent_temperature") val apparentTemperatureC: Double,
     @SerialName("relative_humidity_2m") val relativeHumidity: Int,
+    @SerialName("wind_speed_10m") val windSpeedKmh: Double,
     @SerialName("weather_code") val weatherCode: Int,
     @SerialName("is_day") val isDay: Int,
 )
@@ -42,7 +43,7 @@ object WeatherRepository {
             parameter("longitude", longitude)
             parameter(
                 "current",
-                "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day",
+                "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day",
             )
             parameter("timezone", "auto")
             parameter("forecast_days", 1)

@@ -310,7 +310,7 @@ fun BasicSettings(
                         }
                     } else {
                         // Time Format
-                        SettingDropdown(
+                        SettingChoiceButtons(
                             label = stringResource(R.string.title_time_format),
                             selectedValue = settingsState.timeFormat,
                             options = arrayOf(
@@ -555,6 +555,27 @@ fun BasicSettings(
 
                 if (settingsState.showWeatherWidget) {
                     SettingSection(stringResource(R.string.weather_widget_title)) {
+                        SettingChoiceButtons(
+                            label = stringResource(R.string.weather_temperature_unit),
+                            selectedValue = if (settingsState.weatherUseFahrenheit) {
+                                "Fahrenheit"
+                            } else {
+                                "Celsius"
+                            },
+                            options = arrayOf(
+                                KeyTextObject(
+                                    text = stringResource(R.string.weather_celsius),
+                                    key = "Celsius",
+                                ),
+                                KeyTextObject(
+                                    text = stringResource(R.string.weather_fahrenheit),
+                                    key = "Fahrenheit",
+                                ),
+                            ),
+                            onValueChange = { unit ->
+                                settingsViewModel.setWeatherUseFahrenheit(unit == "Fahrenheit")
+                            },
+                        )
                         SettingSlider(
                             label = stringResource(R.string.title_font_size),
                             value = settingsState.weatherFontSize,
@@ -1109,6 +1130,46 @@ fun SettingSlider(label: String,
             valueRange = range,
             steps = ((range.endInclusive - range.start) / 2).toInt() -1
         )
+    }
+}
+
+@Composable
+fun SettingChoiceButtons(
+    label: String,
+    selectedValue: String,
+    options: Array<KeyTextObject>,
+    onValueChange: (String) -> Unit,
+) {
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            options.forEach { option ->
+                val selected = option.key == selectedValue
+                if (selected) {
+                    Button(
+                        onClick = {},
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(option.text)
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = { onValueChange(option.key) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(option.text)
+                    }
+                }
+            }
+        }
     }
 }
 

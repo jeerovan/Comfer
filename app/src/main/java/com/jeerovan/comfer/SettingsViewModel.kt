@@ -100,6 +100,7 @@ data class SettingsUiState(
     val weatherLatitude: Double? = null,
     val weatherLongitude: Double? = null,
     val weatherTemperatureC: Double? = null,
+    val weatherUseFahrenheit: Boolean = false,
     val weatherColor: Color = Color.White,
     val weatherAlpha: Int = 100,
     val weatherFontSize: Int = 26,
@@ -200,6 +201,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val WEATHER_LATITUDE = "weather_latitude"
     private val WEATHER_LONGITUDE = "weather_longitude"
     private val WEATHER_TEMPERATURE_C = "weather_temperature_c"
+    private val WEATHER_USE_FAHRENHEIT = "weather_use_fahrenheit"
     private val WEATHER_COLOR = "weather_color"
     private val WEATHER_ALPHA = "weather_alpha"
     private val WEATHER_FONT_SIZE = "weather_font_size"
@@ -375,6 +377,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 WEATHER_TEMPERATURE_C,
                 null,
             )?.toDoubleOrNull()
+            val weatherUseFahrenheit = PreferenceManager.getBoolean(
+                getApplication(),
+                WEATHER_USE_FAHRENHEIT,
+                false,
+            )
             val weatherColor = Color(
                 PreferenceManager.getInt(
                     getApplication(),
@@ -490,6 +497,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         weatherLatitude = weatherLatitude,
                         weatherLongitude = weatherLongitude,
                         weatherTemperatureC = weatherTemperatureC,
+                        weatherUseFahrenheit = weatherUseFahrenheit,
                         weatherColor = weatherColor,
                         weatherAlpha = weatherAlpha,
                         weatherFontSize = weatherFontSize,
@@ -647,6 +655,20 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     }
                 }
             }
+        }
+    }
+
+    fun setWeatherUseFahrenheit(useFahrenheit: Boolean) {
+        if (_uiState.value.weatherUseFahrenheit == useFahrenheit) return
+        _uiState.update { current ->
+            current.copy(weatherUseFahrenheit = useFahrenheit)
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            PreferenceManager.setBoolean(
+                getApplication(),
+                WEATHER_USE_FAHRENHEIT,
+                useFahrenheit,
+            )
         }
     }
 
