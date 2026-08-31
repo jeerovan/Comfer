@@ -2645,6 +2645,13 @@ fun QuickListOverlay(apps: List<AppInfo>,
                             ) {
                                 DoubleTapHint()
                             }
+                            Box(
+                                modifier = Modifier.matchParentSize()
+                                    .offset(x=-(20).dp,y= (-80).dp),
+                                contentAlignment = Alignment.CenterEnd,
+                            ) {
+                                DoubleTapHint()
+                            }
                         }
                     }
                 }
