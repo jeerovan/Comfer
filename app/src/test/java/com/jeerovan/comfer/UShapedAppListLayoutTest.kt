@@ -23,6 +23,17 @@ class UShapedAppListLayoutTest {
     }
 
     @Test
+    fun logicalItemIdentityMovesContinuouslyToThePreviousSlot() {
+        val visibleIconCount = 9
+        for (slot in 1 until visibleIconCount) {
+            assertEquals(
+                uShapeLogicalIndex(10, visibleIconCount, slot),
+                uShapeLogicalIndex(11, visibleIconCount, slot - 1),
+            )
+        }
+    }
+
+    @Test
     fun portraitKeepsWidthBasedArc() {
         val layout = calculateUShapeLayoutParams(
             width = 720f,

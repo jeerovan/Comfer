@@ -246,14 +246,14 @@ Post-48-hour production checkpoint (2026-08-31):
 
 Scope and result:
 
-- Reindexed the complete patched repository: 2,071 code nodes and 7,096 relationships, with zero skipped source files. Source review covered the v44-to-v45 feature delta, especially backup/restore, weather/location, landscape layouts, gesture guides, app-title settings, widget positions, and the U-shaped app drawer.
+- Reindexed the complete patched repository: 2,059 code nodes and 7,088 relationships, with zero skipped source files. Source review covered the v44-to-v45 feature delta, especially backup/restore, weather/location, landscape layouts, gesture guides, app-title settings, widget positions, and the U-shaped app drawer.
 - Version 45 adds a substantial feature delta over v44. The backup/restore path keeps archive parsing, hashing, bitmap-bounds checks, Room snapshot replacement, preference replacement, journaling, and rollback on `Dispatchers.IO`; size, entry-count, duplicate-entry, identifier, package-list, widget, checksum, and wallpaper limits are enforced. No synchronous main-thread archive/database work was found.
 - The release manifest is versionCode `45` / versionName `45.0`. Its merged permissions contain `ACCESS_COARSE_LOCATION` for weather, but none of `READ_EXTERNAL_STORAGE`, `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, or `READ_MEDIA_AUDIO`.
 
 Pre-release fixes applied cumulatively:
 
-1. **U-shaped drawer index and key safety:** normalize indexes with overflow-safe `Long` modular arithmetic, so a long negative/positive fling cannot address `apps[-1]` or another out-of-range slot. Use stable, unique slot keys rather than package keys; this also handles app lists smaller than the number of visible U-shape slots without duplicate Compose keys and reduces the movable-group churn seen in the v44 single-event `GapComposer` ANR.
-2. **Pointer-event backpressure:** keep at most one pending drag `snapTo` update and carry the latest target forward. The old path launched one main-thread coroutine per horizontal pointer event, allowing a fast gesture to queue unnecessary UI work.
+1. **U-shaped drawer index and key safety:** normalize indexes with overflow-safe `Long` modular arithmetic, so a long negative/positive fling cannot address `apps[-1]` or another out-of-range slot. Key each visible occurrence by its unwrapped logical index: the key follows the app as it moves between slots, while remaining unique when a small app list repeats around the U-shape.
+2. **Drawer animation continuity:** restore the proven per-event `snapTo` drag behavior. The first v45 hardening attempt cancelled and restarted the pending update for every pointer event and used fixed slot keys; together those changes made icons jump between positions. Logical occurrence keys preserve visual identity without reintroducing duplicate package-name keys.
 3. **Weather location Binder isolation:** provider discovery, last-known-location reads, registration, and cleanup now run in the flow's `Dispatchers.IO` context. Location callbacks still use the main looper as required by the UI consumer.
 4. **Weather network bounds:** Ktor request, connect, and socket timeouts are each 15 seconds, preventing a stalled provider/network from holding the refresh coroutine indefinitely.
 5. **Normal text fast path:** unrotated, uncurved clock/date/battery/weather text uses Compose `Text` and its normal cached layout pipeline. The custom Android `Paint.measureText`/path renderer remains only for an enabled rotation or curve, reducing exposure to the v44 single-event native text-measurement ANR without removing the visual effect feature.
@@ -265,7 +265,8 @@ Verification:
 - Focused connected suite: 12/12 passed on the Android 7 `Small_Phone` emulator and 12/12 passed on the Samsung SM-A305F / Android 11 physical device. This includes refresh-burst stress, widget-inflation guards, settings smoke, setting sliders, and the new landscape/gesture layout tests.
 - The full connected invocation ran those same 12 tests successfully and failed only the opt-in `Wallpaper8kStressTest`, whose explicit external `stress_wallpaper_8k.jpg` fixture was not installed. This is recorded as missing test data, not an app failure.
 - Samsung cold start: the first debug launch after install and initialization completed in 5,513 ms; the repeat force-stop/cold-start completed in 1,095 ms. `MainActivity` remained resumed and the inspected `AndroidRuntime`, `ActivityManager`, `ComferApp`, and `BackupRestore` error streams were empty.
-- `:app:bundleRelease`: passed with release-vital lint, R8, upload-keystore validation, bundle packaging, and signing. The signed AAB is `app/build/outputs/bundle/release/app-release.aab`, SHA-256 `beffba009fd1e2009b26c878d022147e867332fe4a2d088c23b770ccdbb6e15b`; JAR signature verification reports `jar verified`.
+- U-shaped drawer regression check: repeated slow and fast bidirectional swipes were recorded on the Samsung SM-A305F after restoring the drag path and logical keys. Intermediate icon positions remained continuous, the activity remained focused/resumed, and the inspected crash/error streams were empty.
+- `:app:bundleRelease`: passed with release-vital lint, R8, upload-keystore validation, bundle packaging, and signing. The signed post-drawer-fix AAB is `app/build/outputs/bundle/release/app-release.aab`, SHA-256 `1e3ac8c147690e29c0af5364c6dc374c75d3641effbe01107ee11b5c98cb7518`; JAR signature verification reports `jar verified`.
 - `git diff --check`: passed.
 
 Release decision:

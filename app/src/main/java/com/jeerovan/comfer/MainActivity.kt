@@ -3682,8 +3682,6 @@ fun AppListOverlay(apps: List<AppInfo>,
                     var dragAxis: DragAxis? = null
                     var verticalDragAmount = 0f
                     var isSwipeDownTriggered = false
-                    var dragUpdateJob: Job? = null
-                    var dragTarget = scrollAnimatable.value
 
                     detectDragGestures(
                         onDragStart = {
@@ -3692,8 +3690,6 @@ fun AppListOverlay(apps: List<AppInfo>,
                             verticalDragAmount = 0f
                             isSwipeDownTriggered = false
                             velocityTracker.resetTracking()
-                            dragUpdateJob?.cancel()
-                            dragTarget = scrollAnimatable.value
                             scope.launch {
                                 scrollAnimatable.stop() // Stop any ongoing animation
                             }
@@ -3722,21 +3718,20 @@ fun AppListOverlay(apps: List<AppInfo>,
 
                                     val increment = dragAmount.x * 0.3f * animationSpeed
                                     val totalScrollWidth = apps.size * snapSpacing
-                                    dragTarget = (dragTarget + increment).wrap(totalScrollWidth)
 
-                                    // Pointer events can arrive faster than snapTo completes.
-                                    // Keep only the latest update instead of queueing a coroutine
-                                    // for every event on the main thread.
-                                    dragUpdateJob?.cancel()
-                                    dragUpdateJob = scope.launch {
-                                        scrollAnimatable.snapTo(dragTarget)
-                                    }
-                                    if(!horizontalSwipeShown) {
-                                        settingsModel.setStepGuideShown(
-                                            context,
-                                            horizontalSwipeKey
-                                        )
-                                        horizontalSwipeShown = true
+                                    scope.launch {
+                                        val newPosition =
+                                            (scrollAnimatable.value + increment).wrap(
+                                                totalScrollWidth
+                                            )
+                                        scrollAnimatable.snapTo(newPosition)
+                                        if(!horizontalSwipeShown) {
+                                            settingsModel.setStepGuideShown(
+                                                context,
+                                                horizontalSwipeKey
+                                            )
+                                            horizontalSwipeShown = true
+                                        }
                                     }
                                 }
 
@@ -3767,10 +3762,7 @@ fun AppListOverlay(apps: List<AppInfo>,
                         onDragEnd = {
                             if (dragAxis == DragAxis.HORIZONTAL) {
                                 val velocity = velocityTracker.calculateVelocity().x * 0.3f * animationSpeed
-                                dragUpdateJob?.cancel()
-                                val finalDragTarget = dragTarget
                                 scope.launch {
-                                    scrollAnimatable.snapTo(finalDragTarget)
                                     settleOnNearestApp(velocity)
                                 }
                             }
@@ -3779,10 +3771,7 @@ fun AppListOverlay(apps: List<AppInfo>,
                         onDragCancel = {
                             velocityTracker.resetTracking()
                             if (dragAxis == DragAxis.HORIZONTAL) {
-                                dragUpdateJob?.cancel()
-                                val finalDragTarget = dragTarget
                                 scope.launch {
-                                    scrollAnimatable.snapTo(finalDragTarget)
                                     settleOnNearestApp()
                                 }
                             }
@@ -4563,10 +4552,10 @@ fun UshapedAppList(
         val smoothScrollIndex = scrollOffset / 20f
         val baseScrollIndex = floor(smoothScrollIndex)
         val scrollFraction = smoothScrollIndex - baseScrollIndex
-        val intScrollIndex = baseScrollIndex.toInt()
-        val startIndex = wrapAppIndex(
-            intScrollIndex.toLong() - numVisibleIcons / 2L,
-            totalIcons,
+        val startLogicalIndex = uShapeLogicalIndex(
+            scrollIndex = baseScrollIndex.toLong(),
+            visibleIconCount = numVisibleIcons,
+            slot = 0,
         )
 
         // Cache position calculation function
@@ -4610,7 +4599,8 @@ fun UshapedAppList(
         val centerSlot = layoutParams.numSideIcons + layoutParams.numTopIcons / 2
 
         for (i in 0 until numVisibleIcons) {
-            val appIndex = wrapAppIndex(startIndex.toLong() + i, totalIcons)
+            val logicalIndex = startLogicalIndex + i
+            val appIndex = wrapAppIndex(logicalIndex, totalIcons)
 
             val posCurrent = getPositionForSlot(i, centerSlot)
             val posPrev = getPositionForSlot(i - 1, centerSlot)
@@ -4628,10 +4618,10 @@ fun UshapedAppList(
                 updateCenterIconGeom(x + sizePx / 2, y + sizePx / 2, sizePx)
             }
 
-            // A slot can show a different app while scrolling, and lists smaller than
-            // the U-shape contain repeated apps. Slot keys stay unique and stable in
-            // both cases, avoiding duplicate-key crashes and movable-group churn.
-            key(i) {
+            // Preserve the identity of an app occurrence as it moves between slots.
+            // The unwrapped logical index also stays unique when a small app list is
+            // repeated around the U-shape, avoiding duplicate package-name keys.
+            key(logicalIndex) {
                 AppIcon(
                     app = apps[appIndex],
                     notificationPackages,
@@ -4650,6 +4640,12 @@ internal fun wrapAppIndex(index: Long, appCount: Int): Int {
     require(appCount > 0) { "appCount must be positive" }
     return (((index % appCount) + appCount) % appCount).toInt()
 }
+
+internal fun uShapeLogicalIndex(
+    scrollIndex: Long,
+    visibleIconCount: Int,
+    slot: Int,
+): Long = scrollIndex - visibleIconCount / 2L + slot
 
 internal fun calculateUShapeLayoutParams(
     width: Float,
