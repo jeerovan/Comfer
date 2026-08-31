@@ -1,6 +1,6 @@
-# Version 42 Findings and Version 43 ANR/Crash Fix Plan
+# Version 42 Findings and Version 45 ANR/Crash Fix Plan
 
-- Last updated: 2026-08-26
+- Last updated: 2026-08-31
 - Source: `play_reporting.db`, table `issues`
 - Release: `com.jeerovan.comfer` versionCode `42`, versionName `42.0`, Git revision `af587ec056af7bee024895b63a77e95b7d1d6594`
 - Reporting window: 2026-07-25 14:00 UTC through 2026-08-24 14:00 UTC
@@ -68,10 +68,10 @@ The largest actionable first-party main-thread groups are activity-launch Binder
 |---|---|---|
 | 0 | Establish version-42 database baseline and reproduce build graph | DONE |
 | 1 | Apply deterministic first-party crash and ANR fixes | IMPLEMENTED; full local verification complete |
-| 2 | Resolve Play-protected missing-class crash | unprotected Play v44 artifact verified; production exposure pending |
-| 3 | Attribute no-focus and remaining first-party ANRs | PENDING version-44 telemetry/device runs |
+| 2 | Resolve Play-protected missing-class crash | v44 at 5% with Honor exposure and zero recurrence; continue staged confirmation |
+| 3 | Attribute no-focus and remaining first-party ANRs | v45 hardens the U-shaped drawer, pointer-event backpressure, location Binder work, and normal text rendering |
 | 4 | Reduce residual OEM, Compose/View, native, and resource failures | SOURCE-FIXABLE WORK IMPLEMENTED; platform residuals monitor-only |
-| 5 | Stage rollout and close against version-42 baseline | v44 internal/Play artifact verified; 100% production replacement pending |
+| 5 | Stage rollout and close against version-42 baseline | v45 local release gate passed; production telemetry pending |
 
 ## Phase 1 — Implemented cumulative fixes
 
@@ -222,7 +222,7 @@ Production-policy correction:
 - Version 44 removes `READ_EXTERNAL_STORAGE`, `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, and `READ_MEDIA_AUDIO` at manifest-merge time. Wallpaper-folder access already uses `OpenDocumentTree()` with a persisted URI grant and does not require broad media access.
 - The signed v44 release APK (`SHA-256 0fd880cc5da072bc618631f40f67d5de07804dec5dbf45d09687e6b47cf541a7`) and AAB (`SHA-256 b294719402fd5d70d659c2db87871294c24ea36fe9ed8fd6a33618e23e2756af`) build successfully. The packaged APK reports versionCode `44` / versionName `44.0`, contains none of those broad storage/media permissions, and passes APK Signature Scheme v2 verification with the expected upload certificate.
 - On 2026-08-26 the API reported internal v44 completed, production v43 at 2% plus completed v42, and an obsolete completed alpha v3 release. Deactivate alpha v3 unless it is intentionally needed, and keep Automatic Protection disabled for v44.
-- The former 2% Sudan production canary is superseded by the policy correction: a staged rollout would leave non-compliant v42 active in production. Verify v44 internally first, then replace production at 100% and monitor the previously defined crash/ANR gates closely.
+- The rejected v43 canary is superseded by v44. Play subsequently accepted v44 as a staged production release while v42 remains the fallback, so continue evidence-gated expansion of v44 rather than treating v42 as a demonstrated policy blocker.
 
 Verified after Play processing for version 44:
 
@@ -230,6 +230,49 @@ Verified after Play processing for version 44:
 - The Play-generated universal APK is versionCode `44` / versionName `44.0`, contains none of `READ_EXTERNAL_STORAGE`, `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, or `READ_MEDIA_AUDIO`, and names `com.jeerovan.comfer.ComferApp` directly. Its DEX contains `ComferApp` and no Pairip class was found, confirming Automatic Protection is absent.
 - The universal APK (`SHA-256 49e2bdb02469fb255719d3820370c0a293a8d54d1be66242019dc6b52e0d83f6`) is signed with Play's app-signing certificate (`SHA-256 7de810dc8919178d0642d7636f94e88abfead2d9416f6bd929981aaef32a4f4b`), passes APK v2/v3 and Source Stamp verification, and passes the 30-component manifest-to-DEX check.
 - It clean-installed on the available API-35 x86_64 emulator, cold-launched `MainActivity` in 400 ms, remained the resumed activity with a live process, and produced no inspected app exception, missing-class failure, fatal crash, or ANR. The only error-level launch lines were emulator `eglCodecCommon` parameter warnings.
+
+Post-48-hour production checkpoint (2026-08-31):
+
+- Publisher API state: v44 is an `inProgress` 5% production release; v42 remains the completed fallback release. Internal v44 remains completed.
+- The complete v44 error-issue window from 2026-08-26 00:00 UTC through 2026-08-31 04:00 UTC contains 11 ANR signatures, 14 issue-user counts, 14 events, and **zero crash signatures**.
+- Neither the protected-build missing-class crash `7eed1be192b4c2a320968e14c6d5116e` nor the WorkManager startup crash `949936057a675872942624878f1a41d2` recurred. There is no v44 first-party crash group.
+- Fresh normalized daily vitals through August 28 report v44 user-perceived crash rate `0.0000` on all three available days. On August 28, v44 user-perceived ANR rate was `0.0060` (0.60%) versus v42 `0.0066` (0.66%); this is not evidence of a regression.
+- The daily v44 normalization counts were approximately 60, 200, and 300 active users. These are rounded daily observations and must not be summed as unique people.
+- Device-brand breakdown provides approximately 160 Honor daily-user observations. Six Honor/API 34-36 ANR signatures account for 9 issue-user counts/events, across HONOR X5b Plus, Magic7 Lite, and X9d samples; there were no Honor crashes and no missing-class recurrence.
+- Nine of the 11 v44 ANR signatures were already present in v42. Only three representative main-thread blocks contain first-party frames: the known `UshapedAppList` Compose recomposition and `CommonUtil.handleStartActivity` Binder launch groups, plus one new `EffectTextBlock` native text-measurement wait. Each first-party group has one user/event. The other eight samples are idle main-loop, OEM instrumentation, or native renderer waits.
+- Gate decision: the 5% checkpoint passes. Advance to 25%, hold at least another 48 hours, and re-fetch the same metrics. Halt expansion for any v44 crash, recurrence of either critical startup issue, or a sustained normalized user-perceived ANR rate materially above the v42 comparison cohort.
+
+## Version 45 pre-publish audit (2026-08-31)
+
+Scope and result:
+
+- Reindexed the complete patched repository: 2,071 code nodes and 7,096 relationships, with zero skipped source files. Source review covered the v44-to-v45 feature delta, especially backup/restore, weather/location, landscape layouts, gesture guides, app-title settings, widget positions, and the U-shaped app drawer.
+- Version 45 adds a substantial feature delta over v44. The backup/restore path keeps archive parsing, hashing, bitmap-bounds checks, Room snapshot replacement, preference replacement, journaling, and rollback on `Dispatchers.IO`; size, entry-count, duplicate-entry, identifier, package-list, widget, checksum, and wallpaper limits are enforced. No synchronous main-thread archive/database work was found.
+- The release manifest is versionCode `45` / versionName `45.0`. Its merged permissions contain `ACCESS_COARSE_LOCATION` for weather, but none of `READ_EXTERNAL_STORAGE`, `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, or `READ_MEDIA_AUDIO`.
+
+Pre-release fixes applied cumulatively:
+
+1. **U-shaped drawer index and key safety:** normalize indexes with overflow-safe `Long` modular arithmetic, so a long negative/positive fling cannot address `apps[-1]` or another out-of-range slot. Use stable, unique slot keys rather than package keys; this also handles app lists smaller than the number of visible U-shape slots without duplicate Compose keys and reduces the movable-group churn seen in the v44 single-event `GapComposer` ANR.
+2. **Pointer-event backpressure:** keep at most one pending drag `snapTo` update and carry the latest target forward. The old path launched one main-thread coroutine per horizontal pointer event, allowing a fast gesture to queue unnecessary UI work.
+3. **Weather location Binder isolation:** provider discovery, last-known-location reads, registration, and cleanup now run in the flow's `Dispatchers.IO` context. Location callbacks still use the main looper as required by the UI consumer.
+4. **Weather network bounds:** Ktor request, connect, and socket timeouts are each 15 seconds, preventing a stalled provider/network from holding the refresh coroutine indefinitely.
+5. **Normal text fast path:** unrotated, uncurved clock/date/battery/weather text uses Compose `Text` and its normal cached layout pipeline. The custom Android `Paint.measureText`/path renderer remains only for an enabled rotation or curve, reducing exposure to the v44 single-event native text-measurement ANR without removing the visual effect feature.
+6. **Regression coverage:** `UShapedAppListLayoutTest` now covers negative, positive, `Long.MIN_VALUE`, `Long.MAX_VALUE`, maximum app-count, and empty-list index behavior.
+
+Verification:
+
+- `testDebugUnitTest`, `lintDebug`, and `:app:assembleDebugAndroidTest`: passed after the fixes.
+- Focused connected suite: 12/12 passed on the Android 7 `Small_Phone` emulator and 12/12 passed on the Samsung SM-A305F / Android 11 physical device. This includes refresh-burst stress, widget-inflation guards, settings smoke, setting sliders, and the new landscape/gesture layout tests.
+- The full connected invocation ran those same 12 tests successfully and failed only the opt-in `Wallpaper8kStressTest`, whose explicit external `stress_wallpaper_8k.jpg` fixture was not installed. This is recorded as missing test data, not an app failure.
+- Samsung cold start: the first debug launch after install and initialization completed in 5,513 ms; the repeat force-stop/cold-start completed in 1,095 ms. `MainActivity` remained resumed and the inspected `AndroidRuntime`, `ActivityManager`, `ComferApp`, and `BackupRestore` error streams were empty.
+- `:app:bundleRelease`: passed with release-vital lint, R8, upload-keystore validation, bundle packaging, and signing. The signed AAB is `app/build/outputs/bundle/release/app-release.aab`, SHA-256 `beffba009fd1e2009b26c878d022147e867332fe4a2d088c23b770ccdbb6e15b`; JAR signature verification reports `jar verified`.
+- `git diff --check`: passed.
+
+Release decision:
+
+- **Ready for a controlled production rollout**, subject to reviewing and committing the audit changes. Local evidence cannot prove the absence of OEM-only or statistically rare ANRs, and no Honor hardware was available; staged Play telemetry remains the final verification layer.
+- A 50% rollout restricted to one country is acceptable as the data-gathering cohort if rollback is kept available. Check v45 issues and normalized crash/ANR rates after 24 hours and again after 48 hours before adding countries or raising exposure.
+- Halt or roll back for any v45 crash, recurrence of missing-class issue `7eed1be192b4c2a320968e14c6d5116e`, recurrence of WorkManager issue `949936057a675872942624878f1a41d2`, or a sustained normalized user-perceived ANR regression against the v42/v44 comparison cohorts. Track the U-shaped drawer, `EffectTextBlock`, weather/location, and backup/restore stacks separately so new feature regressions are not hidden inside the aggregate rate.
 
 Unprotected release setup status:
 
@@ -243,9 +286,9 @@ Rollout gates:
 
 1. Internal track: **passed** for upload, Play-generated artifact verification, and available-emulator cold-launch smoke.
 2. Deactivate the obsolete alpha v3 release unless intentionally retained, and ensure no other testing track contains a rejected permission artifact.
-3. Production policy replacement: release v44 at 100% so non-compliant v42 is no longer active; the previous 2% country canary cannot satisfy the all-version-codes requirement.
-4. Fetch version-44 issues through the existing service-account flow at least daily. Escalate immediately for any startup regression, worse overall user-perceived crash/ANR rate, WorkManager initialization recurrence, or missing-class recurrence.
-5. Close only after the missing-class cluster is absent with meaningful Honor/API 34-35 exposure and the WorkManager/first-party clusters remain absent or materially reduced.
+3. Production: **5% checkpoint passed** after more than 48 hours. Advance to 25%, hold at least 48 hours, then repeat the issue, normalized-rate, and Honor-exposure checks before 50%/100%.
+4. Fetch version-44 issues through the existing service-account flow at least daily. Escalate immediately for any crash, startup regression, materially worse normalized user-perceived ANR rate, WorkManager initialization recurrence, or missing-class recurrence.
+5. Close only after the missing-class cluster remains absent through 100% with meaningful Honor/API 34-36 exposure and the WorkManager/first-party clusters remain absent or materially reduced.
 
 ## Local verification recorded for version 43
 

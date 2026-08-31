@@ -8,6 +8,21 @@ import org.junit.Test
 
 class UShapedAppListLayoutTest {
     @Test
+    fun appIndexesWrapAcrossLargePositiveAndNegativeScrollOffsets() {
+        assertEquals(4, wrapAppIndex(-1, 5))
+        assertEquals(4, wrapAppIndex(-16, 5))
+        assertEquals(1, wrapAppIndex(16, 5))
+        assertEquals(2, wrapAppIndex(Long.MIN_VALUE, 5))
+        assertEquals(2, wrapAppIndex(Long.MAX_VALUE, 5))
+        assertEquals(Int.MAX_VALUE - 1, wrapAppIndex(-1, Int.MAX_VALUE))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun appIndexRejectsEmptyLists() {
+        wrapAppIndex(0, 0)
+    }
+
+    @Test
     fun portraitKeepsWidthBasedArc() {
         val layout = calculateUShapeLayoutParams(
             width = 720f,

@@ -71,6 +71,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
@@ -84,6 +85,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Constraints
@@ -3680,6 +3682,8 @@ fun AppListOverlay(apps: List<AppInfo>,
                     var dragAxis: DragAxis? = null
                     var verticalDragAmount = 0f
                     var isSwipeDownTriggered = false
+                    var dragUpdateJob: Job? = null
+                    var dragTarget = scrollAnimatable.value
 
                     detectDragGestures(
                         onDragStart = {
@@ -3688,6 +3692,8 @@ fun AppListOverlay(apps: List<AppInfo>,
                             verticalDragAmount = 0f
                             isSwipeDownTriggered = false
                             velocityTracker.resetTracking()
+                            dragUpdateJob?.cancel()
+                            dragTarget = scrollAnimatable.value
                             scope.launch {
                                 scrollAnimatable.stop() // Stop any ongoing animation
                             }
@@ -3716,21 +3722,21 @@ fun AppListOverlay(apps: List<AppInfo>,
 
                                     val increment = dragAmount.x * 0.3f * animationSpeed
                                     val totalScrollWidth = apps.size * snapSpacing
+                                    dragTarget = (dragTarget + increment).wrap(totalScrollWidth)
 
-                                    // Launching a coroutine is necessary to call the suspend function `snapTo`.
-                                    scope.launch {
-                                        val newPosition =
-                                            (scrollAnimatable.value + increment).wrap(
-                                                totalScrollWidth
-                                            )
-                                        scrollAnimatable.snapTo(newPosition)
-                                        if(!horizontalSwipeShown) {
-                                            settingsModel.setStepGuideShown(
-                                                context,
-                                                horizontalSwipeKey
-                                            )
-                                            horizontalSwipeShown = true
-                                        }
+                                    // Pointer events can arrive faster than snapTo completes.
+                                    // Keep only the latest update instead of queueing a coroutine
+                                    // for every event on the main thread.
+                                    dragUpdateJob?.cancel()
+                                    dragUpdateJob = scope.launch {
+                                        scrollAnimatable.snapTo(dragTarget)
+                                    }
+                                    if(!horizontalSwipeShown) {
+                                        settingsModel.setStepGuideShown(
+                                            context,
+                                            horizontalSwipeKey
+                                        )
+                                        horizontalSwipeShown = true
                                     }
                                 }
 
@@ -3761,7 +3767,10 @@ fun AppListOverlay(apps: List<AppInfo>,
                         onDragEnd = {
                             if (dragAxis == DragAxis.HORIZONTAL) {
                                 val velocity = velocityTracker.calculateVelocity().x * 0.3f * animationSpeed
+                                dragUpdateJob?.cancel()
+                                val finalDragTarget = dragTarget
                                 scope.launch {
+                                    scrollAnimatable.snapTo(finalDragTarget)
                                     settleOnNearestApp(velocity)
                                 }
                             }
@@ -3770,7 +3779,10 @@ fun AppListOverlay(apps: List<AppInfo>,
                         onDragCancel = {
                             velocityTracker.resetTracking()
                             if (dragAxis == DragAxis.HORIZONTAL) {
+                                dragUpdateJob?.cancel()
+                                val finalDragTarget = dragTarget
                                 scope.launch {
+                                    scrollAnimatable.snapTo(finalDragTarget)
                                     settleOnNearestApp()
                                 }
                             }
@@ -4552,7 +4564,10 @@ fun UshapedAppList(
         val baseScrollIndex = floor(smoothScrollIndex)
         val scrollFraction = smoothScrollIndex - baseScrollIndex
         val intScrollIndex = baseScrollIndex.toInt()
-        val startIndex = (intScrollIndex - numVisibleIcons / 2 + totalIcons) % totalIcons
+        val startIndex = wrapAppIndex(
+            intScrollIndex.toLong() - numVisibleIcons / 2L,
+            totalIcons,
+        )
 
         // Cache position calculation function
         val getPositionForSlot = remember(layoutParams) {
@@ -4595,7 +4610,7 @@ fun UshapedAppList(
         val centerSlot = layoutParams.numSideIcons + layoutParams.numTopIcons / 2
 
         for (i in 0 until numVisibleIcons) {
-            val appIndex = (startIndex + i + totalIcons) % totalIcons
+            val appIndex = wrapAppIndex(startIndex.toLong() + i, totalIcons)
 
             val posCurrent = getPositionForSlot(i, centerSlot)
             val posPrev = getPositionForSlot(i - 1, centerSlot)
@@ -4613,7 +4628,10 @@ fun UshapedAppList(
                 updateCenterIconGeom(x + sizePx / 2, y + sizePx / 2, sizePx)
             }
 
-            key(apps[appIndex].packageName) {
+            // A slot can show a different app while scrolling, and lists smaller than
+            // the U-shape contain repeated apps. Slot keys stay unique and stable in
+            // both cases, avoiding duplicate-key crashes and movable-group churn.
+            key(i) {
                 AppIcon(
                     app = apps[appIndex],
                     notificationPackages,
@@ -4626,6 +4644,11 @@ fun UshapedAppList(
             }
         }
     }
+}
+
+internal fun wrapAppIndex(index: Long, appCount: Int): Int {
+    require(appCount > 0) { "appCount must be positive" }
+    return (((index % appCount) + appCount) % appCount).toInt()
 }
 
 internal fun calculateUShapeLayoutParams(
@@ -6609,6 +6632,25 @@ fun EffectTextBlock(
     radius: Float = 0f,
     shadowColor: Int = Color.Black.toArgb()
 ) {
+    if (angle == 0f && radius == 0f) {
+        Text(
+            text = text,
+            color = color,
+            fontSize = fontSize,
+            fontWeight = fontWeight,
+            fontStyle = fontStyle,
+            fontFamily = fontFamily,
+            style = TextStyle(
+                shadow = Shadow(
+                    color = Color(shadowColor),
+                    offset = Offset(5f, 5f),
+                    blurRadius = 10f,
+                ),
+            ),
+        )
+        return
+    }
+
     val density = LocalDensity.current
     val resolver = LocalFontFamilyResolver.current
     val reverse = radius < 0

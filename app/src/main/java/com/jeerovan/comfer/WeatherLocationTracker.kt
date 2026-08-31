@@ -11,9 +11,11 @@ import android.os.Bundle
 import android.os.Looper
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 
 private const val LOCATION_UPDATE_INTERVAL_MS = 10 * 60 * 1_000L
 private const val LOCATION_UPDATE_DISTANCE_METERS = 1_000f
@@ -96,7 +98,11 @@ class WeatherLocationTracker(context: Context) {
                 // Permission can be revoked while the flow is active.
             }
         }
-    }.distinctUntilChanged()
+    }
+        // Provider discovery and registration can cross Binder. Keep those calls
+        // away from the main thread; the explicit Looper still delivers updates on it.
+        .flowOn(Dispatchers.IO)
+        .distinctUntilChanged()
 }
 
 private fun Location.toWeatherCoordinates() = WeatherCoordinates(

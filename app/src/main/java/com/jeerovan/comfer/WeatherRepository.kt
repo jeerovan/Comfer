@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.serialization.kotlinx.json.json
@@ -12,6 +13,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 private const val FORECAST_ENDPOINT = "https://api.open-meteo.com/v1/forecast"
+private const val WEATHER_TIMEOUT_MS = 15_000L
 internal val weatherJson = Json { ignoreUnknownKeys = true }
 
 @Serializable
@@ -34,6 +36,11 @@ object WeatherRepository {
         expectSuccess = true
         install(ContentNegotiation) {
             json(weatherJson)
+        }
+        install(HttpTimeout) {
+            requestTimeoutMillis = WEATHER_TIMEOUT_MS
+            connectTimeoutMillis = WEATHER_TIMEOUT_MS
+            socketTimeoutMillis = WEATHER_TIMEOUT_MS
         }
     }
 
