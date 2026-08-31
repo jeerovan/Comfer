@@ -2420,7 +2420,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     Box(
                         modifier = Modifier
                             .matchParentSize()
-                            .offset(x = 20.dp,y = (-80).dp),
+                            .offset(x = 20.dp,y = (-40).dp),
                         contentAlignment = Alignment.BottomStart,
                     ) {
                         LongPressHint()
@@ -3092,10 +3092,10 @@ fun SearchListOverlay(apps: List<AppInfo>,
                     onDoubleTap = {
                         if (selectedContact != null) {
                             onTapSelectedContact()
-                            if(!contactDoubleTapShown && hasContactPermission && activeTab == SearchTab.CONTACTS && contactSwipeGestureShown){
-                                settingsModel.setStepGuideShown(context,contactDoubleTapKey)
-                                contactDoubleTapShown = true
-                            }
+                        }
+                        if(!contactDoubleTapShown && hasContactPermission && activeTab == SearchTab.CONTACTS && contactSwipeGestureShown){
+                            settingsModel.setStepGuideShown(context,contactDoubleTapKey)
+                            contactDoubleTapShown = true
                         }
                     }
                 )
@@ -3303,20 +3303,20 @@ fun SearchListOverlay(apps: List<AppInfo>,
                             end = SwipeDirection.TOP,
                             modifier = Modifier
                                 .matchParentSize()
-                                .offset(x = (-keyboardWidth / 2).dp + (-12).dp),
+                                .offset(x = (-keyboardWidth / 2).dp + (-10).dp),
                         )
                         SwipeHelper(
                             start = SwipeDirection.BOTTOM,
                             end = SwipeDirection.TOP,
                             modifier = Modifier
                                 .matchParentSize()
-                                .offset(x = (keyboardWidth / 2).dp + 12.dp),
+                                .offset(x = (keyboardWidth / 2).dp + 10.dp),
                         )
                     } else if (!contactDoubleTapShown && hasContactPermission && activeTab == SearchTab.CONTACTS) {
                         Box(
                             modifier = Modifier
                                 .matchParentSize()
-                                .offset(x = (keyboardWidth / 2).dp + 12.dp),
+                                .offset(x = (keyboardWidth / 2).dp + 10.dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             DoubleTapHint()
@@ -3324,7 +3324,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                         Box(
                             modifier = Modifier
                                 .matchParentSize()
-                                .offset(x = (-keyboardWidth / 2).dp + (-12).dp),
+                                .offset(x = (-keyboardWidth / 2).dp + (-10).dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             DoubleTapHint()
