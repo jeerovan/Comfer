@@ -2797,7 +2797,9 @@ fun SearchListOverlay(apps: List<AppInfo>,
     }
 
     var dragAccumulator by remember { mutableFloatStateOf(0f) }
-    val scrollThreshold = with(LocalDensity.current) { 50.dp.toPx() }
+    val density = LocalDensity.current
+    val scrollThreshold = with(density) { 50.dp.toPx() }
+    var keyboardWidth by remember { mutableFloatStateOf(0f) }
 
     var showLocaleSelection by remember { mutableStateOf(false)}
     var keyboardLocale by remember { mutableStateOf(PreferenceManager.getKeyboardLocale(context)) }
@@ -3004,20 +3006,6 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                     } else {
                                         PermissionRequestView { onRequestContactsPermission() }
                                     }
-                                    if (!contactSwipeGestureShown && hasContactPermission) {
-                                        SwipeHelper(
-                                            start = SwipeDirection.BOTTOM,
-                                            end = SwipeDirection.TOP,
-                                            modifier = Modifier.matchParentSize(),
-                                        )
-                                    } else if (!contactDoubleTapShown && hasContactPermission) {
-                                        Box(
-                                            modifier = Modifier.matchParentSize(),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            DoubleTapHint()
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -3074,6 +3062,20 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                 end = SwipeDirection.RIGHT,
                                 modifier = Modifier.matchParentSize(),
                             )
+                        }
+                        if (!contactSwipeGestureShown && hasContactPermission && activeTab == SearchTab.CONTACTS) {
+                            SwipeHelper(
+                                start = SwipeDirection.BOTTOM,
+                                end = SwipeDirection.TOP,
+                                modifier = Modifier.matchParentSize(),
+                            )
+                        } else if (!contactDoubleTapShown && hasContactPermission && activeTab == SearchTab.CONTACTS) {
+                            Box(
+                                modifier = Modifier.matchParentSize(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                DoubleTapHint()
+                            }
                         }
                     }
                 }
@@ -3268,7 +3270,12 @@ fun SearchListOverlay(apps: List<AppInfo>,
                         modifier = Modifier.padding(horizontal = 16.dp) // Inner padding for the text
                     )
                 }
-                Box(contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier.onGloballyPositioned { coordinates ->
+                        keyboardWidth = with(density) { coordinates.size.width.toDp().value }
+                    },
+                    contentAlignment = Alignment.Center,
+                ) {
                     CircularKeyboard(
                         locale = keyboardLocale,
                         onChar = { char ->
@@ -3303,7 +3310,14 @@ fun SearchListOverlay(apps: List<AppInfo>,
                             end = SwipeDirection.TOP,
                             modifier = Modifier
                                 .matchParentSize()
-                                .align(Alignment.CenterStart),
+                                .offset(x = (-keyboardWidth / 2).dp + (-12).dp),
+                        )
+                        SwipeHelper(
+                            start = SwipeDirection.BOTTOM,
+                            end = SwipeDirection.TOP,
+                            modifier = Modifier
+                                .matchParentSize()
+                                .offset(x = (keyboardWidth / 2).dp + 12.dp),
                         )
                     } else if (!contactDoubleTapShown && hasContactPermission && activeTab == SearchTab.CONTACTS) {
                         Box(

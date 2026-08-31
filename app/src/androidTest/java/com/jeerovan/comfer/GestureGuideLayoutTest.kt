@@ -3,6 +3,7 @@ package com.jeerovan.comfer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -63,6 +64,44 @@ class GestureGuideLayoutTest {
         assertEquals(guideBounds.center.y, handBounds.center.y, BOUNDS_TOLERANCE_PX)
     }
 
+    @Test
+    fun portraitContactSwipeGuideOffsetsByHalfKeyboardWidth() {
+        composeRule.mainClock.autoAdvance = false
+        composeRule.setContent {
+            Box(
+                modifier = Modifier
+                    .size(width = KEYBOARD_WIDTH, height = 240.dp)
+                    .testTag(TARGET_TAG),
+            ) {
+                SwipeHelper(
+                    start = SwipeDirection.BOTTOM,
+                    end = SwipeDirection.TOP,
+                    modifier = Modifier
+                        .matchParentSize()
+                        .offset(x = -(KEYBOARD_WIDTH / 2f))
+                        .testTag(GUIDE_TAG),
+                    handModifier = Modifier.testTag(HAND_TAG),
+                )
+            }
+        }
+
+        val targetBounds = composeRule.onNodeWithTag(TARGET_TAG)
+            .fetchSemanticsNode().boundsInRoot
+        val guideBounds = composeRule.onNodeWithTag(GUIDE_TAG)
+            .fetchSemanticsNode().boundsInRoot
+        val handBounds = composeRule.onNodeWithTag(HAND_TAG)
+            .fetchSemanticsNode().boundsInRoot
+
+        assertEquals(
+            targetBounds.left - targetBounds.width / 2f,
+            guideBounds.left,
+            BOUNDS_TOLERANCE_PX,
+        )
+        assertEquals(targetBounds.top, guideBounds.top, BOUNDS_TOLERANCE_PX)
+        assertEquals(targetBounds.bottom, guideBounds.bottom, BOUNDS_TOLERANCE_PX)
+        assertEquals(targetBounds.left, handBounds.center.x, BOUNDS_TOLERANCE_PX)
+    }
+
     private fun verifyTargetBounds(width: Int, height: Int) {
         composeRule.mainClock.autoAdvance = false
         composeRule.setContent {
@@ -104,5 +143,6 @@ class GestureGuideLayoutTest {
         const val HAND_TAG = "swipe-guide-hand"
         const val BOUNDS_TOLERANCE_PX = 1f
         val HORIZONTAL_GUIDE_REGION_HEIGHT = 100.dp
+        val KEYBOARD_WIDTH = 240.dp
     }
 }
