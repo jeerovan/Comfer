@@ -132,7 +132,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.graphics.Shape
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromShape
 import android.net.Uri
-import android.provider.ContactsContract
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -164,7 +163,6 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
-import android.content.Context.MODE_PRIVATE
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.os.Build
@@ -203,7 +201,6 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import androidx.core.content.edit
 import kotlin.text.ifEmpty
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
@@ -229,7 +226,6 @@ import com.jeerovan.comfer.utils.CommonUtil.handleStartActivity
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
@@ -254,15 +250,13 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlin.math.pow
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ProgressIndicatorDefaults
-import androidx.compose.ui.hapticfeedback.HapticFeedback
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.AbsoluteAlignment
+import androidx.compose.ui.Alignment
 import com.jeerovan.comfer.utils.CommonUtil
 import kotlinx.coroutines.Job
 
@@ -285,22 +279,39 @@ enum class SwipeDirection {
     TOP, LEFT, BOTTOM, RIGHT
 }
 
+internal fun calculateSwipeEdgeOffset(
+    direction: SwipeDirection,
+    width: Float,
+    height: Float,
+    handSize: Float,
+    outsideTarget: Boolean,
+): Offset {
+    val centerX = width / 2f - handSize / 2f
+    val centerY = height / 2f - handSize / 2f
+    return when (direction) {
+        SwipeDirection.TOP -> Offset(centerX, if (outsideTarget) -handSize else 0f)
+        SwipeDirection.BOTTOM -> Offset(centerX, if (outsideTarget) height else height - handSize)
+        SwipeDirection.LEFT -> Offset(if (outsideTarget) -handSize else 0f, centerY)
+        SwipeDirection.RIGHT -> Offset(if (outsideTarget) width else width - handSize, centerY)
+    }
+}
+
 @Composable
 fun SwipeHelper(
     start: SwipeDirection,
     end: SwipeDirection,
-    handSize: Dp = 48.dp
+    handSize: Dp = 48.dp,
+    modifier: Modifier = Modifier,
+    remainVisibleInsideTarget: Boolean = false,
+    handModifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        modifier = modifier,
+        contentAlignment = Alignment.TopStart,
     ) {
         val width = constraints.maxWidth.toFloat()
         val height = constraints.maxHeight.toFloat()
         val handSizePx = with(LocalDensity.current) { handSize.toPx() }
-        val centerX = width / 2f - handSizePx / 2f
-        val centerY = height / 2f - handSizePx / 2f
-
         val transition = rememberInfiniteTransition(label = "swipeTransition")
         val progress by transition.animateFloat(
             initialValue = 0f,
@@ -318,33 +329,35 @@ fun SwipeHelper(
             label = "progress"
         )
 
-        val startOffset = when (start) {
-            SwipeDirection.TOP -> Offset(centerX, 0f)
-            SwipeDirection.BOTTOM -> Offset(centerX, height - handSizePx)
-            SwipeDirection.LEFT -> Offset(0f, centerY)
-            SwipeDirection.RIGHT -> Offset(width - handSizePx, centerY)
-        }
-
-        val endOffset = when (end) {
-            SwipeDirection.TOP -> Offset(centerX, -handSizePx)
-            SwipeDirection.BOTTOM -> Offset(centerX, height)
-            SwipeDirection.LEFT -> Offset(-handSizePx, centerY)
-            SwipeDirection.RIGHT -> Offset(width, centerY)
-        }
+        val startOffset = calculateSwipeEdgeOffset(
+            direction = start,
+            width = width,
+            height = height,
+            handSize = handSizePx,
+            outsideTarget = false,
+        )
+        val endOffset = calculateSwipeEdgeOffset(
+            direction = end,
+            width = width,
+            height = height,
+            handSize = handSizePx,
+            outsideTarget = !remainVisibleInsideTarget,
+        )
 
         val currentOffset = Offset(
             x = startOffset.x + (endOffset.x - startOffset.x) * progress,
             y = startOffset.y + (endOffset.y - startOffset.y) * progress
         )
 
-        val alpha = 1f - progress/2
+        val alpha = if (remainVisibleInsideTarget) 1f else 1f - progress/2
 
         Box(
             modifier = Modifier
                 .offset { IntOffset(currentOffset.x.roundToInt(), currentOffset.y.roundToInt()) }
                 .size(handSize)
                 .graphicsLayer(alpha = alpha)
-                .background(Color.Black, CircleShape),
+                .background(Color.Black, CircleShape)
+                .then(handModifier),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -653,7 +666,8 @@ fun WidgetHostScreen(
     widgetPrefsTitle: String,
     gridColumns: Int,
     onSwipeLeft: () -> Unit,
-    onSwipeRight: () -> Unit
+    onSwipeRight: () -> Unit,
+    onLongPressGuideCompleted: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -805,6 +819,7 @@ fun WidgetHostScreen(
                     onLongPress = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         editMode = !editMode
+                        onLongPressGuideCompleted()
                     }
                 )
             }
@@ -2291,33 +2306,42 @@ fun QuickListOverlay(apps: List<AppInfo>,
             portraitSecondPaneHeight = lowerPartHeight,
             modifier = Modifier.fillMaxSize(),
         ) {
-            if(settings.hasCustomWidgets) {
-                WidgetHostScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    appWidgetManager,
-                    mainWidgetHost,
-                    "widgets_center",
-                    gridColumns = 9,
-                    onSwipeRight = {},
-                    onSwipeLeft = {})
-            } else {
-                key(widgetOrientation) {
-                    DraggableQuickWidgetsContainer (
+            Box(modifier = Modifier.fillMaxSize()) {
+                val completeWidgetLongPressGuide = {
+                    if(!widgetsLongPressShown && settingsLongPressShown) {
+                        settingsModel.setStepGuideShown(context, widgetsLongPressKey)
+                        widgetsLongPressShown = true
+                    }
+                }
+                if(settings.hasCustomWidgets) {
+                    WidgetHostScreen(
                         modifier = Modifier.fillMaxSize(),
-                        editMode = showWidgetSettings,
-                        widgetIds = settings.widgetIds,
-                        widgetPositions = activeWidgetPositions,
-                        onPositionChanged = { id, offset ->
-                            settingsModel.saveWidgetPosition(
-                                id,
-                                offset.x,
-                                offset.y,
-                                widgetOrientation,
-                            )
-                        },
-                        onEditModeChanged = { editMode ->  showWidgetSettings = editMode},
-                        composableContent = { id, editMode ->
-                            when (id) {
+                        appWidgetManager = appWidgetManager,
+                        appWidgetHost = mainWidgetHost,
+                        widgetPrefsTitle = "widgets_center",
+                        gridColumns = 9,
+                        onSwipeRight = {},
+                        onSwipeLeft = {},
+                        onLongPressGuideCompleted = completeWidgetLongPressGuide,
+                    )
+                } else {
+                    key(widgetOrientation) {
+                        DraggableQuickWidgetsContainer (
+                            modifier = Modifier.fillMaxSize(),
+                            editMode = showWidgetSettings,
+                            widgetIds = settings.widgetIds,
+                            widgetPositions = activeWidgetPositions,
+                            onPositionChanged = { id, offset ->
+                                settingsModel.saveWidgetPosition(
+                                    id,
+                                    offset.x,
+                                    offset.y,
+                                    widgetOrientation,
+                                )
+                            },
+                            onEditModeChanged = { editMode ->  showWidgetSettings = editMode},
+                            composableContent = { id, editMode ->
+                                when (id) {
                             "time" -> Box {
                                 WidgetClock(
                                     settings,
@@ -2386,15 +2410,21 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 foregroundColor =  foregroundColor,
                                 showBorder = editMode,
                                 backgroundColor = backgroundColor)
-                            }
-                        },
-                        onWidgetLongPressShown = {
-                            if(!widgetsLongPressShown && settingsLongPressShown) {
-                                settingsModel.setStepGuideShown(context, widgetsLongPressKey)
-                                widgetsLongPressShown = true
-                            }
-                        }
-                    )
+                                }
+                            },
+                            onWidgetLongPressShown = completeWidgetLongPressGuide,
+                        )
+                    }
+                }
+                if(settingsLongPressShown && !widgetsLongPressShown) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .offset(x = 20.dp,y = (-80).dp),
+                        contentAlignment = Alignment.BottomStart,
+                    ) {
+                        LongPressHint()
+                    }
                 }
             }
             AnimatedContent(
@@ -2561,7 +2591,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     onShowSearch()
                                 }
                             }
-                            if(isLandscape || settings.quickAppsLayout == "circular") {
+                            if(settings.quickAppsLayout == "circular") {
                                 CircularLayout(
                                     displayApps,
                                     notificationPackages,
@@ -2586,42 +2616,38 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     settings.themedColors,
                                     settings.isLightHour,
                                     isFolderActive = activeFolderId != null,
-                                    onTappingFolder = handleFolderTap
+                                    onTappingFolder = handleFolderTap,
+                                    showGestureGuide = !quickGestureShown,
                                 )
                             }
                         }
-                        if(quickGestureShown && !settingsLongPressShown)Box(modifier = Modifier
-                            .fillMaxWidth()
-                            .height(lowerPartHeight)
-                            .offset(x=20.dp,y=80.dp)){
-                            LongPressHint()
+                        if(quickGestureShown && !settingsLongPressShown) {
+                            Box(
+                                modifier = Modifier.matchParentSize()
+                                    .offset(x=20.dp,y= (-80).dp),
+                                contentAlignment = Alignment.CenterStart,
+                            ) {
+                                LongPressHint()
+                            }
+                            Box(
+                                modifier = Modifier.matchParentSize()
+                                    .offset(x= (-20).dp,y= (-80).dp),
+                                contentAlignment = Alignment.CenterEnd,
+                            ) {
+                                LongPressHint()
+                            }
                         }
-                        if(!isLandscape && settingsLongPressShown && !widgetsLongPressShown)Box(modifier = Modifier
-                            .fillMaxWidth()
-                            .height(lowerPartHeight)
-                            .offset(x=20.dp,y = -(64.dp)),
-                        ){
-                            LongPressHint()
-                        }
-                        if(widgetsLongPressShown && !recentAppsGestureShown)Box(modifier = Modifier
-                            .fillMaxWidth()
-                            .height(lowerPartHeight)
-                            .offset(x=20.dp,y=80.dp)){
-                            DoubleTapHint()
+                        if(widgetsLongPressShown && !recentAppsGestureShown) {
+                            Box(
+                                modifier = Modifier.matchParentSize()
+                                    .offset(x=20.dp,y= (-80).dp),
+                                contentAlignment = Alignment.CenterStart,
+                            ) {
+                                DoubleTapHint()
+                            }
                         }
                     }
                 }
-            }
-        }
-        if (isLandscape && settingsLongPressShown && !widgetsLongPressShown) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(0.5f)
-                    .align(Alignment.CenterStart),
-                contentAlignment = Alignment.Center,
-            ) {
-                LongPressHint()
             }
         }
     }
@@ -2646,7 +2672,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
     val contactDoubleTapKey = "contact_double_tap_key"
     var contactDoubleTapShown by remember { mutableStateOf(true)}
     var contactSwipeGestureShown by remember { mutableStateOf(true)}
-    var searchTabSwipeDownGestureShown by remember { mutableStateOf(true)}
+    var searchTabSwipeGestureShown by remember { mutableStateOf(true)}
     var searchSwipeDownGestureShown by remember { mutableStateOf(true)}
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
     val filteredApps by produceState<List<AppInfo>>(
@@ -2702,12 +2728,12 @@ fun SearchListOverlay(apps: List<AppInfo>,
     fun swipeRightOnKeyboard() {
         activeTab = SearchTab.CONTACTS
         inputText = ""
-        if(!searchTabSwipeDownGestureShown){
+        if(!searchTabSwipeGestureShown){
             settingsModel.setStepGuideShown(
                 context,
                 searchTabSwipeGestureKey
             )
-            searchTabSwipeDownGestureShown = true
+            searchTabSwipeGestureShown = true
         }
     }
     fun swipeLeftOnKeyboard() {
@@ -2744,7 +2770,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
             iconSize = PreferenceManager.getIconSize(context).dp
             iconShape = PreferenceManager.getIconShape(context)
             searchSwipeDownGestureShown = settingsModel.isStepGuideShown(context,searchSwipeDownGestureKey)
-            searchTabSwipeDownGestureShown = settingsModel.isStepGuideShown(context,searchTabSwipeGestureKey)
+            searchTabSwipeGestureShown = settingsModel.isStepGuideShown(context,searchTabSwipeGestureKey)
             contactSwipeGestureShown = settingsModel.isStepGuideShown(context,contactSwipeGestureKey)
             contactDoubleTapShown = settingsModel.isStepGuideShown(context,contactDoubleTapKey)
         }
@@ -2978,6 +3004,20 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                     } else {
                                         PermissionRequestView { onRequestContactsPermission() }
                                     }
+                                    if (!contactSwipeGestureShown && hasContactPermission) {
+                                        SwipeHelper(
+                                            start = SwipeDirection.BOTTOM,
+                                            end = SwipeDirection.TOP,
+                                            modifier = Modifier.matchParentSize(),
+                                        )
+                                    } else if (!contactDoubleTapShown && hasContactPermission) {
+                                        Box(
+                                            modifier = Modifier.matchParentSize(),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            DoubleTapHint()
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -3010,75 +3050,32 @@ fun SearchListOverlay(apps: List<AppInfo>,
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
-                    CircularKeyboard(
-                        locale = keyboardLocale,
-                        onChar = { char -> inputText += char },
-                        onBackspace = {
-                            if (inputText.isNotEmpty()) inputText = inputText.dropLast(1)
-                        },
-                        showLocaleSelection = { onLocaleSelection() },
-                        onSwipeDown = { swipeDownOnKeyboard() },
-                        onSwipeRight = { swipeRightOnKeyboard() },
-                        onSwipeLeft = { swipeLeftOnKeyboard() },
-                    )
-                }
-            }
-
-            if (!searchSwipeDownGestureShown) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(0.5f)
-                        .align(Alignment.CenterEnd),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    SwipeHelper(start = SwipeDirection.TOP, end = SwipeDirection.BOTTOM)
-                }
-            }
-            if (
-                searchSwipeDownGestureShown &&
-                !searchTabSwipeDownGestureShown &&
-                activeTab == SearchTab.APPS
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(0.5f)
-                        .align(Alignment.CenterEnd),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    SwipeHelper(start = SwipeDirection.LEFT, end = SwipeDirection.RIGHT)
-                }
-            }
-            if (
-                !contactSwipeGestureShown &&
-                hasContactPermission &&
-                activeTab == SearchTab.CONTACTS
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(0.5f)
-                        .align(Alignment.CenterStart),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    SwipeHelper(start = SwipeDirection.BOTTOM, end = SwipeDirection.TOP)
-                }
-            }
-            if (
-                !contactDoubleTapShown &&
-                contactSwipeGestureShown &&
-                hasContactPermission &&
-                activeTab == SearchTab.CONTACTS
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(0.5f)
-                        .align(Alignment.CenterStart),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    DoubleTapHint()
+                    Box(contentAlignment = Alignment.Center) {
+                        CircularKeyboard(
+                            locale = keyboardLocale,
+                            onChar = { char -> inputText += char },
+                            onBackspace = {
+                                if (inputText.isNotEmpty()) inputText = inputText.dropLast(1)
+                            },
+                            showLocaleSelection = { onLocaleSelection() },
+                            onSwipeDown = { swipeDownOnKeyboard() },
+                            onSwipeRight = { swipeRightOnKeyboard() },
+                            onSwipeLeft = { swipeLeftOnKeyboard() },
+                        )
+                        if (!searchSwipeDownGestureShown) {
+                            SwipeHelper(
+                                start = SwipeDirection.TOP,
+                                end = SwipeDirection.BOTTOM,
+                                modifier = Modifier.matchParentSize(),
+                            )
+                        } else if (!searchTabSwipeGestureShown && activeTab == SearchTab.APPS) {
+                            SwipeHelper(
+                                start = SwipeDirection.LEFT,
+                                end = SwipeDirection.RIGHT,
+                                modifier = Modifier.matchParentSize(),
+                            )
+                        }
+                    }
                 }
             }
             if (showLocaleSelection) {
@@ -3158,8 +3155,6 @@ fun SearchListOverlay(apps: List<AppInfo>,
             },
         contentAlignment = Alignment.BottomCenter
         ) {
-            val screenWidthInDp = configuration.screenWidthDp.dp
-            val screenHeightInDp = configuration.screenHeightDp.dp
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(5.dp),
@@ -3227,29 +3222,31 @@ fun SearchListOverlay(apps: List<AppInfo>,
                     }
                 ) { targetTab ->
                     if (targetTab == SearchTab.CONTACTS) {
-                        if (hasContactPermission) {
-                            if(contacts.isEmpty()){
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator()
-                                }
-                            } else {
-                                LazyColumn(
-                                    state = lazyListState,
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 16.dp)
-                                ) {
-                                    items(filteredContacts, key = { contact -> contact.id }) { contact ->
-                                        ContactListItem(contact,
-                                            isSelected = (contact.id == selectedContact?.id))
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            if (hasContactPermission) {
+                                if(contacts.isEmpty()){
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator()
+                                    }
+                                } else {
+                                    LazyColumn(
+                                        state = lazyListState,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(horizontal = 16.dp)
+                                    ) {
+                                        items(filteredContacts, key = { contact -> contact.id }) { contact ->
+                                            ContactListItem(contact,
+                                                isSelected = (contact.id == selectedContact?.id))
+                                        }
                                     }
                                 }
+                            } else {
+                                PermissionRequestView { onRequestContactsPermission() }
                             }
-                        } else {
-                            PermissionRequestView { onRequestContactsPermission() }
                         }
                     }
                 }
@@ -3271,22 +3268,52 @@ fun SearchListOverlay(apps: List<AppInfo>,
                         modifier = Modifier.padding(horizontal = 16.dp) // Inner padding for the text
                     )
                 }
-                // Circular Keyboard
-                CircularKeyboard(
-                    locale = keyboardLocale,
-                    onChar = { char ->
-                        inputText += char
-                    },
-                    onBackspace = {
-                        if (inputText.isNotEmpty()) {
-                            inputText = inputText.dropLast(1)
+                Box(contentAlignment = Alignment.Center) {
+                    CircularKeyboard(
+                        locale = keyboardLocale,
+                        onChar = { char ->
+                            inputText += char
+                        },
+                        onBackspace = {
+                            if (inputText.isNotEmpty()) {
+                                inputText = inputText.dropLast(1)
+                            }
+                        },
+                        showLocaleSelection = { onLocaleSelection() },
+                        onSwipeDown = { swipeDownOnKeyboard() },
+                        onSwipeRight = { swipeRightOnKeyboard() },
+                        onSwipeLeft = { swipeLeftOnKeyboard() },
+                    )
+                    if (!searchSwipeDownGestureShown) {
+                        SwipeHelper(
+                            start = SwipeDirection.TOP,
+                            end = SwipeDirection.BOTTOM,
+                            modifier = Modifier.matchParentSize(),
+                        )
+                    } else if (!searchTabSwipeGestureShown && activeTab == SearchTab.APPS) {
+                        SwipeHelper(
+                            start = SwipeDirection.LEFT,
+                            end = SwipeDirection.RIGHT,
+                            modifier = Modifier.matchParentSize(),
+                        )
+                    }
+                    if (!contactSwipeGestureShown && hasContactPermission && activeTab == SearchTab.CONTACTS) {
+                        SwipeHelper(
+                            start = SwipeDirection.BOTTOM,
+                            end = SwipeDirection.TOP,
+                            modifier = Modifier
+                                .matchParentSize()
+                                .align(Alignment.CenterStart),
+                        )
+                    } else if (!contactDoubleTapShown && hasContactPermission && activeTab == SearchTab.CONTACTS) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            DoubleTapHint()
                         }
-                    },
-                    {onLocaleSelection()},
-                    onSwipeDown = { swipeDownOnKeyboard() },
-                    onSwipeRight = { swipeRightOnKeyboard() },
-                    onSwipeLeft = { swipeLeftOnKeyboard() }
-                )
+                    }
+                }
                 AnimatedContent(
                     targetState = activeTab,
                     transitionSpec = {
@@ -3331,51 +3358,6 @@ fun SearchListOverlay(apps: List<AppInfo>,
                 }
             }
 
-            if(!searchSwipeDownGestureShown)Box(modifier = Modifier
-                // Layout -> Decoration -> Transformation
-                .height(screenHeightInDp/3)
-                //.border(width = 1.dp,color = Color.Cyan)
-                .offset(x = -screenWidthInDp/2 + 24.dp, y = -screenHeightInDp/4),
-                contentAlignment = Alignment.Center
-            ){
-                SwipeHelper(
-                    start = SwipeDirection.TOP,
-                    end = SwipeDirection.BOTTOM
-                )
-            }
-            if(searchSwipeDownGestureShown && !searchTabSwipeDownGestureShown && activeTab == SearchTab.APPS)Box(modifier = Modifier
-                // Layout -> Decoration -> Transformation
-                .height(screenHeightInDp/2)
-                .width(screenWidthInDp/2)
-                //.border(width = 1.dp,color = Color.Cyan)
-                .offset(x = -screenWidthInDp/4, y = -(screenHeightInDp/4 + 28.dp)),
-                contentAlignment = Alignment.Center
-            ){
-                SwipeHelper(
-                    start = SwipeDirection.LEFT,
-                    end = SwipeDirection.RIGHT
-                )
-            }
-            if(!contactSwipeGestureShown && hasContactPermission && activeTab == SearchTab.CONTACTS)Box(modifier = Modifier
-                // Layout -> Decoration -> Transformation
-                .height(screenHeightInDp/3)
-                //.border(width = 1.dp,color = Color.Cyan)
-                .offset(x = -(screenWidthInDp - 50.dp), y = -(screenHeightInDp/5 - 48.dp)),
-                contentAlignment = Alignment.Center
-            ){
-                SwipeHelper(
-                    start = SwipeDirection.BOTTOM,
-                    end = SwipeDirection.TOP
-                )
-            }
-            if(!contactDoubleTapShown && contactSwipeGestureShown && hasContactPermission && activeTab == SearchTab.CONTACTS)Box(modifier = Modifier
-                // Layout -> Decoration -> Transformation
-                .height(screenHeightInDp/2)
-                .width(screenWidthInDp),
-                contentAlignment = Alignment.CenterStart
-            ){
-                DoubleTapHint()
-            }
         }
 }
 
@@ -3493,7 +3475,6 @@ fun AppListOverlay(apps: List<AppInfo>,
                    onSwipeDown: () -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
-    val configuration = LocalConfiguration.current
     val packageManager = context.packageManager
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
@@ -3781,8 +3762,6 @@ fun AppListOverlay(apps: List<AppInfo>,
                 }
             }
     ) {
-        val screenWidthInDp = configuration.screenWidthDp.dp
-        val screenHeightInDp = configuration.screenHeightDp.dp
         if (apps.isNotEmpty()) {
             UshapedAppList(
                 apps = apps,
@@ -3833,41 +3812,47 @@ fun AppListOverlay(apps: List<AppInfo>,
                     }
                 }
             }
-            if(!horizontalSwipeShown) Box(modifier = Modifier
-                // Layout -> Decoration -> Transformation
-                .width(screenWidthInDp/2)
-                .padding(bottom = 64.dp)
-                .offset(y = -(50.dp)),
-                contentAlignment = Alignment.Center
-            ){
+            if(!horizontalSwipeShown) {
                 SwipeHelper(
                     start = SwipeDirection.LEFT,
-                    end = SwipeDirection.RIGHT
+                    end = SwipeDirection.RIGHT,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .align(Alignment.BottomCenter),
                 )
             }
-            if(horizontalSwipeShown && !doubleTapShown)Box(modifier = Modifier
-                .height(screenHeightInDp/2)
-                .offset(x = screenWidthInDp/2 - 24.dp,y = screenHeightInDp/3),
-                contentAlignment = Alignment.BottomCenter){
-                DoubleTapHint()
+            if(horizontalSwipeShown && !doubleTapShown) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .align(Alignment.BottomCenter),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    DoubleTapHint()
+                }
             }
-            if(horizontalSwipeShown && doubleTapShown && !verticalSwipeShown)Box(modifier = Modifier
-                // Layout -> Decoration -> Transformation
-                .height(screenHeightInDp/2)
-                //.border(width = 1.dp,color = Color.Cyan)
-                .offset(x = -screenWidthInDp/2 + 24.dp, y = screenHeightInDp/2),
-                contentAlignment = Alignment.Center
-            ){
+            if(horizontalSwipeShown && doubleTapShown && !verticalSwipeShown) {
                 SwipeHelper(
                     start = SwipeDirection.TOP,
-                    end = SwipeDirection.BOTTOM
+                    end = SwipeDirection.BOTTOM,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .align(Alignment.BottomCenter),
                 )
             }
-            if(!longPressGestureShown && horizontalSwipeShown && doubleTapShown && verticalSwipeShown)Box(modifier = Modifier
-                .height(screenHeightInDp/2)
-                .offset(x = screenWidthInDp/2 - 24.dp,y = screenHeightInDp/3),
-                contentAlignment = Alignment.BottomCenter){
-                LongPressHint()
+            if(!longPressGestureShown && horizontalSwipeShown && doubleTapShown && verticalSwipeShown) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .align(Alignment.BottomCenter),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    LongPressHint()
+                }
             }
             AnimatedVisibility(
                 visible = activeFolderId != null,
@@ -3933,49 +3918,84 @@ fun SensitivityDialog(
     onSave: (Float) -> Unit
 ) {
     var localSpeed by remember { mutableFloatStateOf(currentSpeed) }
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     Dialog(onDismissRequest = onDismiss) {
-        Box(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 40.dp),
+                .padding(bottom = if (isLandscape) 8.dp else 40.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
-            Surface(
-                shape = MaterialTheme.shapes.extraLarge,
-                tonalElevation = 6.dp,
-                shadowElevation = 8.dp
+            SensitivityDialogContent(
+                speed = localSpeed,
+                onSpeedChange = { localSpeed = it },
+                onDismiss = onDismiss,
+                onSave = { onSave(localSpeed) },
+                compact = isLandscape,
+                modifier = Modifier.heightIn(max = maxHeight)
+            )
+        }
+    }
+}
+
+@Composable
+internal fun SensitivityDialogContent(
+    speed: Float,
+    onSpeedChange: (Float) -> Unit,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit,
+    compact: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.extraLarge,
+        tonalElevation = 6.dp,
+        shadowElevation = 8.dp
+    ) {
+        BoxWithConstraints {
+            val contentPadding = if (compact) 12.dp else 20.dp
+            val dialSize = if (compact) {
+                (maxHeight - 152.dp).coerceIn(72.dp, 180.dp)
+            } else {
+                180.dp
+            }
+
+            Column(
+                modifier = Modifier
+                    .padding(contentPadding)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier
-                        .padding(20.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Text(
+                    text = stringResource(R.string.scroll_speed),
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Spacer(modifier = Modifier.height(if (compact) 8.dp else 16.dp))
+                CircularSeekBar(
+                    value = speed,
+                    onValueChange = onSpeedChange,
+                    minValue = 0.1f,
+                    maxValue = 3.0f,
+                    size = dialSize
+                )
+                Spacer(modifier = Modifier.height(if (compact) 4.dp else 8.dp))
+                Text(
+                    text = "%.2fx".format(speed),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Spacer(modifier = Modifier.height(if (compact) 8.dp else 16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Text(
-                        text = stringResource(R.string.scroll_speed),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    CircularSeekBar(
-                        value = localSpeed,
-                        onValueChange = { localSpeed = it },
-                        minValue = 0.1f,
-                        maxValue = 3.0f
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "%.2fx".format(localSpeed),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel_text)) }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        TextButton(onClick = { onSave(localSpeed) }) { Text(stringResource(R.string.button_text_save)) }
+                    TextButton(onClick = onDismiss) {
+                        Text(stringResource(R.string.cancel_text))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(onClick = onSave) {
+                        Text(stringResource(R.string.button_text_save))
                     }
                 }
             }
@@ -5353,14 +5373,12 @@ fun CircularLayout(
                 )
             }
         }
-        if(showGestureGuide)Box(modifier = Modifier
-            .fillMaxSize()
-            .offset(x=-boxSize/2 + 24.dp,y=-boxSize/2 + 48.dp),
-            contentAlignment = Alignment.Center
-        ){
+        if(showGestureGuide) {
             SwipeHelper(
                 start = SwipeDirection.BOTTOM,
-                end = SwipeDirection.TOP
+                end = SwipeDirection.TOP,
+                modifier = Modifier.matchParentSize(),
+                remainVisibleInsideTarget = true,
             )
         }
     }
@@ -5378,44 +5396,58 @@ fun FiveColumnLayout(
     themedColors: WallpaperThemeColors?,
     isLightMode: Boolean,
     isFolderActive: Boolean = false,
-    onTappingFolder: ((String) -> Unit)? = null
+    onTappingFolder: ((String) -> Unit)? = null,
+    showGestureGuide: Boolean = false,
 ) {
     val gap = 20.dp
-    Row(
+    Box(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        contentAlignment = Alignment.Center,
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(gap)) {
-            if(apps.size >= 3) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[2], onTappingFolder = onTappingFolder)
-            if(apps.size >= 7) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[6], onTappingFolder = onTappingFolder)
-        }
-        Box(modifier = Modifier.size(width = gap, height = 1.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(gap)) {
-            if(apps.isNotEmpty()) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[0], onTappingFolder = onTappingFolder)
-            if(apps.size >= 5) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[4], onTappingFolder = onTappingFolder)
-        }
-        Box(modifier = Modifier.size(width = gap, height = 1.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+                if(apps.size >= 3) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[2], onTappingFolder = onTappingFolder)
+                if(apps.size >= 7) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[6], onTappingFolder = onTappingFolder)
+            }
+            Box(modifier = Modifier.size(width = gap, height = 1.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+                if(apps.isNotEmpty()) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[0], onTappingFolder = onTappingFolder)
+                if(apps.size >= 5) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[4], onTappingFolder = onTappingFolder)
+            }
+            Box(modifier = Modifier.size(width = gap, height = 1.dp))
 
-        SearchIcon(
-            iconSize = iconSize,
-            iconShape = iconShape,
-            onShowSearch = onShowSearch,
-            showThemedIcon = showThemedIcon,
-            themedColors = themedColors,
-            isLightMode = isLightMode,
-            isFolderActive = isFolderActive
-        )
+            SearchIcon(
+                iconSize = iconSize,
+                iconShape = iconShape,
+                onShowSearch = onShowSearch,
+                showThemedIcon = showThemedIcon,
+                themedColors = themedColors,
+                isLightMode = isLightMode,
+                isFolderActive = isFolderActive
+            )
 
-        Box(modifier = Modifier.size(width = gap, height = 1.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(gap)) {
-            if(apps.size >= 2) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[1], onTappingFolder = onTappingFolder)
-            if(apps.size >= 6) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[5], onTappingFolder = onTappingFolder)
+            Box(modifier = Modifier.size(width = gap, height = 1.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+                if(apps.size >= 2) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[1], onTappingFolder = onTappingFolder)
+                if(apps.size >= 6) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[5], onTappingFolder = onTappingFolder)
+            }
+            Box(modifier = Modifier.size(width = gap, height = 1.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+                if(apps.size >= 4) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[3], onTappingFolder = onTappingFolder)
+                if(apps.size >= 8) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[7], onTappingFolder = onTappingFolder)
+            }
         }
-        Box(modifier = Modifier.size(width = gap, height = 1.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(gap)) {
-            if(apps.size >= 4) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[3], onTappingFolder = onTappingFolder)
-            if(apps.size >= 8) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[7], onTappingFolder = onTappingFolder)
+        if (showGestureGuide) {
+            SwipeHelper(
+                start = SwipeDirection.BOTTOM,
+                end = SwipeDirection.TOP,
+                modifier = Modifier.matchParentSize(),
+                remainVisibleInsideTarget = true,
+            )
         }
     }
 }
