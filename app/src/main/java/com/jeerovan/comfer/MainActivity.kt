@@ -3063,20 +3063,6 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                 modifier = Modifier.matchParentSize(),
                             )
                         }
-                        if (!contactSwipeGestureShown && hasContactPermission && activeTab == SearchTab.CONTACTS) {
-                            SwipeHelper(
-                                start = SwipeDirection.BOTTOM,
-                                end = SwipeDirection.TOP,
-                                modifier = Modifier.matchParentSize(),
-                            )
-                        } else if (!contactDoubleTapShown && hasContactPermission && activeTab == SearchTab.CONTACTS) {
-                            Box(
-                                modifier = Modifier.matchParentSize(),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                DoubleTapHint()
-                            }
-                        }
                     }
                 }
             }
@@ -3321,7 +3307,17 @@ fun SearchListOverlay(apps: List<AppInfo>,
                         )
                     } else if (!contactDoubleTapShown && hasContactPermission && activeTab == SearchTab.CONTACTS) {
                         Box(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .matchParentSize()
+                                .offset(x = (keyboardWidth / 2).dp + 12.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            DoubleTapHint()
+                        }
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .offset(x = (-keyboardWidth / 2).dp + (-12).dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             DoubleTapHint()
