@@ -72,7 +72,7 @@ android {
     defaultConfig {
         applicationId = "com.jeerovan.comfer"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 46
         versionName = "46.0"
 

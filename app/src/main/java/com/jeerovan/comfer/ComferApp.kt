@@ -92,7 +92,6 @@ class ComferApp : Application(), ImageLoaderFactory {
 
     private fun setupImageWorker() {
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
             .setRequiresBatteryNotLow(true)
             .build()
 
@@ -115,7 +114,8 @@ class ComferApp : Application(), ImageLoaderFactory {
 
         workManager.enqueueUniquePeriodicWork(
             "ImageWorker",
-            ExistingPeriodicWorkPolicy.KEEP,
+            // Update existing installations too, without restarting the interval.
+            ExistingPeriodicWorkPolicy.UPDATE,
             periodicWorkRequest
         )
     }

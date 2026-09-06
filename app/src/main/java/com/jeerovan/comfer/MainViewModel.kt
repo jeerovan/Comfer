@@ -6,8 +6,7 @@ import android.util.Log
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.jeerovan.comfer.utils.CommonUtil.downloadImage
-import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
+import com.jeerovan.comfer.utils.CommonUtil.refreshWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.isDefaultLauncher
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaper
 import com.jeerovan.comfer.utils.CommonUtil.setWallpaperThemedColors
@@ -103,10 +102,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _uiState.update { it.copy(imagePath = backgroundImage) }
             }
 
-            withContext(Dispatchers.IO) {
-                PreferenceManager.setWallpaperApplied(context, true)
-            }
-
             val defaultLauncher = withContext(Dispatchers.IO) {
                 isDefaultLauncher(context)
             }
@@ -142,8 +137,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
                 if (imageData == null || backgroundImagePath == null) {
                     WallpaperWorkCoordinator.runExclusive {
-                        fetchImageData(applicationContext)
-                        downloadImage(applicationContext)
+                        refreshWallpaper(applicationContext)
                         
                         // update uiState
                         val filePath = PreferenceManager.getBackgroundImagePath(applicationContext)
@@ -154,7 +148,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             if (PreferenceManager.getAppliedWallpaperImage(applicationContext) != filePath){
                                 setWallpaper(applicationContext)
                             }
-                            PreferenceManager.setWallpaperApplied(applicationContext, true)
                             
                             _uiState.update { it.copy(imagePath = filePath) }
                         }
@@ -201,8 +194,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 StartupCoordinator.awaitReady()
                 WallpaperWorkCoordinator.runExclusive {
-                    fetchImageData(context, manualChange = true)
-                    downloadImage(context)
+                    refreshWallpaper(context, manualChange = true)
                 }
             }
             catch (e: kotlinx.coroutines.CancellationException) {

@@ -51,6 +51,7 @@ object PreferenceManager {
     const val CUSTOM_WIDGETS = "custom_widgets"
     const val WALLPAPER_DIRECTORY = "wallpaper_directory"
     const val WALLPAPER_FREQUENCY = "wallpaper_frequency"
+    const val WALLPAPER_LAST_SUCCESS = "wallpaper_last_success"
     const val WALLPAPER_URI = "wallpaper_uri"
     const val APPLIED_WALLPAPER_IMAGE = "applied_wallpaper_image"
     const val ALPHABETICAL_ORDER = "alphabetical_order"
@@ -521,19 +522,6 @@ object PreferenceManager {
         setBoolean(context,IMAGE_AVAILABLE,false)
     }
 
-    fun getHour(context: Context):Int{
-        val calendar = Calendar.getInstance()
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        val existingHour = getInt(context, "now_hour", 0)
-        return if (existingHour != hour) {
-            hour
-        } else {
-            0
-        }
-    }
-    fun setHour(context: Context,hour:Int){
-        setInt(context, "now_hour", hour)
-    }
     fun getFeedbackDialogShown(context: Context):Boolean {
         return getBoolean(context,FEEDBACK_DIALOG,false)
     }

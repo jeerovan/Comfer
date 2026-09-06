@@ -26,6 +26,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.documentfile.provider.DocumentFile
 import androidx.palette.graphics.Palette
 import com.jeerovan.comfer.KeyTextObject
+import com.jeerovan.comfer.ImageWorkOutcome
+import com.jeerovan.comfer.runScheduledImageWork
 import com.jeerovan.comfer.ImageData
 import com.jeerovan.comfer.PreferenceKeys
 import com.jeerovan.comfer.PreferenceManager
@@ -254,7 +256,7 @@ object CommonUtil {
             false // Default to false if we cannot determine status
         }
     }
-    suspend fun setBackgroundImageFromImageUri(context:Context, wallpaperDirectory:Uri) {
+    suspend fun setBackgroundImageFromImageUri(context:Context, wallpaperDirectory:Uri): Boolean {
         val currentWallpaperImageUri = PreferenceManager.getBackgroundImageUri(context)
         val nextLocalImageUri = getNextWallpaperImageUri(
             context,
@@ -282,12 +284,14 @@ object CommonUtil {
                         oldFile.delete()
                     }
                     setWallpaperThemedColors(context, File(newFilePath))
-                    withContext(Dispatchers.IO){
+                    return withContext(Dispatchers.IO) {
                         setWallpaper(context)
                     }
                 }
             }
         }
+        // A directory with a single, already selected image is a successful no-op.
+        return nextLocalImageUri != null && currentWallpaperImageUri == nextLocalImageUri
     }
     @Volatile
     private var httpClientCache: HttpClient? = null
@@ -338,47 +342,57 @@ object CommonUtil {
         }
     }
 
-    suspend fun fetchImageData(
-        applicationContext: Context,
-        manualChange: Boolean = false
-    ): Boolean {
-        val autoWallpapers = PreferenceManager.getAutoWallpapers(applicationContext)
-        if(!autoWallpapers) return true
-        val previousWallpaperApplied = PreferenceManager.getWallpaperApplied(applicationContext)
-        if(!previousWallpaperApplied && !manualChange) {
-            return true
+    // Call under WallpaperWorkCoordinator so foreground and background refreshes
+    // share the same persisted schedule and cannot select two images concurrently.
+    internal suspend fun refreshWallpaper(
+        context: Context,
+        manualChange: Boolean = false,
+    ): ImageWorkOutcome {
+        val enabled = PreferenceManager.getAutoWallpapers(context)
+        // Monochrome/battery-saver rendering is independent of photo rotation.
+        if (PreferenceManager.getMonochrome(context) &&
+            PreferenceManager.getAppliedWallpaperImage(context) !=
+            PreferenceManager.getBackgroundImagePath(context)) {
+            if (!setWallpaper(context)) return ImageWorkOutcome.RETRY
         }
-        val changeFrequency = PreferenceManager.getWallpaperFrequency(applicationContext)
-        val hourNow = PreferenceManager.getHour(applicationContext)
-        if (hourNow > 0 || manualChange) {
-            val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(applicationContext)
-            if(wallpaperDirectory != null){
-                if (changeFrequency == "Hourly" || hourNow == 3 || manualChange){
-                    if(!manualChange)PreferenceManager.setHour(applicationContext, hourNow)
-                    setBackgroundImageFromImageUri(applicationContext,wallpaperDirectory.toUri())
-                }
-            } else {
-                if(changeFrequency == "Hourly" || hourNow == 7 || hourNow == 19 || manualChange) {
-                    try {
-                        val name = PreferenceManager.getUsername(applicationContext)
-                        val client = getHttpClient(applicationContext)
-                        val response: ImageData = client.get("https://comfer.jeerovan.com/api") {
-                            parameter("name", name)
-                            parameter("hour", hourNow)
-                        }.body()
-                        Log.i("FetchImageData", response.toString())
-                        PreferenceManager.saveImageData(applicationContext, response)
-                        if(!manualChange)PreferenceManager.setHour(applicationContext, hourNow)
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (e: Exception) {
-                        Log.e("FetchImageData", e.toString())
-                        return false
-                    }
-                }
-            }
+        return runScheduledImageWork(
+            enabled = enabled,
+            manualChange = manualChange,
+            frequency = PreferenceManager.getWallpaperFrequency(context),
+            lastSuccess = PreferenceManager.getLong(context, PreferenceManager.WALLPAPER_LAST_SUCCESS, 0L),
+            now = System.currentTimeMillis(),
+            hasPendingImage = PreferenceManager.newImageAvailable(context) ||
+                (!PreferenceManager.getWallpaperApplied(context) &&
+                    PreferenceManager.getBackgroundImagePath(context) != null),
+            fetch = { fetchImageData(context) },
+            download = { downloadImage(context) },
+            recordSuccess = {
+                PreferenceManager.setLong(
+                    context, PreferenceManager.WALLPAPER_LAST_SUCCESS, System.currentTimeMillis(),
+                )
+            },
+        )
+    }
+
+    private suspend fun fetchImageData(applicationContext: Context): Boolean {
+        val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(applicationContext)
+        if (wallpaperDirectory != null) {
+            return setBackgroundImageFromImageUri(applicationContext, wallpaperDirectory.toUri())
         }
-        return true
+        return try {
+            val response: ImageData = getHttpClient(applicationContext)
+                .get("https://comfer.jeerovan.com/api") {
+                    parameter("name", PreferenceManager.getUsername(applicationContext))
+                    parameter("hour", java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY))
+                }.body()
+            PreferenceManager.saveImageData(applicationContext, response)
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e("FetchImageData", e.toString())
+            false
+        }
     }
     fun getLaunchIntentSafe(context: Context, packageName: String): Intent? {
         return try {
@@ -469,9 +483,11 @@ object CommonUtil {
             } else {
                 return false
             }
-        } else if (PreferenceManager.getMonochrome(applicationContext)){
+        } else if (!PreferenceManager.getWallpaperApplied(applicationContext) ||
+            PreferenceManager.getMonochrome(applicationContext)) {
             val currentWallpaperFilePath = PreferenceManager.getBackgroundImagePath(applicationContext)
-            if( PreferenceManager.getAppliedWallpaperImage(applicationContext) != currentWallpaperFilePath){
+            if (!PreferenceManager.getWallpaperApplied(applicationContext) ||
+                PreferenceManager.getAppliedWallpaperImage(applicationContext) != currentWallpaperFilePath) {
                 if (!setWallpaper(applicationContext)) return false
             }
         }
@@ -584,6 +600,8 @@ object CommonUtil {
         } else {
             PreferenceManager.setAppliedWallpaperImage(context, null)
         }
+        // Completion belongs to the pipeline, not to a later Activity callback.
+        PreferenceManager.setWallpaperApplied(context, true)
         return true
     }
 

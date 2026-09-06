@@ -55,6 +55,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import java.util.concurrent.atomic.AtomicLong
@@ -865,81 +867,82 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         )
     }
 
+    private val reorderSaveMutex = Mutex()
+
+    private fun appList(state: AppInfoUiState, listName: String): List<AppInfo>? = when (listName) {
+        AppInfoManager.QUICK_APPS_LIST_NAME -> state.quickApps
+        AppInfoManager.PRIMARY_APPS_LIST_NAME -> state.primaryApps
+        AppInfoManager.REST_APPS_LIST_NAME -> state.restApps
+        else -> null
+    }
+
     fun moveAppInList(listName: String, fromIndex: Int, toIndex: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val currentList = when (listName) {
-                AppInfoManager.QUICK_APPS_LIST_NAME -> _uiState.value.quickApps
-                AppInfoManager.PRIMARY_APPS_LIST_NAME -> _uiState.value.primaryApps
-                AppInfoManager.REST_APPS_LIST_NAME -> _uiState.value.restApps
-                else -> return@launch
-            }.toMutableList()
+        val apps = appList(_uiState.value, listName) ?: return
+        val from = apps.getOrNull(fromIndex)?.packageName ?: return
+        val to = apps.getOrNull(toIndex)?.packageName ?: return
+        moveAppInList(listName, from, to)
+    }
 
-            val app = currentList.removeAt(fromIndex)
-            currentList.add(toIndex, app)
-            val packageNames = currentList.map { it.packageName }
+    fun moveAppInList(listName: String, fromKey: String, toKey: String) {
+        val apps = appList(_uiState.value, listName) ?: return
+        val reordered = moveListItemByKey(apps, fromKey, toKey) { it.packageName }
+        if (reordered === apps) return
 
+        // Reorderable must see the new list before onMove returns, especially
+        // when it preserves the scroll anchor while moving the first item.
+        _uiState.update { state ->
             when (listName) {
-                AppInfoManager.QUICK_APPS_LIST_NAME -> {
-                    AppInfoManager.saveAppPackageNames(getApplication(), listName, packageNames)
-                    withContext(Dispatchers.Main) {
-                        _uiState.update { it.copy(quickApps = currentList) }
-                    }
-                }
-
-                AppInfoManager.PRIMARY_APPS_LIST_NAME -> {
-                    AppInfoManager.saveAppPackageNames(getApplication(), listName, packageNames)
-                    withContext(Dispatchers.Main) {
-                        _uiState.update { it.copy(primaryApps = currentList) }
-                    }
-                }
-
-                AppInfoManager.REST_APPS_LIST_NAME -> {
-                    withContext(Dispatchers.Main) {
-                        _uiState.update { it.copy(restApps = currentList) }
-                    }
-                }
+                AppInfoManager.QUICK_APPS_LIST_NAME -> state.copy(quickApps = reordered)
+                AppInfoManager.PRIMARY_APPS_LIST_NAME -> state.copy(primaryApps = reordered)
+                else -> state.copy(restApps = reordered)
             }
-            PreferenceManager.increaseAppListVersion(getApplication()) // triggers UI update
+        }
+        val packageNames = reordered.map { it.packageName }
+        persistReorder {
+            if (listName != AppInfoManager.REST_APPS_LIST_NAME) {
+                AppInfoManager.saveAppPackageNames(getApplication(), listName, packageNames)
+            }
+            PreferenceManager.increaseAppListVersion(getApplication())
         }
     }
 
-    fun moveAppsInFolder(folderName: String, fromIndex: Int, toIndex: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
+    fun moveAppsInFolder(folderName: String, fromKey: String, toKey: String) {
+        val apps = _uiState.value.folderApps[folderName] ?: return
+        val reordered = moveListItemByKey(apps, fromKey, toKey) { it.packageName }
+        if (reordered === apps) return
+        _uiState.update { state ->
+            val folder = state.folders[folderName]
+            state.copy(
+                folderApps = state.folderApps + (folderName to reordered),
+                folders = if (folder == null) state.folders else
+                    state.folders + (folderName to folder.copy(
+                        packages = moveListItemByKey(folder.packages, fromKey, toKey) { it },
+                    )),
+            )
+        }
+        persistReorder {
             val context: Context = getApplication()
-
-            // 1. Update persisted folder data
             val savedFolders = AppInfoManager.getFolders(context).toMutableMap()
-            val folderData = savedFolders[folderName] ?: return@launch
-
-            val packages = folderData.packages.toMutableList()
-
-            // Ensure indices are within valid bounds
-            if (fromIndex !in packages.indices) return@launch
-            val validToIndex = toIndex.coerceIn(0, packages.size - 1)
-
-            // Move app package position
-            val pkgToMove = packages.removeAt(fromIndex)
-            packages.add(validToIndex, pkgToMove)
-
-            // Save back to preferences
-            savedFolders[folderName] = folderData.copy(packages = packages)
+            val folder = savedFolders[folderName] ?: return@persistReorder
+            savedFolders[folderName] = folder.copy(
+                packages = moveListItemByKey(folder.packages, fromKey, toKey) { it },
+            )
             AppInfoManager.saveFolders(context, savedFolders)
+        }
+    }
 
-            // 2. Update UI state
-            val currentFolders = _uiState.value.folderApps.toMutableMap()
-            val appInfos = currentFolders[folderName]?.toMutableList() ?: return@launch
-
-            if (fromIndex in appInfos.indices) {
-                // Move appInfo position
-                val appToMove = appInfos.removeAt(fromIndex)
-                appInfos.add(validToIndex, appToMove)
-
-                // 3. Update _uiState atomically
-                currentFolders[folderName] = appInfos
-                withContext(Dispatchers.Main) {
-                    _uiState.update {
-                        it.copy(folderApps = currentFolders)
-                    }
+    private fun persistReorder(save: suspend () -> Unit) {
+        // Launch on Main to enter the mutex in gesture order. Only disk work is
+        // dispatched to IO; an older save must never overwrite a newer order.
+        viewModelScope.launch {
+            reorderSaveMutex.withLock {
+                try {
+                    withContext(Dispatchers.IO) { save() }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.e("AppInfoViewModel", "Could not save app order", e)
+                    reloadList()
                 }
             }
         }

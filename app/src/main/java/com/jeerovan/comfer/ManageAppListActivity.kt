@@ -48,12 +48,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -521,11 +523,13 @@ fun FolderAppListRow(
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val listState = rememberLazyListState()
+    RevealAddedApps(folderName, apps, listState)
     val reorderableLazyListState = rememberReorderableLazyListState(listState) { from, to ->
-        viewModel.moveAppsInFolder(folderName, from.index, to.index)
+        viewModel.moveAppsInFolder(folderName, from.key as String, to.key as String)
         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
     }
     LazyRow(
+        state = listState,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
@@ -597,9 +601,10 @@ fun AppListColumn(
     onAddFolderClick: () -> Unit,
     folders: Int
 ) {
+    RevealAddedApps(listName, apps, listState)
     val hapticFeedback = LocalHapticFeedback.current
     val reorderableLazyListState = rememberReorderableLazyListState(listState) { from, to ->
-        viewModel.moveAppInList(listName, from.index, to.index)
+        viewModel.moveAppInList(listName, from.key as String, to.key as String)
         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
     }
 
@@ -645,6 +650,7 @@ fun AppListColumn(
                             shape = iconShape,
                             color = Color.Transparent,
                             modifier = Modifier
+                                .testTag("manage-app:$listName:${app.packageName}")
                                 .graphicsLayer {
                                     scaleX = scale
                                     scaleY = scale
@@ -690,6 +696,21 @@ fun AppListColumn(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun RevealAddedApps(listName: String, apps: List<AppInfo>, listState: LazyListState) {
+    val packageNames = apps.map { it.packageName }
+    var previousPackages by remember(listName) { mutableStateOf(packageNames.toSet()) }
+    LaunchedEffect(listName, packageNames) {
+        val firstAddedIndex = packageNames.indexOfFirst { it !in previousPackages }
+        previousPackages = packageNames.toSet()
+        if (firstAddedIndex >= 0) {
+            // Stable item keys otherwise keep the old visible item anchored,
+            // hiding additions before it. Use the displayed order for sorted lists too.
+            listState.animateScrollToItem(firstAddedIndex)
         }
     }
 }

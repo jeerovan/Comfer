@@ -3,8 +3,7 @@ package com.jeerovan.comfer
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.jeerovan.comfer.utils.CommonUtil.downloadImage
-import com.jeerovan.comfer.utils.CommonUtil.fetchImageData
+import com.jeerovan.comfer.utils.CommonUtil.refreshWallpaper
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -28,6 +27,33 @@ internal suspend fun runImageWorkPipeline(
     return if (download()) ImageWorkOutcome.SUCCESS else ImageWorkOutcome.RETRY
 }
 
+internal suspend fun runScheduledImageWork(
+    enabled: Boolean,
+    manualChange: Boolean,
+    frequency: String,
+    lastSuccess: Long,
+    now: Long,
+    hasPendingImage: Boolean,
+    fetch: suspend () -> Boolean,
+    download: suspend () -> Boolean,
+    recordSuccess: suspend () -> Unit,
+): ImageWorkOutcome {
+    if (!enabled) return ImageWorkOutcome.SUCCESS
+    val interval = java.util.concurrent.TimeUnit.HOURS.toMillis(
+        if (frequency == "Daily") 24 else 1,
+    )
+    // A timestamp survives midnight, missed worker windows and process restarts.
+    // A backwards clock adjustment must not suspend rotation indefinitely.
+    val due = lastSuccess <= 0 || now < lastSuccess || now - lastSuccess >= interval
+    if (!manualChange && !hasPendingImage && !due) return ImageWorkOutcome.SUCCESS
+    val outcome = runImageWorkPipeline(
+        fetch = { if (hasPendingImage && !manualChange) true else fetch() },
+        download = download,
+    )
+    if (outcome == ImageWorkOutcome.SUCCESS) recordSuccess()
+    return outcome
+}
+
 class ImageWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
 
@@ -36,10 +62,7 @@ class ImageWorker(appContext: Context, workerParams: WorkerParameters) :
             (applicationContext as? ComferApp)?.initializeApplicationData()
             StartupCoordinator.awaitReady()
             WallpaperWorkCoordinator.runExclusive {
-                when (runImageWorkPipeline(
-                    fetch = { fetchImageData(applicationContext) },
-                    download = { downloadImage(applicationContext) },
-                )) {
+                when (refreshWallpaper(applicationContext)) {
                     ImageWorkOutcome.SUCCESS -> Result.success()
                     ImageWorkOutcome.RETRY -> Result.retry()
                 }

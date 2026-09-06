@@ -1398,7 +1398,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             if(enabled) {
                 generateMonochromeColorWallpapers(context)
                 // to load wallpaper
-                PreferenceManager.setHour(getApplication(),0)
+                PreferenceManager.clear(context, PreferenceManager.WALLPAPER_LAST_SUCCESS)
                 context.dataStore.edit { preferences ->
                     preferences[PreferenceKeys.WALLPAPER_CHANGE] = System.currentTimeMillis()
                 }
