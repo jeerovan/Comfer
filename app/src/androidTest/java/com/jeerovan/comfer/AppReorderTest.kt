@@ -22,6 +22,8 @@ import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -132,6 +134,7 @@ class AppReorderTest {
 
     @Test
     fun movedAppsAreRevealedAtTopOfScrolledDestination() {
+        prepareQuickList(0)
         val packages = viewModel.uiState.value.primaryApps.take(2).map { it.packageName }.toSet()
         runBlocking {
             viewModel.performMoveAppsToList(LIST, AppInfoManager.QUICK_APPS_LIST_NAME, packages)
@@ -155,6 +158,88 @@ class AppReorderTest {
         awaitSaved(viewModel.uiState.value.primaryApps.map { it.packageName })
     }
 
+    @Test
+    fun nineSelectedAppsLeaveAllListsAndStoredPositionsUnchanged() {
+        prepareQuickList(0)
+        assertRejectedMovePreservesLists(9)
+    }
+
+    @Test
+    fun sevenQuickAppsPlusTwoSelectedAppsRejectsEntireMove() {
+        prepareQuickList(7)
+        assertRejectedMovePreservesLists(2)
+    }
+
+    @Test
+    fun fillingQuickListToExactlyEightSucceeds() {
+        prepareQuickList(7)
+        val before = viewModel.uiState.value.primaryApps
+        val selected = setOf(before.first().packageName)
+        val result = runBlocking { viewModel.performMoveAppsToList(LIST, QUICK, selected) }
+        assertEquals(AppMoveResult.MOVED, result)
+        assertEquals(8, viewModel.uiState.value.quickApps.size)
+        assertEquals(before.drop(1), viewModel.uiState.value.primaryApps)
+        awaitSaved(before.drop(1).map { it.packageName })
+    }
+
+    @Test
+    fun concurrentTransfersCannotOverfillQuickList() {
+        prepareQuickList(7)
+        val selected = viewModel.uiState.value.primaryApps.take(2).map { it.packageName }
+        val before = viewModel.uiState.value.primaryApps
+        val results = runBlocking {
+            selected.map { pkg -> async { viewModel.performMoveAppsToList(LIST, QUICK, setOf(pkg)) } }.awaitAll()
+        }
+        assertEquals(1, results.count { it == AppMoveResult.MOVED })
+        assertEquals(1, results.count { it == AppMoveResult.QUICK_FULL })
+        val quick = viewModel.uiState.value.quickApps.map { it.packageName }
+        assertEquals(8, quick.size)
+        val expected = before.filter { it.packageName !in quick }
+        assertEquals(expected, viewModel.uiState.value.primaryApps)
+        awaitSaved(expected.map { it.packageName })
+    }
+
+    @Test
+    fun ghostsCannotMoveDirectlyToQuick() {
+        prepareQuickList(0)
+        val selected = setOf(viewModel.uiState.value.primaryApps.first().packageName)
+        runBlocking { viewModel.performMoveAppsToList(LIST, AppInfoManager.REST_APPS_LIST_NAME, selected) }
+        val before = viewModel.uiState.value
+        val result = runBlocking {
+            viewModel.performMoveAppsToList(AppInfoManager.REST_APPS_LIST_NAME, QUICK, selected)
+        }
+        assertEquals(AppMoveResult.REJECTED, result)
+        assertEquals(before.quickApps, viewModel.uiState.value.quickApps)
+        assertEquals(before.primaryApps, viewModel.uiState.value.primaryApps)
+        assertEquals(before.restApps, viewModel.uiState.value.restApps)
+    }
+
+    private fun prepareQuickList(count: Int) = runBlocking {
+        val existing = viewModel.uiState.value.quickApps.map { it.packageName }.toSet()
+        viewModel.performMoveAppsToList(QUICK, LIST, existing)
+        if (count > 0) {
+            val selected = viewModel.uiState.value.primaryApps.take(count).map { it.packageName }.toSet()
+            assertEquals(count, selected.size)
+            assertEquals(AppMoveResult.MOVED, viewModel.performMoveAppsToList(LIST, QUICK, selected))
+        }
+        assertEquals(count, viewModel.uiState.value.quickApps.size)
+    }
+
+    private fun assertRejectedMovePreservesLists(selectionCount: Int) {
+        val before = viewModel.uiState.value
+        val selected = before.primaryApps.take(selectionCount).map { it.packageName }.toSet()
+        assertEquals(selectionCount, selected.size)
+        val storedPrimary = runBlocking { AppInfoManager.getAppPackageNames(application, LIST) }
+        val storedQuick = runBlocking { AppInfoManager.getAppPackageNames(application, QUICK) }
+        val result = runBlocking { viewModel.performMoveAppsToList(LIST, QUICK, selected) }
+        assertEquals(AppMoveResult.QUICK_FULL, result)
+        assertEquals(before.quickApps, viewModel.uiState.value.quickApps)
+        assertEquals(before.primaryApps, viewModel.uiState.value.primaryApps)
+        assertEquals(before.restApps, viewModel.uiState.value.restApps)
+        assertEquals(storedPrimary, runBlocking { AppInfoManager.getAppPackageNames(application, LIST) })
+        assertEquals(storedQuick, runBlocking { AppInfoManager.getAppPackageNames(application, QUICK) })
+    }
+
     private fun scrollAwayFromTop() {
         composeRule.runOnIdle { scrollScope.launch { listState.scrollToItem(5) } }
         composeRule.waitUntil(5_000) { listState.firstVisibleItemIndex >= 5 }
@@ -172,5 +257,8 @@ class AppReorderTest {
         }
     }
 
-    private companion object { const val LIST = AppInfoManager.PRIMARY_APPS_LIST_NAME }
+    private companion object {
+        const val LIST = AppInfoManager.PRIMARY_APPS_LIST_NAME
+        const val QUICK = AppInfoManager.QUICK_APPS_LIST_NAME
+    }
 }

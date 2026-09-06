@@ -84,7 +84,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.ui.text.style.TextAlign
 
-private const val MAX_QUICK_APPS = 8
 
 class ManageAppListActivity : AppCompatActivity() {
     private val viewModel: AppInfoViewModel by viewModels()
@@ -278,17 +277,22 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                             modifier = Modifier.size(40.dp),
                             contentPadding = PaddingValues(0.dp),
                             onClick = {
-                                if (uiState.quickApps.size + selectedPackageNames.size > MAX_QUICK_APPS) {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar("Maximum $MAX_QUICK_APPS apps only")
-                                    }
-                                } else {
-                                    viewModel.moveAppsToList(
+                                val packagesToMove = selectedPackageNames
+                                scope.launch {
+                                    when (viewModel.performMoveAppsToList(
                                         AppInfoManager.PRIMARY_APPS_LIST_NAME,
                                         AppInfoManager.QUICK_APPS_LIST_NAME,
-                                        selectedPackageNames
-                                    )
-                                    clearSelection()
+                                        packagesToMove,
+                                    )) {
+                                        AppMoveResult.QUICK_FULL -> snackbarHostState.showSnackbar(
+                                            "Maximum $MAX_QUICK_APPS apps only",
+                                        )
+                                        AppMoveResult.MOVED -> {
+                                            if (selectedList == AppInfoManager.PRIMARY_APPS_LIST_NAME &&
+                                                selectedPackageNames == packagesToMove) clearSelection()
+                                        }
+                                        AppMoveResult.REJECTED -> Unit
+                                    }
                                 }
                             },
                             enabled = selectedList == AppInfoManager.PRIMARY_APPS_LIST_NAME && selectedPackageNames.isNotEmpty()
