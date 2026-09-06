@@ -71,6 +71,16 @@
             android:exported="false"
             android:launchMode="singleTask"
             android:taskAffinity="${applicationId}.settings" />
+        <!--
+            Compatibility tombstone for tasks created by version 32 and older.
+            Keep the historical class name loadable while affected devices age
+            out stale activity/task records.
+        -->
+        <activity
+            android:name=".SubscriptionActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true" />
         <activity
             android:name=".GestureShortcutActivity"
             android:exported="false" />

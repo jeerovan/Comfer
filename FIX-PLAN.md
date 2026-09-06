@@ -1,9 +1,12 @@
-# Version 42 Findings and Version 45 ANR/Crash Fix Plan
+# Version 42 Baseline, Version 45 Findings, and Version 46 Fix Plan
 
-- Last updated: 2026-08-31
+- Last updated: 2026-09-03
 - Source: `play_reporting.db`, table `issues`
-- Release: `com.jeerovan.comfer` versionCode `42`, versionName `42.0`, Git revision `af587ec056af7bee024895b63a77e95b7d1d6594`
-- Reporting window: 2026-07-25 14:00 UTC through 2026-08-24 14:00 UTC
+- Baseline release: `com.jeerovan.comfer` versionCode `42`, versionName `42.0`, Git revision `af587ec056af7bee024895b63a77e95b7d1d6594`
+- Current release under investigation: versionCode `45`, versionName `45.0`, Git revision `6b38c3d384e31253bef8fa40d423254b29323310`
+- Candidate compatibility release: versionCode `46`, versionName `46.0`
+- Baseline reporting window: 2026-07-25 14:00 UTC through 2026-08-24 14:00 UTC
+- Version-45 issue window: 2026-08-31 00:00 UTC through 2026-09-03 02:00 UTC
 
 ## Goal and interpretation
 
@@ -15,10 +18,11 @@ Fix deterministic first-party failures immediately, reduce credible shared cause
 
 The `issues` table has one row per `(package_name, version_code, issue_id)` and records type, impact, title/cause/location, full stack, representative device/API, time range, report JSON, status, and import-presence state. Indexes cover `(version_code, status, type)` and latest events.
 
-- Only version 42 exists in `issues`; therefore it is the latest version without ambiguity.
-- All 1,414 rows are `pending` and present in the latest import: 1,252 ANR signatures and 162 crash signatures.
+- The database now contains versions 42, 44, and 45. Version 45 is the latest import without ambiguity: 11 issue rows, comprising 9 ANR and 2 crash signatures.
+- The version-42 baseline remains 1,414 rows: 1,252 ANR signatures and 162 crash signatures.
 - Three imports contain the same 1,414-issue snapshot. The `issues` primary key prevents those repeated imports from tripling the analysis.
-- Stack coverage: 1,246/1,252 ANRs and 161/162 crashes have a stack. A package name appearing anywhere in a multi-thread ANR dump does not prove that first-party code blocked the main thread, so ANRs were also classified using only the captured `main` thread block.
+- Version 44 contributes one import with 11 ANR signatures and no crash signatures. Version 45 contributes one import with 9 ANR and 2 crash signatures; its 11 representative issue reports have stack text, and the reports search returned 15 current samples across those issues.
+- Baseline stack coverage is 1,246/1,252 ANRs and 161/162 crashes. A package name appearing anywhere in a multi-thread ANR dump does not prove that first-party code blocked the main thread, so ANRs are classified using only the captured `main` thread block.
 
 ## Baseline
 
@@ -62,16 +66,51 @@ Highest individual crash clusters:
 
 The largest actionable first-party main-thread groups are activity-launch Binder waits in `CommonUtil.handleStartActivity` (61 user count across line variants), accent normalization during search (10 / 13), startup/activity creation frames, and smaller Compose input/layout frames. Activity launch itself crosses a system Binder boundary and must not be moved to a background thread speculatively; search filtering can safely move off main and has been changed.
 
+## Version 45 production evidence (2026-09-03)
+
+The Play Developer Reporting API was queried with `versionCode = 45`. The issue search covers 2026-08-31 00:00 UTC through 2026-09-03 02:00 UTC; normalized hourly metrics are currently fresh only through 2026-09-02 14:00 UTC.
+
+| Type | Signatures | Issue-user count | Events |
+|---|---:|---:|---:|
+| ANR | 9 | 22 | 22 |
+| Crash | 2 | 3 | 16 |
+
+`issue-user count` is still the sum of per-signature distinct-user values, not a deduplicated audience. The reports search returned 15 current samples: 10 Honor, 2 TECNO, 2 Samsung, and 1 Redmi. Hourly normalized rows show v45 activity across 13 brands; the rounded Honor normalization denominator reaches 200 active users in one hour. This is meaningful Honor exposure, not the absence-of-exposure problem that limited the v44 canary.
+
+| Issue | Type | Users / events | Evidence and disposition |
+|---|---|---:|---|
+| `7eed1be...` | Crash | 2 / 15 | `ClassNotFoundException` during `AppComponentFactory.instantiateActivity`; reproduced on Honor X7c API 34 and Honor X6c API 35. **Rollout blocker.** |
+| `df0e1dd...` | ANR | 12 / 12 | Dominant no-focused-window cluster; available main-thread samples are idle in `MessageQueue.nativePollOnce`. Recurs from v42 and v44, but does not identify app work to move. |
+| `a6de15e...` | ANR | 2 / 2 | Input timeout with idle main-loop sample; recurs from v42/v44. |
+| `a07df57...` | ANR | 2 / 2 | Input timeout with idle main-loop samples on Honor API 36; recurs from v42/v44. |
+| `c002f2c...` | ANR | 1 / 1 | No-focused-window timeout with idle main-loop sample; recurs from v42/v44. |
+| `db1f7de...` | ANR | 1 / 1 | Main thread is in framework vsync scheduling / ART stack capture; no first-party frame; recurs from v42. |
+| `db888cf...` | ANR | 1 / 1 | Main thread waits in `HardwareRenderer.setStopped`; no first-party frame. New, monitor. |
+| `97dbd8f...` | ANR | 1 / 1 | Tagged as `SystemJobService`, but the main thread is blocked in window relayout and the worker pool is not blocked in Comfer code. This is not a recurrence of the fixed WorkManager-initializer crash. |
+| `50ef88a...` | ANR | 1 / 1 | Compose snapshot application during recomposition; no first-party main frame. New single event, monitor. |
+| `59680af...` | ANR | 1 / 1 | Android/Compose BiDi text measurement; no first-party main frame. New single event, monitor and correlate with the displayed text/screen. |
+| `62bcb23...` | Crash | 1 / 1 | API-36 Samsung `FrameLayout.onMeasure` NPE through Compose `AndroidViewHolder`. This resembles the v42 AndroidView interop family, but the sample omits the widget provider and composable site. |
+
+All nine v45 ANR representative `main` blocks contain zero `com.jeerovan.comfer` frames. No current sample points to the U-shaped drawer, weather/location, backup/restore, search normalization, or an app method doing synchronous I/O. The old WorkManager startup crash `949936...` is absent.
+
+### Evidence sufficiency decision
+
+- **Enough to enforce the rollout gate:** yes. The pre-publish gate said to halt on any v45 crash or recurrence of `7eed1be...`; both conditions occurred. Do not expand v45 beyond the current cohort while the launch crash is open.
+- **Enough to disprove Automatic Protection as a required cause:** yes. The Play-generated v45 universal APK and the API-32+ base APK applicable to the affected devices both name `com.jeerovan.comfer.ComferApp`, contain no Pairip application wrapper, and pass the 30-component manifest-to-DEX check.
+- **Enough to identify a targeted compatibility candidate:** yes. Git and artifact history prove that v33 deleted `SubscriptionActivity` while leaving it declared through v35, and v32 could put that activity on the launcher's task stack. This makes an old-name compatibility activity a justified candidate for an upgrade-path fix. It is not yet proven to be the class requested by v38-v45 because Play redacts the exception message and those versions' current manifests/DEX are internally consistent.
+- **Enough to fix the AndroidView crash safely:** not yet. The stack proves View interop but does not distinguish the cached `AppWidgetHostView` path from the notification-icon `ImageView` path or identify a widget provider. The cached-host-view reparenting path is the leading source hypothesis because it explicitly removes a live view from its previous parent, but changing it trades against widget reinflation/ANR risk and needs a targeted overlapping-enter/exit regression test first.
+- **Enough for another generic ANR optimization:** no. The captured main stacks are framework/idle stacks. The next useful evidence is lifecycle/focus timing and provider/screen correlation, not speculative dispatcher changes.
+
 ## Phase status
 
 | Phase | Objective | Status |
 |---|---|---|
 | 0 | Establish version-42 database baseline and reproduce build graph | DONE |
 | 1 | Apply deterministic first-party crash and ANR fixes | IMPLEMENTED; full local verification complete |
-| 2 | Resolve Play-protected missing-class crash | v44 at 5% with Honor exposure and zero recurrence; continue staged confirmation |
-| 3 | Attribute no-focus and remaining first-party ANRs | v45 hardens the U-shaped drawer, pointer-event backpressure, location Binder work, and normal text rendering |
-| 4 | Reduce residual OEM, Compose/View, native, and resource failures | SOURCE-FIXABLE WORK IMPLEMENTED; platform residuals monitor-only |
-| 5 | Stage rollout and close against version-42 baseline | v45 local release gate passed; production telemetry pending |
+| 2 | Resolve missing-activity-class crash | COMPATIBILITY TOMBSTONE IMPLEMENTED; local/API-24 upgrade validation passed, Honor telemetry pending |
+| 3 | Attribute no-focus and remaining first-party ANRs | INSTRUMENTATION/DEVICE EVIDENCE REQUIRED; all v45 representative main stacks lack first-party frames |
+| 4 | Reduce residual OEM, Compose/View, native, and resource failures | ONE ANDROIDVIEW CRASH CANDIDATE; targeted lifecycle regression required before code change |
+| 5 | Stage rollout and close against version-42 baseline | STOP GATE TRIGGERED; do not expand current v45 cohort |
 
 ## Phase 1 — Implemented cumulative fixes
 
@@ -143,24 +182,89 @@ The largest actionable first-party main-thread groups are activity-launch Binder
 - Change: wrap the platform proxy selector for the Ktor/OkHttp client. Runtime failures or an empty proxy list fall back to `Proxy.NO_PROXY`; valid platform selections are preserved.
 - Regression tests: throwing and valid proxy-selector behavior in `SafeProxySelectorTest`.
 
-## Phase 2 — Play-protected `ClassNotFoundException`
+## Phase 2 — Missing-activity `ClassNotFoundException`
 
-This is still the highest-volume unresolved production crash: 200 issue-user count / 2,065 events. Artifact investigation is now complete.
+This is still the highest-volume unresolved production crash. The earlier database snapshot recorded 200 issue-user count / 2,065 events on v42; the wider API history below shows that it spans several installed versions.
+
+### Version history
+
+Play issue `7eed1be192b4c2a320968e14c6d5116e` appears in the following per-version searches. Counts from adjacent windows are shown separately because distinct users cannot be safely deduplicated across windows.
+
+| Version | Available issue evidence |
+|---:|---|
+| 33-34 | No matching issue returned from monthly searches covering 2026-03-01 through 2026-09-03. This is absence in available telemetry, not proof that the builds could not fail. |
+| 35 | 1 user / 7 events; last event 2026-07-08. |
+| 36-37 | No matching issue in the searched history. |
+| 38 | 18 / 177 through 2026-07-23, then 1 / 32 through 2026-08-01. The earliest sampled report available is 2026-07-06 on an Honor X6a/API 34; this predates the sampled v35 event because both versions were installed concurrently. |
+| 39 | 2 / 9; last event 2026-07-31. |
+| 40 | 12 / 133 through 2026-08-26, then 1 / 12 through 2026-09-01. |
+| 41 | No matching issue in the searched history. |
+| 42 | 263 / 2,792 through 2026-08-28, then 96 / 966 through 2026-09-02. |
+| 43 | No matching issue; this version had limited/rejected release exposure. |
+| 44 | 2 / 28 through 2026-09-02. This supersedes the earlier zero-crash 48-hour checkpoint. |
+| 45 | 2 / 15 through 2026-09-02. |
+
+Every sampled device for this issue is Honor, across API 34-36 and multiple models (X5b Plus, X5d, X6a, X6c, X7c, X7d, Honor 200 Lite, and Honor 200 Smart). Event volume is approximately ten or more launches per affected user in the larger cohorts, consistent with the launcher repeatedly trying to resume the same bad activity/task state.
+
+### Source and artifact history
 
 Confirmed evidence:
 
 - The crash occurs while `AppComponentFactory.instantiateActivity()` launches an activity, but both the stored report and live Play samples omit the missing class name.
-- The stored representative row is Honor 200 Smart API 34. Live samples fetched through the Play Developer Reporting API include Honor X5d API 35 and Honor X5b API 34.
-- The Google Play Android Developer API successfully supplied the version-42 protected universal APK and protected/unprotected API-32+ base-master APKs.
-- Every manifest-declared component has a DEX definition in the local minified APK, Play-protected universal APK, Play-protected base APK, and Play-unprotected base APK.
+- The stored v42 representative row is Honor 200 Smart API 34. Version-45 samples now reproduce the same issue ID on Honor X7c API 34 and Honor X6c API 35: 2 users and 15 launch events in the current window.
+- Commit `0d982a9` (2026-03-12) removed the 575-line `SubscriptionActivity`, `BillingRepository`, and billing dependencies while bumping version 32 to 33, but did not remove `<activity android:name=".SubscriptionActivity">` from the manifest. Version 32 had a real Settings action that launched this activity in the same task.
+- The stale manifest declaration remained in v33, v34, and v35. Commit `21ebf7b` removed it on 2026-05-24, before the v36 release.
+- The Play-generated v35 protected universal, protected API-29+ base, and unprotected API-29+ base APKs all fail the component check with exactly one omission: `com.jeerovan.comfer.SubscriptionActivity`. This proves a release defect independent of Automatic Protection and strongly fits the v35 crash, although the redacted report prevents a byte-for-byte class-name match.
+- The same check passes every protected/unprotected artifact inspected for v38, v39, v40, and v42, as well as the unprotected v44/v45 artifacts. Protected builds contain one additional Pairip component, hence 31 checked components versus 30 in their unprotected counterparts.
 - The protected artifact has a single `classes.dex`; this is not a missing feature-split or secondary-DEX case.
 - Play protection replaces the manifest application with a Pairip application subclass. That class is present, extends `ComferApp`, and invokes the Pairip license client. This is the meaningful protected/unprotected startup difference.
 
-Conclusion: there is no evidence for a missing Comfer keep rule or packaging defect. The remaining hypothesis is a Play automatic-protection interaction with Honor firmware or an abnormal/stale install state. The next controlled test is corrected version 44 with automatic protection disabled for that release; do not add a speculative broad keep rule.
+### Cause assessment
+
+The most coherent explanation is an upgrade/task-restoration compatibility failure:
+
+1. v32 could leave `SubscriptionActivity` at the top of Comfer's activity task.
+2. v33 removed that class without retaining a compatibility implementation. Because Comfer is a HOME/launcher app, the system repeatedly resumes its task rather than treating it like an occasional app screen.
+3. The stale manifest made v33-v35 directly inconsistent. Even after the manifest was corrected, an Honor device upgrading with an already-live or OEM-restored task/component record can continue asking the new APK to instantiate the deleted class. That explains recurrence in internally consistent v38-v45 APKs and the unusually high event count per affected user.
+
+This is a high-confidence hypothesis, not yet a proven class-name match for v38-v45. AOSP's persisted-task restore path normally resolves activities against the current package, so recurrence across reboot/clean install would instead point to a stale/partial installed split or an Honor PackageManager/class-loader defect. The clean-install-versus-upgrade distinction is therefore decisive.
+
+Platform references: Android documents that a normal Recents task resumes the last activity the user invoked ([Recents screen](https://developer.android.com/guide/components/activities/recents)); AOSP's disk-persisted activity restore resolves the saved intent against the currently installed package and rejects it when no `ActivityInfo` exists ([`ActivityRecord.restoreFromXml`](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android13-security-release/services/core/java/com/android/server/wm/ActivityRecord.java#9184)). These support the task-state lead while also explaining why a reboot/clean-install recurrence would weaken it.
+
+The v44/v45 unprotected experiment establishes one boundary: Automatic Protection is **not required**. The issue occurs in protected v35/v38/v39/v40/v42 and unprotected v44/v45. Likewise, v38-v45 artifact checks provide no evidence for a current R8 keep-rule failure, ordinary bundle-packaging omission, missing feature split, or secondary-DEX problem.
 
 Implemented release guard: `scripts/verify_apk_components.py` compares every merged-manifest application component with the APK's defined DEX classes and fails on any omission.
 
-Exit criteria: the unprotected version-44 staged cohort receives sufficient Honor/API 34-35 exposure with zero recurrence of issue `7eed1be...`, while the new WorkManager/startup clusters remain absent. If it recurs unprotected, capture installation source/state and escalate the exact sample to Google/Honor because protection is no longer the differentiator.
+Local compatibility verification (2026-09-03):
+
+- Added `SubscriptionActivity` under its exact historical package/class name. It contains no subscription or billing code. When restored above another activity it immediately finishes; when restored as the task root it calls `finishAndRemoveTask()`.
+- The manifest registers it as non-exported, excluded from Recents, and `noHistory`. The API-24 focused instrumentation suite passes both the root-task removal and underlying-Settings restoration branches (2/2 tests).
+- Reproduced a v32 debug build from commit `c02ee17`, launched its real subscription screen above `SettingsActivity`, confirmed both records in the task, and performed an in-place update to the current debug APK. The update completed without a crash; on this AOSP emulator, package replacement restarted `MainActivity` and discarded the obsolete task before the tombstone was needed. This validates the normal upgrade path but does not reproduce Honor's suspected stale-record behavior.
+- `testDebugUnitTest`, `lintDebug`, `assembleDebugAndroidTest`, and the focused connected suite pass.
+- The signed minified v46 release APK builds successfully. Its merged manifest retains the exact `com.jeerovan.comfer.SubscriptionActivity` name and required restrictions, R8 keeps the class and `onCreate`, and the component verifier passes all 31 declared components. APK SHA-256: `a0ee9fba0679f8d3c9bb1791806b2fe8aff88a414eceba3080da36eac7c96f05`.
+- The signed v46 AAB is `app/build/outputs/bundle/release/app-release.aab`, SHA-256 `e074e8a66b2bf8ad5741a47d54d60790bda6a4af440c335e7d57d50e82334ecf`; JAR verification reports `jar verified`. The packaged APK reports versionCode `46` / versionName `46.0`, APK Signature Scheme v2 verification passes with the configured upload certificate, and it contains none of the prohibited broad storage/media permissions.
+
+Play-generated internal artifact verification (2026-09-03):
+
+- The Publisher API reports internal release `46 (46.0)` with status `completed`; its release notes identify the compatibility activity change.
+- Automatic Protection artifacts are absent. The generated APK group contains the normal split/universal set only and is signed with the expected Play app-signing certificate, SHA-256 `7de810dc8919178d0642d7636f94e88abfead2d9416f6bd929981aaef32a4f4b`.
+- The Play-generated universal and highest-targeted API-32+ base APKs both pass the 31-component manifest-to-DEX check. Their manifests retain `SubscriptionActivity` as non-exported, excluded from Recents, and `noHistory`; the universal DEX defines the exact class, constructor, and `onCreate(Bundle)` method.
+- Both artifacts report versionCode `46` / versionName `46.0` and contain none of `READ_EXTERNAL_STORAGE`, `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, or `READ_MEDIA_AUDIO`. Universal SHA-256: `89283467ffa707083a367b4c0ee3babb65160ee192edded213c38e3fb2b9084b`; API-32+ base SHA-256: `985ed4ff4361b03bf738ccda93f39c042d34468908a6de1912a27388caa40f11`.
+- The Play-generated universal APK clean-installed on the API-24 emulator, cold-launched `MainActivity` in 771 ms, remained focused/resumed, and emitted no inspected `AndroidRuntime`, `ActivityManager`, `ComferApp`, or `BackupRestore` error.
+- Production has not yet received v46. The API currently reports v45 halted for Sudan (`SD`) alongside completed v42, so the next production action is a replacement v46 staged release rather than expansion of v45.
+
+Next actions, in order:
+
+1. Keep v45 from expanding; preserve issue `7eed1be...`, its v45 samples, affected models/API levels, Git revision, and APK hashes in the escalation packet.
+2. **Implemented:** restore a minimal `com.jeerovan.comfer.SubscriptionActivity` compatibility/tombstone and register it non-exported, excluded from Recents, and without history. It finishes immediately to reveal a valid underlying activity, or removes the task when the obsolete activity is its root. No billing behavior is restored. Keep the old class name for several releases.
+3. **Completed for internal v46:** inspect the Play-generated artifacts, verify signing/version/permissions, confirm the compatibility activity remains in the manifest and DEX after Play processing, and clean-install/cold-launch the universal APK.
+4. **Partially validated:** the API-24 v32 in-place upgrade with the real subscription activity at the top of its task passes, as do direct root and above-Settings tombstone tests. Still test v35, HOME/Recents relaunch, process death, reboot, repeated launch, and an Honor configuration when available.
+5. Ask Google Play support for the unredacted missing activity class and installed-split state. If it is not `SubscriptionActivity`, retain the shim as upgrade hardening but do not call the production issue fixed.
+6. If an affected user can cooperate, collect `pm path com.jeerovan.comfer`, `dumpsys package com.jeerovan.comfer`, installer source, task/activity state, and a launch logcat before reinstalling. Then clean-install from Play and compare.
+7. If the shim does not close the issue, add a narrowly scoped `AppComponentFactory` diagnostic/fallback only after verifying AppCompat/Core component instantiation and every declared activity. Do not broadly redirect arbitrary missing components in the first attempt.
+8. Do not add blanket `-keep` rules, force multidex, or disable app-bundle splits without evidence naming a missing current class or an incomplete delivered split.
+
+Exit criteria: the v32/v35 upgrade regression is covered, the exact requested/missing class or a reproducible installation-state failure is identified, a targeted mitigation is verified on an affected Honor configuration, and the issue remains absent through meaningful Honor/API 34-35 exposure. Zero recurrence on a small cohort alone is no longer sufficient.
 
 ## Phase 3 — Remaining ANRs
 
@@ -172,13 +276,13 @@ Do not optimize an arbitrary method from the dominant idle/no-focus dumps. Use a
 4. Recheck `CommonUtil.handleStartActivity` after unsafe launch guards. If Binder stalls remain, reproduce the exact target package/OEM policy before changing launch semantics.
 5. Run the existing startup, search, configured-widget, and app-drawer macrobenchmarks with large fixtures.
 
-Exit criteria:
+Exit criteria for the ANR phase:
 
 - No app-main slice over 100 ms in the named scenarios.
 - No startup path reaches the input timeout.
-- Version-43 ANR rate and each dominant no-focus cluster improve against version 42 over the same window and device mix.
+- A post-v45 diagnostic release's ANR rate and each dominant no-focus cluster improve against version 42/v45 over the same window and device mix.
 
-Current source disposition: search normalization is moved off main, deterministic unsafe launches are guarded, and no remaining high-volume ANR stack identifies a safe first-party operation that can be moved or removed. Activity-start Binder waits must stay on the main thread by Android contract. The remaining work in this phase is measurement and device/production evidence, not another speculative code change.
+Current source disposition: search normalization is moved off main, deterministic unsafe launches are guarded, and no remaining high-volume ANR stack identifies a safe first-party operation that can be moved or removed. Activity-start Binder waits must stay on the main thread by Android contract. Version 45 confirms that the dominant samples are still idle/framework-only at capture time. The remaining work in this phase is measurement and device/production evidence, not another speculative code change.
 
 ## Phase 4 — Residual crash work
 
@@ -195,6 +299,10 @@ Monitor-only residuals:
 3. **OEM widget detach internals:** `ViewFlipper`/`TextClock` receiver-unregistration failures happen inside vendor/system child views. The known crashing providers are blocked; there is no safe general app-level catch for an arbitrary child view's asynchronous detach work.
 4. **Profile installer/system resource failure:** the observed Choreographer/display event receiver failure is a system resource condition. Disabling profile installation would trade away startup performance without evidence that it fixes the device state.
 5. **Unknown/low-volume:** re-rank after one stable version-44 window and promote only recurring first-party roots.
+
+New version-45 candidate:
+
+1. **Cached widget host view reparenting:** issue `62bcb23...` is a `FrameLayout.onMeasure` NPE reached through `AndroidViewHolder`. Version 42 had 27 AndroidViewHolder-on-measure signatures totaling 49 issue-user count / 54 events, while v45 has one current event. `WidgetInstance` caches an `AppWidgetHostView` and its `AndroidView.factory` removes that same view from any old parent, which can overlap an `AnimatedVisibility` exit/entry and mutate the old view hierarchy during measurement. Before changing production behavior, add a regression test that keeps the outgoing widget composition alive while the incoming composition requests the same widget ID. The intended fix is single-owner cache acquisition/release (or fresh inflation only for overlap), never unconditional live-parent removal. Verify reopen latency and no widget-inflation ANR regression.
 
 ## Phase 5 — Verification and rollout
 
@@ -235,7 +343,7 @@ Post-48-hour production checkpoint (2026-08-31):
 
 - Publisher API state: v44 is an `inProgress` 5% production release; v42 remains the completed fallback release. Internal v44 remains completed.
 - The complete v44 error-issue window from 2026-08-26 00:00 UTC through 2026-08-31 04:00 UTC contains 11 ANR signatures, 14 issue-user counts, 14 events, and **zero crash signatures**.
-- Neither the protected-build missing-class crash `7eed1be192b4c2a320968e14c6d5116e` nor the WorkManager startup crash `949936057a675872942624878f1a41d2` recurred. There is no v44 first-party crash group.
+- At this time-bounded checkpoint, neither missing-class crash `7eed1be192b4c2a320968e14c6d5116e` nor WorkManager startup crash `949936057a675872942624878f1a41d2` had recurred, and there was no v44 first-party crash group. A later search through 2026-09-03 superseded the first conclusion: `7eed1be...` reached 2 users / 28 events on v44.
 - Fresh normalized daily vitals through August 28 report v44 user-perceived crash rate `0.0000` on all three available days. On August 28, v44 user-perceived ANR rate was `0.0060` (0.60%) versus v42 `0.0066` (0.66%); this is not evidence of a regression.
 - The daily v44 normalization counts were approximately 60, 200, and 300 active users. These are rounded daily observations and must not be summed as unique people.
 - Device-brand breakdown provides approximately 160 Honor daily-user observations. Six Honor/API 34-36 ANR signatures account for 9 issue-user counts/events, across HONOR X5b Plus, Magic7 Lite, and X9d samples; there were no Honor crashes and no missing-class recurrence.
@@ -269,13 +377,20 @@ Verification:
 - `:app:bundleRelease`: passed with release-vital lint, R8, upload-keystore validation, bundle packaging, and signing. The signed post-drawer-fix AAB is `app/build/outputs/bundle/release/app-release.aab`, SHA-256 `1e3ac8c147690e29c0af5364c6dc374c75d3641effbe01107ee11b5c98cb7518`; JAR signature verification reports `jar verified`.
 - `git diff --check`: passed.
 
-Release decision:
+Pre-release decision (superseded by production evidence below):
 
 - **Ready for a controlled production rollout**, subject to reviewing and committing the audit changes. Local evidence cannot prove the absence of OEM-only or statistically rare ANRs, and no Honor hardware was available; staged Play telemetry remains the final verification layer.
 - A 50% rollout restricted to one country is acceptable as the data-gathering cohort if rollback is kept available. Check v45 issues and normalized crash/ANR rates after 24 hours and again after 48 hours before adding countries or raising exposure.
 - Halt or roll back for any v45 crash, recurrence of missing-class issue `7eed1be192b4c2a320968e14c6d5116e`, recurrence of WorkManager issue `949936057a675872942624878f1a41d2`, or a sustained normalized user-perceived ANR regression against the v42/v44 comparison cohorts. Track the U-shaped drawer, `EffectTextBlock`, weather/location, and backup/restore stacks separately so new feature regressions are not hidden inside the aggregate rate.
 
-Unprotected release setup status:
+Post-release decision (2026-09-03):
+
+- **The stop gate failed.** Version 45 has two crash signatures, including recurrence of `7eed1be...` with 15 launch events. Do not expand the current 50%/single-country cohort. Prefer halting the staged rollout while the support/escalation packet is prepared; roll back if the affected-user/event count continues rising.
+- No current ANR sample identifies a first-party v45 feature regression. In particular, the v44 `UshapedAppList` first-party issue is absent, and no representative main stack points to weather, backup/restore, search, or drawer code.
+- Play-generated v45 universal APK: SHA-256 `4183fb698300d71da03566a36f80fcf4a13ddc3d26a9529626f1d91210a936e3`; API-32+ base APK: SHA-256 `d9f643910ba1dcc167ac26a290f8dbab77d29ff7647ad715f633afe2a2e977e0`. Both pass the 30-component manifest-to-DEX check and name `ComferApp` directly.
+- Normalized hourly metrics alone must not overrule the issue feed: the available rows contain no nonzero crash-rate bucket even though the issue API has 16 crash events. Treat this as aggregation/rounding/freshness behavior, not proof that the launch crash is harmless.
+
+Historical unprotected-release setup status:
 
 1. **Done:** upload signed v44 AAB to internal with Automatic Protection disabled.
 2. **Done:** download and verify the Play-generated unprotected v44 universal APK.
@@ -285,11 +400,12 @@ Unprotected release setup status:
 
 Rollout gates:
 
-1. Internal track: **passed** for upload, Play-generated artifact verification, and available-emulator cold-launch smoke.
-2. Deactivate the obsolete alpha v3 release unless intentionally retained, and ensure no other testing track contains a rejected permission artifact.
-3. Production: **5% checkpoint passed** after more than 48 hours. Advance to 25%, hold at least 48 hours, then repeat the issue, normalized-rate, and Honor-exposure checks before 50%/100%.
-4. Fetch version-44 issues through the existing service-account flow at least daily. Escalate immediately for any crash, startup regression, materially worse normalized user-perceived ANR rate, WorkManager initialization recurrence, or missing-class recurrence.
-5. Close only after the missing-class cluster remains absent through 100% with meaningful Honor/API 34-36 exposure and the WorkManager/first-party clusters remain absent or materially reduced.
+1. Version-45 artifact identity/component verification: **passed**.
+2. Version-45 crash gate: **failed**; freeze expansion and monitor issue `7eed1be...` daily.
+3. Validate the narrowly targeted `SubscriptionActivity` upgrade-compatibility tombstone; still obtain the exact missing class/installed-split evidence from Google or an affected Honor device before claiming root-cause closure.
+4. Reproduce and regression-test overlapping cached widget-view ownership before changing the `AndroidView` path for `62bcb23...`.
+5. A replacement release may restart with a small Honor-bearing cohort only after its targeted fix or diagnostic has passed local component checks, clean install, upgrade install, every-activity launch, widget reopen/overlap stress, and available physical-device tests.
+6. Close only after the missing-class cluster remains absent with meaningful Honor/API 34-35 exposure and the WorkManager/first-party clusters remain absent or materially reduced.
 
 ## Local verification recorded for version 43
 
