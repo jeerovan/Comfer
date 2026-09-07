@@ -38,6 +38,7 @@ __pycache__/
 /jks-key.properties
 *.jks
 *.keystore
+/app/google-services.json
 
 # Release artifacts should be distributed through Google Play, not Git
 *.apk

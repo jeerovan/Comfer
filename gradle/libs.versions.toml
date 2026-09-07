@@ -3,6 +3,7 @@ agp = "9.4.0"
 appUpdate = "2.1.0"
 appUpdateKtx = "2.1.0"
 datastorePreferences = "1.2.1"
+firebaseBom = "34.18.0"
 kotlin = "2.2.20"
 coreKtx = "1.17.0"
 lifecycleRuntimeKtx = "2.9.4"
@@ -65,6 +66,9 @@ androidx-ui-text = { group = "androidx.compose.ui", name = "ui-text" }
 androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts" }
 app-update = { module = "com.google.android.play:app-update", version.ref = "appUpdate" }
 app-update-ktx = { module = "com.google.android.play:app-update-ktx", version.ref = "appUpdateKtx" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 purchases = { module = "com.revenuecat.purchases:purchases", version.ref = "purchases" }
 ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
