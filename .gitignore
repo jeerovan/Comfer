@@ -30,6 +30,7 @@ validation-artifacts/
 __pycache__/
 *.py[cod]
 /play_reporting.db*
+/play_stats.db*
 
 # Credentials and release-signing material
 /service-account.json
