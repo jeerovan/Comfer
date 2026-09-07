@@ -11,6 +11,17 @@
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
+    <!-- Keep Analytics and Crashlytics without advertising identifiers or attribution. -->
+    <uses-permission
+        android:name="com.google.android.gms.permission.AD_ID"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.ACCESS_ADSERVICES_AD_ID"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION"
+        tools:node="remove" />
+
     <!--
         Wallpaper folders are selected through the Storage Access Framework and use
         persisted URI grants. Keep broad storage/media permissions out even if a
@@ -42,6 +53,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Comfer">
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="google_analytics_default_allow_ad_personalization_signals"
+            android:value="false" />
         <profileable
             android:shell="true"
             tools:targetApi="q" />
