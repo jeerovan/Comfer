@@ -22,7 +22,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -79,7 +78,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalConfiguration
@@ -184,7 +182,6 @@ import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.foundation.border
@@ -253,7 +250,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlin.math.pow
-import kotlinx.coroutines.CancellationException
 
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TouchApp
@@ -264,8 +260,6 @@ import androidx.compose.ui.Alignment
 import com.jeerovan.comfer.utils.CommonUtil
 import kotlinx.coroutines.Job
 
-// 1. Define a custom exception to safely interrupt the animation
-private class SnapEarlyException : CancellationException("Handing off to snap phase")
 
 data class Contact(
     val id: Long,
@@ -3512,14 +3506,13 @@ fun AppListOverlay(apps: List<AppInfo>,
     val longPressGestureKey = "circular_drawer_long_press_gesture"
     var animationSpeed by remember { mutableFloatStateOf(1.0f) }
     var showSpeedDialog by remember { mutableStateOf(false) }
-    val scrollAnimatable = remember { Animatable(0f) }
+    val drawerScroll = rememberUShapeScrollState()
     var centerAppIndex by remember { mutableIntStateOf(0) }
     var lastCenterAppIndex by remember { mutableIntStateOf(0) }
     var centerIconX by remember { mutableFloatStateOf(0f) }
     var centerIconY by remember { mutableFloatStateOf(0f) }
     var centerIconSize by remember { mutableFloatStateOf(0f) }
     var lastSoundTime by remember { mutableLongStateOf(0L) }
-    val snapSpacing = 20f
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
@@ -3552,60 +3545,11 @@ fun AppListOverlay(apps: List<AppInfo>,
     }
 
     LaunchedEffect(apps) {
+        drawerScroll.stop()
         // If the current index is now out of bounds, clamp it to the last valid index
         if (centerAppIndex >= apps.size) {
             centerAppIndex = apps.lastIndex.coerceAtLeast(0)
         }
-    }
-    // A robust helper function to wrap a value within a given range [0, max)
-    fun Float.wrap(max: Float): Float {
-        if (max <= 0f) return 0f // Avoid division by zero
-        return (this % max + max) % max
-    }
-
-    suspend fun settleOnNearestApp(initialVelocity: Float = 0f) {
-        if (apps.isEmpty()) return
-
-        val totalScrollWidth = apps.size * snapSpacing
-        var handoffVelocity = initialVelocity
-
-        // Phase 1: Natural smooth fling
-        if (abs(initialVelocity) > 10f) {
-            try {
-                scrollAnimatable.animateDecay(
-                    initialVelocity = initialVelocity,
-                    animationSpec = exponentialDecay()
-                ) {
-                    // 'this' is the Animatable. Monitor velocity frame-by-frame.
-                    // When velocity drops we abort the decay to start the snap.
-                    if (abs(velocity) < 10f) {
-                        throw SnapEarlyException()
-                    }
-                }
-            } catch (e: SnapEarlyException) {
-                // Animation gracefully interrupted exactly when we wanted
-            }
-
-            // Capture the exact velocity at the exact frame the decay stopped
-            handoffVelocity = scrollAnimatable.velocity
-        }
-
-        // Phase 2: Settle precisely onto the nearest app icon
-        val currentOffset = scrollAnimatable.value
-        val snapTarget = (currentOffset / snapSpacing).roundToInt() * snapSpacing
-
-        if (currentOffset != snapTarget) {
-            scrollAnimatable.animateTo(
-                targetValue = snapTarget,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessLow
-                ),
-                initialVelocity = handoffVelocity // Seamless transfer of momentum
-            )
-        }
-        // Wrap the values correctly to maintain the infinite loop illusion
-        scrollAnimatable.snapTo(scrollAnimatable.value.wrap(totalScrollWidth))
     }
     fun onLongPress(){
         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -3621,11 +3565,6 @@ fun AppListOverlay(apps: List<AppInfo>,
             .pointerInput(activeFolderId) {
                 if (activeFolderId == null) {
                     detectTapGestures(
-                        onPress = {
-                            scope.launch {
-                                scrollAnimatable.stop()
-                            }
-                        },
                         onLongPress = { onLongPress() },
                         onDoubleTap = {
                             if (apps.isNotEmpty()) {
@@ -3675,116 +3614,32 @@ fun AppListOverlay(apps: List<AppInfo>,
                     )
                 }
             }
-            .pointerInput(activeFolderId) {
-                if (activeFolderId == null) {
-                    val velocityTracker = VelocityTracker()
-                    var dragAxis: DragAxis? = null
-                    var verticalDragAmount = 0f
-                    var isSwipeDownTriggered = false
-
-                    detectDragGestures(
-                        onDragStart = {
-                            // Reset state for the new gesture
-                            dragAxis = null
-                            verticalDragAmount = 0f
-                            isSwipeDownTriggered = false
-                            velocityTracker.resetTracking()
-                            scope.launch {
-                                scrollAnimatable.stop() // Stop any ongoing animation
-                            }
-                        },
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-
-                            // Lock the drag axis after a small initial movement
-                            if (dragAxis == null) {
-                                if (dragAmount.x.absoluteValue > 4f || dragAmount.y.absoluteValue > 4f) {
-                                    dragAxis =
-                                        if (dragAmount.x.absoluteValue > dragAmount.y.absoluteValue) {
-                                            DragAxis.HORIZONTAL
-                                        } else {
-                                            DragAxis.VERTICAL
-                                        }
-                                }
-                            }
-
-                            when (dragAxis) {
-                                DragAxis.HORIZONTAL -> {
-                                    velocityTracker.addPosition(
-                                        change.uptimeMillis,
-                                        change.position
-                                    )
-
-                                    val increment = dragAmount.x * 0.3f * animationSpeed
-                                    val totalScrollWidth = apps.size * snapSpacing
-
-                                    scope.launch {
-                                        val newPosition =
-                                            (scrollAnimatable.value + increment).wrap(
-                                                totalScrollWidth
-                                            )
-                                        scrollAnimatable.snapTo(newPosition)
-                                        if(!horizontalSwipeShown) {
-                                            settingsModel.setStepGuideShown(
-                                                context,
-                                                horizontalSwipeKey
-                                            )
-                                            horizontalSwipeShown = true
-                                        }
-                                    }
-                                }
-
-                                DragAxis.VERTICAL -> {
-                                    // Only process vertical drag if the action hasn't been triggered yet.
-                                    if (!isSwipeDownTriggered) {
-                                        verticalDragAmount += dragAmount.y
-                                        // Trigger the action once the threshold is passed.
-                                        if (verticalDragAmount > 80f) {
-                                            onSwipeDown()
-                                            isSwipeDownTriggered =
-                                                true // Prevents repeated calls in this gesture.
-                                            if(!verticalSwipeShown && horizontalSwipeShown && doubleTapShown) {
-                                                settingsModel.setStepGuideShown(
-                                                    context,
-                                                    verticalSwipeKey
-                                                )
-                                                verticalSwipeShown = true
-                                            }
-                                        }
-                                    }
-                                }
-
-                                null -> { /* Wait for axis to be locked */
-                                }
-                            }
-                        },
-                        onDragEnd = {
-                            if (dragAxis == DragAxis.HORIZONTAL) {
-                                val velocity = velocityTracker.calculateVelocity().x * 0.3f * animationSpeed
-                                scope.launch {
-                                    settleOnNearestApp(velocity)
-                                }
-                            }
-                            velocityTracker.resetTracking()
-                        },
-                        onDragCancel = {
-                            velocityTracker.resetTracking()
-                            if (dragAxis == DragAxis.HORIZONTAL) {
-                                scope.launch {
-                                    settleOnNearestApp()
-                                }
-                            }
-                        }
-                    )
-                }
-            }
+            .uShapeScrollGestures(
+                state = drawerScroll,
+                enabled = activeFolderId == null && !showSpeedDialog,
+                itemCount = apps.size,
+                speed = animationSpeed,
+                onHorizontalDrag = {
+                    if (!horizontalSwipeShown) {
+                        settingsModel.setStepGuideShown(context, horizontalSwipeKey)
+                        horizontalSwipeShown = true
+                    }
+                },
+                onSwipeDown = {
+                    onSwipeDown()
+                    if (!verticalSwipeShown && horizontalSwipeShown && doubleTapShown) {
+                        settingsModel.setStepGuideShown(context, verticalSwipeKey)
+                        verticalSwipeShown = true
+                    }
+                },
+            )
     ) {
         if (apps.isNotEmpty()) {
             UshapedAppList(
                 apps = apps,
                 notificationPackages,
                 updateCenterIndex = { updateCenterAppIndex(it) },
-                scrollOffset = -scrollAnimatable.value,
+                scrollOffset = -drawerScroll.offset,
                 iconSize = iconSize,
                 iconShape = iconShape,
                 updateCenterIconGeom = { x, y, size ->
@@ -3926,7 +3781,6 @@ fun AppListOverlay(apps: List<AppInfo>,
     }
 }
 
-private enum class DragAxis { HORIZONTAL, VERTICAL }
 
 @Composable
 fun SensitivityDialog(
@@ -4546,7 +4400,7 @@ fun UshapedAppList(
         val numVisibleIcons = layoutParams.numSideIcons * 2 + layoutParams.numTopIcons + 1
 
         // Direct calculation - scrollOffset changes frequently so no derivedStateOf needed
-        val smoothScrollIndex = scrollOffset / 20f
+        val smoothScrollIndex = scrollOffset / U_SHAPE_ICON_STEP
         val baseScrollIndex = floor(smoothScrollIndex)
         val scrollFraction = smoothScrollIndex - baseScrollIndex
         val startLogicalIndex = uShapeLogicalIndex(
@@ -4609,10 +4463,12 @@ fun UshapedAppList(
             val sizePrev = if ((i - 1) == centerSlot) largeIconSize else smallIconSize
             val size = lerp(sizeCurrent.value, sizePrev.value, scrollFraction).dp
 
-            if (size > largeIconSize - 10.dp) {
-                updateCenterIndex(appIndex)
+            if (i == centerSlot + if (scrollFraction >= .5f) 1 else 0) {
                 val sizePx = with(density) { size.toPx() }
-                updateCenterIconGeom(x + sizePx / 2, y + sizePx / 2, sizePx)
+                SideEffect {
+                    updateCenterIndex(appIndex)
+                    updateCenterIconGeom(x + sizePx / 2, y + sizePx / 2, sizePx)
+                }
             }
 
             // Preserve the identity of an app occurrence as it moves between slots.

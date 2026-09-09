@@ -152,7 +152,13 @@ suspend fun getAppInfo(
             val customIcon = if (iconPackPackage != null) {
                 IconPackManager.getCustomIcon(context, info.componentName)
             } else null
-            val drawable = customIcon ?: cachedIcon ?: info.getBadgedIcon(0).also {
+            // A zero density forces the PackageItemInfo.loadIcon fallback. Samsung
+            // Android 11 crashed natively in that path (AssetManager2::FindEntry).
+            // Request the actual display density to prefer direct resource loading,
+            // while retaining LauncherActivityInfo's work-profile badging.
+            val densityDpi = context.resources.displayMetrics.densityDpi
+                .coerceAtLeast(android.util.DisplayMetrics.DENSITY_DEFAULT)
+            val drawable = customIcon ?: cachedIcon ?: info.getBadgedIcon(densityDpi).also {
                 AppIconCache.cacheIcon(cacheKey, it)
             }
             drawable to info.label.toString().trim()
