@@ -92,6 +92,12 @@ android {
     }
 
     buildTypes {
+        create("notificationTest") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".notificationtest"
+            versionNameSuffix = "-notification-test"
+            matchingFallbacks += listOf("debug")
+        }
         release {
             if (hasReleaseSigningCredentials) {
                 signingConfig = signingConfigs.getByName("release")
@@ -115,6 +121,7 @@ android {
             isDebuggable = false
         }
     }
+    testBuildType = providers.gradleProperty("comferTestBuildType").getOrElse("debug")
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -123,6 +130,11 @@ android {
         compose = true
         buildConfig = true
     }
+}
+
+// The isolated, debug-signed device harness must not use production Firebase.
+tasks.configureEach {
+    if (name == "processNotificationTestGoogleServices") enabled = false
 }
 
 ksp {
@@ -181,4 +193,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    "notificationTestImplementation"(libs.androidx.ui.test.manifest)
 }

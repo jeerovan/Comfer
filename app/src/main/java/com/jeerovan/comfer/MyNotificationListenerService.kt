@@ -14,6 +14,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.isActive
@@ -51,95 +52,323 @@ internal class DebouncedSyncCoordinator(
 
 @OptIn(FlowPreview::class)
 class MyNotificationListenerService : NotificationListenerService() {
-
     companion object {
-        // Interval for the periodic resync that reconciles the snapshot with the
-        // system's live set even when a remove event is missed by the listener.
-        private const val RESYNC_INTERVAL_MS = 30_000L
-        private const val EVENT_DEBOUNCE_MS = 250L
-
         private val _activeNotifications = MutableStateFlow<List<StatusBarNotification>>(emptyList())
-        // Public live snapshot consumed by the launcher UI.
         val activeNotifications = _activeNotifications.asStateFlow()
+        private val mutableSnapshot = MutableStateFlow(com.jeerovan.comfer.notifications.NotificationSnapshot())
+        val snapshot = mutableSnapshot.asStateFlow()
+        @Volatile private var connectedService: MyNotificationListenerService? = null
+
+        fun hasAccess(context: android.content.Context): Boolean {
+            val expected = android.content.ComponentName(context, MyNotificationListenerService::class.java)
+            if (android.os.Build.VERSION.SDK_INT >= 27) return context.getSystemService(android.app.NotificationManager::class.java)
+                .isNotificationListenerAccessGranted(expected)
+            return android.provider.Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
+                ?.split(':')?.any { android.content.ComponentName.unflattenFromString(it) == expected } == true
+        }
+
+        private val recoveryScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+        private var recoveryJob: Job? = null
+        private var lastRecoveryAttempt = Long.MIN_VALUE
+
+        fun refresh(context: android.content.Context, force: Boolean = false) {
+            val app = context.applicationContext
+            recoveryScope.launch {
+                if (!hasAccess(app)) {
+                    recoveryJob?.cancel()
+                    _activeNotifications.value = emptyList()
+                    mutableSnapshot.update { it.copy(items = emptyList(), health = com.jeerovan.comfer.notifications.ListenerHealth.ACCESS_NEEDED) }
+                    return@launch
+                }
+                connectedService?.syncCoordinator?.request()
+                if (snapshot.value.health == com.jeerovan.comfer.notifications.ListenerHealth.CONNECTED && connectedService != null) return@launch
+                if (recoveryJob?.isActive == true) return@launch
+                val now = android.os.SystemClock.elapsedRealtime()
+                if (!force && lastRecoveryAttempt != Long.MIN_VALUE && now - lastRecoveryAttempt < 60_000) {
+                    mutableSnapshot.update { it.copy(items = emptyList(), health = com.jeerovan.comfer.notifications.ListenerHealth.RECOVERY_NEEDED) }
+                    return@launch
+                }
+                lastRecoveryAttempt = now
+                recoveryJob = recoveryScope.launch recovery@ {
+                    val component = android.content.ComponentName(app, MyNotificationListenerService::class.java)
+                    mutableSnapshot.update { it.copy(items = emptyList(), health = com.jeerovan.comfer.notifications.ListenerHealth.RECONNECTING) }
+                    _activeNotifications.value = emptyList()
+                    try {
+                        android.util.Log.i("NotificationRecovery", "request_rebind")
+                        requestRebind(component)
+                        repeat(20) {
+                            delay(250)
+                            if (!hasAccess(app)) {
+                                mutableSnapshot.update { it.copy(items = emptyList(), health = com.jeerovan.comfer.notifications.ListenerHealth.ACCESS_NEEDED) }
+                                return@recovery
+                            }
+                            if (snapshot.value.health == com.jeerovan.comfer.notifications.ListenerHealth.CONNECTED && connectedService != null) return@recovery
+                        }
+                        // Android 7 can retain a dead binding across package updates. Announce
+                        // a package change without ever disabling the service or changing access.
+                        val manager = app.packageManager
+                        val current = manager.getComponentEnabledSetting(component)
+                        val defaultState = android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+                        val enabledState = android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                        if (android.os.Build.VERSION.SDK_INT <= 25 && (current == defaultState || current == enabledState)) {
+                            android.util.Log.i("NotificationRecovery", "refresh_enabled_registration")
+                            manager.setComponentEnabledSetting(component,
+                                if (current == defaultState) enabledState else defaultState,
+                                android.content.pm.PackageManager.DONT_KILL_APP)
+                            requestRebind(component)
+                        }
+                        repeat(80) {
+                            delay(250)
+                            if (!hasAccess(app)) {
+                                mutableSnapshot.update { it.copy(items = emptyList(), health = com.jeerovan.comfer.notifications.ListenerHealth.ACCESS_NEEDED) }
+                                return@recovery
+                            }
+                            if (snapshot.value.health == com.jeerovan.comfer.notifications.ListenerHealth.CONNECTED && connectedService != null) return@recovery
+                        }
+                    } catch (cancelled: CancellationException) { throw cancelled }
+                    catch (_: Exception) { /* Report a recoverable state, never a healthy empty inbox. */ }
+                    mutableSnapshot.update { it.copy(items = emptyList(), health = if (hasAccess(app))
+                        com.jeerovan.comfer.notifications.ListenerHealth.RECOVERY_NEEDED else com.jeerovan.comfer.notifications.ListenerHealth.ACCESS_NEEDED) }
+                }
+            }
+        }
+
+        suspend fun act(key: String, revision: Long, action: String, sessionId: String): String = withContext(Dispatchers.Main) {
+            connectedService?.performAction(key, revision, action, sessionId) ?: "unavailable"
+        }
     }
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val syncCoordinator = DebouncedSyncCoordinator(
-        scope = serviceScope,
-        debounceMillis = EVENT_DEBOUNCE_MS,
-        sync = ::syncActiveNotifications,
-    )
+    private val ledger = com.jeerovan.comfer.notifications.NotificationLedger()
+    private val handles = linkedMapOf<String, StatusBarNotification>()
+    private val lock = Any()
+    private data class ActionIdentity(val content: android.app.PendingIntent?, val delete: android.app.PendingIntent?, val actions: List<List<Any?>>?)
+    private val actionIdentities = mutableMapOf<String, Pair<ActionIdentity, Long>>()
+    private var nextActionIdentity = 0L
+    @Volatile private var connectionId = ""
+    private fun actionIdentity(sbn: StatusBarNotification): Long {
+        val notification = sbn.notification
+        val identity = ActionIdentity(notification.contentIntent, notification.deleteIntent,
+            notification.actions?.map { listOf(it.title?.toString(), it.actionIntent, it.remoteInputs?.map { input -> input.resultKey }) })
+        val old = actionIdentities[sbn.key]
+        if (old?.first == identity) return old.second
+        val token = ++nextActionIdentity
+        actionIdentities[sbn.key] = identity to token
+        return token
+    }
+    private data class Event(val generation: Long, val posted: StatusBarNotification? = null, val removed: String? = null)
+    private val events = kotlinx.coroutines.channels.Channel<Event>(256)
+    private val syncCoordinator = DebouncedSyncCoordinator(serviceScope, 250L) { events.send(Event(connectionGeneration)) }
     private var periodicJob: Job? = null
+    private var consumer: Job? = null
+    @Volatile private var connectionGeneration = 0L
+    @Volatile private var connected = false
+    @Volatile private var overflow = false
+    @Volatile private var dirty = false
+    @Volatile private var lastSyncElapsed = 0L
 
     override fun onListenerConnected() {
         super.onListenerConnected()
-        syncCoordinator.stop()
-        periodicJob?.cancel()
+        connectionGeneration++
+        connectionId = java.util.UUID.randomUUID().toString()
+        connected = true
+        connectedService = this
+        android.util.Log.i("NotificationRecovery", "listener_connected")
+        com.jeerovan.comfer.notifications.NotificationPreferences.initialize(this)
+        serviceScope.launch { com.jeerovan.comfer.notifications.NotificationPreferences.update { it.copy(setup = true) } }
+        serviceScope.launch { com.jeerovan.comfer.notifications.NotificationQuietHours.reconcile(this@MyNotificationListenerService) }
+        if (consumer == null) consumer = serviceScope.launch {
+            for (event in events) {
+                try {
+                    if (!connected || event.generation != connectionGeneration) continue
+                    if (event.posted == null && event.removed == null) {
+                        val traceCookie = PerformanceTrace.notificationSyncStarted()
+                        PerformanceTrace.beginAsync("notificationSync", traceCookie)
+                        try {
+                        val live = getActiveNotifications()?.toList() ?: throw IllegalStateException("Notification listener snapshot unavailable")
+                        synchronized(lock) {
+                            if (!connected || event.generation != connectionGeneration) return@synchronized
+                            handles.clear(); live.forEach { handles[it.key] = it }
+                            actionIdentities.keys.retainAll(handles.keys)
+                            ledger.reconcile(live.map(::normalize))
+                            overflow = false
+                            dirty = false
+                            lastSyncElapsed = android.os.SystemClock.elapsedRealtime()
+                            publish(System.currentTimeMillis())
+                        }
+                        } finally {
+                            PerformanceTrace.endAsync("notificationSync", traceCookie)
+                            PerformanceTrace.notificationSyncFinished()
+                        }
+                    } else synchronized(lock) {
+                        if (!connected || event.generation != connectionGeneration) return@synchronized
+                        event.posted?.let { handles[it.key] = it; ledger.put(normalize(it)) }
+                        event.removed?.let { handles.remove(it); actionIdentities.remove(it); ledger.remove(it) }
+                        dirty = true
+                        // Capture revisions immediately; publish a reconciled UI snapshot after
+                        // the existing debounce so a burst does not sort/recompose per callback.
+                    }
+                } catch (e: CancellationException) { throw e }
+                catch (_: SecurityException) {
+                    mutableSnapshot.value = mutableSnapshot.value.copy(items = emptyList(), health = com.jeerovan.comfer.notifications.ListenerHealth.RESTRICTED)
+                    _activeNotifications.value = emptyList()
+                }
+                catch (_: Exception) {
+                    val wasHealthy = snapshot.value.health == com.jeerovan.comfer.notifications.ListenerHealth.CONNECTED
+                    mutableSnapshot.update { it.copy(items = emptyList(), health = if (it.health == com.jeerovan.comfer.notifications.ListenerHealth.RECOVERY_NEEDED) it.health else com.jeerovan.comfer.notifications.ListenerHealth.RECONNECTING) }
+                    _activeNotifications.value = emptyList()
+                    if (wasHealthy) refresh(this@MyNotificationListenerService)
+                }
+            }
+        }
         syncCoordinator.start()
-        requestSync()
-        // Periodic resync so the launcher never shows a stale icon that the
-        // status-bar shade no longer displays (e.g. a removal event we missed).
+        syncCoordinator.request()
+        periodicJob?.cancel()
         periodicJob = serviceScope.launch {
             while (isActive) {
-                delay(RESYNC_INTERVAL_MS)
-                requestSync()
+                delay(1000L)
+                if (dirty || android.os.SystemClock.elapsedRealtime() - lastSyncElapsed > 30_000L)
+                    events.send(Event(connectionGeneration))
             }
         }
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         super.onNotificationPosted(sbn)
-        requestSync()
+        if (!connected) return
+        if (sbn != null && events.trySend(Event(connectionGeneration, posted = sbn)).isFailure) reportOverflow()
+        syncCoordinator.request()
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         super.onNotificationRemoved(sbn)
-        requestSync()
-    }
-
-    /**
-     * Recomputes the snapshot from the system's live active set, so the widgets
-     * always match what the status-bar shade currently shows.
-     */
-    private fun requestSync() {
+        if (!connected) return
+        if (sbn != null && events.trySend(Event(connectionGeneration, removed = sbn.key)).isFailure) reportOverflow()
         syncCoordinator.request()
     }
 
-    private suspend fun syncActiveNotifications() {
-        val traceCookie = PerformanceTrace.notificationSyncStarted()
-        PerformanceTrace.beginAsync("notificationSync", traceCookie)
-        try {
-            val live = withContext(Dispatchers.IO) { getActiveNotifications() }
-            val snapshot = live
-                ?.asSequence()
-                ?.sortedByDescending { it.postTime }
-                ?.distinctBy { it.packageName }
-                ?.toList()
-                ?: emptyList()
-            val currentSignature = _activeNotifications.value.map { it.key to it.postTime }
-            val newSignature = snapshot.map { it.key to it.postTime }
-            if (currentSignature != newSignature) {
-                _activeNotifications.value = snapshot
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (_: Exception) {
-            // Listener may have lost binding; keep last valid snapshot.
-        } finally {
-            PerformanceTrace.endAsync("notificationSync", traceCookie)
-            PerformanceTrace.notificationSyncFinished()
+    private fun reportOverflow() {
+        overflow = true; dirty = true
+        mutableSnapshot.update { it.copy(reconciliationNeeded = true) }
+    }
+
+    private fun normalize(sbn: StatusBarNotification): com.jeerovan.comfer.notifications.NotificationItem =
+        runCatching { normalizeContent(sbn) }.getOrElse {
+            // One unsupported extras payload must not prevent other apps from being viewed.
+            com.jeerovan.comfer.notifications.NotificationItem(
+                sbn.key, sbn.packageName, sbn.user.hashCode(), "", "", sbn.postTime, sbn.groupKey,
+                sbn.notification.flags and android.app.Notification.FLAG_GROUP_SUMMARY != 0,
+                clearable = false, protected = true,
+                actionSignature = actionIdentity(sbn),
+                hasContentIntent = sbn.notification.contentIntent != null,
+            )
         }
+
+    private fun normalizeContent(sbn: StatusBarNotification): com.jeerovan.comfer.notifications.NotificationItem {
+        val notification = sbn.notification
+        val extras = notification.extras
+        val title = extras?.getCharSequence(android.app.Notification.EXTRA_TITLE)?.toString().orEmpty().take(2048)
+        val messages = extras?.getParcelableArray(android.app.Notification.EXTRA_MESSAGES)
+            ?.mapNotNull { (it as? android.os.Bundle)?.getCharSequence("text")?.toString() }
+            ?.takeIf { it.isNotEmpty() }?.joinToString("\n")
+        val body = messages ?: extras?.getCharSequence(android.app.Notification.EXTRA_BIG_TEXT)?.toString()
+            ?: extras?.getCharSequence(android.app.Notification.EXTRA_TEXT)?.toString()
+            ?: extras?.getCharSequenceArray(android.app.Notification.EXTRA_TEXT_LINES)?.joinToString("\n")
+            ?: ""
+        val protected = sbn.isOngoing || notification.category in setOf(
+            android.app.Notification.CATEGORY_CALL, android.app.Notification.CATEGORY_ALARM,
+            android.app.Notification.CATEGORY_TRANSPORT, android.app.Notification.CATEGORY_NAVIGATION,
+            android.app.Notification.CATEGORY_SYSTEM,
+        )
+        return com.jeerovan.comfer.notifications.NotificationItem(
+            sbn.key, sbn.packageName, sbn.user.hashCode(), title, body.take(8192), sbn.postTime,
+            sbn.groupKey, notification.flags and android.app.Notification.FLAG_GROUP_SUMMARY != 0,
+            sbn.isClearable, protected,
+            actionSignature = actionIdentity(sbn),
+            channelId = if (android.os.Build.VERSION.SDK_INT >= 26) notification.channelId else null,
+            progress = extras?.getInt(android.app.Notification.EXTRA_PROGRESS, 0) ?: 0,
+            progressMax = extras?.getInt(android.app.Notification.EXTRA_PROGRESS_MAX, 0) ?: 0,
+            progressIndeterminate = extras?.getBoolean(android.app.Notification.EXTRA_PROGRESS_INDETERMINATE, false) ?: false,
+            hasContentIntent = notification.contentIntent != null,
+        )
+    }
+
+    private fun publish(lastSync: Long?) {
+        if (!connected) return
+        mutableSnapshot.value = com.jeerovan.comfer.notifications.NotificationSnapshot(
+            ledger.items(), com.jeerovan.comfer.notifications.ListenerHealth.CONNECTED, lastSync, overflow, connectionId,
+        )
+        // Compatibility projection for existing home badges; full records live in snapshot.
+        _activeNotifications.value = handles.values.sortedByDescending { it.postTime }
+            .distinctBy { it.user to it.packageName }
+    }
+
+    private fun performAction(key: String, revision: Long, action: String, sessionId: String): String = synchronized(lock) {
+        if (!connected || sessionId != connectionId || mutableSnapshot.value.health != com.jeerovan.comfer.notifications.ListenerHealth.CONNECTED) return@synchronized "unavailable"
+        val item = ledger.current(key, revision) ?: return@synchronized "changed"
+        try {
+            val current = getActiveNotifications(arrayOf(key))?.firstOrNull() ?: return@synchronized "removed"
+            if (normalize(current).copy(revision = 0) != item.copy(revision = 0)) {
+                syncCoordinator.request(); return@synchronized "changed"
+            }
+            when (action) {
+                "open" -> {
+                    // Opening never requests cancellation, even for FLAG_AUTO_CANCEL.
+                    // The source application can still withdraw its own notification.
+                    val intent = current.notification.contentIntent
+                    if (intent != null) intent.send()
+                    else return@synchronized openApp(item)
+                }
+                "dismiss" -> {
+                    if (!item.clearable || item.protected || item.summary || item.appId in com.jeerovan.comfer.notifications.NotificationPreferences.state.value.protectedApps) return@synchronized "protected"
+                    cancelNotification(key)
+                }
+                "snooze" -> {
+                    if (android.os.Build.VERSION.SDK_INT < 26 || !item.clearable || item.protected || item.appId in com.jeerovan.comfer.notifications.NotificationPreferences.state.value.protectedApps) return@synchronized "unavailable"
+                    snoozeNotification(key, 15 * 60_000L)
+                }
+                else -> return@synchronized "unavailable"
+            }
+            "requested"
+        } catch (_: android.app.PendingIntent.CanceledException) { if (action == "open") openApp(item) else "expired" }
+        catch (_: Exception) { "failed" }
+    }
+
+    private fun openApp(item: com.jeerovan.comfer.notifications.NotificationItem): String {
+        if (item.profile != android.os.Process.myUserHandle().hashCode()) return "unavailable"
+        return try {
+            val intent = packageManager.getLaunchIntentForPackage(item.app) ?: return "unavailable"
+            startActivity(intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+            "app_open_requested"
+        } catch (_: Exception) { "failed" }
     }
 
     override fun onListenerDisconnected() {
-        syncCoordinator.stop()
-        periodicJob?.cancel()
-        periodicJob = null
+        connectionGeneration++
+        connected = false
+        val ownsSnapshot = connectedService == null || connectedService === this
+        if (connectedService === this) connectedService = null
+        synchronized(lock) {
+            if (ownsSnapshot) _activeNotifications.value = emptyList()
+            handles.clear(); actionIdentities.clear(); ledger.reconcile(emptyList())
+            if (ownsSnapshot) mutableSnapshot.value = mutableSnapshot.value.copy(items = emptyList(), health = if (hasAccess(this)) com.jeerovan.comfer.notifications.ListenerHealth.RECONNECTING else com.jeerovan.comfer.notifications.ListenerHealth.ACCESS_NEEDED)
+        }
+        syncCoordinator.stop(); periodicJob?.cancel()
         super.onListenerDisconnected()
+        refresh(this)
     }
 
     override fun onDestroy() {
+        connectionGeneration++
+        connected = false
+        val ownsSnapshot = connectedService == null || connectedService === this
+        if (connectedService === this) connectedService = null
+        synchronized(lock) {
+            handles.clear(); actionIdentities.clear(); ledger.reconcile(emptyList())
+            if (ownsSnapshot) _activeNotifications.value = emptyList()
+            if (ownsSnapshot) mutableSnapshot.value = mutableSnapshot.value.copy(items = emptyList(), health = if (hasAccess(this)) com.jeerovan.comfer.notifications.ListenerHealth.RECONNECTING else com.jeerovan.comfer.notifications.ListenerHealth.ACCESS_NEEDED)
+        }
+        serviceScope.cancel(); events.close()
         super.onDestroy()
-        serviceScope.cancel()
     }
 }

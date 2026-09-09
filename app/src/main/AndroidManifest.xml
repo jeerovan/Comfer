@@ -10,6 +10,8 @@
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- Keep Analytics and Crashlytics without advertising identifiers or attribution. -->
     <uses-permission
@@ -59,6 +61,22 @@
         <meta-data
             android:name="google_analytics_default_allow_ad_personalization_signals"
             android:value="false" />
+        <activity android:name=".notifications.NotificationInboxActivity" android:exported="false" />
+        <service android:name=".notifications.ComferQuietConditionProvider"
+            android:label="@string/notification_quiet_rule"
+            android:permission="android.permission.BIND_CONDITION_PROVIDER_SERVICE"
+            android:exported="true">
+            <intent-filter><action android:name="android.service.notification.ConditionProviderService" /></intent-filter>
+        </service>
+        <receiver android:name=".notifications.NotificationQuietReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.app.action.NOTIFICATION_POLICY_ACCESS_GRANTED_CHANGED" />
+            </intent-filter>
+        </receiver>
         <profileable
             android:shell="true"
             tools:targetApi="q" />
@@ -85,9 +103,7 @@
         <activity
             android:name=".SettingsActivity"
             android:excludeFromRecents="true"
-            android:exported="false"
-            android:launchMode="singleTask"
-            android:taskAffinity="${applicationId}.settings" />
+            android:exported="false" />
         <!--
             Compatibility tombstone for tasks created by version 32 and older.
             Keep the historical class name loadable while affected devices age

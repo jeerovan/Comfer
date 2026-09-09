@@ -9,20 +9,27 @@ gradle/gradle-daemon-jvm.properties
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .DS_Store
-/build
-/macrobenchmark/build/
+# Gradle output in every module, including notification fixtures
+build/
 /captures
 .externalNativeBuild
 .cxx
 local.properties
 .idea/
 .kotlin/
+/.serena/
+/.codex/
 .env
 .env.*
 !.env.example
 /app/release
 
-validation-artifacts/
+# Device screenshots, UI dumps, test reports and other generated evidence
+/validation-artifacts/
+
+# Runtime logs and JVM/Android heap dumps
+*.log
+*.hprof
 
 # Local Python/reporting state
 /venv/

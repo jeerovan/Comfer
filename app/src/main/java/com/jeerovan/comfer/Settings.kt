@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package com.jeerovan.comfer
 
 import com.jeerovan.comfer.utils.FlowerShape
@@ -35,8 +37,16 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.ui.platform.testTag
+import com.jeerovan.comfer.notifications.NotificationPreferences
+import com.jeerovan.comfer.notifications.reachableHeightDp
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -159,6 +169,12 @@ data class IconPackInfo(
 private enum class BackupRestoreOperation { BACKUP, RESTORE }
 
 class SettingsActivity : AppCompatActivity() {
+    companion object {
+        fun open(context: android.content.Context) {
+            // Internal navigation stays in the launcher's task, like the notification inbox.
+            context.startActivity(Intent(context, SettingsActivity::class.java))
+        }
+    }
     private val settingsViewModel: SettingsViewModel by viewModels()
     private val launchStartedAtMs = SystemClock.elapsedRealtime()
     private val launchTraceCookie = hashCode()
@@ -166,6 +182,7 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        NotificationPreferences.initialize(this)
         PerformanceTrace.beginAsync("settingsLaunch", launchTraceCookie)
         PerformanceTrace.begin("settingsActivityCreate")
         // Start the activity-scoped snapshot load before Compose first accesses the
@@ -418,12 +435,13 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     LaunchedEffect(Unit) {
         howtoGuideShown = settingsViewModel.isStepGuideShown(context, howtoGuideKey)
     }
-    Box( modifier = Modifier
-        .fillMaxSize()
-    ) {
+    BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().testTag("settings-viewport")) {
+        val landscape = maxWidth > maxHeight
+        val startPadding = if (landscape) 0.dp else (maxHeight.value - reachableHeightDp(maxHeight.value)).coerceAtLeast(0f).dp
+        Column(Modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = Modifier,
-            contentPadding = WindowInsets.navigationBars.asPaddingValues()
+            modifier = Modifier.weight(1f).testTag("settings-list"),
+            contentPadding = PaddingValues(top = startPadding)
         ) {
             item {
                 Spacer(Modifier.height(24.dp))
@@ -448,7 +466,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 ListItem(
                     modifier = howtoGuideModifier,
                     headlineContent = { Text(stringResource(R.string.title_how_to)) },
-                    supportingContent = { Text(stringResource(R.string.title_app_guide)) },
+                    supportingContent = { Text(stringResource(R.string.app_guide_title)) },
                     leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
                         contentDescription = stringResource(R.string.icon_how_to_guide)) },
                     trailingContent = {
@@ -1132,6 +1150,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             item { Spacer(Modifier.height(24.dp)) }
         }
+        }
     }
     pendingRestore?.let { (source, preview) ->
         val createdAt = remember(preview.createdAtEpochMs) {
@@ -1345,7 +1364,7 @@ fun ShapeSelectionDialog(
         title = { Text(stringResource(R.string.title_select_icon_shape)) },
         text = {
             Column {
-                Row(
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
@@ -1363,7 +1382,7 @@ fun ShapeSelectionDialog(
                     }
                 }
                 Spacer(Modifier.height(8.dp))
-                Row(
+                FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
@@ -1922,12 +1941,12 @@ fun SocialLinksRow(
         }
     }
 
-    Row(
+    FlowRow(
         modifier = modifier
             .fillMaxWidth()
             .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         SocialIconButton(
             icon = R.drawable.reddit_icon,

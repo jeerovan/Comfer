@@ -264,7 +264,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         if(showBatteryIcon || showBatteryPercentage){
             widgetIds.add("battery")
         }
-        if (isNotificationServiceEnabled && showNotificationRow){
+        com.jeerovan.comfer.notifications.NotificationPreferences.initialize(getApplication())
+        if (isNotificationServiceEnabled || com.jeerovan.comfer.notifications.NotificationPreferences.state.value.setup){
             widgetIds.add("notifications")
         }
         return widgetIds
@@ -1474,8 +1475,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     // Function to check if the notification listener permission is enabled
     fun isNotificationServiceEnabled(context: Context): Boolean {
-        val enabledListeners = NotificationManagerCompat.getEnabledListenerPackages(context)
-        return enabledListeners.contains(context.packageName)
+        return MyNotificationListenerService.hasAccess(context)
     }
     fun requestNotificationPermission(context: Context) {
         val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)

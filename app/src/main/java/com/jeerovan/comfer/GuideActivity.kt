@@ -7,6 +7,17 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material3.Tab
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -68,14 +79,64 @@ class GuideActivity: AppCompatActivity(){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserGuideScreen() {
+    var section by rememberSaveable { mutableIntStateOf(0) }
+    Box(Modifier.fillMaxSize().safeDrawingPadding()) {
+        Column(Modifier.fillMaxSize()) {
+            androidx.compose.foundation.layout.Box(Modifier.weight(1f).testTag("app-guide-content")) {
+                if (section == 0) NavigationGuide() else NotificationGuide()
+            }
+            PrimaryTabRow(selectedTabIndex = section) {
+                Tab(selected = section == 0, onClick = { section = 0 }, text = { Text(stringResource(R.string.app_guide_navigation)) })
+                Tab(selected = section == 1, onClick = { section = 1 }, text = { Text(stringResource(R.string.app_guide_notifications)) })
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotificationGuide() {
+    LazyColumn(Modifier.fillMaxSize().testTag("notification-guide-list"), contentPadding = PaddingValues(bottom = 24.dp)) {
+        item { GuideSectionHeader(stringResource(R.string.app_guide_start_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_start_body)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_tabs_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_tabs_body)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_gestures_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_gestures_body)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_actions_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_actions_body)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_dismiss_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_dismiss_body)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_more_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_more_body)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_settings_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_settings_body)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_quiet_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_quiet_body)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_privacy_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_privacy_body)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_common)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_howto_hide_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_howto_hide_body)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_howto_mute_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_howto_mute_body)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_howto_focus_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_howto_focus_body)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_howto_clear_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_howto_clear_body)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_howto_recover_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_howto_recover_body)) }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NavigationGuide() {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize(),
-            contentPadding = WindowInsets.navigationBars.asPaddingValues()
+            contentPadding = PaddingValues(bottom = 24.dp)
         ) {
-            item {
-                Spacer(Modifier.height(24.dp))
-            }
+            item { GuideSectionHeader(stringResource(R.string.app_guide_title)) }
             item {
                 GuideSectionHeader(title = stringResource(R.string.title_home_screen))
             }

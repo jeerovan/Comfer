@@ -6,6 +6,9 @@
    See https://developer.android.com/about/versions/12/backup-restore
 -->
 <full-backup-content>
+    <!-- Notification imports require explicit review; Android grants and owned rule IDs cannot migrate. -->
+    <exclude domain="sharedpref" path="notification_configuration.xml" />
+    <exclude domain="sharedpref" path="notification_quiet_runtime.xml" />
     <!--
    <include domain="sharedpref" path="."/>
    <exclude domain="sharedpref" path="device.xml"/>

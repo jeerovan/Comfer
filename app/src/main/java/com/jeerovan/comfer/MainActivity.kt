@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package com.jeerovan.comfer
 
 import android.Manifest
@@ -1718,8 +1720,8 @@ fun WidgetPickerFullScreen(
                                 Text(group.appName, style = MaterialTheme.typography.titleLarge)
                             }
                             Spacer(Modifier.height(16.dp))
-                            LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                items(group.providers) { provider ->
+                            androidx.compose.foundation.layout.FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                group.providers.forEach { provider ->
                                     WidgetPreviewItem(
                                         provider = provider,
                                         onSelected = {
@@ -2139,7 +2141,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
                      folders: Map<String,List<AppInfo>>,
                      appWidgetManager: AppWidgetManager,
                      mainWidgetHost: AppWidgetHost,
-                     notificationIcons: List<Pair<String, Drawable>>,
                      notificationPackages: List<String>,
                      settingsModel: SettingsViewModel,
                      onSwipeUp: () -> Unit,
@@ -2407,7 +2408,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 showBorder = editMode,
                                 backgroundColor)
                             "notifications" -> NotificationIconRow(
-                                notificationIcons,
                                 settings = settings,
                                 foregroundColor =  foregroundColor,
                                 showBorder = editMode,
@@ -2484,8 +2484,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                             )
                                             settingsLongPressShown = true
                                         }
-                                        val intent = Intent(context, SettingsActivity::class.java)
-                                        handleStartActivity(context, intent, null)
+                                        SettingsActivity.open(context)
                                     },
                                     onDoubleTap = {
                                         if(!recentAppsGestureShown && widgetsLongPressShown){
@@ -4181,7 +4180,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             }
         }
     }
-    val notificationIcons by rememberNotificationDrawables(notifications,hasNotificationAccess,LocalContext.current)
 
     LaunchedEffect(Unit) {
         mainViewModel.backPressEvent.collect {
@@ -4303,7 +4301,6 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 folders,
                 widgetHosts.appWidgetManager,
                 widgetHosts.mainHost,
-                notificationIcons = notificationIcons,
                 notificationPackages = notificationPackages,
                 settingsModel = settingsViewModel,
                 onSwipeUp = {
@@ -5489,42 +5486,7 @@ fun FiveColumnLayout(
 }
 
 @Composable
-fun rememberNotificationDrawables(
-    notifications: List<StatusBarNotification>,
-    hasNotificationAccess: Boolean,
-    context: Context
-): State<List<Pair<String, Drawable>>> {
-    // produceState is a cleaner, more concise way to handle this pattern
-    return produceState<List<Pair<String, Drawable>>>(
-        initialValue = emptyList(),
-        notifications,
-        hasNotificationAccess
-    ) {
-        if (!hasNotificationAccess) {
-            value = emptyList()
-            return@produceState
-        }
-        // The loading logic remains on a background thread
-        value = withContext(Dispatchers.IO) {
-            notifications.mapNotNull { sbn ->
-                // Try to load the drawable and handle exceptions *outside* the final expression.
-                val drawable: Drawable? = try {
-                    sbn.notification.smallIcon.loadDrawable(context)
-                } catch (e: Exception) {
-                    Log.e("rememberDrawables", "Failed to load drawable for ${sbn.key}", e)
-                    null
-                }
-                // Now, work with the nullable `drawable`.
-                // If it's not null, create the Pair. If it is null, this whole expression
-                // evaluates to null, which `mapNotNull` then correctly discards.
-                drawable?.let { sbn.key to it }
-            }
-        }
-    }
-}
-@Composable
 fun NotificationIconRow(
-    notificationIcons: List<Pair<String, Drawable>>,
     modifier: Modifier = Modifier,
     maxVisibleIcons: Int = 5,
     settings: SettingsUiState,
@@ -5532,76 +5494,16 @@ fun NotificationIconRow(
     showBorder: Boolean,
     backgroundColor: Color = Color.Black
 ) {
-    // 1. Guard Clauses: Return early if nothing to show
-    if (!settings.hasNotificationAccess || !settings.showNotificationRow || notificationIcons.isEmpty()) {
-        return
-    }
-
-    // 2. Prepare visual properties
-    val isHorizontal = settings.notificationLayoutId == 1
-    val iconSize = settings.notificationSize.dp
-
-    val customColor = !settings.autoWallpapers && !settings.monochrome
-
-    val iconColor = if (customColor) {
-        settings.notificationColor.copy(alpha = settings.notificationAlpha / 100f)
-    } else {
-        foregroundColor
-    }
-
-    val borderColor = if (showBorder) iconColor else Color.Transparent
-
-    // 3. Calculate Container Dimensions
-    // Note: Kept original logic, though hardcoded '10' implies a specific design constraint
-    val baseLongSide = iconSize * 10 + 8.dp
-    val baseShortSide = iconSize + 16.dp
-
-    val containerWidth = if (isHorizontal) baseLongSide else baseShortSide
-    val containerHeight = if (isHorizontal) baseShortSide else baseLongSide
-
-    // 4. Prepare Data
-    val iconsToShow = if (notificationIcons.size > maxVisibleIcons + 1) {
-        notificationIcons.take(maxVisibleIcons)
-    } else {
-        notificationIcons
-    }
-    val overflowCount = notificationIcons.size - maxVisibleIcons
-    val hasOverflow = notificationIcons.size > maxVisibleIcons + 1
-
-    Box(
-        modifier = Modifier
-            .size(width = containerWidth, height = containerHeight)
-            .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp)),
-        contentAlignment = Alignment.Center
-    ) {
-        // 5. Shared Content Logic
-        // We define the list content once, then reuse it in either Row or Column
-        val listContent: LazyListScope.() -> Unit = {
-            notificationItems(
-                icons = iconsToShow,
-                iconSize = iconSize,
-                iconColor = iconColor,
-                hasOverflow = hasOverflow,
-                overflowCount = overflowCount
-            )
-        }
-
-        if (isHorizontal) {
-            LazyRow(
-                modifier = modifier.padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                content = listContent
-            )
-        } else {
-            LazyColumn(
-                modifier = modifier.padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                content = listContent
-            )
-        }
-    }
+    com.jeerovan.comfer.notifications.NotificationHomeEntry(
+        iconSize = settings.notificationSize.dp,
+        hasAccess = settings.hasNotificationAccess,
+        modifier = modifier,
+        horizontal = settings.notificationLayoutId == 1,
+        color = if (!settings.autoWallpapers && !settings.monochrome)
+            settings.notificationColor.copy(alpha = settings.notificationAlpha / 100f) else foregroundColor,
+        showBorder = showBorder,
+        maxVisibleIcons = maxVisibleIcons,
+    )
 }
 
 /**

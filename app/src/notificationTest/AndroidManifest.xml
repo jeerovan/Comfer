@@ -1,0 +1,18 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application android:label="Comfer Notification Test" tools:replace="android:label">
+        <provider android:name="com.google.firebase.provider.FirebaseInitProvider"
+            tools:node="remove" />
+        <activity android:name="com.jeerovan.comfer.MainActivity" android:exported="true">
+            <intent-filter tools:node="removeAll" />
+        </activity>
+        <activity-alias android:name="com.jeerovan.comfer.NotificationTestInbox"
+            android:targetActivity="com.jeerovan.comfer.notifications.NotificationInboxActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+    </application>
+</manifest>

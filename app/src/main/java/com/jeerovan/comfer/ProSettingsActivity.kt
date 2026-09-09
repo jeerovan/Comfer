@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package com.jeerovan.comfer
 
 import android.os.Bundle
@@ -720,11 +722,7 @@ fun BasicSettings(
                     )
                     // Notification Settings
                     SettingSection(stringResource(R.string.title_notifications)) {
-                        SettingSwitch(
-                            label = stringResource(R.string.show_notification_icons),
-                            checked = settingsState.showNotificationRow,
-                            onCheckedChange = { settingsViewModel.setShowNotificationRow(it) }
-                        )
+                        Text(stringResource(R.string.notification_entry_required))
                         SettingSlider(
                             label = stringResource(R.string.title_size),
                             value = settingsState.notificationSize,
@@ -737,11 +735,12 @@ fun BasicSettings(
                                 settingsState.notificationColor.copy(alpha = settingsState.notificationAlpha/100f)
                             ) { showNotificationColor = true }
                         }
-                        Row(
+                        FlowRow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             // Box 1
                             SelectableSquareBox(
@@ -857,11 +856,12 @@ fun TimeAdvancedSettings(
                     radius = value
                 }
                 val fontSize = 30
-                Row(
+                FlowRow(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     // Box 1
                     SelectableSquareBox(
@@ -1000,11 +1000,12 @@ fun DateAdvancedSettings(
                     radius = value
                 }
                 val fontSize = 20
-                Row(
+                FlowRow(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     // Box 1
                     SelectableSquareBox(
@@ -1155,23 +1156,22 @@ fun SettingChoiceButtons(
             color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Row(
+        FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             options.forEach { option ->
                 val selected = option.key == selectedValue
                 if (selected) {
                     Button(
                         onClick = {},
-                        modifier = Modifier.weight(1f),
                     ) {
                         Text(option.text)
                     }
                 } else {
                     OutlinedButton(
                         onClick = { onValueChange(option.key) },
-                        modifier = Modifier.weight(1f),
                     ) {
                         Text(option.text)
                     }
@@ -1489,9 +1489,10 @@ fun EnhancedColorPicker(
                 }
             )
             // Action buttons
-            Row(
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 TextButton(onClick = onDismissRequest) {
                     Text(stringResource(R.string.cancel_text))
@@ -1993,7 +1994,7 @@ fun AppDrawerScreen(
 }
 
 @Composable
-fun RowScope.SelectableSquareBox(
+fun SelectableSquareBox(
     id: Int,
     selectedId: Int,
     onSelect: (Int) -> Unit,
@@ -2004,7 +2005,7 @@ fun RowScope.SelectableSquareBox(
     val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
     Box(
         modifier = Modifier
-            .weight(1f)             // Share width equally
+            .width(104.dp)          // Natural option width; the parent wraps choices
             .aspectRatio(1f)        // Force Square shape
             .clip(RoundedCornerShape(12.dp)) // Corner Radius
             .background(backgroundColor)
