@@ -95,11 +95,7 @@ fun WeatherWidget(
     } else {
         foregroundColor
     }
-    val shadowColor = if (customColor) {
-        Color.Transparent.toArgb()
-    } else {
-        backgroundColor.toArgb()
-    }
+    val shadowColor = widgetShadowColor(weatherColor).toArgb()
     val borderColor = if (editMode) weatherColor else Color.Transparent
 
     Box(

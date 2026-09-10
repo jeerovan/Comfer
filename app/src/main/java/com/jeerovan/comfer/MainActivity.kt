@@ -1982,7 +1982,7 @@ fun BatteryStatus(
 ) {
     val customColor = !settings.autoWallpapers && !settings.monochrome
     val themeColor = if(customColor) settings.batteryColor.copy(alpha = settings.batteryAlpha/100f) else foregroundColor
-    val shadowColor = if(customColor) Color.Transparent.toArgb() else backgroundColor.toArgb()
+    val shadowColor = widgetShadowColor(themeColor).toArgb()
     val borderColor = if(showBorder) themeColor else Color.Transparent
     val showBatteryIcon = settings.showBatteryIcon
     val showBatteryPercentage = settings.showBatteryPercentage
@@ -2010,6 +2010,12 @@ fun BatteryStatus(
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val strokeWidth = 2.dp.toPx()
+                widgetHalo(themeColor) { halo, spread ->
+                    drawRoundRect(color = halo, size = Size(size.width - strokeWidth, size.height),
+                        style = Stroke(width = strokeWidth + spread * 2), cornerRadius = CornerRadius(2.dp.toPx()))
+                    drawRoundRect(color = halo, topLeft = Offset(size.width - strokeWidth, size.height / 4),
+                        size = Size(strokeWidth, size.height / 2), style = Stroke(width = spread * 2))
+                }
                 // Battery body
                 drawRoundRect(
                     color = themeColor,
@@ -2048,6 +2054,7 @@ fun BatteryStatus(
                         lineTo(w * 0.45f, h * 0.4f)
                         close()
                     }
+                    widgetHalo(Color.Red) { halo, spread -> drawPath(path, color = halo, style = Stroke(width = spread * 2)) }
                     drawPath(path, color = Color.Red)
                 }
             }
@@ -5743,6 +5750,10 @@ fun AnalogClock(
             val hourHandEndX = centerX + hourHandLength * cos(Math.toRadians(hourAngle.toDouble())).toFloat()
             val hourHandEndY = centerY + hourHandLength * sin(Math.toRadians(hourAngle.toDouble())).toFloat()
 
+            widgetHalo(hourHandColor) { halo, spread ->
+                drawLine(color = halo, start = Offset(centerX, centerY), end = Offset(hourHandEndX, hourHandEndY),
+                    strokeWidth = size.toPx() * .05f + spread * 2, cap = StrokeCap.Round)
+            }
             drawLine(
                 color = hourHandColor,
                 start = Offset(centerX, centerY),
@@ -5757,6 +5768,10 @@ fun AnalogClock(
             val minuteHandEndX = centerX + minuteHandLength * cos(Math.toRadians(minuteAngle.toDouble())).toFloat()
             val minuteHandEndY = centerY + minuteHandLength * sin(Math.toRadians(minuteAngle.toDouble())).toFloat()
 
+            widgetHalo(minuteHandColor) { halo, spread ->
+                drawLine(color = halo, start = Offset(centerX, centerY), end = Offset(minuteHandEndX, minuteHandEndY),
+                    strokeWidth = size.toPx() * .03f + spread * 2, cap = StrokeCap.Round)
+            }
             drawLine(
                 color = minuteHandColor,
                 start = Offset(centerX, centerY),
@@ -6386,6 +6401,10 @@ fun EffectTextBlock(
     radius: Float = 0f,
     shadowColor: Int = Color.Black.toArgb()
 ) {
+    val density = LocalDensity.current
+    val resolvedShadow = widgetShadowColor(color, Color(shadowColor)).let { it.copy(alpha = it.alpha * color.alpha) }
+    val shadowBlur = with(density) { 1.5.dp.toPx() }
+    val shadowOffset = with(density) { .75.dp.toPx() }
     if (angle == 0f && radius == 0f) {
         Text(
             text = text,
@@ -6396,16 +6415,15 @@ fun EffectTextBlock(
             fontFamily = fontFamily,
             style = TextStyle(
                 shadow = Shadow(
-                    color = Color(shadowColor),
-                    offset = Offset(5f, 5f),
-                    blurRadius = 10f,
+                    color = resolvedShadow,
+                    offset = Offset(0f, shadowOffset),
+                    blurRadius = shadowBlur,
                 ),
             ),
         )
         return
     }
 
-    val density = LocalDensity.current
     val resolver = LocalFontFamilyResolver.current
     val reverse = radius < 0
     val absRadius = if (radius < 0) {
@@ -6428,7 +6446,7 @@ fun EffectTextBlock(
     // and height depends on the font size + curve height.
     // Since curveRadius is usually huge (10000f) for slight bends, we shouldn't use it directly for size.
     // Instead, we measure the text width using Paint.
-    val textPaint = remember(fontSize, typeface, fontStyle, fontWeight) {
+    val textPaint = remember(fontSize, typeface, fontStyle, fontWeight, density) {
         android.graphics.Paint().apply {
             this.textSize = with(density) { fontSize.toPx() }
             this.typeface = typeface
@@ -6463,10 +6481,10 @@ fun EffectTextBlock(
             this.color = color.toArgb()
             this.textAlign = android.graphics.Paint.Align.CENTER
             this.isAntiAlias = true
-            setShadowLayer(10f,
-                5f,
-                5f,
-                shadowColor
+            setShadowLayer(shadowBlur,
+                0f,
+                shadowOffset,
+                resolvedShadow.toArgb()
             )
         }
 
