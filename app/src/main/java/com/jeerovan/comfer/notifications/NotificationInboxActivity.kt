@@ -178,7 +178,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
     val settingsStateHolder = androidx.compose.runtime.saveable.rememberSaveableStateHolder()
     DisposableEffect(settings, settingsPage, config.historyEnabled, savedTab) {
         val activity = context as? android.app.Activity
-        val secure = savedTab || config.historyEnabled || (settings && settingsPage in setOf("history", "search", "rule_editor"))
+        val secure = savedTab || config.historyEnabled || (settings && settingsPage in setOf("history", "rule_editor"))
         if (secure) activity?.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
         onDispose { if (secure) activity?.window?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE) }
     }
@@ -299,13 +299,12 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
         busy = true
         try {
             val result = MyNotificationListenerService.act(item.key, item.revision, action, actionSession)
-            status = resources.getString(when (result) {
-                "requested" -> R.string.notification_action_requested
-                "app_open_requested" -> R.string.notification_app_open_requested
-                "changed", "removed" -> R.string.notification_changed
-                "history_failed" -> R.string.notification_history_save_before_open_failed
-                else -> R.string.notification_action_unavailable
-            })
+            status = when (result) {
+                "requested", "app_open_requested" -> ""
+                "changed", "removed" -> resources.getString(R.string.notification_changed)
+                "history_failed" -> resources.getString(R.string.notification_history_save_before_open_failed)
+                else -> resources.getString(R.string.notification_action_unavailable)
+            }
             clearSelection(); confirmation = false
             return result == "requested" || result == "app_open_requested"
         } finally {
@@ -321,7 +320,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
             try {
                 var requested = 0
                 batch.forEach { (key, revision) -> if (MyNotificationListenerService.act(key, revision, action, session) == "requested") requested++ }
-                status = resources.getString(R.string.notification_bulk_result, requested, batch.size - requested)
+                status = if (requested == batch.size) "" else resources.getString(R.string.notification_action_unavailable)
                 clearSelection()
             } finally { busy = false }
         }
@@ -345,19 +344,18 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                         item { Text(if (settingsPage == "root") "Notification settings" else when (settingsPage) {
                             "rule_editor" -> "Content rule"; "quiet" -> "Quiet hours"; "focus" -> "Focus timers"; "schedules" -> "Schedules"
                             "schedule" -> "Recurring schedule"; "filters" -> "Filters"; "history" -> "History"
-                            "search" -> "Search"; else -> "Connection and privacy"
+                            else -> "Connection and privacy"
                         }, style = MaterialTheme.typography.titleMedium) }
                         if (settingsPage == "root") {
                             item { NotificationViewChoices(config.chronological) { chronological -> save { it.copy(chronological = chronological) } } }
                             item { SettingsDestination("Quiet hours", "${if (config.paused) "Paused" else "Enabled"} · focus timers and schedules", { settingsPage = "quiet" }) }
                             item { SettingsDestination("Filters", "Content rules and hidden apps", { settingsPage = "filters" }) }
                             item { SettingsDestination("History", if (config.historyEnabled) "Saving local copies" else "Local copies are off", { settingsPage = "history" }) }
-                            item { SettingsDestination("Search", "Search the Saved tab", { clearSelection(); settings = false; savedTab = true }) }
                             item { SettingsDestination("Connection and privacy", "Refresh, Android settings and reset", { settingsPage = "connection" }) }
                         } else if (settingsPage in setOf("quiet", "focus", "schedules", "schedule")) {
                             item { settingsStateHolder.SaveableStateProvider(settingsPage) { NotificationQuietSettings(settingsPage) { settingsPage = it } } }
                             if (settingsPage == "quiet") item { TextButton(onClick = { context.startActivity(Intent("android.settings.ZEN_MODE_SETTINGS").takeIf { it.resolveActivity(context.packageManager) != null } ?: Intent(Settings.ACTION_SOUND_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_settings)) } }
-                        } else if (settingsPage == "history" || settingsPage == "search") {
+                        } else if (settingsPage == "history") {
                             item { settingsStateHolder.SaveableStateProvider(settingsPage) { NotificationHistorySettings() } }
                         } else if (settingsPage == "rule_editor") {
                             item { NotificationRuleEditor(editingRuleId, source = snapshot.items.firstOrNull { it.key == ruleSourceKey }, onSaved = { settingsPage = "filters" }) }
@@ -464,12 +462,13 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                     }
                                 } else {
                                     key(item.key, item.revision, snapshot.sessionId) {
+                                        val preview = remember { NotificationBodyPreviewState() }
                                         NotificationSwipeContainer(
                                             enabled = !busy && snapshot.health == ListenerHealth.CONNECTED && canManageNotification(item, config.protectedApps),
                                             onDismiss = { performAction(item, "dismiss") },
                                         ) {
-                                            Card(Modifier.fillMaxWidth().testTag("notification-card-${item.key}").combinedClickable(
-                                                onClick = { if (selectionMode) toggleSelection(item) else act(item, "open") },
+                                            Card(Modifier.fillMaxWidth().animateContentSize(tween(250)).testTag("notification-card-${item.key}").combinedClickable(
+                                                onClick = { if (selectionMode) toggleSelection(item) else preview.tap { act(item, "open") } },
                                                 onLongClick = {
                                                     selectionSession = snapshot.sessionId; selectedSession = snapshot.sessionId
                                                     selections = selections + (item.key to item.revision)
@@ -487,9 +486,12 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                                         if (selectionMode) NotificationRingDot(checked)
                                                     }
                                                     Column(Modifier.weight(1f)) {
-                                                        Text((if (config.chronological) appLabel(context, item.app) + " · " else "") + java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(item.postedAt)), style = MaterialTheme.typography.labelMedium)
-                                                        Text(item.title.ifEmpty { resources.getString(R.string.notification_preview_unavailable) }, style = MaterialTheme.typography.titleSmall)
-                                                        Text(item.text, maxLines = 2)
+                                                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                                            Text(item.title.ifEmpty { resources.getString(R.string.notification_preview_unavailable) }, modifier = Modifier.weight(1f).alignByBaseline(), style = MaterialTheme.typography.titleSmall)
+                                                            Text(java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(item.postedAt)), modifier = Modifier.alignByBaseline(), style = MaterialTheme.typography.labelMedium, maxLines = 1)
+                                                        }
+                                                        if (config.chronological) Text(appLabel(context, item.app), style = MaterialTheme.typography.labelMedium)
+                                                        NotificationBodyPreview(item.text, preview)
                                                         if (item.progressIndeterminate) LinearProgressIndicator(Modifier.fillMaxWidth())
                                                         else if (item.progressMax > 0) LinearProgressIndicator(progress = { (item.progress.toFloat() / item.progressMax).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
                                                     }

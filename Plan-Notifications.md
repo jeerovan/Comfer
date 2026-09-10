@@ -326,7 +326,7 @@ Validation: six JVM rule/projection tests passed (Unicode literal matching, ANY/
 ### Saved tab revision (2026-09-10)
 
 - Tab order: All apps, Hidden, Saved, Settings. Saved has case-insensitive title/message/app-package search and displays local copies, including opened notifications, newest first. History capture remains opt-in.
-- Saved replaces the former retained-copy section in the live inbox and the per-copy History settings list. Settings → Search opens Saved.
+- Saved replaces the former retained-copy section in the live inbox and the per-copy History settings list. Search is available directly in the Saved tab; Settings has no Search shortcut.
 - A saved copy has only swipe-to-delete (plus its accessibility equivalent). No tap, selection, Open App, snooze or other notification actions. Deletion removes the local copy without dismissing a live Android notification.
 - Never capture empty, incomplete, secret, protected or Android-redacted previews, including hidden sensitive/OTP content. Check Android’s localized redaction placeholder and common unavailable-preview placeholders, including the delivered basic text when expanded text exists. Do not attempt to recover hidden content. Existing recognizable placeholder copies are pruned.
 - The earlier opened-copy presentation and Open App affordance are superseded by this Saved tab. Retention, encryption, device-lock protection and exclusion policies continue to apply.

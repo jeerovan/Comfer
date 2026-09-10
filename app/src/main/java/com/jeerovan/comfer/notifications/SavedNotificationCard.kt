@@ -30,9 +30,11 @@ internal fun SavedNotificationCard(record: SavedNotification, onDismiss: suspend
             })
         }) {
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(appLabel(context, record.app), style = MaterialTheme.typography.labelMedium)
-                Text(DateFormat.getDateTimeInstance().format(Date(record.postedAt)), style = MaterialTheme.typography.bodySmall)
-                if (record.title.isNotBlank()) Text(record.title, style = MaterialTheme.typography.titleSmall)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(record.title.ifBlank { stringResource(R.string.notification_preview_unavailable) }, modifier = Modifier.weight(1f).alignByBaseline(), style = MaterialTheme.typography.titleSmall)
+                    Text(DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(record.postedAt)), modifier = Modifier.alignByBaseline(), style = MaterialTheme.typography.labelMedium, maxLines = 1)
+                }
+                Text("${appLabel(context, record.app)} · ${DateFormat.getDateInstance().format(Date(record.postedAt))}", style = MaterialTheme.typography.labelMedium)
                 Text(record.text)
             }
         }
