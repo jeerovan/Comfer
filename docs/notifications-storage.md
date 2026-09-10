@@ -19,3 +19,25 @@ The phase-5 repository will use a separate Room database containing encrypted pa
 Enforce age, count, bookmark and physical-storage budgets from AC-05, including database/WAL overhead. Use bounded transactions and maintenance. Key loss, full storage and transaction failure pause capture and dependent saved reminders while leaving the live inbox usable. Keep unreadable data until explicit deletion; do not silently regenerate the key, discard the database or write plaintext. Explicit deletion removes saved data and associated indexes/reminders before removing the key. Hardware-backed key availability and storage-pressure behavior still need physical-device validation.
 
 Uninstall/system restore cannot be treated as a history recovery mechanism. App-level backup is disabled, and explicit system-backup/device-transfer exclusions also cover notification preferences and owned runtime rule IDs. The future explicit configuration exporter must use allowlisted DTOs. Neither ciphertext nor history keys belong in the freely shareable configuration file.
+
+## Initial retained-history implementation — 10 September 2026
+
+The user reinstated local copies. `NotificationHistory` now owns a bounded IO queue and `NotificationHistoryStore` stores one AES-GCM encrypted DTO per AtomicFile in `noBackupFilesDir/notification-history`. For this initial 500-copy slice, use encrypted files and in-memory search instead of introducing the proposed Room database. App identity and text are inside the encrypted payload; filenames contain a SHA-256 record identity. No platform handles or plaintext search indexes are persisted. Each payload is capped at 16 KiB, with bounded title/body input and a maximum of 500 retained records (under 8 MiB). Startup, writes, configuration changes and a minute timer enforce retention; a stopped process cleans up on its next start.
+
+Capture begins only after explicit opt-in and processes future posted/updated callbacks. No active-snapshot backfill is attempted. Protected/ongoing/summary, excluded-app, secret and locked-device events are skipped before persistence. Saved history is independent of live notification removal and schedule pause. Storage/key failures preserve existing files, disable capture and expose deletion/reset recovery without plaintext fallback. Confirmed deletion removes ciphertext; clearing all data also rotates the history key. Saved-content screens hide records while locked and request secure-window rendering. Additional authentication options, bookmarks, reminder integration and full storage-pressure testing remain pending.
+
+Configuration remains freely shareable in the planned export feature. Existing backups serialize explicit preference/database DTOs and wallpaper only; Android also excludes noBackupFilesDir from backup and transfer. No history content is added to exports or journals.
+
+
+### Saved tab revision (2026-09-10)
+
+- Tab order: All apps, Hidden, Saved, Settings. Saved has case-insensitive title/message/app-package search and displays local copies, including opened notifications, newest first. History capture remains opt-in.
+- Saved replaces the former retained-copy section in the live inbox and the per-copy History settings list. Settings → Search opens Saved.
+- A saved copy has only swipe-to-delete (plus its accessibility equivalent). No tap, selection, Open App, snooze or other notification actions. Deletion removes the local copy without dismissing a live Android notification.
+- Never capture empty, incomplete, secret, protected or Android-redacted previews, including hidden sensitive/OTP content. Check Android’s localized redaction placeholder and common unavailable-preview placeholders, including the delivered basic text when expanded text exists. Do not attempt to recover hidden content. Existing recognizable placeholder copies are pruned.
+- The earlier opened-copy presentation and Open App affordance are superseded by this Saved tab. Retention, encryption, device-lock protection and exclusion policies continue to apply.
+
+
+### Active/history exclusivity (2026-09-10)
+
+Saved copies are captured while notifications are live, but displayed in Saved only after their matching notification leaves the complete active snapshot. Opening does not itself cancel Android notifications: if the source removes its notification on open, its copy becomes visible in Saved. App filtering, grouping/collapse and hiding do not promote still-live copies to history. Matching uses profile, notification key and post time, so updates do not duplicate a live notification and later reposts remain distinct. This supersedes the earlier statement that Saved displays still-live copies.

@@ -21,7 +21,7 @@ import java.util.Calendar
 import java.util.Date
 
 @Composable
-fun NotificationQuietSettings() {
+fun NotificationQuietSettings(page: String = "quiet", navigate: (String) -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val config by NotificationPreferences.state.collectAsState()
@@ -59,7 +59,7 @@ fun NotificationQuietSettings() {
     val dirty = start != schedule.startMinute || end != schedule.endMinute || days != schedule.weekdays ||
         deviceQuiet != schedule.deviceQuiet || hiddenApps != schedule.hiddenApps
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        HorizontalDivider()
+        if (page == "quiet") {
         Text(stringResource(R.string.notification_automation_title), style = MaterialTheme.typography.titleMedium)
         Text(stringResource(if (config.paused) R.string.notification_automation_paused else R.string.notification_automation_running), style = MaterialTheme.typography.bodySmall)
         OutlinedButton(enabled = !busy, onClick = {
@@ -84,8 +84,14 @@ fun NotificationQuietSettings() {
             Text(stringResource(R.string.notification_dnd_permission_help), style = MaterialTheme.typography.bodySmall)
             Button(onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_access)) }
         }
-        HorizontalDivider()
+        SettingsDestination("Focus timers", "Start a short DND break", { navigate("focus") })
+        SettingsDestination("Schedules", "Manage recurring quiet hours", { navigate("schedules") })
+        Text(stringResource(R.string.notification_quiet_disclosure), style = MaterialTheme.typography.bodySmall)
+        }
+        if (page == "focus") {
         Text(stringResource(R.string.notification_focus_title), style = MaterialTheme.typography.titleMedium)
+        if (config.paused) Text(stringResource(R.string.notification_automation_paused))
+        if (!hasDndAccess) Button(onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_access)) }
         Text(stringResource(R.string.notification_focus_help), style = MaterialTheme.typography.bodySmall)
         Text(if (status.focusUntil > now) stringResource(R.string.notification_focus_until, DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(status.focusUntil))) else stringResource(R.string.notification_focus_none))
         FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -96,7 +102,14 @@ fun NotificationQuietSettings() {
             }
             if (status.focusUntil > now) OutlinedButton(enabled = !busy, onClick = { operation { NotificationQuietHours.endFocus(context) } }) { Text(stringResource(R.string.notification_end_focus)) }
         }
-        HorizontalDivider()
+        }
+        if (page == "schedules") {
+            Text(stringResource(if (schedule.enabled) R.string.notification_schedule_enabled else R.string.notification_schedule_disabled))
+            SettingsDestination("Recurring schedule", "Days, times and actions", { navigate("schedule") })
+        }
+        if (page == "schedule") {
+        if (config.paused) Text(stringResource(R.string.notification_automation_paused))
+        if (!hasDndAccess && deviceQuiet) Button(onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_access)) }
         Text(stringResource(R.string.notification_schedule_title), style = MaterialTheme.typography.titleMedium)
         Text(stringResource(if (schedule.enabled) R.string.notification_schedule_enabled else R.string.notification_schedule_disabled))
         if (schedule.enabled) Text(stringResource(R.string.notification_schedule_summary, time(schedule.startMinute), time(schedule.endMinute), schedule.weekdays.sorted().joinToString { labels[it] }), style = MaterialTheme.typography.bodySmall)
@@ -148,6 +161,7 @@ fun NotificationQuietSettings() {
             }
         }) { Text(stringResource(R.string.notification_disable_quiet_schedule)) }
         Text(stringResource(R.string.notification_quiet_disclosure), style = MaterialTheme.typography.bodySmall)
+        }
     }
 }
 

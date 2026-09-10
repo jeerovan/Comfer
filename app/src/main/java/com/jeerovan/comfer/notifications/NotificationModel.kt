@@ -19,6 +19,8 @@ data class NotificationItem(
     val progressMax: Int = 0,
     val progressIndeterminate: Boolean = false,
     val hasContentIntent: Boolean = false,
+    val contentComplete: Boolean = true,
+    val previewAvailable: Boolean = true,
 ) {
     val appId: String get() = "$profile:$app"
 }

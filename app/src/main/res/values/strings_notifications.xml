@@ -8,8 +8,8 @@
     <string name="notification_action_requested">Action requested</string>
     <string name="notification_action_unavailable">Action unavailable. The notification may have expired.</string>
     <string name="notification_configuration">Configuration</string>
-    <string name="notification_pause_automation">Pause schedules and timers</string>
-    <string name="notification_resume_automation">Resume schedules and timers</string>
+    <string name="notification_pause_automation">Pause rules, schedules and timers</string>
+    <string name="notification_resume_automation">Resume rules, schedules and timers</string>
     <string name="notification_reach">Initial thumb-reach height</string>
     <string name="notification_reach_cap">Maximum initial reach height</string>
     <string name="notification_reach_width">Content width</string>
@@ -52,7 +52,7 @@
     <string name="notification_restricted">Android has restricted notification access</string>
     <string name="notification_last_sync">Last successful refresh: %1$s</string>
     <string name="notification_refresh">Refresh connection</string>
-    <string name="notification_live_privacy">Notifications stay in memory. Comfer does not save message history. Android may hide sensitive previews.</string>
+    <string name="notification_live_privacy">Live notifications stay in memory. Optional History saves encrypted local copies only after consent. Android may hide sensitive previews. Saved content is excluded from configuration backups.</string>
     <string name="notification_resume_app">Show %1$s in Comfer</string>
     <string name="notification_open_app">Open app</string>
     <string name="notification_profile_settings">Open notification settings from the app in its own profile.</string>
@@ -97,8 +97,8 @@
     <string name="notification_confirm_dismiss_selected">Confirm dismiss selected</string>
     <string name="notification_view_title">Notification view</string>
     <string name="notification_automation_title">Schedules and focus timers</string>
-    <string name="notification_automation_paused">Paused — scheduled app hiding and Comfer’s DND requests will not run. Resume to use them. Manually hidden apps stay hidden.</string>
-    <string name="notification_automation_running">Enabled — saved schedules and active focus timers can run. Manually hidden apps are managed separately.</string>
+    <string name="notification_automation_paused">Paused — content rules, scheduled app hiding and Comfer’s DND requests will not run. Resume to use them. Manual hiding and History capture are independent.</string>
+    <string name="notification_automation_running">Enabled — content rules, saved schedules and active focus timers can run. Manual hiding and History capture are independent.</string>
     <string name="notification_focus_title">Focus timer</string>
     <string name="notification_focus_help">Turn on Android DND for a short break. Choose a duration to start or replace the timer. Android priority exceptions still apply.</string>
     <string name="notification_focus_until">Timer ends at %1$s</string>
@@ -114,4 +114,10 @@
     <string name="notification_schedule_unsaved">Changes are not saved yet.</string>
     <string name="notification_dnd_permission_help">DND access is needed for focus timers and device quiet. Hiding apps in Comfer does not need it.</string>
     <string name="notification_schedule_summary">Saved: %1$s–%2$s · %3$s</string>
+    <string name="notification_history_save_before_open_failed">Could not save the local copy, so the notification was not opened. Check History storage status and try again.</string>
+    <string name="notification_saved">Saved</string>
+    <string name="notification_saved_search">Search saved notifications</string>
+    <string name="notification_saved_swipe_hint">Swipe a saved copy to delete it from local history. Android notifications are unchanged.</string>
+    <string name="notification_saved_empty">No saved notifications match</string>
+    <string name="notification_saved_dismiss">Dismiss saved notification</string>
 </resources>

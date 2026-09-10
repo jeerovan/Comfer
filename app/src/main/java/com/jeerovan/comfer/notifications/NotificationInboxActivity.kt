@@ -11,6 +11,10 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.draw.rotate
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.selection.triStateToggleable
@@ -33,6 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Inbox
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.outlined.Visibility
@@ -162,10 +167,27 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
     val config by NotificationPreferences.state.collectAsState()
     val recoveryNeeded by NotificationPreferences.recoveryNeeded.collectAsState()
     val quietStatus by NotificationQuietHours.state.collectAsState()
+    remember { NotificationHistory.initialize(context); true }
+    val savedHistory by NotificationHistory.records.collectAsState()
+    var historyLocked by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) { while (true) { historyLocked = context.getSystemService(android.app.KeyguardManager::class.java).isDeviceLocked; delay(500) } }
+
     LaunchedEffect(config.paused, config.quietSchedule) { NotificationQuietHours.reconcile(context) }
     var app by rememberSaveable { mutableStateOf(initialApp) }
     var hidden by rememberSaveable { mutableStateOf(false) }
+    var savedTab by rememberSaveable { mutableStateOf(false) }
+    var savedQuery by rememberSaveable { mutableStateOf("") }
     var settings by rememberSaveable { mutableStateOf(false) }
+    var settingsPage by rememberSaveable { mutableStateOf("root") }
+    var editingRuleId by rememberSaveable { mutableStateOf<String?>(null) }
+    var ruleSourceKey by rememberSaveable { mutableStateOf<String?>(null) }
+    val settingsStateHolder = androidx.compose.runtime.saveable.rememberSaveableStateHolder()
+    DisposableEffect(settings, settingsPage, config.historyEnabled, savedTab) {
+        val activity = context as? android.app.Activity
+        val secure = savedTab || config.historyEnabled || (settings && settingsPage in setOf("history", "search", "rule_editor"))
+        if (secure) activity?.window?.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
+        onDispose { if (secure) activity?.window?.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE) }
+    }
     val initialSelection = if (initialControls) snapshot.items.firstOrNull { it.appId == initialApp } else null
     var selectedKey by rememberSaveable { mutableStateOf(initialSelection?.key) }
     var selectedRevision by rememberSaveable { mutableLongStateOf(initialSelection?.revision ?: -1L) }
@@ -181,6 +203,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
     var returnRevision by remember { mutableIntStateOf(0) }
     var selections by rememberSaveable { mutableStateOf<Map<String, Long>>(initialSelection?.let { mapOf(it.key to it.revision) } ?: emptyMap()) }
     val selectionMode = selections.isNotEmpty()
+
     var bulkConfirm by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf("") }
@@ -209,17 +232,20 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
         bulkConfirm -> bulkConfirm = false
         confirmation -> confirmation = false
         actionsVisible -> actionsVisible = false
+        settings && settingsPage != "root" -> settingsPage = notificationSettingsParent(settingsPage)
         settings -> settings = false
+        savedTab -> savedTab = false
         selectionMode -> clearSelection()
         app != null -> app = null
         else -> onBack()
     } }
     BackHandler { back() }
     val inboxListState = rememberLazyListState()
+    val savedListState = rememberLazyListState()
     val settingsListState = rememberLazyListState()
     val actionsListState = rememberLazyListState()
-    val listState = if (settings) settingsListState else if (actionsVisible) actionsListState else inboxListState
-    val screen = if (settings) "settings" else if (actionsVisible) "actions:$selectedKey" else "inbox:$app:$hidden"
+    val listState = if (settings) settingsListState else if (savedTab) savedListState else if (actionsVisible) actionsListState else inboxListState
+    val screen = if (settings) "settings:$settingsPage" else if (savedTab) "saved" else if (actionsVisible) "actions:$selectedKey" else "inbox:$app:$hidden"
     var lastScreen by rememberSaveable { mutableStateOf(screen) }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -247,7 +273,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
             val index = notificationAnchorIndex(displayRows, anchor)
             val statusRows = 5 + if (quietStatus.health == QuietHealth.CLEANUP_NEEDED || quietStatus.health == QuietHealth.FAILED) 1 else 0
             // Apply to the next layout, rather than scrolling the outgoing menu content.
-            if (!settings && !actionsVisible && index >= 0) listState.requestScrollToItem(statusRows + index)
+            if (!settings && !savedTab && !actionsVisible && index >= 0) listState.requestScrollToItem(statusRows + index)
             else listState.requestScrollToItem(0)
             lastScreen = screen
         }
@@ -283,6 +309,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                 "requested" -> R.string.notification_action_requested
                 "app_open_requested" -> R.string.notification_app_open_requested
                 "changed", "removed" -> R.string.notification_changed
+                "history_failed" -> R.string.notification_history_save_before_open_failed
                 else -> R.string.notification_action_unavailable
             })
             clearSelection(); confirmation = false
@@ -305,7 +332,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
             } finally { busy = false }
         }
     }
-    BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface.copy(alpha = .8f)).safeDrawingPadding()) {
+    BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface.copy(alpha = .8f)).safeDrawingPadding().imePadding()) {
         val landscape = maxWidth > maxHeight
         val startPadding = if (landscape) 0.dp else (maxHeight.value - reachableHeightDp(maxHeight.value)).coerceAtLeast(0f).dp
         Surface(Modifier.fillMaxSize().testTag("notification-inbox-panel"), color = androidx.compose.ui.graphics.Color.Transparent, contentColor = MaterialTheme.colorScheme.onSurface, tonalElevation = 0.dp) {
@@ -321,20 +348,57 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                     item { if (status.isNotEmpty()) Text(status, style = MaterialTheme.typography.bodySmall) }
                     if (quietStatus.health == QuietHealth.CLEANUP_NEEDED || quietStatus.health == QuietHealth.FAILED) item { Text(stringResource(if (quietStatus.health == QuietHealth.CLEANUP_NEEDED) R.string.notification_quiet_cleanup else R.string.notification_quiet_failed)) }
                     if (settings) {
-                        item { Text(stringResource(R.string.notification_configuration), style = MaterialTheme.typography.titleMedium) }
-                        config.hiddenUntil.filterValues { it > now }.forEach { (appId, _) -> item(key = "hidden:$appId") {
-                           TextButton(onClick = { save { it.showApp(appId) } }) {
-                                Text(stringResource(R.string.notification_resume_app, appLabel(context, appId.substringAfter(':'))))
+                        item { Text(if (settingsPage == "root") "Notification settings" else when (settingsPage) {
+                            "rule_editor" -> "Content rule"; "quiet" -> "Quiet hours"; "focus" -> "Focus timers"; "schedules" -> "Schedules"
+                            "schedule" -> "Recurring schedule"; "filters" -> "Filters"; "history" -> "History"
+                            "search" -> "Search"; else -> "Connection and privacy"
+                        }, style = MaterialTheme.typography.titleMedium) }
+                        if (settingsPage == "root") {
+                            item { NotificationViewChoices(config.chronological) { chronological -> save { it.copy(chronological = chronological) } } }
+                            item { SettingsDestination("Quiet hours", "${if (config.paused) "Paused" else "Enabled"} · focus timers and schedules", { settingsPage = "quiet" }) }
+                            item { SettingsDestination("Filters", "Content rules and hidden apps", { settingsPage = "filters" }) }
+                            item { SettingsDestination("History", if (config.historyEnabled) "Saving local copies" else "Local copies are off", { settingsPage = "history" }) }
+                            item { SettingsDestination("Search", "Search the Saved tab", { clearSelection(); settings = false; savedTab = true }) }
+                            item { SettingsDestination("Connection and privacy", "Refresh, Android settings and reset", { settingsPage = "connection" }) }
+                        } else if (settingsPage in setOf("quiet", "focus", "schedules", "schedule")) {
+                            item { settingsStateHolder.SaveableStateProvider(settingsPage) { NotificationQuietSettings(settingsPage) { settingsPage = it } } }
+                            if (settingsPage == "quiet") item { TextButton(onClick = { context.startActivity(Intent("android.settings.ZEN_MODE_SETTINGS").takeIf { it.resolveActivity(context.packageManager) != null } ?: Intent(Settings.ACTION_SOUND_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_settings)) } }
+                        } else if (settingsPage == "history" || settingsPage == "search") {
+                            item { settingsStateHolder.SaveableStateProvider(settingsPage) { NotificationHistorySettings() } }
+                        } else if (settingsPage == "rule_editor") {
+                            item { NotificationRuleEditor(editingRuleId, source = snapshot.items.firstOrNull { it.key == ruleSourceKey }, onSaved = { settingsPage = "filters" }) }
+                        } else if (settingsPage == "filters") {
+                            item { NotificationRulesSettings(onEdit = { editingRuleId = it; ruleSourceKey = null; settingsPage = "rule_editor" }) }
+                            item { Text("Manually hidden apps", style = MaterialTheme.typography.titleSmall) }
+                            item { Text(stringResource(R.string.notification_hide_scope)) }
+                            if (config.hiddenUntil.none { it.value > now }) item { Text("No manually hidden apps") }
+                            config.hiddenUntil.filterValues { it > now }.forEach { (appId, _) -> item(key = "hidden:$appId") {
+                                TextButton(onClick = { save { it.showApp(appId) } }) { Text(stringResource(R.string.notification_resume_app, appLabel(context, appId.substringAfter(':')))) }
+                            } }
+                        } else {
+                            item { Text(stringResource(R.string.notification_last_sync, snapshot.lastSync?.let { java.text.DateFormat.getTimeInstance().format(java.util.Date(it)) } ?: "—")) }
+                            item { Button(onClick = { runCatching { MyNotificationListenerService.refresh(context, force = true) }.onFailure { status = resources.getString(R.string.notification_action_unavailable) } }) { Text(stringResource(R.string.notification_refresh)) } }
+                            item { Text(stringResource(R.string.notification_live_privacy), style = MaterialTheme.typography.bodySmall) }
+                            item { TextButton(onClick = { confirmation = true }) { Text(stringResource(R.string.notification_reset)) } }
+                        }
+                    } else if (savedTab) {
+                        item { Text(stringResource(R.string.notification_saved), style = MaterialTheme.typography.titleMedium) }
+                        item { OutlinedTextField(savedQuery, { savedQuery = it.take(256) }, label = { Text(stringResource(R.string.notification_saved_search)) }, singleLine = true, modifier = Modifier.fillMaxWidth().testTag("saved-search")) }
+                        item { Text(stringResource(R.string.notification_saved_swipe_hint), style = MaterialTheme.typography.bodySmall) }
+                        if (historyLocked) item { Text("Unlock your device to view saved notifications.") }
+                        else {
+                            val copies = savedNotificationsMatching(savedHistory, savedQuery, snapshot.items)
+                            if (copies.isEmpty()) item { Text(stringResource(R.string.notification_saved_empty)) }
+                            items(copies, key = { "saved:${it.id}" }) { copy ->
+                                SavedNotificationCard(copy) {
+                                    val deleted = NotificationHistory.delete(copy.id)
+                                    if (!deleted) status = "Could not dismiss saved notification."
+                                    deleted
+                                }
                             }
-                        } }
-                        item { NotificationViewChoices(config.chronological) { chronological -> save { it.copy(chronological = chronological) } } }
-                        item { Text(stringResource(R.string.notification_last_sync, snapshot.lastSync?.let { java.text.DateFormat.getTimeInstance().format(java.util.Date(it)) } ?: "—")) }
-                        item { Button(onClick = { runCatching { MyNotificationListenerService.refresh(context, force = true) }.onFailure { status = resources.getString(R.string.notification_action_unavailable) } }) { Text(stringResource(R.string.notification_refresh)) } }
-                        item { Text(stringResource(R.string.notification_live_privacy), style = MaterialTheme.typography.bodySmall) }
-                        item { TextButton(onClick = { context.startActivity(Intent("android.settings.ZEN_MODE_SETTINGS").takeIf { it.resolveActivity(context.packageManager) != null } ?: Intent(Settings.ACTION_SOUND_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_settings)) } }
-                        item { NotificationQuietSettings() }
-                        item { TextButton(onClick = { confirmation = true }) { Text(stringResource(R.string.notification_reset)) } }
+                        }
                     } else if (actionsVisible && selected != null) {
+                        item { TextButton(onClick = { editingRuleId = null; ruleSourceKey = selected.key; actionsVisible = false; settings = true; settingsPage = "rule_editor" }) { Text("Create content rule") } }
                         item { Text(appLabel(context, selected.app), style = MaterialTheme.typography.titleMedium) }
                         item { Text(stringResource(R.string.notification_hide_scope)) }
                         for (minutes in listOf(15, 60, 1440)) item {
@@ -379,59 +443,62 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                     } else {
                         if (records.isEmpty() && access && snapshot.health == ListenerHealth.CONNECTED) item { Text(stringResource(R.string.notification_empty), modifier = Modifier.padding(12.dp)) }
                         items(displayRows, key = { it.key }) { row ->
-                            val item = row.notification
-                            if (item == null) {
-                                val expanded = row.appId !in collapsedApps
-                                val group = records.filter { it.appId == row.appId }
-                                val selectedCount = group.count { selections[it.key] == it.revision }
-                                val groupState = when (selectedCount) {
-                                    0 -> ToggleableState.Off
-                                    group.size -> ToggleableState.On
-                                    else -> ToggleableState.Indeterminate
-                                }
-                                Row(Modifier.fillMaxWidth().testTag(row.key), verticalAlignment = Alignment.CenterVertically) {
-                                    Row(Modifier.weight(1f).heightIn(min = 48.dp).testTag("group-select:${row.appId}")
-                                        .then(if (selectionMode) Modifier.triStateToggleable(groupState, role = Role.Checkbox, onClick = { toggleGroup(row.appId) }) else Modifier)
-                                        .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                        Text(appLabel(context, row.appId.substringAfter(':')), style = MaterialTheme.typography.titleMedium,
-                                            color = if (selectionMode && groupState == ToggleableState.On) MaterialTheme.colorScheme.primary else LocalContentColor.current)
+                            Box(Modifier.animateItem(fadeInSpec = tween(200), placementSpec = tween(250), fadeOutSpec = tween(200))) {
+                                val item = row.notification
+                                if (item == null) {
+                                    val expanded = row.appId !in collapsedApps
+                                    val caretRotation by animateFloatAsState(if (expanded) 180f else 0f, tween(250), label = "group-caret")
+                                    val group = records.filter { it.appId == row.appId }
+                                    val selectedCount = group.count { selections[it.key] == it.revision }
+                                    val groupState = when (selectedCount) {
+                                        0 -> ToggleableState.Off
+                                        group.size -> ToggleableState.On
+                                        else -> ToggleableState.Indeterminate
                                     }
-                                    IconButton(modifier = Modifier.testTag("group-expand:${row.appId}"), onClick = {
-                                        collapsedApps = if (expanded) collapsedApps + row.appId else collapsedApps - row.appId
-                                    }) {
-                                        Icon(if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown, contentDescription = stringResource(if (expanded) R.string.notification_collapse else R.string.notification_expand))
+                                    Row(Modifier.fillMaxWidth().testTag(row.key), verticalAlignment = Alignment.CenterVertically) {
+                                        Row(Modifier.weight(1f).heightIn(min = 48.dp).testTag("group-select:${row.appId}")
+                                            .then(if (selectionMode) Modifier.triStateToggleable(groupState, role = Role.Checkbox, onClick = { toggleGroup(row.appId) }) else Modifier)
+                                            .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            Text(appLabel(context, row.appId.substringAfter(':')), style = MaterialTheme.typography.titleMedium,
+                                                color = if (selectionMode && groupState == ToggleableState.On) MaterialTheme.colorScheme.primary else LocalContentColor.current)
+                                        }
+                                        IconButton(modifier = Modifier.testTag("group-expand:${row.appId}"), onClick = {
+                                            collapsedApps = if (expanded) collapsedApps + row.appId else collapsedApps - row.appId
+                                        }) {
+                                            Icon(Icons.Outlined.KeyboardArrowDown, modifier = Modifier.rotate(caretRotation), contentDescription = stringResource(if (expanded) R.string.notification_collapse else R.string.notification_expand))
+                                        }
                                     }
-                                }
-                            } else {
-                                key(item.key, item.revision, snapshot.sessionId) {
-                                    NotificationSwipeContainer(
-                                        enabled = !busy && snapshot.health == ListenerHealth.CONNECTED && canManageNotification(item, config.protectedApps),
-                                        onDismiss = { performAction(item, "dismiss") },
-                                    ) {
-                                        Card(Modifier.fillMaxWidth().testTag("notification-card-${item.key}").combinedClickable(
-                                            onClick = { if (selectionMode) toggleSelection(item) else act(item, "open") },
-                                            onLongClick = {
-                                                selectionSession = snapshot.sessionId; selectedSession = snapshot.sessionId
-                                                selections = selections + (item.key to item.revision)
-                                                selectedKey = item.key; selectedRevision = item.revision; actionsVisible = false
-                                            },
-                                        ), colors = CardDefaults.cardColors(containerColor = if (item.key in selections) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer)) {
-                                            Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                val checked = item.key in selections
-                                                // Reserve the same space in both modes; only selection mode
-                                                // exposes a checkbox action and draws its indicator.
-                                                Box(Modifier.size(48.dp).then(if (selectionMode) Modifier
-                                                    .testTag("notification-select-${item.key}")
-                                                    .semantics { contentDescription = resources.getString(R.string.notification_select) }
-                                                    .toggleable(value = checked, role = Role.Checkbox, onValueChange = { toggleSelection(item) }) else Modifier), contentAlignment = Alignment.Center) {
-                                                    if (selectionMode) NotificationRingDot(checked)
-                                                }
-                                                Column(Modifier.weight(1f)) {
-                                                    Text((if (config.chronological) appLabel(context, item.app) + " · " else "") + java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(item.postedAt)), style = MaterialTheme.typography.labelMedium)
-                                                    Text(item.title.ifEmpty { resources.getString(R.string.notification_preview_unavailable) }, style = MaterialTheme.typography.titleSmall)
-                                                    Text(item.text, maxLines = 2)
-                                                    if (item.progressIndeterminate) LinearProgressIndicator(Modifier.fillMaxWidth())
-                                                    else if (item.progressMax > 0) LinearProgressIndicator(progress = { (item.progress.toFloat() / item.progressMax).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
+                                } else {
+                                    key(item.key, item.revision, snapshot.sessionId) {
+                                        NotificationSwipeContainer(
+                                            enabled = !busy && snapshot.health == ListenerHealth.CONNECTED && canManageNotification(item, config.protectedApps),
+                                            onDismiss = { performAction(item, "dismiss") },
+                                        ) {
+                                            Card(Modifier.fillMaxWidth().testTag("notification-card-${item.key}").combinedClickable(
+                                                onClick = { if (selectionMode) toggleSelection(item) else act(item, "open") },
+                                                onLongClick = {
+                                                    selectionSession = snapshot.sessionId; selectedSession = snapshot.sessionId
+                                                    selections = selections + (item.key to item.revision)
+                                                    selectedKey = item.key; selectedRevision = item.revision; actionsVisible = false
+                                                },
+                                            ), colors = CardDefaults.cardColors(containerColor = if (item.key in selections) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer)) {
+                                                Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                                    val checked = item.key in selections
+                                                    // Reserve the same space in both modes; only selection mode
+                                                    // exposes a checkbox action and draws its indicator.
+                                                    Box(Modifier.size(48.dp).then(if (selectionMode) Modifier
+                                                        .testTag("notification-select-${item.key}")
+                                                        .semantics { contentDescription = resources.getString(R.string.notification_select) }
+                                                        .toggleable(value = checked, role = Role.Checkbox, onValueChange = { toggleSelection(item) }) else Modifier), contentAlignment = Alignment.Center) {
+                                                        if (selectionMode) NotificationRingDot(checked)
+                                                    }
+                                                    Column(Modifier.weight(1f)) {
+                                                        Text((if (config.chronological) appLabel(context, item.app) + " · " else "") + java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(item.postedAt)), style = MaterialTheme.typography.labelMedium)
+                                                        Text(item.title.ifEmpty { resources.getString(R.string.notification_preview_unavailable) }, style = MaterialTheme.typography.titleSmall)
+                                                        Text(item.text, maxLines = 2)
+                                                        if (item.progressIndeterminate) LinearProgressIndicator(Modifier.fillMaxWidth())
+                                                        else if (item.progressMax > 0) LinearProgressIndicator(progress = { (item.progress.toFloat() / item.progressMax).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
+                                                    }
                                                 }
                                             }
                                         }
@@ -439,12 +506,13 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                 }
                             }
                         }
+
                     }
                 }
                 }
                 // Permission is authoritative even if a late listener update reports connected.
                 // Keep recovery actions outside the scrolling list so they remain reachable.
-                if ((!access || snapshot.health != ListenerHealth.CONNECTED) && !settings) {
+                if ((!access || snapshot.health != ListenerHealth.CONNECTED) && !settings && !savedTab) {
                     FlowRow(Modifier.fillMaxWidth().testTag("notification-connection-actions")) {
                        TextButton(modifier = Modifier.weight(1f), onClick = { MyNotificationListenerService.refresh(context, force = true) }) { Text(stringResource(R.string.notification_refresh)) }
                        TextButton(modifier = Modifier.weight(1f), onClick = { runCatching { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) } }) { Text(stringResource(R.string.notification_access_settings)) }
@@ -454,41 +522,57 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                    TextButton(onClick = { confirmation = false }) { Text(stringResource(R.string.notification_cancel)) }
                    TextButton(onClick = { scope.launch { if (!NotificationQuietHours.reset(context) || !NotificationPreferences.reset()) status = resources.getString(R.string.notification_save_failed) }; confirmation = false }) { Text(stringResource(R.string.notification_confirm)) }
                 }
-                if (selectionMode && !settings && !actionsVisible) {
-                    FlowRow(Modifier.fillMaxWidth().testTag("notification-selected-actions"), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        if (selectedItems.isNotEmpty()) {
-                            TextButton(enabled = !busy, onClick = {
-                                val apps = selectedItems.map { it.appId }.toSet()
-                                save { previous -> if (hidden) apps.fold(previous) { c, id -> c.showApp(id) } else previous.copy(hiddenUntil = previous.hiddenUntil + apps.associateWith { now + 3_600_000 }) }
-                                clearSelection()
-                            }) { Text(stringResource(if (hidden) R.string.notification_show else R.string.notification_quick_hide)) }
-                            if (canBatchManage && android.os.Build.VERSION.SDK_INT >= 26) TextButton(enabled = !busy, onClick = { batchAction("snooze") }) { Text(stringResource(R.string.notification_quick_snooze)) }
-                            TextButton(enabled = !busy, onClick = {
-                                val apps = selectedItems.map { it.appId }.toSet()
-                                save { it.copy(pinned = if (apps.all { id -> id in it.pinned }) it.pinned - apps else it.pinned + apps) }
-                            }) { Text(stringResource(R.string.notification_quick_priority)) }
-                            if (selectedItems.size == 1) TextButton(onClick = {
-                                val item = selectedItems.single()
-                                selectedKey = item.key; selectedRevision = item.revision; selectedSession = snapshot.sessionId; actionsVisible = true
-                            }) { Text(stringResource(R.string.notification_more)) }
-                            if (canBatchManage && selectedItems.size > 1) TextButton(enabled = !busy, onClick = { if (bulkConfirm) batchAction("dismiss") else bulkConfirm = true }) { Text(stringResource(if (bulkConfirm) R.string.notification_confirm_dismiss_selected else R.string.notification_dismiss_selected)) }
+                if (!settings && !savedTab && !actionsVisible) {
+                    NotificationActionBarTransition {
+                        if (selectionMode) {
+                            FlowRow(Modifier.fillMaxWidth().testTag("notification-selected-actions"), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                if (selectedItems.isNotEmpty()) {
+                                    TextButton(enabled = !busy, onClick = {
+                                        val apps = selectedItems.map { it.appId }.toSet()
+                                        save { previous -> if (hidden) apps.fold(previous) { c, id -> c.showApp(id) } else previous.copy(hiddenUntil = previous.hiddenUntil + apps.associateWith { now + 3_600_000 }) }
+                                        clearSelection()
+                                    }) { Text(stringResource(if (hidden) R.string.notification_show else R.string.notification_quick_hide)) }
+                                    if (canBatchManage && android.os.Build.VERSION.SDK_INT >= 26) TextButton(enabled = !busy, onClick = { batchAction("snooze") }) { Text(stringResource(R.string.notification_quick_snooze)) }
+                                    TextButton(enabled = !busy, onClick = {
+                                        val apps = selectedItems.map { it.appId }.toSet()
+                                        save { it.copy(pinned = if (apps.all { id -> id in it.pinned }) it.pinned - apps else it.pinned + apps) }
+                                    }) { Text(stringResource(R.string.notification_quick_priority)) }
+                                    if (selectedItems.size == 1) TextButton(onClick = {
+                                        val item = selectedItems.single()
+                                        selectedKey = item.key; selectedRevision = item.revision; selectedSession = snapshot.sessionId; actionsVisible = true
+                                    }) { Text(stringResource(R.string.notification_more)) }
+                                    if (canBatchManage && selectedItems.size > 1) TextButton(enabled = !busy, onClick = { if (bulkConfirm) batchAction("dismiss") else bulkConfirm = true }) { Text(stringResource(if (bulkConfirm) R.string.notification_confirm_dismiss_selected else R.string.notification_dismiss_selected)) }
+                                }
+                                if (selections.size > 1) TextButton(onClick = { clearSelection() }) { Text(stringResource(R.string.notification_cancel)) }
+                            }
                         }
-                        if (selections.size > 1) TextButton(onClick = { clearSelection() }) { Text(stringResource(R.string.notification_cancel)) }
                     }
                 }
                 HorizontalDivider()
                 Row(Modifier.fillMaxWidth()) {
-                    IconButton(modifier = Modifier.weight(1f), onClick = { clearSelection(); app = null; settings = false; hidden = false; confirmation = false; inboxListState.requestScrollToItem(0) }) {
+                    IconButton(modifier = Modifier.weight(1f), onClick = { clearSelection(); app = null; savedTab = false; settings = false; settingsPage = "root"; hidden = false; confirmation = false; inboxListState.requestScrollToItem(0) }) {
                         Icon(Icons.Outlined.Inbox, stringResource(R.string.notification_all))
                     }
-                    IconButton(modifier = Modifier.weight(1f), onClick = { clearSelection(); hidden = !hidden; settings = false; confirmation = false }) {
+                    IconButton(modifier = Modifier.weight(1f), onClick = { clearSelection(); hidden = if (savedTab) true else !hidden; savedTab = false; settings = false; settingsPage = "root"; confirmation = false }) {
                         Icon(if (hidden) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff, stringResource(if (hidden) R.string.notification_active else R.string.notification_hidden))
                     }
-                    IconButton(modifier = Modifier.weight(1f), onClick = { settings = !settings; confirmation = false }) {
+                    IconButton(modifier = Modifier.weight(1f).testTag("saved-tab"), onClick = { clearSelection(); app = null; settings = false; settingsPage = "root"; savedTab = true; confirmation = false }) {
+                        Icon(Icons.Outlined.Archive, stringResource(R.string.notification_saved), tint = if (savedTab && !settings) MaterialTheme.colorScheme.primary else LocalContentColor.current)
+                    }
+                    IconButton(modifier = Modifier.weight(1f), onClick = { if (settings && settingsPage != "root") settingsPage = "root" else { settings = !settings; settingsPage = "root" }; confirmation = false }) {
                         Icon(Icons.Outlined.Settings, stringResource(R.string.notification_settings_tab))
                     }
                 }
             }
         }
+    }
+}
+
+
+/** Animate the list viewport as the action area grows or collapses to zero. */
+@Composable
+internal fun NotificationActionBarTransition(content: @Composable () -> Unit) {
+    Box(Modifier.fillMaxWidth().animateContentSize(animationSpec = tween(250))) {
+        content()
     }
 }

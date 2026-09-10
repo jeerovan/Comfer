@@ -9,12 +9,16 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-/** Phase-0 storage feasibility boundary. This does not enable or capture history. */
+/** Keystore-backed encryption for local history; never used for shareable configuration. */
 @WorkerThread
 internal class NotificationHistoryCipher(private val alias: String = "comfer.notification.history.v1") {
     private fun store() = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
     private fun key(): SecretKey = store().getKey(alias, null) as? SecretKey
         ?: throw IllegalStateException("Notification history key unavailable")
+
+    fun initializeEmptyStoreIfNeeded(hasRetainedRecords: Boolean) {
+        if (hasRetainedRecords) key() else initializeEmptyStore(false)
+    }
 
     /** Caller must first establish that the retained store is empty. Never replace a lost key. */
     fun initializeEmptyStore(hasRetainedRecords: Boolean) {

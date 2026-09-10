@@ -134,7 +134,17 @@ class MyNotificationListenerService : NotificationListenerService() {
         }
 
         suspend fun act(key: String, revision: Long, action: String, sessionId: String): String = withContext(Dispatchers.Main) {
-            connectedService?.performAction(key, revision, action, sessionId) ?: "unavailable"
+            val service = connectedService ?: return@withContext "unavailable"
+            if (action == "open") {
+                val candidate = service.historyOpenCandidate(key, revision, sessionId)
+                if (candidate != null && !com.jeerovan.comfer.notifications.NotificationHistory.retainOpened(candidate)) return@withContext "history_failed"
+            }
+            val actionItem = synchronized(service.lock) { service.ledger.current(key, revision) }
+            val result = service.performAction(key, revision, action, sessionId)
+            if (action == "dismiss" && result == "requested") {
+                if (actionItem != null) com.jeerovan.comfer.notifications.NotificationHistory.dismissFromInbox(com.jeerovan.comfer.notifications.savedNotificationId(actionItem))
+            }
+            result
         }
     }
 
@@ -156,7 +166,7 @@ class MyNotificationListenerService : NotificationListenerService() {
         actionIdentities[sbn.key] = identity to token
         return token
     }
-    private data class Event(val generation: Long, val posted: StatusBarNotification? = null, val removed: String? = null)
+    private data class Event(val generation: Long, val posted: StatusBarNotification? = null, val removed: String? = null, val configGeneration: Long = com.jeerovan.comfer.notifications.NotificationPreferences.state.value.generation)
     private val events = kotlinx.coroutines.channels.Channel<Event>(256)
     private val syncCoordinator = DebouncedSyncCoordinator(serviceScope, 250L) { events.send(Event(connectionGeneration)) }
     private var periodicJob: Job? = null
@@ -175,6 +185,7 @@ class MyNotificationListenerService : NotificationListenerService() {
         connectedService = this
         android.util.Log.i("NotificationRecovery", "listener_connected")
         com.jeerovan.comfer.notifications.NotificationPreferences.initialize(this)
+        com.jeerovan.comfer.notifications.NotificationHistory.initialize(this)
         serviceScope.launch { com.jeerovan.comfer.notifications.NotificationPreferences.update { it.copy(setup = true) } }
         serviceScope.launch { com.jeerovan.comfer.notifications.NotificationQuietHours.reconcile(this@MyNotificationListenerService) }
         if (consumer == null) consumer = serviceScope.launch {
@@ -202,7 +213,15 @@ class MyNotificationListenerService : NotificationListenerService() {
                         }
                     } else synchronized(lock) {
                         if (!connected || event.generation != connectionGeneration) return@synchronized
-                        event.posted?.let { handles[it.key] = it; ledger.put(normalize(it)) }
+                        event.posted?.let {
+                            handles[it.key] = it
+                            val item = normalize(it)
+                            ledger.put(item)
+                            com.jeerovan.comfer.notifications.NotificationHistory.offer(item,
+                                it.notification.visibility != android.app.Notification.VISIBILITY_SECRET &&
+                                    !getSystemService(android.app.KeyguardManager::class.java).isDeviceLocked)
+                            applyContentRules(item, event.configGeneration)
+                        }
                         event.removed?.let { handles.remove(it); actionIdentities.remove(it); ledger.remove(it) }
                         dirty = true
                         // Capture revisions immediately; publish a reconciled UI snapshot after
@@ -267,7 +286,8 @@ class MyNotificationListenerService : NotificationListenerService() {
     private fun normalizeContent(sbn: StatusBarNotification): com.jeerovan.comfer.notifications.NotificationItem {
         val notification = sbn.notification
         val extras = notification.extras
-        val title = extras?.getCharSequence(android.app.Notification.EXTRA_TITLE)?.toString().orEmpty().take(2048)
+        val rawTitle = extras?.getCharSequence(android.app.Notification.EXTRA_TITLE)?.toString().orEmpty()
+        val title = rawTitle.take(2048)
         val messages = extras?.getParcelableArray(android.app.Notification.EXTRA_MESSAGES)
             ?.mapNotNull { (it as? android.os.Bundle)?.getCharSequence("text")?.toString() }
             ?.takeIf { it.isNotEmpty() }?.joinToString("\n")
@@ -290,6 +310,12 @@ class MyNotificationListenerService : NotificationListenerService() {
             progressMax = extras?.getInt(android.app.Notification.EXTRA_PROGRESS_MAX, 0) ?: 0,
             progressIndeterminate = extras?.getBoolean(android.app.Notification.EXTRA_PROGRESS_INDETERMINATE, false) ?: false,
             hasContentIntent = notification.contentIntent != null,
+            previewAvailable = com.jeerovan.comfer.notifications.hasNotificationPreview(title, body, com.jeerovan.comfer.notifications.notificationRedactionPlaceholder(this)) &&
+                (extras?.getCharSequence(android.app.Notification.EXTRA_TEXT)?.toString().orEmpty().let { deliveredText ->
+                    deliveredText.isBlank() || com.jeerovan.comfer.notifications.hasNotificationPreview(title, deliveredText, com.jeerovan.comfer.notifications.notificationRedactionPlaceholder(this))
+                }),
+            contentComplete = rawTitle.length <= 2048 && body.length <= 8192 && notification.visibility != android.app.Notification.VISIBILITY_SECRET &&
+                !getSystemService(android.app.KeyguardManager::class.java).isDeviceLocked,
         )
     }
 
@@ -301,6 +327,42 @@ class MyNotificationListenerService : NotificationListenerService() {
         // Compatibility projection for existing home badges; full records live in snapshot.
         _activeNotifications.value = handles.values.sortedByDescending { it.postTime }
             .distinctBy { it.user to it.packageName }
+    }
+
+    private fun applyContentRules(item: com.jeerovan.comfer.notifications.NotificationItem, generation: Long) {
+        val config = com.jeerovan.comfer.notifications.NotificationPreferences.state.value
+        if (config.paused || config.generation != generation) return
+        val activity = com.jeerovan.comfer.notifications.NotificationRuleActivity
+        config.rules.filter { it.enabled && it.observeOnly }.forEach { rule ->
+            if (com.jeerovan.comfer.notifications.matchNotificationRule(rule, item, config.protectedApps).matches) activity.record(rule.id, "Test only: matched; no action")
+        }
+        val rule = com.jeerovan.comfer.notifications.firstNotificationRule(item, config) ?: return
+        if (rule.action == com.jeerovan.comfer.notifications.RuleAction.HIDE) {
+            activity.record(rule.id, "Hidden in Comfer")
+            return
+        }
+        // Act only on fresh posted events, never on refresh/backlog or rule-editor preview.
+        // Recheck Android's current content and the saved configuration just before cancellation.
+        if (com.jeerovan.comfer.notifications.NotificationPreferences.state.value.generation != generation) return
+        val current = getActiveNotifications(arrayOf(item.key))?.firstOrNull() ?: return
+        if (normalize(current).copy(revision = 0) != item.copy(revision = 0)) {
+            activity.record(rule.id, "Skipped: notification changed")
+            return
+        }
+        try {
+            cancelNotification(item.key)
+            activity.record(rule.id, "Dismissal requested")
+        } catch (_: Exception) { activity.record(rule.id, "Dismissal unavailable") }
+    }
+
+    private fun historyOpenCandidate(key: String, revision: Long, sessionId: String): com.jeerovan.comfer.notifications.NotificationItem? = synchronized(lock) {
+        val config = com.jeerovan.comfer.notifications.NotificationPreferences.state.value
+        val item = ledger.current(key, revision) ?: return@synchronized null
+        if (!connected || sessionId != connectionId || !config.historyEnabled || item.summary || item.protected ||
+            item.appId in config.historyExcludedApps || item.appId in config.protectedApps ||
+            (!item.previewAvailable || !item.contentComplete || !com.jeerovan.comfer.notifications.hasNotificationPreview(item.title, item.text)) ||
+            handles[key]?.notification?.visibility == android.app.Notification.VISIBILITY_SECRET ||
+            getSystemService(android.app.KeyguardManager::class.java).isDeviceLocked) null else item
     }
 
     private fun performAction(key: String, revision: Long, action: String, sessionId: String): String = synchronized(lock) {

@@ -461,3 +461,38 @@ After a qualifying swipe is released, continue translating the card in the same 
 ### Separate group selection and expansion
 
 The app-group title and expand/collapse caret are separate controls. Outside selection mode only the caret changes expansion. During selection, tapping the group title selects all its current inbox children (including collapsed children); if all are selected it deselects that group. Partial selection becomes full selection, other groups remain unchanged, and selecting zero items exits selection mode. Expose full/partial/empty selection semantics without displaying a count. Opening must not issue a Comfer dismissal, including for auto-cancel flags; source applications can independently remove their own notifications. Decision: do not retain separate inbox copies when a source app or Android removes a notification. The live inbox follows active Android notifications; opening does not request dismissal from Comfer.
+
+
+### 10 September 2026 — Local history and contextual settings revision
+
+The user supersedes the earlier live-only/no-separate-copy decision. Restore NF-04/NF-05 and saved-copy-dependent features to the roadmap. Live notifications remain the default inbox; after explicit history consent, retain encrypted local text copies with clear Saved copy labeling. Source removal must not delete an already retained copy, and a saved copy must never retain or dispatch an old PendingIntent. Keep retention, exclusion and explicit deletion controls. Notification content stays out of freely shareable configuration backups. Regex remains deferred in favor of normalized, content-based literal rules (NF-06).
+
+Settings must be a short directory, with each destination containing only related controls:
+- Notification view: grouped/chronological choice on the directory.
+- Quiet hours → shared pause/status/DND access, Focus timers → temporary duration/end controls, Schedules → Recurring schedule → days, exact start/end and DND/app-hiding actions.
+- Filters → manual hidden-app controls and, when implemented, content-based rule management. Do not present unimplemented rules as enabled controls.
+- History → consent, retention, exclusions, saved copies and deletion.
+- Search → plain-text, app and date search of saved copies.
+- Connection and privacy → refresh, sync/privacy status and reset.
+
+Android Back traverses the context hierarchy, then returns to the inbox. Preserve reachable starting content, bottom navigation, keyboard accommodation and drafts. Retention is off by default and consent is distinct from notification access. Pausing schedules is independent of history capture; the History destination shows capture status.
+
+### 10 September 2026 — Opening with history and content-rule delivery
+
+When History is enabled, opening an eligible live notification first commits a local copy. Opening never requests Android cancellation. If the source app removes its notification, keep the copy accessible in the inbox, explicitly labeled Saved copy, until manual Dismiss from inbox or retention expiry. Dismiss from inbox only removes that entry from the inbox; History keeps its copy. Manual dismissal of the live notification also clears its retained-inbox flag. Do not duplicate a copy beside its still-live source. Privacy exclusions, protected/secret notifications and locked-device restrictions still apply. If an eligible copy cannot be saved, report the failure before opening. Never reuse a historical PendingIntent; a saved copy may offer Open app for the current profile.
+
+Content rules use normalized case-insensitive literal matching, selected title/message fields, app/profile and optional channel, ANY/ALL required phrases and exception phrases. Start in test-only mode and require preview before save. Live rules use stable list order; first matching active rule wins. Auto-dismiss requires its own explicit confirmation and applies only to fresh posted/updated events, never snapshot reconciliation or an existing backlog on rule edits/resume. Regex remains deferred. Pause covers rules, schedules and timers; history remains independent.
+
+
+### Saved tab revision (2026-09-10)
+
+- Tab order: All apps, Hidden, Saved, Settings. Saved has case-insensitive title/message/app-package search and displays local copies, including opened notifications, newest first. History capture remains opt-in.
+- Saved replaces the former retained-copy section in the live inbox and the per-copy History settings list. Settings → Search opens Saved.
+- A saved copy has only swipe-to-delete (plus its accessibility equivalent). No tap, selection, Open App, snooze or other notification actions. Deletion removes the local copy without dismissing a live Android notification.
+- Never capture empty, incomplete, secret, protected or Android-redacted previews, including hidden sensitive/OTP content. Check Android’s localized redaction placeholder and common unavailable-preview placeholders, including the delivered basic text when expanded text exists. Do not attempt to recover hidden content. Existing recognizable placeholder copies are pruned.
+- The earlier opened-copy presentation and Open App affordance are superseded by this Saved tab. Retention, encryption, device-lock protection and exclusion policies continue to apply.
+
+
+### Active/history exclusivity (2026-09-10)
+
+Saved copies are captured while notifications are live, but displayed in Saved only after their matching notification leaves the complete active snapshot. Opening does not itself cancel Android notifications: if the source removes its notification on open, its copy becomes visible in Saved. App filtering, grouping/collapse and hiding do not promote still-live copies to history. Matching uses profile, notification key and post time, so updates do not duplicate a live notification and later reposts remain distinct. This supersedes the earlier statement that Saved displays still-live copies.

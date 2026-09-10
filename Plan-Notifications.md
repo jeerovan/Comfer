@@ -298,3 +298,40 @@ Replace immediate swipe-release dismissal with an off-screen exit animation foll
 ### Group selection and non-dismissing Open
 
 Separate group title selection from the expand/collapse button. Cover partial-to-all selection, collapsed children, other-group preservation and zero-selection exit. Assert that opening an auto-cancel fixture leaves its Android notification active. Comfer only issues cancellation from explicit dismissal paths; source-owned cancellation remains independent. The user confirmed that removed notifications should not be retained as separate inbox copies; preserve the current live-only behavior.
+
+
+### 10 September 2026 — Context pages and initial history slice
+
+The user explicitly revises the no-separate-copy decision: restore local history and its dependent planned features. Regex remains deferred; Phase 6 prioritizes content-based literal rules.
+
+Implemented initial Phase-5 slice: opt-in encrypted local text copies for future posted/updated events, 24-hour/7-day/30-day retention, 500-record bound, app exclusions, critical/ongoing/protected-item exclusion, skipped locked/secret events, local plain-text/app/date search and confirmed deletion. Copies survive source removal and normal process restart; they contain no source action handles. Storage is under noBackupFilesDir and absent from the existing backup DTO payloads. Encryption/storage failure pauses capture without plaintext fallback. Capture gaps are disclosed; initial reconciliation does not backfill prior notifications. Search currently displays at most 50 matches and supports narrowing results.
+
+Settings now use dedicated root, Quiet hours, Focus timers, Schedules, Recurring schedule, Filters, History, Search and Connection/privacy pages. Native Back returns through this hierarchy. History stays explicitly off until enabled; automation pause does not stop independent history capture.
+
+Phase 5 remains incomplete: bookmarks, saved-copy reminders, Undo, Copy/Share, additional authentication options and complete storage/accessibility/device validation are pending. Filters currently manages manual hiding and clearly marks content-rule creation as planned. No regex evaluator is added. Earlier live-only guidance and flat-settings descriptions are superseded by this revision.
+
+Validation for the context/history slice: debug builds and lint passed. Nine emulator checks passed for encrypted persistence/reopen/delete/key loss, retention/exclusions/count cap, consent/protected/locked capture gating, nested native-Back navigation and portrait/large-text layout. A separate real-notification lifecycle test passed after the API-24 harness explicitly rebound and restored notification-listener access; it confirms a source-removed notification retains its local copy. The first integration attempt lacked a live listener binding and failed before posting; no storage failure was involved. Physical storage-pressure, authentication options, broader accessibility and remaining Phase-5 features are still open.
+
+### 10 September 2026 — Retained inbox after Open; initial Phase-6 content rules
+
+Implement the requested Open lifecycle revision: persist an eligible copy before sending the source action when History is enabled, retain an inbox entry if the source removes the Android notification, label it Saved copy, and remove that inbox entry only through explicit dismissal or history retention/deletion. Live/source handles remain separate. Protected/excluded/secret/locked items retain existing privacy boundaries. The inbox suppresses duplicates while the live source exists. History can retain a manually dismissed inbox copy until expiry.
+
+Initial Phase-6 scope now includes a pure preview/live evaluator, up to 20 rules with bounded literal phrases, selected fields/app-profile/channel, ANY/ALL, exceptions, test-only mode, first-match order with Move up, pause, content-free in-memory outcomes, rule creation from an item, and separately confirmed future-event auto-dismiss. New rules start in test-only mode. Editor preview never dispatches actions. Saving/resuming rules re-evaluates visual hiding but never dismisses the existing backlog. Posted-event generation and current Android content are checked before auto-dismiss. Regex stays deferred.
+
+Still pending: presets/folders/timed overrides, editable templates, optional Quick Settings tile, explicit preview-and-apply dismissal of existing items, richer activity filtering, and broader Phase-5/6 release validation. This is continued implementation, not a declaration that all phase gates are complete.
+
+Validation: six JVM rule/projection tests passed (Unicode literal matching, ANY/ALL/exceptions, incomplete/protected content, app/profile/channel boundaries, stable precedence/pause/test-only mode and retained-copy projection). Ten API-24 instrumentation checks passed, including a real source app cancellation triggered by Open, persistence of its retained inbox copy, explicit inbox dismissal preserving History, future-only automatic dismissal with an existing matching notification left intact, separate auto-dismiss consent, and contextual/large-text navigation. Debug builds and lint passed. The implementation was installed on Samsung in place; its user configuration was preserved. Wider OEM/idle/performance gates remain open.
+
+
+### Saved tab revision (2026-09-10)
+
+- Tab order: All apps, Hidden, Saved, Settings. Saved has case-insensitive title/message/app-package search and displays local copies, including opened notifications, newest first. History capture remains opt-in.
+- Saved replaces the former retained-copy section in the live inbox and the per-copy History settings list. Settings → Search opens Saved.
+- A saved copy has only swipe-to-delete (plus its accessibility equivalent). No tap, selection, Open App, snooze or other notification actions. Deletion removes the local copy without dismissing a live Android notification.
+- Never capture empty, incomplete, secret, protected or Android-redacted previews, including hidden sensitive/OTP content. Check Android’s localized redaction placeholder and common unavailable-preview placeholders, including the delivered basic text when expanded text exists. Do not attempt to recover hidden content. Existing recognizable placeholder copies are pruned.
+- The earlier opened-copy presentation and Open App affordance are superseded by this Saved tab. Retention, encryption, device-lock protection and exclusion policies continue to apply.
+
+
+### Active/history exclusivity (2026-09-10)
+
+Saved copies are captured while notifications are live, but displayed in Saved only after their matching notification leaves the complete active snapshot. Opening does not itself cancel Android notifications: if the source removes its notification on open, its copy becomes visible in Saved. App filtering, grouping/collapse and hiding do not promote still-live copies to history. Matching uses profile, notification key and post time, so updates do not duplicate a live notification and later reposts remain distinct. This supersedes the earlier statement that Saved displays still-live copies.

@@ -28,6 +28,11 @@ data class NotificationConfiguration(
     val leftHanded: Boolean = false,
     val generation: Long = 0,
     val quietSchedule: QuietSchedule = QuietSchedule(),
+    val historyEnabled: Boolean = false,
+    val historySince: Long = 0,
+    val historyDays: Int = 7,
+    val historyExcludedApps: Set<String> = emptySet(),
+    val rules: List<NotificationRule> = emptyList(),
 )
 
 /** Dedicated configuration only. Never store notification content or Android handles here. */
@@ -45,6 +50,8 @@ object NotificationPreferences {
             Json.decodeFromString<NotificationConfiguration>(prefs.getString("config", null) ?: "{}").also {
                 require(it.version == 1 && it.reachFraction.isFinite() && it.reachFraction in .4f.. .65f && it.reachCap.isFinite() && it.reachCap in 160f..600f && it.reachWidth.isFinite() && it.reachWidth in 240f..600f)
                 require(it.quietSchedule.startMinute in 0..1439 && it.quietSchedule.endMinute in 0..1439 && it.quietSchedule.weekdays.all { day -> day in 1..7 })
+                require(it.historyDays in setOf(1, 7, 30))
+                require(it.rules.size <= 20 && it.rules.all(::validNotificationRule) && it.rules.map { rule -> rule.id }.distinct().size == it.rules.size)
             }
         }.getOrElse {
             mutableRecoveryNeeded.value = true
@@ -71,7 +78,8 @@ object NotificationPreferences {
 
 fun isVisuallyHidden(item: NotificationItem, configuration: NotificationConfiguration, now: Long): Boolean =
     (configuration.hiddenUntil[item.appId] ?: 0L) > now ||
-        (!configuration.paused && item.appId in configuration.quietSchedule.hiddenApps && quietWindow(configuration.quietSchedule, now).active)
+        (!configuration.paused && item.appId in configuration.quietSchedule.hiddenApps && quietWindow(configuration.quietSchedule, now).active) ||
+        firstNotificationRule(item, configuration)?.action == RuleAction.HIDE
 
 fun NotificationConfiguration.showApp(appId: String): NotificationConfiguration = copy(
     hiddenUntil = hiddenUntil - appId,
