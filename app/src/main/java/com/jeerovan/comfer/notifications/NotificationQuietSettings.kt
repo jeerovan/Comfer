@@ -34,7 +34,16 @@ fun NotificationQuietSettings() {
     val snapshot by com.jeerovan.comfer.MyNotificationListenerService.snapshot.collectAsState()
     val manager = remember { context.getSystemService(android.app.NotificationManager::class.java) }
     var systemFilter by remember { mutableIntStateOf(manager.currentInterruptionFilter) }
-    LaunchedEffect(Unit) { while (true) { systemFilter = manager.currentInterruptionFilter; delay(1000) } }
+    var hasDndAccess by remember { mutableStateOf(manager.isNotificationPolicyAccessGranted) }
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            systemFilter = manager.currentInterruptionFilter
+            hasDndAccess = manager.isNotificationPolicyAccessGranted
+            now = System.currentTimeMillis()
+            delay(1000)
+        }
+    }
     var failed by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     fun operation(action: suspend () -> Boolean) {
@@ -45,9 +54,17 @@ fun NotificationQuietSettings() {
     fun time(minute: Int): String = DateFormat.getTimeInstance(DateFormat.SHORT).format(Calendar.getInstance().apply {
         set(Calendar.HOUR_OF_DAY, minute / 60); set(Calendar.MINUTE, minute % 60)
     }.time)
-    Column {
-        Text(stringResource(R.string.notification_quiet_rule), style = MaterialTheme.typography.titleMedium)
-        Text(stringResource(R.string.notification_quiet_disclosure), style = MaterialTheme.typography.bodySmall)
+    val labels = DateFormatSymbols.getInstance().shortWeekdays
+    val schedule = config.quietSchedule
+    val dirty = start != schedule.startMinute || end != schedule.endMinute || days != schedule.weekdays ||
+        deviceQuiet != schedule.deviceQuiet || hiddenApps != schedule.hiddenApps
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        HorizontalDivider()
+        Text(stringResource(R.string.notification_automation_title), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(if (config.paused) R.string.notification_automation_paused else R.string.notification_automation_running), style = MaterialTheme.typography.bodySmall)
+        OutlinedButton(enabled = !busy, onClick = {
+            operation { NotificationPreferences.update { it.copy(paused = !it.paused) } && NotificationQuietHours.reconcile(context) }
+        }) { Text(stringResource(if (config.paused) R.string.notification_resume_automation else R.string.notification_pause_automation)) }
         Text(stringResource(when (status.health) {
             QuietHealth.OFF -> R.string.notification_quiet_off
             QuietHealth.ACTIVE -> R.string.notification_quiet_active
@@ -63,44 +80,87 @@ fun NotificationQuietSettings() {
         Text(java.util.TimeZone.getDefault().displayName)
         if (failed) Text(stringResource(R.string.notification_quiet_failed))
         status.nextBoundary?.let { Text(stringResource(R.string.notification_quiet_next, DateFormat.getDateTimeInstance().format(Date(it)))) }
-       TextButton(onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_access)) }
+        if (!hasDndAccess) {
+            Text(stringResource(R.string.notification_dnd_permission_help), style = MaterialTheme.typography.bodySmall)
+            Button(onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_access)) }
+        }
+        HorizontalDivider()
+        Text(stringResource(R.string.notification_focus_title), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.notification_focus_help), style = MaterialTheme.typography.bodySmall)
+        Text(if (status.focusUntil > now) stringResource(R.string.notification_focus_until, DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(status.focusUntil))) else stringResource(R.string.notification_focus_none))
         FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             for (minutes in listOf(15, 30, 60)) {
-               TextButton(enabled = !busy && !config.paused, onClick = { operation { NotificationQuietHours.focus(context, minutes) } }) {
+               OutlinedButton(enabled = !busy && !config.paused && hasDndAccess, onClick = { operation { NotificationQuietHours.focus(context, minutes) } }) {
                     Text(stringResource(R.string.notification_focus_minutes, minutes))
                 }
             }
-            TextButton(enabled = !busy, onClick = { operation { NotificationQuietHours.endFocus(context) } }) { Text(stringResource(R.string.notification_end_focus)) }
+            if (status.focusUntil > now) OutlinedButton(enabled = !busy, onClick = { operation { NotificationQuietHours.endFocus(context) } }) { Text(stringResource(R.string.notification_end_focus)) }
         }
-        Text(stringResource(R.string.notification_quiet_start, time(start)))
-        Slider(start.toFloat(), onValueChange = { start = it.toInt() }, valueRange = 0f..1439f)
-        Text(stringResource(R.string.notification_quiet_end, time(end)))
-        Slider(end.toFloat(), onValueChange = { end = it.toInt() }, valueRange = 0f..1439f)
+        HorizontalDivider()
+        Text(stringResource(R.string.notification_schedule_title), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(if (schedule.enabled) R.string.notification_schedule_enabled else R.string.notification_schedule_disabled))
+        if (schedule.enabled) Text(stringResource(R.string.notification_schedule_summary, time(schedule.startMinute), time(schedule.endMinute), schedule.weekdays.sorted().joinToString { labels[it] }), style = MaterialTheme.typography.bodySmall)
+        Text(stringResource(R.string.notification_schedule_help), style = MaterialTheme.typography.bodySmall)
+        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = {
+                android.app.TimePickerDialog(context, { _, hour, minute -> start = hour * 60 + minute }, start / 60, start % 60, android.text.format.DateFormat.is24HourFormat(context)).apply {
+                    show()
+                    window?.setGravity(android.view.Gravity.BOTTOM)
+                }
+            }) { Text(stringResource(R.string.notification_quiet_start, time(start))) }
+            OutlinedButton(onClick = {
+                android.app.TimePickerDialog(context, { _, hour, minute -> end = hour * 60 + minute }, end / 60, end % 60, android.text.format.DateFormat.is24HourFormat(context)).apply {
+                    show()
+                    window?.setGravity(android.view.Gravity.BOTTOM)
+                }
+            }) { Text(stringResource(R.string.notification_quiet_end, time(end))) }
+        }
+        Text(stringResource(R.string.notification_schedule_days))
         FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            val labels = DateFormatSymbols.getInstance().shortWeekdays
             for (day in 1..7) {
                 FilterChip(selected = day in days, onClick = { days = if (day in days) days - day else days + day }, label = { Text(labels[day]) })
             }
         }
+        Text(stringResource(R.string.notification_schedule_actions), style = MaterialTheme.typography.titleSmall)
         NotificationSettingToggle(stringResource(R.string.notification_schedule_device_quiet), deviceQuiet) { deviceQuiet = it }
         Text(stringResource(R.string.notification_schedule_hide_apps))
+        Text(stringResource(R.string.notification_hide_scope), style = MaterialTheme.typography.bodySmall)
+        if (snapshot.items.isEmpty() && hiddenApps.isEmpty()) Text(stringResource(R.string.notification_schedule_empty_apps), style = MaterialTheme.typography.bodySmall)
         FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             for (appId in (snapshot.items.map { it.appId } + hiddenApps).distinct()) key(appId) {
                 FilterChip(selected = appId in hiddenApps, onClick = { hiddenApps = if (appId in hiddenApps) hiddenApps - appId else hiddenApps + appId },
                     label = { Text(appLabel(context, appId.substringAfter(':'))) })
             }
         }
-       TextButton(enabled = !busy && days.isNotEmpty(), onClick = {
+        val valid = days.isNotEmpty() && start != end && (deviceQuiet || hiddenApps.isNotEmpty())
+        if (dirty) Text(stringResource(R.string.notification_schedule_unsaved), style = MaterialTheme.typography.bodySmall)
+        if (!valid) Text(stringResource(R.string.notification_schedule_invalid), style = MaterialTheme.typography.bodySmall)
+        Button(enabled = !busy && valid && (!deviceQuiet || hasDndAccess), onClick = {
             operation {
                 NotificationPreferences.update { it.copy(quietSchedule = QuietSchedule(true, days, start, end, deviceQuiet, hiddenApps)) } &&
                     NotificationQuietHours.reconcile(context, explicitEnable = true)
             }
         }) { Text(stringResource(R.string.notification_apply_quiet_schedule)) }
-       TextButton(enabled = !busy, onClick = {
+       if (schedule.enabled) OutlinedButton(enabled = !busy, onClick = {
             operation {
                 NotificationPreferences.update { it.copy(quietSchedule = it.quietSchedule.copy(enabled = false)) } &&
                     NotificationQuietHours.reconcile(context)
             }
         }) { Text(stringResource(R.string.notification_disable_quiet_schedule)) }
+        Text(stringResource(R.string.notification_quiet_disclosure), style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+/** Two explicit choices retain selected-state semantics and wrap their text if needed. */
+@Composable
+internal fun NotificationViewChoices(chronological: Boolean, onSelect: (Boolean) -> Unit) {
+    Column {
+        Text(stringResource(R.string.notification_view_title), style = MaterialTheme.typography.titleMedium)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(modifier = Modifier.weight(1f), selected = !chronological,
+                onClick = { onSelect(false) }, label = { Text(stringResource(R.string.notification_grouped)) })
+            FilterChip(modifier = Modifier.weight(1f), selected = chronological,
+                onClick = { onSelect(true) }, label = { Text(stringResource(R.string.notification_chronological)) })
+        }
     }
 }

@@ -34,13 +34,14 @@ class NotificationInboxLayoutTest {
     @Test fun bottomNavigationAndConfigurationFitCompactPortrait() {
         compose.setContent { MaterialTheme { NotificationInbox(onBack = {}) } }
         compose.onNodeWithContentDescription("Settings").assertIsDisplayed().performClick()
-        compose.onNodeWithText("Pause automation").assertIsDisplayed().performClick()
-        compose.onNodeWithText("Resume automation").assertIsDisplayed()
         compose.onNodeWithContentDescription("Back").assertDoesNotExist()
         val heading = compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot()
         val back = compose.onNodeWithContentDescription("All apps").getUnclippedBoundsInRoot()
         assertTrue("Inbox must be in bottom portion", heading.top.value > 150f)
         assertTrue("Navigation must be below content", back.top > heading.bottom)
+        compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText("Pause schedules and timers"))
+        compose.onNodeWithText("Pause schedules and timers").assertIsDisplayed().performClick()
+        compose.onNodeWithText("Resume schedules and timers").assertIsDisplayed()
         InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()?.let { bitmap ->
             val file = java.io.File(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null), "notification-portrait.png")
             file.outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
@@ -55,7 +56,7 @@ class NotificationInboxLayoutTest {
             ) { MaterialTheme { NotificationInbox(onBack = {}) } }
         }
         compose.onNodeWithContentDescription("Settings").performClick()
-        compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText("Pause automation"))
+        compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText("Pause schedules and timers"))
         val panel = compose.onNodeWithTag("notification-inbox-panel").fetchSemanticsNode().boundsInRoot
         compose.onAllNodes(hasClickAction()).fetchSemanticsNodes().forEach { node ->
             val bounds = node.boundsInRoot
@@ -65,8 +66,8 @@ class NotificationInboxLayoutTest {
             }
         }
         compose.onNodeWithContentDescription("Back").assertDoesNotExist()
-        compose.onNodeWithText("Pause automation").performClick()
-        compose.onNodeWithText("Resume automation").assertIsDisplayed()
+        compose.onNodeWithText("Pause schedules and timers").performClick()
+        compose.onNodeWithText("Resume schedules and timers").assertIsDisplayed()
     }
 
     @Test fun fullHeightViewportStartsReachableAndScrollsAboveStartingBoundary() {

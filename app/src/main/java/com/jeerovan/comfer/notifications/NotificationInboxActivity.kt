@@ -40,6 +40,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
@@ -91,6 +92,7 @@ fun NotificationHomeEntry(
     val config by NotificationPreferences.state.collectAsState()
     val recoveryNeeded by NotificationPreferences.recoveryNeeded.collectAsState()
     val snapshot by MyNotificationListenerService.snapshot.collectAsState()
+    val activeNotifications by MyNotificationListenerService.activeNotifications.collectAsState()
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) { while (true) { delay(1000); now = System.currentTimeMillis() } }
     if (!hasAccess && !config.setup) return
@@ -99,25 +101,28 @@ fun NotificationHomeEntry(
     val apps = groups.values.map { it.first() }.sortedByDescending { it.appId in config.pinned }
     val limit = maxVisibleIcons.coerceAtLeast(1)
     val visible = if (apps.size > limit + 1) apps.take(limit) else apps
-    val targetSize = maxOf(48.dp, iconSize + 16.dp)
-    val longSide = maxOf(iconSize * 10 + 8.dp, targetSize * minOf(apps.size.coerceAtLeast(1), limit + 1) + 8.dp)
+    val targetSize = maxOf(32.dp, iconSize + 8.dp)
+    val longSide = maxOf(iconSize * 8 + 8.dp, targetSize * minOf(apps.size.coerceAtLeast(1), limit + 1) + 8.dp)
     val listContent: LazyListScope.() -> Unit = {
         if (apps.isEmpty()) item {
             Box(Modifier.size(targetSize), contentAlignment = Alignment.Center) {
                 Icon(Icons.Outlined.Inbox, null, modifier = Modifier.size(iconSize), tint = color)
             }
         } else items(visible, key = { it.appId }) { item ->
+            val notification = activeNotifications.firstOrNull { it.key == item.key }?.notification
+            val smallIcon = remember(item.key, item.revision, notification, resources.configuration) {
+                loadNotificationSmallIcon(context, notification)
+            }
             Box(Modifier.size(targetSize), contentAlignment = Alignment.Center) {
                 androidx.compose.ui.viewinterop.AndroidView(factory = { android.widget.ImageView(it).apply {
                     scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
                     importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
                 } }, update = { view ->
-                    view.setImageDrawable(runCatching { context.packageManager.getApplicationIcon(item.app) }.getOrNull()
-                        ?: androidx.core.content.res.ResourcesCompat.getDrawable(resources, android.R.drawable.ic_dialog_info, context.theme))
-                    // Launcher icons can have opaque adaptive backgrounds. Tinting the
-                    // whole drawable erases the logo and leaves only its mask shape.
+                    view.setImageDrawable(smallIcon)
+                    // Android's status bar uses the notification's small-icon silhouette,
+                    // not the application's launcher icon or its adaptive background.
                     view.clearColorFilter()
-                    view.imageTintList = null
+                    view.imageTintList = android.content.res.ColorStateList.valueOf(color.copy(alpha = 1f).toArgb())
                     view.alpha = color.alpha
                 }, modifier = Modifier.size(iconSize))
             }
@@ -138,6 +143,10 @@ fun NotificationHomeEntry(
         else LazyColumn(horizontalAlignment = Alignment.CenterHorizontally, content = listContent)
     }
 }
+
+internal fun loadNotificationSmallIcon(context: Context, notification: android.app.Notification?): android.graphics.drawable.Drawable? =
+    runCatching { notification?.smallIcon?.loadDrawable(context)?.mutate() }.getOrNull()
+        ?: androidx.core.content.res.ResourcesCompat.getDrawable(context.resources, android.R.drawable.ic_dialog_info, context.theme)
 
 internal fun appLabel(context: Context, packageName: String): String = runCatching {
     context.packageManager.getApplicationLabel(context.packageManager.getApplicationInfo(packageName, 0)).toString()
@@ -318,12 +327,10 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                 Text(stringResource(R.string.notification_resume_app, appLabel(context, appId.substringAfter(':'))))
                             }
                         } }
-                        item { TextButton(onClick = { save { it.copy(paused = !it.paused) } }) { Text(stringResource(if (config.paused) R.string.notification_resume_automation else R.string.notification_pause_automation)) } }
-                        item { TextButton(onClick = { save { it.copy(chronological = !it.chronological) } }) { Text(stringResource(if (config.chronological) R.string.notification_chronological else R.string.notification_grouped)) } }
+                        item { NotificationViewChoices(config.chronological) { chronological -> save { it.copy(chronological = chronological) } } }
                         item { Text(stringResource(R.string.notification_last_sync, snapshot.lastSync?.let { java.text.DateFormat.getTimeInstance().format(java.util.Date(it)) } ?: "—")) }
-                        item { TextButton(onClick = { runCatching { MyNotificationListenerService.refresh(context, force = true) }.onFailure { status = resources.getString(R.string.notification_action_unavailable) } }) { Text(stringResource(R.string.notification_refresh)) } }
+                        item { Button(onClick = { runCatching { MyNotificationListenerService.refresh(context, force = true) }.onFailure { status = resources.getString(R.string.notification_action_unavailable) } }) { Text(stringResource(R.string.notification_refresh)) } }
                         item { Text(stringResource(R.string.notification_live_privacy), style = MaterialTheme.typography.bodySmall) }
-                        item { TextButton(onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }) { Text(stringResource(R.string.notification_access_settings)) } }
                         item { TextButton(onClick = { context.startActivity(Intent("android.settings.ZEN_MODE_SETTINGS").takeIf { it.resolveActivity(context.packageManager) != null } ?: Intent(Settings.ACTION_SOUND_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_settings)) } }
                         item { NotificationQuietSettings() }
                         item { TextButton(onClick = { confirmation = true }) { Text(stringResource(R.string.notification_reset)) } }
