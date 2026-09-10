@@ -2,6 +2,8 @@
 
 package com.jeerovan.comfer.notifications
 
+import androidx.core.graphics.drawable.toBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -111,7 +113,7 @@ fun NotificationHomeEntry(
     val listContent: LazyListScope.() -> Unit = {
         if (apps.isEmpty()) item {
             Box(Modifier.size(targetSize), contentAlignment = Alignment.Center) {
-                Icon(Icons.Outlined.Inbox, null, modifier = Modifier.size(iconSize), tint = color)
+                NotificationContrastIcon(androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Outlined.Inbox), iconSize, color)
             }
         } else items(visible, key = { it.appId }) { item ->
             val notification = activeNotifications.firstOrNull { it.key == item.key }?.notification
@@ -119,22 +121,14 @@ fun NotificationHomeEntry(
                 loadNotificationSmallIcon(context, notification)
             }
             Box(Modifier.size(targetSize), contentAlignment = Alignment.Center) {
-                androidx.compose.ui.viewinterop.AndroidView(factory = { android.widget.ImageView(it).apply {
-                    scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
-                    importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                } }, update = { view ->
-                    view.setImageDrawable(smallIcon)
-                    // Android's status bar uses the notification's small-icon silhouette,
-                    // not the application's launcher icon or its adaptive background.
-                    view.clearColorFilter()
-                    view.imageTintList = android.content.res.ColorStateList.valueOf(color.copy(alpha = 1f).toArgb())
-                    view.alpha = color.alpha
-                }, modifier = Modifier.size(iconSize))
+                val bitmap = remember(smallIcon) { smallIcon?.let { it.toBitmap() } }
+                if (bitmap != null) NotificationContrastIcon(
+                    remember(bitmap) { androidx.compose.ui.graphics.painter.BitmapPainter(bitmap.asImageBitmap()) }, iconSize, color)
             }
         }
         if (apps.size > visible.size) item {
             Box(Modifier.size(targetSize), contentAlignment = Alignment.Center) {
-                Text("+${apps.size - visible.size}", color = color)
+                Text("+${apps.size - visible.size}", color = color, style = LocalTextStyle.current.copy(shadow = androidx.compose.ui.graphics.Shadow(notificationIconShadowColor(color), androidx.compose.ui.geometry.Offset(0f, 1f), 4f)))
             }
         }
     }
