@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 @Serializable
 enum class RuleField { TITLE, BODY, BOTH }
 @Serializable
-enum class RuleAction { HIDE, DISMISS }
+enum class RuleAction { DISMISS }
 @Serializable
 data class NotificationRule(
     val id: String,
@@ -20,7 +20,7 @@ data class NotificationRule(
     val terms: List<String> = emptyList(),
     val exceptions: List<String> = emptyList(),
     val matchAll: Boolean = false,
-    val action: RuleAction = RuleAction.HIDE,
+    val action: RuleAction = RuleAction.DISMISS,
     val enabled: Boolean = false,
     val observeOnly: Boolean = true,
 )

@@ -31,4 +31,25 @@ class QuietScheduleTest {
         assertTrue(quietWindow(day, date(8, 8), utc).active)
         assertFalse(quietWindow(day, date(8, 9), utc).active)
     }
+    @Test fun emptyWeekdaysNeverActivate() {
+        assertEquals(QuietWindow(false, null), quietWindow(QuietSchedule(enabled = true, weekdays = emptySet()), date(7, 23), utc))
+    }
+    @Test fun zoneChangeReevaluatesLocalHoursAtSameInstant() {
+        val schedule = QuietSchedule(true, (1..7).toSet(), 9 * 60, 17 * 60)
+        val instant = date(8, 5)
+        assertFalse(quietWindow(schedule, instant, utc).active)
+        assertTrue(quietWindow(schedule, instant, TimeZone.getTimeZone("Asia/Kolkata")).active)
+    }
+    @Test fun daylightSavingTransitionsUseLocalBoundaries() {
+        val zone = TimeZone.getTimeZone("America/New_York")
+        fun local(month: Int, day: Int, hour: Int) = Calendar.getInstance(zone).apply {
+            clear(); set(2026, month, day, hour, 0)
+        }.timeInMillis
+        val schedule = QuietSchedule(true, (1..7).toSet(), 22 * 60, 7 * 60)
+        for ((month, day) in listOf(Calendar.MARCH to 8, Calendar.NOVEMBER to 1)) {
+            assertTrue(quietWindow(schedule, local(month, day, 6), zone).active)
+            assertEquals(local(month, day, 7), quietWindow(schedule, local(month, day, 6), zone).nextBoundary)
+            assertFalse(quietWindow(schedule, local(month, day, 7), zone).active)
+        }
+    }
 }

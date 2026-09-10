@@ -30,9 +30,7 @@ internal fun NotificationRulesSettings(onEdit: (String?) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Content-based rules", style = MaterialTheme.typography.titleMedium)
         Text("Literal text matching only; regex is deferred. The first matching active rule wins, in the order below. Test-only rules record matches without changing notifications.", style = MaterialTheme.typography.bodySmall)
-        if (config.paused) Text("Rules are paused. Resume below to process future notifications; existing notifications will not be automatically dismissed.")
-        OutlinedButton(onClick = { scope.launch { failure = !NotificationPreferences.update { it.copy(paused = !it.paused) } } }) { Text(if (config.paused) "Resume rules, schedules and timers" else "Pause rules, schedules and timers") }
-        Text("This shared pause also controls quiet schedules and focus timers. History capture is independent.", style = MaterialTheme.typography.bodySmall)
+        if (config.paused) Text("Rules are paused. Resume in Notification settings to process future notifications; existing notifications will not be automatically dismissed.")
         if (failure) Text("Could not save rule changes.", color = MaterialTheme.colorScheme.error)
         Button(enabled = config.rules.size < 20, onClick = { onEdit(null) }) { Text("Create content rule") }
         Text("Long press a rule to edit and preview. Swipe to delete.", style = MaterialTheme.typography.bodySmall)
@@ -57,7 +55,7 @@ internal fun NotificationRulesSettings(onEdit: (String?) -> Unit) {
                             }
                         }
                         Text(rule.name, style = MaterialTheme.typography.bodyMedium)
-                        Text(if (rule.observeOnly) "Test only" else if (rule.action == RuleAction.HIDE) "Hide in Comfer" else "Automatically dismiss")
+                        Text(if (rule.observeOnly) "Test only" else "Automatically dismiss")
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             if (index > 0) TextButton(onClick = { scope.launch {
                                 failure = !NotificationPreferences.update { c ->
@@ -94,21 +92,23 @@ internal fun NotificationRulesSettings(onEdit: (String?) -> Unit) {
 }
 
 @Composable
-internal fun NotificationRuleEditor(ruleId: String?, source: NotificationItem? = null, onSaved: () -> Unit) {
+internal fun NotificationRuleEditor(ruleId: String?, source: NotificationItem? = null, savedSource: SavedNotification? = null, onSaved: () -> Unit) {
     val context = LocalContext.current
     val config by NotificationPreferences.state.collectAsState()
     val snapshot by com.jeerovan.comfer.MyNotificationListenerService.snapshot.collectAsState()
     val original = config.rules.firstOrNull { it.id == ruleId }
     val scope = rememberCoroutineScope()
+    val savedField = if (savedSource?.title.isNullOrBlank()) RuleField.BODY else RuleField.TITLE
+    fun phrase(text: String) = text.lineSequence().firstOrNull { it.isNotBlank() }?.trim()?.take(100).orEmpty()
     var name by rememberSaveable(ruleId) { mutableStateOf(original?.name ?: "New rule") }
     val id = rememberSaveable(ruleId) { ruleId ?: UUID.randomUUID().toString() }
-    var app by rememberSaveable(ruleId) { mutableStateOf(original?.appId ?: source?.appId) }
+    var app by rememberSaveable(ruleId) { mutableStateOf(original?.appId ?: source?.appId ?: savedSource?.appId) }
     var channel by rememberSaveable(ruleId) { mutableStateOf(original?.channelId ?: source?.channelId) }
-    var field by rememberSaveable(ruleId) { mutableStateOf(original?.field ?: RuleField.BOTH) }
-    var terms by rememberSaveable(ruleId) { mutableStateOf(original?.terms?.joinToString("\n") ?: "") }
+    var field by rememberSaveable(ruleId) { mutableStateOf(original?.field ?: if (savedSource != null) savedField else RuleField.BOTH) }
+    var terms by rememberSaveable(ruleId) { mutableStateOf(original?.terms?.joinToString("\n") ?: savedSource?.let { phrase(if (savedField == RuleField.TITLE) it.title else it.text) }.orEmpty()) }
     var exceptions by rememberSaveable(ruleId) { mutableStateOf(original?.exceptions?.joinToString("\n") ?: "") }
     var all by rememberSaveable(ruleId) { mutableStateOf(original?.matchAll ?: false) }
-    var action by rememberSaveable(ruleId) { mutableStateOf(original?.action ?: RuleAction.HIDE) }
+    val action = RuleAction.DISMISS
     var observe by rememberSaveable(ruleId) { mutableStateOf(original?.observeOnly ?: true) }
     var previewed by remember { mutableStateOf<NotificationRule?>(null) }
     var confirmDismiss by remember { mutableStateOf(false) }
@@ -122,6 +122,16 @@ internal fun NotificationRuleEditor(ruleId: String?, source: NotificationItem? =
     } }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Match notification content", style = MaterialTheme.typography.titleMedium)
+        if (savedSource != null) {
+            Text("Saved notification reference", style = MaterialTheme.typography.titleSmall)
+            Text(savedSource.title)
+            Text(savedSource.text)
+            Text("Choose a phrase to match future notifications. Preview uses only the saved text; the original channel and Android actions are unavailable.", style = MaterialTheme.typography.bodySmall)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (savedSource.title.isNotBlank()) TextButton(onClick = { field = RuleField.TITLE; terms = phrase(savedSource.title) }) { Text("Use title") }
+                if (savedSource.text.isNotBlank()) TextButton(onClick = { field = RuleField.BODY; terms = phrase(savedSource.text) }) { Text("Use message") }
+            }
+        }
         OutlinedTextField(name, { name = it.take(80) }, label = { Text("Rule name") }, modifier = Modifier.fillMaxWidth())
         Text("App and profile")
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -143,15 +153,17 @@ internal fun NotificationRuleEditor(ruleId: String?, source: NotificationItem? =
         OutlinedTextField(terms, { terms = it.take(808) }, label = { Text("Contains text — one phrase per line") }, supportingText = { Text("1–8 phrases, up to 100 characters each. Case-insensitive literal matching.") }, modifier = Modifier.fillMaxWidth())
         NotificationSettingToggle("Require ALL phrases (off means ANY)", all) { all = it }
         OutlinedTextField(exceptions, { exceptions = it.take(808) }, label = { Text("Except when containing — optional") }, supportingText = { Text("One phrase per line. Any exception prevents a match.") }, modifier = Modifier.fillMaxWidth())
-        Text("Action")
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = action == RuleAction.HIDE, onClick = { action = RuleAction.HIDE }, label = { Text("Hide in Comfer") })
-            FilterChip(selected = action == RuleAction.DISMISS, onClick = { action = RuleAction.DISMISS }, label = { Text("Auto-dismiss") })
-        }
+        Text("Action: automatically dismiss")
         NotificationSettingToggle("Test only — record matches without acting", observe) { observe = it }
-        Text("Protected, incomplete and unavailable content is skipped. Hiding only changes Comfer’s view. Auto-dismiss removes future matching Android notifications; it cannot guarantee silence or Undo.", style = MaterialTheme.typography.bodySmall)
+        Text("Protected, incomplete and unavailable content is skipped. Auto-dismiss removes future matching Android notifications; it cannot guarantee silence or Undo.", style = MaterialTheme.typography.bodySmall)
         Button(enabled = validNotificationRule(draft), onClick = { previewed = draft }) { Text("Preview current notifications") }
         if (previewed == draft) {
+            savedSource?.let { copy ->
+                val example = NotificationItem("saved-preview:${copy.id}", copy.app, copy.profile, copy.title, copy.text, copy.postedAt,
+                    group = null, summary = false, clearable = true, protected = false)
+                val match = matchNotificationRule(draft, example, config.protectedApps)
+                Text("Saved reference: ${if (match.matches) "Matches" else "Skipped"} — ${match.reason}", modifier = Modifier.testTag("saved-rule-preview"))
+            }
             val results = notificationChildren(snapshot.items).map { it to matchNotificationRule(draft, it, config.protectedApps) }
             Text("${results.count { it.second.matches }} of ${results.size} current notifications match. Preview performs no actions.")
             results.take(30).forEach { (item, match) -> Text("${appLabel(context, item.app)} · ${item.title.take(120)}: ${if (match.matches) "Matches" else "Skipped"} — ${match.reason}", style = MaterialTheme.typography.bodySmall) }

@@ -17,7 +17,7 @@ class AppGuideTest {
         val headings = listOf(
             R.string.app_guide_tabs_title, R.string.app_guide_actions_title,
             R.string.app_guide_more_title, R.string.app_guide_quiet_title,
-            R.string.app_guide_howto_hide_title, R.string.app_guide_howto_recover_title,
+            R.string.app_guide_howto_open_title, R.string.app_guide_howto_recover_title,
         )
         headings.forEach { id ->
             val label = compose.activity.getString(id)

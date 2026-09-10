@@ -115,8 +115,8 @@ private fun NotificationGuide() {
         item { GuideSectionHeader(stringResource(R.string.app_guide_privacy_title)) }
         item { GuideStepItem(stringResource(R.string.app_guide_privacy_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_common)) }
-        item { GuideSectionHeader(stringResource(R.string.app_guide_howto_hide_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_howto_hide_body)) }
+        item { GuideSectionHeader(stringResource(R.string.app_guide_howto_open_title)) }
+        item { GuideStepItem(stringResource(R.string.app_guide_howto_open_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_howto_mute_title)) }
         item { GuideStepItem(stringResource(R.string.app_guide_howto_mute_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_howto_focus_title)) }

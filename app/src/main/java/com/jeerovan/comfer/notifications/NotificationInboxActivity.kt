@@ -100,10 +100,8 @@ fun NotificationHomeEntry(
     val recoveryNeeded by NotificationPreferences.recoveryNeeded.collectAsState()
     val snapshot by MyNotificationListenerService.snapshot.collectAsState()
     val activeNotifications by MyNotificationListenerService.activeNotifications.collectAsState()
-    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(Unit) { while (true) { delay(1000); now = System.currentTimeMillis() } }
     if (!hasAccess && !config.setup) return
-    val groups = notificationChildren(snapshot.items).filter { !isVisuallyHidden(it, config, now) }
+    val groups = notificationChildren(snapshot.items)
         .groupBy { it.appId }
     val apps = groups.values.map { it.first() }.sortedByDescending { it.appId in config.pinned }
     val limit = maxVisibleIcons.coerceAtLeast(1)
@@ -163,18 +161,28 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
     val quietStatus by NotificationQuietHours.state.collectAsState()
     remember { NotificationHistory.initialize(context); true }
     val savedHistory by NotificationHistory.records.collectAsState()
-    var historyLocked by remember { mutableStateOf(true) }
+    var historyLocked by remember { mutableStateOf(context.getSystemService(android.app.KeyguardManager::class.java).isDeviceLocked) }
     LaunchedEffect(Unit) { while (true) { historyLocked = context.getSystemService(android.app.KeyguardManager::class.java).isDeviceLocked; delay(500) } }
 
     LaunchedEffect(config.paused, config.quietSchedule) { NotificationQuietHours.reconcile(context) }
     var app by rememberSaveable { mutableStateOf(initialApp) }
-    var hidden by rememberSaveable { mutableStateOf(false) }
     var savedTab by rememberSaveable { mutableStateOf(false) }
     var savedQuery by rememberSaveable { mutableStateOf("") }
+    var savedSelections by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var savedCollapsed by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var savedDeleteConfirm by rememberSaveable { mutableStateOf(false) }
+    val savedCopies = if (historyLocked) emptyList() else savedNotificationsMatching(savedHistory, savedQuery, snapshot.items)
+    LaunchedEffect(savedCopies) {
+        savedSelections = savedSelections.filter { id -> savedCopies.any { it.id == id } }
+        savedDeleteConfirm = false
+    }
     var settings by rememberSaveable { mutableStateOf(false) }
     var settingsPage by rememberSaveable { mutableStateOf("root") }
     var editingRuleId by rememberSaveable { mutableStateOf<String?>(null) }
     var ruleSourceKey by rememberSaveable { mutableStateOf<String?>(null) }
+    var ruleSourceSavedId by rememberSaveable { mutableStateOf<String?>(null) }
+    var ruleFromActions by rememberSaveable { mutableStateOf(false) }
+    val savedActionSource = savedHistory.firstOrNull { it.id == ruleSourceSavedId }
     val settingsStateHolder = androidx.compose.runtime.saveable.rememberSaveableStateHolder()
     DisposableEffect(settings, settingsPage, config.historyEnabled, savedTab) {
         val activity = context as? android.app.Activity
@@ -190,8 +198,10 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
     var appControlsOnly by rememberSaveable { mutableStateOf(initialControls) }
     var confirmation by remember { mutableStateOf(false) }
     var actionsVisible by rememberSaveable { mutableStateOf(initialControls && initialSelection != null) }
-    var customDays by rememberSaveable { mutableIntStateOf(0) }
-    var customMinute by rememberSaveable { mutableIntStateOf(9 * 60) }
+    // Keep only app routing metadata when a source copy is deleted or expires.
+    var actionApp by rememberSaveable { mutableStateOf(initialSelection?.app) }
+    var actionProfile by rememberSaveable { mutableIntStateOf(initialSelection?.profile ?: 0) }
+    var actionChannel by rememberSaveable { mutableStateOf<String?>(null) }
     var collapsedApps by rememberSaveable { mutableStateOf(emptyList<String>()) }
     var awaitingSettingsReturn by rememberSaveable { mutableStateOf(false) }
     var returnRevision by remember { mutableIntStateOf(0) }
@@ -201,11 +211,10 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
     var bulkConfirm by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf("") }
-    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var access by remember { mutableStateOf(MyNotificationListenerService.hasAccess(context)) }
-    LaunchedEffect(Unit) { while (true) { delay(1000); now = System.currentTimeMillis(); access = MyNotificationListenerService.hasAccess(context) } }
+    LaunchedEffect(Unit) { while (true) { delay(1000); access = MyNotificationListenerService.hasAccess(context) } }
     val selected = snapshot.items.firstOrNull { it.key == selectedKey && it.revision == selectedRevision && selectedSession == snapshot.sessionId && snapshot.health == ListenerHealth.CONNECTED }
-    fun clearSelection() { selections = emptyMap(); selectedKey = null; actionsVisible = false; bulkConfirm = false }
+    fun clearSelection() { savedSelections = emptyList(); savedDeleteConfirm = false; selections = emptyMap(); selectedKey = null; actionsVisible = false; bulkConfirm = false }
     LaunchedEffect(snapshot, selectedKey) {
         val currentSelections = selections.filter { (key, revision) ->
             snapshot.health == ListenerHealth.CONNECTED && selectionSession == snapshot.sessionId &&
@@ -223,9 +232,12 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
         }
     }
     fun back() { when {
+        actionsVisible && !settings -> actionsVisible = false
+        !settings && savedTab && savedDeleteConfirm -> savedDeleteConfirm = false
+        !settings && savedTab && savedSelections.isNotEmpty() -> savedSelections = emptyList()
         bulkConfirm -> bulkConfirm = false
         confirmation -> confirmation = false
-        actionsVisible -> actionsVisible = false
+        settings && settingsPage == "rule_editor" && ruleFromActions -> { settings = false; settingsPage = "root"; actionsVisible = true }
         settings && settingsPage != "root" -> settingsPage = notificationSettingsParent(settingsPage)
         settings -> settings = false
         savedTab -> savedTab = false
@@ -238,8 +250,8 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
     val savedListState = rememberLazyListState()
     val settingsListState = rememberLazyListState()
     val actionsListState = rememberLazyListState()
-    val listState = if (settings) settingsListState else if (savedTab) savedListState else if (actionsVisible) actionsListState else inboxListState
-    val screen = if (settings) "settings:$settingsPage" else if (savedTab) "saved" else if (actionsVisible) "actions:$selectedKey" else "inbox:$app:$hidden"
+    val listState = if (settings) settingsListState else if (actionsVisible) actionsListState else if (savedTab) savedListState else inboxListState
+    val screen = if (settings) "settings:$settingsPage" else if (actionsVisible) "actions:$actionProfile:$actionApp" else if (savedTab) "saved" else "inbox:$app"
     var lastScreen by rememberSaveable { mutableStateOf(screen) }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -254,7 +266,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
     val records = notificationChildren(snapshot.items).filter { item ->
-        (app == null || item.appId == app) && (isVisuallyHidden(item, config, now) == hidden)
+        app == null || item.appId == app
     }.sortedWith(if (config.chronological) compareByDescending<NotificationItem> { it.postedAt }
         else compareByDescending<NotificationItem> { it.appId in config.pinned }.thenBy { it.appId }.thenByDescending { it.postedAt })
     val displayRows = notificationDisplayRows(records, config.chronological, collapsedApps.toSet())
@@ -268,11 +280,21 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
             val statusRows = 5 + if (quietStatus.health == QuietHealth.CLEANUP_NEEDED || quietStatus.health == QuietHealth.FAILED) 1 else 0
             // Apply to the next layout, rather than scrolling the outgoing menu content.
             if (!settings && !savedTab && !actionsVisible && index >= 0) listState.requestScrollToItem(statusRows + index)
-            else listState.requestScrollToItem(0)
+            else if (!settings && !actionsVisible && savedTab && savedSelections.isNotEmpty()) {
+                val savedRows = savedNotificationRows(savedCopies, config.chronological, savedCollapsed.toSet(), config.pinned)
+                val anchorCopy = savedCopies.firstOrNull { it.id in savedSelections }
+                val savedIndex = savedRows.indexOfFirst { it.record?.id == anchorCopy?.id && it.record != null }
+                    .takeIf { it >= 0 } ?: savedRows.indexOfFirst { it.record == null && it.appId == anchorCopy?.appId }
+                listState.requestScrollToItem(if (savedIndex >= 0) statusRows + 3 + savedIndex else 0)
+            } else listState.requestScrollToItem(0)
             lastScreen = screen
         }
     }
+    fun clearSelectionNotice() {
+        if (status == resources.getString(R.string.notification_changed)) status = ""
+    }
     fun toggleSelection(item: NotificationItem) {
+        clearSelectionNotice()
         selectionSession = snapshot.sessionId; selectedSession = snapshot.sessionId
         selections = if (item.key in selections) selections - item.key else selections + (item.key to item.revision)
         selectedKey = if (item.key in selections) item.key else selections.keys.firstOrNull()
@@ -282,6 +304,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
     fun toggleGroup(appId: String) {
         val group = records.filter { it.appId == appId }
         if (group.isEmpty()) return
+        clearSelectionNotice()
         val allSelected = group.all { selections[it.key] == it.revision }
         selectionSession = snapshot.sessionId; selectedSession = snapshot.sessionId
         selections = if (allSelected) selections - group.map { it.key }.toSet()
@@ -302,6 +325,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
             status = when (result) {
                 "requested", "app_open_requested" -> ""
                 "changed", "removed" -> resources.getString(R.string.notification_changed)
+                "opened_dismiss_failed" -> "Opened, but could not dismiss the notification. You can retry by swiping it."
                 "history_failed" -> resources.getString(R.string.notification_history_save_before_open_failed)
                 else -> resources.getString(R.string.notification_action_unavailable)
             }
@@ -342,36 +366,76 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                     if (quietStatus.health == QuietHealth.CLEANUP_NEEDED || quietStatus.health == QuietHealth.FAILED) item { Text(stringResource(if (quietStatus.health == QuietHealth.CLEANUP_NEEDED) R.string.notification_quiet_cleanup else R.string.notification_quiet_failed)) }
                     if (settings) {
                         item { Text(if (settingsPage == "root") "Notification settings" else when (settingsPage) {
-                            "rule_editor" -> "Content rule"; "quiet" -> "Quiet hours"; "focus" -> "Focus timers"; "schedules" -> "Schedules"
+                            "rule_editor" -> "Content rule"; "quiet" -> "Quiet hours"; "focus" -> "Focus timers"
                             "schedule" -> "Recurring schedule"; "filters" -> "Filters"; "history" -> "History"
                             else -> "Connection and privacy"
                         }, style = MaterialTheme.typography.titleMedium) }
                         if (settingsPage == "root") {
                             item { NotificationViewChoices(config.chronological) { chronological -> save { it.copy(chronological = chronological) } } }
+                            item {
+                                OutlinedButton(onClick = { save { it.copy(paused = !it.paused) } }) {
+                                    Text(stringResource(if (config.paused) R.string.notification_resume_automation else R.string.notification_pause_automation))
+                                }
+                            }
                             item { SettingsDestination("Quiet hours", "${if (config.paused) "Paused" else "Enabled"} · focus timers and schedules", { settingsPage = "quiet" }) }
-                            item { SettingsDestination("Filters", "Content rules and hidden apps", { settingsPage = "filters" }) }
+                            item { SettingsDestination("Filters", "Content dismissal rules", { settingsPage = "filters" }) }
                             item { SettingsDestination("History", if (config.historyEnabled) "Saving local copies" else "Local copies are off", { settingsPage = "history" }) }
                             item { SettingsDestination("Connection and privacy", "Refresh, Android settings and reset", { settingsPage = "connection" }) }
-                        } else if (settingsPage in setOf("quiet", "focus", "schedules", "schedule")) {
+                        } else if (settingsPage in setOf("quiet", "focus", "schedule")) {
                             item { settingsStateHolder.SaveableStateProvider(settingsPage) { NotificationQuietSettings(settingsPage) { settingsPage = it } } }
                             if (settingsPage == "quiet") item { TextButton(onClick = { context.startActivity(Intent("android.settings.ZEN_MODE_SETTINGS").takeIf { it.resolveActivity(context.packageManager) != null } ?: Intent(Settings.ACTION_SOUND_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_settings)) } }
                         } else if (settingsPage == "history") {
                             item { settingsStateHolder.SaveableStateProvider(settingsPage) { NotificationHistorySettings() } }
                         } else if (settingsPage == "rule_editor") {
-                            item { NotificationRuleEditor(editingRuleId, source = snapshot.items.firstOrNull { it.key == ruleSourceKey }, onSaved = { settingsPage = "filters" }) }
-                        } else if (settingsPage == "filters") {
-                            item { NotificationRulesSettings(onEdit = { editingRuleId = it; ruleSourceKey = null; settingsPage = "rule_editor" }) }
-                            item { Text("Manually hidden apps", style = MaterialTheme.typography.titleSmall) }
-                            item { Text(stringResource(R.string.notification_hide_scope)) }
-                            if (config.hiddenUntil.none { it.value > now }) item { Text("No manually hidden apps") }
-                            config.hiddenUntil.filterValues { it > now }.forEach { (appId, _) -> item(key = "hidden:$appId") {
-                                TextButton(onClick = { save { it.showApp(appId) } }) { Text(stringResource(R.string.notification_resume_app, appLabel(context, appId.substringAfter(':')))) }
+                            if (ruleSourceSavedId != null && historyLocked) item { Text("Unlock your device to view saved notifications.") }
+                            else if (ruleSourceSavedId != null && savedActionSource == null) item { Text("This saved notification is no longer available.") }
+                            else item { key(editingRuleId, ruleSourceKey, ruleSourceSavedId) {
+                                NotificationRuleEditor(editingRuleId, source = snapshot.items.firstOrNull { it.key == ruleSourceKey }, savedSource = savedActionSource,
+                                    onSaved = { if (ruleFromActions) { settings = false; settingsPage = "root" } else settingsPage = "filters" })
                             } }
+                        } else if (settingsPage == "filters") {
+                            item { NotificationRulesSettings(onEdit = { editingRuleId = it; ruleSourceKey = null; ruleSourceSavedId = null; ruleFromActions = false; settingsPage = "rule_editor" }) }
+
                         } else {
                             item { Text(stringResource(R.string.notification_last_sync, snapshot.lastSync?.let { java.text.DateFormat.getTimeInstance().format(java.util.Date(it)) } ?: "—")) }
                             item { Button(onClick = { runCatching { MyNotificationListenerService.refresh(context, force = true) }.onFailure { status = resources.getString(R.string.notification_action_unavailable) } }) { Text(stringResource(R.string.notification_refresh)) } }
                             item { Text(stringResource(R.string.notification_live_privacy), style = MaterialTheme.typography.bodySmall) }
                             item { TextButton(onClick = { confirmation = true }) { Text(stringResource(R.string.notification_reset)) } }
+                        }
+                    } else if (actionsVisible) {
+                        val targetApp = actionApp
+                        if (savedTab && historyLocked) item { Text("Unlock your device to view saved notifications.") }
+                        else if (targetApp == null) item { Text("This app is no longer available.") }
+                        else item {
+                            val targetId = "$actionProfile:$targetApp"
+                            NotificationAppActions(appLabel(context, targetApp), targetId in config.protectedApps,
+                                canCreateRule = if (savedTab) savedActionSource != null else selected != null, busy = busy,
+                                onCreateRule = {
+                                    editingRuleId = null; ruleFromActions = true
+                                    if (!savedTab) { ruleSourceKey = selected?.key; ruleSourceSavedId = null }
+                                    actionsVisible = false; settings = true; settingsPage = "rule_editor"
+                                },
+                                onToggleProtection = {
+                                    busy = true
+                                    scope.launch {
+                                        try {
+                                            val updated = NotificationPreferences.update { it.copy(protectedApps =
+                                                if (targetId in it.protectedApps) it.protectedApps - targetId else it.protectedApps + targetId) }
+                                            status = if (updated && NotificationHistory.refresh()) "" else resources.getString(R.string.notification_save_failed)
+                                        } finally { busy = false }
+                                    }
+                                },
+                                onOpenSettings = {
+                                    if (actionProfile != android.os.Process.myUserHandle().hashCode()) {
+                                        status = resources.getString(R.string.notification_profile_settings)
+                                    } else {
+                                        awaitingSettingsReturn = true
+                                        if (notificationAppSettingsDestinations(targetApp, actionChannel).none { runCatching { context.startActivity(it) }.isSuccess }) {
+                                            awaitingSettingsReturn = false
+                                            status = resources.getString(R.string.notification_action_unavailable)
+                                        }
+                                    }
+                                })
                         }
                     } else if (savedTab) {
                         item { Text(stringResource(R.string.notification_saved), style = MaterialTheme.typography.titleMedium) }
@@ -379,59 +443,31 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                         item { Text(stringResource(R.string.notification_saved_swipe_hint), style = MaterialTheme.typography.bodySmall) }
                         if (historyLocked) item { Text("Unlock your device to view saved notifications.") }
                         else {
-                            val copies = savedNotificationsMatching(savedHistory, savedQuery, snapshot.items)
+                            val copies = savedCopies
                             if (copies.isEmpty()) item { Text(stringResource(R.string.notification_saved_empty)) }
-                            items(copies, key = { "saved:${it.id}" }) { copy ->
-                                SavedNotificationCard(copy) {
+                            savedNotificationItems(copies, config.chronological, savedCollapsed.toSet(), config.pinned,
+                                savedSelections.toSet(), !busy,
+                                onCollapse = { id -> savedCollapsed = if (id in savedCollapsed) savedCollapsed - id else savedCollapsed + id },
+                                onSelect = { id -> savedSelections = if (id in savedSelections) savedSelections - id else savedSelections + id; savedDeleteConfirm = false },
+                                onGroupSelect = { appId ->
+                                    val ids = copies.filter { it.appId == appId }.map { it.id }
+                                    savedSelections = if (ids.all { it in savedSelections }) savedSelections - ids.toSet() else (savedSelections + ids).distinct()
+                                    savedDeleteConfirm = false
+                                },
+                                onOpen = { copy ->
+                                    // Archived text has no reusable PendingIntent. Never launch into a different profile.
+                                    val launched = copy.profile == android.os.Process.myUserHandle().hashCode() && runCatching {
+                                        val intent = context.packageManager.getLaunchIntentForPackage(copy.app) ?: return@runCatching false
+                                        context.startActivity(intent); true
+                                    }.getOrDefault(false)
+                                    status = if (launched) "" else "Could not open this app. It may be unavailable or in another profile."
+                                },
+                                onDelete = { copy ->
                                     val deleted = NotificationHistory.delete(copy.id)
-                                    if (!deleted) status = "Could not dismiss saved notification."
+                                    if (!deleted) status = "Could not delete saved notification."
                                     deleted
-                                }
-                            }
+                                })
                         }
-                    } else if (actionsVisible && selected != null) {
-                        item { TextButton(onClick = { editingRuleId = null; ruleSourceKey = selected.key; actionsVisible = false; settings = true; settingsPage = "rule_editor" }) { Text("Create content rule") } }
-                        item { Text(appLabel(context, selected.app), style = MaterialTheme.typography.titleMedium) }
-                        item { Text(stringResource(R.string.notification_hide_scope)) }
-                        for (minutes in listOf(15, 60, 1440)) item {
-                           TextButton(onClick = { save { it.copy(hiddenUntil = it.hiddenUntil + (selected.appId to now + minutes * 60_000L)) }; clearSelection() }) {
-                                Text(stringResource(R.string.notification_hide_minutes, minutes))
-                            }
-                        }
-                        item { TextButton(onClick = {
-                            val tomorrow = java.util.Calendar.getInstance().apply { timeInMillis = now; add(java.util.Calendar.DAY_OF_YEAR, 1); set(java.util.Calendar.HOUR_OF_DAY, 9); set(java.util.Calendar.MINUTE, 0); set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0) }.timeInMillis
-                            save { it.copy(hiddenUntil = it.hiddenUntil + (selected.appId to tomorrow)) }; clearSelection()
-                        }) { Text(stringResource(R.string.notification_hide_tomorrow)) } }
-                        item {
-                            val deadline = java.util.Calendar.getInstance().apply { timeInMillis = now; add(java.util.Calendar.DAY_OF_YEAR, customDays); set(java.util.Calendar.HOUR_OF_DAY, customMinute / 60); set(java.util.Calendar.MINUTE, customMinute % 60); set(java.util.Calendar.SECOND, 0); set(java.util.Calendar.MILLISECOND, 0) }.timeInMillis
-                            Text(stringResource(R.string.notification_custom_resume, java.text.DateFormat.getDateTimeInstance().format(java.util.Date(deadline))))
-                            Text(stringResource(R.string.notification_days_from_now, customDays))
-                            Slider(customDays.toFloat(), onValueChange = { customDays = it.toInt() }, valueRange = 0f..30f, steps = 29)
-                            Text(stringResource(R.string.notification_resume_clock))
-                            Slider(customMinute.toFloat(), onValueChange = { customMinute = it.toInt() }, valueRange = 0f..1439f)
-                           TextButton(enabled = deadline > now, onClick = { save { it.copy(hiddenUntil = it.hiddenUntil + (selected.appId to deadline)) }; clearSelection() }) { Text(stringResource(R.string.notification_apply_resume)) }
-                        }
-                        item { TextButton(onClick = { save { it.copy(hiddenUntil = it.hiddenUntil + (selected.appId to Long.MAX_VALUE)) }; clearSelection() }) { Text(stringResource(R.string.notification_hide_always)) } }
-                        item { TextButton(onClick = { save { it.showApp(selected.appId) }; clearSelection() }) { Text(stringResource(R.string.notification_show)) } }
-                        item { TextButton(onClick = { save { it.copy(protectedApps = if (selected.appId in it.protectedApps) it.protectedApps - selected.appId else it.protectedApps + selected.appId) } }) { Text(stringResource(if (selected.appId in config.protectedApps) R.string.notification_unprotect else R.string.notification_protect)) } }
-                        item { TextButton(onClick = {
-                            if (selected.profile != android.os.Process.myUserHandle().hashCode()) {
-                                status = resources.getString(R.string.notification_profile_settings); return@TextButton
-                            }
-                            val destinations = buildList {
-                                if (android.os.Build.VERSION.SDK_INT >= 26) {
-                                    if (selected.channelId != null && !appControlsOnly) add(Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, selected.app).putExtra(Settings.EXTRA_CHANNEL_ID, selected.channelId))
-                                    add(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, selected.app))
-                                }
-                                add(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + selected.app)))
-                                add(Intent(Settings.ACTION_SETTINGS))
-                            }
-                            awaitingSettingsReturn = true
-                            if (destinations.none { destination -> runCatching { context.startActivity(destination) }.isSuccess }) {
-                                awaitingSettingsReturn = false
-                                status = resources.getString(R.string.notification_action_unavailable)
-                            }
-                        }) { Text(stringResource(R.string.notification_sound_settings)) } }
                     } else {
                         if (records.isEmpty() && access && snapshot.health == ListenerHealth.CONNECTED) item { Text(stringResource(R.string.notification_empty), modifier = Modifier.padding(12.dp)) }
                         items(displayRows, key = { it.key }) { row ->
@@ -470,6 +506,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                             Card(Modifier.fillMaxWidth().animateContentSize(tween(250)).testTag("notification-card-${item.key}").combinedClickable(
                                                 onClick = { if (selectionMode) toggleSelection(item) else preview.tap { act(item, "open") } },
                                                 onLongClick = {
+                                                    clearSelectionNotice()
                                                     selectionSession = snapshot.sessionId; selectedSession = snapshot.sessionId
                                                     selections = selections + (item.key to item.revision)
                                                     selectedKey = item.key; selectedRevision = item.revision; actionsVisible = false
@@ -518,16 +555,42 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                    TextButton(onClick = { confirmation = false }) { Text(stringResource(R.string.notification_cancel)) }
                    TextButton(onClick = { scope.launch { if (!NotificationQuietHours.reset(context) || !NotificationPreferences.reset()) status = resources.getString(R.string.notification_save_failed) }; confirmation = false }) { Text(stringResource(R.string.notification_confirm)) }
                 }
+                if (!settings && !actionsVisible && savedTab) {
+                    NotificationActionBarTransition {
+                        if (savedSelections.isNotEmpty() && !historyLocked) {
+                            FlowRow(Modifier.fillMaxWidth().testTag("saved-selected-actions"), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                if (savedSelections.size == 1) TextButton(enabled = !busy, onClick = {
+                                    val copy = savedCopies.firstOrNull { it.id == savedSelections.single() }
+                                    if (copy != null) {
+                                        ruleSourceSavedId = copy.id; ruleSourceKey = null; editingRuleId = null
+                                        actionApp = copy.app; actionProfile = copy.profile; actionChannel = null
+                                        clearSelectionNotice(); savedDeleteConfirm = false; settings = false; actionsVisible = true
+                                    }
+                                }) { Text(stringResource(R.string.notification_more)) }
+                                TextButton(enabled = !busy, onClick = {
+                                    if (savedSelections.size > 1 && !savedDeleteConfirm) savedDeleteConfirm = true
+                                    else {
+                                        val ids = savedSelections.toList()
+                                        busy = true
+                                        scope.launch {
+                                            val failed = ids.filterNot { NotificationHistory.delete(it) }
+                                            savedSelections = failed
+                                            savedDeleteConfirm = false
+                                            status = if (failed.isEmpty()) "" else "Could not delete some saved notifications."
+                                            busy = false
+                                        }
+                                    }
+                                }) { Text(if (savedDeleteConfirm) "Confirm delete selected" else "Delete") }
+                                TextButton(enabled = !busy, onClick = { savedSelections = emptyList(); savedDeleteConfirm = false }) { Text(stringResource(R.string.notification_cancel)) }
+                            }
+                        }
+                    }
+                }
                 if (!settings && !savedTab && !actionsVisible) {
                     NotificationActionBarTransition {
                         if (selectionMode) {
                             FlowRow(Modifier.fillMaxWidth().testTag("notification-selected-actions"), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 if (selectedItems.isNotEmpty()) {
-                                    TextButton(enabled = !busy, onClick = {
-                                        val apps = selectedItems.map { it.appId }.toSet()
-                                        save { previous -> if (hidden) apps.fold(previous) { c, id -> c.showApp(id) } else previous.copy(hiddenUntil = previous.hiddenUntil + apps.associateWith { now + 3_600_000 }) }
-                                        clearSelection()
-                                    }) { Text(stringResource(if (hidden) R.string.notification_show else R.string.notification_quick_hide)) }
                                     if (canBatchManage && android.os.Build.VERSION.SDK_INT >= 26) TextButton(enabled = !busy, onClick = { batchAction("snooze") }) { Text(stringResource(R.string.notification_quick_snooze)) }
                                     TextButton(enabled = !busy, onClick = {
                                         val apps = selectedItems.map { it.appId }.toSet()
@@ -535,7 +598,10 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                     }) { Text(stringResource(R.string.notification_quick_priority)) }
                                     if (selectedItems.size == 1) TextButton(onClick = {
                                         val item = selectedItems.single()
-                                        selectedKey = item.key; selectedRevision = item.revision; selectedSession = snapshot.sessionId; actionsVisible = true
+                                        clearSelectionNotice()
+                                        selectedKey = item.key; selectedRevision = item.revision; selectedSession = snapshot.sessionId
+                                        actionApp = item.app; actionProfile = item.profile; actionChannel = if (appControlsOnly) null else item.channelId
+                                        ruleSourceSavedId = null; actionsVisible = true
                                     }) { Text(stringResource(R.string.notification_more)) }
                                     if (canBatchManage && selectedItems.size > 1) TextButton(enabled = !busy, onClick = { if (bulkConfirm) batchAction("dismiss") else bulkConfirm = true }) { Text(stringResource(if (bulkConfirm) R.string.notification_confirm_dismiss_selected else R.string.notification_dismiss_selected)) }
                                 }
@@ -546,11 +612,8 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                 }
                 HorizontalDivider()
                 Row(Modifier.fillMaxWidth()) {
-                    IconButton(modifier = Modifier.weight(1f), onClick = { clearSelection(); app = null; savedTab = false; settings = false; settingsPage = "root"; hidden = false; confirmation = false; inboxListState.requestScrollToItem(0) }) {
-                        Icon(Icons.Outlined.Inbox, stringResource(R.string.notification_all), tint = if (!hidden && !savedTab && !settings) MaterialTheme.colorScheme.primary else LocalContentColor.current)
-                    }
-                    IconButton(modifier = Modifier.weight(1f), onClick = { clearSelection(); hidden = if (savedTab) true else !hidden; savedTab = false; settings = false; settingsPage = "root"; confirmation = false }) {
-                        Icon(if (hidden) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff, stringResource(if (hidden) R.string.notification_active else R.string.notification_hidden), tint = if (hidden && !savedTab && !settings) MaterialTheme.colorScheme.primary else LocalContentColor.current)
+                    IconButton(modifier = Modifier.weight(1f), onClick = { clearSelection(); app = null; savedTab = false; settings = false; settingsPage = "root"; confirmation = false; inboxListState.requestScrollToItem(0) }) {
+                        Icon(Icons.Outlined.Inbox, stringResource(R.string.notification_all), tint = if (!savedTab && !settings) MaterialTheme.colorScheme.primary else LocalContentColor.current)
                     }
                     IconButton(modifier = Modifier.weight(1f).testTag("saved-tab"), onClick = { clearSelection(); app = null; settings = false; settingsPage = "root"; savedTab = true; confirmation = false }) {
                         Icon(Icons.Outlined.Archive, stringResource(R.string.notification_saved), tint = if (savedTab && !settings) MaterialTheme.colorScheme.primary else LocalContentColor.current)

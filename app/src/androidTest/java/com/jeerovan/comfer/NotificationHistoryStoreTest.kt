@@ -9,7 +9,8 @@ import java.util.UUID
 import kotlinx.coroutines.runBlocking
 
 class NotificationHistoryStoreTest {
-    @Test fun openedNotificationRetainsInboxCopyAndRulesDismissOnlyFutureMatches() = runBlocking {
+    @Test fun openingDismissesSourceAndKeepsHistoryWhileRulesAffectOnlyFutureMatches() = runBlocking {
+        org.junit.Assume.assumeTrue("The launcher does not request notification posting permission; modern tests post from fixture apps", android.os.Build.VERSION.SDK_INT < 33)
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         NotificationPreferences.initialize(context)
         NotificationHistory.initialize(context)
@@ -17,8 +18,9 @@ class NotificationHistoryStoreTest {
         val title = "History integration ${UUID.randomUUID()}"
         val manager = context.getSystemService(android.app.NotificationManager::class.java)
         val openAction = "${context.packageName}.HISTORY_OPEN_TEST"
+        var launched = false
         val receiver = object : android.content.BroadcastReceiver() {
-            override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) { manager.cancel(551701) }
+            override fun onReceive(context: android.content.Context?, intent: android.content.Intent?) { launched = true }
         }
         androidx.core.content.ContextCompat.registerReceiver(context, receiver, android.content.IntentFilter(openAction), androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED)
         val openIntent = android.app.PendingIntent.getBroadcast(context, 551701, android.content.Intent(openAction).setPackage(context.packageName), android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE)
@@ -55,11 +57,8 @@ class NotificationHistoryStoreTest {
             repeat(100) { if (MyNotificationListenerService.snapshot.value.items.any { it.title == title }) kotlinx.coroutines.delay(100) }
             assertFalse(MyNotificationListenerService.snapshot.value.items.any { it.title == title })
             val saved = NotificationHistory.records.value.first { it.title == title }
-            assertTrue(saved.keepInInbox)
-            assertTrue(retainedInboxCopies(NotificationHistory.records.value, MyNotificationListenerService.snapshot.value.items, true).any { it.id == saved.id })
-            NotificationHistory.dismissFromInbox(saved.id)
-            assertTrue(NotificationHistory.records.value.any { it.id == saved.id && !it.keepInInbox })
-            assertFalse(retainedInboxCopies(NotificationHistory.records.value, emptyList(), true).any { it.id == saved.id })
+            assertTrue(launched)
+            assertTrue(savedNotificationsMatching(NotificationHistory.records.value, "", MyNotificationListenerService.snapshot.value.items).any { it.id == saved.id })
 
             manager.notify(551702, builder.setContentTitle("$title rule existing").build())
             repeat(100) { if (MyNotificationListenerService.snapshot.value.items.none { it.title == "$title rule existing" }) kotlinx.coroutines.delay(100) }

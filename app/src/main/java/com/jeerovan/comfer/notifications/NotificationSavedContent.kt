@@ -25,8 +25,8 @@ internal fun notificationRedactionPlaceholder(context: Context): String? = runCa
 
 internal fun savedNotificationsMatching(records: List<SavedNotification>, query: String, live: List<NotificationItem> = emptyList()): List<SavedNotification> {
     val term = query.trim()
-    // Use the complete live snapshot, not the filtered/collapsed view: hiding an app
-    // must not make its still-active notifications appear in history.
+    // Use the complete live snapshot: filtering or collapsing a group must not
+    // make its still-active notifications appear in history.
     val liveIds = live.map(::savedNotificationId).toSet()
     return records.filter { it.id !in liveIds && hasNotificationPreview(it.title, it.text) &&
         (term.isEmpty() || it.title.contains(term, true) || it.text.contains(term, true) || it.app.contains(term, true)) }

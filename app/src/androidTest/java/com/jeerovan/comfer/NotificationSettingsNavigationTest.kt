@@ -24,12 +24,14 @@ class NotificationSettingsNavigationTest {
         compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText("Focus 15 min"))
         compose.onNodeWithText("Focus 15 min").assertIsDisplayed()
         Espresso.pressBack()
-        open("Schedules")
+        compose.onNodeWithText("Schedules").assertDoesNotExist()
         open("Recurring schedule")
+        compose.onAllNodesWithText("Recurring schedule").assertCountEquals(1)
         compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText("Repeat on"))
         compose.onNodeWithText("Repeat on").assertIsDisplayed()
         compose.onNodeWithText("Focus 15 min").assertDoesNotExist()
         Espresso.pressBack()
+        compose.onNodeWithText("Quiet hours").assertExists()
         compose.onNodeWithText("Recurring schedule").assertExists()
     }
 }

@@ -12,7 +12,6 @@ data class QuietSchedule(
     val startMinute: Int = 22 * 60,
     val endMinute: Int = 7 * 60,
     val deviceQuiet: Boolean = true,
-    val hiddenApps: Set<String> = emptySet(),
 )
 
 data class QuietWindow(val active: Boolean, val nextBoundary: Long?)

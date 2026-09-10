@@ -32,6 +32,7 @@ class NotificationListenerIntegrationTest {
     @Before fun setup() {
         NotificationPreferences.initialize(context)
         originalConfiguration = NotificationPreferences.state.value
+        runBlocking { NotificationPreferences.update { it.copy(historyEnabled = false, rules = emptyList(), protectedApps = emptySet()) } }
         originallyGranted = MyNotificationListenerService.hasAccess(context)
         originalAccess = shell("settings get secure enabled_notification_listeners").trim().takeUnless { it == "null" }.orEmpty()
         val component = "${context.packageName}/com.jeerovan.comfer.MyNotificationListenerService"
@@ -89,12 +90,12 @@ class NotificationListenerIntegrationTest {
         assertEquals("protected", MyNotificationListenerService.act(item.key, item.revision, "dismiss", MyNotificationListenerService.snapshot.value.sessionId))
         if (android.os.Build.VERSION.SDK_INT < 26) assertEquals("unavailable", MyNotificationListenerService.act(item.key, item.revision, "snooze", MyNotificationListenerService.snapshot.value.sessionId))
     }
-    @Test fun hideIsLocalAndContentNeverEntersConfiguration() = runBlocking {
+    @Test fun priorityIsLocalAndContentNeverEntersConfiguration() = runBlocking {
         post("chat", 8, "--es title PrivateSentinel")
         await { fixtures().any { it.title == "PrivateSentinel" } }
         val item = fixtures().first { it.title == "PrivateSentinel" }
-        assertTrue(NotificationPreferences.update { it.copy(hiddenUntil = mapOf(item.appId to System.currentTimeMillis() + 60_000)) })
-        assertTrue(NotificationPreferences.isHidden(item, System.currentTimeMillis()))
+        assertTrue(NotificationPreferences.update { it.copy(pinned = setOf(item.appId)) })
+        assertTrue(item.appId in NotificationPreferences.state.value.pinned)
         assertTrue(fixtures().any { it.key == item.key })
         assertFalse(context.getSharedPreferences("notification_configuration", 0).getString("config", "")!!.contains("PrivateSentinel"))
     }
@@ -123,11 +124,108 @@ class NotificationListenerIntegrationTest {
         })
     }
 
-    @Test fun expiredOpenFallsBackToAppWithoutDismissingNotification() = runBlocking {
+    @Test fun expiredOpenFallsBackToAppThenDismissesNotification() = runBlocking {
         post("mail", 12, "--es kind expired --es title Expired")
         await { fixtures().any { it.title == "Expired" } }
         val item = fixtures().first { it.title == "Expired" }
         assertEquals("app_open_requested", MyNotificationListenerService.act(item.key, item.revision, "open", MyNotificationListenerService.snapshot.value.sessionId))
+        shell("input keyevent 4")
+        await { fixtures().none { it.key == item.key } }
+    }
+
+    @Test fun successfulOpenDismissesAndRetainsEligibleHistory() = runBlocking {
+        NotificationHistory.initialize(context)
+        val title = "SavedOpen${System.nanoTime()}"
+        NotificationPreferences.update { it.copy(historyEnabled = true, historySince = System.currentTimeMillis(), historyExcludedApps = emptySet()) }
+        try {
+            post("mail", 46, "--es title $title --es text SavedBody")
+            await { fixtures().any { it.title == title } && NotificationHistory.records.value.any { it.title == title } }
+            val item = fixtures().first { it.title == title }
+            val copy = NotificationHistory.records.value.first { it.title == title }
+            assertTrue(savedNotificationsMatching(listOf(copy), "", MyNotificationListenerService.snapshot.value.items).isEmpty())
+            assertEquals("requested", MyNotificationListenerService.act(item.key, item.revision, "open", MyNotificationListenerService.snapshot.value.sessionId))
+            await { fixtures().none { it.key == item.key } }
+            assertTrue(savedNotificationsMatching(NotificationHistory.records.value, "", MyNotificationListenerService.snapshot.value.items).any { it.id == copy.id })
+            shell("input keyevent 4")
+            Unit
+        } finally {
+            NotificationHistory.refresh()
+            NotificationHistory.records.value.filter { it.title == title }.forEach { NotificationHistory.delete(it.id) }
+        }
+    }
+
+    @Test fun historyMoreActionsOpensSavedRuleEditorAndReturnsToSelection() = runBlocking {
+        NotificationHistory.initialize(context)
+        val title = "HistoryRule${System.nanoTime()}"
+        NotificationPreferences.update { it.copy(historyEnabled = true, historySince = System.currentTimeMillis(), historyExcludedApps = emptySet()) }
+        try {
+            post("mail", 48, "--es title $title --es text SavedRuleBody")
+            await { fixtures().any { it.title == title } && NotificationHistory.records.value.any { it.title == title } }
+            val item = fixtures().first { it.title == title }
+            MyNotificationListenerService.act(item.key, item.revision, "dismiss", MyNotificationListenerService.snapshot.value.sessionId)
+            await { fixtures().none { it.key == item.key } }
+            val copy = NotificationHistory.records.value.first { it.title == title }
+            compose.setContent { MaterialTheme { NotificationInbox(onBack = {}) } }
+            compose.onNodeWithTag("saved-tab").performClick()
+            val list = compose.onNodeWithTag("notification-inbox-list")
+            list.performScrollToNode(hasTestTag("saved-search"))
+            compose.onNodeWithTag("saved-search").performTextInput(title)
+            shell("input keyevent 4") // close keyboard
+            list.performScrollToNode(hasTestTag("saved-copy:${copy.id}"))
+            compose.onNodeWithTag("saved-copy:${copy.id}").performTouchInput { longClick() }
+            compose.onNodeWithText("More actions").performClick()
+            compose.onNodeWithTag("notification-app-actions").assertExists()
+            list.performScrollToNode(hasText(context.getString(R.string.notification_protect)))
+            compose.onNodeWithText(context.getString(R.string.notification_protect)).assertExists()
+            list.performScrollToNode(hasText(context.getString(R.string.notification_sound_settings)))
+            compose.onNodeWithText(context.getString(R.string.notification_sound_settings)).assertExists()
+            list.performScrollToNode(hasText("Create content rule"))
+            compose.onNodeWithText("Create content rule").performClick()
+            list.performScrollToNode(hasText("Saved notification reference"))
+            compose.onNodeWithText("Saved notification reference").assertIsDisplayed()
+            shell("input keyevent 4")
+            compose.waitForIdle()
+            compose.onNodeWithText("Create content rule").assertExists()
+            shell("input keyevent 4")
+            compose.waitForIdle()
+            compose.onNodeWithTag("saved-select:${copy.id}").assertIsOn()
+            compose.onNodeWithTag("saved-selected-actions").assertIsDisplayed()
+            compose.onNodeWithText("More actions").performClick()
+            list.performScrollToNode(hasText(context.getString(R.string.notification_protect)))
+            compose.onNodeWithText(context.getString(R.string.notification_protect)).performClick()
+            compose.waitUntil(5000) { NotificationHistory.records.value.none { it.id == copy.id } }
+            compose.onNodeWithTag("notification-app-actions").assertExists()
+            list.performScrollToNode(hasText(context.getString(R.string.notification_unprotect)))
+            compose.onNodeWithText(context.getString(R.string.notification_unprotect)).assertIsEnabled().performClick()
+            compose.waitUntil(5000) { copy.appId !in NotificationPreferences.state.value.protectedApps }
+            list.performScrollToNode(hasText("Create content rule"))
+            compose.onNodeWithText("Create content rule").assertIsNotEnabled()
+            list.performScrollToNode(hasText(context.getString(R.string.notification_sound_settings)))
+            compose.onNodeWithText(context.getString(R.string.notification_sound_settings)).assertIsEnabled()
+        } finally {
+            NotificationHistory.refresh()
+            NotificationHistory.records.value.filter { it.title == title }.forEach { NotificationHistory.delete(it.id) }
+        }
+        Unit
+    }
+
+    @Test fun failedOpenLeavesNotificationActive() = runBlocking {
+        post("mail", 45, "--es kind expired --es title FailedOpen")
+        await { fixtures().any { it.title == "FailedOpen" } }
+        val item = fixtures().first { it.title == "FailedOpen" }
+        post("mail", 0, "--es operation disable-launch")
+        try {
+            await { context.packageManager.getLaunchIntentForPackage(item.app) == null }
+            assertEquals("unavailable", MyNotificationListenerService.act(item.key, item.revision, "open", MyNotificationListenerService.snapshot.value.sessionId))
+            assertTrue(fixtures().any { it.key == item.key })
+        } finally { post("mail", 0, "--es operation enable-launch") }
+    }
+
+    @Test fun openingProtectedNotificationLeavesItActive() = runBlocking {
+        post("mail", 44, "--es kind ongoing --es title ProtectedOpen")
+        await { fixtures().any { it.title == "ProtectedOpen" } }
+        val item = fixtures().first { it.title == "ProtectedOpen" }
+        assertTrue(MyNotificationListenerService.act(item.key, item.revision, "open", MyNotificationListenerService.snapshot.value.sessionId) in setOf("requested", "app_open_requested"))
         shell("input keyevent 4")
         assertTrue(fixtures().any { it.key == item.key })
     }
@@ -141,24 +239,6 @@ class NotificationListenerIntegrationTest {
         assertEquals("requested", MyNotificationListenerService.act(item.key, item.revision, "snooze", MyNotificationListenerService.snapshot.value.sessionId))
         await { fixtures().none { it.key == item.key } }
         post("chat", id, "--es operation remove")
-    }
-
-    @Test fun inboxCanHideAndReviewAnActualCrossAppNotification() {
-        post("mail", 21, "--es title ExpandFixture --es text BodyFixture")
-        post("chat", 22, "--es title ChatFixture")
-        await { fixtures().any { it.title == "ExpandFixture" } && fixtures().any { it.title == "ChatFixture" } }
-        val item = fixtures().first { it.title == "ExpandFixture" }
-        compose.setContent { MaterialTheme { NotificationInbox(onBack = {}, initialApp = item.appId) } }
-        compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText("ExpandFixture"))
-        compose.onNodeWithText("ExpandFixture").performTouchInput { longClick() }
-        compose.waitForIdle()
-        compose.onNodeWithText("Hide").assertIsDisplayed()
-        compose.onNodeWithText("Hide").performClick()
-        await { NotificationPreferences.isHidden(item, System.currentTimeMillis()) }
-        assertTrue("Visual hiding must not cancel the source notification", fixtures().any { it.key == item.key })
-        compose.onNodeWithContentDescription("Hidden").performClick()
-        compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText("ExpandFixture"))
-        compose.onNodeWithText("ExpandFixture").assertIsDisplayed()
     }
 
     @Test fun longPressSelectsAndMultipleSelectionFiltersQuickActions() {
@@ -196,6 +276,32 @@ class NotificationListenerIntegrationTest {
         assertTrue(fixtures().any { it.key == item.key })
     }
 
+    @Test fun freshSelectionClearsOldChangeWarningBeforeMoreActions() {
+        post("mail", 47, "--es title SelectionOriginal --es text OriginalBody")
+        await { fixtures().any { it.title == "SelectionOriginal" } }
+        val item = fixtures().first { it.title == "SelectionOriginal" }
+        compose.setContent { MaterialTheme { NotificationInbox(onBack = {}, initialApp = item.appId) } }
+        val list = compose.onNodeWithTag("notification-inbox-list")
+        list.performScrollToNode(hasText("SelectionOriginal"))
+        compose.onNodeWithText("SelectionOriginal").performTouchInput { longClick() }
+        compose.onNodeWithText("More actions").performClick()
+        compose.onNodeWithTag("notification-app-actions").assertExists()
+        compose.onNodeWithText("Create content rule").assertExists()
+        post("mail", 47, "--es title SelectionUpdated --es text UpdatedBody")
+        await { fixtures().any { it.title == "SelectionUpdated" } }
+        val warning = context.getString(R.string.notification_changed)
+        list.performScrollToNode(hasText(warning))
+        compose.onNodeWithText(warning).assertIsDisplayed()
+        compose.onNodeWithText("Create content rule").assertDoesNotExist()
+        list.performScrollToNode(hasText("SelectionUpdated"))
+        compose.onNodeWithText("SelectionUpdated").performTouchInput { longClick() }
+        compose.onNodeWithText("More actions").performClick()
+        compose.onNodeWithText(warning).assertDoesNotExist()
+        compose.onNodeWithTag("notification-app-actions").assertExists()
+        compose.onNodeWithText("Create content rule").assertExists()
+        assertTrue(fixtures().any { it.title == "SelectionUpdated" })
+    }
+
     @Test fun groupsUseCaretsAndCanCollapseWithoutLosingChildren() {
         runBlocking { NotificationPreferences.update { it.copy(chronological = false) } }
         post("mail", 27, "--es title GroupOne --es group g")
@@ -222,7 +328,7 @@ class NotificationListenerIntegrationTest {
         post("mail", 40, "--es title SelectMailOne")
         post("mail", 41, "--es title SelectMailTwo")
         post("chat", 42, "--es title SelectChat")
-        await { fixtures().size == 3 }
+        await { notificationChildren(fixtures()).size == 3 }
         runBlocking { NotificationPreferences.update { it.copy(chronological = false) } }
         val mail = fixtures().first { it.title == "SelectMailOne" }
         val chat = fixtures().first { it.title == "SelectChat" }
@@ -248,7 +354,7 @@ class NotificationListenerIntegrationTest {
         list.performScrollToNode(hasTestTag("group-select:${chat.appId}"))
         compose.onNodeWithTag("group-select:${chat.appId}").assertIsOn().performClick()
         compose.onNodeWithTag("notification-selected-actions").assertDoesNotExist()
-        assertEquals(3, fixtures().size)
+        assertEquals(3, notificationChildren(fixtures()).size)
     }
 
     @Test fun ownedFocusRuleExpiresAfterElapsedDeadline() = runBlocking {

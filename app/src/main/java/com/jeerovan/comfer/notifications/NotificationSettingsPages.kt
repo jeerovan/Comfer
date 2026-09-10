@@ -13,8 +13,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
 internal fun notificationSettingsParent(page: String): String = when (page) {
-    "focus", "schedules" -> "quiet"
-    "schedule" -> "schedules"
+    "focus", "schedule" -> "quiet"
     "rule_editor" -> "filters"
     else -> "root"
 }

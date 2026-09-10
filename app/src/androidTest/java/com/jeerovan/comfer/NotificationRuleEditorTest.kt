@@ -29,7 +29,7 @@ class NotificationRuleEditorTest {
         }
         compose.onNodeWithText("Save in test-only mode").performScrollTo().assertIsNotEnabled()
         compose.onNodeWithText("Contains text — one phrase per line").performScrollTo().performTextInput("sale")
-        compose.onNodeWithText("Auto-dismiss").performScrollTo().performClick()
+        compose.onNodeWithText("Action: automatically dismiss").performScrollTo().assertExists()
         compose.onNodeWithText("Test only — record matches without acting").performScrollTo().performClick()
         compose.onNodeWithText("Save and enable rule").performScrollTo().assertIsNotEnabled()
         compose.onNodeWithText("Preview current notifications").performScrollTo().performClick()
@@ -39,4 +39,27 @@ class NotificationRuleEditorTest {
         compose.onNodeWithText("Cancel").performClick()
         assertTrue(NotificationPreferences.state.value.rules.isEmpty())
     }
+    @Test fun savedReferenceProvidesAppScopeMessageAndPreviewWithoutLiveHandles() {
+        val copy = SavedNotification("saved-rule-test", "fixture.mail", 10, "Package shipped", "Delivery tomorrow", 1, 2)
+        var saved = false
+        compose.setContent {
+            MaterialTheme { Column(Modifier.verticalScroll(rememberScrollState())) {
+                NotificationRuleEditor(null, savedSource = copy, onSaved = { saved = true })
+            } }
+        }
+        compose.onNodeWithText("Contains text — one phrase per line").performScrollTo().assertTextContains("Package shipped")
+        compose.onNodeWithText("Use message").performScrollTo().performClick()
+        compose.onNodeWithText("Contains text — one phrase per line").performScrollTo().assertTextContains("Delivery tomorrow")
+        compose.onNodeWithText("Preview current notifications").performScrollTo().performClick()
+        compose.onNodeWithTag("saved-rule-preview").performScrollTo().assertTextContains("Saved reference: Matches", substring = true)
+        compose.onNodeWithText("Save in test-only mode").performScrollTo().performClick()
+        compose.waitUntil(5000) { saved }
+        val rule = NotificationPreferences.state.value.rules.single()
+        assertEquals(copy.appId, rule.appId)
+        assertNull(rule.channelId)
+        assertEquals(RuleField.BODY, rule.field)
+        assertEquals(listOf("Delivery tomorrow"), rule.terms)
+        assertTrue(rule.observeOnly)
+    }
+
 }

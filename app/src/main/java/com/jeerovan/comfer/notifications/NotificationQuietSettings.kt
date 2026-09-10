@@ -29,17 +29,16 @@ fun NotificationQuietSettings(page: String = "quiet", navigate: (String) -> Unit
     var start by rememberSaveable(config.quietSchedule.startMinute) { mutableIntStateOf(config.quietSchedule.startMinute) }
     var end by rememberSaveable(config.quietSchedule.endMinute) { mutableIntStateOf(config.quietSchedule.endMinute) }
     var days by rememberSaveable(config.quietSchedule.weekdays) { mutableStateOf(config.quietSchedule.weekdays) }
-    var deviceQuiet by rememberSaveable(config.quietSchedule.deviceQuiet) { mutableStateOf(config.quietSchedule.deviceQuiet) }
-    var hiddenApps by rememberSaveable(config.quietSchedule.hiddenApps) { mutableStateOf(config.quietSchedule.hiddenApps) }
-    val snapshot by com.jeerovan.comfer.MyNotificationListenerService.snapshot.collectAsState()
     val manager = remember { context.getSystemService(android.app.NotificationManager::class.java) }
     var systemFilter by remember { mutableIntStateOf(manager.currentInterruptionFilter) }
     var hasDndAccess by remember { mutableStateOf(manager.isNotificationPolicyAccessGranted) }
+    var preciseTiming by remember { mutableStateOf(NotificationQuietHours.hasPreciseTimingAccess(context)) }
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
         while (true) {
             systemFilter = manager.currentInterruptionFilter
             hasDndAccess = manager.isNotificationPolicyAccessGranted
+            preciseTiming = NotificationQuietHours.hasPreciseTimingAccess(context)
             now = System.currentTimeMillis()
             delay(1000)
         }
@@ -56,20 +55,22 @@ fun NotificationQuietSettings(page: String = "quiet", navigate: (String) -> Unit
     }.time)
     val labels = DateFormatSymbols.getInstance().shortWeekdays
     val schedule = config.quietSchedule
-    val dirty = start != schedule.startMinute || end != schedule.endMinute || days != schedule.weekdays ||
-        deviceQuiet != schedule.deviceQuiet || hiddenApps != schedule.hiddenApps
+    val dirty = start != schedule.startMinute || end != schedule.endMinute || days != schedule.weekdays
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        if ((page == "focus" || page == "schedule") && !preciseTiming) {
+            Text("Android may delay timer endings and schedule changes without precise timing access.", style = MaterialTheme.typography.bodySmall)
+            OutlinedButton(onClick = {
+                runCatching { context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, android.net.Uri.parse("package:${context.packageName}"))) }
+                    .onFailure { failed = true }
+            }) { Text("Allow precise timing") }
+        }
         if (page == "quiet") {
         Text(stringResource(R.string.notification_automation_title), style = MaterialTheme.typography.titleMedium)
         Text(stringResource(if (config.paused) R.string.notification_automation_paused else R.string.notification_automation_running), style = MaterialTheme.typography.bodySmall)
-        OutlinedButton(enabled = !busy, onClick = {
-            operation { NotificationPreferences.update { it.copy(paused = !it.paused) } && NotificationQuietHours.reconcile(context) }
-        }) { Text(stringResource(if (config.paused) R.string.notification_resume_automation else R.string.notification_pause_automation)) }
         Text(stringResource(when (status.health) {
             QuietHealth.OFF -> R.string.notification_quiet_off
             QuietHealth.ACTIVE -> R.string.notification_quiet_active
             QuietHealth.SCHEDULED -> R.string.notification_quiet_scheduled
-            QuietHealth.LOCAL_ONLY -> R.string.notification_quiet_local
             QuietHealth.UNAVAILABLE -> R.string.notification_quiet_unavailable
             QuietHealth.ACCESS_NEEDED -> R.string.notification_quiet_access
             QuietHealth.SYSTEM_DISABLED -> R.string.notification_quiet_disabled
@@ -85,11 +86,10 @@ fun NotificationQuietSettings(page: String = "quiet", navigate: (String) -> Unit
             Button(onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_access)) }
         }
         SettingsDestination("Focus timers", "Start a short DND break", { navigate("focus") })
-        SettingsDestination("Schedules", "Manage recurring quiet hours", { navigate("schedules") })
+        SettingsDestination("Recurring schedule", "Days, times and DND settings", { navigate("schedule") })
         Text(stringResource(R.string.notification_quiet_disclosure), style = MaterialTheme.typography.bodySmall)
         }
         if (page == "focus") {
-        Text(stringResource(R.string.notification_focus_title), style = MaterialTheme.typography.titleMedium)
         if (config.paused) Text(stringResource(R.string.notification_automation_paused))
         if (!hasDndAccess) Button(onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_access)) }
         Text(stringResource(R.string.notification_focus_help), style = MaterialTheme.typography.bodySmall)
@@ -103,14 +103,9 @@ fun NotificationQuietSettings(page: String = "quiet", navigate: (String) -> Unit
             if (status.focusUntil > now) OutlinedButton(enabled = !busy, onClick = { operation { NotificationQuietHours.endFocus(context) } }) { Text(stringResource(R.string.notification_end_focus)) }
         }
         }
-        if (page == "schedules") {
-            Text(stringResource(if (schedule.enabled) R.string.notification_schedule_enabled else R.string.notification_schedule_disabled))
-            SettingsDestination("Recurring schedule", "Days, times and actions", { navigate("schedule") })
-        }
         if (page == "schedule") {
         if (config.paused) Text(stringResource(R.string.notification_automation_paused))
-        if (!hasDndAccess && deviceQuiet) Button(onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_access)) }
-        Text(stringResource(R.string.notification_schedule_title), style = MaterialTheme.typography.titleMedium)
+        if (!hasDndAccess) Button(onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_access)) }
         Text(stringResource(if (schedule.enabled) R.string.notification_schedule_enabled else R.string.notification_schedule_disabled))
         if (schedule.enabled) Text(stringResource(R.string.notification_schedule_summary, time(schedule.startMinute), time(schedule.endMinute), schedule.weekdays.sorted().joinToString { labels[it] }), style = MaterialTheme.typography.bodySmall)
         Text(stringResource(R.string.notification_schedule_help), style = MaterialTheme.typography.bodySmall)
@@ -134,23 +129,13 @@ fun NotificationQuietSettings(page: String = "quiet", navigate: (String) -> Unit
                 FilterChip(selected = day in days, onClick = { days = if (day in days) days - day else days + day }, label = { Text(labels[day]) })
             }
         }
-        Text(stringResource(R.string.notification_schedule_actions), style = MaterialTheme.typography.titleSmall)
-        NotificationSettingToggle(stringResource(R.string.notification_schedule_device_quiet), deviceQuiet) { deviceQuiet = it }
-        Text(stringResource(R.string.notification_schedule_hide_apps))
-        Text(stringResource(R.string.notification_hide_scope), style = MaterialTheme.typography.bodySmall)
-        if (snapshot.items.isEmpty() && hiddenApps.isEmpty()) Text(stringResource(R.string.notification_schedule_empty_apps), style = MaterialTheme.typography.bodySmall)
-        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            for (appId in (snapshot.items.map { it.appId } + hiddenApps).distinct()) key(appId) {
-                FilterChip(selected = appId in hiddenApps, onClick = { hiddenApps = if (appId in hiddenApps) hiddenApps - appId else hiddenApps + appId },
-                    label = { Text(appLabel(context, appId.substringAfter(':'))) })
-            }
-        }
-        val valid = days.isNotEmpty() && start != end && (deviceQuiet || hiddenApps.isNotEmpty())
+        Text(stringResource(R.string.notification_schedule_device_quiet))
+        val valid = days.isNotEmpty() && start != end
         if (dirty) Text(stringResource(R.string.notification_schedule_unsaved), style = MaterialTheme.typography.bodySmall)
         if (!valid) Text(stringResource(R.string.notification_schedule_invalid), style = MaterialTheme.typography.bodySmall)
-        Button(enabled = !busy && valid && (!deviceQuiet || hasDndAccess), onClick = {
+        Button(enabled = !busy && valid && hasDndAccess, onClick = {
             operation {
-                NotificationPreferences.update { it.copy(quietSchedule = QuietSchedule(true, days, start, end, deviceQuiet, hiddenApps)) } &&
+                NotificationPreferences.update { it.copy(quietSchedule = QuietSchedule(true, days, start, end)) } &&
                     NotificationQuietHours.reconcile(context, explicitEnable = true)
             }
         }) { Text(stringResource(R.string.notification_apply_quiet_schedule)) }

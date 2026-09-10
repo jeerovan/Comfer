@@ -17,7 +17,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-enum class QuietHealth { OFF, ACTIVE, SCHEDULED, LOCAL_ONLY, UNAVAILABLE, ACCESS_NEEDED, SYSTEM_DISABLED, CLEANUP_NEEDED, FAILED }
+enum class QuietHealth { OFF, ACTIVE, SCHEDULED, UNAVAILABLE, ACCESS_NEEDED, SYSTEM_DISABLED, CLEANUP_NEEDED, FAILED }
 data class QuietStatus(val health: QuietHealth = QuietHealth.OFF, val nextBoundary: Long? = null, val focusUntil: Long = 0)
 
 /** Owns one automatic rule. Never sets global interruption filters or another owner's policy. */
@@ -82,7 +82,7 @@ object NotificationQuietHours {
         val ruleId = prefs.getString("rule_id", null)
         if (!deviceSchedule && focusUntil <= now && ruleId == null) {
             cancelAlarm(context)
-            mutable.value = QuietStatus(if (config.quietSchedule.enabled && !config.paused) QuietHealth.LOCAL_ONLY else QuietHealth.OFF, window.nextBoundary, focusUntil)
+            mutable.value = QuietStatus(QuietHealth.OFF, null, focusUntil)
             return true
         }
         if (!manager.isNotificationPolicyAccessGranted) {
@@ -133,10 +133,10 @@ object NotificationQuietHours {
                 if (provider != null) provider.notifyCondition(condition)
                 else if (Build.VERSION.SDK_INT >= 26) ConditionProviderService.requestRebind(owner(context))
             }
-            if (next != null) context.getSystemService(AlarmManager::class.java).setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, alarm(context))
+            if (next != null) scheduleBoundary(context, next)
             else cancelAlarm(context)
             mutable.value = QuietStatus(if (active) QuietHealth.ACTIVE else if (config.quietSchedule.enabled && !config.paused) {
-                if (deviceSchedule) QuietHealth.SCHEDULED else QuietHealth.LOCAL_ONLY
+                if (deviceSchedule) QuietHealth.SCHEDULED else QuietHealth.OFF
             } else QuietHealth.OFF, next ?: window.nextBoundary, focusUntil)
             return true
         } catch (_: Exception) {
@@ -174,10 +174,30 @@ object NotificationQuietHours {
         }
     }
 
-    private fun alarm(context: Context): PendingIntent = PendingIntent.getBroadcast(context, 701,
+    fun hasPreciseTimingAccess(context: Context): Boolean = Build.VERSION.SDK_INT < 31 ||
+        context.getSystemService(AlarmManager::class.java).canScheduleExactAlarms()
+
+    private fun scheduleBoundary(context: Context, boundary: Long) {
+        val manager = context.getSystemService(AlarmManager::class.java)
+        cancelAlarm(context)
+        val deadline = android.os.SystemClock.elapsedRealtime() + (boundary - System.currentTimeMillis()).coerceAtLeast(0)
+        // Revoking exact-alarm access cancels exact alarms and can stop the process.
+        // Keep a separately identified inexact expiry so quiet cannot depend on that grant alone.
+        manager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, deadline, alarm(context, fallback = true))
+        if (hasPreciseTimingAccess(context)) {
+            try { manager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, deadline, alarm(context)) }
+            catch (_: SecurityException) { /* Grant revoked between check and scheduling; fallback remains. */ }
+        }
+    }
+
+    private fun alarm(context: Context, fallback: Boolean = false): PendingIntent = PendingIntent.getBroadcast(context, if (fallback) 702 else 701,
         Intent(context, NotificationQuietReceiver::class.java).setAction("${context.packageName}.NOTIFICATION_QUIET_BOUNDARY"),
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-    private fun cancelAlarm(context: Context) = context.getSystemService(AlarmManager::class.java).cancel(alarm(context))
+    private fun cancelAlarm(context: Context) {
+        val manager = context.getSystemService(AlarmManager::class.java)
+        manager.cancel(alarm(context))
+        manager.cancel(alarm(context, fallback = true))
+    }
 }
 
 class ComferQuietConditionProvider : ConditionProviderService() {

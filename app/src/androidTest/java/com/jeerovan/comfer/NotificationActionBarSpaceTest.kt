@@ -24,7 +24,7 @@ class NotificationActionBarSpaceTest {
                     Box(Modifier.weight(1f).fillMaxWidth().testTag("list"))
                     NotificationActionBarTransition {
                         if (selected.value) Column {
-                            TextButton(modifier = Modifier.height(48.dp), onClick = {}) { Text("Hide") }
+                            TextButton(modifier = Modifier.height(48.dp), onClick = {}) { Text("Priority") }
                             TextButton(modifier = Modifier.height(48.dp), onClick = {}) { Text("Cancel") }
                         }
                     }

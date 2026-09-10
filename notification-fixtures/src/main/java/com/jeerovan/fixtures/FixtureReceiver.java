@@ -7,6 +7,12 @@ public class FixtureReceiver extends BroadcastReceiver {
         NotificationManager manager = context.getSystemService(NotificationManager.class);
         int id = intent.getIntExtra("id", 1);
         String operation = intent.getStringExtra("operation");
+        if ("disable-launch".equals(operation) || "enable-launch".equals(operation)) {
+            context.getPackageManager().setComponentEnabledSetting(new ComponentName(context, FixtureActivity.class),
+                "disable-launch".equals(operation) ? android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED : android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT,
+                android.content.pm.PackageManager.DONT_KILL_APP);
+            return;
+        }
         if ("clear".equals(operation)) { manager.cancelAll(); return; }
         if ("remove".equals(operation)) { manager.cancel(id); return; }
         String kind = intent.getStringExtra("kind");

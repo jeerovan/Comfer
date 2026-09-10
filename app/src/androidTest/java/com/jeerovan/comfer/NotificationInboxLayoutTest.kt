@@ -20,16 +20,33 @@ class NotificationInboxLayoutTest {
         Unit
     }
     @After fun cleanup() = runBlocking { NotificationPreferences.update { previous }; Unit }
-    @Test fun emptyVisibleHomeEntryOpensReachableInbox() {
-        // A granted listener can contain Android's own notifications. Exercise an empty
-        // visible projection without assuming the entire device's notification shade is empty.
-        runBlocking {
-            NotificationPreferences.update { configuration -> configuration.copy(
-                hiddenUntil = MyNotificationListenerService.snapshot.value.items.associate { it.appId to Long.MAX_VALUE },
-            ) }
-        }
+    @Test fun homeEntryRemainsAvailable() {
         compose.setContent { MaterialTheme { NotificationHomeEntry(24.dp, true) } }
         compose.onNodeWithContentDescription("Notification inbox").assertIsDisplayed().assertHasClickAction()
+    }
+    @Test fun globalPauseLivesBelowViewChoicesAndNotOnContextPages() {
+        compose.setContent { MaterialTheme { NotificationInbox(onBack = {}) } }
+        compose.onNodeWithContentDescription("Settings").performClick()
+        val list = compose.onNodeWithTag("notification-inbox-list")
+        val pause = "Pause rules, schedules and timers"
+        val resume = "Resume rules, schedules and timers"
+        list.performScrollToNode(hasText(pause))
+        assertTrue(compose.onNodeWithText(pause).getUnclippedBoundsInRoot().top >=
+            compose.onNodeWithText("Chronological").getUnclippedBoundsInRoot().bottom)
+        compose.onNodeWithText(pause).performClick()
+        compose.waitUntil(5000) { NotificationPreferences.state.value.paused }
+        compose.onNodeWithText(resume).assertExists()
+        for (destination in listOf("Quiet hours", "Filters")) {
+            list.performScrollToNode(hasText(destination))
+            compose.onNodeWithText(destination).performClick()
+            compose.onNodeWithText(pause).assertDoesNotExist()
+            compose.onNodeWithText(resume).assertDoesNotExist()
+            androidx.test.espresso.Espresso.pressBack()
+        }
+        list.performScrollToNode(hasText(resume))
+        compose.onNodeWithText(resume).performClick()
+        compose.waitUntil(5000) { !NotificationPreferences.state.value.paused }
+        compose.onNodeWithText(pause).assertExists()
     }
     @Test fun bottomNavigationAndConfigurationFitCompactPortrait() {
         compose.setContent { MaterialTheme { NotificationInbox(onBack = {}) } }
@@ -39,8 +56,6 @@ class NotificationInboxLayoutTest {
         val back = compose.onNodeWithContentDescription("All apps").getUnclippedBoundsInRoot()
         assertTrue("Inbox must be in bottom portion", heading.top.value > 150f)
         assertTrue("Navigation must be below content", back.top > heading.bottom)
-        compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText("Quiet hours"))
-        compose.onNodeWithText("Quiet hours").performClick()
         compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText("Pause rules, schedules and timers"))
         compose.onNodeWithText("Pause rules, schedules and timers").assertIsDisplayed().performClick()
         compose.onNodeWithText("Resume rules, schedules and timers").assertIsDisplayed()
@@ -58,8 +73,6 @@ class NotificationInboxLayoutTest {
             ) { MaterialTheme { NotificationInbox(onBack = {}) } }
         }
         compose.onNodeWithContentDescription("Settings").performClick()
-        compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText("Quiet hours"))
-        compose.onNodeWithText("Quiet hours").performClick()
         compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText("Pause rules, schedules and timers"))
         val panel = compose.onNodeWithTag("notification-inbox-panel").fetchSemanticsNode().boundsInRoot
         compose.onAllNodes(hasClickAction()).fetchSemanticsNodes().forEach { node ->

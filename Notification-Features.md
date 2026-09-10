@@ -1,10 +1,10 @@
 # Comfer notification management requirements
 
-Research date: 7 September 2026. Updated: 8 September 2026. Status: proposed product requirements; implementation has not started.
+Research date: 7 September 2026. Updated: 10 September 2026. Status: requirements with implemented revisions and deferred items; see Plan-Notifications.md for implementation status. The original baseline below records the pre-implementation research state.
 
 ## 1. Product recommendation
 
-Extend the existing notification icon row into a private notification inbox: expand an app to inspect its notifications, hide distracting apps from the launcher temporarily, reach Android's sound controls quickly, and review what was hidden. Add scheduled quiet hours through Android Do Not Disturb (DND), with separate access and explicit exceptions.
+Extend the existing notification icon row into a private notification inbox: expand an app to inspect its notifications, open and dismiss handled notifications, reach Android's sound controls quickly, and review saved history. Add scheduled quiet hours through Android Do Not Disturb (DND), with separate access and explicit exceptions.
 
 The central promise should be **“Choose what appears on your home screen and when you review it.”** Sound suppression must be described according to what Android actually permits. Notification access alone does not make Comfer a privileged notification controller.
 
@@ -22,7 +22,7 @@ Reddit items were available through indexed search extracts; direct page retriev
 |---|---|---|---|
 | E1 | Useful alerts compete with low-value interruptions. | Play reviews of other apps, 21 August and 25 June 2026, value selective filtering and visibility of important messages. | Per-app controls, priority display, optional content filters. |
 | E2 | Flexible rules are difficult to discover and configure. | A review of other apps, 20 August 2026, describes trial and error finding rule options. | Plain-language templates, preview, explanation of matches. |
-| E3 | App-level blocking also removes useful messages; channels may not separate the desired content. | FilterBox review, 11 February 2023, describes needing regex and requests allow-list filtering. [Play source](https://play.google.com/store/apps/details?id=com.catchingnow.np&hl=en_US) | Allow exceptions before hide rules; start with simple text matching. |
+| E3 | App-level blocking also removes useful messages; channels may not separate the desired content. | FilterBox review, 11 February 2023, describes needing regex and requests allow-list filtering. [Play source](https://play.google.com/store/apps/details?id=com.catchingnow.np&hl=en_US) | Allow exceptions before dismissal rules; start with simple text matching. |
 | E4 | Users cannot tell whether filtering failed or their setup is wrong. | FilterBox review, 15 November 2024, reports uncertain filtering and support problems; 1 December 2024 review reports a purchase before discovering a mismatch. Developer replies discuss fixes/refund support. These are historical reports. [Play source](https://play.google.com/store/apps/details?id=com.catchingnow.np&hl=en_US) | Connection status, test mode, action outcome, compatibility demonstration before purchase. |
 | E5 | Notifications disappear before users finish with them. | Recent Notification reviews, 11 November 2019 and 12 November 2018, discuss lost alerts after restart or opening, and request favorites; the latter also objects to noisy history after exclusions became paid. [Play source](https://play.google.com/store/apps/details?id=com.libin.notification&hl=en_US) | Optional history, bookmarks, exclusions and explicit retention. |
 | E6 | Grouping can conceal messages and make accidental bulk removal easy. | Reddit bug report, 5 December 2024, describes opening a group clearing its notifications. [Reddit report](https://www.reddit.com/r/bugs/comments/1h6xu4b/) | Expand without opening/dismissing; individual controls; separate bulk action. |
@@ -41,7 +41,7 @@ The strongest repeated themes in this sample are selective control, recoverabili
 | [Recent Notification](https://play.google.com/store/apps/details?id=com.libin.notification&hl=en_US) | App-grouped history and age-based deletion. | A history-only screen is insufficient differentiation; connect it to current notifications and app controls. |
 | [Pixel Modes/DND](https://support.google.com/pixelphone/answer/6111295?hl=en) | Schedules and interruption filters for people, apps and other sounds. | Integrate with system controls where available. A launcher does not need to reproduce every device setting. |
 
-## 3. Current Comfer baseline
+## 3. Original Comfer baseline (research snapshot)
 
 Direct source inspection found:
 
@@ -59,7 +59,6 @@ Scope: these are targeted source findings, not a repository-wide architecture au
 |---|---|---|
 | Group notifications for an app | Group records in Comfer's own inbox. | Does not regroup another app's original notifications in the Android shade. Shade grouping is controlled by the posting app and Android, including system automatic grouping. [Grouping documentation](https://developer.android.com/develop/ui/views/notifications/group) |
 | Mute an app | Open that app's Android notification settings; offer channel settings when available. | Ordinary listener access does not grant unrestricted channel editing. Do not present a Comfer toggle as a confirmed system mute. [Listener API](https://developer.android.com/reference/android/service/notification/NotificationListenerService), [channels](https://developer.android.com/develop/ui/compose/notifications/channels) |
-| Pause an app temporarily | Hide its records from the Comfer row/main inbox until an expiry; keep a review route. | This is visual suppression in Comfer, not guaranteed silence or suppression in the shade. |
 | Snooze one notification | Use system snooze on API 26+. | Applies to a selected notification, not every future alert from its app. API 24–25 use a clearly labeled Comfer-only alternative. [Listener API](https://developer.android.com/reference/android/service/notification/NotificationListenerService#snoozeNotification(java.lang.String,long)) |
 | Dismiss unwanted alerts | Explicit cancellation of eligible notifications. | Post-arrival cancellation cannot guarantee prevention of the initial sound, vibration or popup. This is an engineering inference from the listener's post-event interface. |
 | Mute notifications during a time range | A Comfer-owned DND rule with policy access, or a shortcut to system schedules. | On Android 15+ with target 35+, contribute an `AutomaticZenRule`; do not overwrite global DND. Other active rules can keep the device quiet. [Android behavior change](https://developer.android.com/about/versions/15/behavior-changes-15#dnd-changes), [NotificationManager](https://developer.android.com/reference/android/app/NotificationManager) |
@@ -85,24 +84,24 @@ Acceptance:
 
 ### NF-02 — Per-app controls with clear scope (P0; E3, E8, E9)
 
-Offer “Hide from Comfer for…” with 15 minutes, 1 hour, until tomorrow and custom end time; “Always hide from Comfer”; “Pin app first”; and “Sound and notification settings.” Display the next resume time and a Resume now action. Hidden items remain accessible in a separate Hidden view without increasing the primary row count.
+Offer “Pin app first”, “Protect this app from dismissal”, and “Sound and notification settings”. Active and the home icon row derive from Android’s live notifications without a separate visibility filter.
 
 Acceptance:
 
-- Timed hiding affects existing and newly arriving matching records only in Comfer. No system cancellation or volume adjustment occurs.
-- Pauses survive process restart; expired pauses are removed before the next UI render. Returning live records appear without generating new alerts.
-- A rule summary explicitly says “Hidden in Comfer; Android alerts may still sound.” Opening system settings never marks the app muted merely because the settings activity returned.
+- Priority changes grouped ordering only; it does not alter Android alert importance.
+- Protection blocks Comfer dismissal and snooze, including dismissal after opening.
+- Opening Android settings does not imply a sound setting was changed.
 - On devices lacking a channel-settings destination, fall back to app notification settings, then application details.
 
 ### NF-03 — Quiet hours and focus timer (P0, gated by platform prototype; E8, E9)
 
-Provide a manual timer and recurring weekday schedules, including overnight ranges. Separate “Hide selected apps in Comfer” from “Quiet device notifications.” The latter requires DND setup and displays the effective system state. Offer system settings for supported people/app exceptions; do not promise arbitrary per-package exceptions across all Android versions.
+Provide a manual timer and recurring weekday schedules, including overnight ranges. These use Android DND, require DND setup and display the effective system state. Offer system settings for supported people/app exceptions; do not promise arbitrary per-package exceptions across all Android versions.
 
 Acceptance:
 
 - A 22:00–07:00 schedule spans midnight correctly; weekday membership refers to the start day. Show local timezone and next start/end. Recompute after reboot, timezone and clock changes.
 - Ending focus deactivates only Comfer's contribution. An independently enabled system mode remains active, with an explanation.
-- If policy access is missing/revoked, show “Device quiet mode unavailable”; the launcher-only schedule can still work.
+- If policy access is missing/revoked, show “Device quiet mode unavailable”; retain the schedule configuration for use after access is granted.
 - Preserve alarms by default; calls, repeat callers and other exceptions are shown during setup. Avoid a blanket “all notifications muted” promise, including for system-critical alerts. [System exception behavior](https://support.google.com/pixelphone/answer/6111295?hl=en)
 - Prototype schedule activation and expiry under Doze before release. Do not use periodic background work as a promise of minute-exact DND transitions; fall back to system schedule setup where reliability cannot be achieved.
 
@@ -114,21 +113,21 @@ Acceptance: native snooze uses the selected key; reposting updates its state wit
 
 ### NF-05 — Optional searchable history (P1; E5)
 
-History is off until explicitly enabled. Offer 24-hour, 7-day and 30-day retention, with 7 days proposed as the initial selection. Search by app, date and available text; filter active, dismissed and hidden entries. Allow per-app exclusion, deletion and bookmarks with a separately visible expiry.
+History is off until explicitly enabled. Offer 24-hour, 7-day and 30-day retention, with 7 days proposed as the initial selection. Search by app, date and available text; keep Active and saved History separate. Allow per-app exclusion, deletion and bookmarks with a separately visible expiry.
 
 Acceptance: history begins at consent, captures no earlier dismissed notifications, excludes selected apps before persistence, survives a normal restart and expires records automatically. Show capture gaps after listener downtime. A saved item without a usable action offers Open app, not a misleading Restore button. Deleting history also removes associated search data and bookmarks in scope.
 
 ### NF-06 — Simple rules and explanations (P1; E2, E3, E4)
 
-Create a rule from a notification using app, available channel and optional title/body text. Support contains, excludes and explicit ANY/ALL matching. Start with hide-in-Comfer actions; auto-dismiss is an advanced, separately enabled action. Templates are editable examples, never silently enabled universal spam filters.
+Create a rule from a notification using app, available channel and optional title/body text. Support contains, excludes and explicit ANY/ALL matching. Start in observation-only mode; auto-dismiss requires separate confirmation. Templates are editable examples, never silently enabled universal spam filters.
 
 Acceptance:
 
 - Preview shows the matched fields, action, exceptions and scope before saving. A user can run observation-only mode before enabling cancellation.
 - Missing/redacted text does not satisfy text-dependent rules. Broader fallback matching requires an explicit separate rule.
-- “Why is this hidden?” identifies the rule and provides Disable/Edit. A recent decisions view records attempted, succeeded, failed or unknown outcomes.
-- Precedence: protected records bypass automatic destructive actions; explicit keep exceptions beat hide/dismiss; remaining matching rules use visible user order with first-match behavior. System DND remains independent.
-- Example: a delivery app's promotional phrase matches a hide rule, while an explicit order-status exception keeps a relevant update visible. Test both before activation.
+- A rule preview explains matches and provides Disable/Edit. A recent decisions view records attempted, succeeded, failed or unknown outcomes.
+- Precedence: protected records bypass automatic destructive actions; explicit keep exceptions prevent dismissal; remaining matching rules use visible user order with first-match behavior. System DND remains independent.
+- Example: a delivery app's promotional phrase matches a dismissal rule, while an explicit order-status exception keeps a relevant update visible. Test both before activation.
 
 ### NF-07 — Scheduled digest and burst control (P1/P2; E1, E9)
 
@@ -156,7 +155,7 @@ Default automatic dismissal must exclude identifiable call/alarm, ongoing servic
 
 ### NF-10 — Notification insights (P2; E1, E4)
 
-Show local per-app counts, busiest periods and rules frequently reversed. Distinguish new records from updates and summaries. Suggestions require confirmation and explain their evidence. Do not automatically downgrade an app just because it sends many notifications. Metrics never claim “interruptions prevented” from visual hiding alone.
+Show local per-app counts, busiest periods and rules frequently reversed. Distinguish new records from updates and summaries. Suggestions require confirmation and explain their evidence. Do not automatically downgrade an app just because it sends many notifications. Metrics never equate dismissal requests with prevented interruptions.
 
 ## 6. Engineering requirements and validation
 
@@ -166,7 +165,7 @@ These are proposed implementation constraints, not descriptions of existing arch
 - Capture rule-relevant events before UI debouncing. Periodic snapshots reconcile state but cannot recover short-lived notifications missed between snapshots. Deduplicate replayed events and ignore Comfer-generated digests in rule processing.
 - Keep parsing, persistence and rule evaluation off the main thread. Bound content length, retained records and rule execution; defer regex until execution can be bounded safely.
 - Separate display decisions, history retention, system dismissal and DND state. One feature failing must not silently enable a more destructive alternative.
-- Define explicit state for hidden-until, removed, snoozed, saved-copy and unknown outcome. Viewing a Comfer card does not mark the source conversation read.
+- Define explicit state for opened, removed, snoozed, saved-copy and unknown outcome. Viewing a Comfer card does not mark the source conversation read.
 - Request notification posting permission only if Comfer-generated reminders/digests are enabled on Android 13+. Listener access and permission to post are separate. [Posting permission](https://developer.android.com/develop/ui/compose/notifications/notification-permission)
 - The initial scope requires no root, ADB, Shizuku, accessibility automation, device-owner status or notification-assistant role.
 
@@ -199,9 +198,9 @@ The following register supersedes earlier comparative recommendations. All IDs a
 
 NF-13 Undo is a P1 improvement; P0 manual dismissal uses an explicit labeled action, with confirmation for bulk dismissal. “All available actions” means actions shipped and supported for the selected item, not every possible operation exposed by another app.
 
-Validate with 8–12 consenting users across work-heavy, chat-heavy and minimalist-launcher use cases; this is a proposed study, not completed research. Ask participants to pause an app, find an older alert, explain a hidden item and end focus while another DND mode is active.
+Validate with 8–12 consenting users across work-heavy, chat-heavy and minimalist-launcher use cases; this is a proposed study, not completed research. Ask participants to open a notification, find its saved copy, explain a dismissal and end focus while another DND mode is active.
 
-Proposed usability targets: at least 80% complete each core task without assistance; all participants distinguish launcher hiding from device silence after setup. Track setup abandonment, rules reversed within 24 hours, reported missed important notifications and listener downtime. Collect only consented aggregate counters or local study observations, never message content. Establish real baselines before claiming a reduction in distraction.
+Proposed usability targets: at least 80% complete each core task without assistance; all participants distinguish dismissal from device silence after setup. Track setup abandonment, rules reversed within 24 hours, reported missed important notifications and listener downtime. Collect only consented aggregate counters or local study observations, never message content. Establish real baselines before claiming a reduction in distraction.
 
 ## 8. Decisions to revisit after validation
 
@@ -230,7 +229,7 @@ The “Summarize” action documented in other apps groups notifications into a 
 | Candidate | Evidence from other apps | Comfer decision |
 |---|---|---|
 | Rule groups and one-tap presets | Shortcuts toggle several selected rules from the home screen or Quick Settings. | **Add NF-11, P1.** Particularly useful in a launcher: Work, Evening or Reading controls next to the notification row. |
-| Explain both matches and non-matches | Activity view was added in version 35. | **Strengthen NF-06, P1.** Show why a notification was untouched as well as hidden; distinguish a match from a successful action. |
+| Explain both matches and non-matches | Activity view was added in version 35. | **Strengthen NF-06, P1.** Show why a notification was untouched as well as dismissed; distinguish a match from a successful action. |
 | Repeated reminders | Configurable intervals and reminder limits; reminders stop when the notification leaves the shade. | **Add NF-12, P1.** Bounded follow-up reminders and explicit Done; useful for messages requiring action. |
 | Undo dismissal | A 20-second restore prompt follows qualifying user dismissals. | **Add NF-13, P1.** Provide real undo for actions initiated in Comfer by delaying cancellation; distinguish this from reviewing a saved copy after external dismissal. |
 | Sticky important items | Replacement copies resist accidental loss through reposting. | **Extend NF-05, P1.** A Needs attention shelf survives Comfer's Clear all; avoid fighting swipes in the system shade. |
@@ -275,7 +274,7 @@ Back up all durable notification configuration so users can recover their setup 
 #### Configuration included
 
 - Rules: stable identifiers, names, matching conditions, actions, exceptions, priorities, order, folders and configured enabled/disabled preferences.
-- Per-app preferences: visibility, permanent hiding, pinned priority, grouping, protected-app status, history exclusions and available channel/conversation selectors.
+- Per-app preferences: pinned priority, grouping, protected-app status, history exclusions and available channel/conversation selectors.
 - Presets and schedules: preset membership, rule overrides, recurring quiet hours, digest schedules, timezone behavior and intended DND exception preferences.
 - Reminder and history settings: default snooze durations, reminder intervals/limits, retention periods and preview/privacy preferences. Preserve choices separately from consent to start storing notification content.
 - Inbox and row design: orientation/layout choices, icon styling, default view/filter, bottom-control preferences, gesture mappings where configurable. Store density-independent values; recalculate bounds for the destination device.
@@ -326,8 +325,8 @@ These requirements apply to the inbox entry point and every Comfer-owned inbox s
 ### DC-01 - Always-visible home-screen entry
 
 - Once notification access is granted, reserve a visible row with at least one interactive icon, including while loading, reconnecting or showing no viewable notifications.
-- When notifications are available to view, show their app icons and the existing overflow affordance as needed. When none qualify for the row, show exactly one Notification inbox icon. Hidden, paused or history-only items do not prevent this fallback.
-- The fallback opens the inbox even when empty, so configuration, hidden items, history and other available actions remain accessible. An empty inbox says there are no current notifications; it must not remove its navigation or settings controls.
+- When notifications are available to view, show their app icons and the existing overflow affordance as needed. When none qualify for the row, show exactly one Notification inbox icon. History-only items do not prevent this fallback.
+- The fallback opens the inbox even when empty, so configuration, history and other available actions remain accessible. An empty inbox says there are no current notifications; it must not remove its navigation or settings controls.
 - Change the existing row-visibility preference so it cannot remove the only inbox entry after access is granted. Offer layout/style choices instead of a hide toggle in this state, and migrate any previously disabled row to the visible inbox entry.
 - Preserve the fallback while the listener reconnects. If access is revoked after setup, retain a clearly labeled access-needed inbox entry with a route to restore access; never represent stale records as current notifications.
 
@@ -365,7 +364,7 @@ Use gestures as shortcuts with visible alternatives. The following defaults are 
 |---|---|---|
 | Tap | Open the full All apps inbox from anywhere in the row. | Open the source notification. In selection mode, toggle selection instead. |
 | Double tap | No separate shortcut. | No separate shortcut. |
-| Long press | No separate shortcut. | Enter selection mode and select the card. Reserve indicator space before every card even outside selection mode. In selection mode show 14 dp rings, filled solid when selected, and the bottom Hide/Snooze/Priority/More actions menu. |
+| Long press | No separate shortcut. | Enter selection mode and select the card. Reserve indicator space before every card even outside selection mode. In selection mode show 14 dp rings, filled solid when selected, and the bottom Snooze/Priority/More actions menu. |
 | Slide horizontally | Scroll an overflowing horizontal row without changing notifications. | Dismiss the individual notification directly in either direction when eligible; preserve protected items. |
 | Slide vertically | Scroll an overflowing vertical row. | Scroll the notification list within its panel. Do not dismiss the inbox through an incidental scroll. |
 
@@ -373,7 +372,7 @@ Acceptance: recognize tap, double tap and long press as mutually exclusive outco
 
 ### DC-05 - Design validation
 
-Verify empty, active, hidden-only, reconnecting and revoked-access states; long lists; all available action menus; keyboard-open search; large text; left/right-hand use; small and tall phones; tablets/foldables; landscape; and resized windows. Check initial content bounds against the computed portrait starting position, then verify content can scroll above that boundary while fixed controls remain reachable. In usability testing, ask users to open the empty inbox, configure it, act on a notification and return home without changing grip. Adjust the proposed reach formula from those results before release.
+Verify empty, active, reconnecting and revoked-access states; long lists; all available action menus; keyboard-open search; large text; left/right-hand use; small and tall phones; tablets/foldables; landscape; and resized windows. Check initial content bounds against the computed portrait starting position, then verify content can scroll above that boundary while fixed controls remain reachable. In usability testing, ask users to open the empty inbox, configure it, act on a notification and return home without changing grip. Adjust the proposed reach formula from those results before release.
 
 
 ## 11. Implementation decisions and cross-feature contracts
@@ -384,8 +383,7 @@ These decisions close the pre-planning gaps and take precedence over ambiguous w
 
 | Item state | Available behavior | Unavailable behavior |
 |---|---|---|
-| Active and current | Expand, Open, Hide/Resume, app controls; Dismiss if eligible; Snooze when supported and shipped | Actions without a valid current source handle |
-| Hidden but active | Same eligible actions, plus Show in inbox | Treating Hide as sound suppression |
+| Active and current | Expand, Open, app controls; Dismiss if eligible; Snooze when supported and shipped | Actions without a valid current source handle |
 | System-snoozed | Display known snooze status; Open app; configuration | Dismiss/Open original from a stale handle; promise early system unsnooze |
 | History or saved copy | Read, Open app, Delete copy; bookmark/reminder and Copy/Share when shipped | Source notification dismissal, archive or reply through a saved handle |
 | Protected or non-clearable | Read/Open and app controls; eligible explicit user actions | Bulk or automated destructive action; Dismiss when non-clearable |
@@ -397,8 +395,7 @@ Manual Reply, Archive and Mark as read are P2, separately gated; they are not im
 
 ### AC-02 - Precise action names and bulk scope
 
-- **Hide in Comfer** changes visibility; **Show in inbox** reverses it. No generic Clear action silently hides notifications.
-- **Dismiss notification** requests removal of a live Android notification. **Dismiss selected** and **Dismiss app notifications** show the affected app/profile and count; do not include hidden records or new arrivals unless explicitly selected in the preview.
+- **Dismiss notification** requests removal of a live Android notification. **Dismiss selected** and **Dismiss app notifications** show the affected app/profile and count; do not include unselected records or new arrivals unless explicitly selected in the preview.
 - **Complete saved item** removes it from Needs attention and stops its local reminders; the saved copy remains subject to retention. It does not mark the source conversation read.
 - **Delete saved copy/history** removes only stored Comfer data and related indexes/reminders; it does not dismiss the live source notification.
 - Each bulk operation snapshots selected IDs and revisions, checks eligibility again and reports succeeded, skipped, failed and unknown counts. Never silently change a filtered operation to all apps. Partial success is not rolled back by reposting source notifications.
@@ -431,7 +428,7 @@ Pause rule execution and queue configuration changes during restore. Commit one 
 
 Provide bottom-accessible, separately labeled controls:
 
-- **Pause notification automation:** stop automatic hide/dismiss rules, preset overrides, Comfer reminder/digest alerts and future Comfer DND activation; cancel pending uncommitted automatic actions and deactivate only Comfer-owned DND contributions. Keep live inbox, manual actions and saved configuration. History capture is a separate preference and its continued status must be shown. Already system-snoozed items retain their system expiry. Resuming recalculates future schedules without replaying missed actions; no automatic dismissal of the existing backlog.
+- **Pause notification automation:** stop automatic dismissal rules, preset overrides, Comfer reminder/digest alerts and future Comfer DND activation; cancel pending uncommitted automatic actions and deactivate only Comfer-owned DND contributions. Keep live inbox, manual actions and saved configuration. History capture is a separate preference and its continued status must be shown. Already system-snoozed items retain their system expiry. Resuming recalculates future schedules without replaying missed actions; no automatic dismissal of the existing backlog.
 - **Reset notification settings:** confirm scope, pause automation, clear notification configuration and owned jobs/rules, restore layout defaults and turn history capture/automatic backup off. Preserve saved notification data unless separately selected for deletion. Preserve the mandatory inbox entry after access has been granted. A cleanup failure remains visible and retryable.
 - **Delete saved notification data:** confirm and delete history, saved copies, associated search indexes, activity records and saved-item reminders. Preserve rules/layout, and show whether future history capture is still enabled. This does not delete exported configuration files or cancel live Android notifications.
 
@@ -460,7 +457,7 @@ After a qualifying swipe is released, continue translating the card in the same 
 
 ### Separate group selection and expansion
 
-The app-group title and expand/collapse caret are separate controls. Outside selection mode only the caret changes expansion. During selection, tapping the group title selects all its current inbox children (including collapsed children); if all are selected it deselects that group. Partial selection becomes full selection, other groups remain unchanged, and selecting zero items exits selection mode. Expose full/partial/empty selection semantics without displaying a count. Opening must not issue a Comfer dismissal, including for auto-cancel flags; source applications can independently remove their own notifications. Decision: do not retain separate inbox copies when a source app or Android removes a notification. The live inbox follows active Android notifications; opening does not request dismissal from Comfer.
+The app-group title and expand/collapse caret are separate controls. Outside selection mode only the caret changes expansion. During selection, tapping the group title selects all its current inbox children (including collapsed children); if all are selected it deselects that group. Partial selection becomes full selection, other groups remain unchanged, and selecting zero items exits selection mode. Expose full/partial/empty selection semantics without displaying a count. Opening an eligible notification requests dismissal after successful launch. History retains eligible copies when enabled. Active follows the current Android snapshot.
 
 
 ### 10 September 2026 — Local history and contextual settings revision
@@ -469,8 +466,8 @@ The user supersedes the earlier live-only/no-separate-copy decision. Restore NF-
 
 Settings must be a short directory, with each destination containing only related controls:
 - Notification view: grouped/chronological choice on the directory.
-- Quiet hours → shared pause/status/DND access, Focus timers → temporary duration/end controls, Schedules → Recurring schedule → days, exact start/end and DND/app-hiding actions.
-- Filters → manual hidden-app controls and, when implemented, content-based rule management. Do not present unimplemented rules as enabled controls.
+- Main notification settings → shared pause/resume below view choices. Quiet hours → status/DND access, Focus timers → temporary duration/end controls, Recurring schedule → days, exact start/end and DND settings (direct navigation, one screen title).
+- Filters → content-based dismissal rule management. Do not present unimplemented rules as enabled controls.
 - History → consent, retention, exclusions, saved copies and deletion.
 - Search → plain-text, app and date search of saved copies.
 - Connection and privacy → refresh, sync/privacy status and reset.
@@ -479,20 +476,127 @@ Android Back traverses the context hierarchy, then returns to the inbox. Preserv
 
 ### 10 September 2026 — Opening with history and content-rule delivery
 
-When History is enabled, opening an eligible live notification first commits a local copy. Opening never requests Android cancellation. If the source app removes its notification, keep the copy accessible in the inbox, explicitly labeled Saved copy, until manual Dismiss from inbox or retention expiry. Dismiss from inbox only removes that entry from the inbox; History keeps its copy. Manual dismissal of the live notification also clears its retained-inbox flag. Do not duplicate a copy beside its still-live source. Privacy exclusions, protected/secret notifications and locked-device restrictions still apply. If an eligible copy cannot be saved, report the failure before opening. Never reuse a historical PendingIntent; a saved copy may offer Open app for the current profile.
+Opening an eligible notification saves its local copy when History is enabled, launches the destination, then requests dismissal of the same current record. Failed launch or failed save leaves it active. Source removal is also accepted. Saved copies are shown only in History after removal, never reinserted into Active. Protected and sensitive content retains existing exclusions. History-off behavior does not enable capture silently.
 
 Content rules use normalized case-insensitive literal matching, selected title/message fields, app/profile and optional channel, ANY/ALL required phrases and exception phrases. Start in test-only mode and require preview before save. Live rules use stable list order; first matching active rule wins. Auto-dismiss requires its own explicit confirmation and applies only to fresh posted/updated events, never snapshot reconciliation or an existing backlog on rule edits/resume. Regex remains deferred. Pause covers rules, schedules and timers; history remains independent.
 
 
 ### Saved tab revision (2026-09-10)
 
-- Tab order: All apps, Hidden, Saved, Settings. Saved has case-insensitive title/message/app-package search and displays local copies, including opened notifications, newest first. History capture remains opt-in.
+- Tab order: All apps, Saved, Settings. Saved has case-insensitive title/message/app-package search and displays local copies, including opened notifications, newest first. History capture remains opt-in.
 - Saved replaces the former retained-copy section in the live inbox and the per-copy History settings list. Search is available directly in the Saved tab; Settings has no Search shortcut.
-- A saved copy has only swipe-to-delete (plus its accessibility equivalent). No tap, selection, Open App, snooze or other notification actions. Deletion removes the local copy without dismissing a live Android notification.
+- Saved copies support expandable previews, grouping, app opening, selection, single/bulk deletion and swipe-to-delete, matching Active where applicable. Original Android notification actions are unavailable. Deletion removes the local copy without dismissing a live Android notification.
 - Never capture empty, incomplete, secret, protected or Android-redacted previews, including hidden sensitive/OTP content. Check Android’s localized redaction placeholder and common unavailable-preview placeholders, including the delivered basic text when expanded text exists. Do not attempt to recover hidden content. Existing recognizable placeholder copies are pruned.
 - The earlier opened-copy presentation and Open App affordance are superseded by this Saved tab. Retention, encryption, device-lock protection and exclusion policies continue to apply.
 
 
 ### Active/history exclusivity (2026-09-10)
 
-Saved copies are captured while notifications are live, but displayed in Saved only after their matching notification leaves the complete active snapshot. Opening does not itself cancel Android notifications: if the source removes its notification on open, its copy becomes visible in Saved. App filtering, grouping/collapse and hiding do not promote still-live copies to history. Matching uses profile, notification key and post time, so updates do not duplicate a live notification and later reposts remain distinct. This supersedes the earlier statement that Saved displays still-live copies.
+Saved copies are captured while notifications are live, but displayed in Saved only after their matching notification leaves the complete active snapshot. After successful opening, Comfer requests dismissal of the current eligible Android record; a saved copy becomes visible in Saved after removal is confirmed. App filtering and grouping/collapse do not promote still-live copies to history. Matching uses profile, notification key and post time, so updates do not duplicate a live notification and later reposts remain distinct. This supersedes the earlier statement that Saved displays still-live copies.
+
+
+### Precise quiet timing (2026-09-10)
+
+Use elapsed-realtime exact alarms that can run during idle for focus expiry and the next device-quiet schedule boundary. Android 12+ uses optional Alarms & reminders (`SCHEDULE_EXACT_ALARM`) access; earlier versions need no additional grant. Offer “Allow precise timing” in Focus timers and device-quiet recurring schedule settings when access is missing. Without access, retain functionality and explain that Android may delay boundaries.
+
+Always retain a separately identified inexact fallback, since revoking precise-alarm access deletes exact alarms and can stop the process. Cancel both when no boundary remains or on reset; reschedule when access is granted. Exact alarms still remain subject to Android idle quotas and platform restrictions, so this is improved precision, not an unconditional real-time guarantee.
+
+
+### History interaction parity (2026-09-10)
+
+Supersedes the previous swipe-only/no-tap saved-copy interaction. History uses Active-style cards, one-line expandable previews, grouped/chronological sorting (including app priority), separate animated group carets, selection rings, and animated list/action-bar transitions. Long press starts selection; taps toggle copies and group titles select/deselect their group while selecting. Selection ends at zero; Back/Cancel clears it. Search and live-list exclusion remain in effect; selections are pruned when copies leave the displayed results.
+
+Swipe deletes only the local copy. Selection offers Delete and Cancel, with More actions for one copy; multiple deletion requires confirmation. No live dismiss, snooze, reply, or other expired Android action is offered for archived text. Normal tap opens the installed app after preview expansion when needed; the original notification destination is unavailable. Launching across profiles is blocked rather than opening the wrong account. Unavailable apps and deletion failures produce errors. History remains hidden while the device is locked.
+
+### Notification lifecycle — implementation analysis (2026-09-10)
+
+A notification has two independent lifetimes: the **live Android record** and an optional **encrypted local copy**. Active displays the live collection. History (the Saved tab) is a view of stored copies whose identity is absent from that collection. Opening, snoozing, dismissing and deleting therefore have different effects.
+
+The diagram describes normal operation with a connected listener and an unlocked device. Dashed arrows connect live events to local storage; they do not move or cancel the Android notification. “Removal confirmed” means a listener removal event or a refreshed Android snapshot establishes that the live record is absent.
+
+```mermaid
+flowchart TD
+    subgraph Live["Android notification and Comfer live views"]
+        Posted["App posts or updates a notification"] --> Received["Listener receives and normalizes the event"]
+        Received --> Current["Reconciled live snapshot"]
+        Reconnect["Listener reconnects or refreshes"] --> Current
+        Current --> Active["Active tab and home icon row"]
+        Active -->|Tap to open after preview expansion| Prepare["Save eligible copy when History is enabled"]
+        Prepare -->|Save succeeds or capture does not apply| Open["Send notification action<br/>or open app fallback"]
+        Prepare -->|Save fails| Current
+        Open -->|Launch succeeds; current record eligible| Requested
+        Open -->|Launch fails or notification is protected| Current
+        Open -->|Source withdraws notification| Removed["Removal confirmed;<br/>record leaves live snapshot"]
+        Active -->|Manual dismiss| Requested["Ask Android to cancel"]
+        Received -->|Fresh event matches enabled dismiss rule| Requested
+        Requested -->|Removal confirmed| Removed
+        Requested -->|Failed or not yet confirmed| Current
+        Current -->|App, Android or shade removes it| Removed
+        Current -->|Supported snooze action| Snoozed["Android temporarily removes notification"]
+        Snoozed --> Removed
+        Snoozed -->|Android reposts later, if applicable| Posted
+    end
+
+    subgraph Local["Optional local history"]
+        Eligible{"History enabled and<br/>copy eligible?"}
+        Eligible -->|No| Skipped["No new copy saved;<br/>live notification unaffected"]
+        Eligible -->|Yes; write succeeds| Stored["Encrypted copy retained locally"]
+        Stored --> Membership{"Matching identity in<br/>complete live snapshot?"}
+        Membership -->|Yes| Withheld["Copy excluded from History"]
+        Membership -->|No| History["History card, subject to search<br/>and device unlock"]
+        Withheld -->|Snapshot changes| Membership
+        History -->|Snapshot changes or matching repost| Membership
+        History -->|Expand, select, group or open app| History
+        History -->|Swipe delete or confirmed bulk delete| Deleted["Local copy deleted;<br/>Android notification unaffected"]
+        Stored -->|Retention, capacity or privacy pruning| Deleted
+    end
+
+    Received -.->|Capture independently of rule action| Eligible
+    Prepare -.->|Eligible copy saved before launch| Stored
+    Removed -.->|Re-evaluate existing copies only| Membership
+```
+
+#### Transition rules and boundaries
+
+| Event or action | Live notification | Local copy and History |
+|---|---|---|
+| Post or update | The ledger replaces the record for its Android key and changes its revision when content or action identity changes. The next reconciliation publishes the current snapshot. | Eligible posted events enqueue capture before content-rule execution. Storage identity is a hash of profile, Android key and post time: the same identity updates its copy; a changed post time creates a distinct copy. Capture is asynchronous and can fail or have gaps. |
+| Tap Active | A long preview expands first. The next tap opens its destination; a one-line preview opens immediately. After a successful launch, Comfer requests dismissal if the record is still current and eligible. The source app may also remove it. | With History enabled and an eligible preview, Comfer verifies a saved copy before launching; a storage failure blocks that open attempt and reports an error. History displays the saved copy after Android confirms removal; a failed or protected dismissal may leave it active. |
+| Dismiss / content-rule dismissal | Requests Android cancellation for an eligible record. UI removal follows Android's observed state, not the request alone. Automatic dismissal runs only for fresh posted/updated events, never backlog reconciliation. | An already captured copy can appear in History after removal. Dismiss does not delete that copy. Capture on a fresh event is not a guarantee that its asynchronous write will succeed before cancellation. |
+| Snooze | On supported Android versions, requests a 15-minute snooze. Android controls temporary removal and any later repost. | A retained copy can appear while the notification is absent. A repost suppresses the matching copy again; a repost with a new post time has a new identity, so an older copy may remain in History. |
+| App removal, shade dismissal or Android cancellation | Removes the record when observed by the listener or reconciliation. | Existing eligible copies become visible; the removal callback itself does not create a copy. Without a retained copy, nothing appears in History. |
+| History tap / selection / deletion | No live notification action is performed. | Preview expansion, grouping and selection do not change storage. Opening launches the available app in the current profile without the original destination. Swipe deletes one copy; multiple deletion requires confirmation. Failed deletion reports an error. |
+| Expiry or pruning | No effect on Android's notification. | Copies expire using their saved timestamp and configured retention (24 hours, 7 days or 30 days). Only the newest 500 are retained. App exclusions, protected-app settings and recognizable unavailable previews also remove copies during pruning. |
+
+**Capture eligibility:** History must be enabled; the preview must be available and complete. Group summaries, protected notifications/apps, excluded apps, secret content, locked-device content and recognized redacted/empty previews are skipped. In particular, Android-hidden OTP content is not reconstructed or saved. Reconciliation rebuilds the live list but does not retroactively capture the backlog; an eligible explicit open can still save its current copy.
+
+**UI state is separate from notification state:** grouping, caret expansion, preview expansion, search and selection do not mark a notification read or remove it. Selected live actions are checked against the current listener session, revision and Android record before execution. History selection is pruned when a copy leaves the displayed results. `keepInInbox` remains in the saved data model for compatibility, but the current tabs do not use it to keep a non-live copy in Active.
+
+#### Recovery caveat found during analysis
+
+On disconnect, access loss or a recovery error, Comfer clears the live snapshot and disables live actions. Saved storage persists, and History remains device-lock protected. However, the current History filter tests absence from the supplied snapshot without checking listener health. Consequently, stored copies can temporarily appear in History while Android's actual live state is unknown, then disappear from History when reconnection restores matching live records. This is **not proof of dismissal**. Recovery also cannot reconstruct notifications that arrived and disappeared while the listener was unavailable.
+
+Follow-up requirement: distinguish an unknown live state from confirmed absence when deciding History membership, so a connection failure does not look like a lifecycle transition. This analysis documents the behavior; it does not implement that recovery change.
+
+Source verification: [listener events and actions](app/src/main/java/com/jeerovan/comfer/MyNotificationListenerService.kt), [live ledger](app/src/main/java/com/jeerovan/comfer/notifications/NotificationModel.kt), [configuration and migration](app/src/main/java/com/jeerovan/comfer/notifications/NotificationPreferences.kt), [content rules](app/src/main/java/com/jeerovan/comfer/notifications/NotificationRules.kt), [capture and retention](app/src/main/java/com/jeerovan/comfer/notifications/NotificationHistory.kt), [History membership](app/src/main/java/com/jeerovan/comfer/notifications/NotificationSavedContent.kt), [inbox interactions](app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt) and [saved-card gestures](app/src/main/java/com/jeerovan/comfer/notifications/SavedNotificationCard.kt). Task-scoped graph coverage matched these files; method-level transitions were verified in current source because graph discovery did not expose all listener/storage methods.
+
+
+### Open, then dismiss (2026-09-10)
+
+Active, Saved and Settings are the three inbox tabs. Active and the home icon row project current Android notifications, without app-specific visibility suppression. Per-app controls are priority, protection and Android notification settings. Recurring schedules use DND only. Content rules offer observation mode and separately confirmed automatic dismissal.
+
+Opening means handled: save an eligible copy first when History is enabled, launch its destination or available app fallback, and only after successful launch request dismissal of the same current eligible notification. A first tap that only expands a preview does not open or dismiss. Saving or launching failures leave the live notification intact. A newer revision must not be cancelled; a failed post-open dismissal reports an error. Protected/non-clearable items remain subject to Android and Comfer protection. Sensitive/secret/redacted and excluded content is not saved. When History is off, opening dismisses without silently enabling capture. Saved-copy app opening never performs a live dismissal.
+
+Configuration version 2 removes obsolete visibility preferences and rules during upgrade. Former visibility rules, including version-1 rules with an omitted default action, are discarded, never converted into destructive rules. Former visibility-only schedules are disabled without enabling DND. Existing DND schedules, explicit dismissal rules, History consent and unrelated preferences survive. Retired field names remain only in migration and its tests.
+
+
+### Rules from saved notifications (2026-09-10)
+
+A single selected History copy offers More actions → Create content rule. The editor uses the saved app/profile, shows its title/message as reference, and suggests a bounded editable phrase. Use title / Use message selects the matching field and phrase. Preview evaluates the saved text separately from current live notifications. No historical channel or Android action handle is reconstructed. Saved references cannot execute notification actions. Rules start in test-only mode and automatic dismissal still requires preview plus separate confirmation. Back returns through More actions to History with selection and scroll anchoring preserved; saving returns to History. Locked or deleted source copies cannot be used to enter the editor. Bulk selection retains Delete/Cancel.
+
+
+### Shared app actions (2026-09-10)
+
+Active and History use one More actions route and one shared app-controls component: Create content rule, Protect this app from dismissal / Remove protection, and Sound and notification settings. Live records may supply channel settings; saved copies use app-level settings with the same fallback chain and profile checks. Native Back and Android settings return preserve the originating tab and restore selection when its record still exists. The rule editor returns to the same shared menu on Back and to the originating tab on Save.
+
+App protection also excludes the app from History and prunes its saved copies. Explain this beside the control. Retain only app/profile/channel routing metadata so the shared menu survives deletion or expiry of its source. App controls remain usable; creating a content rule is disabled if its source content is no longer available. Removing protection does not recreate deleted copies.

@@ -140,7 +140,12 @@ class MyNotificationListenerService : NotificationListenerService() {
                 if (candidate != null && !com.jeerovan.comfer.notifications.NotificationHistory.retainOpened(candidate)) return@withContext "history_failed"
             }
             val actionItem = synchronized(service.lock) { service.ledger.current(key, revision) }
-            val result = service.performAction(key, revision, action, sessionId)
+            var result = service.performAction(key, revision, action, sessionId)
+            if (action == "open" && result in setOf("requested", "app_open_requested") && actionItem != null &&
+                com.jeerovan.comfer.notifications.canManageNotification(actionItem, com.jeerovan.comfer.notifications.NotificationPreferences.state.value.protectedApps)) {
+                val dismissal = service.performAction(key, revision, "dismiss", sessionId)
+                if (dismissal !in setOf("requested", "removed")) result = "opened_dismiss_failed"
+            }
             if (action == "dismiss" && result == "requested") {
                 if (actionItem != null) com.jeerovan.comfer.notifications.NotificationHistory.dismissFromInbox(com.jeerovan.comfer.notifications.savedNotificationId(actionItem))
             }
@@ -337,10 +342,6 @@ class MyNotificationListenerService : NotificationListenerService() {
             if (com.jeerovan.comfer.notifications.matchNotificationRule(rule, item, config.protectedApps).matches) activity.record(rule.id, "Test only: matched; no action")
         }
         val rule = com.jeerovan.comfer.notifications.firstNotificationRule(item, config) ?: return
-        if (rule.action == com.jeerovan.comfer.notifications.RuleAction.HIDE) {
-            activity.record(rule.id, "Hidden in Comfer")
-            return
-        }
         // Act only on fresh posted events, never on refresh/backlog or rule-editor preview.
         // Recheck Android's current content and the saved configuration just before cancellation.
         if (com.jeerovan.comfer.notifications.NotificationPreferences.state.value.generation != generation) return
@@ -367,7 +368,7 @@ class MyNotificationListenerService : NotificationListenerService() {
 
     private fun performAction(key: String, revision: Long, action: String, sessionId: String): String = synchronized(lock) {
         if (!connected || sessionId != connectionId || mutableSnapshot.value.health != com.jeerovan.comfer.notifications.ListenerHealth.CONNECTED) return@synchronized "unavailable"
-        val item = ledger.current(key, revision) ?: return@synchronized "changed"
+        val item = ledger.current(key, revision) ?: return@synchronized if (action == "dismiss" && ledger.items().none { it.key == key }) "removed" else "changed"
         try {
             val current = getActiveNotifications(arrayOf(key))?.firstOrNull() ?: return@synchronized "removed"
             if (normalize(current).copy(revision = 0) != item.copy(revision = 0)) {
@@ -375,8 +376,7 @@ class MyNotificationListenerService : NotificationListenerService() {
             }
             when (action) {
                 "open" -> {
-                    // Opening never requests cancellation, even for FLAG_AUTO_CANCEL.
-                    // The source application can still withdraw its own notification.
+                    // Launch first. act() requests cancellation only after launch succeeds.
                     val intent = current.notification.contentIntent
                     if (intent != null) intent.send()
                     else return@synchronized openApp(item)

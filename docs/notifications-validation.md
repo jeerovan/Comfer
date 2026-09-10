@@ -17,7 +17,7 @@ Checkpoint: 8 September 2026. This is an initial implementation spanning phases 
 
 Both emulator runs use actual notifications from two separately installed fixture apps. Tests restore Comfer notification configuration and listener grants after each case. Test-owned DND rules and encryption keys are removed. Native snooze executes on API 37; API 24 exercises the unavailable path and does not run native snooze.
 
-Coverage includes grouped children across apps; content updates and revision invalidation; individual dismissal without removing siblings; protected notifications; local hiding without system cancellation; content exclusion from configuration; 100-update burst convergence; access revocation/reconnection; rejection of actions carrying an earlier connection identifier; expired-intent app fallback; native snooze; real inbox hide/review interaction; mutually exclusive double-tap selection; empty home entry; portrait configuration; 2× font scale; landscape and navigation preservation through production-activity recreation; focus activation/elapsed expiry; preservation of an overlapping automatic rule; and encryption round-trip, randomized ciphertext, tampering/identity rejection, bounds and lost-key failure.
+Coverage includes grouped children across apps; content updates and revision invalidation; individual dismissal without removing siblings; protected notifications; content exclusion from configuration; 100-update burst convergence; access revocation/reconnection; rejection of actions carrying an earlier connection identifier; expired-intent app fallback; native snooze; mutually exclusive double-tap selection; empty home entry; portrait configuration; 2× font scale; landscape and navigation preservation through production-activity recreation; focus activation/elapsed expiry; preservation of an overlapping automatic rule; and encryption round-trip, randomized ciphertext, tampering/identity rejection, bounds and lost-key failure.
 
 The overlap fixture is a distinct rule under the test application's ownership domain. It validates that Comfer targets its own stored rule ID rather than globally switching DND off; it does not validate every other app or OEM. Timer expiry is simulated by advancing the stored elapsed deadline; this is not an overnight/Doze/reboot timing measurement. A 1,000-record check runs against the pure ledger, not 1,000 accepted Android notifications. Android can rate-limit source posts before listener delivery.
 
@@ -70,7 +70,7 @@ The API 24 follow-up initially encountered stale/dead listener bindings after AP
 
 Settings navigation now attempts channel → app notification settings → app details → general settings, stopping at the first successful launch. Cross-profile routing remains explicitly unavailable. OEM rejection of each settings destination has not yet been exercised.
 
-After binding recovery, the API 24 full run passed the action checks, including swipe reveal, but exposed an empty-row test assumption: Android system notifications may still exist. The corrected test hides the current app groups to check the empty visible projection; its focused retry passed (`empty-visible-row.txt`).
+The home-entry test verifies a permanent inbox entry without assuming Android’s own notification list is empty.
 
 The final API 24 rerun passed all 16 methods together, with listener access already granted at the start. No new app code was changed during the binding and label/empty-row test corrections. The Samsung default Home was rechecked as the original Comfer, with effective DND off.
 
@@ -112,7 +112,7 @@ The final cross-app suite passed all 18 methods after the recovery changes. Outs
 
 ## Group headers and selection gestures (2026-09-09)
 
-Grouped mode now renders stable app headers with child counts and collapse/expand controls. Tap dispatches the source notification action; long press selects, exposes ring/solid-circle indicators, and shows Hide/Snooze/Priority/More actions. Multiple selection filters shared operations and requires every selected item to support snooze or bulk dismissal. Horizontal swipe directly dismisses eligible individual items. Android settings round trips retain selection and restore the selected card; inbox, configuration, and More retain separate scroll states.
+Grouped mode now renders stable app headers with child counts and collapse/expand controls. Tap dispatches the source notification action; long press selects, exposes ring/solid-circle indicators, and shows Snooze/Priority/More actions. Multiple selection filters shared operations and requires every selected item to support snooze or bulk dismissal. Horizontal swipe directly dismisses eligible individual items. Android settings round trips retain selection and restore the selected card; inbox, configuration, and More retain separate scroll states.
 
 Validation: 83 JVM tests passed, debug build and lint passed, and the complete API 24 notification suite passed all 20 tests. Two production-activity tests passed on Samsung SM-A305F/API 30 for tap/open, direct swipe dismissal, and returning from real Android channel settings to the selected card and menu. A null selection originally matched header rows whose notification field is null; `notificationAnchorIndex` now explicitly rejects absent keys and has regression coverage. Physical tests preserve the original 12 manual fixture notifications and only remove their temporary IDs. Instrumentation packages and emulator fixture apps were removed after validation; the Samsung fixture apps remain for manual testing.
 
@@ -148,6 +148,6 @@ Build and lint passed. Emulator regression runner: 23 tests passed, including th
 
 Group titles now toggle all current group children in selection mode, including collapsed children; the separate caret only changes expansion. Partial/full/empty state has checkbox semantics. Other groups keep their selections, and deselecting the last group exits selection mode. Updated the app guide.
 
-The service Open path already sends the content intent without calling cancelNotification, even for FLAG_AUTO_CANCEL. Added a regression that opens the fixture, returns to the inbox and verifies it remains active. Source apps can independently remove their notifications; the user confirmed that Comfer should not retain separate copies of removed records. The existing live-only behavior is retained.
+Superseded validation contract: opening now requests dismissal after successful launch, with optional eligible History capture first. The previous keep-active-on-open regression has been replaced.
 
 Validation: build and lint passed. Emulator: all 25 tests passed, including cross-app/collapsed-group selection and Open preservation. Samsung API 30: all 4 navigation/group-selection tests passed. Updated main debug APK installed with user data preserved. Test packages removed; Samsung manual fixture notifications retained.

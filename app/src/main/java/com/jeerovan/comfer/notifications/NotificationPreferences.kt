@@ -9,14 +9,13 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.*
 
 @Serializable
 data class NotificationConfiguration(
-    val version: Int = 1,
+    val version: Int = 2,
     val setup: Boolean = false,
     val paused: Boolean = false,
-    val hiddenUntil: Map<String, Long> = emptyMap(),
     val pinned: Set<String> = emptySet(),
     val protectedApps: Set<String> = emptySet(),
     val chronological: Boolean = false,
@@ -47,8 +46,8 @@ object NotificationPreferences {
         if (preferences != null) return
         val prefs = context.applicationContext.getSharedPreferences("notification_configuration", Context.MODE_PRIVATE)
         mutable.value = runCatching {
-            Json.decodeFromString<NotificationConfiguration>(prefs.getString("config", null) ?: "{}").also {
-                require(it.version == 1 && it.reachFraction.isFinite() && it.reachFraction in .4f.. .65f && it.reachCap.isFinite() && it.reachCap in 160f..600f && it.reachWidth.isFinite() && it.reachWidth in 240f..600f)
+            decodeNotificationConfiguration(prefs.getString("config", null) ?: "{}").also {
+                require(it.version == 2 && it.reachFraction.isFinite() && it.reachFraction in .4f.. .65f && it.reachCap.isFinite() && it.reachCap in 160f..600f && it.reachWidth.isFinite() && it.reachWidth in 240f..600f)
                 require(it.quietSchedule.startMinute in 0..1439 && it.quietSchedule.endMinute in 0..1439 && it.quietSchedule.weekdays.all { day -> day in 1..7 })
                 require(it.historyDays in setOf(1, 7, 30))
                 require(it.rules.size <= 20 && it.rules.all(::validNotificationRule) && it.rules.map { rule -> rule.id }.distinct().size == it.rules.size)
@@ -62,7 +61,7 @@ object NotificationPreferences {
     @Synchronized private fun save(reset: Boolean = false, transform: (NotificationConfiguration) -> NotificationConfiguration): Boolean {
         if (mutableRecoveryNeeded.value && !reset) return false
         val next = transform(mutable.value).copy(generation = mutable.value.generation + 1)
-        if (preferences?.edit()?.putString("config", Json.encodeToString(next))?.commit() != true) return false
+        if (preferences?.edit()?.putString("config", Json { encodeDefaults = true }.encodeToString(next))?.commit() != true) return false
         mutable.value = next
         mutableRecoveryNeeded.value = false
         return true
@@ -72,16 +71,27 @@ object NotificationPreferences {
     suspend fun reset(): Boolean = writes.withLock {
         withContext(Dispatchers.IO) { save(reset = true) { NotificationConfiguration(setup = it.setup, paused = true) } }
     }
-    fun isHidden(item: NotificationItem, now: Long): Boolean =
-        isVisuallyHidden(item, state.value, now)
 }
 
-fun isVisuallyHidden(item: NotificationItem, configuration: NotificationConfiguration, now: Long): Boolean =
-    (configuration.hiddenUntil[item.appId] ?: 0L) > now ||
-        (!configuration.paused && item.appId in configuration.quietSchedule.hiddenApps && quietWindow(configuration.quietSchedule, now).active) ||
-        firstNotificationRule(item, configuration)?.action == RuleAction.HIDE
-
-fun NotificationConfiguration.showApp(appId: String): NotificationConfiguration = copy(
-    hiddenUntil = hiddenUntil - appId,
-    quietSchedule = quietSchedule.copy(hiddenApps = quietSchedule.hiddenApps - appId),
-)
+/** Retired visibility settings must never become destructive rules on upgrade. */
+internal fun decodeNotificationConfiguration(raw: String): NotificationConfiguration {
+    val document = Json.parseToJsonElement(raw).jsonObject
+    val version = document["version"]?.jsonPrimitive?.int ?: 1
+    require(version in 1..2)
+    val migrated = if (version == 1) JsonObject(document.toMutableMap().apply {
+        remove("hiddenUntil")
+        put("version", JsonPrimitive(2))
+        document["rules"]?.jsonArray?.let { rules ->
+            // Version 1 omitted the default HIDE action when serializing.
+            put("rules", JsonArray(rules.filter { it.jsonObject["action"]?.jsonPrimitive?.content == "DISMISS" }))
+        }
+        document["quietSchedule"]?.jsonObject?.let { schedule ->
+            put("quietSchedule", JsonObject(schedule.toMutableMap().apply {
+                remove("hiddenApps")
+                if (schedule["deviceQuiet"]?.jsonPrimitive?.booleanOrNull == false) put("enabled", JsonPrimitive(false))
+                put("deviceQuiet", JsonPrimitive(true))
+            }))
+        }
+    }) else document
+    return Json.decodeFromJsonElement<NotificationConfiguration>(migrated)
+}

@@ -45,8 +45,6 @@ class NotificationRulesTest {
         assertEquals(rule, firstNotificationRule(item, config))
         assertNull(firstNotificationRule(item, config.copy(paused = true)))
         assertEquals(dismiss, firstNotificationRule(item, config.copy(rules = listOf(rule.copy(observeOnly = true), dismiss))))
-        assertTrue(isVisuallyHidden(item, config, 0))
-        assertFalse(isVisuallyHidden(item, config.copy(rules = listOf(dismiss)), 0))
     }
     @Test fun profileAndChannelBoundariesAndLimitsAreRespected() {
         assertFalse(matchNotificationRule(rule.copy(appId = "1:app"), item, emptySet()).matches)

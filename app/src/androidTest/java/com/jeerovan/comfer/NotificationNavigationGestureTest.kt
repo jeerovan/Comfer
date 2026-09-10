@@ -60,9 +60,9 @@ class NotificationNavigationGestureTest {
         await { fixtures().any { it.title == "OpenFixture" } }
         compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText("OpenFixture"))
         compose.onNodeWithText("OpenFixture").performClick()
-        await { shell("dumpsys activity activities").lineSequence().any { it.contains("mResumedActivity") && it.contains("com.jeerovan.fixtures.mail") } }
+        await { shell("dumpsys activity activities").lineSequence().any { (it.contains("mResumedActivity") || it.contains("topResumedActivity")) && it.contains("com.jeerovan.fixtures.mail") } }
         shell("input keyevent 4")
-        await { shell("dumpsys activity activities").lineSequence().any { it.contains("mResumedActivity") && it.contains("NotificationInboxActivity") } }
+        await { shell("dumpsys activity activities").lineSequence().any { (it.contains("mResumedActivity") || it.contains("topResumedActivity")) && it.contains("NotificationInboxActivity") } }
         compose.waitForIdle()
         assertTrue("Opening must not cancel even an auto-cancel notification", fixtures().any { it.title == "OpenFixture" })
     }
@@ -77,11 +77,11 @@ class NotificationNavigationGestureTest {
         compose.onNodeWithText("More actions").performClick()
         compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText("Sound and notification settings"))
         compose.onNodeWithText("Sound and notification settings").performClick()
-        await { shell("dumpsys activity activities").lineSequence().any { it.contains("mResumedActivity") && it.contains("com.android.settings") } }
+        await { shell("dumpsys activity activities").lineSequence().any { (it.contains("mResumedActivity") || it.contains("topResumedActivity")) && it.contains("com.android.settings") } }
         await { shell("dumpsys window").lineSequence().any { it.contains("mCurrentFocus") && it.contains("com.android.settings") } }
         InstrumentationRegistry.getInstrumentation().uiAutomation.waitForIdle(500, 5000)
         shell("input keyevent 4")
-        await { shell("dumpsys activity activities").lineSequence().any { it.contains("mResumedActivity") && it.contains("NotificationInboxActivity") } }
+        await { shell("dumpsys activity activities").lineSequence().any { (it.contains("mResumedActivity") || it.contains("topResumedActivity")) && it.contains("NotificationInboxActivity") } }
         compose.waitUntil(10_000) { runCatching { compose.onNodeWithTag("notification-card-${target.key}").isDisplayed() }.getOrDefault(false) }
         compose.onNodeWithTag("notification-select-${target.key}", useUnmergedTree = true).assertIsOn()
         compose.onNodeWithTag("notification-selected-actions").assertIsDisplayed()
