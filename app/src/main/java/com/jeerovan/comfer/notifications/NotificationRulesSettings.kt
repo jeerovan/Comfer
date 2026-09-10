@@ -1,7 +1,13 @@
-@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 package com.jeerovan.comfer.notifications
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -15,10 +21,12 @@ import java.util.Date
 
 @Composable
 internal fun NotificationRulesSettings(onEdit: (String?) -> Unit) {
+    val context = LocalContext.current
     val config by NotificationPreferences.state.collectAsState()
     val activity by NotificationRuleActivity.state.collectAsState()
     val scope = rememberCoroutineScope()
     var failure by remember { mutableStateOf(false) }
+    var deletingRuleId by rememberSaveable { mutableStateOf<String?>(null) }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Content-based rules", style = MaterialTheme.typography.titleMedium)
         Text("Literal text matching only; regex is deferred. The first matching active rule wins, in the order below. Test-only rules record matches without changing notifications.", style = MaterialTheme.typography.bodySmall)
@@ -27,25 +35,39 @@ internal fun NotificationRulesSettings(onEdit: (String?) -> Unit) {
         Text("This shared pause also controls quiet schedules and focus timers. History capture is independent.", style = MaterialTheme.typography.bodySmall)
         if (failure) Text("Could not save rule changes.", color = MaterialTheme.colorScheme.error)
         Button(enabled = config.rules.size < 20, onClick = { onEdit(null) }) { Text("Create content rule") }
+        Text("Long press a rule to edit and preview. Swipe to delete.", style = MaterialTheme.typography.bodySmall)
         for ((index, rule) in config.rules.withIndex()) key(rule.id) {
-            OutlinedCard(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(12.dp)) {
-                    Text(rule.name, style = MaterialTheme.typography.titleSmall)
-                    Text(if (rule.observeOnly) "Test only" else if (rule.action == RuleAction.HIDE) "Hide in Comfer" else "Automatically dismiss")
-                    NotificationSettingToggle("Enabled", rule.enabled) { enabled -> scope.launch {
-                        failure = !NotificationPreferences.update { it.copy(rules = it.rules.map { r -> if (r.id == rule.id) r.copy(enabled = enabled) else r }) }
-                    } }
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = { onEdit(rule.id) }) { Text("Edit and preview") }
-                        if (index > 0) TextButton(onClick = { scope.launch {
-                            failure = !NotificationPreferences.update { c ->
-                                val list = c.rules.toMutableList()
-                                val at = list.indexOfFirst { it.id == rule.id }
-                                if (at > 0) java.util.Collections.swap(list, at, at - 1)
-                                c.copy(rules = list)
+            NotificationSwipeContainer(enabled = deletingRuleId == null, onDismiss = {
+                deletingRuleId = rule.id
+                false // Keep the rule and restore its card until deletion is confirmed.
+            }) {
+                OutlinedCard(Modifier.fillMaxWidth().testTag("rule-card:${rule.id}")
+                    .combinedClickable(onClick = {}, onLongClickLabel = "Edit and preview", onLongClick = { onEdit(rule.id) })
+                    .semantics { customActions = listOf(CustomAccessibilityAction("Delete rule") { deletingRuleId = rule.id; true }) }) {
+                    Column(Modifier.padding(12.dp)) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text(rule.appId?.let { appLabel(context, it.substringAfter(':')) } ?: "All apps",
+                                modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+                            Box(Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp).testTag("rule-enabled:${rule.id}")
+                                .semantics { contentDescription = "Enable ${rule.name}" }
+                                .toggleable(value = rule.enabled, role = Role.Switch, onValueChange = { enabled -> scope.launch {
+                                    failure = !NotificationPreferences.update { it.copy(rules = it.rules.map { r -> if (r.id == rule.id) r.copy(enabled = enabled) else r }) }
+                                } }), contentAlignment = Alignment.Center) {
+                                Switch(checked = rule.enabled, onCheckedChange = null, modifier = Modifier.scale(.7f))
                             }
-                        } }) { Text("Move up") }
-                        TextButton(onClick = { scope.launch { failure = !NotificationPreferences.update { it.copy(rules = it.rules.filterNot { r -> r.id == rule.id }) } } }) { Text("Delete rule") }
+                        }
+                        Text(rule.name, style = MaterialTheme.typography.bodyMedium)
+                        Text(if (rule.observeOnly) "Test only" else if (rule.action == RuleAction.HIDE) "Hide in Comfer" else "Automatically dismiss")
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (index > 0) TextButton(onClick = { scope.launch {
+                                failure = !NotificationPreferences.update { c ->
+                                    val list = c.rules.toMutableList()
+                                    val at = list.indexOfFirst { it.id == rule.id }
+                                    if (at > 0) java.util.Collections.swap(list, at, at - 1)
+                                    c.copy(rules = list)
+                                }
+                            } }) { Text("Move up") }
+                        }
                     }
                 }
             }
@@ -58,6 +80,17 @@ internal fun NotificationRulesSettings(onEdit: (String?) -> Unit) {
             }
         }
     }
+    deletingRuleId?.let { id ->
+        AlertDialog(onDismissRequest = { deletingRuleId = null },
+            title = { Text("Delete rule?") },
+            text = { Text("Delete ${config.rules.firstOrNull { it.id == id }?.name ?: "this rule"}? This does not dismiss existing notifications.") },
+            confirmButton = { TextButton(onClick = {
+                deletingRuleId = null
+                scope.launch { failure = !NotificationPreferences.update { it.copy(rules = it.rules.filterNot { rule -> rule.id == id }) } }
+            }) { Text("Delete") } },
+            dismissButton = { TextButton(onClick = { deletingRuleId = null }) { Text("Cancel") } })
+    }
+
 }
 
 @Composable

@@ -551,16 +551,16 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                 HorizontalDivider()
                 Row(Modifier.fillMaxWidth()) {
                     IconButton(modifier = Modifier.weight(1f), onClick = { clearSelection(); app = null; savedTab = false; settings = false; settingsPage = "root"; hidden = false; confirmation = false; inboxListState.requestScrollToItem(0) }) {
-                        Icon(Icons.Outlined.Inbox, stringResource(R.string.notification_all))
+                        Icon(Icons.Outlined.Inbox, stringResource(R.string.notification_all), tint = if (!hidden && !savedTab && !settings) MaterialTheme.colorScheme.primary else LocalContentColor.current)
                     }
                     IconButton(modifier = Modifier.weight(1f), onClick = { clearSelection(); hidden = if (savedTab) true else !hidden; savedTab = false; settings = false; settingsPage = "root"; confirmation = false }) {
-                        Icon(if (hidden) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff, stringResource(if (hidden) R.string.notification_active else R.string.notification_hidden))
+                        Icon(if (hidden) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff, stringResource(if (hidden) R.string.notification_active else R.string.notification_hidden), tint = if (hidden && !savedTab && !settings) MaterialTheme.colorScheme.primary else LocalContentColor.current)
                     }
                     IconButton(modifier = Modifier.weight(1f).testTag("saved-tab"), onClick = { clearSelection(); app = null; settings = false; settingsPage = "root"; savedTab = true; confirmation = false }) {
                         Icon(Icons.Outlined.Archive, stringResource(R.string.notification_saved), tint = if (savedTab && !settings) MaterialTheme.colorScheme.primary else LocalContentColor.current)
                     }
                     IconButton(modifier = Modifier.weight(1f), onClick = { if (settings && settingsPage != "root") settingsPage = "root" else { settings = !settings; settingsPage = "root" }; confirmation = false }) {
-                        Icon(Icons.Outlined.Settings, stringResource(R.string.notification_settings_tab))
+                        Icon(Icons.Outlined.Settings, stringResource(R.string.notification_settings_tab), tint = if (settings) MaterialTheme.colorScheme.primary else LocalContentColor.current)
                     }
                 }
             }
