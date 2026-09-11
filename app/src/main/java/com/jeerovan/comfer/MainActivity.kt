@@ -73,6 +73,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
@@ -80,6 +81,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -4482,15 +4484,25 @@ fun UshapedAppList(
             // The unwrapped logical index also stays unique when a small app list is
             // repeated around the U-shape, avoiding duplicate package-name keys.
             key(logicalIndex) {
-                AppIcon(
-                    app = apps[appIndex],
-                    notificationPackages,
-                    shape = iconShape,
-                    x = x.toDp(),
-                    y = y.toDp(),
-                    iconSize = size,
-                    onTappingFolder = onTappingFolder
-                )
+                val renderedSizePx = with(density) { size.toPx() }
+                // Layout offset/size round to whole pixels, visibly stepping at
+                // low sensitivity. Keep a sharp, fixed-size icon layer and apply
+                // fractional translation and scaling, including its badge.
+                Box(Modifier.graphicsLayer {
+                    translationX = x
+                    translationY = y
+                    transformOrigin = TransformOrigin(0f, 0f)
+                    scaleX = renderedSizePx / this.size.width
+                    scaleY = renderedSizePx / this.size.height
+                }) {
+                    AppIcon(
+                        app = apps[appIndex],
+                        notificationPackages,
+                        shape = iconShape,
+                        iconSize = largeIconSize,
+                        onTappingFolder = onTappingFolder
+                    )
+                }
             }
         }
     }
@@ -4618,7 +4630,7 @@ fun AppIcon(app: AppInfo,
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
     val iconShape = getShapeFromShape(shape,iconSize)
-    var iconBounds by remember { mutableStateOf(Rect.Zero) }
+    var iconCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val scope = rememberCoroutineScope()
     Box (modifier = Modifier
         .offset(x = x, y = y),
@@ -4629,15 +4641,7 @@ fun AppIcon(app: AppInfo,
                 .size(iconSize)
                 .clip(iconShape)
                 .onGloballyPositioned { coordinates ->
-                    // Capture the position of the icon on the screen
-                    val position = coordinates.positionInWindow()
-                    val size = coordinates.size
-                    iconBounds = Rect(
-                        position.x,
-                        position.y,
-                        position.x + size.width,
-                        position.y + size.height
-                    )
+                    iconCoordinates = coordinates
                 }
                 .pointerInput(app.packageName) {
                     if (clickable) detectTapGestures(
@@ -4646,6 +4650,18 @@ fun AppIcon(app: AppInfo,
                             if (app.packageName.startsWith("folder_")) {
                                 onTappingFolder?.invoke(app.packageName)
                             } else {
+                                // Read at tap time: layer motion need not trigger layout.
+                                // Both corners include the current translation and scale.
+                                val coordinates = iconCoordinates?.takeIf { it.isAttached }
+                                val iconBounds = if (coordinates != null) {
+                                    Rect(
+                                        coordinates.localToWindow(Offset.Zero),
+                                        coordinates.localToWindow(Offset(
+                                            coordinates.size.width.toFloat(),
+                                            coordinates.size.height.toFloat()
+                                        ))
+                                    )
+                                } else Rect.Zero
                                 scope.launch(Dispatchers.IO) {
                                     val intent =
                                         CommonUtil.getLaunchIntentSafe(context,app.packageName)
