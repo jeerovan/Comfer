@@ -10,6 +10,8 @@ import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Color
@@ -52,6 +54,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
@@ -124,10 +127,10 @@ private data class LegacyIconAnalysis(
 // dispatched off main. Keep resource acquisition serial; bitmap processing below
 // remains parallel on iconProcessingDispatcher.
 private val packageManagerDispatcher = Dispatchers.IO.limitedParallelism(1)
-private val iconProcessingDispatcher = Dispatchers.Default.limitedParallelism(4)
+private val iconProcessingDispatcher = Dispatchers.Default.limitedParallelism(2)
 // Cap complete icon jobs as well as CPU dispatcher parallelism. Resource reads
 // switch to the serialized package-manager IO dispatcher above.
-private val iconLoadSemaphore = Semaphore(4)
+private val iconLoadSemaphore = Semaphore(2)
 suspend fun getAppInfo(
     context: Context,
     info: LauncherActivityInfo,
@@ -154,10 +157,12 @@ suspend fun getAppInfo(
             } else null
             // A zero density forces the PackageItemInfo.loadIcon fallback. Samsung
             // Android 11 crashed natively in that path (AssetManager2::FindEntry).
-            // Request the actual display density to prefer direct resource loading,
-            // while retaining LauncherActivityInfo's work-profile badging.
-            val densityDpi = context.resources.displayMetrics.densityDpi
-                .coerceAtLeast(android.util.DisplayMetrics.DENSITY_DEFAULT)
+            // Request a non-zero but bounded density to prefer direct resource
+            // loading, retain work-profile badging, and avoid decoding an
+            // unbounded vendor bitmap for a launcher-sized icon.
+            val densityDpi = requestedLauncherIconDensity(
+                context.resources.displayMetrics.densityDpi
+            )
             val drawable = customIcon ?: cachedIcon ?: info.getBadgedIcon(densityDpi).also {
                 AppIconCache.cacheIcon(cacheKey, it)
             }
@@ -235,6 +240,16 @@ suspend fun getAppInfo(
         )
     } catch (e: CancellationException) {
         throw e
+    } catch (error: OutOfMemoryError) {
+        // A malformed third-party icon requested an 81 MB allocation in
+        // production. Drop cached icon state and omit only that app entry.
+        AppIconCache.clearCache()
+        Log.e(
+            "getAppInfo",
+            "Icon allocation failed for ${info.componentName.packageName}",
+            error,
+        )
+        null
     } catch (e: Exception) {
         // Log generic error to avoid spamming logs with specific package failures
         Log.e("getAppInfo", "Failed to load ${info.componentName.packageName}: ${e.message}")
@@ -519,14 +534,15 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                     override fun onPackagesUnavailable(packageNames: Array<out String>?, user: UserHandle?, replacing: Boolean) { requestInventoryRefresh(packageNames?.asList().orEmpty(), user) }
                 }
 
-                // 1. Registration MUST happen on a thread with a Looper (Main)
-                launcherApps.registerCallback(callback)
+                // Keep callbacks on Main, but perform the synchronous
+                // addOnAppsChangedListener Binder transaction off Main.
+                launcherApps.registerCallback(callback, Handler(Looper.getMainLooper()))
 
                 awaitClose {
                     // Unregister is safe to call here
                     launcherApps.unregisterCallback(callback)
                 }
-    }
+    }.flowOn(packageManagerDispatcher)
 
     fun reloadList() {
         refreshRequests.tryEmit(Unit)

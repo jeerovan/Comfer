@@ -510,15 +510,29 @@ private val widgetCreateMutex = Mutex()
 // on Main. Weak host keys avoid extending a host/activity lifetime.
 private object WidgetHostViewCache {
     private val views = WeakHashMap<AppWidgetHost, MutableMap<Int, AppWidgetHostView>>()
+    private val invalidatedIds = WeakHashMap<AppWidgetHost, MutableSet<Int>>()
 
-    fun get(host: AppWidgetHost, widgetId: Int): AppWidgetHostView? =
-        views[host]?.get(widgetId)
+    fun acquire(host: AppWidgetHost, widgetId: Int): AppWidgetHostView? {
+        // A newly composed bound widget is allowed to own/cache this ID again.
+        invalidatedIds[host]?.remove(widgetId)
+        val hostViews = views[host] ?: return null
+        val cached = hostViews[widgetId] ?: return null
+        if (!canReuseCachedWidgetView(hasParent = cached.parent != null)) return null
 
-    fun put(host: AppWidgetHost, widgetId: Int, view: AppWidgetHostView) {
-        views.getOrPut(host) { mutableMapOf() }[widgetId] = view
+        hostViews.remove(widgetId)
+        if (hostViews.isEmpty()) views.remove(host)
+        return cached
+    }
+
+    fun release(host: AppWidgetHost, widgetId: Int, view: AppWidgetHostView) {
+        if (invalidatedIds[host]?.contains(widgetId) == true) return
+        // Keep the first released instance. During an enter/exit overlap this
+        // prevents an outgoing owner from replacing another reusable view.
+        views.getOrPut(host) { mutableMapOf() }.putIfAbsent(widgetId, view)
     }
 
     fun remove(host: AppWidgetHost, widgetId: Int) {
+        invalidatedIds.getOrPut(host) { mutableSetOf() }.add(widgetId)
         views[host]?.let { hostViews ->
             hostViews.remove(widgetId)
             if (hostViews.isEmpty()) views.remove(host)
@@ -1208,7 +1222,7 @@ private fun WidgetInstance(
     var hostView by remember(widget.widgetId, appWidgetHost) {
         mutableStateOf(
             if (isKnownUnsafeProvider) null
-            else WidgetHostViewCache.get(appWidgetHost, widget.widgetId)
+            else WidgetHostViewCache.acquire(appWidgetHost, widget.widgetId)
         )
     }
     var isLoading by remember(widget.widgetId, appWidgetHost) {
@@ -1241,7 +1255,14 @@ private fun WidgetInstance(
             return@LaunchedEffect
         }
 
-        WidgetHostViewCache.get(appWidgetHost, widget.widgetId)?.let { cachedView ->
+        if (hostView != null) {
+            isLoading = false
+            hasError = false
+            isQuarantined = false
+            return@LaunchedEffect
+        }
+
+        WidgetHostViewCache.acquire(appWidgetHost, widget.widgetId)?.let { cachedView ->
             hostView = cachedView
             isLoading = false
             hasError = false
@@ -1319,7 +1340,6 @@ private fun WidgetInstance(
                         }
                     }
 
-                    WidgetHostViewCache.put(appWidgetHost, widget.widgetId, view)
                     hostView = view
                     isLoading = false
                 } catch (e: Exception) {
@@ -1327,6 +1347,15 @@ private fun WidgetInstance(
                     hasError = true
                     isLoading = false
                 }
+            }
+        }
+    }
+
+    DisposableEffect(appWidgetHost, widget.widgetId, hostView) {
+        val ownedView = hostView
+        onDispose {
+            if (ownedView != null) {
+                WidgetHostViewCache.release(appWidgetHost, widget.widgetId, ownedView)
             }
         }
     }
@@ -1450,11 +1479,10 @@ private fun WidgetInstance(
                 }
                 hostView != null -> {
                     AndroidView(
-                        factory = {
-                            hostView!!.also { view ->
-                                (view.parent as? android.view.ViewGroup)?.removeView(view)
-                            }
-                        },
+                        // Never steal a live view from an outgoing composition.
+                        // Mutating its ViewGroup during measure/visibility traversal
+                        // caused repeatable framework NPE clusters in production.
+                        factory = { requireNotNull(hostView) },
                         update = { view ->
                             if (!widgetUpdated) {
                                 widgetUpdated = true

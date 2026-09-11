@@ -235,6 +235,7 @@
     <string name="restore_confirmation_wallpaper" translatable="false">The backed-up automatic wallpaper will also be restored.</string>
     <string name="restore_success" translatable="false">Restore complete. Restarting Comfer…</string>
     <string name="restore_failed" translatable="false">Restore failed; your previous data was kept: %1$s</string>
+    <string name="backup_document_picker_unavailable" translatable="false">No compatible file picker is available</string>
     <string name="unknown_error" translatable="false">Unknown error</string>
 
     <string name="title_feedback">Feedback</string>

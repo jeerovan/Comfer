@@ -988,7 +988,17 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         }
                     },
                     modifier = Modifier.clickable(enabled = backupRestoreOperation == null) {
-                        createBackupLauncher.launch(BackupRestoreManager.suggestedFileName())
+                        if (!launchDocumentPickerSafely {
+                                createBackupLauncher.launch(
+                                    BackupRestoreManager.suggestedFileName()
+                                )
+                            }) {
+                            Toast.makeText(
+                                context,
+                                R.string.backup_document_picker_unavailable,
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        }
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                 )
@@ -1013,7 +1023,15 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         // vendor-specific MIME types. Let the user select any
                         // file; the restore preflight strictly validates ZIP
                         // structure, manifest, version, and checksums.
-                        openRestoreLauncher.launch(arrayOf("*/*"))
+                        if (!launchDocumentPickerSafely {
+                                openRestoreLauncher.launch(arrayOf("*/*"))
+                            }) {
+                            Toast.makeText(
+                                context,
+                                R.string.backup_document_picker_unavailable,
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        }
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                 )

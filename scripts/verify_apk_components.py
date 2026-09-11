@@ -55,6 +55,9 @@ def manifest_components(manifest_text: str) -> set[str]:
     application_name = application.attrib.get(ANDROID_NS + "name")
     if application_name:
         names.add(qualify(package_name, application_name))
+    component_factory = application.attrib.get(ANDROID_NS + "appComponentFactory")
+    if component_factory:
+        names.add(qualify(package_name, component_factory))
     for tag in COMPONENT_TAGS:
         for component in application.findall(tag):
             class_name = component.attrib.get(ANDROID_NS + "name")

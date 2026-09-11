@@ -40,6 +40,21 @@ class WidgetInflationGuardTest {
                 "com.android.calendar/.widget.MonthWidgetProvider"
             )
         )
+        assertTrue(
+            WidgetInflationGuard.isKnownUnsafe(
+                "com.android.gallery3d/.gadget.PhotoAppWidgetProvider"
+            )
+        )
+        assertTrue(
+            WidgetInflationGuard.isKnownUnsafe(
+                "com.vivo.doubletimezoneclock/.DoubleTimeZoneWidgetProvider"
+            )
+        )
+        assertTrue(
+            WidgetInflationGuard.isKnownUnsafe(
+                "com.vivo.cleanwidget/.CleanWidgetProvider"
+            )
+        )
     }
 
     @Test

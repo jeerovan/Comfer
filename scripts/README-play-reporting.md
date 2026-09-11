@@ -1,5 +1,11 @@
 # Play issue reporting
 
+The current triage/fix ledger is maintained in
+[`play_reporting.md`](../play_reporting.md); the phased engineering plan is in
+[`FIX-PLAN.md`](../FIX-PLAN.md).
+
+## Google Play import
+
 From the repository root, using the existing virtual environment:
 
 ```sh
@@ -63,7 +69,41 @@ not a crash rate among all active users.
 Credentials, database files, backups, and the virtual environment are already
 excluded by the root `.gitignore`.
 
-## Verification on 2026-09-07
+## Firebase Crashlytics import
+
+The Firebase MCP server is the data source. Save its complete, version-filtered
+result in the JSON envelope accepted by the importer, then validate and store it
+transactionally:
+
+```sh
+venv/bin/python scripts/import_firebase_crashlytics.py \
+  --input crashlytics-export.json --dry-run
+venv/bin/python scripts/import_firebase_crashlytics.py \
+  --input crashlytics-export.json
+```
+
+The importer rejects incomplete exports, duplicate issue/sample IDs, mismatched
+package/version/error types, and count mismatches before changing SQLite. It
+uses provider-specific `crashlytics_*` tables, preserves local triage fields on
+refresh, marks groups absent from the newest same-version import without
+deleting history, and writes snapshots in one transaction.
+
+Crashlytics and Play counts must stay separate: their issue grouping, sampling,
+reporting windows, and user-count semantics differ.
+
+### Crashlytics verification on 2026-09-11
+
+Import run 1 stored a complete version-48 interval from 2026-08-13 00:00 UTC
+through 2026-09-11 23:59:59 UTC:
+
+| Version | Crash issues | ANR issues | Crash events | ANR events |
+|---|---:|---:|---:|---:|
+| 48 | 30 | 176 | 296 | 886 |
+
+All 206 groups / 1,182 events reconciled with the Firebase version report.
+Crashlytics returned no version-46 data.
+
+## Earlier Play verification on 2026-09-07
 
 The database initially contained 1,436 issues and five import runs:
 

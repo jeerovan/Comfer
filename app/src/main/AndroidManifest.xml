@@ -47,6 +47,7 @@
         tools:ignore="ProtectedPermissions" />
     <application
         android:name=".ComferApp"
+        android:appComponentFactory=".ComferAppComponentFactory"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -55,7 +56,23 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Comfer">
+        android:theme="@style/Theme.Comfer"
+        tools:replace="android:appComponentFactory">
+        <!--
+            Initialize WorkManager from ComferApp after verifying that an API-34
+            framework actually provides JobScheduler.forNamespace(). Some Android
+            14 firmware reports API 34 but omits that method and otherwise crashes
+            here, before Application.onCreate can run.
+        -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                tools:node="remove" />
+        </provider>
         <meta-data
             android:name="google_analytics_adid_collection_enabled"
             android:value="false" />

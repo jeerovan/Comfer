@@ -1,7 +1,9 @@
 package com.jeerovan.comfer
 
 import android.app.Application
+import android.app.job.JobScheduler
 import android.content.pm.ApplicationInfo
+import android.os.Build
 import android.os.StrictMode
 import android.util.Log
 import androidx.work.*
@@ -91,6 +93,20 @@ class ComferApp : Application(), ImageLoaderFactory {
     }
 
     private fun setupImageWorker() {
+        val hasNamespaceMethod = Build.VERSION.SDK_INT <
+            Build.VERSION_CODES.UPSIDE_DOWN_CAKE ||
+            runCatching {
+                JobScheduler::class.java.getMethod("forNamespace", String::class.java)
+            }.isSuccess
+        if (!isWorkManagerRuntimeSupported(Build.VERSION.SDK_INT, hasNamespaceMethod)) {
+            Log.e(
+                "ComferApp",
+                "Periodic wallpaper work disabled: API 34 framework has no " +
+                    "JobScheduler.forNamespace",
+            )
+            return
+        }
+
         val constraints = Constraints.Builder()
             .setRequiresBatteryNotLow(true)
             .build()
@@ -100,16 +116,20 @@ class ComferApp : Application(), ImageLoaderFactory {
             .build()
 
         val workManager = try {
-            WorkManager.getInstance(applicationContext)
-        } catch (uninitialized: IllegalStateException) {
-            // Some Play-protected/OEM installs omit WorkManagerInitializer even
-            // though the normal merged manifest includes it.
-            Log.w("ComferApp", "Initializing WorkManager explicitly", uninitialized)
-            WorkManager.initialize(
-                applicationContext,
-                Configuration.Builder().build(),
-            )
-            WorkManager.getInstance(applicationContext)
+            try {
+                WorkManager.getInstance(applicationContext)
+            } catch (uninitialized: IllegalStateException) {
+                WorkManager.initialize(
+                    applicationContext,
+                    Configuration.Builder().build(),
+                )
+                WorkManager.getInstance(applicationContext)
+            }
+        } catch (linkageError: LinkageError) {
+            // A platform API may still be missing on partially updated OEM
+            // firmware even after the reflective preflight.
+            Log.e("ComferApp", "Periodic wallpaper WorkManager is incompatible", linkageError)
+            return
         }
 
         workManager.enqueueUniquePeriodicWork(

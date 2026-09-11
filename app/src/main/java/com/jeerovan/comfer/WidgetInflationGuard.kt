@@ -21,8 +21,11 @@ internal object WidgetInflationGuard {
     private val UNSAFE_PROVIDER_PREFIXES = listOf(
         "com.hihonor.calendar/",
         "com.hihonor.gallery/",
+        "com.android.gallery3d/",
         "com.huawei.android.totemweather/",
         "com.android.calendar/",
+        "com.vivo.doubletimezoneclock/",
+        "com.vivo.cleanwidget/",
     )
 
     fun isQuarantined(context: Context, providerName: String): Boolean {
