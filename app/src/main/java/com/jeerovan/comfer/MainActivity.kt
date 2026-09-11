@@ -2714,9 +2714,11 @@ fun SearchListOverlay(apps: List<AppInfo>,
         }
     }
     var selectedContactIndex by remember { mutableIntStateOf(0) }
-    val selectedContact = remember(filteredContacts, selectedContactIndex) {
+    // Pointer-input detectors outlive recomposition. Read the latest selection
+    // through State so both double-tap handlers follow dragging and result updates.
+    val selectedContact by rememberUpdatedState(
         filteredContacts.getOrNull(selectedContactIndex)
-    }
+    )
     // Coroutine scope to run suspend functions like scrolling
     val coroutineScope = rememberCoroutineScope()
 
@@ -2725,8 +2727,9 @@ fun SearchListOverlay(apps: List<AppInfo>,
 
     // Function to handle the double-tap action
     fun onTapSelectedContact() {
+        val number = selectedContact?.number
         coroutineScope.launch {
-            placeCallWithDialer(context, selectedContact?.number)
+            placeCallWithDialer(context, number)
         }
     }
 

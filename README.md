@@ -9,6 +9,10 @@
 
 An open-source Android launcher focus on speed, customization and productivity with swipe gestures.
 
+## Notification Inbox
+
+See [current features and behavior](Notification-Features.md), [storage and privacy](docs/notifications-storage.md), and [verification instructions](docs/notifications-validation.md).
+
 ## Screenshots
 
 <table align="center">
@@ -19,6 +23,5 @@ An open-source Android launcher focus on speed, customization and productivity w
     <td><img src="SS/clean_home.jpg" alt="Clean home" width="100%"/></td>
   </tr>
 </table>
-
 
 
