@@ -2184,18 +2184,20 @@ fun QuickListOverlay(apps: List<AppInfo>,
     var iconSize by remember { mutableStateOf(48.dp) }
     var iconShape: Shape by remember { mutableStateOf(CircleShape)}
     var isDefault by remember { mutableStateOf(false) }
-    val quickAppsGestureKey = "quick_apps_swipe"
-    val settingsLongPressKey = "settings_long_press_key"
-    val widgetsLongPressKey = "widgets_long_press_key"
-    val recentAppsGestureKey = "double_tap_recent_apps_gesture_key"
-    val widgetClockTapKey = "widget_clock_tap_key"
-    val widgetClockLongPressKey = "widget_clock_long_press_key"
+    val quickAppsGestureKey = HomeGuideStep.SWIPE_UP.preferenceKey
+    val settingsLongPressKey = HomeGuideStep.SETTINGS.preferenceKey
+    val widgetsLongPressKey = HomeGuideStep.WIDGETS.preferenceKey
+    val recentAppsGestureKey = HomeGuideStep.RECENTS.preferenceKey
+    val widgetClockTapKey = HomeGuideStep.CLOCK_TAP.preferenceKey
+    val widgetClockLongPressKey = HomeGuideStep.CLOCK_LONG_PRESS.preferenceKey
     var recentAppsGestureShown by remember { mutableStateOf(true)}
     var quickGestureShown by remember { mutableStateOf(true)}
     var settingsLongPressShown by remember { mutableStateOf(true) }
     var widgetsLongPressShown by remember { mutableStateOf(true) }
     var widgetClockTapShown by remember { mutableStateOf(true) }
     var widgetClockLongPressShown by remember { mutableStateOf(true) }
+    var inboxGestureShown by remember { mutableStateOf(true) }
+    val inboxGestureKey = HomeGuideStep.INBOX.preferenceKey
     var feedbackShown by remember { mutableStateOf(true)}
     var canShowGuide by remember { mutableStateOf(false) }
     val settings by settingsModel.uiState.collectAsState()
@@ -2221,6 +2223,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
             recentAppsGestureShown = settingsModel.isStepGuideShown(context,recentAppsGestureKey)
             widgetClockTapShown = settingsModel.isStepGuideShown(context,widgetClockTapKey)
             widgetClockLongPressShown = settingsModel.isStepGuideShown(context,widgetClockLongPressKey)
+            inboxGestureShown = settingsModel.isStepGuideShown(context, inboxGestureKey)
             feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
         }
         canShowGuide = true
@@ -2243,6 +2246,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                     recentAppsGestureShown = settingsModel.isStepGuideShown(context,recentAppsGestureKey)
                     widgetClockTapShown = settingsModel.isStepGuideShown(context,widgetClockTapKey)
                     widgetClockLongPressShown = settingsModel.isStepGuideShown(context,widgetClockLongPressKey)
+                    inboxGestureShown = settingsModel.isStepGuideShown(context, inboxGestureKey)
                     feedbackShown = PreferenceManager.getFeedbackDialogShown(context)
                     isDefault = isDefaultLauncher(context)
                 }
@@ -2309,6 +2313,21 @@ fun QuickListOverlay(apps: List<AppInfo>,
     }
 
     var showWidgetSettings by remember { mutableStateOf(false) }
+    val completedGuides = buildSet {
+        if (quickGestureShown) add(HomeGuideStep.SWIPE_UP)
+        if (settingsLongPressShown) add(HomeGuideStep.SETTINGS)
+        if (widgetsLongPressShown) add(HomeGuideStep.WIDGETS)
+        if (recentAppsGestureShown) add(HomeGuideStep.RECENTS)
+        if (widgetClockTapShown) add(HomeGuideStep.CLOCK_TAP)
+        if (widgetClockLongPressShown) add(HomeGuideStep.CLOCK_LONG_PRESS)
+        if (inboxGestureShown) add(HomeGuideStep.INBOX)
+    }
+    val activeGuide by rememberUpdatedState(if (canShowGuide && !showWidgetSettings && activeFolderId == null &&
+        (feedbackShown || !isDefault)) nextHomeGuideStep(
+        completed = completedGuides,
+        hasClock = !settings.hasCustomWidgets && "time" in settings.widgetIds,
+        hasNotificationAccess = settings.hasNotificationAccess,
+    ) else null)
     val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
     fun exitWidgetSettings() {
         showWidgetSettings = false
@@ -2341,7 +2360,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 val completeWidgetLongPressGuide = {
-                    if(!widgetsLongPressShown && settingsLongPressShown) {
+                    if(activeGuide == HomeGuideStep.WIDGETS) {
                         settingsModel.setStepGuideShown(context, widgetsLongPressKey)
                         widgetsLongPressShown = true
                     }
@@ -2382,19 +2401,19 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     editMode = editMode,
                                     backgroundColor,
                                     onTap = {
-                                        if(!editMode && recentAppsGestureShown && !widgetClockTapShown) {
+                                        if(!editMode && activeGuide == HomeGuideStep.CLOCK_TAP) {
                                             settingsModel.setStepGuideShown(context, widgetClockTapKey)
                                             widgetClockTapShown = true
                                         }
                                     },
                                     onLongPress = {
-                                        if(!editMode && recentAppsGestureShown && !widgetClockLongPressShown && widgetClockTapShown) {
+                                        if(!editMode && activeGuide == HomeGuideStep.CLOCK_LONG_PRESS) {
                                             settingsModel.setStepGuideShown(context, widgetClockLongPressKey)
                                             widgetClockLongPressShown = true
                                         }
                                     }
                                 )
-                                if(!editMode && recentAppsGestureShown && !widgetClockTapShown) {
+                                if(!editMode && activeGuide == HomeGuideStep.CLOCK_TAP) {
                                     Box(
                                         modifier = Modifier
                                             .matchParentSize()
@@ -2403,7 +2422,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     ) {
                                         SingleTapHint()
                                     }
-                                } else if(!editMode && recentAppsGestureShown && widgetClockTapShown && !widgetClockLongPressShown) {
+                                } else if(!editMode && activeGuide == HomeGuideStep.CLOCK_LONG_PRESS) {
                                     Box(
                                         modifier = Modifier
                                             .matchParentSize()
@@ -2448,7 +2467,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         )
                     }
                 }
-                if(settingsLongPressShown && !widgetsLongPressShown) {
+                if(activeGuide == HomeGuideStep.WIDGETS) {
                     Box(
                         modifier = Modifier
                             .matchParentSize()
@@ -2507,7 +2526,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 detectTapGestures (
                                     onLongPress = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        if(!settingsLongPressShown && quickGestureShown) {
+                                        if(activeGuide == HomeGuideStep.SETTINGS) {
                                             settingsModel.setStepGuideShown(
                                                 context,
                                                 settingsLongPressKey
@@ -2517,7 +2536,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                         SettingsActivity.open(context)
                                     },
                                     onDoubleTap = {
-                                        if(!recentAppsGestureShown && widgetsLongPressShown){
+                                        if(activeGuide == HomeGuideStep.RECENTS){
                                             settingsModel.setStepGuideShown(context,recentAppsGestureKey)
                                             recentAppsGestureShown = true
                                         }
@@ -2527,9 +2546,15 @@ fun QuickListOverlay(apps: List<AppInfo>,
                             }
                             .testTag("home-gesture-surface")
                             .detectGestures(
-                                onInbox = { com.jeerovan.comfer.notifications.NotificationInboxActivity.open(context) },
+                                onInbox = {
+                                    if (activeGuide == HomeGuideStep.INBOX) {
+                                        settingsModel.setStepGuideShown(context, inboxGestureKey)
+                                        inboxGestureShown = true
+                                    }
+                                    com.jeerovan.comfer.notifications.NotificationInboxActivity.open(context)
+                                },
                                 onSwipeUp = {
-                                    if(!quickGestureShown) {
+                                    if(activeGuide == HomeGuideStep.SWIPE_UP) {
                                         settingsModel.setStepGuideShown(
                                             context,
                                             quickAppsGestureKey
@@ -2636,7 +2661,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     settings.isLightHour,
                                     isFolderActive = activeFolderId != null,
                                     onTappingFolder = handleFolderTap,
-                                    !quickGestureShown
+                                    showGestureGuide = activeGuide == HomeGuideStep.SWIPE_UP,
+                                    showInboxGestureGuide = activeGuide == HomeGuideStep.INBOX,
                                 )
                             } else {
                                 FiveColumnLayout(
@@ -2650,11 +2676,12 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     settings.isLightHour,
                                     isFolderActive = activeFolderId != null,
                                     onTappingFolder = handleFolderTap,
-                                    showGestureGuide = !quickGestureShown,
+                                    showGestureGuide = activeGuide == HomeGuideStep.SWIPE_UP,
+                                    showInboxGestureGuide = activeGuide == HomeGuideStep.INBOX,
                                 )
                             }
                         }
-                        if(quickGestureShown && !settingsLongPressShown) {
+                        if(activeGuide == HomeGuideStep.SETTINGS) {
                             Box(
                                 modifier = Modifier.matchParentSize()
                                     .offset(x=20.dp,y= (-80).dp),
@@ -2670,7 +2697,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 LongPressHint()
                             }
                         }
-                        if(widgetsLongPressShown && !recentAppsGestureShown) {
+                        if(activeGuide == HomeGuideStep.RECENTS) {
                             Box(
                                 modifier = Modifier.matchParentSize()
                                     .offset(x=20.dp,y= (-80).dp),
@@ -4770,6 +4797,7 @@ fun SearchIcon(
 
     Box(
         modifier = Modifier
+            .testTag("home-search-button")
             .clip(shape)
             .background(color = backgroundColor)
             .size(iconSize)
@@ -5253,7 +5281,8 @@ fun CircularLayout(
     isLightMode: Boolean,
     isFolderActive: Boolean = false,
     onTappingFolder: ((String) -> Unit)? = null,
-    showGestureGuide: Boolean
+    showGestureGuide: Boolean,
+    showInboxGestureGuide: Boolean = false,
 ) {
     val radius = iconSize * 1.768f
     val angles = listOf(180f, 0f, 270f, 90f, 225f, 315f, 135f, 45f)
@@ -5287,6 +5316,13 @@ fun CircularLayout(
                 )
             }
         }
+        if (showInboxGestureGuide) {
+            // Cross Search with extra clearance above the navigation area.
+            // Match-parent keeps the guide from moving the quick-app layout.
+            Box(Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
+                InboxGestureHint(Modifier.offset(y = 10.dp - maxOf(40.dp, iconSize / 2 + 12.dp)))
+            }
+        }
         if(showGestureGuide) {
             SwipeHelper(
                 start = SwipeDirection.BOTTOM,
@@ -5312,6 +5348,7 @@ fun FiveColumnLayout(
     isFolderActive: Boolean = false,
     onTappingFolder: ((String) -> Unit)? = null,
     showGestureGuide: Boolean = false,
+    showInboxGestureGuide: Boolean = false,
 ) {
     val gap = 20.dp
     Box(
@@ -5353,6 +5390,13 @@ fun FiveColumnLayout(
             Column(verticalArrangement = Arrangement.spacedBy(gap)) {
                 if(apps.size >= 4) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[3], onTappingFolder = onTappingFolder)
                 if(apps.size >= 8) AppIcon(iconSize = iconSize, shape = iconShape, notificationPackages = notificationPackages, app = apps[7], onTappingFolder = onTappingFolder)
+            }
+        }
+        if (showInboxGestureGuide) {
+            // Cross Search with extra clearance above the navigation area.
+            // Match-parent keeps the guide from moving the quick-app layout.
+            Box(Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
+                InboxGestureHint(Modifier.offset(y = 18.dp - maxOf(40.dp, iconSize / 2 + 12.dp)))
             }
         }
         if (showGestureGuide) {
