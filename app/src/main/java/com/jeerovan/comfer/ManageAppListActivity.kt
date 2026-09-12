@@ -203,7 +203,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                 OutlinedTextField(
                     value = folderTitle,
                     onValueChange = { if (it.length <= 20) folderTitle = it },
-                    label = { Text("Folder Name (Max 20 chars)") },
+                    label = { Text(stringResource(R.string.ui_folder_name_max_20_chars)) },
                     singleLine = true
                 )
             },
@@ -432,7 +432,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                                 clearFolderSelection()
                             }
                         ) {
-                            Icon(imageVector = Icons.Rounded.ArrowDownward, contentDescription = "Move to Folder")
+                            Icon(imageVector = Icons.Rounded.ArrowDownward, contentDescription = stringResource(R.string.ui_move_to_folder))
                         }
 
                         OutlinedButton(
@@ -445,7 +445,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                                 clearFolderSelection()
                             }
                         ) {
-                            Icon(imageVector = Icons.Rounded.ArrowUpward, contentDescription = "Move to Primary")
+                            Icon(imageVector = Icons.Rounded.ArrowUpward, contentDescription = stringResource(R.string.ui_move_to_primary))
                         }
                     }
 
@@ -484,7 +484,7 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                             ) {
                                 Icon(
                                     imageVector = Icons.Rounded.Delete,
-                                    contentDescription = "Delete Folder"
+                                    contentDescription = stringResource(R.string.ui_delete_folder)
                                 )
                             }
                         } else {
@@ -799,7 +799,7 @@ fun AddFolderIcon(viewModel: AppInfoViewModel, onAddFolderClick: () -> Unit){
     ) {
         Icon(
             imageVector = Icons.Rounded.Add,
-            contentDescription = "Add Folder",
+            contentDescription = stringResource(R.string.ui_add_folder),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(6.dp), // Padding prevents the icon from touching the bounds of the shape

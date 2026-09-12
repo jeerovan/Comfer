@@ -149,7 +149,7 @@ fun SelectAppIcon(app: AppInfo, iconSize: Int, iconShape: Shape, onClick: () -> 
             if (app.background != null) {
                 Image(
                     painter = rememberDrawableBitmapPainter(app.background),
-                    contentDescription = "${app.label} background",
+                    contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.FillBounds
                 )

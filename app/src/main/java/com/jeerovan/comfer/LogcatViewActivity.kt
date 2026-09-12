@@ -1,5 +1,6 @@
 package com.jeerovan.comfer
 
+import androidx.compose.ui.res.stringResource
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -47,7 +48,7 @@ fun LogcatLogScreen() {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("System Error Logs") },
+                title = { Text(stringResource(R.string.ui_system_error_logs)) },
                 actions = {
                     Button(onClick = {
                         scope.launch {
@@ -55,7 +56,7 @@ fun LogcatLogScreen() {
                             logLines = emptyList()
                         }
                     }) {
-                        Text("Clear Logs")
+                        Text(stringResource(R.string.ui_clear_logs))
                     }
                 }
             )
@@ -77,7 +78,7 @@ fun LogcatLogScreen() {
                     .padding(padding),
                 contentAlignment = androidx.compose.ui.Alignment.Center
             ) {
-                Text("No system error logs found.")
+                Text(stringResource(R.string.ui_no_system_error_logs_found))
             }
         } else {
             LazyColumn(
@@ -126,7 +127,7 @@ private fun logLineColor(line: String): Color {
 private fun getLogcatLogLines(context: Context): List<String> {
     val file = File(context.filesDir, "app_error_logs.txt")
     return runCatching { BoundedLogFile.readTailLines(file) }
-        .getOrElse { listOf("Error reading log file: ${it.localizedMessage}") }
+        .getOrElse { listOf(context.getString(R.string.ui_error_reading_logs)) }
 }
 
 private fun clearLogcatLogs(context: Context) {

@@ -158,7 +158,7 @@ private fun WeatherDetailsDialog(
                         )
                         if (presentation != null) {
                             Text(
-                                text = "${presentation.icon} ${presentation.description}",
+                                text = "${presentation.icon} ${stringResource(presentation.descriptionRes)}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )

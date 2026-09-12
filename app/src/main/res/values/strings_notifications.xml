@@ -1,5 +1,4 @@
-<!-- Initial notification slice uses the English fallback. Translation review is a release gate. -->
-<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+<resources>
     <string name="notification_inbox">Notification inbox</string>
     <string name="notification_empty">No notifications to view</string>
     <string name="notification_access_needed">Notification access needed</string>
@@ -10,13 +9,13 @@
     <string name="notification_configuration">Configuration</string>
     <string name="notification_pause_automation">Pause rules, schedules and timers</string>
     <string name="notification_resume_automation">Resume rules, schedules and timers</string>
-    <string name="notification_reach">Initial thumb-reach height</string>
-    <string name="notification_reach_cap">Maximum initial reach height</string>
+    <string name="notification_reach">Height when the inbox opens</string>
+    <string name="notification_reach_cap">Maximum opening height</string>
     <string name="notification_reach_width">Content width</string>
     <string name="notification_left_hand">Left-handed alignment</string>
     <string name="notification_right_hand">Right-handed alignment</string>
     <string name="notification_access_settings">Notification access</string>
-    <string name="notification_quiet_settings">Device DND settings</string>
+    <string name="notification_quiet_settings">Android Do Not Disturb settings</string>
     <string name="notification_reset">Reset notification settings</string>
     <string name="notification_preview_unavailable">Preview unavailable</string>
     <string name="notification_cancel">Cancel</string>
@@ -28,7 +27,7 @@
     <string name="notification_back">Back</string>
     <string name="notification_all">All apps</string>
     <string name="notification_active">Active</string>
-    <string name="notification_entry_required">Notification inbox is always available on home</string>
+    <string name="notification_entry_required">Notification inbox is always available on the home screen</string>
     <string name="notification_protect">Protect this app from dismissal</string>
     <string name="notification_unprotect">Remove app protection</string>
     <string name="notification_sound_settings">Sound and notification settings</string>
@@ -50,11 +49,11 @@
     <string name="notification_open_app">Open app</string>
     <string name="notification_profile_settings">Open notification settings from the app in its own profile.</string>
     <string name="notification_quiet_rule">Comfer quiet hours</string>
-    <string name="notification_quiet_disclosure">Device quiet uses your Android priority exceptions. Other apps and system rules may keep Do Not Disturb active. Android may delay schedule boundaries while idle; check system settings for exact control. Restarting the phone ends a manual focus timer. Recurring schedules resume.</string>
+    <string name="notification_quiet_disclosure">When Comfer turns on Do Not Disturb, Android still allows the exceptions you have chosen. Other apps or Android rules may keep Do Not Disturb on. Android may delay scheduled changes when the phone is idle. Check Android settings if you need more precise control. Restarting the phone ends a focus timer, but recurring schedules resume.</string>
     <string name="notification_quiet_off">Comfer quiet hours are off</string>
-    <string name="notification_quiet_active">Device quiet requested by Comfer</string>
+    <string name="notification_quiet_active">Comfer has asked Android to turn on Do Not Disturb</string>
     <string name="notification_quiet_scheduled">Quiet schedule enabled</string>
-    <string name="notification_quiet_access">DND access</string>
+    <string name="notification_quiet_access">Do Not Disturb access</string>
     <string name="notification_quiet_disabled">Comfer’s system rule is disabled or missing. Apply the schedule or start a focus timer to enable it.</string>
     <string name="notification_quiet_cleanup">System cleanup needs access. Restore Do Not Disturb access or remove Comfer’s rule in Android settings.</string>
     <string name="notification_quiet_failed">Quiet-hours change could not be completed. Check Android settings.</string>
@@ -69,10 +68,10 @@
     <string name="notification_days_from_now">Days from today: %1$d</string>
     <string name="notification_resume_clock">Resume time of day</string>
     <string name="notification_apply_resume">Apply custom resume time</string>
-    <string name="notification_quiet_unavailable">Device quiet unavailable with the current alarm policy. Use Android quiet settings.</string>
+    <string name="notification_quiet_unavailable">Comfer cannot control Do Not Disturb with the current alarm settings. Use Android’s Do Not Disturb settings instead.</string>
     <string name="notification_system_dnd_off">Android Do Not Disturb: off</string>
     <string name="notification_system_dnd_on">Android Do Not Disturb: on (other rules may contribute)</string>
-    <string name="notification_schedule_device_quiet">Quiet device notifications during this schedule</string>
+    <string name="notification_schedule_device_quiet">Turn on Do Not Disturb during this schedule</string>
     <string name="notification_app_open_requested">Requested opening the app; the notification action was unavailable.</string>
     <string name="notification_select">Select notification</string>
     <string name="notification_recovery_needed">Android has not reconnected. Retry, or turn Comfer notification access off and on in Android settings.</string>
@@ -89,7 +88,7 @@
     <string name="notification_automation_paused">Paused — content rules and Comfer’s scheduled DND requests will not run. Resume to use them. History capture is independent.</string>
     <string name="notification_automation_running">Enabled — content rules, saved schedules and active focus timers can run. History capture is independent.</string>
     <string name="notification_focus_title">Focus timer</string>
-    <string name="notification_focus_help">Turn on Android DND for a short break. Choose a duration to start or replace the timer. Android priority exceptions still apply.</string>
+    <string name="notification_focus_help">Use Android’s Do Not Disturb mode for a short break. Choose a duration to start a new timer or replace the current one. Your Android exceptions still apply.</string>
     <string name="notification_focus_until">Timer ends at %1$s</string>
     <string name="notification_focus_none">No focus timer set</string>
     <string name="notification_schedule_title">Recurring schedule</string>
@@ -101,7 +100,7 @@
     <string name="notification_schedule_invalid">Choose at least one day, different start and end times, and at least one action.</string>
     <string name="notification_schedule_actions">During this schedule</string>
     <string name="notification_schedule_unsaved">Changes are not saved yet.</string>
-    <string name="notification_dnd_permission_help">DND access is needed for focus timers and device quiet.</string>
+    <string name="notification_dnd_permission_help">Allow Do Not Disturb access to use focus timers and scheduled quiet hours.</string>
     <string name="notification_schedule_summary">Saved: %1$s–%2$s · %3$s</string>
     <string name="notification_history_save_before_open_failed">Could not save the local copy, so the notification was not opened. Check History storage status and try again.</string>
     <string name="notification_saved">Saved</string>

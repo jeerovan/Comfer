@@ -9,7 +9,7 @@ import android.content.Intent
 import android.app.ActivityOptions
 import android.os.Bundle
 import android.provider.Settings
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -63,7 +63,7 @@ import com.jeerovan.comfer.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class NotificationInboxActivity : ComponentActivity() {
+class NotificationInboxActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         NotificationPreferences.initialize(this)
@@ -334,7 +334,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
             status = when (result) {
                 "requested", "app_open_requested" -> ""
                 "changed", "removed" -> resources.getString(R.string.notification_changed)
-                "opened_dismiss_failed" -> "Opened, but could not dismiss the notification. You can retry by swiping it."
+                "opened_dismiss_failed" -> resources.getString(R.string.notification_opened_dismiss_failed)
                 "history_failed" -> resources.getString(R.string.notification_history_save_before_open_failed)
                 else -> resources.getString(R.string.notification_action_unavailable)
             }
@@ -374,10 +374,10 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                     item { if (status.isNotEmpty()) Text(status, style = MaterialTheme.typography.bodySmall) }
                     if (quietStatus.health == QuietHealth.CLEANUP_NEEDED || quietStatus.health == QuietHealth.FAILED) item { Text(stringResource(if (quietStatus.health == QuietHealth.CLEANUP_NEEDED) R.string.notification_quiet_cleanup else R.string.notification_quiet_failed)) }
                     if (settings) {
-                        item { Text(if (settingsPage == "root") "Notification settings" else when (settingsPage) {
-                            "rule_editor" -> "Content rule"; "quiet" -> "Quiet hours"; "focus" -> "Focus timers"
-                            "schedule" -> "Recurring schedule"; "filters" -> "Filters"; "history" -> "History"
-                            else -> "Connection and privacy"
+                        item { Text(if (settingsPage == "root") resources.getString(R.string.ui_notification_settings) else when (settingsPage) {
+                            "rule_editor" -> resources.getString(R.string.ui_content_rule); "quiet" -> resources.getString(R.string.ui_quiet_hours); "focus" -> resources.getString(R.string.ui_focus_timers)
+                            "schedule" -> resources.getString(R.string.notification_schedule_title); "filters" -> resources.getString(R.string.ui_filters); "history" -> resources.getString(R.string.ui_history)
+                            else -> resources.getString(R.string.ui_connection_and_privacy)
                         }, style = MaterialTheme.typography.titleMedium) }
                         if (settingsPage == "root") {
                             item { NotificationViewChoices(config.chronological) { chronological -> save { it.copy(chronological = chronological) } } }
@@ -386,18 +386,18 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                     Text(stringResource(if (config.paused) R.string.notification_resume_automation else R.string.notification_pause_automation))
                                 }
                             }
-                            item { SettingsDestination("Quiet hours", "${if (config.paused) "Paused" else "Enabled"} · focus timers and schedules", { settingsPage = "quiet" }) }
-                            item { SettingsDestination("Filters", "Content dismissal rules", { settingsPage = "filters" }) }
-                            item { SettingsDestination("History", if (config.historyEnabled) "Saving local copies" else "Local copies are off", { settingsPage = "history" }) }
-                            item { SettingsDestination("Connection and privacy", "Refresh, Android settings and reset", { settingsPage = "connection" }) }
+                            item { SettingsDestination(stringResource(R.string.ui_quiet_hours), stringResource(if (config.paused) R.string.notification_quiet_summary_paused else R.string.notification_quiet_summary_enabled), { settingsPage = "quiet" }) }
+                            item { SettingsDestination(stringResource(R.string.ui_filters), resources.getString(R.string.ui_content_dismissal_rules), { settingsPage = "filters" }) }
+                            item { SettingsDestination(stringResource(R.string.ui_history), if (config.historyEnabled) resources.getString(R.string.ui_saving_local_copies) else resources.getString(R.string.ui_local_copies_are_off), { settingsPage = "history" }) }
+                            item { SettingsDestination(stringResource(R.string.ui_connection_and_privacy), resources.getString(R.string.ui_refresh_android_settings_and_reset), { settingsPage = "connection" }) }
                         } else if (settingsPage in setOf("quiet", "focus", "schedule")) {
                             item { settingsStateHolder.SaveableStateProvider(settingsPage) { NotificationQuietSettings(settingsPage) { settingsPage = it } } }
                             if (settingsPage == "quiet") item { TextButton(onClick = { context.startActivity(Intent("android.settings.ZEN_MODE_SETTINGS").takeIf { it.resolveActivity(context.packageManager) != null } ?: Intent(Settings.ACTION_SOUND_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_settings)) } }
                         } else if (settingsPage == "history") {
                             item { settingsStateHolder.SaveableStateProvider(settingsPage) { NotificationHistorySettings() } }
                         } else if (settingsPage == "rule_editor") {
-                            if (ruleSourceSavedId != null && historyLocked) item { Text("Unlock your device to view saved notifications.") }
-                            else if (ruleSourceSavedId != null && savedActionSource == null) item { Text("This saved notification is no longer available.") }
+                            if (ruleSourceSavedId != null && historyLocked) item { Text(stringResource(R.string.ui_unlock_your_device_to_view_saved_notifications)) }
+                            else if (ruleSourceSavedId != null && savedActionSource == null) item { Text(stringResource(R.string.ui_this_saved_notification_is_no_longer_available)) }
                             else item { key(editingRuleId, ruleSourceKey, ruleSourceSavedId) {
                                 NotificationRuleEditor(editingRuleId, source = snapshot.items.firstOrNull { it.key == ruleSourceKey }, savedSource = savedActionSource,
                                     onSaved = { if (ruleFromActions) { settings = false; settingsPage = "root" } else settingsPage = "filters" })
@@ -413,8 +413,8 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                         }
                     } else if (actionsVisible) {
                         val targetApp = actionApp
-                        if (savedTab && historyLocked) item { Text("Unlock your device to view saved notifications.") }
-                        else if (targetApp == null) item { Text("This app is no longer available.") }
+                        if (savedTab && historyLocked) item { Text(stringResource(R.string.ui_unlock_your_device_to_view_saved_notifications)) }
+                        else if (targetApp == null) item { Text(stringResource(R.string.ui_this_app_is_no_longer_available)) }
                         else item {
                             val targetId = "$actionProfile:$targetApp"
                             NotificationAppActions(appLabel(context, targetApp), targetId in config.protectedApps,
@@ -450,7 +450,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                         item { Text(stringResource(R.string.notification_saved), style = MaterialTheme.typography.titleMedium) }
                         item { OutlinedTextField(savedQuery, { savedQuery = it.take(256) }, label = { Text(stringResource(R.string.notification_saved_search)) }, singleLine = true, modifier = Modifier.fillMaxWidth().testTag("saved-search")) }
                         item { Text(stringResource(R.string.notification_saved_swipe_hint), style = MaterialTheme.typography.bodySmall) }
-                        if (historyLocked) item { Text("Unlock your device to view saved notifications.") }
+                        if (historyLocked) item { Text(stringResource(R.string.ui_unlock_your_device_to_view_saved_notifications)) }
                         else {
                             val copies = savedCopies
                             if (copies.isEmpty()) item { Text(stringResource(R.string.notification_saved_empty)) }
@@ -469,11 +469,11 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                         val intent = context.packageManager.getLaunchIntentForPackage(copy.app) ?: return@runCatching false
                                         context.startActivity(intent); true
                                     }.getOrDefault(false)
-                                    status = if (launched) "" else "Could not open this app. It may be unavailable or in another profile."
+                                    status = if (launched) "" else resources.getString(R.string.notification_saved_app_open_failed)
                                 },
                                 onDelete = { copy ->
                                     val deleted = NotificationHistory.delete(copy.id)
-                                    if (!deleted) status = "Could not delete saved notification."
+                                    if (!deleted) status = resources.getString(R.string.ui_could_not_delete_saved_notification)
                                     deleted
                                 })
                         }
@@ -585,11 +585,11 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                             val failed = ids.filterNot { NotificationHistory.delete(it) }
                                             savedSelections = failed
                                             savedDeleteConfirm = false
-                                            status = if (failed.isEmpty()) "" else "Could not delete some saved notifications."
+                                            status = if (failed.isEmpty()) "" else resources.getString(R.string.ui_could_not_delete_some_saved_notifications)
                                             busy = false
                                         }
                                     }
-                                }) { Text(if (savedDeleteConfirm) "Confirm delete selected" else "Delete") }
+                                }) { Text(if (savedDeleteConfirm) resources.getString(R.string.ui_confirm_delete_selected) else resources.getString(R.string.ui_delete)) }
                                 TextButton(enabled = !busy, onClick = { savedSelections = emptyList(); savedDeleteConfirm = false }) { Text(stringResource(R.string.notification_cancel)) }
                             }
                         }

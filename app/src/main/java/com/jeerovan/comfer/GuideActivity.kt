@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -97,34 +98,34 @@ fun UserGuideScreen() {
 private fun NotificationGuide() {
     LazyColumn(Modifier.fillMaxSize().testTag("notification-guide-list"), contentPadding = PaddingValues(bottom = 24.dp)) {
         item { GuideSectionHeader(stringResource(R.string.app_guide_start_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_start_body)) }
+        item { GuideStepItem(localizedGuideBody(LocalResources.current, R.string.app_guide_start_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_tabs_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_tabs_body)) }
+        item { GuideStepItem(localizedGuideBody(LocalResources.current, R.string.app_guide_tabs_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_gestures_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_gestures_body)) }
+        item { GuideStepItem(localizedGuideBody(LocalResources.current, R.string.app_guide_gestures_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_actions_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_actions_body)) }
+        item { GuideStepItem(localizedGuideBody(LocalResources.current, R.string.app_guide_actions_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_dismiss_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_dismiss_body)) }
+        item { GuideStepItem(localizedGuideBody(LocalResources.current, R.string.app_guide_dismiss_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_more_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_more_body)) }
+        item { GuideStepItem(localizedGuideBody(LocalResources.current, R.string.app_guide_more_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_settings_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_settings_body)) }
+        item { GuideStepItem(localizedGuideBody(LocalResources.current, R.string.app_guide_settings_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_quiet_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_quiet_body)) }
+        item { GuideStepItem(localizedGuideBody(LocalResources.current, R.string.app_guide_quiet_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_privacy_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_privacy_body)) }
+        item { GuideStepItem(localizedGuideBody(LocalResources.current, R.string.app_guide_privacy_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_common)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_howto_open_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_howto_open_body)) }
+        item { GuideStepItem(localizedGuideBody(LocalResources.current, R.string.app_guide_howto_open_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_howto_mute_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_howto_mute_body)) }
+        item { GuideStepItem(localizedGuideBody(LocalResources.current, R.string.app_guide_howto_mute_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_howto_focus_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_howto_focus_body)) }
+        item { GuideStepItem(localizedGuideBody(LocalResources.current, R.string.app_guide_howto_focus_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_howto_clear_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_howto_clear_body)) }
+        item { GuideStepItem(localizedGuideBody(LocalResources.current, R.string.app_guide_howto_clear_body)) }
         item { GuideSectionHeader(stringResource(R.string.app_guide_howto_recover_title)) }
-        item { GuideStepItem(stringResource(R.string.app_guide_howto_recover_body)) }
+        item { GuideStepItem(localizedGuideBody(LocalResources.current, R.string.app_guide_howto_recover_body)) }
     }
 }
 

@@ -318,7 +318,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         context,
                         resources.getString(
                             R.string.backup_failed,
-                            error.message ?: resources.getString(R.string.unknown_error),
+                            resources.getString(backupErrorLabel(error)),
                         ),
                         Toast.LENGTH_LONG,
                     ).show()
@@ -341,7 +341,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         context,
                         resources.getString(
                             R.string.restore_invalid,
-                            error.message ?: resources.getString(R.string.unknown_error),
+                            resources.getString(backupErrorLabel(error)),
                         ),
                         Toast.LENGTH_LONG,
                     ).show()
@@ -1130,13 +1130,13 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             if(saveLogs)item {
                 ListItem(
-                    headlineContent = { Text("Logs") },
-                    supportingContent = { Text("App logs") },
-                    leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "App logs") },
+                    headlineContent = { Text(stringResource(R.string.ui_logs)) },
+                    supportingContent = { Text(stringResource(R.string.ui_app_logs)) },
+                    leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.ui_app_logs)) },
                     trailingContent = {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "View"
+                            contentDescription = stringResource(R.string.ui_view)
                         )
                     },
                     modifier = Modifier.clickable {
@@ -1147,17 +1147,17 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             if(saveCrashes)item {
                 ListItem(
-                    headlineContent = { Text("Crash logs") },
-                    supportingContent = { Text("View uncaught exceptions") },
+                    headlineContent = { Text(stringResource(R.string.ui_crash_logs)) },
+                    supportingContent = { Text(stringResource(R.string.ui_view_uncaught_exceptions)) },
                     leadingContent = {
                         Icon(
                             Icons.Default.Menu,
-                            contentDescription = "View crash logs")
+                            contentDescription = stringResource(R.string.ui_view_crash_logs))
                     },
                     trailingContent = {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "Go"
+                            contentDescription = stringResource(R.string.ui_go)
                         )
                     },
                     modifier = Modifier.clickable {
@@ -1212,8 +1212,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                                     context,
                                     resources.getString(
                                         R.string.restore_failed,
-                                        error.message
-                                            ?: resources.getString(R.string.unknown_error),
+                                        resources.getString(backupErrorLabel(error)),
                                     ),
                                     Toast.LENGTH_LONG,
                                 ).show()
@@ -1872,7 +1871,7 @@ fun IconPackSelectionDialog(
                             if (isSelected) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
-                                    contentDescription = "Selected",
+                                    contentDescription = stringResource(R.string.ui_selected),
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                             }
@@ -1955,7 +1954,7 @@ fun SocialLinksRow(
         try {
             uriHandler.openUri(url)
         } catch (e: Exception) {
-            Toast.makeText(context, "No app found to open this link.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, R.string.ui_no_app_found_to_open_this_link, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -1968,19 +1967,19 @@ fun SocialLinksRow(
     ) {
         SocialIconButton(
             icon = R.drawable.reddit_icon,
-            contentDescription = "Reddit",
+            contentDescription = stringResource(R.string.ui_reddit),
             onClick = { safeOpenUri(redditUrl) }
         )
 
         SocialIconButton(
             icon = R.drawable.github_icon,
-            contentDescription = "GitHub",
+            contentDescription = stringResource(R.string.ui_github),
             onClick = { safeOpenUri(githubUrl) }
         )
 
         SocialIconButton(
             icon = R.drawable.telegram_icon,
-            contentDescription = "Telegram",
+            contentDescription = stringResource(R.string.ui_telegram),
             onClick = { safeOpenUri(telegramUrl) }
         )
     }

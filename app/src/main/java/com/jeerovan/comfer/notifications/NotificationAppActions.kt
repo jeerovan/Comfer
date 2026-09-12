@@ -21,11 +21,11 @@ internal fun NotificationAppActions(
 ) {
     Column(Modifier.fillMaxWidth().testTag("notification-app-actions"), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(appName, style = MaterialTheme.typography.titleMedium)
-        TextButton(enabled = !busy && canCreateRule, onClick = onCreateRule) { Text("Create content rule") }
+        TextButton(enabled = !busy && canCreateRule, onClick = onCreateRule) { Text(stringResource(R.string.ui_create_content_rule)) }
         TextButton(enabled = !busy, onClick = onToggleProtection) {
             Text(stringResource(if (protected) R.string.notification_unprotect else R.string.notification_protect))
         }
-        Text("App protection also excludes this app from History and removes its saved copies.", style = MaterialTheme.typography.bodySmall)
+        Text(stringResource(R.string.notification_protection_history_help), style = MaterialTheme.typography.bodySmall)
         TextButton(enabled = !busy, onClick = onOpenSettings) { Text(stringResource(R.string.notification_sound_settings)) }
     }
 }

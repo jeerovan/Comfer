@@ -52,30 +52,30 @@ object WeatherRepository {
                 "current",
                 "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day",
             )
-            parameter("timezone", "auto")
+            parameter("timezone", R.string.weather_condition_auto)
             parameter("forecast_days", 1)
         }.body<ForecastResponse>().current
 }
 
 data class WeatherPresentation(
     val icon: String,
-    val description: String,
+    @androidx.annotation.StringRes val descriptionRes: Int,
 )
 
 fun weatherPresentation(weatherCode: Int, isDay: Boolean): WeatherPresentation = when (weatherCode) {
-    0 -> WeatherPresentation(if (isDay) "☀️" else "🌙", "Clear sky")
-    1 -> WeatherPresentation(if (isDay) "🌤️" else "🌙", "Mainly clear")
-    2 -> WeatherPresentation("⛅", "Partly cloudy")
-    3 -> WeatherPresentation("☁️", "Overcast")
-    45, 48 -> WeatherPresentation("🌫️", "Fog")
-    51, 53, 55 -> WeatherPresentation("🌦️", "Drizzle")
-    56, 57 -> WeatherPresentation("🌨️", "Freezing drizzle")
-    61, 63, 65 -> WeatherPresentation("🌧️", "Rain")
-    66, 67 -> WeatherPresentation("🌧️", "Freezing rain")
-    71, 73, 75, 77 -> WeatherPresentation("❄️", "Snow")
-    80, 81, 82 -> WeatherPresentation("🌦️", "Rain showers")
-    85, 86 -> WeatherPresentation("🌨️", "Snow showers")
-    95 -> WeatherPresentation("⛈️", "Thunderstorm")
-    96, 99 -> WeatherPresentation("⛈️", "Thunderstorm with hail")
-    else -> WeatherPresentation("🌡️", "Current weather")
+    0 -> WeatherPresentation(if (isDay) "☀️" else "🌙", R.string.weather_condition_clear_sky)
+    1 -> WeatherPresentation(if (isDay) "🌤️" else "🌙", R.string.weather_condition_mainly_clear)
+    2 -> WeatherPresentation("⛅", R.string.weather_condition_partly_cloudy)
+    3 -> WeatherPresentation("☁️", R.string.weather_condition_overcast)
+    45, 48 -> WeatherPresentation("🌫️", R.string.weather_condition_fog)
+    51, 53, 55 -> WeatherPresentation("🌦️", R.string.weather_condition_drizzle)
+    56, 57 -> WeatherPresentation("🌨️", R.string.weather_condition_freezing_drizzle)
+    61, 63, 65 -> WeatherPresentation("🌧️", R.string.weather_condition_rain)
+    66, 67 -> WeatherPresentation("🌧️", R.string.weather_condition_freezing_rain)
+    71, 73, 75, 77 -> WeatherPresentation("❄️", R.string.weather_condition_snow)
+    80, 81, 82 -> WeatherPresentation("🌦️", R.string.weather_condition_rain_showers)
+    85, 86 -> WeatherPresentation("🌨️", R.string.weather_condition_snow_showers)
+    95 -> WeatherPresentation("⛈️", R.string.weather_condition_thunderstorm)
+    96, 99 -> WeatherPresentation("⛈️", R.string.weather_condition_thunderstorm_with_hail)
+    else -> WeatherPresentation("🌡️", R.string.weather_condition_current_weather)
 }

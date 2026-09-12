@@ -1,6 +1,8 @@
 @file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 package com.jeerovan.comfer.notifications
 
+import com.jeerovan.comfer.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
@@ -8,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -34,6 +37,7 @@ internal fun SettingsDestination(title: String, subtitle: String, onClick: () ->
 @Composable
 internal fun NotificationHistorySettings() {
     val context = LocalContext.current
+    val resources = LocalResources.current
     remember { NotificationHistory.initialize(context); true }
     val config by NotificationPreferences.state.collectAsState()
     val records by NotificationHistory.records.collectAsState()
@@ -47,44 +51,44 @@ internal fun NotificationHistorySettings() {
     LaunchedEffect(Unit) { NotificationHistory.refresh() }
     fun update(transform: (NotificationConfiguration) -> NotificationConfiguration) {
         scope.launch {
-            if (!NotificationPreferences.update(transform) || !NotificationHistory.refresh()) message = "Could not save changes. Try again."
+            if (!NotificationPreferences.update(transform) || !NotificationHistory.refresh()) message = resources.getString(R.string.ui_could_not_save_changes_try_again)
         }
     }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (message.isNotEmpty()) Text(message)
         run {
-            Text("Save local history", style = MaterialTheme.typography.titleMedium)
-            Text("Optional encrypted copies on this device. Captures future notification posts and updates only. Turning this off stops capture but keeps saved copies until expiry or deletion. Copies cannot reopen the original notification action.", style = MaterialTheme.typography.bodySmall)
-            NotificationSettingToggle("Save notification history", config.historyEnabled) {
+            Text(stringResource(R.string.ui_save_local_history), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.notification_history_help), style = MaterialTheme.typography.bodySmall)
+            NotificationSettingToggle(stringResource(R.string.ui_save_notification_history), config.historyEnabled) {
                 if (it) consent = true else update { c -> c.copy(historyEnabled = false) }
             }
-            Text("Keep copies for")
+            Text(stringResource(R.string.ui_keep_copies_for))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for (n in listOf(1, 7, 30)) FilterChip(selected = config.historyDays == n, onClick = { update { it.copy(historyDays = n) } }, label = { Text(if (n == 1) "24 hours" else "$n days") })
+                for (n in listOf(1, 7, 30)) FilterChip(selected = config.historyDays == n, onClick = { update { it.copy(historyDays = n) } }, label = { Text(stringResource(when (n) { 1 -> R.string.notification_history_day_1; 7 -> R.string.notification_history_day_7; else -> R.string.notification_history_day_30 })) })
             }
-            Text("At most 500 copies (under 8 MiB of encrypted records). Oldest copies expire first. Notification text is never included in configuration backups.", style = MaterialTheme.typography.bodySmall)
-            Text("Exclude apps from history", style = MaterialTheme.typography.titleSmall)
-            Text("Excluding an app also deletes its saved copies. Protected apps and critical or ongoing notifications are excluded automatically.", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.notification_history_limits), style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.ui_exclude_apps_from_history), style = MaterialTheme.typography.titleSmall)
+            Text(stringResource(R.string.notification_history_exclusions_help), style = MaterialTheme.typography.bodySmall)
             val apps = (snapshot.items.map { it.appId } + records.map { it.appId } + config.historyExcludedApps).distinct()
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for (id in apps) FilterChip(selected = id in config.historyExcludedApps, onClick = {
                     update { it.copy(historyExcludedApps = if (id in it.historyExcludedApps) it.historyExcludedApps - id else it.historyExcludedApps + id) }
                 }, label = { Text(appLabel(context, id.substringAfter(':'))) })
             }
-            OutlinedButton(onClick = { deleting = true }) { Text("Delete all saved history") }
+            OutlinedButton(onClick = { deleting = true }) { Text(stringResource(R.string.ui_delete_all_saved_history)) }
         }
-        if (failed) Text("History capture paused: storage or encryption is unavailable. Existing files have been preserved. Delete saved history to reset storage; then enable capture again.", color = MaterialTheme.colorScheme.error)
-        Text("Capture can miss events while access is unavailable, the phone is locked or the listener is overloaded. Earlier dismissed notifications cannot be recovered.", style = MaterialTheme.typography.bodySmall)
-        if (gap) Text("Some events were skipped during this session.")
-        Text("View and search copies in the Saved tab. Swipe a copy there to delete it.", style = MaterialTheme.typography.bodySmall)
+        if (failed) Text(stringResource(R.string.notification_history_storage_failed), color = MaterialTheme.colorScheme.error)
+        Text(stringResource(R.string.notification_history_capture_limits), style = MaterialTheme.typography.bodySmall)
+        if (gap) Text(stringResource(R.string.ui_some_events_were_skipped_during_this_session))
+        Text(stringResource(R.string.notification_history_saved_help), style = MaterialTheme.typography.bodySmall)
     }
-    if (consent) AlertDialog(onDismissRequest = { consent = false }, title = { Text("Save notification copies?") }, text = {
-        Text("Notification titles and messages may contain private information. Comfer will encrypt future eligible copies locally for the selected retention period. No copies are uploaded or backed up. Secret notifications and events received while the device is locked are skipped. You can stop capture or delete copies at any time.")
-    }, confirmButton = { TextButton(enabled = !failed, onClick = { consent = false; update { it.copy(historyEnabled = true, historySince = System.currentTimeMillis()) } }) { Text("Enable history") } }, dismissButton = { TextButton(onClick = { consent = false }) { Text("Cancel") } })
-    if (deleting) AlertDialog(onDismissRequest = { deleting = false }, title = { Text("Delete saved copies?") }, text = { Text("This only removes Comfer’s local copies. Live Android notifications are unchanged. Capture remains ${if (config.historyEnabled) "enabled" else "off"}.") }, confirmButton = {
+    if (consent) AlertDialog(onDismissRequest = { consent = false }, title = { Text(stringResource(R.string.ui_save_notification_copies)) }, text = {
+        Text(stringResource(R.string.notification_history_consent))
+    }, confirmButton = { TextButton(enabled = !failed, onClick = { consent = false; update { it.copy(historyEnabled = true, historySince = System.currentTimeMillis()) } }) { Text(stringResource(R.string.ui_enable_history)) } }, dismissButton = { TextButton(onClick = { consent = false }) { Text(stringResource(R.string.notification_cancel)) } })
+    if (deleting) AlertDialog(onDismissRequest = { deleting = false }, title = { Text(stringResource(R.string.ui_delete_saved_copies)) }, text = { Text(stringResource(if (config.historyEnabled) R.string.notification_history_delete_enabled else R.string.notification_history_delete_disabled)) }, confirmButton = {
         TextButton(onClick = {
             deleting = false
-            scope.launch { if (!NotificationHistory.clear()) message = "Could not delete saved history." }
-        }) { Text("Delete") }
-    }, dismissButton = { TextButton(onClick = { deleting = false }) { Text("Cancel") } })
+            scope.launch { if (!NotificationHistory.clear()) message = resources.getString(R.string.ui_could_not_delete_saved_history) }
+        }) { Text(stringResource(R.string.ui_delete)) }
+    }, dismissButton = { TextButton(onClick = { deleting = false }) { Text(stringResource(R.string.notification_cancel)) } })
 }

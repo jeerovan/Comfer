@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.jeerovan.comfer.R
@@ -23,6 +24,7 @@ import java.util.Date
 @Composable
 fun NotificationQuietSettings(page: String = "quiet", navigate: (String) -> Unit = {}) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val config by NotificationPreferences.state.collectAsState()
     val status by NotificationQuietHours.state.collectAsState()
@@ -58,11 +60,11 @@ fun NotificationQuietSettings(page: String = "quiet", navigate: (String) -> Unit
     val dirty = start != schedule.startMinute || end != schedule.endMinute || days != schedule.weekdays
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if ((page == "focus" || page == "schedule") && !preciseTiming) {
-            Text("Android may delay timer endings and schedule changes without precise timing access.", style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.notification_precise_timing_help), style = MaterialTheme.typography.bodySmall)
             OutlinedButton(onClick = {
                 runCatching { context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, android.net.Uri.parse("package:${context.packageName}"))) }
                     .onFailure { failed = true }
-            }) { Text("Allow precise timing") }
+            }) { Text(stringResource(R.string.ui_allow_precise_timing)) }
         }
         if (page == "quiet") {
         Text(stringResource(R.string.notification_automation_title), style = MaterialTheme.typography.titleMedium)
@@ -85,8 +87,8 @@ fun NotificationQuietSettings(page: String = "quiet", navigate: (String) -> Unit
             Text(stringResource(R.string.notification_dnd_permission_help), style = MaterialTheme.typography.bodySmall)
             Button(onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) }) { Text(stringResource(R.string.notification_quiet_access)) }
         }
-        SettingsDestination("Focus timers", "Start a short DND break", { navigate("focus") })
-        SettingsDestination("Recurring schedule", "Days, times and DND settings", { navigate("schedule") })
+        SettingsDestination(stringResource(R.string.ui_focus_timers), resources.getString(R.string.ui_start_a_short_dnd_break), { navigate("focus") })
+        SettingsDestination(stringResource(R.string.notification_schedule_title), resources.getString(R.string.ui_days_times_and_dnd_settings), { navigate("schedule") })
         Text(stringResource(R.string.notification_quiet_disclosure), style = MaterialTheme.typography.bodySmall)
         }
         if (page == "focus") {

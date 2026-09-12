@@ -30,11 +30,11 @@ class WeatherRepositoryTest {
 
     @Test
     fun weatherCodesMapToUsefulPresentations() {
-        assertEquals("Clear sky", weatherPresentation(0, isDay = true).description)
+        assertEquals(R.string.weather_condition_clear_sky, weatherPresentation(0, isDay = true).descriptionRes)
         assertEquals("🌙", weatherPresentation(0, isDay = false).icon)
-        assertEquals("Rain", weatherPresentation(63, isDay = true).description)
-        assertEquals("Thunderstorm with hail", weatherPresentation(99, isDay = true).description)
-        assertEquals("Current weather", weatherPresentation(500, isDay = true).description)
+        assertEquals(R.string.weather_condition_rain, weatherPresentation(63, isDay = true).descriptionRes)
+        assertEquals(R.string.weather_condition_thunderstorm_with_hail, weatherPresentation(99, isDay = true).descriptionRes)
+        assertEquals(R.string.weather_condition_current_weather, weatherPresentation(500, isDay = true).descriptionRes)
     }
 
     @Test

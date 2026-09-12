@@ -7,15 +7,21 @@ this file.
 
 ## Current state
 
-Version **49 / 49.0** is prepared for production upload, including the final
-Inbox gesture guide. Local device and artifact gates pass with documented limits. The user confirmed the
-Inbox gesture, launch animation and feature set are ready on Samsung.
+Version **49 / 49.0** includes follow-up fixes for the Notification Inbox's app
+language and the Notifications subtitle's theme color. The subtitle now says
+“home screen” in English and all 34 supported translations. Samsung's installed
+debug build includes these fixes; user acceptance is pending. Version code is unchanged.
 
-Signed [AAB](app/release/49/Comfer-49.aab), [APK](app/release/49/Comfer-49.apk),
-release notes, mapping and native symbols are in `app/release/49/` (ignored).
-Nothing has been uploaded. Play-generated artifact inspection and staged-release
-telemetry remain pending; no issue is marked production-verified. Installed
-Samsung/emulator debug builds are version 49 and include the guide.
+The previous signed APK/AAB in `app/release/49/` predate these fixes and are stale.
+Refresh signed artifacts and their release checks after acceptance. Nothing has
+been uploaded; the user will perform the production release. No issue is marked
+production-verified.
+
+Inbox, guides, history/rules, weather, backup/restore, folder controls and
+accessibility labels now have complete resource coverage across all 34 non-English
+locales. Guides use the actual translated button labels. The language picker
+includes the seven previously omitted locales; Hebrew and Indonesian use the
+Android-compatible resource folders, and Uzbek follows the existing Latin script.
 
 ## Available features
 
@@ -82,7 +88,41 @@ See [Notification Inbox behavior](Notification-Features.md) and
 
 ## Validation and remaining work
 
-Final source checks: **120 JVM tests**, **22 reporting-script tests**, debug lint
+Latest Inbox fixes: **120 JVM tests**, **4 translation-checker tests**, resource
+validation for all **34 locales**, debug builds and lint passed (0 errors,
+201 warnings). Samsung API 30 and the API-37 emulator each passed **9 focused
+instrumentation tests**. The final isolated actual-activity locale test also passed
+on API 24, 30 and 37, switching German/Arabic and reopening twice per language.
+On API 24 the same test failed before the fix (German requested, English loaded).
+Emulator screenshots confirm translated Inbox rendering; Samsung screenshot capture
+returned no image, so its visual theme/layout acceptance remains with the user.
+
+A preliminary API-24 test that launched the home screen crashed during wallpaper
+bitmap allocation. The isolated Inbox test avoids that startup path; the memory
+failure remains recorded and uninvestigated, not fixed. Honor hardware and
+native-speaker review remain unavailable. Current evidence is in
+`validation-artifacts/device-checkpoint/2026-09-12-inbox-locale-theme/`.
+
+Previous translation gate (before these follow-up fixes):
+Translation checks: **564 required resources × 34 locales**, no missing entries
+or format errors; **4 checker tests**, **120 JVM tests**, debug builds and lint
+passed (0 errors, 203 warnings). Samsung API 30 and the API-37 emulator each passed
+**8 focused instrumentation tests**, including resource loading for every locale,
+all formatted guide sections and usable German/Arabic/Hindi/Japanese rule controls.
+Both devices passed **3 cold + 3 warm starts**. Samsung's larger-font view choices
+remain visible in one row. Updates preserved app data and restored screen settings.
+Signed APK/AAB verification passed, including signatures, all 45 manifest components
+in DEX, unchanged permissions, 16-KB alignment and retained locale resources after
+release shrinking. The refreshed package, mapping, symbols and hashes are in
+`app/release/49/`; nothing was uploaded.
+
+Two older Samsung native AssetManager crashes at 13:14–13:15 remain in retained
+logs. They did not recur in final-build instrumentation or startup checks; their
+root cause is unestablished and they are not marked fixed. No new crash or ANR
+was observed during those final runs. Native-language proofreading of all locales,
+TalkBack and exhaustive layout/font/orientation coverage remain unperformed.
+
+Earlier feature checks: **120 JVM tests**, **22 reporting-script tests**, debug lint
 and signed/minified release builds passed. Both Samsung API 30 and the API-37
 emulator passed all **19 affected gesture/navigation/drawer tests in clean runs**.
 Captured crash buffers were empty, with no Comfer ANR found. The emulator retains
@@ -112,8 +152,10 @@ Remaining coverage limits and follow-up:
 - Inspect Play-generated artifacts after upload, then monitor staged rollout.
 
 Final gate evidence: [decision](validation-artifacts/device-checkpoint/2026-09-12-release-gate/decision.json)
-and [latest artifact checks/hashes](validation-artifacts/device-checkpoint/2026-09-12-inbox-guide/final-artifacts.json).
+and [latest artifact checks/hashes](validation-artifacts/device-checkpoint/2026-09-12-translations/final-artifacts.json).
 [Inbox guide results](validation-artifacts/device-checkpoint/2026-09-12-inbox-guide/guide-results.json) retain final checks and interrupted attempts.
+[Translation decision and limits](validation-artifacts/device-checkpoint/2026-09-12-translations/decision.json)
+include failed attempts, corrected locale lookup, device identities, reports and logs.
 
 Exact runs, unsuccessful test attempts and skipped cases remain in local reports:
 [device pass](validation-artifacts/device-checkpoint/2026-09-12/RESULTS.md),
@@ -142,8 +184,8 @@ These are source fixes or mitigations, not production-verified resolutions.
 Native/system ANRs, text-layout stalls and activity-launch Binder waits remain
 monitoring items where no deterministic first-party cause has been established.
 
-Local preparation steps 1–2 below are complete for version 49; Play inspection
-and staged telemetry remain pending.
+Local device checks and signed-package preparation are complete for version 49.
+Play inspection and staged telemetry remain pending.
 
 Release requirements:
 

@@ -722,7 +722,10 @@ fun BasicSettings(
                     )
                     // Notification Settings
                     SettingSection(stringResource(R.string.title_notifications)) {
-                        Text(stringResource(R.string.notification_entry_required))
+                        Text(
+                            stringResource(R.string.notification_entry_required),
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
                         SettingSlider(
                             label = stringResource(R.string.title_size),
                             value = settingsState.notificationSize,

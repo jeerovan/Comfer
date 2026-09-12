@@ -28,4 +28,11 @@
     <locale android:name="uz"/>
     <locale android:name="vi"/>
     <locale android:name="zh-CN"/>
+    <locale android:name="bn"/>
+    <locale android:name="id"/>
+    <locale android:name="mr"/>
+    <locale android:name="nl"/>
+    <locale android:name="ta"/>
+    <locale android:name="te"/>
+    <locale android:name="ur"/>
 </locale-config>

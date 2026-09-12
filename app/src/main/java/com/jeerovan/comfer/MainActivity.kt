@@ -1473,7 +1473,7 @@ private fun WidgetInstance(
                             }
                         },
                     ) {
-                        Text("Retry slow widget")
+                        Text(stringResource(R.string.ui_retry_slow_widget))
                     }
                 }
                 hostView != null -> {
@@ -3489,7 +3489,7 @@ fun ContactListItem(contact: Contact,isSelected:Boolean) {
                     // Use AsyncImage from Coil to load the photo
                     AsyncImage(
                         model = contact.photoUri,
-                        contentDescription = "${contact.name}'s photo",
+                        contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.clip(CircleShape)
                     )
@@ -4731,7 +4731,7 @@ fun AppIcon(app: AppInfo,
             if (app.background != null) {
                 Image(
                     painter = rememberDrawableBitmapPainter(app.background),
-                    contentDescription = "${app.label} background",
+                    contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.FillBounds
                 )

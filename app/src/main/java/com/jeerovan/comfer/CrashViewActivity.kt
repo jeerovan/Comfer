@@ -1,5 +1,6 @@
 package com.jeerovan.comfer
 
+import androidx.compose.ui.res.stringResource
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -52,7 +53,7 @@ fun CrashLogScreen() {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Crash Logs") },
+                title = { Text(stringResource(R.string.ui_crash_logs)) },
                 actions = {
                     Button(onClick = {
                         scope.launch {
@@ -60,7 +61,7 @@ fun CrashLogScreen() {
                             logLines = emptyList()
                         }
                     }) {
-                        Text("Clear Logs")
+                        Text(stringResource(R.string.ui_clear_logs))
                     }
                 }
             )
@@ -82,7 +83,7 @@ fun CrashLogScreen() {
                     .padding(padding),
                 contentAlignment = androidx.compose.ui.Alignment.Center
             ) {
-                Text("No crash logs found.")
+                Text(stringResource(R.string.ui_no_crash_logs_found))
             }
         } else {
             LazyColumn(
@@ -107,7 +108,7 @@ fun CrashLogScreen() {
 private fun getCrashLogLines(context: Context): List<String> {
     val file = File(context.filesDir, "crash_logs.txt")
     return runCatching { BoundedLogFile.readTailLines(file) }
-        .getOrElse { listOf("Error reading log file: ${it.localizedMessage}") }
+        .getOrElse { listOf(context.getString(R.string.ui_error_reading_logs)) }
 }
 
 private fun clearCrashLogs(context: Context) {

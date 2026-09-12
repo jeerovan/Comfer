@@ -97,15 +97,15 @@ object CommonUtil {
                 context.startActivity(intent)
             }
         } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, "App not found", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, R.string.ui_app_not_found, Toast.LENGTH_SHORT).show()
         } catch (e: SecurityException) {
             Toast.makeText(
                 context,
-                "App could not be launched. Please check your device App Launch settings.",
+                R.string.ui_app_launch_restricted,
                 Toast.LENGTH_LONG
             ).show()
         } catch (e: Exception) {
-            Toast.makeText(context, "An unexpected error occurred while launching the app.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, R.string.ui_app_launch_failed, Toast.LENGTH_SHORT).show()
         }
     }
     fun openUrl(url: String, context: Context) {
@@ -114,9 +114,9 @@ object CommonUtil {
             val intent = Intent(Intent.ACTION_VIEW, validUrl.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
         } catch (_: ActivityNotFoundException) {
-            Toast.makeText(context, "No application to open URL", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, R.string.ui_no_application_to_open_url, Toast.LENGTH_SHORT).show()
         } catch (_: SecurityException) {
-            Toast.makeText(context, "Permission denied to open URL", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, R.string.ui_permission_denied_to_open_url, Toast.LENGTH_SHORT).show()
         }
     }
     fun getUriPath(encodedUri: String?): String? {
