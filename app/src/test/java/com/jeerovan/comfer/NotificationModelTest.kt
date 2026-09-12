@@ -27,10 +27,17 @@ class NotificationModelTest {
         assertEquals(1000, notificationChildren(ledger.items()).size)
         ledger.reconcile(listOf(item("remaining"))); assertEquals("remaining", ledger.items().single().key)
     }
-    @Test fun reachNeverExceedsWindowAndRespectsCap() {
-        assertEquals(256f, reachableHeightDp(640f), .01f)
+    @Test fun reachUsesSameDpHeightOnShortAndTallScreens() {
+        assertEquals(360f, reachableHeightDp(600f), .01f)
+        assertEquals(360f, reachableHeightDp(640f), .01f)
         assertEquals(360f, reachableHeightDp(1000f), .01f)
-        assertEquals(40f, reachableHeightDp(100f), .01f)
+    }
+    @Test fun reachFitsAvailableSafeHeight() {
+        assertEquals(360f, reachableHeightDp(360f), .01f)
+        assertEquals(359f, reachableHeightDp(359f), .01f)
+        assertEquals(100f, reachableHeightDp(100f), .01f)
+        assertEquals(0f, reachableHeightDp(0f), .01f)
+        assertEquals(0f, reachableHeightDp(-1f), .01f)
     }
     @Test fun displayGroupsKeepCountsChildrenAndProfilesDistinct() {
         val input = listOf(item("a"), item("b"), item("work", profile = 10))

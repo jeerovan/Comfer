@@ -17,7 +17,7 @@ These scenarios describe the current behavior to verify. They are not a record o
 | Batch | Eligible and ineligible selections | Bulk dismissal requires confirmation and eligibility of every selected item; revalidate each action. |
 | Snooze | API 24–25 versus API 26+ | Unavailable on older versions; eligible selected records use native 15-minute snooze on supported versions. |
 | Navigation | More actions → Android settings → return; rule editor → Back/save | Restore source list/valid anchor; Back follows nesting; saving returns to the source list. |
-| Layout | Portrait, landscape, rotation, large text, keyboard | Full-height scrolling, reachable portrait start, fixed bottom controls, wrapping options, usable input/navigation. |
+| Layout | Short and tall portrait screens, different densities, landscape, rotation, large text, keyboard | Inbox and launcher settings use a fixed 360 dp portrait reach area from the bottom safe edge, capped by available safe height. Full-height scrolling, no landscape starting padding, fixed bottom controls, wrapping options, usable input/navigation. |
 | History consent | Enable, post/update, refresh, disable | Capture eligible future events; no synchronization backfill; turning off preserves existing copies. |
 | History exclusion | Locked/secret/protected/incomplete/redacted records | Skip capture; protection/exclusion prunes saved copies; unlock does not reconstruct missed content. |
 | Active/Saved | Copy still live, filtered/collapsed, removed, reposted | Hide matching live identity; removal reveals retained copy; new post time has separate identity. |

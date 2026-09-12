@@ -1,6 +1,6 @@
 # Notification Inbox: current features and behavior
 
-Current source reference, 11 September 2026. This document describes the implemented Notification Inbox.
+Current source reference, 12 September 2026. This document describes the implemented Notification Inbox.
 
 ## Entry and navigation
 
@@ -8,7 +8,7 @@ The home notification row opens the All apps inbox as one tap target. Its notifi
 
 The bottom navigation contains **All apps**, **Saved**, and **Settings**. All apps is the live Android notification view; Saved contains eligible local history copies. Notification settings contains grouped/chronological view choices, Pause/Resume automation, Quiet hours, Filters, History, and Connection and privacy.
 
-The inbox fills the safe screen area with the theme surface at 80% opacity over wallpaper. In portrait, scrollable top padding places initial content within the lower 40% of the available height, capped at 360 dp. Scrolling can use the full viewport. Landscape has no starting padding. Bottom navigation and applicable action controls stay outside the scrolling list; controls wrap when needed. Android Back handles nested pages, confirmation, selection, return from Saved to All apps, and exit. There is no separate app Back button.
+The inbox fills the safe screen area with the theme surface at 80% opacity over wallpaper. In portrait, the inbox and launcher settings share a fixed 360 dp reach area measured from the bottom safe edge, capped by the available safe height. Scrollable top padding positions initial content within this area, giving shorter screens a larger proportion of space for content. Scrolling can use the full viewport. Landscape has no starting padding. Bottom navigation and applicable action controls stay outside the scrolling list; controls wrap when needed. Android Back handles nested pages, confirmation, selection, return from Saved to All apps, and exit. There is no separate app Back button.
 
 Active, Saved, settings, and More actions have separate list states. Returning from Android notification settings restores the source list and selected-card anchor when the source remains valid. A rule opened from More actions returns through that route with Back; saving returns to the source list.
 

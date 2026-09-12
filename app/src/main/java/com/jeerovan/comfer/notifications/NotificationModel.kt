@@ -61,8 +61,12 @@ class NotificationLedger {
     fun current(key: String, revision: Long): NotificationItem? = records[key]?.takeIf { it.revision == revision }
 }
 
+/** Initial content reach from the safe bottom edge, shared by inbox and settings.
+ * Keep a consistent dp distance across screens, shrinking only to fit the safe viewport.
+ * This positions scrolling content; it does not limit the scrollable viewport height.
+ */
 fun reachableHeightDp(heightDp: Float): Float =
-    minOf(heightDp.coerceAtLeast(0f) * .4f, 360f)
+    minOf(heightDp.coerceAtLeast(0f), 360f)
 
 /** Stable list entries keep app headers distinct from source notification keys. */
 data class NotificationDisplayRow(
