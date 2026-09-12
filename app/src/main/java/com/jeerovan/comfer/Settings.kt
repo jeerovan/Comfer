@@ -1974,7 +1974,8 @@ fun SocialLinksRow(
         SocialIconButton(
             icon = R.drawable.github_icon,
             contentDescription = stringResource(R.string.ui_github),
-            onClick = { safeOpenUri(githubUrl) }
+            onClick = { safeOpenUri(githubUrl) },
+            iconModifier = Modifier.background(Color.White, CircleShape).padding(4.dp),
         )
 
         SocialIconButton(
@@ -1989,13 +1990,14 @@ fun SocialLinksRow(
 private fun SocialIconButton(
     icon: Int,
     contentDescription: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    iconModifier: Modifier = Modifier,
 ) {
     IconButton(onClick = onClick) {
         Image(
             painter = painterResource(icon),
             contentDescription = contentDescription,
-            modifier = Modifier.size(35.dp),
+            modifier = Modifier.size(35.dp).then(iconModifier),
         )
     }
 }

@@ -89,6 +89,9 @@ See [Notification Inbox behavior](Notification-Features.md) and
 
 ## Validation and remaining work
 
+Settings GitHub icon: white circular background with 4 dp inner padding for
+contrast in both light and dark themes.
+
 Inbox guide without an access requirement: **127 JVM tests** and **4 Inbox guide tests per device** passed
 on Samsung API 30 and emulator API 37. Inbox precedes both clock guides regardless of notification access;
 completion flags are preserved. Samsung has the updated build. Evidence:
