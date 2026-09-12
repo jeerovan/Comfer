@@ -406,20 +406,7 @@ object CommonUtil {
         withContext(Dispatchers.IO) {
             if (!file.exists()) return@withContext null
 
-            // 1. Calculate dimensions without loading the whole image into memory
-            val options = BitmapFactory.Options().apply {
-                inJustDecodeBounds = true
-            }
-            BitmapFactory.decodeFile(file.absolutePath, options)
-
-            // 2. Calculate optimal inSampleSize
-            // Target size ~512px is more than enough for accurate color extraction
-            // Palette internally resizes to ~100px-200px anyway
-            options.inSampleSize = calculateInSampleSize(options, 512, 512)
-
-            // 3. Decode the downsampled bitmap
-            options.inJustDecodeBounds = false
-            val bitmap = BitmapFactory.decodeFile(file.absolutePath, options) ?: return@withContext null
+            val bitmap = decodeWallpaperBitmap(file, 512, 512) ?: return@withContext null
             try {
                 setWallpaperThemedColors(context, bitmap)
             } finally {
@@ -547,29 +534,7 @@ object CommonUtil {
         targetWidth: Int,
         targetHeight: Int,
     ): Bitmap? {
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(file.absolutePath, bounds)
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
-        val decodeOptions = BitmapFactory.Options().apply {
-            inSampleSize = calculateInSampleSize(bounds, targetWidth, targetHeight)
-            inPreferredConfig = Bitmap.Config.RGB_565
-        }
-        val decoded = BitmapFactory.decodeFile(file.absolutePath, decodeOptions) ?: return null
-        val bitmap = if (decoded.width > targetWidth || decoded.height > targetHeight) {
-            val scale = minOf(
-                targetWidth.toFloat() / decoded.width,
-                targetHeight.toFloat() / decoded.height
-            )
-            Bitmap.createScaledBitmap(
-                decoded,
-                (decoded.width * scale).toInt().coerceAtLeast(1),
-                (decoded.height * scale).toInt().coerceAtLeast(1),
-                true
-            ).also { decoded.recycle() }
-        } else {
-            decoded
-        }
-        return bitmap
+        return decodeBoundedWallpaper(file, targetWidth, targetHeight)
     }
 
     private suspend fun applyWallpaperBitmap(

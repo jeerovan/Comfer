@@ -10,7 +10,8 @@ this file.
 Version **49 / 49.0** includes follow-up fixes for the Notification Inbox's app
 language and the Notifications subtitle's theme color. The subtitle now says
 “home screen” in English and all 34 supported translations. Samsung's installed
-debug build includes these fixes; user acceptance is pending. Version code is unchanged.
+debug build includes these fixes and bounded wallpaper decoding; user acceptance
+is pending. Version code is unchanged.
 
 The previous signed APK/AAB in `app/release/49/` predate these fixes and are stale.
 Refresh signed artifacts and their release checks after acceptance. Nothing has
@@ -36,7 +37,7 @@ Android-compatible resource folders, and Uzbek follows the existing Latin script
 | App search | Search installed apps and contacts; launch apps or select a contact. |
 | Appearance | Configurable icon size/shape, icon packs, themed icons and wallpapers. |
 | Widgets | Custom widget screens, editing, positioning, resizing and deletion. |
-| Wallpaper | Local/network wallpaper support and scheduled automatic wallpaper work on compatible devices. |
+| Wallpaper | Local/network wallpaper support and scheduled automatic wallpaper work. Decoding and color extraction bound both image dimensions and memory use; allocation failures retry at lower resolution. |
 | Backup and restore | Configuration backup and restore through Android document pickers. |
 | App launch animation | App windows expand from the tapped icon; the drawer's centred-app double tap uses the same effect. |
 
@@ -97,11 +98,20 @@ On API 24 the same test failed before the fix (German requested, English loaded)
 Emulator screenshots confirm translated Inbox rendering; Samsung screenshot capture
 returned no image, so its visual theme/layout acceptance remains with the user.
 
-A preliminary API-24 test that launched the home screen crashed during wallpaper
-bitmap allocation. The isolated Inbox test avoids that startup path; the memory
-failure remains recorded and uninvestigated, not fixed. Honor hardware and
-native-speaker review remain unavailable. Current evidence is in
-`validation-artifacts/device-checkpoint/2026-09-12-inbox-locale-theme/`.
+Wallpaper memory fix: an oversized-image regression reproduced a **128 MiB**
+allocation failure on API 24's **48 MiB** app heap. Bounded decoding removes the
+second resize bitmap and handles allocation failure with smaller retries.
+**126 JVM tests**, debug builds and lint passed (0 errors, 200 warnings).
+**3 wallpaper instrumentation tests per device** passed on API 24, Samsung API 30
+and API 37, including repeated wide/tall images, transparent/small/invalid inputs
+and injected allocation failure/recovery. API 24 also passed **3 cold + 3 warm
+starts**. Samsung was updated in place.
+Power-of-two sampling can reduce resolution below the requested dimensions.
+The original downloaded image and exact startup memory state were not retained;
+the controlled oversized-image failure is reproduced and fixed locally.
+Honor hardware and native-speaker review remain unavailable.
+Evidence: `validation-artifacts/device-checkpoint/2026-09-12-wallpaper-memory/`
+and `validation-artifacts/device-checkpoint/2026-09-12-inbox-locale-theme/`.
 
 Previous translation gate (before these follow-up fixes):
 Translation checks: **564 required resources × 34 locales**, no missing entries
