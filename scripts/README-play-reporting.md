@@ -1,8 +1,8 @@
 # Play issue reporting
 
 The current triage/fix ledger is maintained in
-[`play_reporting.md`](../play_reporting.md); the phased engineering plan is in
-[`FIX-PLAN.md`](../FIX-PLAN.md).
+[the production reporting section](../DEVELOPMENT-PROGRESS.md#production-reporting-and-issue-ledger); the phased engineering plan is in
+[the remediation section](../DEVELOPMENT-PROGRESS.md#crash-remediation-and-release-requirements).
 
 ## Google Play import
 

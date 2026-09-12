@@ -5,7 +5,6 @@ package com.jeerovan.comfer
 import android.Manifest
 import android.accessibilityservice.AccessibilityService
 import android.annotation.SuppressLint
-import android.app.ActivityOptions
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -3554,6 +3553,7 @@ fun AppListOverlay(apps: List<AppInfo>,
     var centerIconX by remember { mutableFloatStateOf(0f) }
     var centerIconY by remember { mutableFloatStateOf(0f) }
     var centerIconSize by remember { mutableFloatStateOf(0f) }
+    var drawerCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     var lastSoundTime by remember { mutableLongStateOf(0L) }
 
     LaunchedEffect(Unit) {
@@ -3604,6 +3604,7 @@ fun AppListOverlay(apps: List<AppInfo>,
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .onGloballyPositioned { drawerCoordinates = it }
             .pointerInput(activeFolderId) {
                 if (activeFolderId == null) {
                     detectTapGestures(
@@ -3615,34 +3616,19 @@ fun AppListOverlay(apps: List<AppInfo>,
                                     if (app.packageName.startsWith("folder_")) {
                                         activeFolderId = app.packageName
                                     } else {
-                                        scope.launch(Dispatchers.Default) {
-                                            val launchIntent =
-                                                CommonUtil.getLaunchIntentSafe(context, app.packageName)
-                                            if (launchIntent != null) {
-                                                withContext(Dispatchers.Main) {
-                                                    val opts =
-                                                        ActivityOptions.makeClipRevealAnimation(
-                                                            view,
-                                                            centerIconX.toInt(),
-                                                            centerIconY.toInt(),
-                                                            centerIconSize.toInt(),
-                                                            centerIconSize.toInt()
-                                                        )
-                                                    try {
-                                                        context.startActivity(launchIntent,
-                                                            opts.toBundle())
-                                                    } catch (e: ActivityNotFoundException) {
-                                                        Toast.makeText(context, "App not found", Toast.LENGTH_SHORT).show()
-                                                    } catch (e: SecurityException) {
-                                                        Toast.makeText(
-                                                            context,
-                                                            "App could not be launched. Please check your device App Launch settings.",
-                                                            Toast.LENGTH_LONG
-                                                        ).show()
-                                                    } catch (e: Exception) {
-                                                        Toast.makeText(context, "An unexpected error occurred while launching the app.", Toast.LENGTH_SHORT).show()
-                                                    }
-                                                }
+                                        val coordinates = drawerCoordinates?.takeIf { it.isAttached }
+                                        val halfSize = centerIconSize / 2
+                                        val bounds = coordinates?.let {
+                                            Rect(
+                                                it.localToWindow(Offset(centerIconX - halfSize, centerIconY - halfSize)),
+                                                it.localToWindow(Offset(centerIconX + halfSize, centerIconY + halfSize))
+                                            )
+                                        }
+                                        val options = iconLaunchOptions(view, bounds)
+                                        scope.launch(Dispatchers.IO) {
+                                            val launchIntent = CommonUtil.getLaunchIntentSafe(context, app.packageName)
+                                            withContext(Dispatchers.Main) {
+                                                handleStartActivity(context, launchIntent, options)
                                             }
                                         }
                                     }
@@ -4695,28 +4681,11 @@ fun AppIcon(app: AppInfo,
                                         ))
                                     )
                                 } else Rect.Zero
+                                val options = iconLaunchOptions(view, iconBounds)
                                 scope.launch(Dispatchers.IO) {
-                                    val intent =
-                                        CommonUtil.getLaunchIntentSafe(context,app.packageName)
-                                    if (intent != null) {
-                                        val boundedRect = android.graphics.Rect(
-                                            iconBounds.left.toInt(),
-                                            iconBounds.top.toInt(),
-                                            iconBounds.right.toInt(),
-                                            iconBounds.bottom.toInt()
-                                        )
-                                        intent.sourceBounds = boundedRect
-
-                                        withContext(Dispatchers.Main) {
-                                            val options = ActivityOptions.makeClipRevealAnimation(
-                                                view,
-                                                iconBounds.left.toInt(),
-                                                iconBounds.top.toInt(),
-                                                iconBounds.width.toInt(),
-                                                iconBounds.height.toInt()
-                                            )
-                                            handleStartActivity(context, intent, options)
-                                        }
+                                    val intent = CommonUtil.getLaunchIntentSafe(context, app.packageName)
+                                    withContext(Dispatchers.Main) {
+                                        handleStartActivity(context, intent, options)
                                     }
                                 }
                             }
