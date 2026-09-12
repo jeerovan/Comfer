@@ -87,6 +87,52 @@ class HomeGestureInputTest {
         compose.onNodeWithTag("home").performTouchInput { longClick(center) }
         compose.runOnIdle { assertEquals(listOf("child", "double", "long"), actions) }
     }
+    @Test fun swipeStartingOnClickableChildReachesHomeWithoutClicking() {
+        show()
+        compose.onNodeWithTag("child").performTouchInput {
+            swipe(center, center + Offset(0f, -120f * scale), 300)
+        }
+        compose.runOnIdle { assertEquals(listOf("up"), actions) }
+    }
+
+    @Test fun circularSearchPassesSwipesToSharedHomeParent() = verifyLayoutSwipes(true)
+    @Test fun fiveColumnSearchPassesSwipesToSharedHomeParent() = verifyLayoutSwipes(false)
+
+    private fun verifyLayoutSwipes(circular: Boolean) {
+        val apps = listOf(AppInfo(
+            null, android.graphics.drawable.ColorDrawable(android.graphics.Color.BLUE),
+            "Test folder", 1f, "folder_swipe_test", null, null, null,
+        ))
+        compose.setContent {
+            scale = LocalDensity.current.density
+            Box(Modifier.fillMaxSize().testTag("home")
+                .pointerInput(Unit) { detectTapGestures(onLongPress = { actions += "long" }) }
+                .detectGestures(onSwipeUp = { actions += "up" }, onSwipeDown = { actions += "down" },
+                    onInbox = { actions += "inbox" }), contentAlignment = Alignment.Center) {
+                if (circular) CircularLayout(apps, emptyList(), 48.dp,
+                    androidx.compose.foundation.shape.CircleShape, { actions += "search" },
+                    false, null, false, onTappingFolder = { actions += "folder" }, showGestureGuide = false)
+                else FiveColumnLayout(apps, emptyList(), 48.dp,
+                    androidx.compose.foundation.shape.CircleShape, { actions += "search" },
+                    false, null, false, onTappingFolder = { actions += "folder" })
+            }
+        }
+        val search = compose.onNodeWithTag("home-search-button")
+        for (delta in listOf(-120f, 120f)) search.performTouchInput {
+            swipe(center, center + Offset(0f, delta * scale), 300)
+        }
+        search.performTouchInput {
+            down(center)
+            moveBy(Offset(0f, 120f * scale), 180)
+            moveBy(Offset(0f, -120f * scale), 180)
+            up()
+        }
+        search.performTouchInput { click() }
+        val icon = compose.onNodeWithContentDescription("Test folder", useUnmergedTree = true)
+        icon.performTouchInput { swipe(center, center + Offset(0f, -120f * scale), 300) }
+        icon.performTouchInput { click() }
+        compose.runOnIdle { assertEquals(listOf("up", "down", "inbox", "search", "up", "folder"), actions) }
+    }
     @Test fun allCornerStrokesAndBothCirclesKeepTheirConfiguredCallbacks() {
         show()
         val home = compose.onNodeWithTag("home")

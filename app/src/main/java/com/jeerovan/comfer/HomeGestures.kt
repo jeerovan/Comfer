@@ -69,7 +69,9 @@ fun Modifier.detectGestures(
     onInbox: () -> Unit = {},
 ): Modifier = pointerInput(onSwipeUp, onSwipeDown, onSwipeLeft, onSwipeRight, onCircular, onLPatternDetected, onInbox) {
     awaitEachGesture {
-        val down = awaitFirstDown()
+        // Icons/Search consume down for taps. Observe it too, then let consumed
+        // movement (e.g. a scrolling child or long press) retain its owner below.
+        val down = awaitFirstDown(requireUnconsumed = false)
         val path = mutableListOf(down.position)
         var dragging = false
         var cancelled = false

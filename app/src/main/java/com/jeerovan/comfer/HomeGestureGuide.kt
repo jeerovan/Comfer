@@ -21,20 +21,18 @@ internal enum class HomeGuideStep(val preferenceKey: String) {
     SETTINGS("settings_long_press_key"),
     WIDGETS("widgets_long_press_key"),
     RECENTS("double_tap_recent_apps_gesture_key"),
+    INBOX("notification_inbox_return_gesture_key"),
     CLOCK_TAP("widget_clock_tap_key"),
     CLOCK_LONG_PRESS("widget_clock_long_press_key"),
-    INBOX("notification_inbox_return_gesture_key"),
 }
 
 /** One active home guide; optional clock steps never block a clock-free home. */
 internal fun nextHomeGuideStep(
     completed: Set<HomeGuideStep>,
     hasClock: Boolean,
-    hasNotificationAccess: Boolean,
 ): HomeGuideStep? = HomeGuideStep.entries.firstOrNull { step ->
     step !in completed && when (step) {
         HomeGuideStep.CLOCK_TAP, HomeGuideStep.CLOCK_LONG_PRESS -> hasClock
-        HomeGuideStep.INBOX -> hasNotificationAccess
         else -> true
     }
 }

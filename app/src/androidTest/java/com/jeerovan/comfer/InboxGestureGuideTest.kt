@@ -77,12 +77,11 @@ class InboxGestureGuideTest {
         }
     }
 
-    @Test fun accessAndSequenceGateTheHintAndHintDoesNotConsumeTheGesture() {
-        var access by mutableStateOf(false)
-        var completed by mutableStateOf(HomeGuideStep.entries.toSet() - HomeGuideStep.INBOX - HomeGuideStep.CLOCK_LONG_PRESS)
+    @Test fun sequenceGatesTheHintAndHintDoesNotConsumeTheGesture() {
+        var completed by mutableStateOf(HomeGuideStep.entries.toSet() - HomeGuideStep.INBOX - HomeGuideStep.CLOCK_TAP - HomeGuideStep.CLOCK_LONG_PRESS - HomeGuideStep.RECENTS)
         var opened = 0
         compose.setContent {
-            val step = nextHomeGuideStep(completed, hasClock = true, hasNotificationAccess = access)
+            val step = nextHomeGuideStep(completed, hasClock = true)
             Box(Modifier.fillMaxSize().testTag("guide-home").detectGestures(onInbox = {
                 opened++
                 if (step == HomeGuideStep.INBOX) completed = completed + HomeGuideStep.INBOX
@@ -91,13 +90,8 @@ class InboxGestureGuideTest {
             }
         }
         compose.onNodeWithTag("home-inbox-guide").assertDoesNotExist()
-        compose.runOnIdle { access = true }
-        compose.onNodeWithTag("home-inbox-guide").assertDoesNotExist()
-        compose.runOnIdle { completed = completed + HomeGuideStep.CLOCK_LONG_PRESS }
+        compose.runOnIdle { completed = completed + HomeGuideStep.RECENTS }
         compose.onNodeWithTag("home-inbox-guide").assertIsDisplayed()
-        compose.runOnIdle { access = false }
-        compose.onNodeWithTag("home-inbox-guide").assertDoesNotExist()
-        compose.runOnIdle { access = true }
         val hint = compose.onNodeWithTag("home-inbox-guide").fetchSemanticsNode().boundsInRoot
         val density = hint.width / 48f
         compose.onNodeWithTag("guide-home").performTouchInput {

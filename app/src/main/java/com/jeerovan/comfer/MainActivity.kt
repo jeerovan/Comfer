@@ -2326,7 +2326,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
         (feedbackShown || !isDefault)) nextHomeGuideStep(
         completed = completedGuides,
         hasClock = !settings.hasCustomWidgets && "time" in settings.widgetIds,
-        hasNotificationAccess = settings.hasNotificationAccess,
     ) else null)
     val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
     fun exitWidgetSettings() {

@@ -30,9 +30,9 @@ Android-compatible resource folders, and Uzbek follows the existing Latin script
 
 | Feature | Current behavior |
 |---|---|
-| Home gestures | Configurable left/right and existing quick-pattern actions. |
+| Home gestures | Configurable left/right and existing quick-pattern actions. The shared parent accepts swipes starting over app icons or Search in CircularLayout and FiveColumnLayout; taps and child scrolling keep their own handlers. |
 | Inbox gesture | One finger down, then back up, opens Notification Inbox from the home quick list. Fires on release; incomplete deliberate returns cancel without also triggering swipe up/down. |
-| Home gesture guides | Swipe up → long-press settings → long-press widgets → double-tap Recents → tap clock → long-press clock → Inbox down-and-return. Clock steps are skipped when no built-in clock is shown. Inbox is last and requires notification access. Its text-free hand animation follows a 120 dp path across Search in both quick-app layouts, raised for navigation-bar clearance and repeats until the gesture is completed correctly; completion is remembered. |
+| Home gesture guides | Swipe up → long-press settings → long-press widgets → double-tap Recents → Inbox down-and-return → tap clock → long-press clock. Inbox is shown even without notification access; the Inbox screen requests access when opened. Clock steps are skipped when no built-in clock is shown. Its text-free hand animation follows a 120 dp path across Search in both quick-app layouts, raised for navigation-bar clearance and repeats until the gesture is completed correctly; completion is remembered. |
 | App drawer | U-shaped layout, adjustable scrolling sensitivity, fling interruption, centred-app double-tap launch and folders. |
 | App search | Search installed apps and contacts; launch apps or select a contact. |
 | Appearance | Configurable icon size/shape, icon packs, themed icons and wallpapers. |
@@ -88,6 +88,18 @@ See [Notification Inbox behavior](Notification-Features.md) and
 | Missing WorkManager method simulation | Healthy and deliberately missing-method cases passed on the API-37 emulator. This is controlled compatibility coverage, not affected-OEM verification. |
 
 ## Validation and remaining work
+
+Inbox guide without an access requirement: **127 JVM tests** and **4 Inbox guide tests per device** passed
+on Samsung API 30 and emulator API 37. Inbox precedes both clock guides regardless of notification access;
+completion flags are preserved. Samsung has the updated build. Evidence:
+`validation-artifacts/device-checkpoint/2026-09-12-guide-no-access/`.
+
+Home swipe routing: swipes beginning on Search/app icons now reach the shared
+parent in both quick-app layouts. **14 input/guide tests per device** passed on
+Samsung API 30 and emulator API 37; **126 JVM tests** and lint passed (0 errors,
+200 warnings). Samsung has the updated debug build. User acceptance is pending;
+signed release artifacts remain stale. Evidence:
+`validation-artifacts/device-checkpoint/2026-09-12-home-swipe/`.
 
 Latest Inbox fixes: **120 JVM tests**, **4 translation-checker tests**, resource
 validation for all **34 locales**, debug builds and lint passed (0 errors,
