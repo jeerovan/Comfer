@@ -1,5 +1,99 @@
 # Device-testing checkpoint
 
+## Inbox home gesture implementation — 2026-09-12
+
+Implemented the one-finger down-and-return gesture in QuickListOverlay's existing
+handler. A single release-time classification opens Notification Inbox; it does
+not also dispatch up/down. Incomplete deliberate returns cancel. Existing
+left/right, L/circle, tap, long-press and child-scroll behaviors passed the focused
+regressions. NotificationIconRow remains an entry point.
+
+Validation: 113 JVM tests pass; debug lint and isolated APK builds pass; eight
+gesture/navigation tests pass on each of Samsung API 30 and emulator API 37.
+See [feature evidence](validation-artifacts/device-checkpoint/2026-09-12-inbox-gesture/RESULTS.md).
+Human gesture comfort/false-positive trials and accessibility/orientation review
+remain distinct from automated coverage. Guide text follows the existing English
+app-guide fallback; translation review remains pending before release.
+
+The earlier device gate describes the pre-feature build. This feature's affected
+checks pass, but signed/minified release artifacts must be rebuilt and checked
+after feature completion. VersionCode stays 48; no production verification or
+upload is implied by these results.
+
+## Controlled namespace compatibility check — 2026-09-12
+
+**PASS: the remaining controlled missing-`forNamespace` check is complete.**
+The existing API-37 emulator passed both the healthy control and an isolated
+build whose reflective method lookup deliberately fails. The missing-method
+run leaves WorkManager uninitialized with no scheduled jobs while application
+data initialization, MainActivity focus/recreation, and a subsequent ordinary
+cold launch succeed. Both crash buffers are empty, with no fatal/Comfer ANR
+signatures and only user-requested exits. The expected fallback diagnostic
+appears only in the injected run.
+
+Reproduce using `scripts/test_workmanager_compatibility.py`; see
+[controlled-run evidence](validation-artifacts/device-checkpoint/2026-09-12-namespace/RESULTS.md).
+Injection occurs only in a disposable copy using the isolated test package;
+production application source and the installed user app are unchanged.
+The local device gate stays PASS with its documented limits. Actual affected
+Honor firmware, the separate post-preflight LinkageError path, and production
+telemetry are not verified by this simulation. VersionCode remains 48; signed
+release preparation and upload have not started.
+
+## Latest gate update — 2026-09-12 follow-up
+
+**PASS — local device gate, with the documented coverage limitations.**
+Samsung restore now passes end to end: locate the ZIP, **long-press to select**
+(a 4-second injected press succeeded), tap **Select**, then confirm **Restore**
+in Comfer. Tapping the ZIP opens it and is not the selection procedure.
+
+The original 44 focused device/method combinations passed. This follow-up adds
+15 passing combinations: 12 Samsung (notification recovery, 4 integration,
+4 navigation, 3 folder/transfer/drag) and 3 emulator folder/transfer/drag.
+Historical failed/interrupted attempts are retained, not counted as passes.
+Three test-only corrections address the reproduced viewport precondition,
+Samsung background fixture-broadcast congestion, and a stale notification-open
+assertion; application code is unchanged. Instrumentation builds and affected
+reruns pass. See [follow-up results](validation-artifacts/device-checkpoint/2026-09-12-followup/RESULTS.md)
+for exact runs, failures, reproduction steps, skipped cases and evidence.
+
+Samsung pre-test data was restored and contacts/notification access verified.
+After USB reconnection, all seven final evidence captures succeeded. The crash
+buffer is empty, all 16 recorded Comfer exits are USER REQUESTED, and all seven
+tracked crash signatures have zero matches in main/system logcat. MainActivity
+has window focus; JobScheduler retains Comfer work. Evidence and file hashes
+are in `RZ8M80E8ZPZ/final-capture-summary.json` under the follow-up directory.
+All local gate requirements now have a passing result or explicit skipped-case
+disposition. This is a local device-validation pass, not production verification.
+Unavailable Honor firmware/work-profile/provider cases and unexecuted DND,
+history, real-contact/manual-folder and perceptual smoothness coverage remain
+limitations, not verified claims. Honor-specific production verification still
+requires affected firmware and meaningful later-release telemetry. VersionCode
+remains 48; no production build/upload is prepared by this follow-up.
+
+## Resumed device pass — 2026-09-12
+
+The focused tests were executed successfully on `emulator-5554` (Google
+sdk_gphone16k_arm64, API 37) and `RZ8M80E8ZPZ` (Samsung SM-A305F, API 30).
+Detailed results, reproduction steps, reports, screenshots, and system evidence
+are in the ignored local report:
+[`validation-artifacts/device-checkpoint/2026-09-12/RESULTS.md`](validation-artifacts/device-checkpoint/2026-09-12/RESULTS.md).
+
+The device decision gate remains **HOLD** for the recorded coverage gaps.
+User clarification: on this Samsung, locate the backup, **long-press to select
+it**, then proceed. Tapping opens the archive; it does not select it for restore.
+The earlier tap-based result is not evidence of a restore defect. No new
+end-to-end restore run was performed when recording this clarification.
+No application source changed, no issue became production verified, and
+versionCode remains 48. The original procedure below remains the resume guide;
+do not repeat completed checks without a new change or unresolved concern.
+
+Follow-up: the user enabled Samsung notification access, and adb confirmed
+Comfer's listener is enabled at 2026-09-12 03:56:32 UTC. Live notification/DND
+validation remains outstanding; this permission check does not change the gate.
+
+## Original checkpoint — 2026-09-11
+
 - Created: 2026-09-11
 - Resume state: source fixes are implemented; JVM tests, lint, instrumentation
   compilation, signed/minified release builds, signatures, and manifest-to-DEX
@@ -143,6 +237,10 @@ One malformed app icon may be omitted rather than terminating Comfer.
 
 1. Create a backup, cancel once, then create one successfully.
 2. Open restore, cancel once, then select a valid backup.
+   On the connected Samsung SM-A305F, locate the backup file, **long-press it
+   to select it**, then use the picker's action to proceed and confirm the
+   restore in Comfer. **Do not tap the file to select it**: tapping opens the
+   archive. This device-specific procedure was supplied by the user.
 3. If a managed physical device naturally blocks document providers, confirm
    Comfer shows `No compatible file picker is available` and remains usable.
 

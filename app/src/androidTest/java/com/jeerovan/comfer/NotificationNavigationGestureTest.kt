@@ -23,7 +23,8 @@ class NotificationNavigationGestureTest {
         assertTrue("Timed out waiting for listener or activity", condition())
     }
     private fun post(app: String, id: Int, extras: String = "") {
-        shell("am broadcast -n com.jeerovan.fixtures.$app/com.jeerovan.fixtures.FixtureReceiver --ei id $id $extras")
+        // Keep fixture delivery independent of a congested OEM background broadcast queue.
+        shell("am broadcast --receiver-foreground -n com.jeerovan.fixtures.$app/com.jeerovan.fixtures.FixtureReceiver --ei id $id $extras")
     }
     private fun fixtures() = MyNotificationListenerService.snapshot.value.items.filter { it.app == "com.jeerovan.fixtures.mail" }
     @Before fun setup() {
@@ -64,7 +65,8 @@ class NotificationNavigationGestureTest {
         shell("input keyevent 4")
         await { shell("dumpsys activity activities").lineSequence().any { (it.contains("mResumedActivity") || it.contains("topResumedActivity")) && it.contains("NotificationInboxActivity") } }
         compose.waitForIdle()
-        assertTrue("Opening must not cancel even an auto-cancel notification", fixtures().any { it.title == "OpenFixture" })
+        // Successful opening dismisses eligible records (Notification-Features.md).
+        await { fixtures().none { it.title == "OpenFixture" } }
     }
 
     @Test fun returningFromAndroidSettingsRestoresSelectedNotification() {

@@ -79,6 +79,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -233,7 +234,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.res.stringResource
@@ -2526,7 +2526,9 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     }
                                 )
                             }
+                            .testTag("home-gesture-surface")
                             .detectGestures(
+                                onInbox = { com.jeerovan.comfer.notifications.NotificationInboxActivity.open(context) },
                                 onSwipeUp = {
                                     if(!quickGestureShown) {
                                         settingsModel.setStepGuideShown(
@@ -5909,282 +5911,7 @@ fun AutoUpdateManager(
 }
 
 
-// Gestures
-enum class LPatternType {
-    DOWN_RIGHT,  // ↓→ Original L: down then right
-    DOWN_LEFT,   // ↓← down then left
-    UP_RIGHT,    // ↑→ up then right
-    UP_LEFT,     // ↑← up then left
-    RIGHT_DOWN,  // →↓ right then down
-    RIGHT_UP,    // →↑ right then up
-    LEFT_DOWN,   // ←↓ left then down
-    LEFT_UP      // ←↑ left then up
-}
-fun Modifier.detectGestures(
-    onSwipeUp: () -> Unit = {},
-    onSwipeDown: () -> Unit = {},
-    onSwipeLeft: () -> Unit = {},
-    onSwipeRight: () -> Unit = {},
-    onCircular: () -> Unit = {},
-    onLPatternDetected: (String) -> Unit = {}
-): Modifier = this.pointerInput(onSwipeUp, onSwipeDown, onSwipeLeft, onSwipeRight,
-    onCircular, onLPatternDetected) {
-    val path = mutableListOf<Offset>()
-    val pathSimplificationDistance = 5f
-    val swipeThreshold = 50.dp.toPx() // Minimum distance for swipe detection
-    var currentPointerId: PointerId? = null
-    detectDragGestures(
-        onDragStart = { offset ->
-            if (currentPointerId == null) {
-                path.clear()
-                path.add(offset)
-            }
-        },
-        onDrag = { change, _ ->
-            change.consume()
-            if (currentPointerId == null || currentPointerId == change.id) {
-                currentPointerId = change.id
-                change.consume()
-                val lastPoint = path.lastOrNull()
-                if (lastPoint == null || (change.position - lastPoint).getDistance() > pathSimplificationDistance) {
-                    path.add(change.position)
-                }
-            }
-        },
-        onDragEnd = {
-            if (path.size >= 2) {
-                val circular = detectCircularPattern(path,swipeThreshold)
-                val pattern = detectLPatternWithCorner(path,swipeThreshold)
-                if(circular != null){
-                    onCircular()
-                    Log.d("GesturePattern","Detected: Circular")
-                } else if (pattern != null) {
-                    val area = when (pattern) {
-                        LPatternType.LEFT_UP -> "TopRight"
-                        LPatternType.UP_LEFT -> "BottomLeft"
-                        LPatternType.RIGHT_UP -> "TopLeft"
-                        LPatternType.UP_RIGHT -> "BottomRight"
-                        LPatternType.DOWN_RIGHT -> "TopRight"
-                        LPatternType.DOWN_LEFT -> "TopLeft"
-                        LPatternType.RIGHT_DOWN -> "BottomLeft"
-                        LPatternType.LEFT_DOWN -> "BottomRight"
-                    }
-                    onLPatternDetected(area)
-                    Log.d("GesturePattern","Detected: $area")
-                } else {
-                    // Fall back to simple swipe detection
-                    detectSimpleSwipe(
-                        path = path,
-                        threshold = swipeThreshold,
-                        onSwipeUp = onSwipeUp,
-                        onSwipeDown = onSwipeDown,
-                        onSwipeLeft = onSwipeLeft,
-                        onSwipeRight = onSwipeRight
-                    )
-                }
-            }
-            path.clear()
-            currentPointerId = null
-        }
-    )
-}
-private fun detectLPatternWithCorner(points: List<Offset>,swipeThreshold: Float): LPatternType? {
-    if (points.size < 10) return null
 
-    // Helper function to normalize angle difference
-    fun normalizeAngleDiff(angle1: Float, angle2: Float): Float {
-        val diff = abs(angle1 - angle2)
-        return minOf(diff, (2 * PI).toFloat() - diff)
-    }
-
-    // Find the corner point (where direction changes most)
-    var maxDirectionChange = 0f
-    var cornerIndex = 0
-
-    for (i in 3 until points.size - 3) {
-        val beforeStartIdx = (i - 3).coerceAtLeast(0)
-        val afterEndIdx = (i + 3).coerceAtMost(points.size - 1)
-
-        val beforeAngle = atan2(
-            points[i - 1].y - points[beforeStartIdx].y,
-            points[i - 1].x - points[beforeStartIdx].x
-        )
-        val afterAngle = atan2(
-            points[afterEndIdx].y - points[i].y,
-            points[afterEndIdx].x - points[i].x
-        )
-
-        val directionChange = normalizeAngleDiff(beforeAngle, afterAngle)
-        if (directionChange > maxDirectionChange) {
-            maxDirectionChange = directionChange
-            cornerIndex = i
-        }
-    }
-
-    // Require significant direction change (close to 90 degrees)
-    if (maxDirectionChange < PI / 3) return null
-
-    // Calculate movements without creating sublists
-    val firstStartIdx = 0
-    val firstEndIdx = cornerIndex
-    val secondStartIdx = cornerIndex
-    val secondEndIdx = points.size
-
-    val firstVertical = points[firstEndIdx - 1].y - points[firstStartIdx].y
-    val firstHorizontal = points[firstEndIdx - 1].x - points[firstStartIdx].x
-    val secondVertical = points[secondEndIdx - 1].y - points[secondStartIdx].y
-    val secondHorizontal = points[secondEndIdx - 1].x - points[secondStartIdx].x
-
-    val threshold = 1.2f
-
-    // Check if segments are long enough
-    val firstSegmentLength = kotlin.math.sqrt(firstVertical * firstVertical + firstHorizontal * firstHorizontal)
-    val secondSegmentLength = kotlin.math.sqrt(secondVertical * secondVertical + secondHorizontal * secondHorizontal)
-
-    if (firstSegmentLength < swipeThreshold || secondSegmentLength < swipeThreshold) {
-        return null
-    }
-    // Determine pattern type
-    if (abs(firstVertical) > abs(firstHorizontal) * threshold &&
-        abs(secondHorizontal) > abs(secondVertical) * threshold) {
-
-        return when {
-            firstVertical > 0 && secondHorizontal > 0 -> LPatternType.DOWN_RIGHT
-            firstVertical > 0 && secondHorizontal < 0 -> LPatternType.DOWN_LEFT
-            firstVertical < 0 && secondHorizontal > 0 -> LPatternType.UP_RIGHT
-            firstVertical < 0 && secondHorizontal < 0 -> LPatternType.UP_LEFT
-            else -> null
-        }
-    }
-
-    if (abs(firstHorizontal) > abs(firstVertical) * threshold &&
-        abs(secondVertical) > abs(secondHorizontal) * threshold) {
-
-        return when {
-            firstHorizontal > 0 && secondVertical > 0 -> LPatternType.RIGHT_DOWN
-            firstHorizontal > 0 && secondVertical < 0 -> LPatternType.RIGHT_UP
-            firstHorizontal < 0 && secondVertical > 0 -> LPatternType.LEFT_DOWN
-            firstHorizontal < 0 && secondVertical < 0 -> LPatternType.LEFT_UP
-            else -> null
-        }
-    }
-
-    return null
-}
-
-private fun detectCircularPattern(path: List<Offset>,swipeThreshold:Float): String? {
-    if (path.size < 10) return null
-
-    // Normalize path to bounding box
-    val minX = path.minOf { it.x }
-    val maxX = path.maxOf { it.x }
-    val minY = path.minOf { it.y }
-    val maxY = path.maxOf { it.y }
-
-    val width = maxX - minX
-    val height = maxY - minY
-
-    // Need minimum gesture size
-    if (width < swipeThreshold || height < swipeThreshold) return null
-
-    // Normalize points to 0-1 range
-    val normalized = path.map {
-        Offset(
-            (it.x - minX) / width,
-            (it.y - minY) / height
-        )
-    }
-
-    // Detect patterns
-    return when {
-        isCircularPattern(normalized, width, height) -> "O"
-        else -> null
-    }
-}
-
-private fun isCircularPattern(points: List<Offset>, width: Float, height: Float): Boolean {
-    // Check if aspect ratio is close to square
-    val aspectRatio = width / height
-    if (aspectRatio !in 0.6f..1.6f) return false
-
-    // Calculate center
-    val centerX = points.map { it.x }.average().toFloat()
-    val centerY = points.map { it.y }.average().toFloat()
-    val center = Offset(centerX, centerY)
-
-    // Calculate distances from center
-    val distances = points.map { point ->
-        kotlin.math.sqrt(
-            (point.x - center.x) * (point.x - center.x) +
-                    (point.y - center.y) * (point.y - center.y)
-        )
-    }
-
-    val avgDistance = distances.average().toFloat()
-    val variance = distances.map { (it - avgDistance) * (it - avgDistance) }.average()
-    val stdDev = kotlin.math.sqrt(variance).toFloat()
-
-    // Low standard deviation indicates circular path
-    if (stdDev / avgDistance > 0.25f) return false
-
-    // Check if the path is closed (start and end points are relatively close)
-    val startPoint = points.first()
-    val endPoint = points.last()
-    val closureDistance = kotlin.math.sqrt(
-        (startPoint.x - endPoint.x) * (startPoint.x - endPoint.x) +
-                (startPoint.y - endPoint.y) * (startPoint.y - endPoint.y)
-    )
-    if (closureDistance > avgDistance * 1.2f) return false
-
-    // Check total angle swept to ensure it's a loop, not just a small arc
-    var totalAngle = 0f
-    for (i in 0 until points.size - 1) {
-        val p1 = Offset(points[i].x - center.x, points[i].y - center.y)
-        val p2 = Offset(points[i + 1].x - center.x, points[i + 1].y - center.y)
-        var angle = atan2(p2.y, p2.x) - atan2(p1.y, p1.x)
-        if (angle > PI) angle -= 2 * PI.toFloat()
-        if (angle < -PI) angle += 2 * PI.toFloat()
-        totalAngle += angle
-    }
-
-    return abs(totalAngle) > 1.5 * PI.toFloat()
-}
-private fun detectSimpleSwipe(
-    path: List<Offset>,
-    threshold: Float,
-    onSwipeUp: () -> Unit,
-    onSwipeDown: () -> Unit,
-    onSwipeLeft: () -> Unit,
-    onSwipeRight: () -> Unit
-) {
-    val startPoint = path.first()
-    val endPoint = path.last()
-
-    val deltaX = endPoint.x - startPoint.x
-    val deltaY = endPoint.y - startPoint.y
-
-    val absDeltaX = abs(deltaX)
-    val absDeltaY = abs(deltaY)
-
-    // Determine if swipe is primarily horizontal or vertical
-    if (absDeltaX > threshold || absDeltaY > threshold) {
-        if (absDeltaX > absDeltaY) {
-            // Horizontal swipe
-            if (deltaX > 0) {
-                onSwipeRight()
-            } else {
-                onSwipeLeft()
-            }
-        } else {
-            // Vertical swipe
-            if (deltaY > 0) {
-                onSwipeDown()
-            } else {
-                onSwipeUp()
-            }
-        }
-    }
-}
 class WidgetHostManager(private val context: Context) {
     val appWidgetManager: AppWidgetManager = AppWidgetManager.getInstance(context)
     lateinit var mainHost: AppWidgetHost

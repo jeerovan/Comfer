@@ -149,6 +149,9 @@ fun NavigationGuide() {
                 GuideStepItem(text = stringResource(R.string.guide_home_swipe_down))
             }
             item {
+                GuideStepItem(text = stringResource(R.string.guide_home_inbox_gesture))
+            }
+            item {
                 GuideStepItem(text = stringResource(R.string.guide_home_double_tap))
             }
             item {

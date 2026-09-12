@@ -6,6 +6,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import android.content.Context
 import android.content.Intent
+import android.app.ActivityOptions
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
@@ -76,7 +77,15 @@ class NotificationInboxActivity : ComponentActivity() {
     }
     companion object {
         fun open(context: Context, app: String? = null, controls: Boolean = false) {
-            context.startActivity(Intent(context, NotificationInboxActivity::class.java).putExtra("app", app).putExtra("controls", controls))
+            val intent = Intent(context, NotificationInboxActivity::class.java)
+                .putExtra("app", app)
+                .putExtra("controls", controls)
+            val transition = ActivityOptions.makeCustomAnimation(
+                context,
+                R.anim.notification_inbox_enter,
+                R.anim.notification_inbox_underlay,
+            )
+            context.startActivity(intent, transition.toBundle())
         }
     }
 }

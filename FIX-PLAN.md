@@ -1,6 +1,77 @@
 # Version 48 crash/ANR findings and cumulative fix plan
 
-- Last updated: 2026-09-11
+## Inbox home gesture implementation — 2026-09-12
+
+Implemented the one-finger down-and-return gesture in QuickListOverlay's existing
+handler. A single release-time classification opens Notification Inbox; it does
+not also dispatch up/down. Incomplete deliberate returns cancel. Existing
+left/right, L/circle, tap, long-press and child-scroll behaviors passed the focused
+regressions. NotificationIconRow remains an entry point.
+
+Validation: 113 JVM tests pass; debug lint and isolated APK builds pass; eight
+gesture/navigation tests pass on each of Samsung API 30 and emulator API 37.
+See [feature evidence](validation-artifacts/device-checkpoint/2026-09-12-inbox-gesture/RESULTS.md).
+Human gesture comfort/false-positive trials and accessibility/orientation review
+remain distinct from automated coverage. Guide text follows the existing English
+app-guide fallback; translation review remains pending before release.
+
+The earlier device gate describes the pre-feature build. This feature's affected
+checks pass, but signed/minified release artifacts must be rebuilt and checked
+after feature completion. VersionCode stays 48; no production verification or
+upload is implied by these results.
+
+## Controlled namespace compatibility check — 2026-09-12
+
+**PASS: the remaining controlled missing-`forNamespace` check is complete.**
+The existing API-37 emulator passed both the healthy control and an isolated
+build whose reflective method lookup deliberately fails. The missing-method
+run leaves WorkManager uninitialized with no scheduled jobs while application
+data initialization, MainActivity focus/recreation, and a subsequent ordinary
+cold launch succeed. Both crash buffers are empty, with no fatal/Comfer ANR
+signatures and only user-requested exits. The expected fallback diagnostic
+appears only in the injected run.
+
+Reproduce using `scripts/test_workmanager_compatibility.py`; see
+[controlled-run evidence](validation-artifacts/device-checkpoint/2026-09-12-namespace/RESULTS.md).
+Injection occurs only in a disposable copy using the isolated test package;
+production application source and the installed user app are unchanged.
+The local device gate stays PASS with its documented limits. Actual affected
+Honor firmware, the separate post-preflight LinkageError path, and production
+telemetry are not verified by this simulation. VersionCode remains 48; signed
+release preparation and upload have not started.
+
+## Latest gate update — 2026-09-12 follow-up
+
+**PASS — local device gate, with the documented coverage limitations.**
+Samsung restore now passes end to end: locate the ZIP, **long-press to select**
+(a 4-second injected press succeeded), tap **Select**, then confirm **Restore**
+in Comfer. Tapping the ZIP opens it and is not the selection procedure.
+
+The original 44 focused device/method combinations passed. This follow-up adds
+15 passing combinations: 12 Samsung (notification recovery, 4 integration,
+4 navigation, 3 folder/transfer/drag) and 3 emulator folder/transfer/drag.
+Historical failed/interrupted attempts are retained, not counted as passes.
+Three test-only corrections address the reproduced viewport precondition,
+Samsung background fixture-broadcast congestion, and a stale notification-open
+assertion; application code is unchanged. Instrumentation builds and affected
+reruns pass. See [follow-up results](validation-artifacts/device-checkpoint/2026-09-12-followup/RESULTS.md)
+for exact runs, failures, reproduction steps, skipped cases and evidence.
+
+Samsung pre-test data was restored and contacts/notification access verified.
+After USB reconnection, all seven final evidence captures succeeded. The crash
+buffer is empty, all 16 recorded Comfer exits are USER REQUESTED, and all seven
+tracked crash signatures have zero matches in main/system logcat. MainActivity
+has window focus; JobScheduler retains Comfer work. Evidence and file hashes
+are in `RZ8M80E8ZPZ/final-capture-summary.json` under the follow-up directory.
+All local gate requirements now have a passing result or explicit skipped-case
+disposition. This is a local device-validation pass, not production verification.
+Unavailable Honor firmware/work-profile/provider cases and unexecuted DND,
+history, real-contact/manual-folder and perceptual smoothness coverage remain
+limitations, not verified claims. Honor-specific production verification still
+requires affected firmware and meaningful later-release telemetry. VersionCode
+remains 48; no production build/upload is prepared by this follow-up.
+
+- Last updated: 2026-09-12
 - Package: `com.jeerovan.comfer`
 - Current published evidence: versionCode 46 and 48
 - Current source version: versionCode 48 / versionName 48.0
@@ -149,6 +220,27 @@ yield, slow-provider quarantine, and detached-view cache remain.
 
 ## Phase 2 — local verification
 
+Resumed on 2026-09-12 on an API-37 Google emulator and API-30 Samsung SM-A305F.
+All five focused instrumentation classes passed on each device. Additional
+drawer/contact tests passed; device evidence covers repeated startup/focus,
+API-37 namespaced ImageWorker scheduling, real-widget overlap/resize/deletion,
+rotation (with an API-30 command correction), icon loading, fixture package
+changes, and emulator backup/restore. See the ignored
+[`device results`](validation-artifacts/device-checkpoint/2026-09-12/RESULTS.md)
+for exact counts, evidence and limits.
+
+The device decision gate is **HOLD** for the recorded coverage gaps. The user
+clarified Samsung's restore procedure: locate the backup, **long-press to select
+it**, then proceed. Tapping opens the archive and is not a selection failure.
+The earlier tap-based result is therefore not a demonstrated restore defect;
+no new end-to-end run was performed for this documentation correction.
+Samsung DocumentsUI search separately recorded a `DirectoryLoader`
+`DeadObjectException`. Its generated ZIP passes integrity checks; emulator
+restore succeeds. No deterministic first-party code
+failure was established, so no speculative source fix was made. Unexecuted
+cases are recorded in the device report. VersionCode remains 48; Honor firmware
+and later-release production telemetry are still required.
+
 The resumable emulator/physical-device procedure is recorded in
 [`DEVICE-TEST-CHECKPOINT.md`](DEVICE-TEST-CHECKPOINT.md). Continue there when
 devices are available.
@@ -179,18 +271,18 @@ Completed on 2026-09-11:
   These artifacts remain version 48 and cannot be uploaded over the existing
   version-48 release.
 
-Still required before publishing:
+Release checklist after device and controlled compatibility validation:
 
-1. Run the focused connected tests on an available API-28+ device.
-2. Exercise custom widgets through open/close overlap, edit-mode transitions,
-   rotation, and HOME relaunch.
-3. Verify periodic wallpaper work is enqueued on a normal API-34+ device.
-4. Use a controlled test build or reflection harness to verify that the
-   no-`forNamespace` branch skips WorkManager without terminating startup.
-5. Increment to a new version code, rebuild the signed/minified APK/AAB, and
-   repeat the manifest-to-DEX check.
-6. Confirm the component factory and compatibility behavior again after Play
-   bundle processing.
+1. **Complete:** focused connected tests, widget overlap/edit/rotation/HOME,
+   and normal API-34+ wallpaper scheduling (API-37 emulator).
+2. **Complete:** isolated missing-method lookup during Application.onCreate
+   skips WorkManager without preventing startup, focus, or activity recreation.
+   See the controlled namespace report above; this is simulated compatibility
+   evidence, not affected-OEM or production verification.
+3. **Next:** increment to a new version code, rebuild signed/minified APK/AAB,
+   and repeat signature, permission, component and manifest-to-DEX checks.
+4. Confirm the component factory and compatibility behavior again after Play
+   bundle processing before the staged release.
 
 ## Phase 3 — next release telemetry
 

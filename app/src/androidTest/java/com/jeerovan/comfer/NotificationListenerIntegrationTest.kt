@@ -26,7 +26,8 @@ class NotificationListenerIntegrationTest {
         assertTrue("Timed out waiting for notification listener", condition())
     }
     private fun post(app: String, id: Int, extras: String = "") {
-        shell("am broadcast -n com.jeerovan.fixtures.$app/com.jeerovan.fixtures.FixtureReceiver --ei id $id $extras")
+        // Keep fixture delivery independent of a congested OEM background broadcast queue.
+        shell("am broadcast --receiver-foreground -n com.jeerovan.fixtures.$app/com.jeerovan.fixtures.FixtureReceiver --ei id $id $extras")
     }
     private fun fixtures() = MyNotificationListenerService.snapshot.value.items.filter { it.app.startsWith("com.jeerovan.fixtures.") }
     @Before fun setup() {

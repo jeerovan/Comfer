@@ -1,6 +1,7 @@
 package com.jeerovan.comfer
 
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -66,7 +67,8 @@ class AppReorderTest {
             MaterialTheme {
                 AppListColumn(
                     title = "Test apps", apps = state.primaryApps, canReOrder = true,
-                    listState = listState, modifier = Modifier.width(120.dp),
+                    // Keep the list scrollable on tall device displays.
+                    listState = listState, modifier = Modifier.width(120.dp).height(240.dp),
                     listName = LIST, viewModel = viewModel, selectedList = null,
                     selectedPackageNames = emptySet(), iconSize = 48.dp, iconShape = CircleShape,
                     onItemSelect = { _, _ -> }, onAddFolderClick = {}, folders = 10,
@@ -242,7 +244,11 @@ class AppReorderTest {
 
     private fun scrollAwayFromTop() {
         composeRule.runOnIdle { scrollScope.launch { listState.scrollToItem(5) } }
-        composeRule.waitUntil(5_000) { listState.firstVisibleItemIndex >= 5 }
+        // A tall viewport can clamp item 5 below the first visible position.
+        // The regression only requires a nonzero starting scroll position.
+        composeRule.waitUntil(5_000) {
+            listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
+        }
     }
 
     private fun assertNewItemsRevealed() {
