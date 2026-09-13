@@ -126,7 +126,7 @@ Invalid stored configuration preserves its original data, enters a paused recove
 
 Comfer's manual ZIP backup includes pinned/protected apps, view choice, pause preference, quiet schedule definitions, history enablement/retention/exclusions, and filter rules. Restore previews identify notification settings and explain that automation remains paused until reviewed and resumed in the inbox. If history is enabled, collection restarts at restore time. Saved notification files are not imported; existing copies remain subject to normal retention/exclusion policies.
 
-Archive format 2 includes the versioned settings section. Format-1 archives remain readable; archives without notification settings leave current configuration untouched. Older Comfer builds that only support format 1 cannot read new format-2 backups.
+Archive format 3 includes the versioned notification settings section and Tasks data. Formats 1–3 remain readable; archives without notification settings leave current configuration untouched. Older Comfer builds that only support formats 1–2 cannot read new format-3 backups. Notification settings still use SharedPreferences JSON; the new Tasks Room database is separate.
 
 Notification content, source intents, Android permissions, owned DND rule IDs, and active focus deadlines are not exported. Existing destination quiet runtime is reconciled against the restored paused configuration, not replaced with the source device's runtime. System backup exclusions remain unchanged.
 

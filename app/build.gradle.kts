@@ -68,6 +68,7 @@ if (hasReleaseSigningCredentials) {
 }
 
 android {
+    sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
     namespace = "com.jeerovan.comfer"
     compileSdk = 37
     ndkVersion = "29.0.14206865"
@@ -123,6 +124,7 @@ android {
     }
     testBuildType = providers.gradleProperty("comferTestBuildType").getOrElse("debug")
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -149,6 +151,7 @@ kotlin {
 }
 
 dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation(libs.app.update)
     implementation(libs.app.update.ktx)
     implementation(libs.androidx.ui.text.google.fonts)

@@ -56,6 +56,7 @@ class ComferApp : Application(), ImageLoaderFactory {
                 BackupRestoreManager.recoverInterruptedRestore(applicationContext)
                 PreferenceManager.reload(applicationContext)
                 StartupCoordinator.markReady()
+                com.jeerovan.comfer.tasks.TaskReminders.request(applicationContext)
                 Log.i("ComferApp", "Application data initialization complete")
             } catch (e: CancellationException) {
                 throw e

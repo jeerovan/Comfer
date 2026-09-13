@@ -310,7 +310,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                             R.string.backup_success,
                             summary.appListCount,
                             summary.folderCount,
-                        ),
+                        ) + "\n" + resources.getString(R.string.tasks_backup_complete, summary.taskCount ?: 0, summary.taskListCount ?: 0),
                         Toast.LENGTH_LONG,
                     ).show()
                 } catch (error: Exception) {
@@ -715,6 +715,14 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             item {
                 ListItem(
+                    headlineContent = { Text(stringResource(R.string.tasks_title)) },
+                    supportingContent = { Text(stringResource(R.string.tasks_guide)) },
+                    modifier = Modifier.clickable { com.jeerovan.comfer.tasks.TasksActivity.open(context) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                )
+            }
+            item {
+                ListItem(
                     headlineContent = { Text(stringResource(R.string.title_notification_badges)) },
                     supportingContent = { Text(stringResource(R.string.requires_notification_permission)) },
                     leadingContent = {
@@ -975,7 +983,10 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_backup)) },
-                    supportingContent = { Text(stringResource(R.string.backup_summary)) },
+                    supportingContent = {
+                        val taskSnapshot by com.jeerovan.comfer.tasks.TaskStore.state.collectAsState()
+                        Text(stringResource(R.string.backup_summary) + "\n" + stringResource(R.string.tasks_backup_counts, taskSnapshot.tasks.size, taskSnapshot.lists.size))
+                    },
                     leadingContent = {
                         Icon(
                             Icons.Filled.Backup,
@@ -1193,6 +1204,9 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     }
                     Text(stringResource(if (preview.notificationSettingsIncluded)
                         R.string.restore_notification_settings else R.string.restore_no_notification_settings))
+                    Text(if(preview.taskCount == null) stringResource(R.string.tasks_restore_missing)
+                        else if(preview.taskCount == 0) stringResource(R.string.tasks_restore_empty)
+                        else stringResource(R.string.tasks_restore, preview.taskCount, preview.taskListCount ?: 0))
                 }
             },
             confirmButton = {

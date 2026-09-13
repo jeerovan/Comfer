@@ -33,6 +33,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -2656,6 +2657,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 iconSize = iconSize,
                                 iconShape = iconShape,
                                 onCenterAction = onCenterAction,
+                                onShowTasks = { com.jeerovan.comfer.tasks.TasksActivity.open(context) },
                                 showThemedIcon = showThemedIcon,
                                 themedColors = settings.themedColors,
                                 isLightMode = settings.isLightHour,
@@ -4725,7 +4727,8 @@ fun SearchIcon(
     showThemedIcon: Boolean,
     themedColors: WallpaperThemeColors?,
     isLightMode: Boolean,
-    isFolderActive: Boolean = false
+    isFolderActive: Boolean = false,
+    onShowTasks: (() -> Unit)? = null,
 ) {
     val view = LocalView.current
 
@@ -4758,12 +4761,14 @@ fun SearchIcon(
             .background(color = backgroundColor)
             .size(iconSize)
             .scale(0.8f)
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = {
+            .combinedClickable(
+                onLongClickLabel = if (!isFolderActive && onShowTasks != null) stringResource(R.string.tasks_open) else null,
+                onLongClick = if (!isFolderActive) onShowTasks else null,
+                onClick = {
                     view.playSoundEffect(SoundEffectConstants.CLICK)
                     onShowSearch()
-                })
-            },
+                },
+            ),
         contentAlignment = Alignment.Center
     ) {
         Icon(
@@ -5244,6 +5249,7 @@ fun CircularLayout(
     onFolderPosition: ((Offset) -> Unit)? = null,
     showCenter: Boolean = true,
     visibilityTransition: androidx.compose.animation.core.Transition<androidx.compose.animation.EnterExitState>? = null,
+    onShowTasks: (() -> Unit)? = null,
 ) {
     var expansionOrigin by remember { mutableStateOf(Offset.Zero) }
     val radius = iconSize * 1.768f
@@ -5261,7 +5267,8 @@ fun CircularLayout(
             showThemedIcon = showThemedIcon,
             themedColors = themedColors,
             isLightMode = isLightMode,
-            isFolderActive = isFolderActive
+            isFolderActive = isFolderActive,
+            onShowTasks = onShowTasks,
         )
         apps.take(8).forEachIndexed { index, app ->
             val angleRad = Math.toRadians(angles[index].toDouble())
@@ -5320,6 +5327,7 @@ fun FiveColumnLayout(
     iconMotion: FolderIconMotion? = null,
     onFolderPosition: ((Offset) -> Unit)? = null,
     showCenter: Boolean = true,
+    onShowTasks: (() -> Unit)? = null,
 ) {
     val gap = 20.dp
     var expansionOrigin by remember { mutableStateOf(Offset.Zero) }
@@ -5377,7 +5385,8 @@ fun FiveColumnLayout(
                 showThemedIcon = showThemedIcon,
                 themedColors = themedColors,
                 isLightMode = isLightMode,
-                isFolderActive = isFolderActive
+                isFolderActive = isFolderActive,
+                onShowTasks = onShowTasks,
             )
             }
 

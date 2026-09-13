@@ -13,6 +13,7 @@
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Keep Analytics and Crashlytics without advertising identifiers or attribution. -->
     <uses-permission
@@ -80,6 +81,22 @@
             android:name="google_analytics_default_allow_ad_personalization_signals"
             android:value="false" />
         <activity android:name=".notifications.NotificationInboxActivity" android:exported="false" />
+        <activity android:name=".tasks.TasksActivity" android:exported="true" android:label="@string/tasks_title" android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+        <receiver android:name=".tasks.TaskReminderReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
         <service android:name=".notifications.ComferQuietConditionProvider"
             android:label="@string/notification_quiet_rule"
             android:permission="android.permission.BIND_CONDITION_PROVIDER_SERVICE"

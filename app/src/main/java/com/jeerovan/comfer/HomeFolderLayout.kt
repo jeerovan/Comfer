@@ -34,6 +34,7 @@ internal fun HomeFolderLayout(
     onTappingFolder: (String) -> Unit,
     showGestureGuide: Boolean = false,
     showInboxGestureGuide: Boolean = false,
+    onShowTasks: (() -> Unit)? = null,
 ) {
     var folderOrigin by remember { mutableStateOf(Offset.Zero) }
     AnimatedContent(
@@ -60,6 +61,7 @@ internal fun HomeFolderLayout(
             showInboxGestureGuide = current && showInboxGestureGuide,
             expansionKey = folderId, iconMotion = motion,
             onFolderPosition = { folderOrigin = it }, showCenter = current,
+            onShowTasks = onShowTasks,
         ) else FiveColumnLayout(
             displayed, notificationPackages, iconSize, iconShape, onCenterAction,
             showThemedIcon, themedColors, isLightMode,
@@ -68,6 +70,7 @@ internal fun HomeFolderLayout(
             showInboxGestureGuide = current && showInboxGestureGuide,
             expansionKey = folderId, iconMotion = motion,
             onFolderPosition = { folderOrigin = it }, showCenter = current,
+            onShowTasks = onShowTasks,
         )
     }
 }

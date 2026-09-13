@@ -18,10 +18,10 @@ import com.jeerovan.comfer.notifications.*
 class BackupRestoreManagerTest {
 
     @Test fun supportedArchiveVersionsRemainReadableAndFutureVersionIsRejected() {
-        for (version in listOf(1, 2, 3)) {
+        for (version in listOf(1, 2, 3, 4)) {
             val archive = createArchive(validPayload(), formatVersion = version)
             try {
-                if (version <= 2) {
+                if (version <= 3) {
                     assertEquals(version, BackupRestoreManager.readAndValidateArchive("com.jeerovan.comfer", archive, false).manifest.formatVersion)
                 } else assertThrows(InvalidBackupException::class.java) {
                     BackupRestoreManager.readAndValidateArchive("com.jeerovan.comfer", archive, false)

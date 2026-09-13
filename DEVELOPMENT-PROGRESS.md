@@ -1,6 +1,6 @@
 # Development progress
 
-Current feature and release status, updated 2026-09-12. Maintain this document as
+Current feature and release status, updated 2026-09-13. Maintain this document as
 a concise reference: what is available, restrictions, attempted alternatives and
 remaining work. Keep implementation discussions and detailed test output out of
 this file.
@@ -12,6 +12,12 @@ language and the Notifications subtitle's theme color. The subtitle now says
 “home screen” in English and all 34 supported translations. Samsung's installed
 debug build includes these fixes and bounded wallpaper decoding; user acceptance
 is pending. Version code is unchanged.
+
+Tasks is now available in the English test build, opened by long-pressing home
+Search. The latest Tasks debug build is installed on the API-24 emulator; these
+UI revisions were not installed over the regular Samsung app. Version remains
+**49 / 49.0**. Tasks release acceptance remains open, and the earlier 34-locale
+coverage statement below does not include the new Tasks labels.
 
 The previous signed APK/AAB in `app/release/49/` predate these fixes and are stale.
 Refresh signed artifacts and their release checks after acceptance. Nothing has
@@ -58,6 +64,23 @@ Android-compatible resource folders, and Uzbek follows the existing Latin script
 See [Notification Inbox behavior](Notification-Features.md) and
 [storage/privacy](docs/notifications-storage.md) for the full feature reference.
 
+### Tasks and reminders — test build
+
+| Feature | Current behavior |
+|---|---|
+| Entry and layout | Long-press home Search in both layouts; normal tap/folder Close preserved. Browsing and Tasks settings use scroll-away padding for a 360 dp portrait bottom-reach area. No home Tasks panel. |
+| Tasks and lists | Local capture/edit, stars, cross-list search, views, wrapped list/sort sheets and shared add/rename sheet. Guard final list; deletion offers Deleted/Undo for five seconds. |
+| Cards and gestures | Incomplete and Completed each use one enclosing card. Both support matching drag previews in My Order, animated neighbors and cancellation. Swipe deletes; double-tap stars; stationary hold does nothing. |
+| Details | Title/description, due date/time and frequency summary. Schedule/Star/Move/Cancel/Save icons; Move opens a destination sheet and Save commits. No three-dot, completion or Delete button. |
+| Settings | Notification/exact-alarm status, date-only reminder time and privacy. Switch visuals are 70% with full touch targets. No Manual order, panel options or usage guide; Notification settings is not duplicated on Reminder Date. |
+| Reminders | Calendar recurrence, versioned notification actions, snooze, exact/inexact alarm fallback and reboot/permission reconciliation. OEM/permission delivery limits remain. |
+| Persistence and backup | Private Tasks Room schema 2; manual archive format 3 includes Tasks and notification configuration with rollback/recovery. Notification configuration remains SharedPreferences, not Room. System/cloud backup stays disabled. |
+
+[Tasks specification and UI](Tasks-Features.md), [trackable plan](Plan-Tasks.md),
+[storage/backup design](docs/tasks-storage.md), and [validation evidence](docs/tasks-validation.md)
+are the consolidated references. Subtask UI remains deferred, with existing data
+preserved. Settings list ordering and the home panel are removed scope.
+
 ## Restrictions and unavailable features
 
 | Area | Restriction |
@@ -88,6 +111,20 @@ See [Notification Inbox behavior](Notification-Features.md) and
 | Missing WorkManager method simulation | Healthy and deliberately missing-method cases passed on the API-37 emulator. This is controlled compatibility coverage, not affected-OEM verification. |
 
 ## Validation and remaining work
+
+Tasks latest checkpoints (13 September): settings cleanup passed **14 UI tests**
+on API 24; the subsequent thumb-reach correction passed **3 layout tests**.
+Debug/test builds passed and the emulator was updated in place. Earlier **148 JVM
+tests**, persistence/reminder/backup checks on API 24 and Samsung API 30, and
+bounded preview API-37 permission/Doze checks are retained in the Tasks validation
+document. These are separate checkpoints, not a final all-device run.
+
+Tasks phase 9 remains open for hands-on TalkBack/focus, final gesture comfort,
+broader UI/device coverage, physical performance and release acceptance. Manual
+document-provider interaction, long-duration OEM restrictions and actual power
+loss during a write are not certified. Subtask UI has its own unchecked later
+phase. Refresh signed artifacts only after the final acceptance gate; historical
+version-49 release checks below predate Tasks and do not certify this build.
 
 Settings GitHub icon: white circular background with 4 dp inner padding for
 contrast in both light and dark themes.
@@ -209,8 +246,9 @@ These are source fixes or mitigations, not production-verified resolutions.
 Native/system ANRs, text-layout stalls and activity-launch Binder waits remain
 monitoring items where no deterministic first-party cause has been established.
 
-Local device checks and signed-package preparation are complete for version 49.
-Play inspection and staged telemetry remain pending.
+Historical version-49 device checks and signed-package preparation predate the
+latest Tasks changes. The current build still requires its final acceptance gate
+and refreshed signed artifacts; Play inspection and staged telemetry remain pending.
 
 Release requirements:
 

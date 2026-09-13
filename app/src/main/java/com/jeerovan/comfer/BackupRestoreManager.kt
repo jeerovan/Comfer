@@ -29,6 +29,11 @@ import java.util.zip.ZipOutputStream
 import com.jeerovan.comfer.notifications.NotificationPreferences
 import com.jeerovan.comfer.notifications.NotificationSettingsBackup
 import com.jeerovan.comfer.notifications.NotificationQuietHours
+import com.jeerovan.comfer.tasks.TaskSnapshot
+import com.jeerovan.comfer.tasks.TaskStore
+import com.jeerovan.comfer.tasks.TaskReminders
+import com.jeerovan.comfer.tasks.portableTasks
+import com.jeerovan.comfer.tasks.restoredTasks
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -37,11 +42,11 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-private const val BACKUP_FORMAT_VERSION = 2
+private const val BACKUP_FORMAT_VERSION = 3
 private const val MANIFEST_ENTRY = "manifest.json"
 private const val PAYLOAD_ENTRY = "payload.json"
 private const val MAX_ARCHIVE_BYTES = 64L * 1024L * 1024L
-private const val MAX_JSON_BYTES = 5L * 1024L * 1024L
+private const val MAX_JSON_BYTES = 24L * 1024L * 1024L
 private const val MAX_WALLPAPER_BYTES = 32L * 1024L * 1024L
 private const val RESTORE_JOURNAL_FILE = "backup_restore_journal.json"
 private const val RESTORED_WALLPAPER_PREFIX = "comfer_restored_wallpaper_"
@@ -70,6 +75,7 @@ internal data class BackupPayload(
     val room: BackupRoomData,
     val appLocaleTags: String,
     val notifications: NotificationSettingsBackup? = null,
+    val tasks: TaskSnapshot? = null,
 )
 
 @Serializable
@@ -110,6 +116,7 @@ internal data class RestoreJournal(
     val settings: Map<String, String>,
     val room: BackupRoomData,
     val notificationConfiguration: String? = null,
+    val tasks: TaskSnapshot? = null,
 )
 
 data class BackupSummary(
@@ -117,6 +124,8 @@ data class BackupSummary(
     val folderCount: Int,
     val wallpaperIncluded: Boolean,
     val notificationSettingsIncluded: Boolean = false,
+    val taskCount: Int? = null,
+    val taskListCount: Int? = null,
 )
 
 data class RestorePreview(
@@ -126,6 +135,8 @@ data class RestorePreview(
     val folderCount: Int,
     val wallpaperIncluded: Boolean,
     val notificationSettingsIncluded: Boolean = false,
+    val taskCount: Int? = null,
+    val taskListCount: Int? = null,
 )
 
 data class RestoreResult(
@@ -150,9 +161,10 @@ object BackupRestoreManager {
     ): BackupSummary = withContext(Dispatchers.IO) {
         StartupCoordinator.awaitReady()
         NotificationPreferences.withBackupAccess(context) {
+          TaskStore.exclusive(context) { taskSnapshot ->
             val settings = PreferenceManager.snapshotForBackup()
             val room = ComferRepository.snapshot(context).toBackupData()
-            val payload = BackupPayload(settings, room, appLocaleTags, notifications = export())
+            val payload = BackupPayload(settings, room, appLocaleTags, notifications = export(), tasks = taskSnapshot.portableTasks())
             validateBackupPayload(payload)
             val payloadBytes = backupJson.encodeToString(payload).encodeToByteArray()
             requireWithinLimit(payloadBytes.size.toLong(), MAX_JSON_BYTES, "Backup data")
@@ -209,7 +221,10 @@ object BackupRestoreManager {
                 folderCount = room.folders.size,
                 wallpaperIncluded = wallpaperFile != null,
                 notificationSettingsIncluded = true,
+                taskCount = taskSnapshot.tasks.size,
+                taskListCount = taskSnapshot.lists.size,
             )
+          }
         }
     }
 
@@ -229,6 +244,8 @@ object BackupRestoreManager {
                     wallpaperIncluded = validated.shouldRestoreWallpaper &&
                         validated.manifest.wallpaperEntry != null,
                     notificationSettingsIncluded = validated.payload.notifications != null,
+                    taskCount = validated.payload.tasks?.tasks?.size,
+                    taskListCount = validated.payload.tasks?.lists?.size,
                 )
             }
         }
@@ -237,6 +254,7 @@ object BackupRestoreManager {
         withContext(Dispatchers.IO) {
             StartupCoordinator.awaitReady()
             NotificationPreferences.withBackupAccess(context) {
+              TaskStore.exclusive(context) { taskSnapshot ->
                 withStagedArchive(context, source) { archive ->
                     val validated = readAndValidateArchive(
                         expectedPackageName = context.packageName,
@@ -248,7 +266,7 @@ object BackupRestoreManager {
                     val previousNotifications = if (validated.payload.notifications != null) snapshot() else null
                     writeRestoreJournal(
                         context,
-                        RestoreJournal(previousSettings, previousRoom.toBackupData(), previousNotifications),
+                        RestoreJournal(previousSettings, previousRoom.toBackupData(), previousNotifications, if(validated.payload.tasks != null) taskSnapshot else null),
                     )
 
                     var restoredWallpaper: File? = null
@@ -275,6 +293,7 @@ object BackupRestoreManager {
                         ComferRepository.replaceSnapshot(context, portableRoom)
                         PreferenceManager.replaceSnapshot(context, restoredSettings)
                         validated.payload.notifications?.let { restore(it) }
+                        validated.payload.tasks?.let { TaskStore.write(context, it.restoredTasks(taskSnapshot)) }
                         deleteRestoreJournal(context)
                         if (validated.payload.notifications != null) {
                             withContext(NonCancellable) { NotificationQuietHours.reconcile(context) }
@@ -296,6 +315,7 @@ object BackupRestoreManager {
                                 ComferRepository.replaceSnapshot(context, previousRoom)
                                 PreferenceManager.replaceSnapshot(context, previousSettings)
                                 previousNotifications?.let { rollback(it) }
+                                if(validated.payload.tasks != null) TaskStore.write(context, taskSnapshot)
                                 deleteRestoreJournal(context)
                                 if (previousNotifications != null) NotificationQuietHours.reconcile(context)
                             }
@@ -306,19 +326,22 @@ object BackupRestoreManager {
                         throw error
                     }
                 }
+              }
             }
-        }
+        }.also { TaskReminders.request(context) }
 
     /** Restores the pre-operation snapshot if the process stopped mid-restore. */
     suspend fun recoverInterruptedRestore(context: Context) = withContext(Dispatchers.IO) {
         val journalFile = restoreJournalFile(context)
         if (!journalFile.exists()) return@withContext
         NotificationPreferences.withBackupAccess(context) {
+          TaskStore.exclusive(context) {
             try {
                 val journal = backupJson.decodeFromString<RestoreJournal>(journalFile.readText())
                 ComferRepository.replaceSnapshot(context, journal.room.toRoomSnapshot())
                 PreferenceManager.replaceSnapshot(context, journal.settings)
                 journal.notificationConfiguration?.let { rollback(it) }
+                journal.tasks?.let { TaskStore.write(context, it) }
                 deleteRestoreJournal(context)
                 if (journal.notificationConfiguration != null) NotificationQuietHours.reconcile(context)
                 Log.w("BackupRestore", "Recovered data after an interrupted restore")
@@ -326,6 +349,7 @@ object BackupRestoreManager {
                 Log.e("BackupRestore", "Could not recover interrupted restore", error)
                 throw error
             }
+          }
         }
     }
 
@@ -431,6 +455,9 @@ object BackupRestoreManager {
     }
 
     internal fun validateBackupPayload(payload: BackupPayload) {
+        try { payload.tasks?.validate() } catch(error: Exception) {
+            throw InvalidBackupException("Task data is invalid or unsupported", error)
+        }
         try {
             payload.notifications?.validate()
         } catch (error: Exception) {
