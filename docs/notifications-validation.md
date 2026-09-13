@@ -9,6 +9,7 @@ This is the current test map and execution guide. It does not certify a release 
 | Live identity, grouping, revisions, eligibility, reach | `NotificationModelTest` |
 | Literal rules, scope/precedence, saved filtering | `NotificationRulesTest` |
 | Configuration compatibility | `NotificationConfigurationMigrationTest` |
+| Manual backup formats, portable settings, rollback/recovery, clean-data restore | `BackupRestoreManagerTest`, `NotificationBackupRestoreTest`, `NotificationBackupColdStartTest` |
 | Saved ordering/grouping | `SavedNotificationRowsTest` |
 | Local-time, overnight, timezone/DST boundaries | `QuietScheduleTest` |
 | Cross-app listener/actions, history-on-open, snooze, recovery | `NotificationListenerIntegrationTest`, `NotificationListenerRecoveryTest` |
@@ -63,3 +64,11 @@ Change the class to the intended suite. Some tests are emulator-only or have ver
 Record the source revision, build variant, device/API, exact methods, actual pass/fail/skip results, and restored state for any new validation. Inspect the generated report rather than assuming a requested filter ran every class.
 
 Distinguish model tests, mocked/runtime-injected events, and actual device observations. Forced Doze under instrumentation does not establish every long-idle quota; a reboot test does not establish exact recovery latency. Separately inspect screenshots, TalkBack, large fonts, RTL, keyboard navigation, cross-profile/OEM behavior, and audible/vibration effects when relevant. No historical pass count in documentation should substitute for checks against the current build.
+
+## Notification backup / restore checks
+
+Run `BackupRestoreManagerTest` with the normal debug unit-test build. Build device tests with `-PcomferTestBuildType=notificationTest` and run `NotificationBackupRestoreTest` against the isolated `com.jeerovan.comfer.notificationtest` app. It intentionally rejects the production package because restore replaces local stores. Fixtures restore their previous local settings/Room state after each case.
+
+For a fresh-app-data round trip, explicitly run `NotificationBackupColdStartTest#exportFixture` with instrumentation argument `notificationBackupStage=export`. Pull `notification-transfer.zip` from the isolated app's external files directory, clear only that isolated app's data, push the file back, then run `#restoreIntoFreshAppData` with `notificationBackupStage=restore`. Never clear the regular launcher for this test. These staged tests skip normal suite execution.
+
+Verify the archive contains portable preferences and rule/schedule definitions, not notification bodies, collection cursors, runtime IDs, or permission grants. Restore must pause automation, refresh enabled history's cutoff, preserve settings for legacy archives with no section, and recover prior data after failed/interrupted writes. Phase 8 of [Plan-Tasks.md](../Plan-Tasks.md) records the executed validation and its limits.

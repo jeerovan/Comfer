@@ -1191,6 +1191,8 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     if (preview.wallpaperIncluded) {
                         Text(stringResource(R.string.restore_confirmation_wallpaper))
                     }
+                    Text(stringResource(if (preview.notificationSettingsIncluded)
+                        R.string.restore_notification_settings else R.string.restore_no_notification_settings))
                 }
             },
             confirmButton = {

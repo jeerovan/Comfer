@@ -233,6 +233,8 @@
     <string name="restore_confirmation_title">Replace current data?</string>
     <string name="restore_confirmation_message">This backup was created with Comfer %1$s on %2$s. It contains %3$d app lists and %4$d folders. Your current settings, app lists, and folders will be overwritten.</string>
     <string name="restore_confirmation_wallpaper">The backed-up automatic wallpaper will also be restored.</string>
+    <string name="restore_notification_settings">Notification settings, filters, and quiet schedules will also be replaced. Automation stays paused until you review and resume it in Notification inbox settings. If history is enabled, collection starts from now. Saved notifications and Android permissions are not restored.</string>
+    <string name="restore_no_notification_settings">This backup has no notification settings. Your current notification settings will be kept.</string>
     <string name="restore_success">Restore complete. Restarting Comfer…</string>
     <string name="restore_failed">Restore failed; your previous data was kept: %1$s</string>
     <string name="backup_document_picker_unavailable">No compatible file picker is available</string>

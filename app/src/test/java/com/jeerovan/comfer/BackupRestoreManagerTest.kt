@@ -13,8 +13,71 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.jeerovan.comfer.notifications.*
 
 class BackupRestoreManagerTest {
+
+    @Test fun supportedArchiveVersionsRemainReadableAndFutureVersionIsRejected() {
+        for (version in listOf(1, 2, 3)) {
+            val archive = createArchive(validPayload(), formatVersion = version)
+            try {
+                if (version <= 2) {
+                    assertEquals(version, BackupRestoreManager.readAndValidateArchive("com.jeerovan.comfer", archive, false).manifest.formatVersion)
+                } else assertThrows(InvalidBackupException::class.java) {
+                    BackupRestoreManager.readAndValidateArchive("com.jeerovan.comfer", archive, false)
+                }
+            } finally { archive.delete() }
+        }
+    }
+
+    @Test fun notificationSettingsRoundTripWithoutRuntimeState() {
+        val config = NotificationConfiguration(
+            pinned = setOf("0:example.app"), protectedApps = setOf("0:protected.app"), chronological = true,
+            historyEnabled = true, historySince = 123, historyDays = 30,
+            historyExcludedApps = setOf("0:private.app"), generation = 52,
+            quietSchedule = QuietSchedule(enabled = true),
+            rules = listOf(NotificationRule("rule", "Offers", terms = listOf("offer"), enabled = true, observeOnly = false)),
+        )
+        val portable = config.toSettingsBackup()
+        val payload = validPayload().copy(notifications = portable)
+        val archive = createArchive(payload)
+        try {
+            val restored = BackupRestoreManager.readAndValidateArchive("com.jeerovan.comfer", archive, false)
+                .payload.notifications!!
+            assertEquals(portable, restored)
+            val applied = restored.toConfiguration(900)
+            assertTrue(applied.paused)
+            assertEquals(900, applied.historySince)
+            assertEquals(0, applied.generation)
+            assertEquals(config.rules, applied.rules)
+            assertEquals(config.quietSchedule, applied.quietSchedule)
+            val encoded = Json.encodeToString(portable)
+            assertFalse(encoded.contains("historySince"))
+            assertFalse(encoded.contains("generation"))
+            assertFalse(encoded.contains("reachFraction"))
+        } finally { archive.delete() }
+    }
+
+    @Test fun legacyPayloadDoesNotInventNotificationSettings() {
+        val encoded = Json.encodeToString(validPayload())
+        assertFalse(encoded.contains("notifications"))
+        assertEquals(null, Json.decodeFromString<BackupPayload>(encoded).notifications)
+    }
+
+    @Test fun invalidNotificationSettingsRejectedBeforeRestore() {
+        val rule = NotificationRule("same", "Rule", terms = listOf("offer"))
+        listOf(
+            NotificationSettingsBackup(version = 99),
+            NotificationSettingsBackup(historyDays = 365),
+            NotificationSettingsBackup(quietSchedule = QuietSchedule(startMinute = -1)),
+            NotificationSettingsBackup(rules = listOf(rule, rule)),
+            NotificationSettingsBackup(rules = listOf(rule.copy(terms = emptyList()))),
+        ).forEach { settings ->
+            assertThrows(InvalidBackupException::class.java) {
+                BackupRestoreManager.validateBackupPayload(validPayload().copy(notifications = settings))
+            }
+        }
+    }
 
     @Test
     fun suggestedFileNameUsesStablePortableDateFormat() {
@@ -171,12 +234,13 @@ class BackupRestoreManagerTest {
         payloadHash: String? = null,
         wallpaper: ByteArray? = null,
         wallpaperHash: String? = null,
+        formatVersion: Int = 2,
     ): File {
         val json = Json { encodeDefaults = true }
         val payloadBytes = json.encodeToString(payload).encodeToByteArray()
         val wallpaperEntry = wallpaper?.let { "wallpaper/current.img" }
         val manifest = BackupManifest(
-            formatVersion = 1,
+            formatVersion = formatVersion,
             packageName = "com.jeerovan.comfer",
             sourceVersionCode = 44,
             sourceVersionName = "44.0",

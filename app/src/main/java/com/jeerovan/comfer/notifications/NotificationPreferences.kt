@@ -46,12 +46,7 @@ object NotificationPreferences {
         if (preferences != null) return
         val prefs = context.applicationContext.getSharedPreferences("notification_configuration", Context.MODE_PRIVATE)
         mutable.value = runCatching {
-            decodeNotificationConfiguration(prefs.getString("config", null) ?: "{}").also {
-                require(it.version == 2 && it.reachFraction.isFinite() && it.reachFraction in .4f.. .65f && it.reachCap.isFinite() && it.reachCap in 160f..600f && it.reachWidth.isFinite() && it.reachWidth in 240f..600f)
-                require(it.quietSchedule.startMinute in 0..1439 && it.quietSchedule.endMinute in 0..1439 && it.quietSchedule.weekdays.all { day -> day in 1..7 })
-                require(it.historyDays in setOf(1, 7, 30))
-                require(it.rules.size <= 20 && it.rules.all(::validNotificationRule) && it.rules.map { rule -> rule.id }.distinct().size == it.rules.size)
-            }
+            decodeNotificationConfiguration(prefs.getString("config", null) ?: "{}").also(::validateNotificationConfiguration)
         }.getOrElse {
             mutableRecoveryNeeded.value = true
             NotificationConfiguration(setup = true, paused = true)
@@ -70,6 +65,40 @@ object NotificationPreferences {
         writes.withLock { withContext(Dispatchers.IO) { save(transform = transform) } }
     suspend fun reset(): Boolean = writes.withLock {
         withContext(Dispatchers.IO) { save(reset = true) { NotificationConfiguration(setup = it.setup, paused = true) } }
+    }
+
+    /** Holds ordinary preference edits until the complete backup/restore operation finishes. */
+    internal suspend fun <T> withBackupAccess(context: Context, block: suspend BackupAccess.() -> T): T =
+        writes.withLock {
+            withContext(Dispatchers.IO) {
+                initialize(context)
+                BackupAccess().block()
+            }
+        }
+
+    internal class BackupAccess internal constructor() {
+        fun export(): NotificationSettingsBackup {
+            check(!recoveryNeeded.value) { "Notification configuration needs recovery before backup" }
+            return state.value.toSettingsBackup()
+        }
+
+        // Keep raw local data for rollback, including malformed data awaiting user recovery.
+        fun snapshot(): String = preferences!!.getString("config", null) ?: "{}"
+
+        fun restore(value: NotificationSettingsBackup) {
+            value.validate()
+            check(save(reset = true) { value.toConfiguration(System.currentTimeMillis()) }) {
+                "Could not persist restored notification settings"
+            }
+        }
+
+        fun rollback(raw: String) {
+            val restored = runCatching { decodeNotificationConfiguration(raw).also(::validateNotificationConfiguration) }
+            check(preferences!!.edit().putString("config", raw).commit()) { "Could not recover notification settings" }
+            mutable.value = restored.getOrElse { NotificationConfiguration(setup = true, paused = true) }
+                .copy(generation = mutable.value.generation + 1)
+            mutableRecoveryNeeded.value = restored.isFailure
+        }
     }
 }
 

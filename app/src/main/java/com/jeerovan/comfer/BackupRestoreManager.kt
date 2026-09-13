@@ -26,6 +26,10 @@ import java.util.Locale
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
+import com.jeerovan.comfer.notifications.NotificationPreferences
+import com.jeerovan.comfer.notifications.NotificationSettingsBackup
+import com.jeerovan.comfer.notifications.NotificationQuietHours
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
@@ -33,7 +37,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-private const val BACKUP_FORMAT_VERSION = 1
+private const val BACKUP_FORMAT_VERSION = 2
 private const val MANIFEST_ENTRY = "manifest.json"
 private const val PAYLOAD_ENTRY = "payload.json"
 private const val MAX_ARCHIVE_BYTES = 64L * 1024L * 1024L
@@ -65,6 +69,7 @@ internal data class BackupPayload(
     val settings: Map<String, String>,
     val room: BackupRoomData,
     val appLocaleTags: String,
+    val notifications: NotificationSettingsBackup? = null,
 )
 
 @Serializable
@@ -101,15 +106,17 @@ internal data class BackupImageData(
 internal data class BackupSetting(val key: String, val value: String, val type: String)
 
 @Serializable
-private data class RestoreJournal(
+internal data class RestoreJournal(
     val settings: Map<String, String>,
     val room: BackupRoomData,
+    val notificationConfiguration: String? = null,
 )
 
 data class BackupSummary(
     val appListCount: Int,
     val folderCount: Int,
     val wallpaperIncluded: Boolean,
+    val notificationSettingsIncluded: Boolean = false,
 )
 
 data class RestorePreview(
@@ -118,6 +125,7 @@ data class RestorePreview(
     val appListCount: Int,
     val folderCount: Int,
     val wallpaperIncluded: Boolean,
+    val notificationSettingsIncluded: Boolean = false,
 )
 
 data class RestoreResult(
@@ -141,65 +149,68 @@ object BackupRestoreManager {
         appLocaleTags: String,
     ): BackupSummary = withContext(Dispatchers.IO) {
         StartupCoordinator.awaitReady()
-        val settings = PreferenceManager.snapshotForBackup()
-        val room = ComferRepository.snapshot(context).toBackupData()
-        val payload = BackupPayload(settings, room, appLocaleTags)
-        validateBackupPayload(payload)
-        val payloadBytes = backupJson.encodeToString(payload).encodeToByteArray()
-        requireWithinLimit(payloadBytes.size.toLong(), MAX_JSON_BYTES, "Backup data")
+        NotificationPreferences.withBackupAccess(context) {
+            val settings = PreferenceManager.snapshotForBackup()
+            val room = ComferRepository.snapshot(context).toBackupData()
+            val payload = BackupPayload(settings, room, appLocaleTags, notifications = export())
+            validateBackupPayload(payload)
+            val payloadBytes = backupJson.encodeToString(payload).encodeToByteArray()
+            requireWithinLimit(payloadBytes.size.toLong(), MAX_JSON_BYTES, "Backup data")
 
-        val automaticWallpaperEnabled = isAutomaticWallpaperEnabled(settings)
-        val wallpaperFile = if (automaticWallpaperEnabled) {
-            settings[PreferenceManager.PREF_BACKGROUND_IMAGE]
-                ?.let(::File)
-                ?.takeIf(File::isFile)
-        } else {
-            null
-        }
-        if (wallpaperFile != null) {
-            requireWithinLimit(wallpaperFile.length(), MAX_WALLPAPER_BYTES, "Wallpaper")
-        }
-        val wallpaperEntry = wallpaperFile?.let { file ->
-            val extension = file.extension
-                .lowercase(Locale.US)
-                .takeIf { it.matches(Regex("[a-z0-9]{1,5}")) }
-                ?: "img"
-            "wallpaper/current.$extension"
-        }
-        val wallpaperHash = wallpaperFile?.let(::sha256)
-        val manifest = BackupManifest(
-            formatVersion = BACKUP_FORMAT_VERSION,
-            packageName = context.packageName,
-            sourceVersionCode = BuildConfig.VERSION_CODE,
-            sourceVersionName = BuildConfig.VERSION_NAME,
-            createdAtEpochMs = System.currentTimeMillis(),
-            payloadSha256 = sha256(payloadBytes),
-            wallpaperEntry = wallpaperEntry,
-            wallpaperSha256 = wallpaperHash,
-            wallpaperSize = wallpaperFile?.length(),
-        )
-        val manifestBytes = backupJson.encodeToString(manifest).encodeToByteArray()
+            val automaticWallpaperEnabled = isAutomaticWallpaperEnabled(settings)
+            val wallpaperFile = if (automaticWallpaperEnabled) {
+                settings[PreferenceManager.PREF_BACKGROUND_IMAGE]
+                    ?.let(::File)
+                    ?.takeIf(File::isFile)
+            } else {
+                null
+            }
+            if (wallpaperFile != null) {
+                requireWithinLimit(wallpaperFile.length(), MAX_WALLPAPER_BYTES, "Wallpaper")
+            }
+            val wallpaperEntry = wallpaperFile?.let { file ->
+                val extension = file.extension
+                    .lowercase(Locale.US)
+                    .takeIf { it.matches(Regex("[a-z0-9]{1,5}")) }
+                    ?: "img"
+                "wallpaper/current.$extension"
+            }
+            val wallpaperHash = wallpaperFile?.let(::sha256)
+            val manifest = BackupManifest(
+                formatVersion = BACKUP_FORMAT_VERSION,
+                packageName = context.packageName,
+                sourceVersionCode = BuildConfig.VERSION_CODE,
+                sourceVersionName = BuildConfig.VERSION_NAME,
+                createdAtEpochMs = System.currentTimeMillis(),
+                payloadSha256 = sha256(payloadBytes),
+                wallpaperEntry = wallpaperEntry,
+                wallpaperSha256 = wallpaperHash,
+                wallpaperSize = wallpaperFile?.length(),
+            )
+            val manifestBytes = backupJson.encodeToString(manifest).encodeToByteArray()
 
-        val output = context.contentResolver.openOutputStream(destination, "w")
-            ?: throw IOException("The selected backup destination cannot be opened")
-        output.buffered().use { buffered ->
-            ZipOutputStream(buffered).use { zip ->
-                zip.writeEntry(MANIFEST_ENTRY, manifestBytes)
-                zip.writeEntry(PAYLOAD_ENTRY, payloadBytes)
-                if (wallpaperFile != null && wallpaperEntry != null) {
-                    zip.putNextEntry(ZipEntry(wallpaperEntry))
-                    wallpaperFile.inputStream().buffered().use { input ->
-                        input.copyToLimited(zip, MAX_WALLPAPER_BYTES, "Wallpaper")
+            val output = context.contentResolver.openOutputStream(destination, "w")
+                ?: throw IOException("The selected backup destination cannot be opened")
+            output.buffered().use { buffered ->
+                ZipOutputStream(buffered).use { zip ->
+                    zip.writeEntry(MANIFEST_ENTRY, manifestBytes)
+                    zip.writeEntry(PAYLOAD_ENTRY, payloadBytes)
+                    if (wallpaperFile != null && wallpaperEntry != null) {
+                        zip.putNextEntry(ZipEntry(wallpaperEntry))
+                        wallpaperFile.inputStream().buffered().use { input ->
+                            input.copyToLimited(zip, MAX_WALLPAPER_BYTES, "Wallpaper")
+                        }
+                        zip.closeEntry()
                     }
-                    zip.closeEntry()
                 }
             }
+            BackupSummary(
+                appListCount = room.appLists.size,
+                folderCount = room.folders.size,
+                wallpaperIncluded = wallpaperFile != null,
+                notificationSettingsIncluded = true,
+            )
         }
-        BackupSummary(
-            appListCount = room.appLists.size,
-            folderCount = room.folders.size,
-            wallpaperIncluded = wallpaperFile != null,
-        )
     }
 
     suspend fun inspectBackup(context: Context, source: Uri): RestorePreview =
@@ -217,6 +228,7 @@ object BackupRestoreManager {
                     folderCount = validated.payload.room.folders.size,
                     wallpaperIncluded = validated.shouldRestoreWallpaper &&
                         validated.manifest.wallpaperEntry != null,
+                    notificationSettingsIncluded = validated.payload.notifications != null,
                 )
             }
         }
@@ -224,64 +236,75 @@ object BackupRestoreManager {
     suspend fun restoreBackup(context: Context, source: Uri): RestoreResult =
         withContext(Dispatchers.IO) {
             StartupCoordinator.awaitReady()
-            withStagedArchive(context, source) { archive ->
-                val validated = readAndValidateArchive(
-                    expectedPackageName = context.packageName,
-                    archive = archive,
-                    loadWallpaper = true,
-                )
-                val previousSettings = PreferenceManager.snapshotForBackup()
-                val previousRoom = ComferRepository.snapshot(context)
-                writeRestoreJournal(
-                    context,
-                    RestoreJournal(previousSettings, previousRoom.toBackupData()),
-                )
-
-                var restoredWallpaper: File? = null
-                try {
-                    val restoredSettings = validated.payload.settings.toMutableMap()
-                    restoredSettings.remove(PreferenceManager.APPLIED_WALLPAPER_IMAGE)
-                    removeUnavailableUriSettings(context, restoredSettings)
-
-                    if (validated.shouldRestoreWallpaper && validated.wallpaperBytes != null) {
-                        restoredWallpaper = writeRestoredWallpaper(
-                            context,
-                            validated.manifest.wallpaperEntry.orEmpty(),
-                            validated.wallpaperBytes,
-                        )
-                        restoredSettings[PreferenceManager.PREF_BACKGROUND_IMAGE] =
-                            restoredWallpaper.absolutePath
-                    } else {
-                        restoredSettings.remove(PreferenceManager.PREF_BACKGROUND_IMAGE)
-                    }
-
-                    val portableRoom = validated.payload.room
-                        .toRoomSnapshot()
-                        .withOnlyValidWidgetBindings(context)
-                    ComferRepository.replaceSnapshot(context, portableRoom)
-                    PreferenceManager.replaceSnapshot(context, restoredSettings)
-                    deleteRestoreJournal(context)
-
-                    deleteSupersededRestoredWallpaper(
-                        context = context,
-                        previousPath = previousSettings[PreferenceManager.PREF_BACKGROUND_IMAGE],
-                        currentPath = restoredWallpaper?.absolutePath,
+            NotificationPreferences.withBackupAccess(context) {
+                withStagedArchive(context, source) { archive ->
+                    val validated = readAndValidateArchive(
+                        expectedPackageName = context.packageName,
+                        archive = archive,
+                        loadWallpaper = true,
                     )
-                    RestoreResult(
-                        appLocaleTags = validated.payload.appLocaleTags,
-                        restoredWallpaperPath = restoredWallpaper?.absolutePath,
+                    val previousSettings = PreferenceManager.snapshotForBackup()
+                    val previousRoom = ComferRepository.snapshot(context)
+                    val previousNotifications = if (validated.payload.notifications != null) snapshot() else null
+                    writeRestoreJournal(
+                        context,
+                        RestoreJournal(previousSettings, previousRoom.toBackupData(), previousNotifications),
                     )
-                } catch (error: Exception) {
-                    restoredWallpaper?.delete()
+
+                    var restoredWallpaper: File? = null
                     try {
-                        ComferRepository.replaceSnapshot(context, previousRoom)
-                        PreferenceManager.replaceSnapshot(context, previousSettings)
+                        val restoredSettings = validated.payload.settings.toMutableMap()
+                        restoredSettings.remove(PreferenceManager.APPLIED_WALLPAPER_IMAGE)
+                        removeUnavailableUriSettings(context, restoredSettings)
+
+                        if (validated.shouldRestoreWallpaper && validated.wallpaperBytes != null) {
+                            restoredWallpaper = writeRestoredWallpaper(
+                                context,
+                                validated.manifest.wallpaperEntry.orEmpty(),
+                                validated.wallpaperBytes,
+                            )
+                            restoredSettings[PreferenceManager.PREF_BACKGROUND_IMAGE] =
+                                restoredWallpaper.absolutePath
+                        } else {
+                            restoredSettings.remove(PreferenceManager.PREF_BACKGROUND_IMAGE)
+                        }
+
+                        val portableRoom = validated.payload.room
+                            .toRoomSnapshot()
+                            .withOnlyValidWidgetBindings(context)
+                        ComferRepository.replaceSnapshot(context, portableRoom)
+                        PreferenceManager.replaceSnapshot(context, restoredSettings)
+                        validated.payload.notifications?.let { restore(it) }
                         deleteRestoreJournal(context)
-                    } catch (rollbackError: Exception) {
-                        error.addSuppressed(rollbackError)
-                        Log.e("BackupRestore", "Restore rollback failed", rollbackError)
+                        if (validated.payload.notifications != null) {
+                            withContext(NonCancellable) { NotificationQuietHours.reconcile(context) }
+                        }
+
+                        deleteSupersededRestoredWallpaper(
+                            context = context,
+                            previousPath = previousSettings[PreferenceManager.PREF_BACKGROUND_IMAGE],
+                            currentPath = restoredWallpaper?.absolutePath,
+                        )
+                        RestoreResult(
+                            appLocaleTags = validated.payload.appLocaleTags,
+                            restoredWallpaperPath = restoredWallpaper?.absolutePath,
+                        )
+                    } catch (error: Exception) {
+                        restoredWallpaper?.delete()
+                        try {
+                            withContext(NonCancellable) {
+                                ComferRepository.replaceSnapshot(context, previousRoom)
+                                PreferenceManager.replaceSnapshot(context, previousSettings)
+                                previousNotifications?.let { rollback(it) }
+                                deleteRestoreJournal(context)
+                                if (previousNotifications != null) NotificationQuietHours.reconcile(context)
+                            }
+                        } catch (rollbackError: Exception) {
+                            error.addSuppressed(rollbackError)
+                            Log.e("BackupRestore", "Restore rollback failed", rollbackError)
+                        }
+                        throw error
                     }
-                    throw error
                 }
             }
         }
@@ -290,15 +313,19 @@ object BackupRestoreManager {
     suspend fun recoverInterruptedRestore(context: Context) = withContext(Dispatchers.IO) {
         val journalFile = restoreJournalFile(context)
         if (!journalFile.exists()) return@withContext
-        try {
-            val journal = backupJson.decodeFromString<RestoreJournal>(journalFile.readText())
-            ComferRepository.replaceSnapshot(context, journal.room.toRoomSnapshot())
-            PreferenceManager.replaceSnapshot(context, journal.settings)
-            deleteRestoreJournal(context)
-            Log.w("BackupRestore", "Recovered data after an interrupted restore")
-        } catch (error: Exception) {
-            Log.e("BackupRestore", "Could not recover interrupted restore", error)
-            throw error
+        NotificationPreferences.withBackupAccess(context) {
+            try {
+                val journal = backupJson.decodeFromString<RestoreJournal>(journalFile.readText())
+                ComferRepository.replaceSnapshot(context, journal.room.toRoomSnapshot())
+                PreferenceManager.replaceSnapshot(context, journal.settings)
+                journal.notificationConfiguration?.let { rollback(it) }
+                deleteRestoreJournal(context)
+                if (journal.notificationConfiguration != null) NotificationQuietHours.reconcile(context)
+                Log.w("BackupRestore", "Recovered data after an interrupted restore")
+            } catch (error: Exception) {
+                Log.e("BackupRestore", "Could not recover interrupted restore", error)
+                throw error
+            }
         }
     }
 
@@ -331,7 +358,7 @@ object BackupRestoreManager {
                 if (manifest.packageName != expectedPackageName) {
                     throw InvalidBackupException("This backup belongs to a different app")
                 }
-                if (manifest.formatVersion != BACKUP_FORMAT_VERSION) {
+                if (manifest.formatVersion !in 1..BACKUP_FORMAT_VERSION) {
                     throw InvalidBackupException(
                         if (manifest.formatVersion > BACKUP_FORMAT_VERSION) {
                             "This backup was created by a newer, unsupported version"
@@ -404,6 +431,11 @@ object BackupRestoreManager {
     }
 
     internal fun validateBackupPayload(payload: BackupPayload) {
+        try {
+            payload.notifications?.validate()
+        } catch (error: Exception) {
+            throw InvalidBackupException("Notification settings are invalid or unsupported", error)
+        }
         requireUnique(payload.room.appLists.map(BackupAppList::id), "app list")
         requireUnique(payload.room.folders.map(BackupFolder::id), "folder")
         requireUnique(payload.room.widgetPlacements.map(BackupWidgetPlacement::slot), "widget page")

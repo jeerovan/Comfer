@@ -1,6 +1,6 @@
 # Notification Inbox: current features and behavior
 
-Current source reference, 12 September 2026. This document describes the implemented Notification Inbox.
+Current source reference, 13 September 2026. This document describes the implemented Notification Inbox.
 
 ## Entry and navigation
 
@@ -122,9 +122,19 @@ The listener reconciles the full accessible live set, coalesces bursts, and requ
 
 Invalid stored configuration preserves its original data, enters a paused recovery state, and blocks ordinary writes until reset. History storage/encryption failures stop capture, preserve existing files, and leave the live inbox available; explicit saved-data deletion resets history storage.
 
+## Backup and restore
+
+Comfer's manual ZIP backup includes pinned/protected apps, view choice, pause preference, quiet schedule definitions, history enablement/retention/exclusions, and filter rules. Restore previews identify notification settings and explain that automation remains paused until reviewed and resumed in the inbox. If history is enabled, collection restarts at restore time. Saved notification files are not imported; existing copies remain subject to normal retention/exclusion policies.
+
+Archive format 2 includes the versioned settings section. Format-1 archives remain readable; archives without notification settings leave current configuration untouched. Older Comfer builds that only support format 1 cannot read new format-2 backups.
+
+Notification content, source intents, Android permissions, owned DND rule IDs, and active focus deadlines are not exported. Existing destination quiet runtime is reconciled against the restored paused configuration, not replaced with the source device's runtime. System backup exclusions remain unchanged.
+
+Invalid archives are rejected before writes. Notification configuration participates in the restore journal alongside launcher data, supporting rollback after failed writes and recovery after an interrupted restore.
+
 ## Current limits
 
-The inbox provides accessible text/progress and the source open action. It has no inline reply, arbitrary source action buttons, rich-media reconstruction, saved original intents, bookmarks, reminders, digest alerts, regex rules, or Undo. Saved search has no date filter or app-label search. Notification-specific configuration export/import is not integrated with the full-app backup feature; notification text and Android handles are not exported.
+The inbox provides accessible text/progress and the source open action. It has no inline reply, arbitrary source action buttons, rich-media reconstruction, saved original intents, bookmarks, reminders, digest alerts, regex rules, or Undo. Saved search has no date filter or app-label search. Comfer manual backup includes notification settings, rules, and quiet schedule definitions. Notification text and Android handles are not exported.
 
 Behavior depends on notifications Android delivers, source-app actions, profile access, and device DND/alarm behavior. A successful platform request is not a guarantee of its eventual effect.
 

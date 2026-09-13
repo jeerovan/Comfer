@@ -1,6 +1,6 @@
 # Notification storage and privacy
 
-Current implementation reference, 11 September 2026. User-facing behavior is documented in [Notification Inbox](../Notification-Features.md).
+Current implementation reference, 13 September 2026. User-facing behavior is documented in [Notification Inbox](../Notification-Features.md).
 
 ## Data boundaries
 
@@ -12,9 +12,13 @@ Current implementation reference, 11 September 2026. User-facing behavior is doc
 | Saved history | Encrypted per-record AtomicFiles in `noBackupFilesDir/notification-history`. |
 | Recent rule outcomes and capture-gap flag | Process memory; no durable decision log. Rule outcomes do not include notification text. |
 
-Configuration writes are serialized, committed on an IO dispatcher, and published with a new generation only after success. Invalid configuration leaves original bytes intact and exposes a paused recovery state. Ordinary writes are blocked until explicit reset. Version-1 decoding discards retired visibility settings without converting them into destructive rules; supported dismissal rules and DND schedules are retained.
+Configuration writes are serialized, committed on an IO dispatcher, and published with a new generation only after success. Invalid configuration leaves original bytes intact and exposes a paused recovery state. Ordinary writes are blocked until explicit reset or restoration of a valid manual backup. Version-1 decoding discards retired visibility settings without converting them into destructive rules; supported dismissal rules and DND schedules are retained.
 
-The full-app backup uses explicit launcher preference/database DTOs and wallpaper. Notification configuration is not integrated into its payload. History files, notification action handles, quiet runtime, and system grants are not included. Application backup is disabled in the manifest; history also resides in Android's no-backup directory.
+The full-app manual ZIP backup now uses archive format 2 and includes a version-1 `NotificationSettingsBackup` DTO alongside launcher preferences/database DTOs and wallpaper. It exports portable notification settings and rule/schedule definitions, excluding setup/reach compatibility fields, generation, and the history collection cursor. History files, notification action handles, quiet runtime, and system grants are not included. Application backup is disabled in the manifest; history also resides in Android's no-backup directory.
+
+Format-1 archives remain readable. A missing notification section preserves current settings. Present settings are validated before any restore writes; successful restore sets setup complete, pauses automation for review, assigns a fresh local generation, and starts enabled history collection at the current time. Quiet runtime is reconciled with the paused settings without importing another device's DND IDs or focus deadlines.
+
+Notification preference edits share a mutex with backup/restore. The restore journal keeps the original raw local configuration (including corrupt bytes awaiting recovery), so failed commits and interrupted restores can restore both the store and observable state. A valid backup can repair configuration recovery mode; exporting configuration while recovery is needed fails instead of backing up fallback defaults. The journal is private local recovery data, not part of the portable archive.
 
 ## Saved records and encryption
 
