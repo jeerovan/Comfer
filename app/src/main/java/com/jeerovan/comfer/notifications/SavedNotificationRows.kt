@@ -38,13 +38,17 @@ internal fun LazyListScope.savedNotificationItems(
     onCollapse: (String) -> Unit, onSelect: (String) -> Unit, onGroupSelect: (String) -> Unit,
     onOpen: (SavedNotification) -> Unit, onDelete: suspend (SavedNotification) -> Boolean,
 ) {
-    items(savedNotificationRows(copies, chronological, collapsed, pinned), key = { it.key }) { row ->
+    val rows = savedNotificationRows(copies, chronological, collapsed, pinned)
+    items(rows, key = { it.key }) { row ->
         val context = LocalContext.current
         Box(Modifier.animateItem(fadeInSpec = tween(200), placementSpec = tween(250), fadeOutSpec = tween(200))) {
             val copy = row.record
             if (copy != null) {
+                NotificationGuideTarget(listOf(NotificationGuide.CARD_HOLD, NotificationGuide.CARD_SWIPE),
+                    enabled = enabled && selected.isEmpty() && copy.id == rows.firstOrNull { it.record != null }?.record?.id) {
                 SavedNotificationCard(copy, selectionMode = selected.isNotEmpty(), selected = copy.id in selected,
                     enabled = enabled, onSelect = { onSelect(copy.id) }, onOpen = { onOpen(copy) }, onDismiss = { onDelete(copy) })
+                }
             } else {
                 val expanded = row.appId !in collapsed
                 val rotation by animateFloatAsState(if (expanded) 180f else 0f, tween(250), label = "saved-group-caret")

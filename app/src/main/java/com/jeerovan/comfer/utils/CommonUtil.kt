@@ -117,6 +117,8 @@ object CommonUtil {
             Toast.makeText(context, R.string.ui_no_application_to_open_url, Toast.LENGTH_SHORT).show()
         } catch (_: SecurityException) {
             Toast.makeText(context, R.string.ui_permission_denied_to_open_url, Toast.LENGTH_SHORT).show()
+        } catch (_: android.util.AndroidRuntimeException) {
+            Toast.makeText(context, R.string.ui_no_application_to_open_url, Toast.LENGTH_SHORT).show()
         }
     }
     fun getUriPath(encodedUri: String?): String? {

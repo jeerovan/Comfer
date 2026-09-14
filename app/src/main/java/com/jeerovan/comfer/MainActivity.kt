@@ -2733,7 +2733,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
     var searchSwipeDownGestureShown by remember { mutableStateOf(true)}
     var activeTab: SearchTab by remember { mutableStateOf(SearchTab.APPS) }
     val filteredApps by produceState<List<AppInfo>>(
-        initialValue = apps,
+        initialValue = uniqueSearchApps(apps),
         key1 = apps,
         key2 = activeTab,
         key3 = inputText,
@@ -2741,10 +2741,10 @@ fun SearchListOverlay(apps: List<AppInfo>,
         value = if (activeTab == SearchTab.APPS && inputText.isNotBlank()) {
             withContext(Dispatchers.Default) {
                 val query = inputText.trim()
-                apps.filter { app -> doesMatchSearch(query, app.label) }
+                uniqueSearchApps(apps).filter { app -> doesMatchSearch(query, app.label) }
             }
         } else {
-            apps
+            uniqueSearchApps(apps)
         }
     }
     val filteredContacts by produceState<List<Contact>>(
@@ -2946,7 +2946,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                                     items(
                                         items = filteredApps,
                                         key = { app ->
-                                            "${app.componentName?.flattenToString() ?: app.packageName}:${app.user?.hashCode()}"
+                                            app.searchIdentity()
                                         },
                                     ) { app ->
                                         Box(
@@ -3410,7 +3410,7 @@ fun SearchListOverlay(apps: List<AppInfo>,
                             horizontalArrangement = Arrangement.spacedBy(20.dp)
                         ) {
                             items(filteredApps, key = { app ->
-                                "${app.componentName?.flattenToString() ?: app.packageName}:${app.user?.hashCode()}"
+                                app.searchIdentity()
                             }) { app ->
                                 AppIcon(app,
                                     notificationPackages,
@@ -4501,8 +4501,8 @@ fun UshapedAppList(
                     translationX = x
                     translationY = y
                     transformOrigin = TransformOrigin(0f, 0f)
-                    scaleX = renderedSizePx / this.size.width
-                    scaleY = renderedSizePx / this.size.height
+                    scaleX = com.jeerovan.comfer.ui.layerScale(renderedSizePx, this.size.width)
+                    scaleY = com.jeerovan.comfer.ui.layerScale(renderedSizePx, this.size.height)
                 }) {
                     AppIcon(
                         app = apps[appIndex],

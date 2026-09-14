@@ -40,9 +40,9 @@ internal fun SavedNotificationCard(
     val selectLabel = stringResource(R.string.notification_select)
     val dismissLabel = stringResource(R.string.notification_saved_dismiss)
     val preview = remember(record.id, record.text) { NotificationBodyPreviewState() }
-    NotificationSwipeContainer(enabled = enabled, onDismiss = onDismiss) {
+    NotificationSwipeContainer(enabled = enabled, onDismiss = { onDismiss().also { if (it) finishNotificationGuide(context, NotificationGuide.CARD_SWIPE) } }) {
         Card(Modifier.fillMaxWidth().animateContentSize(tween(250)).testTag("saved-copy:${record.id}")
-            .combinedClickable(enabled = enabled, onClick = { if (selectionMode) onSelect() else preview.tap(onOpen) }, onLongClick = { if (!selected) onSelect() }).semantics {
+            .combinedClickable(enabled = enabled, onClick = { if (selectionMode) onSelect() else preview.tap(onOpen) }, onLongClick = { finishNotificationGuide(context, NotificationGuide.CARD_HOLD); if (!selected) onSelect() }).semantics {
             customActions = listOf(CustomAccessibilityAction(dismissLabel) {
                 if (enabled) scope.launch { dismiss() }; enabled
             })

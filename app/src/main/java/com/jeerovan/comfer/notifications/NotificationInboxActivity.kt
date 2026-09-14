@@ -5,8 +5,7 @@ package com.jeerovan.comfer.notifications
 import com.jeerovan.comfer.ui.rememberThumbReach
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 
-import androidx.core.graphics.drawable.toBitmap
-import androidx.compose.ui.graphics.asImageBitmap
+import com.jeerovan.comfer.rememberDrawableBitmapPainter
 import android.content.Context
 import android.content.Intent
 import android.app.ActivityOptions
@@ -131,9 +130,7 @@ fun NotificationHomeEntry(
                 loadNotificationSmallIcon(context, notification)
             }
             Box(Modifier.size(targetSize), contentAlignment = Alignment.Center) {
-                val bitmap = remember(smallIcon) { smallIcon?.let { it.toBitmap() } }
-                if (bitmap != null) NotificationContrastIcon(
-                    remember(bitmap) { androidx.compose.ui.graphics.painter.BitmapPainter(bitmap.asImageBitmap()) }, iconSize, color)
+                NotificationContrastIcon(rememberDrawableBitmapPainter(smallIcon), iconSize, color)
             }
         }
         if (apps.size > visible.size) item {
@@ -513,13 +510,18 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                 } else {
                                     key(item.key, item.revision, snapshot.sessionId) {
                                         val preview = remember { NotificationBodyPreviewState() }
+                                        NotificationGuideTarget(
+                                            listOf(NotificationGuide.CARD_HOLD) + if (canManageNotification(item, config.protectedApps)) listOf(NotificationGuide.CARD_SWIPE) else emptyList(),
+                                            enabled = !busy && !selectionMode && snapshot.health == ListenerHealth.CONNECTED && item.key == displayRows.firstOrNull { it.notification != null }?.notification?.key,
+                                        ) {
                                         NotificationSwipeContainer(
                                             enabled = !busy && snapshot.health == ListenerHealth.CONNECTED && canManageNotification(item, config.protectedApps),
-                                            onDismiss = { performAction(item, "dismiss") },
+                                            onDismiss = { performAction(item, "dismiss").also { if (it) finishNotificationGuide(context, NotificationGuide.CARD_SWIPE) } },
                                         ) {
                                             Card(Modifier.fillMaxWidth().animateContentSize(tween(250)).testTag("notification-card-${item.key}").combinedClickable(
                                                 onClick = { if (selectionMode) toggleSelection(item) else preview.tap { act(item, "open") } },
                                                 onLongClick = {
+                                                    finishNotificationGuide(context, NotificationGuide.CARD_HOLD)
                                                     clearSelectionNotice()
                                                     selectionSession = snapshot.sessionId; selectedSession = snapshot.sessionId
                                                     selections = selections + (item.key to item.revision)
@@ -548,6 +550,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                                     }
                                                 }
                                             }
+                                        }
                                         }
                                     }
                                 }

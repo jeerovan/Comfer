@@ -10,6 +10,11 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import android.content.res.Resources
+import androidx.compose.material3.ColorScheme
+
+internal fun resilientColorScheme(fallback: ColorScheme, dynamic: () -> ColorScheme): ColorScheme =
+    try { dynamic() } catch (_: Resources.NotFoundException) { fallback }
 
 private val DarkColorScheme = darkColorScheme(
     primary = md_theme_dark_primary,
@@ -84,7 +89,9 @@ fun ComferTheme(
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            resilientColorScheme(if (darkTheme) DarkColorScheme else LightColorScheme) {
+                if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            }
         }
 
         darkTheme -> DarkColorScheme

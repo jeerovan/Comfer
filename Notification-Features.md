@@ -90,7 +90,9 @@ New rules start in **Test only** mode. Preview explains matches against current 
 
 A saved reference seeds app/profile and a short editable title or message phrase. It does not recover a historical channel or action handle. The editor can select channels currently available for that app. Locked or deleted saved sources are unavailable for rule creation.
 
-Rules have enable switches; long press edits/previews, Move up changes priority, and swipe requests confirmed deletion. Enabled test-only rules record matches without acting. Among enabled automatic rules, the first matching rule wins. An exception belongs to its rule; it is not a global keep rule.
+Rules have enable switches; tap edits/previews, Move up changes priority, and swipe requests confirmed deletion. Enabled test-only rules record matches without acting. Among enabled automatic rules, the first matching rule wins. An exception belongs to its rule; it is not a global keep rule.
+
+One-time visual gesture guides appear over the first rule card (swipe to delete) and first displayed notification card (hold to select, then swipe to delete). Live and saved notification cards share learning progress. No live swipe guide is shown for protected/unmanageable cards; selection/busy states suppress guides. Guides are touch-transparent, run for six visible/resumed seconds each, and finish early when the corresponding gesture succeeds (rule swipe learns when deletion confirmation opens). They never perform a gesture or deletion themselves. Progress uses device-local `notification_gesture_guides` preferences, separate from portable notification configuration; reinstalling starts guidance again. New guide labels use English fallback pending translation.
 
 Evaluation occurs on fresh posts/updates, with configuration and source content rechecked before cancellation. Saving, resuming, reconnecting, and refreshing do not automatically dismiss the existing backlog. History capture is offered before automatic dismissal. Cancellation cannot guarantee prevention of the original sound/vibration, and no Undo is provided.
 

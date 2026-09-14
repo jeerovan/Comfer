@@ -58,6 +58,8 @@ Scroll-to-reach validation (14 September): **155 JVM tests passed**; 21 distinct
 
 ### Notification Inbox
 
+Version 50 feedback: rule cards now edit on tap. One-time, touch-transparent hand guides teach rule swipe deletion and notification hold-selection/swipe deletion (live and saved). Guide progress is device-local; deletion safeguards remain. Debug/test builds and 14 API-24 guide/rule/saved-card/swipe/layout tests passed. New guide labels currently use English fallback. Samsung installation remains the earlier release until explicitly requested.
+
 | Feature | Current behavior |
 |---|---|
 | Entry | Tap the home notification row or use the down-and-return gesture. |
@@ -285,11 +287,19 @@ Release requirements:
 
 ## Production reporting and issue ledger
 
-Published evidence covers versions 46 and 48; version 49 is prepared locally and has not
-shipped. Keep Play and Crashlytics counts separate. Prioritize Honor
+Published evidence now includes version 49. It shipped without notification-settings
+backup/restore; the local implementation is intended for version 50. Keep Play and Crashlytics counts separate. Prioritize Honor
 startup, WorkManager startup, widget hierarchy failures, icon memory pressure,
 document pickers and package-registration ANRs during release monitoring.
 
 The consolidated database is the ignored `play_reporting.db`; preserve it and
 all ignored SDK, Firebase, signing and reporting credentials. Reporting/import
 commands are in [the reporting guide](scripts/README-play-reporting.md).
+
+Version 50 remediation is tracked in the [issue-fix ledger](docs/release-50-issues.md).
+Record every attempt with its full issue ID, evidence, changed files/commit, test results,
+shipped artifact and later production outcome. Preserve earlier attempts so recurring
+issues can be evaluated against what was actually tried. Local tests do not establish
+production resolution. The ledger includes all 48 version-49 Crashlytics groups and
+the five current first-party mitigations; remaining investigations and release gates
+stay unchecked until verified.

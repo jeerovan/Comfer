@@ -36,7 +36,7 @@ internal fun constrainedBitmapDimensions(
     )
 }
 
-private fun Drawable.toOwnedBitmap(): Bitmap? {
+internal fun Drawable.toOwnedBitmap(): Bitmap? {
     val dimensions = constrainedBitmapDimensions(intrinsicWidth, intrinsicHeight)
     val drawable = constantState?.newDrawable()?.mutate() ?: this
     return try {

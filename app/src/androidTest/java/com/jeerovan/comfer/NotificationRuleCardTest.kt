@@ -20,7 +20,7 @@ class NotificationRuleCardTest {
     }
     @After fun restore() = runBlocking { NotificationPreferences.update { previous }; Unit }
 
-    @Test fun switchLongPressAndConfirmedSwipePreserveRuleUntilConfirmation() {
+    @Test fun switchTapAndConfirmedSwipePreserveRuleUntilConfirmation() {
         var edited: String? = null
         compose.setContent { MaterialTheme { NotificationRulesSettings { edited = it } } }
         val before = NotificationPreferences.state.value.rules.single().enabled
@@ -28,7 +28,7 @@ class NotificationRuleCardTest {
         compose.waitUntil { NotificationPreferences.state.value.rules.single().enabled != before }
         compose.runOnIdle { assertNull(edited) }
         val card = compose.onNodeWithTag("rule-card:card-test")
-        card.performTouchInput { longClick() }
+        card.performTouchInput { click() }
         compose.runOnIdle { assertEquals("card-test", edited) }
         card.performTouchInput { swipeLeft() }
         compose.onNodeWithText("Delete rule?").assertIsDisplayed()
