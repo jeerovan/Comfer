@@ -2546,6 +2546,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                             .testTag("home-gesture-surface")
                             .detectGestures(
                                 onInbox = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     if (activeGuide == HomeGuideStep.INBOX) {
                                         settingsModel.setStepGuideShown(context, inboxGestureKey)
                                         inboxGestureShown = true
@@ -2577,6 +2578,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     }
                                 },
                                 onSwipeLeft = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     val showWidget =
                                         PreferenceManager.getWidgetsOnSwipe(context, "left")
                                     if (showWidget) {
@@ -2589,6 +2591,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     }
                                 },
                                 onSwipeRight = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     val showWidget =
                                         PreferenceManager.getWidgetsOnSwipe(context, "right")
                                     if (showWidget) {
@@ -2601,6 +2604,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     }
                                 },
                                 onCircular = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     val appOnCircularPattern = settings.patternApps["Center"]
                                     if (appOnCircularPattern != null) {
                                         val launchIntent: Intent? =
@@ -2609,6 +2613,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     }
                                 },
                                 onLPatternDetected = { pattern ->
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     val patternApp = settings.patternApps[pattern]
                                     if (patternApp != null) {
                                         val launchIntent: Intent? =

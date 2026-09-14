@@ -1,6 +1,7 @@
 @file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 package com.jeerovan.comfer.tasks
 
+import android.app.ActivityOptions
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
@@ -77,7 +78,9 @@ class TasksActivity : AppCompatActivity() {
     }
     companion object {
         fun open(context: Context, task: String? = null) {
-            context.startActivity(Intent(context, TasksActivity::class.java).putExtra("task", task).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP))
+            val intent = Intent(context, TasksActivity::class.java).putExtra("task", task).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            val transition = ActivityOptions.makeCustomAnimation(context, R.anim.notification_inbox_enter, R.anim.notification_inbox_underlay)
+            context.startActivity(intent, transition.toBundle())
         }
     }
 }
@@ -206,7 +209,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
         "alphabetical" -> rows.sortedWith(compareBy<TaskItem> { it.completedAt != null }.thenBy { it.title.lowercase() })
         else -> rows.sortedWith(compareBy<TaskItem> { it.completedAt != null }.thenBy { it.position }.thenBy { it.createdAt })
     } }
-    Surface(Modifier.fillMaxSize()) {
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface.copy(alpha = .8f), contentColor = MaterialTheme.colorScheme.onSurface, tonalElevation = 0.dp) {
         Column(Modifier.safeDrawingPadding().imePadding().fillMaxSize()) {
             if(route != "browse" && route != "preferences") Text(stringResource(when(route) {
                 "edit" -> R.string.tasks_details; "manage", "listActions" -> R.string.tasks_manage; "preferences" -> R.string.tasks_preferences
@@ -235,10 +238,6 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                                     "overdue" -> stringResource(R.string.tasks_overdue); else -> selected.name
                                 }, Modifier.weight(1f).testTag("tasks-heading").then(if(!searching && view == "selected") Modifier.clickable { listId = selected.id; listName = selected.name; sheet = "listActions" } else Modifier), style = MaterialTheme.typography.headlineSmall)
                                 IconButton(onClick = { sheet = "sort" }) { Icon(Icons.Outlined.Sort, stringResource(R.string.tasks_sort)) }
-                            } }
-                            if (!state.preferences.guidanceDismissed) item { Column {
-                                Text(stringResource(R.string.tasks_guide), Modifier.padding(vertical = 12.dp), style = MaterialTheme.typography.bodyMedium)
-                                TextButton(onClick = { mutate { it.copy(preferences = it.preferences.copy(guidanceDismissed = true)) } }) { Text(stringResource(R.string.tasks_got_it)) }
                             } }
                             if (visible.isEmpty()) item { Text(stringResource(if(query.isNotBlank()) R.string.tasks_no_match else if(view == "starred") R.string.tasks_empty_starred else R.string.tasks_empty), Modifier.padding(vertical = 32.dp)) }
                             val roots = visible.filter { it.parentId == null || visible.none { parent -> parent.id == it.parentId } }
@@ -287,7 +286,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                                     }
                                 }
                             }
-                            item { Card(Modifier.fillMaxWidth().padding(top = 12.dp).testTag("tasks-completed-card"), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
+                            if(visible.any { it.completedAt != null }) item { Card(Modifier.fillMaxWidth().padding(top = 12.dp).testTag("tasks-completed-card"), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
                                 TextButton(onClick = { completedExpanded = !completedExpanded }, modifier = Modifier.fillMaxWidth().testTag("tasks-completed-toggle")) {
                                     Text(stringResource(R.string.tasks_completed) + " · " + visible.count { it.completedAt != null }, Modifier.weight(1f))
                                     Icon(if(completedExpanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, null)

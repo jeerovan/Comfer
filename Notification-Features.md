@@ -147,3 +147,5 @@ Behavior depends on notifications Android delivers, source-app actions, profile 
 - [Rules](app/src/main/java/com/jeerovan/comfer/notifications/NotificationRules.kt), [rule editor](app/src/main/java/com/jeerovan/comfer/notifications/NotificationRulesSettings.kt)
 - [Quiet hours](app/src/main/java/com/jeerovan/comfer/notifications/NotificationQuietHours.kt), [schedule calculation](app/src/main/java/com/jeerovan/comfer/notifications/QuietSchedule.kt)
 - [Storage reference](docs/notifications-storage.md), [behavior scenarios](Notification-Test-Scenarios.md), [test execution](docs/notifications-validation.md)
+
+Home Inbox gesture feedback: a successfully recognized down-and-return gesture requests one system haptic pulse on release before opening Inbox. Incomplete/cancelled gestures do not pulse. Uses the same feedback as left/right and the five home shortcut patterns, respecting system haptic settings.

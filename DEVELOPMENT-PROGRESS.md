@@ -1,6 +1,6 @@
 # Development progress
 
-Current feature and release status, updated 2026-09-13. Maintain this document as
+Current feature and release status, updated 2026-09-14. Maintain this document as
 a concise reference: what is available, restrictions, attempted alternatives and
 remaining work. Keep implementation discussions and detailed test output out of
 this file.
@@ -13,9 +13,14 @@ language and the Notifications subtitle's theme color. The subtitle now says
 debug build includes these fixes and bounded wallpaper decoding; user acceptance
 is pending. Version code is unchanged.
 
+Tasks background follow-up (14 September) matches Inbox’s 80%-opaque theme
+surface over wallpaper. Debug build passed; this follow-up is not installed on
+Samsung. Always update the emulator after app changes; update Samsung only on explicit user request.
+
 Tasks is now available in the English test build, opened by long-pressing home
-Search. The latest Tasks debug build is installed on the API-24 emulator; these
-UI revisions were not installed over the regular Samsung app. Version remains
+Search. The latest Tasks debug build is installed on the API-24 emulator and Samsung
+Galaxy A30 (SM-A305F), with existing app data preserved. Samsung installation
+and Tasks launch succeeded on 13 September; hands-on acceptance remains pending. Version remains
 **49 / 49.0**. Tasks release acceptance remains open, and the earlier 34-locale
 coverage statement below does not include the new Tasks labels.
 
@@ -36,7 +41,7 @@ Android-compatible resource folders, and Uzbek follows the existing Latin script
 
 | Feature | Current behavior |
 |---|---|
-| Home gestures | Configurable left/right and existing quick-pattern actions. The shared parent accepts swipes starting over app icons or Search in CircularLayout and FiveColumnLayout; taps and child scrolling keep their own handlers. |
+| Home gestures | Configurable left/right and existing quick-pattern actions. Recognized left/right, circle, four corner patterns and Inbox return each request one system haptic pulse on release, respecting device feedback settings. The shared parent accepts swipes starting over app icons or Search in CircularLayout and FiveColumnLayout; taps and child scrolling keep their own handlers. |
 | Inbox gesture | One finger down, then back up, opens Notification Inbox from the home quick list. Fires on release; incomplete deliberate returns cancel without also triggering swipe up/down. |
 | Home gesture guides | Swipe up → long-press settings → long-press widgets → double-tap Recents → Inbox down-and-return → tap clock → long-press clock. Inbox is shown even without notification access; the Inbox screen requests access when opened. Clock steps are skipped when no built-in clock is shown. Its text-free hand animation follows a 120 dp path across Search in both quick-app layouts, raised for navigation-bar clearance and repeats until the gesture is completed correctly; completion is remembered. |
 | App drawer | U-shaped layout, adjustable scrolling sensitivity, fling interruption, centred-app double-tap launch and folders. |
@@ -68,9 +73,9 @@ See [Notification Inbox behavior](Notification-Features.md) and
 
 | Feature | Current behavior |
 |---|---|
-| Entry and layout | Long-press home Search in both layouts; normal tap/folder Close preserved. Browsing and Tasks settings use scroll-away padding for a 360 dp portrait bottom-reach area. No home Tasks panel. |
+| Entry and layout | Long-press home Search in both layouts; normal tap/folder Close preserved. Browsing and Tasks settings use scroll-away padding for a 360 dp portrait bottom-reach area. Opens with Inbox’s 300 ms bottom-up slide over a stationary underlay. No home Tasks panel or first-use Tasks guide/Got it prompt. |
 | Tasks and lists | Local capture/edit, stars, cross-list search, views, wrapped list/sort sheets and shared add/rename sheet. Guard final list; deletion offers Deleted/Undo for five seconds. |
-| Cards and gestures | Incomplete and Completed each use one enclosing card. Both support matching drag previews in My Order, animated neighbors and cancellation. Swipe deletes; double-tap stars; stationary hold does nothing. |
+| Cards and gestures | Incomplete and Completed each use one enclosing card. Completed is hidden when the current list/Starred/search has no completed tasks. Both support matching drag previews in My Order, animated neighbors and cancellation. Swipe deletes; double-tap stars; stationary hold does nothing. |
 | Details | Title/description, due date/time and frequency summary. Schedule/Star/Move/Cancel/Save icons; Move opens a destination sheet and Save commits. No three-dot, completion or Delete button. |
 | Settings | Notification/exact-alarm status, date-only reminder time and privacy. Switch visuals are 70% with full touch targets. No Manual order, panel options or usage guide; Notification settings is not duplicated on Reminder Date. |
 | Reminders | Calendar recurrence, versioned notification actions, snooze, exact/inexact alarm fallback and reboot/permission reconciliation. OEM/permission delivery limits remain. |
@@ -112,7 +117,12 @@ preserved. Settings list ordering and the home panel are removed scope.
 
 ## Validation and remaining work
 
-Tasks latest checkpoints (13 September): settings cleanup passed **14 UI tests**
+Home haptic feedback (14 September): debug/test builds and **11 API-24 gesture/routing tests passed** (HomeGestureInputTest and InboxHomeGestureRoutingTest). Feedback is requested once in recognized left/right, circle/corner and Inbox callbacks. Incomplete/cancelled paths retain existing no-action behavior. Physical vibration strength/feel was not tested; Samsung was not updated.
+
+Tasks latest check (14 September): empty Completed card regression reproduced
+before the fix; all **16 Tasks UI tests** passed afterward on API 24.
+
+Earlier Tasks checkpoints (13 September): settings cleanup passed **14 UI tests**
 on API 24; the subsequent thumb-reach correction passed **3 layout tests**.
 Debug/test builds passed and the emulator was updated in place. Earlier **148 JVM
 tests**, persistence/reminder/backup checks on API 24 and Samsung API 30, and

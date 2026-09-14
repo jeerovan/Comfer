@@ -1,6 +1,6 @@
 # Tasks implementation plan
 
-Updated 13 September 2026. Current requirements: [Tasks-Features.md](Tasks-Features.md). Technical design: [storage](docs/tasks-storage.md). Actual runs and limitations: [validation](docs/tasks-validation.md). Repository-wide release status: [DEVELOPMENT-PROGRESS.md](DEVELOPMENT-PROGRESS.md).
+Updated 14 September 2026. Current requirements: [Tasks-Features.md](Tasks-Features.md). Technical design: [storage](docs/tasks-storage.md). Actual runs and limitations: [validation](docs/tasks-validation.md). Repository-wide release status: [DEVELOPMENT-PROGRESS.md](DEVELOPMENT-PROGRESS.md).
 
 This plan tracks the current test-build scope, not superseded UI iterations. English labels are approved for this build; localized dates/times and RTL remain included. Completion of implementation does not imply release acceptance.
 
@@ -21,9 +21,15 @@ This plan tracks the current test-build scope, not superseded UI iterations. Eng
 
 ## Current refinement checklist
 
+- [x] Reuse Inbox’s 300 ms bottom-up entry animation and stationary underlay for launcher Tasks entry points.
+
+- [x] Match Notification Inbox’s 80%-opaque theme surface over wallpaper across Tasks.
+
 - [x] Five-icon browsing bar, wrapped list/sort sheets and conditional search Clear.
+- [x] Remove first-use browsing guide and Got it button; retain stored guidance preference only for compatibility.
 - [x] Add/rename list share a sheet; Add hides Delete; no Manage lists in selection.
 - [x] Both task cards share lifted-row/animated-neighbor/border-free drag feedback; persist only on drop.
+- [x] Hide Completed card when current list, Starred or search results have zero completed tasks; regression reproduced before fix, all 16 Tasks UI cases passed afterward on API 24.
 - [x] Stationary long-press does nothing. Move is beside Star in details and edits the draft through a sheet.
 - [x] Details starts with Title; no three-dot, completion or Delete button and no inline list section.
 - [x] Repeat displays frequency; Done actions use check icons; date/time remain draft until Save.
@@ -56,4 +62,6 @@ Existing subtask data remains intact. Broader label translations are outside the
 
 Use Not started, In progress, Blocked or Complete; check work only after implementation and relevant verification. Record device/API, actual results and remaining limits in the validation document rather than appending duplicate execution logs here.
 
-Latest settings cleanup: debug/test builds and 14 TaskRedesignTest cases passed on API 24. Subsequent thumb-reach correction: builds and 3 TaskLayoutTest cases passed on API 24. Earlier full JVM suite: 148 passed; earlier persistence/backup checks include API 24, Samsung API 30 and preview API 37. These are separate checkpoints, not one final all-device run. Regular debug installed on emulator-5554 with user data preserved; latest Tasks revisions were not installed over the regular physical app.
+Latest settings cleanup: debug/test builds and 14 TaskRedesignTest cases passed on API 24. Subsequent thumb-reach correction: builds and 3 TaskLayoutTest cases passed on API 24. Earlier full JVM suite: 148 passed; earlier persistence/backup checks include API 24, Samsung API 30 and preview API 37. These are separate checkpoints, not one final all-device run. Regular debug installed on emulator-5554 with user data preserved; the latest Tasks debug build was also installed in place on Samsung Galaxy A30 on 13 September, and Tasks launched successfully. Physical UI acceptance remains pending.
+
+Device deployment preference: always update the emulator after app changes with the latest successful build, preserving app data. Update Samsung only when the user explicitly asks.

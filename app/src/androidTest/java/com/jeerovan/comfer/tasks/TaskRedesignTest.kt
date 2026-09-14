@@ -17,6 +17,33 @@ class TaskRedesignTest {
         compose.setContent { MaterialTheme { TasksScreen({}) } }
         compose.waitUntil(10000) { compose.onAllNodesWithTag("tasks-list-picker").fetchSemanticsNodes().isNotEmpty() }
     }
+    @Test fun emptyCompletedCardIsAbsentAcrossTaskStarredAndSearchViews() {
+        show()
+        compose.onNodeWithTag("tasks-completed-card").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Star").performClick()
+        compose.onNodeWithTag("tasks-completed-card").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Search tasks").performClick()
+        compose.onNodeWithContentDescription("Include completed").performClick()
+        compose.onNodeWithTag("tasks-completed-card").assertDoesNotExist()
+    }
+    @Test fun completedCardUsesCurrentListStarAndSearchFilters() {
+        show(listOf(TaskItem(id = "active", listId = "tasks", title = "Active", starred = true), TaskItem(id = "done", listId = "work", title = "Finished", completedAt = System.currentTimeMillis())))
+        compose.onNodeWithTag("tasks-completed-card").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Star").performClick()
+        compose.onNodeWithTag("tasks-completed-card").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Search tasks").performClick()
+        compose.onNodeWithTag("tasks-completed-card").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Include completed").performClick()
+        compose.onNodeWithTag("tasks-list").performScrollToNode(hasTestTag("tasks-completed-card"))
+        compose.onNodeWithTag("tasks-completed-card").assertIsDisplayed()
+        compose.onNodeWithTag("tasks-search-input").performTextInput("Active")
+        compose.onNodeWithTag("tasks-completed-card").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Clear search").performClick()
+        compose.onNodeWithTag("tasks-list").performScrollToNode(hasTestTag("tasks-completed-card"))
+        compose.onNodeWithTag("tasks-completed-card").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Include completed").performClick()
+        compose.onNodeWithTag("tasks-completed-card").assertDoesNotExist()
+    }
     @Test fun searchCrossesListsAndToggleReturnsToSelectedList() {
         show(listOf(TaskItem(id = "other", listId = "work", title = "Elsewhere")))
         compose.onNodeWithText("Elsewhere").assertDoesNotExist()
@@ -37,6 +64,7 @@ class TaskRedesignTest {
         compose.onNodeWithTag("tasks-completed-list").performScrollToNode(hasText("Finished"))
         compose.onNodeWithContentDescription("Reopen: Finished").performClick()
         compose.waitUntil(10000) { TaskStore.state.value.tasks.single().completedAt == null }
+        compose.onNodeWithTag("tasks-completed-card").assertDoesNotExist()
     }
     @Test fun detailsMoveSheetMovesParentAndChildrenAndBackCancels() {
         show(listOf(TaskItem(id = "parent", listId = "tasks", title = "Parent"), TaskItem(id = "child", listId = "tasks", parentId = "parent", title = "Child")))

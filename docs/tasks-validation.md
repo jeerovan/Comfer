@@ -6,7 +6,7 @@ This is the first test build, using **English labels as explicitly selected by t
 
 - Settings cleanup: debug/test builds and **14 TaskRedesignTest cases passed** on API 24.
 - Subsequent settings thumb-reach fix: debug/test builds and **3 TaskLayoutTest cases passed** on API 24.
-- Regular debug APK installed in place on emulator-5554, preserving user tasks. Disposable test packages removed. Latest UI revisions were not installed over the regular physical app.
+- Regular debug APK installed in place on emulator-5554, preserving user tasks. Disposable test packages removed. Latest UI revisions were subsequently installed in place on Samsung Galaxy A30 on 13 September; installation and Tasks launch succeeded. This installation is not a new physical regression-test run.
 - The full **148 JVM test** result and API-24/API-30/API-37 persistence/reminder checks below predate the latest UI-only edits. Counts overlap between checkpoints; do not sum them as unique final-build coverage.
 - No final release certification: TalkBack/focus quality, broader final UI orientations, physical gesture performance, long-duration OEM behavior, document-picker walkthrough and actual process kill during a multi-store write remain open.
 
@@ -102,3 +102,19 @@ The initial audit found notification configuration in `notification_configuratio
 - Manual system document-picker interaction, OEM DND cleanup with granted policy access and forced termination during an actual write were not verified. Staged journal recovery is not a power-loss test.
 
 Run debug unit tests separately from the `-PcomferTestBuildType=notificationTest` instrumentation override. Use isolated packages for destructive fixtures and in-place installation for the user's regular build.
+
+## First-use guide removal — 13 September 2026
+
+Removed the browsing guide and Got it UI regardless of the stored guidance preference; no data migration needed. Debug build and whitespace checks passed. This small UI removal was source-checked; instrumentation was not rerun.
+
+## Empty Completed card — 14 September 2026
+
+New empty-view regression failed before the fix because tasks-completed-card existed with zero tasks. After gating the card on completed tasks in the filtered view, all **16 TaskRedesignTest cases passed** on API 24. Coverage includes empty Tasks/Starred/Search, completed tasks outside the selected list/star filter, Include completed toggling, matching/nonmatching search and disappearance after reopening the last completed task. Debug/test builds and whitespace checks passed.
+
+## Inbox background parity — 14 September 2026
+
+Tasks root surface now matches Inbox: theme surface at 0.8 alpha, onSurface content color and zero tonal elevation. Both activities inherit the wallpaper-backed transparent window theme. Debug build and whitespace checks passed. This cosmetic change was source-verified; no instrumentation or device visual check was run. Samsung was not updated; future Samsung installs require an explicit request.
+
+## Tasks entry slide — 14 September 2026
+
+TasksActivity.open now uses the same ActivityOptions and animation resources as Notification Inbox: 300 ms bottom-up translation with stationary underlay. Launcher Search long-press and Settings Tasks entry use this helper. Debug build and whitespace checks passed; animation parity was source-checked, not separately instrumented. External share/notification launches are outside this helper change. Samsung was not updated.
