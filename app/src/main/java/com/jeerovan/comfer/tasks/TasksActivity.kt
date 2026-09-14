@@ -1,6 +1,9 @@
 @file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 package com.jeerovan.comfer.tasks
 
+import com.jeerovan.comfer.ui.rememberThumbReach
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+
 import android.app.ActivityOptions
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
@@ -44,6 +47,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.animateContentSize
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -230,13 +235,27 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                     val top = if (landscape) 0.dp else (maxHeight.value + bottom - reachableHeightDp(maxHeight.value + bottom)).coerceAtLeast(0f).dp
                     savedViews.SaveableStateProvider("browse:$view:${selected.id}") {
                         val scroll = rememberLazyListState()
-                        LazyColumn(Modifier.fillMaxSize().testTag("tasks-list"), state = scroll, contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = top, bottom = 12.dp)) {
+                        val reach = rememberThumbReach(top)
+                        val reachTop = with(LocalDensity.current) { reach.offset.toDp() }
+                        LazyColumn(Modifier.fillMaxSize().nestedScroll(reach).testTag("tasks-list"), state = scroll, contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = reachTop, bottom = 12.dp)) {
                             item { Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(Modifier.weight(1f)) {
+                                Box(Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp), contentAlignment = Alignment.CenterStart) {
                                 Text(if(searching) stringResource(R.string.tasks_search) else when(view) {
                                     "starred" -> stringResource(R.string.tasks_starred); "all" -> stringResource(R.string.tasks_all)
                                     "today" -> stringResource(R.string.tasks_today); "upcoming" -> stringResource(R.string.tasks_upcoming)
                                     "overdue" -> stringResource(R.string.tasks_overdue); else -> selected.name
-                                }, Modifier.weight(1f).testTag("tasks-heading").then(if(!searching && view == "selected") Modifier.clickable { listId = selected.id; listName = selected.name; sheet = "listActions" } else Modifier), style = MaterialTheme.typography.headlineSmall)
+                                }, Modifier.widthIn(min = 48.dp).testTag("tasks-heading").then(if(!searching && view == "selected") Modifier.clickable {
+                                    listId = selected.id; listName = selected.name; sheet = "listActions"
+                                    if(!state.preferences.listGuideShown) mutate { it.copy(preferences = it.preferences.copy(listGuideShown = true)) }
+                                } else Modifier), style = MaterialTheme.typography.headlineSmall)
+                                if(!searching && view == "selected" && sheet == null && !state.preferences.listGuideShown) {
+                                    TaskGestureGuide(TaskGuide.LIST, 0f, Modifier.align(Alignment.Center)) {
+                                        scope.launch { runCatching { TaskStore.change(context) { it.copy(preferences = it.preferences.copy(listGuideShown = true)) } }.onFailure { snackbar.showSnackbar(it.localizedMessage ?: "Could not save guide progress") } }
+                                    }
+                                }
+                                }
+                                }
                                 IconButton(onClick = { sheet = "sort" }) { Icon(Icons.Outlined.Sort, stringResource(R.string.tasks_sort)) }
                             } }
                             if (visible.isEmpty()) item { Text(stringResource(if(query.isNotBlank()) R.string.tasks_no_match else if(view == "starred") R.string.tasks_empty_starred else R.string.tasks_empty), Modifier.padding(vertical = 32.dp)) }
@@ -248,7 +267,8 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                                     val cardScroll = rememberLazyListState()
                                     var preview by remember { mutableStateOf<TaskDragPreview?>(null) }
                                     LaunchedEffect(state.tasks) { preview = null }
-                                    Box {
+                                    var cardVisible by remember { mutableStateOf(false) }
+                                    Box(Modifier.onGloballyPositioned { cardVisible = it.boundsInWindow().height > 0f }) {
                                     val density = LocalDensity.current
                                     LazyColumn(Modifier.fillMaxWidth().heightIn(max = cardMaxHeight).testTag("tasks-incomplete-list"), state = cardScroll) {
                             items(displayed, key = { it.id }) { item ->
@@ -283,6 +303,22 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                             }
                                     }
                                     preview?.let { drag -> Box(Modifier.fillMaxWidth().offset { androidx.compose.ui.unit.IntOffset(0, drag.top) }.height(with(density) { drag.height.toDp() }).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f), MaterialTheme.shapes.medium).testTag("tasks-drop-target")) }
+                                    val guide = if(cardVisible && state.preferences.listGuideShown && sheet == null && !searching && view == "selected" && preview == null) nextTaskGuide(displayed, state.preferences) else null
+                                    val rows = cardScroll.layoutInfo.visibleItemsInfo.filter { info -> displayed.any { it.id == info.key && it.completedAt == null } && info.offset >= 0 && info.offset + info.size <= cardScroll.layoutInfo.viewportEndOffset }
+                                    val source = rows.firstOrNull()
+                                    val sourceTask = displayed.find { it.id == source?.key }
+                                    val target = rows.drop(1).firstOrNull { info -> displayed.any { it.id == info.key && it.listId == sourceTask?.listId && it.parentId == sourceTask?.parentId } }
+                                    if(guide != null && source != null && (guide == TaskGuide.SWIPE || target != null)) {
+                                        key(guide, source.key) {
+                                            TaskGestureGuide(guide, target?.let { it.offset + it.size / 2f - (source.offset + source.size / 2f) } ?: 0f,
+                                                Modifier.align(Alignment.TopCenter).offset { androidx.compose.ui.unit.IntOffset(0, source.offset + source.size / 2 - with(density) { 24.dp.roundToPx() }) }) {
+                                                scope.launch {
+                                                    runCatching { TaskStore.change(context) { snapshot -> snapshot.copy(preferences = if(guide == TaskGuide.SWIPE) snapshot.preferences.copy(swipeGuideShown = true) else snapshot.preferences.copy(reorderGuideShown = true)) } }
+                                                        .onFailure { snackbar.showSnackbar(it.localizedMessage ?: "Could not save guide progress") }
+                                                }
+                                            }
+                                        }
+                                    }
                                     }
                                 }
                             }
@@ -369,7 +405,9 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                 val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
                 val bottom = with(LocalDensity.current) { controlsHeight.toDp().value }
                 val reachPadding = if(route != "preferences" || landscape) 0.dp else (maxHeight.value + bottom - reachableHeightDp(maxHeight.value + bottom)).coerceAtLeast(0f).dp
-                Column(Modifier.fillMaxSize().testTag("tasks-settings-scroll").verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, top = reachPadding, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                val reach = rememberThumbReach(reachPadding)
+                val reachTop = with(LocalDensity.current) { reach.offset.toDp() }
+                Column(Modifier.fillMaxSize().nestedScroll(reach).testTag("tasks-settings-scroll").verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, top = reachTop, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if(route == "preferences") Text(stringResource(R.string.tasks_preferences), Modifier.testTag("tasks-settings-heading"), style = MaterialTheme.typography.titleLarge)
                     when (route) {
                         "choose" -> {
@@ -574,12 +612,7 @@ internal fun reorderTask(state: TaskSnapshot, id: String, delta: Int): TaskSnaps
     val dragProgress by rememberUpdatedState(onDragProgress)
     val dragFinished by rememberUpdatedState(onDragFinished)
     var holding by remember { mutableStateOf(false) }
-    val rowScope = rememberCoroutineScope()
-    var tapJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
-    DisposableEffect(Unit) { onDispose { tapJob?.cancel() } }
-    var lastTap by remember { mutableLongStateOf(0) }
     val openTask by rememberUpdatedState(onOpen)
-    val starTask by rememberUpdatedState(onStar)
     val openLabel = stringResource(R.string.tasks_details)
     var rowHeight by remember { mutableIntStateOf(1) }
     val focus = remember { FocusRequester() }
@@ -602,11 +635,9 @@ internal fun reorderTask(state: TaskSnapshot, id: String, delta: Int): TaskSnaps
                 if(released) {
                     if(up != null) {
                         up.consume()
-                        if(tapJob?.isActive == true && up.uptimeMillis - lastTap <= viewConfiguration.doubleTapTimeoutMillis) { tapJob?.cancel(); lastTap = 0; starTask() }
-                        else { lastTap = up.uptimeMillis; tapJob = rowScope.launch { delay(viewConfiguration.doubleTapTimeoutMillis); openTask() } }
+                        openTask()
                     }
                 } else {
-                    tapJob?.cancel()
                     movement = 0f
                     holding = state.preferences.sort == "manual"
                     if(holding) dragProgress(0f)

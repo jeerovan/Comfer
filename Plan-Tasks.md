@@ -9,10 +9,10 @@ This plan tracks the current test-build scope, not superseded UI iterations. Eng
 | Phase | Deliverable | Status | Evidence / remaining work |
 |---|---|---|---|
 | 0 | Entry and backup audit | Complete | Identified Search entry and notification configuration backup gap; remediation completed in phase 8. |
-| 1 | Local model and persistence | Complete | Room schema 2; explicit 1→2 migration, concurrent writes, rollback, Undo and 2,500-row checks. |
+| 1 | Local model and persistence | Complete | Room schema 4; explicit 1→2→3→4 migrations, concurrent writes, rollback, Undo and 2,500-row checks. |
 | 2 | Entry and reachable shell | Complete | Search long-press in both home layouts; ordinary tap/folder Close preserved. Shared reach applied to browsing and settings. |
 | 3 | Capture, lists, views and search | Complete | Draft Save/Cancel, shared add/rename sheet, list deletion/Undo, wrapped selectors, five-icon bar and sorting. |
-| 4 | Gestures and completion history | Complete for current scope | Actual incomplete/Completed cards, matching drag preview, tap/double-tap, swipe deletion and five-second Undo. Subtask UI deferred below. |
+| 4 | Gestures and completion history | Complete for current scope | Actual incomplete/Completed cards, matching drag preview, tap-to-open, swipe deletion and five-second Undo. Subtask UI deferred below. |
 | 5 | Dates and recurrence | Complete | Native pickers, calendar boundaries, recurring scope, frequency summaries and check-icon Done controls. |
 | 6 | Reminder delivery/recovery | Complete for tested scope | Versioned notifications, exact/inexact scheduling, permission and reboot recovery; device limits remain. |
 | 7 | Task backup/restore | Complete | Format 3, real ZIP round trips, empty/missing sections, rollback/journal and cross-device transfer. |
@@ -20,6 +20,12 @@ This plan tracks the current test-build scope, not superseded UI iterations. Eng
 | 9 | Integration and release acceptance | In progress | Test build installed on emulator. Hands-on accessibility, final device/performance and release acceptance remain open. |
 
 ## Current refinement checklist
+
+- [x] First-open tap hand on the concrete list name teaches Rename/Delete; dismiss after demonstration or actual tap, with persistent progress.
+
+- [x] Add contextual swipe-delete and hold-drag visual hints with persistent shown flags; six-second demonstrations never mutate task data.
+
+- [x] Remove double-tap starring and its navigation delay; retain explicit Star controls.
 
 - [x] Reuse Inbox’s 300 ms bottom-up entry animation and stationary underlay for launcher Tasks entry points.
 
@@ -36,7 +42,7 @@ This plan tracks the current test-build scope, not superseded UI iterations. Eng
 - [x] Notification settings appears only in Tasks settings; remove Manual order, panel controls and usage guide there.
 - [x] Search/settings switches use 70% visuals with minimum 48 dp targets.
 - [x] Home no longer renders the Tasks panel, regardless of legacy preference values.
-- [x] Settings heading and reach padding scroll away; portrait uses the shared 360 dp bottom area, landscape omits padding.
+- [x] Tasks browsing/settings start at the top. Pull down at the top to reveal the 360 dp bottom-reach area; scroll up to remove the space. Shared implementation with Inbox and launcher Settings; landscape adds none.
 - [x] English test build and share-draft integration delivered; retain legacy subtask data without exposing creation/nesting controls.
 
 ## Phase 9 remaining release gate
@@ -66,4 +72,10 @@ Latest settings cleanup: debug/test builds and 14 TaskRedesignTest cases passed 
 
 Device deployment preference: always update the emulator after app changes with the latest successful build, preserving app data. Update Samsung only when the user explicitly asks.
 
+14 September scroll-to-reach: shared full-height entry and downward pull-to-reach implemented across Inbox, launcher Settings, Tasks browsing and Tasks settings. 155 JVM tests passed; 21 distinct API-24 layout/gesture/guide cases passed across initial and focused reruns. See the latest validation checkpoint for corrected assertions and remaining physical-device limits.
+
 14 September reminder verification: existing scheduled date/time delivery and Complete notification action confirmed by a new real AlarmManager/PendingIntent regression. All 148 JVM tests and 14 API-24 persistence/reminder cases passed; no production code changes needed.
+
+14 September contextual guides: 152 JVM tests passed; migration/gesture/reminder checks passed in the initial broader run. A backup test fixture was corrected to retain wallpaper bytes; focused guide/layout/backup rerun passed 7 tests. Final guide motion/one-time/tap-through suite passed 4 tests. Schema 3 preserves prior data and backups include guide flags.
+
+14 September list-name hint: 152 JVM tests passed; 24 UI cases passed across final run and corrected selector rerun. Schema 1/2/3→4 migrations and guide-progress backup passed. Screenshot reviewed; emulator updated, Samsung unchanged.

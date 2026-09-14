@@ -2,6 +2,9 @@
 
 package com.jeerovan.comfer
 
+import com.jeerovan.comfer.ui.rememberThumbReach
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+
 import com.jeerovan.comfer.utils.FlowerShape
 import android.Manifest
 import android.app.Activity
@@ -438,10 +441,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().testTag("settings-viewport")) {
         val landscape = maxWidth > maxHeight
         val startPadding = if (landscape) 0.dp else (maxHeight.value - reachableHeightDp(maxHeight.value)).coerceAtLeast(0f).dp
+        val reach = rememberThumbReach(startPadding)
+        val reachTop = with(androidx.compose.ui.platform.LocalDensity.current) { reach.offset.toDp() }
         Column(Modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = Modifier.weight(1f).testTag("settings-list"),
-            contentPadding = PaddingValues(top = startPadding)
+            modifier = Modifier.weight(1f).nestedScroll(reach).testTag("settings-list"),
+            contentPadding = PaddingValues(top = reachTop)
         ) {
             item {
                 Spacer(Modifier.height(24.dp))
@@ -715,14 +720,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             }
             item {
                 ListItem(
-                    headlineContent = { Text(stringResource(R.string.tasks_title)) },
-                    supportingContent = { Text(stringResource(R.string.tasks_guide)) },
-                    modifier = Modifier.clickable { com.jeerovan.comfer.tasks.TasksActivity.open(context) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                )
-            }
-            item {
-                ListItem(
                     headlineContent = { Text(stringResource(R.string.title_notification_badges)) },
                     supportingContent = { Text(stringResource(R.string.requires_notification_permission)) },
                     leadingContent = {
@@ -983,10 +980,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_backup)) },
-                    supportingContent = {
-                        val taskSnapshot by com.jeerovan.comfer.tasks.TaskStore.state.collectAsState()
-                        Text(stringResource(R.string.backup_summary) + "\n" + stringResource(R.string.tasks_backup_counts, taskSnapshot.tasks.size, taskSnapshot.lists.size))
-                    },
+                    supportingContent = { Text(stringResource(R.string.backup_summary)) },
                     leadingContent = {
                         Icon(
                             Icons.Filled.Backup,

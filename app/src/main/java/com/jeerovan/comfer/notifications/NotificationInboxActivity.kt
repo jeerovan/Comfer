@@ -2,6 +2,9 @@
 
 package com.jeerovan.comfer.notifications
 
+import com.jeerovan.comfer.ui.rememberThumbReach
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+
 import androidx.core.graphics.drawable.toBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import android.content.Context
@@ -361,11 +364,13 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface.copy(alpha = .8f)).safeDrawingPadding().imePadding()) {
         val landscape = maxWidth > maxHeight
         val startPadding = if (landscape) 0.dp else (maxHeight.value - reachableHeightDp(maxHeight.value)).coerceAtLeast(0f).dp
+        val reach = rememberThumbReach(startPadding, screen)
+        val reachTop = with(androidx.compose.ui.platform.LocalDensity.current) { reach.offset.toDp() }
         Surface(Modifier.fillMaxSize().testTag("notification-inbox-panel"), color = androidx.compose.ui.graphics.Color.Transparent, contentColor = MaterialTheme.colorScheme.onSurface, tonalElevation = 0.dp) {
             Column(Modifier.fillMaxSize().padding(horizontal = 12.dp)) {
                 key(screen) {
-                LazyColumn(Modifier.weight(1f).testTag("notification-inbox-list"), state = listState,
-                    contentPadding = PaddingValues(top = startPadding),
+                LazyColumn(Modifier.weight(1f).nestedScroll(reach).testTag("notification-inbox-list"), state = listState,
+                    contentPadding = PaddingValues(top = reachTop),
                     verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     item { Text(stringResource(R.string.notification_inbox), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 8.dp)) }
                     item { if (!access || snapshot.health != ListenerHealth.CONNECTED) Text(stringResource(if (!access) R.string.notification_access_needed else if (snapshot.health == ListenerHealth.RESTRICTED) R.string.notification_restricted else if (snapshot.health == ListenerHealth.RECOVERY_NEEDED) R.string.notification_recovery_needed else R.string.notification_reconnecting), style = MaterialTheme.typography.bodySmall) }

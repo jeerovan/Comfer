@@ -71,6 +71,7 @@ class TaskPersistenceTest {
     @Test fun actualArchiveRestoresListsSeriesAndFutureIntentWithoutOldDeliveryState() = runBlocking {
         val item = TaskItem(id = "future", listId = "tasks", title = "Future task", day = LocalDate.now().plusDays(5).toEpochDay(), minute = 630, starred = true)
         TaskStore.change(context) { it.saveTask(item, TaskRepeat(RepeatUnit.MONTHLY, count = 3)) }
+        TaskStore.change(context) { it.copy(preferences = it.preferences.copy(swipeGuideShown = true, reorderGuideShown = true, listGuideShown = true)) }
         val expected = TaskStore.snapshot(context)
         val archive = File(context.cacheDir, "tasks-roundtrip.zip")
         try {
@@ -80,6 +81,7 @@ class TaskPersistenceTest {
             TaskStore.change(context) { TaskSnapshot() }
             repeat(2) { BackupRestoreManager.restoreBackup(context, Uri.fromFile(archive)) }
             val restored = TaskStore.snapshot(context)
+            assertTrue(restored.preferences.swipeGuideShown && restored.preferences.reorderGuideShown && restored.preferences.listGuideShown)
             assertEquals(expected.lists, restored.lists)
             assertEquals(expected.series, restored.series)
             assertEquals(expected.tasks.map { it.title }, restored.tasks.map { it.title })
@@ -110,12 +112,14 @@ class TaskPersistenceTest {
                 taskJson.decodeFromString<BackupManifest>(zip.getInputStream(zip.getEntry("manifest.json")).reader().readText()) to
                     taskJson.decodeFromString<BackupPayload>(zip.getInputStream(zip.getEntry("payload.json")).reader().readText())
             }
+            val attachments = ZipFile(archive).use { zip -> zip.entries().asSequence().filter { !it.isDirectory && it.name !in setOf("manifest.json", "payload.json") }.associate { it.name to zip.getInputStream(it).use { stream -> stream.readBytes() } } }
             fun rewrite(value: BackupPayload) {
                 val bytes = taskJson.encodeToString(value).toByteArray()
                 val hash = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it.toInt() and 255) }
                 ZipOutputStream(archive.outputStream()).use { zip ->
                     zip.putNextEntry(ZipEntry("manifest.json")); zip.write(taskJson.encodeToString(manifest.copy(payloadSha256 = hash)).toByteArray()); zip.closeEntry()
                     zip.putNextEntry(ZipEntry("payload.json")); zip.write(bytes); zip.closeEntry()
+                    attachments.forEach { (name, content) -> zip.putNextEntry(ZipEntry(name)); zip.write(content); zip.closeEntry() }
                 }
             }
             TaskStore.change(context) { it.saveTask(TaskItem(id = "keep", listId = "tasks", title = "Keep me")) }
@@ -167,11 +171,63 @@ class TaskPersistenceTest {
             db.execSQL("INSERT INTO task_preferences VALUES (1,'tasks',540,1,1,'today',0,'manual',12)")
             db.version = 1
         }
-        val migrated = Room.databaseBuilder(context, TaskDatabase::class.java, file.absolutePath).addMigrations(TaskDatabase.MIGRATION_1_2).build()
+        val migrated = Room.databaseBuilder(context, TaskDatabase::class.java, file.absolutePath).addMigrations(TaskDatabase.MIGRATION_1_2, TaskDatabase.MIGRATION_2_3, TaskDatabase.MIGRATION_3_4).build()
         try {
             assertEquals("Keep this list", migrated.dao().lists().single().name)
             assertEquals(12L, migrated.dao().preferences()!!.revision)
             assertFalse(migrated.dao().preferences()!!.guidanceDismissed)
+            assertFalse(migrated.dao().preferences()!!.swipeGuideShown)
+            assertFalse(migrated.dao().preferences()!!.reorderGuideShown)
+            assertFalse(migrated.dao().preferences()!!.listGuideShown)
+        } finally { migrated.close(); file.delete() }
+    }
+    @Test fun versionTwoMigrationPreservesDataAndAddsUnseenGuides() = runBlocking {
+        val file = File(context.cacheDir, "tasks-migration-two.db")
+        file.delete()
+        val schema = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open("com.jeerovan.comfer.tasks.TaskDatabase/2.json").reader().readText()).getJSONObject("database")
+        android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(file, null).use { db ->
+            val entities = schema.getJSONArray("entities")
+            for(i in 0 until entities.length()) {
+                val entity = entities.getJSONObject(i)
+                db.execSQL(entity.getString("createSql").replace("\${TABLE_NAME}", entity.getString("tableName")))
+            }
+            db.execSQL("INSERT INTO task_lists VALUES ('tasks','Retained',0)")
+            db.execSQL("INSERT INTO task_preferences VALUES (1,'tasks',615,1,0,'today',0,'manual',42,1)")
+            db.version = 2
+        }
+        val migrated = Room.databaseBuilder(context, TaskDatabase::class.java, file.absolutePath).addMigrations(TaskDatabase.MIGRATION_2_3, TaskDatabase.MIGRATION_3_4).build()
+        try {
+            assertEquals("Retained", migrated.dao().lists().single().name)
+            val prefs = migrated.dao().preferences()!!
+            assertEquals(615, prefs.defaultMinute)
+            assertEquals(42L, prefs.revision)
+            assertTrue(prefs.guidanceDismissed)
+            assertFalse(prefs.swipeGuideShown || prefs.reorderGuideShown || prefs.listGuideShown)
+        } finally { migrated.close(); file.delete() }
+    }
+    @Test fun versionThreeMigrationKeepsExistingGuideProgress() = runBlocking {
+        val file = File(context.cacheDir, "tasks-migration-three.db")
+        file.delete()
+        val schema = org.json.JSONObject(InstrumentationRegistry.getInstrumentation().context.assets.open("com.jeerovan.comfer.tasks.TaskDatabase/3.json").reader().readText()).getJSONObject("database")
+        android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(file, null).use { db ->
+            val entities = schema.getJSONArray("entities")
+            for(i in 0 until entities.length()) {
+                val entity = entities.getJSONObject(i)
+                db.execSQL(entity.getString("createSql").replace("\${TABLE_NAME}", entity.getString("tableName")))
+            }
+            db.execSQL("INSERT INTO task_lists VALUES ('tasks','Retained',0)")
+            db.execSQL("INSERT INTO task_preferences VALUES (1,'tasks',615,1,0,'today',0,'manual',42,1,1,1)")
+            db.version = 3
+        }
+        val migrated = Room.databaseBuilder(context, TaskDatabase::class.java, file.absolutePath).addMigrations(TaskDatabase.MIGRATION_3_4).build()
+        try {
+            assertEquals("Retained", migrated.dao().lists().single().name)
+            val prefs = migrated.dao().preferences()!!
+            assertEquals(615, prefs.defaultMinute)
+            assertEquals(42L, prefs.revision)
+            assertTrue(prefs.guidanceDismissed)
+            assertTrue(prefs.swipeGuideShown && prefs.reorderGuideShown)
+            assertFalse(prefs.listGuideShown)
         } finally { migrated.close(); file.delete() }
     }
     @Test fun largeSnapshotPersistsWithoutLosingOrderOrNotes() = runBlocking {

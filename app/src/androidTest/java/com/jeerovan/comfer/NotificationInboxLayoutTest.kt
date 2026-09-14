@@ -54,7 +54,7 @@ class NotificationInboxLayoutTest {
         compose.onNodeWithContentDescription("Back").assertDoesNotExist()
         val heading = compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot()
         val back = compose.onNodeWithContentDescription("All apps").getUnclippedBoundsInRoot()
-        assertTrue("Inbox must be in bottom portion", heading.top.value > 150f)
+        assertTrue("Inbox starts at the top", heading.top.value < 100f)
         assertTrue("Navigation must be below content", back.top > heading.bottom)
         compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText("Pause rules, schedules and timers"))
         compose.onNodeWithText("Pause rules, schedules and timers").assertIsDisplayed().performClick()
@@ -87,7 +87,7 @@ class NotificationInboxLayoutTest {
         compose.onNodeWithText("Resume rules, schedules and timers").assertIsDisplayed()
     }
 
-    @Test fun fullHeightViewportStartsReachableAndScrollsAboveStartingBoundary() {
+    @Test fun fullHeightViewportStartsAtTopAndPullsIntoReach() {
         compose.setContent { MaterialTheme { NotificationInbox(onBack = {}) } }
         compose.onNodeWithContentDescription("Settings").performClick()
         val panel = compose.onNodeWithTag("notification-inbox-panel").getUnclippedBoundsInRoot()
@@ -95,7 +95,9 @@ class NotificationInboxLayoutTest {
         assertTrue("Portrait fills safe height", (panel.bottom - panel.top).value > (root.bottom - root.top).value * .8f)
         val heading = compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot()
         val boundary = panel.bottom.value - reachableHeightDp((panel.bottom - panel.top).value)
-        assertTrue("First element starts within reach", heading.top.value >= boundary - 1f)
+        assertTrue("First element starts at top", heading.top.value < boundary)
+        compose.onNodeWithTag("notification-inbox-list").performTouchInput { swipeDown(startY = height * .1f, endY = height * .9f, durationMillis = 600) }
+        assertTrue("Pull brings first element within reach", compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot().top.value >= boundary - 1f)
         val back = compose.onNodeWithContentDescription("All apps").getUnclippedBoundsInRoot()
         compose.onNodeWithTag("notification-inbox-list").performTouchInput {
             swipeUp(startY = height * .8f, endY = height * .65f, durationMillis = 500)
@@ -105,7 +107,7 @@ class NotificationInboxLayoutTest {
         assertEquals(back, compose.onNodeWithContentDescription("All apps").getUnclippedBoundsInRoot())
         compose.onNodeWithContentDescription("All apps").performClick()
         compose.waitUntil(5000) {
-            compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot().top.value >= boundary - 1f
+            compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot().top.value < boundary
         }
     }
 

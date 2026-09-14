@@ -128,3 +128,27 @@ Existing production implementation already schedules date/time reminders and sup
 ## Task notification icon — 14 September 2026
 
 Replaced the search small icon with a monochrome check inside a ring for the shared task notification builder and its public lock-screen version. Individual and summary notifications inherit it. Debug/resource build and whitespace checks passed; no instrumentation rerun for this cosmetic resource change. Samsung not updated.
+
+## Remove double-tap starring — 14 September 2026
+
+Removed the task-row second-tap recognizer and delayed navigation job. Tap releases now open details directly; explicit Star remains. Updated gesture regression covers single/repeated taps without starring, stationary hold, explicit Star, cancelled/partial swipe, RTL deletion and hold-drag ordering. **20 tests passed** on API 24 (4 TaskGestureTest + 16 TaskRedesignTest); debug/test builds and whitespace checks passed. Samsung not updated.
+
+## Contextual task gesture guides — 14 September 2026
+
+Added input-transparent hand demonstrations: swipe on the first incomplete task; hold then vertical drag when two visible incomplete siblings are reorderable in My Order. Swipe precedes reorder. Each runs for six seconds while resumed, then persists its shown flag without requiring a destructive action. Existing unseen task lists are eligible. New preferences are included in portable snapshots; Room schema 3 adds a non-destructive 2→3 migration and retains 1→2.
+
+**152 JVM tests passed** (zero failures/errors/skips), including eligibility, completed/other-list/sort boundaries and old/new preference serialization. Initial API-24 run: 36 of 37 passed; the archive-rewrite test discarded wallpaper bytes while retaining its manifest reference. Corrected the test helper to preserve ancillary ZIP entries. Focused guide/layout/backup rerun: **7 passed**, including both guide flags surviving real backup/restore. Initial suite also passed 1→3 and 2→3 migrations, gesture/UI and reminder/persistence checks.
+
+Final strengthened TaskGuideUiTest: **4 passed**. Verifies first/second creation triggers, no task mutations, persistent shown flags, no replay after navigation, tap-through, and actual horizontal/vertical hand movement with manual test-clock control. Earlier motion assertions failed because auto-advancing Compose tests cancel infinite animations; manual clock control must be enabled before composing the guide. Guide placement screenshots inspected at `/private/tmp/task-swipe-guide.png` and `/private/tmp/task-reorder-guide.png`. Debug/test builds and whitespace checks passed. No new physical-device gesture/accessibility certification; Samsung not updated.
+
+## First-open list-name tap guide — 14 September 2026
+
+Added a pulsing, input-transparent hand over the concrete list heading, including empty lists. It precedes swipe/reorder hints and persists completion after six seconds or an actual heading tap. The existing Rename/Delete sheet and final-list guard are retained. Room schema 4 adds listGuideShown with a non-destructive 3→4 migration; existing swipe/reorder flags survive and all guide flags round-trip through manual backup.
+
+**152 JVM tests passed**. Initial device checks exposed heading/guide semantics merging; moved the tap target back to the heading. Final API-24 UI run passed 23 of 24, with one test using Delete instead of the actual Delete list label. Corrected that selector and verified the final-list Delete control is disabled: focused rerun **1 passed**. The resulting coverage is 7 guide tests, 1 list flow and 16 Tasks redesign cases. Three migration paths (1→4, 2→4, 3→4) and guide-flag backup round trip passed separately in the initial run. Screenshot `/private/tmp/task-list-guide.png` inspected. Builds and whitespace checks passed; Samsung not updated.
+
+## Full-height entry and scroll-to-reach — 14 September 2026
+
+Inbox and its internal pages, launcher Settings, Tasks browsing and Tasks settings now open without reach padding. Unconsumed downward dragging at the top reveals bounded space to bring content into the bottom 360 dp area; upward scrolling removes it before scrolling content. Bottom controls remain fixed. See [shared behavior](thumb-reach.md).
+
+**155 JVM tests passed**, with no failures/errors/skips. API-24 initial instrumentation run passed 19 of 21 tests; two Inbox assertions still expected the previous initial bottom position. Updated those assertions and reset reach on Inbox page changes; all **5 Inbox tests passed** in the focused rerun. The combined coverage is 21 distinct passing cases: Inbox 5, launcher Settings 1, Tasks layout 4, task gestures 4 and task guides 7. Debug and isolated test builds and whitespace checks passed. No physical-device testing in this revision; Samsung was not updated. Hands-on gesture comfort and broader device/accessibility certification remain open.

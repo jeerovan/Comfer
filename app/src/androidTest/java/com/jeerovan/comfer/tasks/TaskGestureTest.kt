@@ -30,16 +30,16 @@ class TaskGestureTest {
             }
         }
     }
-    @Test fun doubleTapStarsSingleTapOpensAndStationaryHoldDoesNothing() {
+    @Test fun tapsOpenWithoutStarringAndStationaryHoldDoesNothing() {
         show()
-        compose.onNodeWithText("Gesture task").performTouchInput { doubleClick() }
-        compose.runOnIdle { assertEquals(listOf("star"), events) }
         compose.onNodeWithText("Gesture task").performTouchInput { click() }
-        compose.waitForIdle()
-        compose.mainClock.advanceTimeBy(600)
-        compose.runOnIdle { assertEquals(listOf("star", "open"), events) }
+        compose.runOnIdle { assertEquals(listOf("open"), events) }
+        compose.onNodeWithText("Gesture task").performTouchInput { doubleClick() }
+        compose.runOnIdle { assertEquals(listOf("open", "open", "open"), events) }
         compose.onNodeWithText("Gesture task").performTouchInput { longClick() }
-        compose.runOnIdle { assertEquals(listOf("star", "open"), events) }
+        compose.runOnIdle { assertEquals(listOf("open", "open", "open"), events) }
+        compose.onNodeWithContentDescription("Star").performClick()
+        compose.runOnIdle { assertEquals("star", events.last()); assertEquals(4, events.size) }
     }
     @Test fun partialSwipeAndCancellationDoNotMutate() {
         show()

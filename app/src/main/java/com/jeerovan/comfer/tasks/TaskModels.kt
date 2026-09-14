@@ -43,6 +43,9 @@ data class TaskPreferences(
     val panelView: String = "today", val panelEnabled: Boolean = false,
     val sort: String = "manual", val revision: Long = 0,
     @androidx.room.ColumnInfo(defaultValue = "0") val guidanceDismissed: Boolean = false,
+    @androidx.room.ColumnInfo(defaultValue = "0") val swipeGuideShown: Boolean = false,
+    @androidx.room.ColumnInfo(defaultValue = "0") val reorderGuideShown: Boolean = false,
+    @androidx.room.ColumnInfo(defaultValue = "0") val listGuideShown: Boolean = false,
 )
 
 @Serializable

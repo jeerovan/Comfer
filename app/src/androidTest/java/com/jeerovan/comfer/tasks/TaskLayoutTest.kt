@@ -44,7 +44,7 @@ class TaskLayoutTest {
         compose.onNodeWithText("Item 80").assertIsDisplayed()
         compose.onNodeWithContentDescription("Add").assertIsDisplayed()
     }
-    @Test fun settingsStartsWithinBottomReachAndPaddingScrollsAway() {
+    @Test fun settingsStartsAtTopAndPullsIntoBottomReach() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         runBlocking { check(context.packageName.endsWith(".notificationtest")); StartupCoordinator.awaitReady(); TaskStore.exclusive(context) { TaskStore.write(context, TaskSnapshot()) } }
         compose.setContent { MaterialTheme { TasksScreen({}) } }
@@ -54,10 +54,29 @@ class TaskLayoutTest {
         val viewport = compose.onNodeWithTag("tasks-settings-scroll").fetchSemanticsNode().boundsInRoot
         val bottom = compose.onNodeWithContentDescription("Task preferences").fetchSemanticsNode().boundsInRoot.bottom
         val density = context.resources.displayMetrics.density
-        assertTrue(heading.top > viewport.top + 40 * density)
-        assertTrue(bottom - heading.top <= 360 * density)
+        assertTrue(heading.top <= viewport.top + 16 * density)
+        compose.onNodeWithTag("tasks-settings-scroll").performTouchInput { swipeDown(startY = height * .1f, endY = height * .9f, durationMillis = 600) }
+        val pulled = compose.onNodeWithTag("tasks-settings-heading").fetchSemanticsNode().boundsInRoot
+        assertTrue(pulled.top > heading.top + 40 * density)
+        assertTrue(bottom - pulled.top <= 360 * density)
         compose.onNodeWithTag("tasks-settings-scroll").performTouchInput { swipeUp() }
-        assertTrue(compose.onNodeWithTag("tasks-settings-heading").fetchSemanticsNode().boundsInRoot.top < heading.top)
+        assertTrue(compose.onNodeWithTag("tasks-settings-heading").fetchSemanticsNode().boundsInRoot.top < pulled.top)
+        compose.onNodeWithContentDescription("Add").assertIsDisplayed()
+    }
+
+    @Test fun taskListStartsAtTopAndPullsIntoReach() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        runBlocking { check(context.packageName.endsWith(".notificationtest")); StartupCoordinator.awaitReady(); TaskStore.exclusive(context) { TaskStore.write(context, TaskSnapshot()) } }
+        compose.setContent { MaterialTheme { TasksScreen({}) } }
+        compose.waitUntil(10000) { compose.onAllNodesWithTag("tasks-heading").fetchSemanticsNodes().isNotEmpty() }
+        val start = compose.onNodeWithTag("tasks-heading").fetchSemanticsNode().boundsInRoot.top
+        val viewport = compose.onNodeWithTag("tasks-list").fetchSemanticsNode().boundsInRoot
+        assertTrue(start < viewport.top + 60f)
+        compose.onNodeWithTag("tasks-list").performTouchInput { swipeDown(startY = height * .1f, endY = height * .9f, durationMillis = 600) }
+        val pulled = compose.onNodeWithTag("tasks-heading").fetchSemanticsNode().boundsInRoot.top
+        assertTrue(pulled > start + 50f)
+        compose.onNodeWithTag("tasks-list").performTouchInput { swipeUp() }
+        assertTrue(compose.onNodeWithTag("tasks-heading").fetchSemanticsNode().boundsInRoot.top < pulled)
         compose.onNodeWithContentDescription("Add").assertIsDisplayed()
     }
 

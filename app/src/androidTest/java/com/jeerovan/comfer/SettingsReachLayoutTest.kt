@@ -11,7 +11,7 @@ import org.junit.Test
 class SettingsReachLayoutTest {
     @get:Rule val compose = createAndroidComposeRule<SettingsActivity>()
 
-    @Test fun settingsStartReachableScrollAndUseSystemBack() {
+    @Test fun settingsStartsAtTopPullsIntoReachAndUsesSystemBack() {
         // The first-run guide pulses; freeze its animation while inspecting layout.
         compose.mainClock.autoAdvance = false
         compose.mainClock.advanceTimeBy(1000)
@@ -19,7 +19,10 @@ class SettingsReachLayoutTest {
         val heading = compose.onNodeWithText(context.getString(R.string.more_from_jeerovan), ignoreCase = true)
         val viewport = compose.onNodeWithTag("settings-viewport").getUnclippedBoundsInRoot()
         val boundary = viewport.bottom.value - reachableHeightDp((viewport.bottom - viewport.top).value)
-        assertTrue(heading.getUnclippedBoundsInRoot().top.value >= boundary)
+        assertTrue(heading.getUnclippedBoundsInRoot().top.value < boundary)
+        compose.onNodeWithTag("settings-list").performTouchInput { swipeDown(startY = height * .1f, endY = height * .9f, durationMillis = 600) }
+        compose.mainClock.advanceTimeBy(600)
+        assertTrue(heading.getUnclippedBoundsInRoot().top.value >= boundary - 1f)
         compose.onNodeWithTag("settings-back").assertDoesNotExist()
         compose.onNodeWithTag("settings-list").performTouchInput {
             swipeUp(startY = height * .8f, endY = height * .65f, durationMillis = 500)

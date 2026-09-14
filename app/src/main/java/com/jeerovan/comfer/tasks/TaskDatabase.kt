@@ -26,7 +26,7 @@ interface TaskDao {
 }
 
 /** Separate schema avoids rewriting the launcher's existing database on task feature rollout. */
-@Database(entities = [TaskList::class, TaskItem::class, TaskSeries::class, TaskPreferences::class], version = 2, exportSchema = true)
+@Database(entities = [TaskList::class, TaskItem::class, TaskSeries::class, TaskPreferences::class], version = 4, exportSchema = true)
 abstract class TaskDatabase : RoomDatabase() {
     abstract fun dao(): TaskDao
     companion object {
@@ -35,10 +35,21 @@ abstract class TaskDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE task_preferences ADD COLUMN guidanceDismissed INTEGER NOT NULL DEFAULT 0")
             }
         }
+        val MIGRATION_2_3 = object : androidx.room.migration.Migration(2, 3) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE task_preferences ADD COLUMN swipeGuideShown INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE task_preferences ADD COLUMN reorderGuideShown INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+        val MIGRATION_3_4 = object : androidx.room.migration.Migration(3, 4) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE task_preferences ADD COLUMN listGuideShown INTEGER NOT NULL DEFAULT 0")
+            }
+        }
         @Volatile private var instance: TaskDatabase? = null
         fun get(context: Context): TaskDatabase = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(context.applicationContext, TaskDatabase::class.java,
-                File(context.noBackupFilesDir, "tasks.db").absolutePath).addMigrations(MIGRATION_1_2).build().also { instance = it }
+                File(context.noBackupFilesDir, "tasks.db").absolutePath).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build().also { instance = it }
         }
     }
 }

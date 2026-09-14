@@ -21,7 +21,7 @@
     <string name="tasks_restore_missing">This older backup has no task section. Your current tasks will be kept.</string>
     <string name="tasks_title">Tasks</string>
     <string name="tasks_open">Open Tasks</string>
-    <string name="tasks_guide">Hold the home Search button to open Tasks. Tap a task for details, double-tap to star, swipe to delete with Undo, or hold and drag to reorder in My Order. Move to list is in task details.</string>
+    <string name="tasks_guide">Hold the home Search button to open Tasks. Tap a task for details, use its star button to star, swipe to delete with Undo, or hold and drag to reorder in My Order. Move to list is in task details.</string>
     <string name="tasks_add">Add</string>
     <string name="tasks_star">Star</string>
     <string name="tasks_starred">Starred</string>
@@ -130,4 +130,7 @@
     <string name="tasks_every_weeks">Every %1$d weeks</string>
     <string name="tasks_every_months">Every %1$d months</string>
     <string name="tasks_every_years">Every %1$d years</string>
+    <string name="tasks_swipe_hint">Swipe a task sideways to delete. Undo is available.</string>
+    <string name="tasks_reorder_hint">Hold a task, then drag it to reorder.</string>
+    <string name="tasks_list_hint">Tap the task list name to rename or delete the list.</string>
 </resources>

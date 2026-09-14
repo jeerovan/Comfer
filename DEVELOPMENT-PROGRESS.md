@@ -35,6 +35,10 @@ locales. Guides use the actual translated button labels. The language picker
 includes the seven previously omitted locales; Hebrew and Indonesian use the
 Android-compatible resource folders, and Uzbek follows the existing Latin script.
 
+Shared layout: [thumb-reach behavior](docs/thumb-reach.md) now starts Inbox, launcher Settings, Tasks browsing and Tasks settings at full height; reach space appears only during downward scrolling at the top.
+
+Scroll-to-reach validation (14 September): **155 JVM tests passed**; 21 distinct API-24 layout/gesture/guide cases passed across the initial run and a focused Inbox rerun after updating obsolete initial-position assertions. Debug/test builds passed. Physical gesture comfort remains pending; Samsung unchanged.
+
 ## Available features
 
 ### Launcher
@@ -73,13 +77,13 @@ See [Notification Inbox behavior](Notification-Features.md) and
 
 | Feature | Current behavior |
 |---|---|
-| Entry and layout | Long-press home Search in both layouts; normal tap/folder Close preserved. Browsing and Tasks settings use scroll-away padding for a 360 dp portrait bottom-reach area. Opens with Inbox’s 300 ms bottom-up slide over a stationary underlay. No home Tasks panel or first-use Tasks guide/Got it prompt. |
+| Entry and layout | Long-press home Search in both layouts; normal tap/folder Close preserved. Browsing and Tasks settings open at full height with content at the top; pull down at the top to reveal the 360 dp bottom-reach area, then scroll up to remove it. Opens with Inbox’s 300 ms bottom-up slide over a stationary underlay. No home Tasks panel or text-guide/Got it prompt. One-time visual list-name tap, swipe and hold-drag hints teach list editing, task deletion and reordering. |
 | Tasks and lists | Local capture/edit, stars, cross-list search, views, wrapped list/sort sheets and shared add/rename sheet. Guard final list; deletion offers Deleted/Undo for five seconds. |
-| Cards and gestures | Incomplete and Completed each use one enclosing card. Completed is hidden when the current list/Starred/search has no completed tasks. Both support matching drag previews in My Order, animated neighbors and cancellation. Swipe deletes; double-tap stars; stationary hold does nothing. |
+| Cards and gestures | Incomplete and Completed each use one enclosing card. Completed is hidden when the current list/Starred/search has no completed tasks. Both support matching drag previews in My Order, animated neighbors and cancellation. Swipe deletes; taps open details without a double-tap delay; explicit Star buttons handle starring; stationary hold does nothing. |
 | Details | Title/description, due date/time and frequency summary. Schedule/Star/Move/Cancel/Save icons; Move opens a destination sheet and Save commits. No three-dot, completion or Delete button. |
 | Settings | Notification/exact-alarm status, date-only reminder time and privacy. Switch visuals are 70% with full touch targets. No Manual order, panel options or usage guide; Notification settings is not duplicated on Reminder Date. |
 | Reminders | Check-in-ring notification icon (including summaries/private versions), calendar recurrence, versioned notification actions, snooze, exact/inexact alarm fallback and reboot/permission reconciliation. OEM/permission delivery limits remain. |
-| Persistence and backup | Private Tasks Room schema 2; manual archive format 3 includes Tasks and notification configuration with rollback/recovery. Notification configuration remains SharedPreferences, not Room. System/cloud backup stays disabled. |
+| Persistence and backup | Private Tasks Room schema 4; manual archive format 3 includes Tasks and notification configuration with rollback/recovery. Notification configuration remains SharedPreferences, not Room. System/cloud backup stays disabled. |
 
 [Tasks specification and UI](Tasks-Features.md), [trackable plan](Plan-Tasks.md),
 [storage/backup design](docs/tasks-storage.md), and [validation evidence](docs/tasks-validation.md)
@@ -116,6 +120,12 @@ preserved. Settings list ordering and the home panel are removed scope.
 | Missing WorkManager method simulation | Healthy and deliberately missing-method cases passed on the API-37 emulator. This is controlled compatibility coverage, not affected-OEM verification. |
 
 ## Validation and remaining work
+
+First-open Tasks list-name guide (14 September): tap pulse, timeout/persistence, tap-through to Rename/Delete and final-list protection verified. 152 JVM tests passed; 24 UI cases passed across final run and selector-correction rerun, plus 3 migration paths and backup. Schema 4 preserves earlier guide progress. Emulator updated; Samsung unchanged.
+
+Contextual Tasks gesture hints (14 September): **152 JVM tests passed**, non-destructive schema 1→3/2→3 migrations passed, and focused guide/layout/backup rerun passed **7 tests** after fixing wallpaper preservation in a test fixture. Final **4 guide UI tests passed**, including actual hand movement, persistence and input transparency. Emulator updated; Samsung unchanged.
+
+Task double-tap starring removed (14 September): **20 API-24 gesture/UI tests passed**, including explicit Star, tap navigation, swipe cancellation and drag ordering. Build passed; emulator updated, Samsung unchanged.
 
 Scheduled Tasks notification check (14 September): **148 JVM tests and 14 API-24 persistence/reminder tests passed**. New regression waits for a real saved date/time alarm, invokes the actual notification Complete action, and verifies persisted completion, notification cancellation and repeated-action safety. Feature was already implemented; only regression coverage/documentation changed. Samsung not updated.
 

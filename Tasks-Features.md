@@ -9,7 +9,7 @@ The current build is for testing, with English labels, localized dates/times and
 - Long-press home Search opens Tasks in circular and column layouts. Ordinary tap opens Search; a completed long-press must not trigger Search on release. Swipes cancel the long-press. Folder Close retains its existing behavior. Provide a labeled Open Tasks accessibility action.
 - Opening Tasks through launcher entry points uses Notification Inbox’s 300 ms bottom-up slide over a stationary launching screen.
 - Do not render a Tasks panel on launcher home or expose panel settings, including when an older stored preference enabled it.
-- Browsing and Tasks settings use a 360 dp portrait reach area measured from the bottom safe edge, including the action bar and capped by available height. The heading belongs to scrollable content. Initial top padding scrolls away, allowing the full safe viewport; landscape has no reach padding.
+- Browsing and Tasks settings initially use the full safe height with content at the top. Pulling downward at the top boundary lowers the heading/content into the 360 dp bottom reach area, capped by available height and accounting for the action bar. Upward scrolling removes this space before scrolling content; landscape adds none. Follow [shared thumb-reach behavior](docs/thumb-reach.md).
 - Keep content above measured bottom controls, Undo and system/keyboard insets. Support short windows, large text, RTL, readable contrast and at least 48 dp touch targets. Preserve focus, draft and view scroll state where applicable.
 - Match Notification Inbox’s wallpaper-backed background: theme surface at 80% opacity, onSurface content color and zero tonal elevation across Tasks browsing, details and settings.
 - Use Comfer typography, colors and shapes. Respect reduced motion, interruptible animations and platform gesture timing.
@@ -28,7 +28,7 @@ The bottom bar has five accessible icon-only controls: **Search, Star, Add, Task
 
 All incomplete rows belong to one actual enclosing card. Completed title, caret and completed rows belong to a second card, initially collapsed. Render this card only when the current filtered task list, Starred view or search results contain completed tasks. Hide it when the last matching completed task is reopened/deleted or excluded by search; completed tasks elsewhere do not make it visible. Keep rows inside their card during dragging.
 
-Incomplete rows show a completion ring, title, optional description/date-time/repeat indicator and star. Completed rows show a check, title and stored completion timestamp without description. Tap a row to edit; tap its completion control to complete/reopen. Completion checks the ring and squeezes the row into Completed. Double-tap the body toggles Star once without opening details. No separate row options or drag-handle button.
+Incomplete rows show a completion ring, title, optional description/date-time/repeat indicator and star. Completed rows show a check, title and stored completion timestamp without description. Tap a row to edit; tap its completion control to complete/reopen. Completion checks the ring and squeezes the row into Completed. Tapping the body opens details directly, without waiting for a double-tap timeout. Double-tap has no special action and never stars a task; use the explicit Star button. No separate row options or drag-handle button.
 
 Both cards share drag feedback: elevate/highlight the held row, animate neighbors into proposed positions and tint the drop slot subtly without a border. Preview does not persist intermediate order; commit on drop, restore on cancellation. Reorder incomplete and completed siblings independently. Off-screen drag auto-scroll is not certified; see validation limits.
 
@@ -70,7 +70,7 @@ Support unscheduled, date-only and timed tasks, Today/Tomorrow and native date/t
 
 Use the shared thumb-reach layout, including the scrollable heading and fixed bottom action bar. Keep notification status/settings, exact-alarm access when needed, date-only reminders, default reminder time and lock-screen privacy. Settings switches render at 70% within minimum 48 dp toggle targets.
 
-Notification settings opens the app's system notification settings, with app-info fallback. It controls posting, not notification-listener access. Do not duplicate this action on Reminder Date. Omit Manual order, home-panel controls/view choices and the usage guide from settings. My Order stays in the sort sheet. Do not show first-use browsing guidance or a Got it button, including when opening the default Tasks list for the first time.
+Notification settings opens the app's system notification settings, with app-info fallback. It controls posting, not notification-listener access. Do not duplicate this action on Reminder Date. Omit Manual order, home-panel controls/view choices and the usage guide from settings. My Order stays in the sort sheet. Do not show the old text guide or a Got it button. Use the contextual visual gesture hints described below.
 
 ## Persistence and backup
 
@@ -85,3 +85,11 @@ Export portable intent, not Android grants, live alarm/notification handles or d
 Subtask creation, nesting, promotion, progress and expansion UI remain planned for later in [Plan-Tasks.md](Plan-Tasks.md). Preserve existing relationships and backup compatibility; existing groups retain completion/deletion confirmation, atomic moves and recurrence restrictions. Do not flatten or delete stored hierarchy as part of UI cleanup.
 
 Release acceptance covers persistent task/list lifecycle, calendar boundaries, repeated/cancelled gestures, permission/Doze/reboot recovery, real backup transfer/rollback, both launcher entries, large datasets, short/tall screens, RTL/large text/keyboard, TalkBack and physical gesture comfort. These are requirements, not claims that every check passed. Consult [actual results and untested cases](docs/tasks-validation.md).
+
+## Contextual gesture hints
+
+On first opening a concrete task list, show a pulsing tap hand over its name, including when empty, to teach Rename/Delete. This hint takes priority and is remembered after six seconds or after the user taps the name; the hand never blocks the real tap.
+
+After the first incomplete task is available in the selected list, overlay an animated hand demonstrating a sideways swipe to delete. When two incomplete sibling tasks can be reordered in My Order, demonstrate a long press followed by vertical drag. Show one hint at a time: list-name tap first, swipe next, then reorder when eligible. Each demonstration runs for six seconds while the screen is resumed, then persists its shown flag; no task deletion or reordering is required to dismiss it. Existing task lists are eligible if these new hints have never been shown.
+
+Hints are input-transparent, anchored to visible task rows, and never modify task data. Hide them during actual drag, search, other views and open sheets. Reorder requires visible source/destination rows in the same list and parent group. Provide accessible descriptions without reintroducing text instructions or Got it. Persist flags in Tasks preferences and include them in manual backup; legacy data defaults to unseen.
