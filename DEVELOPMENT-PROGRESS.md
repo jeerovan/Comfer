@@ -78,7 +78,7 @@ See [Notification Inbox behavior](Notification-Features.md) and
 | Cards and gestures | Incomplete and Completed each use one enclosing card. Completed is hidden when the current list/Starred/search has no completed tasks. Both support matching drag previews in My Order, animated neighbors and cancellation. Swipe deletes; double-tap stars; stationary hold does nothing. |
 | Details | Title/description, due date/time and frequency summary. Schedule/Star/Move/Cancel/Save icons; Move opens a destination sheet and Save commits. No three-dot, completion or Delete button. |
 | Settings | Notification/exact-alarm status, date-only reminder time and privacy. Switch visuals are 70% with full touch targets. No Manual order, panel options or usage guide; Notification settings is not duplicated on Reminder Date. |
-| Reminders | Calendar recurrence, versioned notification actions, snooze, exact/inexact alarm fallback and reboot/permission reconciliation. OEM/permission delivery limits remain. |
+| Reminders | Check-in-ring notification icon (including summaries/private versions), calendar recurrence, versioned notification actions, snooze, exact/inexact alarm fallback and reboot/permission reconciliation. OEM/permission delivery limits remain. |
 | Persistence and backup | Private Tasks Room schema 2; manual archive format 3 includes Tasks and notification configuration with rollback/recovery. Notification configuration remains SharedPreferences, not Room. System/cloud backup stays disabled. |
 
 [Tasks specification and UI](Tasks-Features.md), [trackable plan](Plan-Tasks.md),
@@ -116,6 +116,8 @@ preserved. Settings list ordering and the home panel are removed scope.
 | Missing WorkManager method simulation | Healthy and deliberately missing-method cases passed on the API-37 emulator. This is controlled compatibility coverage, not affected-OEM verification. |
 
 ## Validation and remaining work
+
+Scheduled Tasks notification check (14 September): **148 JVM tests and 14 API-24 persistence/reminder tests passed**. New regression waits for a real saved date/time alarm, invokes the actual notification Complete action, and verifies persisted completion, notification cancellation and repeated-action safety. Feature was already implemented; only regression coverage/documentation changed. Samsung not updated.
 
 Home haptic feedback (14 September): debug/test builds and **11 API-24 gesture/routing tests passed** (HomeGestureInputTest and InboxHomeGestureRoutingTest). Feedback is requested once in recognized left/right, circle/corner and Inbox callbacks. Incomplete/cancelled paths retain existing no-action behavior. Physical vibration strength/feel was not tested; Samsung was not updated.
 

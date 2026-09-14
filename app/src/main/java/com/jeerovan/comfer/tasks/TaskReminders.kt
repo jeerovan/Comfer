@@ -100,9 +100,9 @@ internal object TaskReminders {
         }
     }
     private fun base(context: Context, prefs: TaskPreferences): NotificationCompat.Builder = NotificationCompat.Builder(context, CHANNEL)
-        .setSmallIcon(R.drawable.outline_search_24).setAutoCancel(true).setOnlyAlertOnce(true)
+        .setSmallIcon(R.drawable.notification_task_complete_24).setAutoCancel(true).setOnlyAlertOnce(true)
         .setVisibility(if(prefs.privateNotifications) NotificationCompat.VISIBILITY_PRIVATE else NotificationCompat.VISIBILITY_PUBLIC)
-        .setPublicVersion(NotificationCompat.Builder(context, CHANNEL).setSmallIcon(R.drawable.outline_search_24).setContentTitle(context.getString(R.string.tasks_reminder_private)).build())
+        .setPublicVersion(NotificationCompat.Builder(context, CHANNEL).setSmallIcon(R.drawable.notification_task_complete_24).setContentTitle(context.getString(R.string.tasks_reminder_private)).build())
     private fun openIntent(context: Context, id: String?, complete: Boolean = false) = PendingIntent.getActivity(context, 0,
         Intent(context, TasksActivity::class.java).putExtra("task", id).putExtra("complete", complete).setData(Uri.parse("comfer://tasks/${Uri.encode(id ?: "all")}/$complete")), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     private fun actionIntent(context: Context, item: TaskItem, action: String, minutes: Int = 0) = PendingIntent.getBroadcast(context, 0,

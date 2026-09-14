@@ -210,4 +210,34 @@ class TaskPersistenceTest {
         withTimeout(45000) { while(TaskStore.snapshot(context).tasks.single().notifiedAt == null) delay(250) }
         assertTrue(context.getSystemService(android.app.NotificationManager::class.java).activeNotifications.any { it.tag?.startsWith("task:alarm-probe:") == true })
     }
+    @Test fun scheduledDateTimeNotificationCompleteButtonPersistsCompletion() = runBlocking {
+        assertTrue("Exact alarm access required for this delivery test", TaskReminders.exactAllowed(context))
+        assertTrue("Notification posting must be enabled for this test", TaskReminders.notificationsAllowed(context))
+        val zone = java.time.ZoneId.systemDefault()
+        var due = java.time.ZonedDateTime.now(zone).plusMinutes(1).withSecond(0).withNano(0)
+        if(due.toInstant().toEpochMilli() < System.currentTimeMillis() + 3000) due = due.plusMinutes(1)
+        val item = TaskItem(id = "date-time-button", listId = "tasks", title = "Scheduled date/time test", day = due.toLocalDate().toEpochDay(), minute = due.hour * 60 + due.minute)
+        val manager = context.getSystemService(android.app.NotificationManager::class.java)
+        TaskStore.change(context) { it.saveTask(item) }
+        TaskReminders.reconcile(context)
+        assertNull(TaskStore.snapshot(context).tasks.single().snoozedUntil)
+        assertNull(TaskStore.snapshot(context).tasks.single().notifiedAt)
+        assertFalse(manager.activeNotifications.any { it.tag?.startsWith("task:${item.id}:") == true })
+        // Wait for AlarmManager/receiver; do not trigger reconciliation at delivery time.
+        withTimeout(90000) { while(manager.activeNotifications.none { it.tag?.startsWith("task:${item.id}:") == true }) delay(200) }
+        val notification = manager.activeNotifications.single { it.tag?.startsWith("task:${item.id}:") == true }.notification
+        assertEquals(item.title, notification.extras.getString(android.app.Notification.EXTRA_TITLE))
+        assertTrue(System.currentTimeMillis() >= due.toInstant().toEpochMilli())
+        val complete = notification.actions.single { it.title.toString() == context.getString(R.string.tasks_complete) }
+        complete.actionIntent.send()
+        withTimeout(10000) { while(TaskStore.snapshot(context).tasks.single().completedAt == null || manager.activeNotifications.any { it.tag?.startsWith("task:${item.id}:") == true }) delay(100) }
+        val completed = TaskStore.snapshot(context).tasks.single()
+        assertNotNull(completed.completedAt)
+        assertEquals(completed, TaskDatabase.get(context).dao().tasks().single())
+        assertNull(reminderAt(completed, TaskStore.snapshot(context).preferences))
+        complete.actionIntent.send()
+        delay(500)
+        assertEquals(completed, TaskStore.snapshot(context).tasks.single())
+    }
+
 }

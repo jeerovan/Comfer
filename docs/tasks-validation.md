@@ -118,3 +118,13 @@ Tasks root surface now matches Inbox: theme surface at 0.8 alpha, onSurface cont
 ## Tasks entry slide — 14 September 2026
 
 TasksActivity.open now uses the same ActivityOptions and animation resources as Notification Inbox: 300 ms bottom-up translation with stationary underlay. Launcher Search long-press and Settings Tasks entry use this helper. Debug build and whitespace checks passed; animation parity was source-checked, not separately instrumented. External share/notification launches are outside this helper change. Samsung was not updated.
+
+## Scheduled date/time notification completion — 14 September 2026
+
+Existing production implementation already schedules date/time reminders and supplies a Complete notification action; no app-code change was required. Added `TaskPersistenceTest#scheduledDateTimeNotificationCompleteButtonPersistsCompletion`: saves a real future local date/minute without snooze, verifies no early delivery, waits for AlarmManager/receiver without forcing due-time reconciliation, verifies notification title, sends its actual Complete PendingIntent, and checks persisted Room completion, notification removal, absent future reminder and repeated-action idempotence. Access prerequisites are assertions rather than skipped tests.
+
+**148 JVM tests passed** (zero failures/errors/skips); **14 TaskPersistenceTest cases passed** on API 24 in 67.555 seconds, including the new test and existing reminder/snooze/stale-action, backup, migration, rollback and persistence checks. Debug and isolated test builds passed. Tests used disposable package data; Samsung was not updated or tested in this revision. Notification delivery still requires enabled reminder/posting/channel settings; exact timing depends on exact-alarm access and platform policies.
+
+## Task notification icon — 14 September 2026
+
+Replaced the search small icon with a monochrome check inside a ring for the shared task notification builder and its public lock-screen version. Individual and summary notifications inherit it. Debug/resource build and whitespace checks passed; no instrumentation rerun for this cosmetic resource change. Samsung not updated.

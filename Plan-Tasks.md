@@ -65,3 +65,5 @@ Use Not started, In progress, Blocked or Complete; check work only after impleme
 Latest settings cleanup: debug/test builds and 14 TaskRedesignTest cases passed on API 24. Subsequent thumb-reach correction: builds and 3 TaskLayoutTest cases passed on API 24. Earlier full JVM suite: 148 passed; earlier persistence/backup checks include API 24, Samsung API 30 and preview API 37. These are separate checkpoints, not one final all-device run. Regular debug installed on emulator-5554 with user data preserved; the latest Tasks debug build was also installed in place on Samsung Galaxy A30 on 13 September, and Tasks launched successfully. Physical UI acceptance remains pending.
 
 Device deployment preference: always update the emulator after app changes with the latest successful build, preserving app data. Update Samsung only when the user explicitly asks.
+
+14 September reminder verification: existing scheduled date/time delivery and Complete notification action confirmed by a new real AlarmManager/PendingIntent regression. All 148 JVM tests and 14 API-24 persistence/reminder cases passed; no production code changes needed.
