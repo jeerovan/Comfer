@@ -4222,7 +4222,9 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                     notificationPackages,
                     settingsViewModel,
                     appInfoViewModel,
-                    onSwipeDown = { isAppListVisible = false})
+                    onSwipeDown = { isAppListVisible = false},
+                    wallpaperPath = if (settingInfoUiState.autoWallpapers || settingInfoUiState.monochrome) backgroundImage else null,
+                    wallpaperVersion = mainUiState.iconVersion)
             }
         }
 

@@ -48,13 +48,15 @@ Scroll-to-reach validation (14 September): **155 JVM tests passed**; 21 distinct
 | Home gestures | Configurable left/right and existing quick-pattern actions. Recognized left/right, circle, four corner patterns and Inbox return each request one system haptic pulse on release, respecting device feedback settings. The shared parent accepts swipes starting over app icons or Search in CircularLayout and FiveColumnLayout; taps and child scrolling keep their own handlers. |
 | Inbox gesture | One finger down, then back up, opens Notification Inbox from the home quick list. Fires on release; incomplete deliberate returns cancel without also triggering swipe up/down. |
 | Home gesture guides | Swipe up → long-press settings → long-press widgets → double-tap Recents → Inbox down-and-return → tap clock → long-press clock. Inbox is shown even without notification access; the Inbox screen requests access when opened. Clock steps are skipped when no built-in clock is shown. Its text-free hand animation follows a 120 dp path across Search in both quick-app layouts, raised for navigation-bar clearance and repeats until the gesture is completed correctly; completion is remembered. |
-| App drawer | U-shaped layout, adjustable scrolling sensitivity, fling interruption, centred-app double-tap launch and folders. |
+| App drawer | U-shaped layout, adjustable scrolling sensitivity, fling interruption, centred-app double-tap launch and folders. Horizontal AppDrawer always uses automatic black/white titles sampled from the local wallpaper region, updating after scrolling settles; system wallpapers use available global color hints. Theme/day-night settings cannot override title contrast; unavailable wallpaper data falls back to white. Contrasting title shadows remain in normal and reorder modes. |
 | App search | Search installed apps and contacts; launch apps or select a contact. |
 | Appearance | Configurable icon size/shape, icon packs, themed icons and wallpapers. |
 | Widgets | Custom widget screens, editing, positioning, resizing and deletion. |
 | Wallpaper | Local/network wallpaper support and scheduled automatic wallpaper work. Decoding and color extraction bound both image dimensions and memory use; allocation failures retry at lower resolution. |
 | Backup and restore | Configuration backup and restore through Android document pickers. |
 | App launch animation | App windows expand from the tapped icon; the drawer's centred-app double tap uses the same effect. |
+
+Automatic drawer-title contrast validation: 160 JVM tests passed, plus 2 API-24 emulator checks for scroll freeze/fallback and actual wallpaper-file cache refresh. Debug/test builds and whitespace checks passed. [Behavior and platform limits](docs/drawer-title-contrast.md). System WallpaperColors callbacks on newer APIs and physical-device appearance remain unverified in this revision.
 
 ### Notification Inbox
 

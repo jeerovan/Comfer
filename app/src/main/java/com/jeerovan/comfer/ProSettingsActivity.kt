@@ -1552,7 +1552,6 @@ fun AppDrawer(
     iconSize: Dp,
     iconShape: Shape,
     showAppTitles: Boolean,
-    titleColor: Color,
     onTappingFolder: ((String) -> Unit)? = null
 ) {
     val hapticFeedback = LocalHapticFeedback.current
@@ -1631,6 +1630,7 @@ fun AppDrawer(
                 }
         ) {
             // App Grid
+            CompositionLocalProvider(LocalDrawerScrolling provides lazyGridState.isScrollInProgress) {
             LazyHorizontalGrid(
                 rows = GridCells.Fixed(numberOfRows),
                 state = lazyGridState,
@@ -1660,7 +1660,6 @@ fun AppDrawer(
                                 iconShape,
                                 dragHandle = this,
                                 showAppTitles = showAppTitles,
-                                titleColor = titleColor,
                                 onTappingFolder = onTappingFolder
                             )
                         }
@@ -1672,11 +1671,11 @@ fun AppDrawer(
                             iconSize,
                             iconShape,
                             showAppTitles = showAppTitles,
-                            titleColor = titleColor,
                             onTappingFolder = onTappingFolder)
                     }
                 }
             }
+        }
         }
         // Resize Handle - Circular dot on top border
         AnimatedVisibility(visible = isEditMode) {
@@ -1766,7 +1765,6 @@ private fun AppIconWrapper(
     iconShape: Shape,
     dragHandle: sh.calvin.reorderable.ReorderableCollectionItemScope,
     showAppTitles: Boolean,
-    titleColor: Color,
     onTappingFolder: ((String) -> Unit)? = null
 ) {
     val scale by animateFloatAsState(if (isDragging) 1.2f else 1f, label = "scale")
@@ -1800,15 +1798,16 @@ private fun AppIconWrapper(
 
         if (showAppTitles) {
             Spacer(modifier = Modifier.height(6.dp))
+            val (resolvedTitleColor, contrastPosition) = adaptiveDrawerTitle()
             Text(
                 text = app.label,
-                style = MaterialTheme.typography.labelMedium,
+                style = appDrawerTitleStyle(resolvedTitleColor),
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 softWrap = false,
                 overflow = TextOverflow.Ellipsis,
-                color = titleColor,
-                modifier = Modifier
+                color = resolvedTitleColor,
+                modifier = Modifier.then(contrastPosition)
                     .fillMaxWidth()
                     .padding(horizontal = 4.dp),
                 lineHeight = 14.sp,
@@ -1824,7 +1823,6 @@ private fun AppIconWrapperWoDragging(
     iconSize: Dp,
     iconShape: Shape,
     showAppTitles: Boolean,
-    titleColor: Color,
     onTappingFolder: ((String) -> Unit)? = null
 ) {
     val cellWidth = maxOf(88.dp, iconSize + 24.dp)
@@ -1845,15 +1843,16 @@ private fun AppIconWrapperWoDragging(
 
         if (showAppTitles) {
             Spacer(modifier = Modifier.height(6.dp))
+            val (resolvedTitleColor, contrastPosition) = adaptiveDrawerTitle()
             Text(
                 text = app.label,
-                style = MaterialTheme.typography.labelMedium,
+                style = appDrawerTitleStyle(resolvedTitleColor),
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 softWrap = false,
                 overflow = TextOverflow.Ellipsis,
-                color = titleColor,
-                modifier = Modifier
+                color = resolvedTitleColor,
+                modifier = Modifier.then(contrastPosition)
                     .fillMaxWidth()
                     .padding(horizontal = 4.dp),
                 lineHeight = 14.sp,
@@ -1861,6 +1860,16 @@ private fun AppIconWrapperWoDragging(
         }
     }
 }
+@Composable
+private fun appDrawerTitleStyle(color: Color): androidx.compose.ui.text.TextStyle {
+    val density = LocalDensity.current
+    return MaterialTheme.typography.labelMedium.copy(shadow = androidx.compose.ui.graphics.Shadow(
+        color = widgetShadowColor(color),
+        offset = androidx.compose.ui.geometry.Offset(0f, with(density) { 1.dp.toPx() }),
+        blurRadius = with(density) { 3.dp.toPx() },
+    ))
+}
+
 // Usage example
 @Composable
 fun AppDrawerScreen(
@@ -1868,11 +1877,14 @@ fun AppDrawerScreen(
     notificationPackages: List<String>,
     settingsViewModel: SettingsViewModel,
     appInfoViewModel: AppInfoViewModel,
-    onSwipeDown: () -> Unit
+    onSwipeDown: () -> Unit,
+    wallpaperPath: String? = null,
+    wallpaperVersion: Int = 0,
 ) {
     val context = LocalContext.current
     val hapticFeedback = LocalHapticFeedback.current
     val settings by settingsViewModel.uiState.collectAsState()
+    val contrast = rememberDrawerContrast(wallpaperPath, wallpaperVersion, settings.wallpaperMotionEnabled && wallpaperPath != null)
     val appsInfo by appInfoViewModel.uiState.collectAsState()
     val sortedPrimaryApps = remember(appsInfo.primaryApps, settings.arrangeInAlphabeticalOrder) {
         if (settings.arrangeInAlphabeticalOrder) {
@@ -1890,13 +1902,6 @@ fun AppDrawerScreen(
     var drawerOffset by remember { mutableStateOf(initialOffset) }
 
     val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
-    val appTitleColor = if (settings.showThemedText && settings.themedColors != null) {
-        Color(settings.themedColors!!.textFg)
-    } else if (settings.isLightHour) {
-        Color.Black.copy(alpha = 0.82f)
-    } else {
-        Color.White.copy(alpha = 0.88f)
-    }
     var activeFolderId by remember { mutableStateOf<String?>(null) }
     var isEditMode by remember { mutableStateOf(false) }
 
@@ -1928,6 +1933,7 @@ fun AppDrawerScreen(
             )
         }
     ) {
+        CompositionLocalProvider(LocalDrawerContrast provides contrast) {
         AppDrawer(
             isEditMode = isEditMode,
             apps = currentApps,
@@ -1958,11 +1964,11 @@ fun AppDrawerScreen(
             iconSize = settings.iconSize.dp,
             iconShape = settings.iconShape,
             showAppTitles = settings.showAppTitles,
-            titleColor = appTitleColor,
             onTappingFolder = { folderId ->
                 activeFolderId = folderId
             }
         )
+        }
         AnimatedVisibility(
             visible = activeFolderId != null,
             enter = fadeIn() + scaleIn(initialScale = 0.8f),
