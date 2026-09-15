@@ -6,7 +6,7 @@ The current build is for testing, with English labels, localized dates/times and
 
 ## Entry and shared layout
 
-- Long-press home Search opens Tasks in circular and column layouts. Ordinary tap opens Search; a completed long-press must not trigger Search on release. Swipes cancel the long-press. Folder Close retains its existing behavior. Provide a labeled Open Tasks accessibility action.
+- Journal test-build exception (15 September 2026): user authorized temporarily routing home Search long-press to Journal. Ordinary tap still opens Search. Tasks data, share/reminder entry points and notification actions remain intact. The planned [four-module menu](docs/home-module-menu.md) restores a dedicated home Tasks icon when Notes is ready.
 - Opening Tasks through launcher entry points uses Notification Inbox’s 300 ms bottom-up slide over a stationary launching screen.
 - Do not render a Tasks panel on launcher home or expose panel settings, including when an older stored preference enabled it.
 - Browsing and Tasks settings initially use the full safe height with content at the top. Pulling downward at the top boundary lowers the heading/content into the 360 dp bottom reach area, capped by available height and accounting for the action bar. Upward scrolling removes this space before scrolling content; landscape adds none. Follow [shared thumb-reach behavior](docs/thumb-reach.md).

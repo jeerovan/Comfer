@@ -1,9 +1,27 @@
 # Development progress
 
-Current feature and release status, updated 2026-09-14. Maintain this document as
+Current feature and release status, updated 2026-09-15. Maintain this document as
 a concise reference: what is available, restrictions, attempted alternatives and
 remaining work. Keep implementation discussions and detailed test output out of
 this file.
+
+## Journals — first emulator test build (15 September 2026)
+
+English first-test implementation is available under `journals/`: separate Room storage, durable drafts, dated feed, managed JPEG/PNG images, in-place editing, Trash/Undo, dictation protocol and Android adapter, optional device-credential gate and portable Journal backup section. Search long-press now opens Journal by explicit interim approval; ordinary tap remains Search. The full four-module home folder depends on Notes and is not shipped yet.
+
+See [Plan-Journals.md](Plan-Journals.md) for phase gates and [implementation/validation](docs/journals-implementation.md) for actual attempts and limitations. Journal acceptance is not complete. Debug build installed on the API-24 emulator with normal app data preserved. Final JVM suite: 166 passed; targeted Journal instrumentation: 28 passed, plus subsequent cold-start, protected fresh-install transfer and interrupted-restore checks. Real speech-provider and device-credential acceptance remain open. Samsung has not been updated for Journals. Comfer source version is 50 / 50.0.
+
+Journal UI follow-up: date navigation is above the composer, with horizontal day swipes, centered Today/date picker and a trailing Settings/Archive menu. Header and entry actions are simplified; edit Cancel is a cross icon; successful creation scrolls to the latest entry. Archive retains deleted entries for seven days with recovered-edit safeguards. JVM suite passed (166); emulator storage/Activity checks passed and all five UI tests passed after correcting the menu label. See the Journal validation record for the failed attempt and artifact identity.
+
+Journal opening refinement: fresh openings align the newest entry at the bottom, including short feeds. Empty input displays a fresh non-repeating prompt directly; rotation preserves it and existing draft content remains intact. Journal settings’ protection switch is 70% size. See the Journal validation record for regression evidence.
+
+Journal date/time refinement: small centered date separators sit outside content cards; localized time sits at the card’s trailing bottom edge, without “Written”. Users can edit a saved timestamp with check/cross controls. The new-entry clock control has been removed; any previously selected composer time override is cleared on opening. Draft timestamps survive recovery/backup through Room schema 4’s non-destructive migration. Defaults remain current date/time; historical composer days use the current local time until explicitly changed.
+
+Journal image preview: image taps now open a secure full-screen viewer with pinch zoom in/out and bounded drag pan; double taps do not zoom or reset. An X icon, Change text button and delete icon are at the bottom of the preview; the image bottom sheet is removed. Saved-image changes retain edit cancellation and image-only deletion safeguards.
+
+Journal delete-conflict fix: reproduced a swipe callback retaining the entry’s pre-edit revision. Swipes now use the current row; exact repeat deletion requests are harmless. Revision protection remains enforced for newer edits, restored entries and backup replacement. Reproduction and regression outcomes are recorded in the Journal validation log.
+
+Journal feed anchoring: reverse layout with newest-first items makes the newest entry the bottom origin, while older entries remain visually above newer ones. Archive and Journal navigation no longer share a list position. Removed the startup scroll-to-last workaround; date headings and paging controls follow the reversed index order. An Archive-return regression reproduced the old failure before the fix.
 
 ## Current state
 
@@ -17,8 +35,9 @@ Tasks background follow-up (14 September) matches Inbox’s 80%-opaque theme
 surface over wallpaper. Debug build passed; this follow-up is not installed on
 Samsung. Always update the emulator after app changes; update Samsung only on explicit user request.
 
-Tasks is now available in the English test build, opened by long-pressing home
-Search. The latest Tasks debug build is installed on the API-24 emulator and Samsung
+Tasks is available in the English test build. Its former home Search long-press
+entry is temporarily assigned to Journal for testing; the upcoming module menu
+will provide a Tasks icon. The latest Tasks debug build is installed on the API-24 emulator and Samsung
 Galaxy A30 (SM-A305F), with existing app data preserved. Samsung installation
 and Tasks launch succeeded on 13 September; hands-on acceptance remains pending. Version remains
 **49 / 49.0**. Tasks release acceptance remains open, and the earlier 34-locale

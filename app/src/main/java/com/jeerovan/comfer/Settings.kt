@@ -92,6 +92,7 @@ import androidx.compose.material.icons.filled.Support
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.Wallpaper
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -294,6 +295,26 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     ) { granted ->
         settingsViewModel.setWeatherWidgetEnabled(granted)
     }
+    var journalPassword by remember { mutableStateOf("") }
+    var journalPasswordConfirm by remember { mutableStateOf("") }
+    var showJournalExportPassword by remember { mutableStateOf(false) }
+    var authorizedJournalAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    val journalAuthentication = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val action = authorizedJournalAction
+        authorizedJournalAction = null
+        if (result.resultCode == Activity.RESULT_OK) {
+            com.jeerovan.comfer.journals.JournalProtection.authorize()
+            action?.invoke()
+        }
+    }
+    fun withJournalAuthorization(action: () -> Unit) {
+        if (!com.jeerovan.comfer.journals.JournalProtection.enabled(context)) action()
+        else {
+            val intent = context.getSystemService(android.app.KeyguardManager::class.java).createConfirmDeviceCredentialIntent("Unlock Journal", "Authorize Journal backup or restore")
+            if (intent != null) { authorizedJournalAction = action; journalAuthentication.launch(intent) }
+            else Toast.makeText(context, R.string.journal_lock_setup, Toast.LENGTH_LONG).show()
+        }
+    }
     val createBackupLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/zip"),
     ) { destination ->
@@ -304,6 +325,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     val summary = BackupRestoreManager.createBackup(
                         context = context,
                         destination = destination,
+                        journalPassword = journalPassword.takeIf { it.isNotEmpty() },
                         appLocaleTags = AppCompatDelegate.getApplicationLocales()
                             .toLanguageTags(),
                     )
@@ -321,7 +343,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         context,
                         resources.getString(
                             R.string.backup_failed,
-                            resources.getString(backupErrorLabel(error)),
+                            if (error is com.jeerovan.comfer.journals.JournalArchiveException) error.message.orEmpty() else resources.getString(backupErrorLabel(error)),
                         ),
                         Toast.LENGTH_LONG,
                     ).show()
@@ -344,7 +366,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         context,
                         resources.getString(
                             R.string.restore_invalid,
-                            resources.getString(backupErrorLabel(error)),
+                            if (error is com.jeerovan.comfer.journals.JournalArchiveException) error.message.orEmpty() else resources.getString(backupErrorLabel(error)),
                         ),
                         Toast.LENGTH_LONG,
                     ).show()
@@ -993,7 +1015,10 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         }
                     },
                     modifier = Modifier.clickable(enabled = backupRestoreOperation == null) {
-                        if (!launchDocumentPickerSafely {
+                        if (com.jeerovan.comfer.journals.JournalProtection.enabled(context)) {
+                            journalPassword = ""; journalPasswordConfirm = ""; showJournalExportPassword = true
+                        } else if (!launchDocumentPickerSafely {
+                                journalPassword = ""
                                 createBackupLauncher.launch(
                                     BackupRestoreManager.suggestedFileName()
                                 )
@@ -1175,6 +1200,19 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         }
         }
     }
+    if (showJournalExportPassword) AlertDialog(
+        onDismissRequest = { showJournalExportPassword = false; journalPassword = ""; journalPasswordConfirm = "" },
+        title = { Text(stringResource(R.string.journal_export_password)) },
+        text = { Column {
+            Text(stringResource(R.string.journal_password_explanation))
+            OutlinedTextField(journalPassword, { journalPassword = it }, label = { Text(stringResource(R.string.journal_password)) }, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
+            OutlinedTextField(journalPasswordConfirm, { journalPasswordConfirm = it }, label = { Text(stringResource(R.string.journal_password_confirm)) }, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
+        } },
+        confirmButton = { TextButton(enabled = journalPassword.length >= 12 && journalPassword == journalPasswordConfirm, onClick = {
+            showJournalExportPassword = false
+            withJournalAuthorization { launchDocumentPickerSafely { createBackupLauncher.launch(BackupRestoreManager.suggestedFileName()) } }
+        }) { Text(stringResource(R.string.title_backup)) } },
+        dismissButton = { TextButton(onClick = { showJournalExportPassword = false; journalPassword = ""; journalPasswordConfirm = "" }) { Text(stringResource(android.R.string.cancel)) } })
     pendingRestore?.let { (source, preview) ->
         val createdAt = remember(preview.createdAtEpochMs) {
             java.text.DateFormat.getDateTimeInstance().format(Date(preview.createdAtEpochMs))
@@ -1198,6 +1236,8 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     }
                     Text(stringResource(if (preview.notificationSettingsIncluded)
                         R.string.restore_notification_settings else R.string.restore_no_notification_settings))
+                    Text(stringResource(if(preview.journalsIncluded) R.string.journal_restore_replace else R.string.journal_restore_missing))
+                    if (preview.journalsEncrypted) OutlinedTextField(journalPassword, { journalPassword = it }, label = { Text(stringResource(R.string.journal_password)) }, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
                     Text(if(preview.taskCount == null) stringResource(R.string.tasks_restore_missing)
                         else if(preview.taskCount == 0) stringResource(R.string.tasks_restore_empty)
                         else stringResource(R.string.tasks_restore, preview.taskCount, preview.taskListCount ?: 0))
@@ -1206,11 +1246,12 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             confirmButton = {
                 TextButton(
                     onClick = {
+                        withJournalAuthorization {
                         pendingRestore = null
                         backupRestoreOperation = BackupRestoreOperation.RESTORE
                         coroutineScope.launch {
                             try {
-                                val result = BackupRestoreManager.restoreBackup(context, source)
+                                val result = BackupRestoreManager.restoreBackup(context, source, journalPassword.takeIf { it.isNotEmpty() })
                                 Toast.makeText(
                                     context,
                                     resources.getString(R.string.restore_success),
@@ -1218,17 +1259,19 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                                 ).show()
                                 restartAfterRestore(context, result.appLocaleTags)
                             } catch (error: Exception) {
+                                pendingRestore = source to preview
                                 Toast.makeText(
                                     context,
                                     resources.getString(
                                         R.string.restore_failed,
-                                        resources.getString(backupErrorLabel(error)),
+                                        if (error is com.jeerovan.comfer.journals.JournalArchiveException) error.message.orEmpty() else resources.getString(backupErrorLabel(error)),
                                     ),
                                     Toast.LENGTH_LONG,
                                 ).show()
                             } finally {
                                 backupRestoreOperation = null
                             }
+                        }
                         }
                     },
                 ) {

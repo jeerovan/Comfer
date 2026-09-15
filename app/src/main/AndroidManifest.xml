@@ -46,6 +46,8 @@
 
     <uses-permission android:name="android.permission.BIND_APPWIDGET"
         tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <queries><intent><action android:name="android.speech.RecognitionService" /></intent></queries>
     <application
         android:name=".ComferApp"
         android:appComponentFactory=".ComferAppComponentFactory"
@@ -81,6 +83,7 @@
             android:name="google_analytics_default_allow_ad_personalization_signals"
             android:value="false" />
         <activity android:name=".notifications.NotificationInboxActivity" android:exported="false" />
+        <activity android:name=".journals.JournalActivity" android:exported="false" android:label="@string/journal_title" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".tasks.TasksActivity" android:exported="true" android:label="@string/tasks_title" android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

@@ -20,7 +20,7 @@ Reconciliation runs after committed changes, launch, reboot/update, clock/time-z
 
 ## Manual backup
 
-Archive format 3 adds a version-1 task snapshot alongside the existing notification configuration DTO. Formats 1–3 are readable. Export includes lists, tasks/subtasks, notes/links, stars, ordering, completion history, recurrence/exception rows, due/snooze intent and task preferences. Delivery acknowledgements are cleared and action versions normalized in portable export; live alarm/notification handles and grants are not exported.
+Archive format 3 adds a version-1 task snapshot alongside the existing notification configuration DTO. Formats 1–4 are readable; format 4 additionally carries Journals and managed media without changing the task snapshot contract. Export includes lists, tasks/subtasks, notes/links, stars, ordering, completion history, recurrence/exception rows, due/snooze intent and task preferences. Delivery acknowledgements are cleared and action versions normalized in portable export; live alarm/notification handles and grants are not exported.
 
 Backup and restore acquire locks in the fixed order **notification configuration → Tasks**. Task data participates in the same rollback journal as launcher preferences, launcher Room data and notification configuration. A missing task section preserves current tasks. An explicitly empty task collection replaces current tasks, with that effect shown in the restore confirmation. Preview and success messages include task/list counts and explain that the chosen file contains private task content.
 

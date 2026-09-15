@@ -10,7 +10,7 @@ This plan tracks the current test-build scope, not superseded UI iterations. Eng
 |---|---|---|---|
 | 0 | Entry and backup audit | Complete | Identified Search entry and notification configuration backup gap; remediation completed in phase 8. |
 | 1 | Local model and persistence | Complete | Room schema 4; explicit 1→2→3→4 migrations, concurrent writes, rollback, Undo and 2,500-row checks. |
-| 2 | Entry and reachable shell | Complete | Search long-press in both home layouts; ordinary tap/folder Close preserved. Shared reach applied to browsing and settings. |
+| 2 | Entry and reachable shell | Complete | Original Search long-press delivered; temporarily reassigned to Journal by user approval on 15 September. Future module menu provides the Tasks icon. Ordinary tap/folder Close preserved. Shared reach applied to browsing and settings. |
 | 3 | Capture, lists, views and search | Complete | Draft Save/Cancel, shared add/rename sheet, list deletion/Undo, wrapped selectors, five-icon bar and sorting. |
 | 4 | Gestures and completion history | Complete for current scope | Actual incomplete/Completed cards, matching drag preview, tap-to-open, swipe deletion and five-second Undo. Subtask UI deferred below. |
 | 5 | Dates and recurrence | Complete | Native pickers, calendar boundaries, recurring scope, frequency summaries and check-icon Done controls. |

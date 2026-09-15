@@ -1,5 +1,7 @@
 package com.jeerovan.comfer
 
+import androidx.room.withTransaction
+import com.jeerovan.comfer.journals.*
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
@@ -42,10 +44,10 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-private const val BACKUP_FORMAT_VERSION = 3
+private const val BACKUP_FORMAT_VERSION = 4
 private const val MANIFEST_ENTRY = "manifest.json"
 private const val PAYLOAD_ENTRY = "payload.json"
-private const val MAX_ARCHIVE_BYTES = 64L * 1024L * 1024L
+private const val MAX_ARCHIVE_BYTES = 512L * 1024L * 1024L
 private const val MAX_JSON_BYTES = 24L * 1024L * 1024L
 private const val MAX_WALLPAPER_BYTES = 32L * 1024L * 1024L
 private const val RESTORE_JOURNAL_FILE = "backup_restore_journal.json"
@@ -76,6 +78,7 @@ internal data class BackupPayload(
     val appLocaleTags: String,
     val notifications: NotificationSettingsBackup? = null,
     val tasks: TaskSnapshot? = null,
+    val journals: JournalArchive? = null,
 )
 
 @Serializable
@@ -117,6 +120,7 @@ internal data class RestoreJournal(
     val room: BackupRoomData,
     val notificationConfiguration: String? = null,
     val tasks: TaskSnapshot? = null,
+    val journals: JournalLocalSnapshot? = null,
 )
 
 data class BackupSummary(
@@ -137,6 +141,8 @@ data class RestorePreview(
     val notificationSettingsIncluded: Boolean = false,
     val taskCount: Int? = null,
     val taskListCount: Int? = null,
+    val journalsIncluded: Boolean = false,
+    val journalsEncrypted: Boolean = false,
 )
 
 data class RestoreResult(
@@ -158,13 +164,22 @@ object BackupRestoreManager {
         context: Context,
         destination: Uri,
         appLocaleTags: String,
+        journalPassword: String? = null,
     ): BackupSummary = withContext(Dispatchers.IO) {
         StartupCoordinator.awaitReady()
         NotificationPreferences.withBackupAccess(context) {
           TaskStore.exclusive(context) { taskSnapshot ->
+           JournalDatabase.get(context).withTransaction {
             val settings = PreferenceManager.snapshotForBackup()
             val room = ComferRepository.snapshot(context).toBackupData()
-            val payload = BackupPayload(settings, room, appLocaleTags, notifications = export(), tasks = taskSnapshot.portableTasks())
+            if (JournalProtection.enabled(context)) {
+                JournalProtection.requireAuthorization()
+                require(!journalPassword.isNullOrEmpty()) { "Protected Journals require an export password" }
+            }
+            val journalPrepared = JournalArchiveMedia.prepare(context, journalPassword)
+            try {
+            val journalArchive = journalPrepared.archive
+            val payload = BackupPayload(settings, room, appLocaleTags, notifications = export(), tasks = taskSnapshot.portableTasks(), journals = journalArchive)
             validateBackupPayload(payload)
             val payloadBytes = backupJson.encodeToString(payload).encodeToByteArray()
             requireWithinLimit(payloadBytes.size.toLong(), MAX_JSON_BYTES, "Backup data")
@@ -201,12 +216,18 @@ object BackupRestoreManager {
             )
             val manifestBytes = backupJson.encodeToString(manifest).encodeToByteArray()
 
+            requireWithinLimit(payloadBytes.size.toLong() + manifestBytes.size + (wallpaperFile?.length() ?: 0) + journalPrepared.files.values.sumOf { it.length() } + 1024 * 1024, MAX_ARCHIVE_BYTES, "Backup")
             val output = context.contentResolver.openOutputStream(destination, "w")
                 ?: throw IOException("The selected backup destination cannot be opened")
             output.buffered().use { buffered ->
                 ZipOutputStream(buffered).use { zip ->
                     zip.writeEntry(MANIFEST_ENTRY, manifestBytes)
                     zip.writeEntry(PAYLOAD_ENTRY, payloadBytes)
+                    journalPrepared.files.forEach { (name, file) ->
+                        zip.putNextEntry(ZipEntry(name))
+                        file.inputStream().use { it.copyToLimited(zip, 2_000_016, "Journal image") }
+                        zip.closeEntry()
+                    }
                     if (wallpaperFile != null && wallpaperEntry != null) {
                         zip.putNextEntry(ZipEntry(wallpaperEntry))
                         wallpaperFile.inputStream().buffered().use { input ->
@@ -224,8 +245,11 @@ object BackupRestoreManager {
                 taskCount = taskSnapshot.tasks.size,
                 taskListCount = taskSnapshot.lists.size,
             )
+            } finally { journalPrepared.close() }
           }
         }
+    }
+
     }
 
     suspend fun inspectBackup(context: Context, source: Uri): RestorePreview =
@@ -246,27 +270,39 @@ object BackupRestoreManager {
                     notificationSettingsIncluded = validated.payload.notifications != null,
                     taskCount = validated.payload.tasks?.tasks?.size,
                     taskListCount = validated.payload.tasks?.lists?.size,
+                    journalsIncluded = validated.payload.journals != null,
+                    journalsEncrypted = validated.payload.journals?.encrypted == true,
                 )
             }
         }
 
-    suspend fun restoreBackup(context: Context, source: Uri): RestoreResult =
-        withContext(Dispatchers.IO) {
+    suspend fun restoreBackup(context: Context, source: Uri, journalPassword: String? = null): RestoreResult {
+        var cleanupWallpaper: (() -> Unit)? = null
+        return try {
+        val result = withContext(Dispatchers.IO) {
             StartupCoordinator.awaitReady()
             NotificationPreferences.withBackupAccess(context) {
               TaskStore.exclusive(context) { taskSnapshot ->
+               JournalDatabase.get(context).withTransaction {
                 withStagedArchive(context, source) { archive ->
                     val validated = readAndValidateArchive(
                         expectedPackageName = context.packageName,
                         archive = archive,
                         loadWallpaper = true,
                     )
+                    if (validated.payload.journals != null && JournalProtection.enabled(context)) JournalProtection.requireAuthorization()
+                    val incomingJournals = validated.payload.journals?.let {
+                        val staged = if(it.externalMedia) JournalArchiveMedia.stage(context, archive, it, journalPassword)
+                        else JournalBackup.stageInline(context, JournalBackup.unpack(it, journalPassword))
+                        staged.copy(protectionEnabled = staged.protectionEnabled || JournalProtection.enabled(context))
+                    }
+                    val previousJournals = if(incomingJournals != null) JournalArchiveMedia.localSnapshot(context) else null
                     val previousSettings = PreferenceManager.snapshotForBackup()
                     val previousRoom = ComferRepository.snapshot(context)
                     val previousNotifications = if (validated.payload.notifications != null) snapshot() else null
                     writeRestoreJournal(
                         context,
-                        RestoreJournal(previousSettings, previousRoom.toBackupData(), previousNotifications, if(validated.payload.tasks != null) taskSnapshot else null),
+                        RestoreJournal(previousSettings, previousRoom.toBackupData(), previousNotifications, if(validated.payload.tasks != null) taskSnapshot else null, previousJournals),
                     )
 
                     var restoredWallpaper: File? = null
@@ -294,16 +330,18 @@ object BackupRestoreManager {
                         PreferenceManager.replaceSnapshot(context, restoredSettings)
                         validated.payload.notifications?.let { restore(it) }
                         validated.payload.tasks?.let { TaskStore.write(context, it.restoredTasks(taskSnapshot)) }
-                        deleteRestoreJournal(context)
+                        incomingJournals?.let { JournalArchiveMedia.replaceLocal(context, it) }
                         if (validated.payload.notifications != null) {
                             withContext(NonCancellable) { NotificationQuietHours.reconcile(context) }
                         }
 
-                        deleteSupersededRestoredWallpaper(
-                            context = context,
-                            previousPath = previousSettings[PreferenceManager.PREF_BACKGROUND_IMAGE],
-                            currentPath = restoredWallpaper?.absolutePath,
-                        )
+                        cleanupWallpaper = {
+                            deleteSupersededRestoredWallpaper(
+                                context = context,
+                                previousPath = previousSettings[PreferenceManager.PREF_BACKGROUND_IMAGE],
+                                currentPath = restoredWallpaper?.absolutePath,
+                            )
+                        }
                         RestoreResult(
                             appLocaleTags = validated.payload.appLocaleTags,
                             restoredWallpaperPath = restoredWallpaper?.absolutePath,
@@ -316,19 +354,34 @@ object BackupRestoreManager {
                                 PreferenceManager.replaceSnapshot(context, previousSettings)
                                 previousNotifications?.let { rollback(it) }
                                 if(validated.payload.tasks != null) TaskStore.write(context, taskSnapshot)
+                                previousJournals?.let { JournalArchiveMedia.replaceLocal(context, it) }
                                 deleteRestoreJournal(context)
                                 if (previousNotifications != null) NotificationQuietHours.reconcile(context)
                             }
                         } catch (rollbackError: Exception) {
                             error.addSuppressed(rollbackError)
-                            Log.e("BackupRestore", "Restore rollback failed", rollbackError)
+                            Log.e("BackupRestore", "Restore rollback failed; recovery remains pending")
                         }
                         throw error
                     }
                 }
               }
             }
-        }.also { TaskReminders.request(context) }
+        }
+        }
+        withContext(NonCancellable + Dispatchers.IO) {
+            deleteRestoreJournal(context)
+            cleanupWallpaper?.invoke()
+        }
+        TaskReminders.request(context)
+        result
+        } catch (error: Exception) {
+            // Also cover cancellation/commit failure outside the inner mutation block.
+            try { withContext(NonCancellable + Dispatchers.IO) { recoverInterruptedRestore(context) } }
+            catch (recovery: Exception) { error.addSuppressed(recovery) }
+            throw error
+        }
+    }
 
     /** Restores the pre-operation snapshot if the process stopped mid-restore. */
     suspend fun recoverInterruptedRestore(context: Context) = withContext(Dispatchers.IO) {
@@ -342,11 +395,12 @@ object BackupRestoreManager {
                 PreferenceManager.replaceSnapshot(context, journal.settings)
                 journal.notificationConfiguration?.let { rollback(it) }
                 journal.tasks?.let { TaskStore.write(context, it) }
+                journal.journals?.let { JournalArchiveMedia.replaceLocal(context, it) }
                 deleteRestoreJournal(context)
                 if (journal.notificationConfiguration != null) NotificationQuietHours.reconcile(context)
                 Log.w("BackupRestore", "Recovered data after an interrupted restore")
             } catch (error: Exception) {
-                Log.e("BackupRestore", "Could not recover interrupted restore", error)
+                Log.e("BackupRestore", "Could not recover interrupted restore")
                 throw error
             }
           }
@@ -368,7 +422,7 @@ object BackupRestoreManager {
         try {
             ZipFile(archive).use { zip ->
                 val entries = zip.entries().asSequence().toList()
-                if (entries.size !in 2..3) {
+                if (entries.size !in 2..10003) {
                     throw InvalidBackupException("Backup has an unexpected number of files")
                 }
                 val duplicateName = entries.groupingBy { it.name }.eachCount()
@@ -392,15 +446,6 @@ object BackupRestoreManager {
                     )
                 }
 
-                val allowedNames = setOfNotNull(
-                    MANIFEST_ENTRY,
-                    PAYLOAD_ENTRY,
-                    manifest.wallpaperEntry,
-                )
-                if (entries.any { it.isDirectory || it.name !in allowedNames }) {
-                    throw InvalidBackupException("Backup contains an unexpected file")
-                }
-
                 val payloadBytes = zip.readRequiredEntry(PAYLOAD_ENTRY, MAX_JSON_BYTES)
                 if (sha256(payloadBytes) != manifest.payloadSha256) {
                     throw InvalidBackupException("Backup data checksum does not match")
@@ -411,6 +456,9 @@ object BackupRestoreManager {
                     throw InvalidBackupException("Backup data is malformed", error)
                 }
                 validateBackupPayload(payload)
+                val allowedNames = setOfNotNull(MANIFEST_ENTRY, PAYLOAD_ENTRY, manifest.wallpaperEntry) + payload.journals?.media.orEmpty().map { it.entry }
+                if(entries.any { it.isDirectory || it.name !in allowedNames }) throw InvalidBackupException("Backup contains an unexpected file")
+                payload.journals?.takeIf { it.externalMedia }?.let { JournalArchiveMedia.verifyFiles(zip, it) }
 
                 val automaticWallpaperEnabled = isAutomaticWallpaperEnabled(payload.settings)
                 val shouldRestoreWallpaper = automaticWallpaperEnabled &&
@@ -455,6 +503,12 @@ object BackupRestoreManager {
     }
 
     internal fun validateBackupPayload(payload: BackupPayload) {
+        payload.journals?.let {
+            require(it.version == 1 && it.content.length <= 28_000_000) { "Invalid Journal section" }
+            JournalArchiveMedia.validateDescriptors(it)
+            if(!it.externalMedia) require(it.media.isEmpty())
+            if (!it.encrypted) JournalBackup.unpack(it, null)
+        }
         try { payload.tasks?.validate() } catch(error: Exception) {
             throw InvalidBackupException("Task data is invalid or unsupported", error)
         }

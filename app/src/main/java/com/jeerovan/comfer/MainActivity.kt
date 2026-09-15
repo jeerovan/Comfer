@@ -2662,7 +2662,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 iconSize = iconSize,
                                 iconShape = iconShape,
                                 onCenterAction = onCenterAction,
-                                onShowTasks = { com.jeerovan.comfer.tasks.TasksActivity.open(context) },
+                                onShowTasks = { com.jeerovan.comfer.journals.JournalActivity.open(context) },
                                 showThemedIcon = showThemedIcon,
                                 themedColors = settings.themedColors,
                                 isLightMode = settings.isLightHour,
@@ -4769,7 +4769,7 @@ fun SearchIcon(
             .size(iconSize)
             .scale(0.8f)
             .combinedClickable(
-                onLongClickLabel = if (!isFolderActive && onShowTasks != null) stringResource(R.string.tasks_open) else null,
+                onLongClickLabel = if (!isFolderActive && onShowTasks != null) stringResource(R.string.journal_open) else null,
                 onLongClick = if (!isFolderActive) onShowTasks else null,
                 onClick = {
                     view.playSoundEffect(SoundEffectConstants.CLICK)
