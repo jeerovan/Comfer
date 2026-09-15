@@ -487,6 +487,19 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     }
                 )
             }
+            item {
+                PromoAppSection(
+                    title = "TechNews24",
+                    subtitle = "AI & Tech News",
+                    logoPainter = painterResource(R.drawable.technews24),
+                    onClick = {
+                        openUrl(
+                            "https://play.google.com/store/apps/details?id=app.technews24",
+                            context,
+                        )
+                    }
+                )
+            }
             item { SectionHeader(stringResource(R.string.title_support))}
             item { SocialLinksRow() }
             item {
