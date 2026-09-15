@@ -170,3 +170,5 @@ See [docs/journals-implementation.md](docs/journals-implementation.md) for decis
 First test deployment (15 September): debug 50 / 50.0 installed with `adb install -r` on `emulator-5554` (API 24), preserving normal app data. Open Journal with Search long-press. Final JVM run: 166 passed; final targeted Journal run: 28 passed, followed by passing boundary, cold-start, stop-timeout, fresh-install transfer and interrupted-restore checks. Artifact identity and limitations are in the linked validation record.
 
 UI follow-up: title has no back arrow; Android Back handles return. Entry editing uses check/cross icon buttons. Swipe deletes into Archive without a visible Delete text button; accessible deletion remains available. Deleted entries expire after seven days, retaining the existing unresolved-edit recovery safeguard.
+
+Theme follow-up: explicitly pair the translucent surface with onSurface foreground; use Material date/time/security-setup dialogs inheriting the Journal palette. Validate rendered text/icon/button colors in light/dark palettes and ensure picker cancellation preserves entry data.

@@ -2,6 +2,9 @@ package com.jeerovan.comfer.journals
 
 import android.app.Application
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
@@ -11,6 +14,7 @@ import org.junit.Assert.*
 
 class JournalUiTest {
     @get:Rule val compose = createComposeRule()
+    private val themeMode = androidx.compose.runtime.mutableIntStateOf(0)
     private val rtlLarge = androidx.compose.runtime.mutableStateOf(false)
     private lateinit var model: JournalViewModel
     private lateinit var previous: JournalSnapshot
@@ -27,7 +31,11 @@ class JournalUiTest {
             androidx.compose.runtime.CompositionLocalProvider(
                 androidx.compose.ui.platform.LocalLayoutDirection provides if(rtlLarge.value) androidx.compose.ui.unit.LayoutDirection.Rtl else androidx.compose.ui.unit.LayoutDirection.Ltr,
                 androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density.density, if(rtlLarge.value) 1.5f else density.fontScale),
-            ) { MaterialTheme { JournalScreen(model, {}) } }
+            ) { MaterialTheme(colorScheme = when (themeMode.intValue) {
+                1 -> darkColorScheme(surface = Color.Black, onSurface = Color.Cyan, primary = Color.Yellow)
+                2 -> lightColorScheme(surface = Color.White, onSurface = Color.Magenta, primary = Color.Blue)
+                else -> lightColorScheme()
+            }) { JournalScreen(model, {}) } }
         }
         compose.waitUntil(10000) { model.draft.value != null }
     }
@@ -146,7 +154,8 @@ class JournalUiTest {
             repeat(40) { model.store.dao.insert(JournalEntry(id = "archive-return-$it", text = "Return entry $it", createdAt = System.currentTimeMillis() - 40000 + it * 1000)) }
             model.store.dao.insert(JournalEntry(text = "Archived fixture", deletedAt = System.currentTimeMillis()))
         }
-        compose.waitUntil(10000) { compose.onAllNodesWithText("Return entry 39").fetchSemanticsNodes().isNotEmpty() }
+        try { compose.waitUntil(10000) { compose.onAllNodesWithText("Return entry 39").fetchSemanticsNodes().isNotEmpty() } }
+        catch (failure: Throwable) { println(compose.onRoot().printToString()); throw failure }
         compose.onNodeWithTag("journal-feed").performScrollToNode(hasText("Return entry 0"))
         compose.onNodeWithContentDescription("Journal options").performClick()
         compose.onNodeWithText("Archive").performClick()
@@ -160,6 +169,51 @@ class JournalUiTest {
         assertTrue("Older entries remain above newer entries", older.bottom < newest.top)
         val bottom = compose.onNodeWithTag("journal-feed").fetchSemanticsNode().boundsInRoot.bottom
         assertTrue("Newest entry stays near the bottom", newest.bottom > bottom - 150f)
+    }
+
+    @Test fun rootTextAndIconsFollowThemeAndDatePickerIsThemed() {
+        fun assertRenderedColor(node: SemanticsNodeInteraction, expected: Color) {
+            compose.waitForIdle()
+            val bounds = node.fetchSemanticsNode().boundsInWindow
+            // Compose PixelCopy capture needs API 26; UIAutomation screenshots also work on API 24.
+            val bitmap = requireNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
+            var matching = 0
+            for (y in bounds.top.toInt().coerceAtLeast(0) until bounds.bottom.toInt().coerceAtMost(bitmap.height)) {
+                for (x in bounds.left.toInt().coerceAtLeast(0) until bounds.right.toInt().coerceAtMost(bitmap.width)) {
+                    val pixel = Color(bitmap.getPixel(x, y))
+                    if (kotlin.math.abs(pixel.red - expected.red) < .1f && kotlin.math.abs(pixel.green - expected.green) < .1f && kotlin.math.abs(pixel.blue - expected.blue) < .1f) matching++
+                }
+            }
+            bitmap.recycle()
+            assertTrue("Expected theme foreground to be rendered", matching > 5)
+        }
+        compose.runOnIdle { themeMode.intValue = 1 }
+        assertRenderedColor(compose.onNodeWithText("Journal"), Color.Cyan)
+        assertRenderedColor(compose.onNodeWithTag("journal-submit"), Color.Cyan)
+        assertRenderedColor(compose.onNodeWithTag("journal-date"), Color.Yellow)
+        compose.runOnIdle { themeMode.intValue = 2 }
+        assertRenderedColor(compose.onNodeWithText("Journal"), Color.Magenta)
+        assertRenderedColor(compose.onNodeWithTag("journal-submit"), Color.Magenta)
+        assertRenderedColor(compose.onNodeWithTag("journal-date"), Color.Blue)
+        compose.onNodeWithTag("journal-date").performClick()
+        compose.onNodeWithTag("journal-date-dialog").assertIsDisplayed()
+        compose.onNodeWithText("Cancel").performClick()
+
+    }
+
+    @Test fun themedTimestampPickerCancelsWithoutMutatingEntry() {
+        compose.runOnIdle { themeMode.intValue = 1 }
+        compose.onNodeWithTag("journal-composer").performTextInput("Themed timestamp")
+        compose.onNodeWithTag("journal-submit").performClick()
+        compose.waitUntil(10000) { runBlocking { model.store.dao.exportEntries().size == 1 } }
+        val original = runBlocking { model.store.dao.exportEntries().single() }
+        compose.onNodeWithTag("journal-time-${original.id}").performClick()
+        compose.onNodeWithTag("journal-date-dialog").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Save").performClick()
+        compose.onNodeWithTag("journal-time-dialog").assertIsDisplayed()
+        compose.onNodeWithText("Cancel").performClick()
+        assertNull(model.editing.value)
+        assertEquals(original, runBlocking { model.store.dao.entry(original.id) })
     }
 
     @Test fun longPressSubmitDoesNotAccidentallySave() {

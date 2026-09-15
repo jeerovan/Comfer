@@ -3,8 +3,6 @@ package com.jeerovan.comfer.journals
 
 import androidx.room.withTransaction
 import android.app.ActivityOptions
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -60,7 +58,7 @@ class JournalActivity : AppCompatActivity() {
     private var unlocked by mutableStateOf(false)
     private var authenticating = false
     private var credentialVerified = false
-    private var lockDialogShowing = false
+    private var lockDialogShowing by mutableStateOf(false)
     private val authenticate = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         authenticating = false
         unlocked = result.resultCode == RESULT_OK
@@ -71,17 +69,7 @@ class JournalActivity : AppCompatActivity() {
         if (!JournalProtection.enabled(this)) { unlocked = true; return }
         val intent = getSystemService(android.app.KeyguardManager::class.java).createConfirmDeviceCredentialIntent("Unlock Journal", "Use your device credentials to open Journal")
         if (intent == null) {
-            if (!lockDialogShowing) {
-                lockDialogShowing = true
-                androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle(R.string.journal_lock_unavailable)
-                    .setMessage(R.string.journal_lock_setup)
-                    .setPositiveButton(R.string.journal_device_security) { _, _ -> startActivity(Intent(android.provider.Settings.ACTION_SECURITY_SETTINGS)) }
-                    .setNegativeButton(android.R.string.cancel) { _, _ -> finish() }
-                    .setOnCancelListener { finish() }
-                    .setOnDismissListener { lockDialogShowing = false }
-                    .show()
-            }
+            lockDialogShowing = true
             return
         }
         authenticating = true; authenticate.launch(intent)
@@ -103,7 +91,17 @@ class JournalActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
-        setContent { ComferTheme { if (unlocked) JournalScreen(model, ::finish) else Surface(Modifier.fillMaxSize()) { } } }
+        setContent { ComferTheme {
+            if (unlocked) JournalScreen(model, ::finish)
+            else {
+                Surface(Modifier.fillMaxSize()) { }
+                if (lockDialogShowing) AlertDialog(onDismissRequest = { finish() },
+                    title = { Text(stringResource(R.string.journal_lock_unavailable)) },
+                    text = { Text(stringResource(R.string.journal_lock_setup)) },
+                    confirmButton = { TextButton(onClick = { lockDialogShowing = false; startActivity(Intent(android.provider.Settings.ACTION_SECURITY_SETTINGS)) }) { Text(stringResource(R.string.journal_device_security)) } },
+                    dismissButton = { TextButton(onClick = { finish() }) { Text(stringResource(R.string.journal_cancel)) } })
+            }
+        } }
     }
     companion object {
         fun open(context: Context) {
@@ -113,14 +111,7 @@ class JournalActivity : AppCompatActivity() {
     }
 }
 
-private fun pickJournalTime(context: Context, value: Long, zone: String, selected: (Long) -> Unit) {
-    val initial = Instant.ofEpochMilli(value).atZone(ZoneId.of(zone))
-    DatePickerDialog(context, { _, y, m, d ->
-        TimePickerDialog(context, { _, h, minute ->
-            selected(LocalDate.of(y, m + 1, d).atTime(h, minute).atZone(ZoneId.of(zone)).toInstant().toEpochMilli())
-        }, initial.hour, initial.minute, android.text.format.DateFormat.is24HourFormat(context)).show()
-    }, initial.year, initial.monthValue - 1, initial.dayOfMonth).show()
-}
+private data class JournalDateRequest(val timestamp: Long, val zone: String, val entry: JournalEntry? = null)
 
 private fun dayLabel(day: Long) = LocalDate.ofEpochDay(day).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
 
@@ -187,6 +178,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
     var confirmLeave by remember { mutableStateOf(false) }
     var pendingEdit by remember { mutableStateOf<JournalEntry?>(null) }
     var confirmDelete by remember { mutableStateOf<JournalEntry?>(null) }
+    var dateRequest by remember { mutableStateOf<JournalDateRequest?>(null) }
     var imageTarget by remember { mutableStateOf<JournalEntry?>(null) }
     var imagePreview by remember { mutableStateOf(false) }
     var localText by remember(draft?.entryId) { mutableStateOf(draft?.text.orEmpty()) }
@@ -241,7 +233,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
             }
         } else model.prepareImagePicker(null)
     }
-    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface.copy(alpha = .8f)) {
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface.copy(alpha = .8f), contentColor = MaterialTheme.colorScheme.onSurface, tonalElevation = 0.dp) {
         Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(if (trash) R.string.journal_trash else R.string.journal_title), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
@@ -306,10 +298,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                                         else created.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)),
                                         style = MaterialTheme.typography.labelSmall,
                                         modifier = Modifier.align(Alignment.End).testTag("journal-time-${entry.id}").clickable(enabled = !capturing && !busy && (editing == null || editing?.id == entry.id)) {
-                                            pickJournalTime(context, timestamp, entry.zone) { value ->
-                                                if (editing == null) model.beginEdit(entry)
-                                                model.changeEdit(createdAt = value)
-                                            }
+                                            dateRequest = JournalDateRequest(timestamp, entry.zone, entry)
                                         }.padding(top = 8.dp, bottom = 4.dp))
 
 
@@ -344,8 +333,8 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                             })
                     }) {
                     TextButton(onClick = {
-                        val date = LocalDate.ofEpochDay(day)
-                        DatePickerDialog(context, { _, y, m, d -> selectDay(LocalDate.of(y, m + 1, d).toEpochDay()) }, date.year, date.monthValue - 1, date.dayOfMonth).show()
+                        val zone = ZoneId.systemDefault()
+                        dateRequest = JournalDateRequest(LocalDate.ofEpochDay(day).atStartOfDay(zone).toInstant().toEpochMilli(), zone.id)
                     }, enabled = navigationEnabled, modifier = Modifier.align(Alignment.Center).testTag("journal-date").semantics {
                         customActions = listOf(
                             CustomAccessibilityAction(context.getString(R.string.journal_previous)) { if (navigationEnabled) { selectDay(day - 1); true } else false },
@@ -399,6 +388,18 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                 Spacer(Modifier.height(8.dp))
             }
         }
+    }
+    dateRequest?.let { request ->
+        JournalDateTimeDialog(request.timestamp, request.zone, request.entry != null,
+            onDismiss = { dateRequest = null },
+            onConfirm = { value ->
+                if (request.entry == null) selectDay(Instant.ofEpochMilli(value).atZone(ZoneId.of(request.zone)).toLocalDate().toEpochDay())
+                else {
+                    if (editing == null) model.beginEdit(request.entry)
+                    model.changeEdit(createdAt = value)
+                }
+                dateRequest = null
+            })
     }
     if (emptyArchive) AlertDialog(onDismissRequest = { emptyArchive = false }, title = { Text(stringResource(R.string.journal_empty_trash_question)) },
         confirmButton = { TextButton(onClick = {

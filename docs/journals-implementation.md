@@ -143,3 +143,23 @@ Changed Journal to `reverseLayout = true` with a newest-first view of the existi
 Debug/JVM build passed (166 tests); final debug/test builds and `git diff --check` passed. Final APK SHA-256: `297d5330960a633bd018b975a6f5219a041a14134edafdcb5b2d949c5b3be537`. Regression and existing UI/Activity outcomes follow.
 
 After fix: **13/13 emulator UI/Activity tests passed**, including the reproduced Archive-return failure, latest placement, chronological order, saved-entry deletion, preview gestures, keyboard and recreation. Emulator debug installation succeeded with app data preserved; disposable test packages removed. Samsung unchanged.
+
+## Requested Samsung release update — 15 September 2026
+
+Built signed/minified release 50 / 50.0 from source `ac20a72`; assembleRelease passed, APK v2 signature verified, and all 48 manifest component classes verified after shrinking. APK SHA-256: `c53ed434663be66465cb0d6661b7943fe48ccc167004d0dae946805ef1128436`. Preserved APK, mapping and metadata locally under `app/release/50/samsung-ac20a72/`.
+
+Samsung Galaxy A30 update via `adb install -r` was rejected with `INSTALL_FAILED_UPDATE_INCOMPATIBLE` (signatures do not match). Package manager identifies the installed version 50.0 as installed by `com.android.vending`; its existing app and data were left intact. No uninstall performed. Installing this locally signed release requires a separately authorized fresh installation after the user preserves a backup, or delivery signed compatibly with the existing Play installation. No Play publication was performed.
+
+User explicitly approved fresh replacement after confirming backup readiness. Samsung uninstall succeeded, followed by successful fresh installation of the verified release above. Package manager confirms version 50 / 50.0 with no DEBUGGABLE flag. Cold MainActivity launch returned Status: ok (2321 ms). Prior local app data was erased by the approved uninstall; backup restoration remains for the user. No Play publication performed.
+
+## Journal theme consistency — 15 September 2026
+
+User reported text, icons and buttons not honoring the theme. Audit found Journal’s root used an alpha-adjusted Material surface without an explicit contentColor. Because that color is not exactly the palette’s opaque surface role, automatic foreground lookup fell back to an inherited color; Inbox/Tasks already set onSurface explicitly. Journal now does the same, covering its title, date separators, feedback, bare icons and composer action. Cards, inputs, menus, settings sheets and image preview retain their existing Material semantic colors rather than per-control hardcoded tints.
+
+The app’s Android XML theme is fixed light, and Journal used native DatePickerDialog/TimePickerDialog plus an AppCompat security-setup alert. Replaced those app-owned dialogs with Compose Material equivalents inheriting the active palette. Native system credential authentication remains system-owned. Date selection preserves the calendar date across Material’s UTC date representation and the entry’s stored timezone; time confirmation stages the existing reversible edit. Cancellation mutates no entry. Compact screens use date/time input layouts. The secure Journal window policy is retained.
+
+Validation: **166 JVM tests passed**, debug/test APK builds passed, and `git diff --check` passed. Initial emulator UI/Activity run: **13/15 passed**; rendered-color test used a PixelCopy overload unavailable on API 24, and Archive fixture timed out. Adapted screenshots to UIAutomation. First focused run failed a light-palette screenshot taken immediately after dismissing a dialog and again timed out waiting for Archive fixture rows. Moved palette screenshots before opening/dismissing the dialog and added timeout diagnostics. Final focused run: **2/2 passed** (actual text/icon/button pixels in contrasting light/dark palettes, themed date dialog, and Archive return). Archive timeout was not reproduced in the final run; its cause is not proven. The initial successful cases included themed timestamp picker cancellation, security-setup dialog, keyboard/landscape and existing edit/delete/preview checks.
+
+Final debug APK SHA-256: `c3b3d06330f456c133ebb4eb733f9974d9c561bfe12d4781d72dd854f3ac9ca3`. This is a Journal-scoped correction; it does not change global launcher themes or force colors on Android-owned permission/credential dialogs. Samsung hardware theme/contrast acceptance remains pending.
+
+Deployment: emulator debug update succeeded with app data preserved; disposable test packages removed. Samsung remains on the previously requested release, unchanged by this follow-up.

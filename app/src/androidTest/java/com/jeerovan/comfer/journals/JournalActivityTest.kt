@@ -99,8 +99,7 @@ class JournalActivityTest {
         scenario!!.moveToState(androidx.lifecycle.Lifecycle.State.CREATED)
         JournalProtection.restoreState(context, true)
         scenario!!.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
-        androidx.test.espresso.Espresso.onView(androidx.test.espresso.matcher.ViewMatchers.withText(com.jeerovan.comfer.R.string.journal_lock_unavailable))
-            .check(androidx.test.espresso.assertion.ViewAssertions.matches(androidx.test.espresso.matcher.ViewMatchers.isDisplayed()))
+        compose.onNodeWithText(context.getString(com.jeerovan.comfer.R.string.journal_lock_unavailable)).assertIsDisplayed()
         compose.onNodeWithTag("journal-composer").assertDoesNotExist()
         JournalProtection.restoreState(context, false)
     }
