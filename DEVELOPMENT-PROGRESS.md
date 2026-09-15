@@ -5,6 +5,10 @@ a concise reference: what is available, restrictions, attempted alternatives and
 remaining work. Keep implementation discussions and detailed test output out of
 this file.
 
+## Drawer precision-release fix (15 September 2026)
+
+Reproduced unintended coasting after fling → tap to stop → slow drag → immediate release on the API-24 emulator through the production gesture handler, at high sensitivity. Release now uses Android's device-scaled fling threshold before sensitivity and the same gain as dragging. The regression passed after the fix; all 12 drawer gesture/center-selection tests and 166 JVM tests passed. Emulator debug build updated; the user subsequently confirmed the fix works on the affected device. Broader production monitoring remains pending. See attempt 50-06 in the [issue-fix ledger](docs/release-50-issues.md) for before/after evidence and artifact identity.
+
 ## Journals — first emulator test build (15 September 2026)
 
 English first-test implementation is available under `journals/`: separate Room storage, durable drafts, dated feed, managed JPEG/PNG images, in-place editing, Trash/Undo, dictation protocol and Android adapter, optional device-credential gate and portable Journal backup section. Search long-press now opens Journal by explicit interim approval; ordinary tap remains Search. The full four-module home folder depends on Notes and is not shipped yet.

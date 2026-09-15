@@ -25,9 +25,11 @@ class UShapeScrollGestureTest {
     private var doubleTaps = 0
     private var longPresses = 0
     private var touchSlop = 0f
+    private var density = 1f
 
     private fun show() {
         compose.setContent {
+            density = androidx.compose.ui.platform.LocalDensity.current.density
             touchSlop = androidx.compose.ui.platform.LocalViewConfiguration.current.touchSlop
             scroll = rememberUShapeScrollState()
             Box(Modifier.fillMaxSize().testTag("drawer")
@@ -38,6 +40,49 @@ class UShapeScrollGestureTest {
         }
         compose.waitForIdle()
         compose.mainClock.autoAdvance = false
+    }
+
+    @Test fun interruptedFlingThenPrecisionDragImmediatelyReleasedOnlySnaps() {
+        show()
+        val drawer = compose.onNodeWithTag("drawer")
+        for (sensitivity in listOf(1f, 3f)) {
+            compose.runOnIdle { speed = sensitivity }
+            compose.mainClock.advanceTimeByFrame()
+            // Start a real touch fling, then brake it with a separate tap.
+            drawer.performTouchInput { down(center) }
+            repeat(10) {
+                drawer.performTouchInput { moveBy(Offset(10f * density, 0f), delayMillis = 16) }
+                compose.mainClock.advanceTimeByFrame()
+            }
+            drawer.performTouchInput { up() }
+            compose.mainClock.advanceTimeBy(80)
+            compose.runOnIdle { assertTrue("Initial swipe must fling", scroll.isSettling) }
+            drawer.performTouchInput { down(center); up() }
+            var stopped = 0f
+            compose.runOnIdle { stopped = scroll.offset }
+            compose.mainClock.advanceTimeBy(100)
+            compose.runOnIdle { assertEquals(stopped, scroll.offset, .001f) }
+            drawer.performTouchInput {
+                down(center)
+                moveBy(Offset(-touchSlop - density, 0f), delayMillis = 200)
+            }
+            repeat(40) {
+                drawer.performTouchInput { moveBy(Offset(-.5f * density, 0f), delayMillis = 16) }
+                compose.mainClock.advanceTimeByFrame()
+            }
+            var target = 0f
+            compose.runOnIdle {
+                val nearest = kotlin.math.round(scroll.offset / U_SHAPE_ICON_STEP) * U_SHAPE_ICON_STEP
+                target = ((nearest % 1000f) + 1000f) % 1000f
+            }
+            // No artificial stationary pause: lift immediately after fine positioning.
+            drawer.performTouchInput { up() }
+            compose.mainClock.advanceTimeBy(600)
+            compose.runOnIdle {
+                assertFalse("Precision release must not coast (sensitivity=$sensitivity, offset=${scroll.offset}, target=$target)", scroll.isSettling)
+                assertEquals("Precision release must select the nearest icon", target, scroll.offset, .01f)
+            }
+        }
     }
 
     @Test fun slowOnePixelMovesRemainPreciseAndSettle() {

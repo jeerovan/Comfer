@@ -1,11 +1,13 @@
 package com.jeerovan.comfer
 
+import android.view.ViewConfiguration
 import androidx.compose.foundation.gestures.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.input.pointer.util.VelocityTracker
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -15,6 +17,7 @@ import kotlin.math.round
 /** An icon takes 20 logical units to move to the next position on the U-shaped path. */
 internal const val U_SHAPE_ICON_STEP = 20f
 private const val U_SHAPE_SPEED_MULTIPLIER = 8f
+private const val U_SHAPE_DRAG_GAIN = .05f
 internal const val U_SHAPE_MAX_SPEED = 3f * U_SHAPE_ICON_STEP * U_SHAPE_SPEED_MULTIPLIER
 
 private fun sensitivityValue(value: Float) = value.takeIf { it.isFinite() }?.coerceIn(.1f, 3f) ?: 1f
@@ -70,7 +73,8 @@ internal class UShapeScrollState(private val scope: CoroutineScope) {
         val inputVelocity = velocity.takeIf { it.isFinite() } ?: 0f
         val releasedVelocity = (inputVelocity * U_SHAPE_SPEED_MULTIPLIER).coerceIn(-limit, limit)
         val start = offset
-        val coasting = abs(inputVelocity) > 5f
+        // The gesture handler classifies flings in screen pixels before applying gain.
+        val coasting = inputVelocity != 0f
         // Speed tuning must not change the sensitivity-based glide duration.
         var duration = if (coasting) 1.4f + 1.0f * setting else .22f
         var target = round((start + if (coasting) releasedVelocity * duration / 2f else 0f) / U_SHAPE_ICON_STEP) * U_SHAPE_ICON_STEP
@@ -120,6 +124,10 @@ internal fun Modifier.uShapeScrollGestures(
     onHorizontalDrag: () -> Unit,
     onSwipeDown: () -> Unit,
 ): Modifier {
+    val context = LocalContext.current
+    val minimumFlingVelocity = remember(context) {
+        ViewConfiguration.get(context).scaledMinimumFlingVelocity.toFloat()
+    }
     val currentSpeed by rememberUpdatedState(speed)
     val horizontalDrag by rememberUpdatedState(onHorizontalDrag)
     val swipeDown by rememberUpdatedState(onSwipeDown)
@@ -135,7 +143,7 @@ internal fun Modifier.uShapeScrollGestures(
                 val event = awaitPointerEvent(PointerEventPass.Initial)
             } while (event.changes.any { it.pressed })
         }
-    }.pointerInput(state, enabled, itemCount) {
+    }.pointerInput(state, enabled, itemCount, minimumFlingVelocity) {
         if (enabled) awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false)
             val tracker = VelocityTracker()
@@ -146,7 +154,7 @@ internal fun Modifier.uShapeScrollGestures(
             fun update(change: PointerInputChange, delta: Offset) {
                 tracker.addPosition(change.uptimeMillis, change.position)
                 if (horizontal && itemCount > 0) {
-                    state.dragBy(delta.x * .05f * sensitivityValue(currentSpeed), currentSpeed)
+                    state.dragBy(delta.x * U_SHAPE_DRAG_GAIN * sensitivityValue(currentSpeed), currentSpeed)
                     horizontalDrag()
                 } else if (!horizontal && !closed) {
                     verticalDistance += delta.y
@@ -166,7 +174,13 @@ internal fun Modifier.uShapeScrollGestures(
                     tracker.addPosition(it.uptimeMillis, it.position)
                 }
                 if (horizontal) {
-                    val velocity = if (released) tracker.calculateVelocity().x * .3f * sensitivityValue(currentSpeed) else 0f
+                    val fingerVelocity = if (released) tracker.calculateVelocity().x else 0f
+                    // Fine positioning must snap, independent of sensitivity. Android's
+                    // threshold accounts for device density; release uses the same units
+                    // and gain as dragging, so lifting cannot multiply the motion sixfold.
+                    val velocity = if (abs(fingerVelocity) >= minimumFlingVelocity) {
+                        fingerVelocity * U_SHAPE_DRAG_GAIN * sensitivityValue(currentSpeed)
+                    } else 0f
                     state.settle(itemCount, velocity, currentSpeed)
                 }
             }

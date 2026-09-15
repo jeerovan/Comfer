@@ -32,6 +32,19 @@ For every future attempt, append an attempt ID, full provider issue ID, affected
 
 ## Attempts
 
+### 50-06 — user-reported U-shaped drawer precision-release fling (15 September 2026)
+
+- Report: fling the AppListOverlay drawer, touch to brake it, then slowly position an icon and lift; the list starts gliding again. No Crashlytics issue ID applies to this interaction report.
+- Reproduction: API-24 emulator, using injected touch events through the production `uShapeScrollGestures` modifier and `UShapeScrollState`. Start a swipe fling, tap to stop, drag backwards at 0.5 dp per 16 ms, then immediately release. The regression failed before the fix at sensitivity 3: after 600 ms it was still coasting at offset 70.12595 instead of settling to nearest-icon offset 120. Normal sensitivity passed this particular input sequence. This is an instrumented gesture reproduction, not a manual reproduction on the affected Samsung.
+- Cause: release velocity used six times the drag gain; the coast threshold was applied after sensitivity scaling. A slow adjustment could therefore become a long glide. Touch-down already cancels old motion and clears pending drag; this attempt does not attribute the issue to stored drag replay.
+- Attempt: classify fling against Android's device-scaled minimum finger velocity before applying sensitivity, then use the same gain for drag and release. Keep touch braking, visual speed caps, wrapping and sensitivity-based intentional-fling duration.
+- Files: `UShapeScrollState.kt`; `UShapeScrollGestureTest.kt`. Added immediate-release regression at normal/high sensitivity, preserving an initial intentional fling and tap-to-stop assertions.
+- Result: regression failed before production changes, then all 12 `UShapeScrollGestureTest`/`UShapeCenterSelectionTest` cases passed on API 24; all 166 JVM tests passed (zero failures/errors/skips). Debug and isolated instrumentation builds passed. Initial combined build command could not select `testDebugUnitTest` with `comferTestBuildType=notificationTest`; separate normal-debug and instrumentation configurations succeeded.
+- Artifact: emulator debug APK SHA-256 `0eb453b24684b23e7e5c3c60ea576d316dabed949b37c98a869a2156095e1b6f`, built from base `c322621566a7ef6de4206fd4a678d48459c232fa` plus this uncommitted fix. At the emulator verification checkpoint, this attempt had not been installed on Samsung or shipped to Play. Ordinary intentional flings below the visual speed cap now have less coast distance because the sixfold release amplification was removed.
+- Validation/artifacts: see local `validation-artifacts/device-checkpoint/2026-09-15-precision-fling/` for the failing baseline and follow-up results. Samsung reproduction by the agent was conditional on failure to reproduce on the emulator. Production monitoring remains pending.
+
+- Affected-device outcome (user follow-up): user tested the fix on the affected device and confirmed, “It fixes on affected device.” Mark this reported interaction bug as user-confirmed fixed on that device. Exact device model and tested APK identity were not supplied; this does not establish broad production resolution.
+
 ### 50-01 — `64a0bfd0b15b3d38c91b303172f08da1`
 
 - Baseline: 35 version-49 events; LazyDsl.kt - com.jeerovan.comfer.notifications.NotificationInboxActivityKt$NotificationHomeEntry_eDu8a20$lambda$10$0$$inlined$items$default$4.invoke.
