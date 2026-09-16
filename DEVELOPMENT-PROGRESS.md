@@ -19,6 +19,8 @@ Follow-up: Inbox long-press now reuses the home-screen progress-ring hand animat
 
 ## Journals — first emulator test build (15 September 2026)
 
+Journal search added: gray leading composer icon opens Search Journal with a 300 ms typing delay, searching saved non-archived text across all dates. Search hides composer photo/mic controls and date navigation, preserves the writing draft, and reuses normal entry editing/date-time/image/swipe/Undo interactions. Results remain paged. All 14 Journal UI/database cases passed across the final suite and targeted theme rerun; 167 JVM tests passed. Emulator updated; Samsung unchanged. See the Journal validation record for test-host keyboard and screenshot synchronization fixes.
+
 Restore confirmation now displays only the backup's Comfer version and localized date/time, plus password input when the Journal archive is encrypted. Detailed counts and per-module descriptions are removed; restoration behavior is unchanged.
 
 16 September backup-password refinement: minimum reduced to four characters in both Journal export formats. No upfront length restriction is shown; submission displays short-password or confirmation errors. Four focused emulator tests and 167 JVM tests passed, including encrypted four-character text/image restore and longer-password compatibility. Emulator updated; Samsung unchanged.

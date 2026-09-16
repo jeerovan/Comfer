@@ -25,6 +25,8 @@ The planned home entry is the [four-module menu](docs/home-module-menu.md): a th
 
 ## 3. Bottom composer and prompts
 
+Journal search: a gray, tappable search icon at the leading edge of the composer opens Search Journal. The input placeholder becomes Search; hide the photo-picker, mic/submit control and date-navigation row to give search more space. Search saved, non-archived entry text across all dates after a 300 ms typing pause. Empty input shows a search prompt rather than all entries; unmatched queries show an empty state. Keep results bounded and pageable. Reuse normal entry cards and their text editing, editable date/time, image preview/change/delete, swipe deletion and Undo. Search text must never overwrite the composer draft. Close search or Android Back returns to the normal journal and its draft; resolve active edits before leaving search. Journal search stays separate from launcher and Notes search.
+
 Place an expanding text input at the bottom. The image-picker icon sits inside the input at its trailing end. The mic/submit control sits outside the input at the screen's trailing edge, after the input. In English this means image icon at the right end of the box and mic farther right; use directional layout for RTL.
 
 - Show a different writing prompt as placeholder for each new empty composer, successful submission, or fresh Journal opening. Cycle through a shuffled local prompt list without immediately repeating the previous prompt; keep the prompt stable while editing, recording, rotating, or navigating dates with a draft.

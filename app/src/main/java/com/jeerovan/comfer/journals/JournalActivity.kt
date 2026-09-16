@@ -177,8 +177,15 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
     var day by rememberSaveable { mutableLongStateOf(LocalDate.now().toEpochDay()) }
     var followingToday by rememberSaveable { mutableStateOf(day == LocalDate.now().toEpochDay()) }
     var trash by rememberSaveable { mutableStateOf(false) }
-    var limit by remember(day, trash) { mutableIntStateOf(50) }
-    var windowOffset by remember(day, trash) { mutableIntStateOf(0) }
+    var searchMode by rememberSaveable { mutableStateOf(false) }
+    var searchText by rememberSaveable { mutableStateOf("") }
+    var searchQuery by remember { mutableStateOf("") }
+    LaunchedEffect(searchMode, searchText) {
+        if (!searchMode || searchText.isBlank()) searchQuery = ""
+        else { delay(300); searchQuery = searchText.trim() }
+    }
+    var limit by remember(day, trash, searchMode, searchQuery) { mutableIntStateOf(50) }
+    var windowOffset by remember(day, trash, searchMode, searchQuery) { mutableIntStateOf(0) }
     var settings by remember { mutableStateOf(false) }
     var options by remember { mutableStateOf(false) }
     var savedEntryId by remember { mutableStateOf<String?>(null) }
@@ -221,7 +228,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
     fun leave() {
         if (capturing) { if(recoveryPending && !model.speech.active) model.error.value = "Retry saving dictation before closing." else model.speech.stop(); return }
         if (editing != null) { if (changed()) confirmLeave = true else model.finishEdit(false) }
-        else if (trash) trash = false else model.closeWhenSaved(close)
+        else if (trash) trash = false else if (searchMode) searchMode = false else model.closeWhenSaved(close)
     }
     BackHandler { leave() }
     fun selectDay(value: Long) { if(model.speech.active || editing != null) return; windowOffset = 0; navigationSerial++; followingToday = value == LocalDate.now().toEpochDay(); day = value; if (draft?.hasContent == false && localText.isBlank()) model.change(day = value) }
@@ -249,7 +256,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface.copy(alpha = .8f), contentColor = MaterialTheme.colorScheme.onSurface, tonalElevation = 0.dp) {
         Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(if (trash) R.string.journal_trash else R.string.journal_title), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(if (trash) R.string.journal_trash else if (searchMode) R.string.journal_search_title else R.string.journal_title), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
                 if(draftSaving) CircularProgressIndicator(Modifier.size(16.dp).semantics { contentDescription = draftSavingLabel })
             }
             val rtlLayout = LocalLayoutDirection.current == LayoutDirection.Rtl
@@ -259,7 +266,13 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                     (slideIntoContainer(direction, tween(320)) + fadeIn(tween(240))) togetherWith
                         (slideOutOfContainer(direction, tween(320)) + fadeOut(tween(240)))
                 }, label = "journal-day-content") { pageDay ->
-            val loadedEntries by remember(pageDay, limit, windowOffset) { model.store.dao.observeDay(pageDay, limit + 1, windowOffset) }.collectAsState(emptyList())
+            val loadedEntries by key(searchMode, searchQuery) {
+                remember(pageDay, searchMode, searchQuery, limit, windowOffset) {
+                    if (!searchMode) model.store.dao.observeDay(pageDay, limit + 1, windowOffset)
+                    else if (searchQuery.isEmpty()) kotlinx.coroutines.flow.flowOf(emptyList<JournalEntry>())
+                    else model.store.dao.search(searchQuery, limit + 1, windowOffset)
+                }.collectAsState(emptyList())
+            }
             val entries = remember(loadedEntries, limit) { loadedEntries.takeLast(limit) }
             val newestFirst = remember(entries) { entries.asReversed() }
             val hasOlder = loadedEntries.size > limit
@@ -267,7 +280,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                 if (entries.isNotEmpty()) guides.activate()
             }
             val pageNavigationSerial = remember { navigationSerial }
-            val listState = key(trash, pageDay, pageNavigationSerial) { rememberLazyListState() }
+            val listState = key(trash, pageDay, pageNavigationSerial, searchMode, searchQuery) { rememberLazyListState() }
             LaunchedEffect(entries, savedEntryId) {
                 if (pageDay == day && savedEntryId != null && entries.any { it.id == savedEntryId }) {
                     listState.animateScrollToItem(0)
@@ -280,7 +293,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                     ?: newestFirst.firstOrNull()?.id
             } }
             BoxWithConstraints(Modifier.fillMaxSize()) {
-                val reach = rememberThumbReach((maxHeight - 360.dp).coerceAtLeast(0.dp), trash)
+                val reach = rememberThumbReach((maxHeight - 360.dp).coerceAtLeast(0.dp), trash to searchMode)
                 val offset = with(LocalDensity.current) { reach.offset.toDp() }
                 LazyColumn(Modifier.fillMaxSize().testTag("journal-feed").nestedScroll(reach).padding(top = offset), state = listState, reverseLayout = !trash, contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp, if (trash) Alignment.Top else Alignment.Bottom)) {
                     if (trash) {
@@ -297,7 +310,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                     } else {
                         // Newer-page action belongs below the newest row in reverse layout.
                         if (windowOffset > 0) item { TextButton(onClick = { windowOffset = (windowOffset - 50).coerceAtLeast(0) }) { Text(stringResource(R.string.journal_load_newer)) } }
-                        if (entries.isEmpty()) item { Text(stringResource(R.string.journal_empty)) }
+                        if (entries.isEmpty()) item { Text(stringResource(if (!searchMode) R.string.journal_empty else if (searchText.isBlank()) R.string.journal_search_empty else R.string.journal_search_no_results)) }
                         itemsIndexed(newestFirst, key = { _, entry -> entry.id }) { index, entry ->
                             Column(Modifier.fillMaxWidth().animateItem(fadeInSpec = tween(200), placementSpec = tween(260), fadeOutSpec = null)) {
                             if (index == newestFirst.lastIndex || newestFirst[index + 1].day != entry.day) Box(Modifier.fillMaxWidth().padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
@@ -372,7 +385,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                 Text(stringResource(R.string.journal_deleted), Modifier.weight(1f))
                 TextButton(onClick = { model.restore(item); undo = null }) { Text(stringResource(R.string.journal_undo)) }
             } }
-            if (!trash) {
+            if (!trash && !searchMode) {
                 val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
                 val threshold = with(LocalDensity.current) { 48.dp.toPx() }
                 val navigationEnabled = editing == null && !capturing && !busy
@@ -442,12 +455,20 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                         IconButton(onClick = { model.speech.stop() }, modifier = Modifier.size(48.dp)) { Icon(Icons.Outlined.Stop, stringResource(R.string.journal_stop)) }
                     }
                 } else {
-                draft?.image?.let { id -> JournalImage(model.media, id, Modifier.height(90.dp).clickable(enabled = editing == null && !busy) { imageTarget = null; imagePreview = true }) }
+                if (!searchMode) draft?.image?.let { id -> JournalImage(model.media, id, Modifier.height(90.dp).clickable(enabled = editing == null && !busy) { imageTarget = null; imagePreview = true }) }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(localText, onValueChange = { localText = it; model.change(text = it) }, modifier = Modifier.weight(1f).heightIn(max = 180.dp).testTag("journal-composer").semantics { contentDescription = resources.getString(R.string.journal_input) }, enabled = editing == null && !busy && draft != null,
+                    OutlinedTextField(if (searchMode) searchText else localText, onValueChange = {
+                        if (searchMode) searchText = it else { localText = it; model.change(text = it) }
+                    }, modifier = Modifier.weight(1f).heightIn(max = 180.dp).testTag("journal-composer").semantics { contentDescription = resources.getString(if (searchMode) R.string.journal_search else R.string.journal_input) }, enabled = editing == null && !busy && draft != null,
                         colors = composerColors,
-                        placeholder = { Text(stringResource(listOf(R.string.journal_prompt_0, R.string.journal_prompt_1, R.string.journal_prompt_2, R.string.journal_prompt_3)[draft?.prompt ?: 0])) },
-                        trailingIcon = { IconButton(onClick = { imageTarget = null; model.prepareImagePicker(null); picker.launch("image/*") }, enabled = editing == null && !busy) { Icon(Icons.Outlined.AddPhotoAlternate, stringResource(R.string.journal_add_image)) } })
+                        singleLine = searchMode,
+                        placeholder = { Text(stringResource(if (searchMode) R.string.journal_search else listOf(R.string.journal_prompt_0, R.string.journal_prompt_1, R.string.journal_prompt_2, R.string.journal_prompt_3)[draft?.prompt ?: 0])) },
+                        leadingIcon = { IconButton(onClick = { searchMode = !searchMode }, enabled = editing == null && !busy,
+                            modifier = Modifier.testTag("journal-search-toggle")) {
+                            Icon(if (searchMode) Icons.Outlined.Close else Icons.Outlined.Search, stringResource(if (searchMode) R.string.journal_search_close else R.string.journal_search_title), tint = mutedGray)
+                        } },
+                        trailingIcon = if (searchMode) null else { { IconButton(onClick = { imageTarget = null; model.prepareImagePicker(null); picker.launch("image/*") }, enabled = editing == null && !busy) { Icon(Icons.Outlined.AddPhotoAlternate, stringResource(R.string.journal_add_image), tint = mutedGray) } } })
+                    if (!searchMode) {
                     val canSubmit = localText.isNotBlank() || draft?.image != null
                     Box(Modifier.size(48.dp).testTag("journal-submit").combinedClickable(enabled = editing == null && !busy && draft != null,
                         onClick = { if (canSubmit) model.submit { entry -> selectDay(entry.day); savedEntryId = entry.id; model.change(day = entry.day) } else model.error.value = "Hold the microphone to start dictation." },
@@ -458,6 +479,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                         if(busy) CircularProgressIndicator(Modifier.size(24.dp))
                         else Icon(if (canSubmit) Icons.Outlined.Check else Icons.Outlined.Mic, stringResource(if(canSubmit) R.string.journal_save else R.string.journal_start_dictation))
                     }
+                }
                 }
                 }
                 Spacer(Modifier.height(8.dp))

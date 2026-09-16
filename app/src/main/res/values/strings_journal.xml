@@ -74,4 +74,9 @@
     <string name="journal_load_newer">Load newer</string>
     <string name="journal_options">Journal options</string>
     <string name="journal_image_unavailable">Image could not be opened.</string>
+    <string name="journal_search_title">Search Journal</string>
+    <string name="journal_search">Search</string>
+    <string name="journal_search_close">Close search</string>
+    <string name="journal_search_empty">Search your journal entries</string>
+    <string name="journal_search_no_results">No matching entries</string>
 </resources>

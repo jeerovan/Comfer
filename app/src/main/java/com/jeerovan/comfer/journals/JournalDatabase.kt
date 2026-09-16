@@ -69,6 +69,8 @@ interface JournalDao {
     suspend fun page(day: Long, limit: Int = 50, offset: Int = 0): List<JournalEntry>
     @Query("SELECT * FROM (SELECT * FROM journal_entries WHERE day<=:day AND deletedAt IS NULL ORDER BY day DESC,createdAt DESC,id DESC LIMIT :limit OFFSET :offset) ORDER BY day,createdAt,id")
     fun observeDay(day: Long, limit: Int, offset: Int = 0): Flow<List<JournalEntry>>
+    @Query("SELECT * FROM (SELECT * FROM journal_entries WHERE deletedAt IS NULL AND instr(lower(text), lower(:query)) > 0 ORDER BY day DESC,createdAt DESC,id DESC LIMIT :limit OFFSET :offset) ORDER BY day,createdAt,id")
+    fun search(query: String, limit: Int, offset: Int = 0): Flow<List<JournalEntry>>
     @Query("SELECT DISTINCT day FROM journal_entries WHERE deletedAt IS NULL AND day<:day ORDER BY day DESC LIMIT 1")
     suspend fun previousDay(day: Long): Long?
     @Query("SELECT DISTINCT day FROM journal_entries WHERE deletedAt IS NULL AND day>:day ORDER BY day LIMIT 1")

@@ -9,6 +9,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
 import org.junit.*
 import org.junit.Assert.*
 
@@ -20,6 +21,7 @@ class JournalUiTest {
     private lateinit var previous: JournalSnapshot
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
     @Before fun setup() {
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
         check(context.packageName.endsWith(".notificationtest"))
         runBlocking {
             previous = JournalBackup.snapshot(context)
@@ -27,6 +29,11 @@ class JournalUiTest {
         }
         compose.runOnUiThread { model = JournalViewModel(context.applicationContext as Application) }
         compose.setContent {
+            val activity = androidx.compose.ui.platform.LocalContext.current as android.app.Activity
+            androidx.compose.runtime.DisposableEffect(activity) {
+                activity.window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+                onDispose { }
+            }
             val density = androidx.compose.ui.platform.LocalDensity.current
             androidx.compose.runtime.CompositionLocalProvider(
                 androidx.compose.ui.platform.LocalLayoutDirection provides if(rtlLarge.value) androidx.compose.ui.unit.LayoutDirection.Rtl else androidx.compose.ui.unit.LayoutDirection.Ltr,
@@ -40,6 +47,75 @@ class JournalUiTest {
         compose.waitUntil(10000) { model.draft.value != null }
     }
     @After fun cleanup() { compose.runOnUiThread { model.speech.interrupt() }; runBlocking { JournalBackup.replace(context, previous) } }
+    @Test fun searchPreservesDraftAndSupportsEntryActionsAcrossDates() {
+        val yesterday = java.time.LocalDate.now().minusDays(1).toEpochDay()
+        val entry = JournalEntry(day = yesterday, text = "Searchable memory")
+        runBlocking { model.store.dao.insert(entry) }
+        compose.onNodeWithTag("journal-composer").performTextInput("Unfinished writing")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        compose.onNodeWithTag("journal-search-toggle").performClick()
+        compose.onNodeWithText("Search Journal").assertIsDisplayed()
+        compose.onNodeWithTag("journal-submit").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Add image").assertDoesNotExist()
+        compose.onNodeWithTag("journal-date-row").assertDoesNotExist()
+        compose.onNodeWithTag("journal-composer").performTextInput("searchable")
+        compose.waitUntil(10000) { compose.onAllNodesWithText("Searchable memory").fetchSemanticsNodes().isNotEmpty() }
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        compose.onNodeWithText("Searchable memory").performClick()
+        compose.waitUntil(10000) { model.editing.value != null }
+        compose.onNodeWithTag("journal-edit").performTextReplacement("Searchable edited")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        compose.onNodeWithContentDescription("Save").performClick()
+        compose.waitUntil(10000) { model.editing.value == null }
+        compose.onNodeWithText("Searchable edited").assertExists()
+        compose.onNodeWithTag("journal-time-${entry.id}").performClick()
+        compose.onNodeWithTag("journal-date-dialog").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Save").performClick()
+        compose.onNodeWithTag("journal-time-dialog").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Save").performClick()
+        compose.waitUntil(10000) { model.editing.value != null }
+        compose.onNodeWithContentDescription("Save").performClick()
+        compose.waitUntil(10000) { model.editing.value == null }
+        compose.onNodeWithText("Searchable edited").performTouchInput { swipeLeft() }
+        compose.waitUntil(10000) { runBlocking { model.store.dao.entry(entry.id)?.deletedAt != null } }
+        compose.onNodeWithText("Undo").performClick()
+        compose.waitUntil(10000) { compose.onAllNodesWithText("Searchable edited").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithContentDescription("Close search").performClick()
+        compose.onNodeWithTag("journal-composer").assertTextContains("Unfinished writing")
+        assertEquals("Unfinished writing", model.draft.value?.text)
+        compose.onNodeWithTag("journal-submit").assertIsDisplayed()
+    }
+
+    @Test fun searchDebouncesAndClearingQueryDoesNotShowAllEntries() {
+        runBlocking { model.store.dao.insert(JournalEntry(text = "Debounce target")) }
+        compose.onNodeWithTag("journal-search-toggle").performClick()
+        compose.mainClock.autoAdvance = false
+        compose.onNodeWithTag("journal-composer").performTextInput("Debounce")
+        compose.mainClock.advanceTimeBy(100)
+        compose.onNodeWithText("Debounce target").assertDoesNotExist()
+        compose.onNodeWithTag("journal-composer").performTextReplacement("missing")
+        compose.mainClock.advanceTimeBy(350)
+        compose.mainClock.autoAdvance = true
+        compose.onNodeWithText("Debounce target").assertDoesNotExist()
+        compose.onNodeWithTag("journal-composer").performTextReplacement("Debounce")
+        compose.waitUntil(10000) { compose.onAllNodesWithText("Debounce target").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("journal-composer").performTextClearance()
+        compose.waitUntil(10000) { compose.onAllNodesWithText("Debounce target").fetchSemanticsNodes().isEmpty() }
+        compose.onNodeWithText("Search your journal entries").assertIsDisplayed()
+    }
+
+    @Test fun searchMatchesLiteralTextExcludesArchiveAndPagesAcrossAllDates() = runBlocking {
+        val today = java.time.LocalDate.now().toEpochDay()
+        for (index in 0..54) model.store.dao.insert(JournalEntry(id = "search-$index", day = today + index - 25, text = "Memory 100%_$index"))
+        model.store.dao.insert(JournalEntry(id = "archived-search", text = "Memory 100%_archived", deletedAt = System.currentTimeMillis()))
+        assertEquals(50, model.store.dao.search("MEMORY", 50).first().size)
+        assertEquals(5, model.store.dao.search("memory", 50, 50).first().size)
+        assertEquals(55, model.store.dao.search("100%_", 100).first().size)
+        assertEquals(0, model.store.dao.search("not found", 100).first().size)
+        assertTrue(model.store.dao.search("Memory", 100).first().any { it.day > today })
+        assertFalse(model.store.dao.search("Memory", 100).first().any { it.id == "archived-search" })
+    }
+
     @Test fun saveEditCancelAndDeleteUndoPreserveText() {
         compose.onNodeWithTag("journal-composer").performTextInput("A synthetic journal")
         compose.onNodeWithTag("journal-submit").performClick()
@@ -174,18 +250,20 @@ class JournalUiTest {
     @Test fun rootTextAndIconsFollowThemeAndDatePickerIsThemed() {
         fun assertRenderedColor(node: SemanticsNodeInteraction, expected: Color) {
             compose.waitForIdle()
-            val bounds = node.fetchSemanticsNode().boundsInWindow
-            // Compose PixelCopy capture needs API 26; UIAutomation screenshots also work on API 24.
-            val bitmap = requireNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
-            var matching = 0
-            for (y in bounds.top.toInt().coerceAtLeast(0) until bounds.bottom.toInt().coerceAtMost(bitmap.height)) {
-                for (x in bounds.left.toInt().coerceAtLeast(0) until bounds.right.toInt().coerceAtMost(bitmap.width)) {
-                    val pixel = Color(bitmap.getPixel(x, y))
-                    if (kotlin.math.abs(pixel.red - expected.red) < .1f && kotlin.math.abs(pixel.green - expected.green) < .1f && kotlin.math.abs(pixel.blue - expected.blue) < .1f) matching++
+            // Compose idleness can precede the emulator compositor's displayed frame.
+            compose.waitUntil(5000) {
+                val bounds = node.fetchSemanticsNode().boundsInWindow
+                val bitmap = requireNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
+                var matching = 0
+                for (y in bounds.top.toInt().coerceAtLeast(0) until bounds.bottom.toInt().coerceAtMost(bitmap.height)) {
+                    for (x in bounds.left.toInt().coerceAtLeast(0) until bounds.right.toInt().coerceAtMost(bitmap.width)) {
+                        val pixel = Color(bitmap.getPixel(x, y))
+                        if (kotlin.math.abs(pixel.red - expected.red) < .1f && kotlin.math.abs(pixel.green - expected.green) < .1f && kotlin.math.abs(pixel.blue - expected.blue) < .1f) matching++
+                    }
                 }
+                bitmap.recycle()
+                matching > 5
             }
-            bitmap.recycle()
-            assertTrue("Expected theme foreground to be rendered", matching > 5)
         }
         compose.runOnIdle { themeMode.intValue = 1 }
         assertRenderedColor(compose.onNodeWithText("Journal"), Color.Cyan)
