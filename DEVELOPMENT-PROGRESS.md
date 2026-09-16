@@ -19,6 +19,10 @@ Follow-up: Inbox long-press now reuses the home-screen progress-ring hand animat
 
 ## Journals — first emulator test build (15 September 2026)
 
+Restore confirmation now displays only the backup's Comfer version and localized date/time, plus password input when the Journal archive is encrypted. Detailed counts and per-module descriptions are removed; restoration behavior is unchanged.
+
+16 September backup-password refinement: minimum reduced to four characters in both Journal export formats. No upfront length restriction is shown; submission displays short-password or confirmation errors. Four focused emulator tests and 167 JVM tests passed, including encrypted four-character text/image restore and longer-password compatibility. Emulator updated; Samsung unchanged.
+
 16 September gesture onboarding: persistent label-free tap-to-edit → swipe-to-delete → date-row swipe animations now advance only after each action succeeds. Four focused emulator tests passed, including persistence, input transparency and partial swipe handling. See [Journal features](Journal-Features.md) and the [validation record](docs/journals-implementation.md).
 
 16 September UI refinement: date/feed transitions slide in swipe direction; swipe deletion completes its exit before animated list repositioning, with Undo state restored correctly. Composer mic is vertically centered; Archive is available through the date-row menu rather than settings. Six focused emulator UI tests passed. See the [Journal validation record](docs/journals-implementation.md).

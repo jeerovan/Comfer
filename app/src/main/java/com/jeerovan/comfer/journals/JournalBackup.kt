@@ -26,6 +26,7 @@ data class JournalArchive(val version: Int = 1, val encrypted: Boolean = false, 
 class JournalArchiveException(message: String) : java.io.IOException(message)
 
 object JournalBackup {
+    const val MIN_PASSWORD_LENGTH = 4
     private val json = Json { encodeDefaults = true }
     private fun encode(bytes: ByteArray) = Base64.encodeToString(bytes, Base64.NO_WRAP)
     private fun decode(text: String) = Base64.decode(text, Base64.NO_WRAP)
@@ -52,7 +53,7 @@ object JournalBackup {
         val bytes = json.encodeToString(snapshot).encodeToByteArray()
         if (bytes.size > 20_000_000) throw JournalArchiveException("Journal exceeds this test build’s backup size limit")
         if (password == null) return JournalArchive(content = bytes.decodeToString())
-        require(password.length >= 12) { "Use an export password of at least 12 characters" }
+        require(password.length >= MIN_PASSWORD_LENGTH) { "Password must contain at least 4 characters" }
         val salt = ByteArray(16).also { SecureRandom().nextBytes(it) }
         val nonce = ByteArray(12).also { SecureRandom().nextBytes(it) }
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")

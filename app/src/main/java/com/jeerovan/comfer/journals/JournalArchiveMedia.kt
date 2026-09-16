@@ -55,7 +55,7 @@ object JournalArchiveMedia {
         val ids = (local.entries.mapNotNull { it.image } + local.drafts.mapNotNull { it.image }).distinct()
         val staging = File(context.noBackupFilesDir, "journal-export-${UUID.randomUUID()}").apply { check(mkdirs()) }
         try {
-            if(password != null) require(password.length >= 12)
+            if(password != null) require(password.length >= JournalBackup.MIN_PASSWORD_LENGTH) { "Password must contain at least 4 characters" }
             val salt = if(password != null) random(16) else null
             val secret = password?.let { key(it, salt!!) }
             val files = linkedMapOf<String, File>()

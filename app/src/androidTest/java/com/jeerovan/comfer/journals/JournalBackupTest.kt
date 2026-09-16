@@ -29,6 +29,16 @@ class JournalBackupTest {
         assertEquals(snapshot, json.decodeFromString(JournalSnapshot.serializer(), encoded))
     }
 
+    @Test fun shortPasswordsRejectedByBothExportFormats() = runBlocking {
+        val snapshot = JournalBackup.snapshot(context)
+        for (password in listOf("", "1", "12", "123")) {
+            try { JournalBackup.pack(snapshot, password); fail("Accepted short password") }
+            catch (_: IllegalArgumentException) { }
+            try { JournalArchiveMedia.prepare(context, password).use { }; fail("Accepted short password") }
+            catch (_: IllegalArgumentException) { }
+        }
+    }
+
     @Test fun encryptedPortableRoundTripAndWrongPassword() = runBlocking {
         val store = JournalStore(JournalDatabase.get(context))
         val image = File(context.cacheDir, "journal-test.png")
@@ -192,14 +202,14 @@ class JournalBackupTest {
         val store = JournalStore(JournalDatabase.get(context))
         val entry = store.submit(store.saveDraft(store.ensureDraft().copy(text = "Protected synthetic text", image = image)))
         val archive = File(context.cacheDir, "journal-protected.zip")
-        BackupRestoreManager.createBackup(context, Uri.fromFile(archive), "en", "synthetic-password-only")
+        BackupRestoreManager.createBackup(context, Uri.fromFile(archive), "en", "1234")
         java.util.zip.ZipFile(archive).use { zip ->
             assertFalse(zip.getInputStream(zip.getEntry("payload.json")).reader().readText().contains("Protected synthetic text"))
             val encrypted = zip.getInputStream(zip.getEntry("journals/$image")).readBytes()
             assertFalse(encrypted.contentEquals(JournalMedia(context).file(image).readBytes()))
         }
         store.delete(entry)
-        BackupRestoreManager.restoreBackup(context, Uri.fromFile(archive), "synthetic-password-only")
+        BackupRestoreManager.restoreBackup(context, Uri.fromFile(archive), "1234")
         val restored = store.dao.entry(entry.id)!!
         assertNull(restored.deletedAt)
         assertEquals(entry.text, restored.text)

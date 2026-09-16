@@ -296,7 +296,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         settingsViewModel.setWeatherWidgetEnabled(granted)
     }
     var journalPassword by remember { mutableStateOf("") }
-    var journalPasswordConfirm by remember { mutableStateOf("") }
     var showJournalExportPassword by remember { mutableStateOf(false) }
     var authorizedJournalAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     val journalAuthentication = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -1029,7 +1028,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     },
                     modifier = Modifier.clickable(enabled = backupRestoreOperation == null) {
                         if (com.jeerovan.comfer.journals.JournalProtection.enabled(context)) {
-                            journalPassword = ""; journalPasswordConfirm = ""; showJournalExportPassword = true
+                            journalPassword = ""; showJournalExportPassword = true
                         } else if (!launchDocumentPickerSafely {
                                 journalPassword = ""
                                 createBackupLauncher.launch(
@@ -1213,47 +1212,31 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         }
         }
     }
-    if (showJournalExportPassword) AlertDialog(
-        onDismissRequest = { showJournalExportPassword = false; journalPassword = ""; journalPasswordConfirm = "" },
-        title = { Text(stringResource(R.string.journal_export_password)) },
-        text = { Column {
-            Text(stringResource(R.string.journal_password_explanation))
-            OutlinedTextField(journalPassword, { journalPassword = it }, label = { Text(stringResource(R.string.journal_password)) }, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
-            OutlinedTextField(journalPasswordConfirm, { journalPasswordConfirm = it }, label = { Text(stringResource(R.string.journal_password_confirm)) }, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
-        } },
-        confirmButton = { TextButton(enabled = journalPassword.length >= 12 && journalPassword == journalPasswordConfirm, onClick = {
+    if (showJournalExportPassword) com.jeerovan.comfer.journals.JournalExportPasswordDialog(
+        onDismiss = { showJournalExportPassword = false; journalPassword = "" },
+        onConfirm = { password ->
+            journalPassword = password
             showJournalExportPassword = false
             withJournalAuthorization { launchDocumentPickerSafely { createBackupLauncher.launch(BackupRestoreManager.suggestedFileName()) } }
-        }) { Text(stringResource(R.string.title_backup)) } },
-        dismissButton = { TextButton(onClick = { showJournalExportPassword = false; journalPassword = ""; journalPasswordConfirm = "" }) { Text(stringResource(android.R.string.cancel)) } })
+        },
+    )
     pendingRestore?.let { (source, preview) ->
         val createdAt = remember(preview.createdAtEpochMs) {
             java.text.DateFormat.getDateTimeInstance().format(Date(preview.createdAtEpochMs))
         }
         AlertDialog(
             onDismissRequest = { pendingRestore = null },
-            title = { Text(stringResource(R.string.restore_confirmation_title)) },
+            title = { Text(stringResource(R.string.title_restore)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         stringResource(
-                            R.string.restore_confirmation_message,
+                            R.string.restore_backup_summary,
                             preview.sourceVersionName,
                             createdAt,
-                            preview.appListCount,
-                            preview.folderCount,
                         ),
                     )
-                    if (preview.wallpaperIncluded) {
-                        Text(stringResource(R.string.restore_confirmation_wallpaper))
-                    }
-                    Text(stringResource(if (preview.notificationSettingsIncluded)
-                        R.string.restore_notification_settings else R.string.restore_no_notification_settings))
-                    Text(stringResource(if(preview.journalsIncluded) R.string.journal_restore_replace else R.string.journal_restore_missing))
                     if (preview.journalsEncrypted) OutlinedTextField(journalPassword, { journalPassword = it }, label = { Text(stringResource(R.string.journal_password)) }, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
-                    Text(if(preview.taskCount == null) stringResource(R.string.tasks_restore_missing)
-                        else if(preview.taskCount == 0) stringResource(R.string.tasks_restore_empty)
-                        else stringResource(R.string.tasks_restore, preview.taskCount, preview.taskListCount ?: 0))
                 }
             },
             confirmButton = {
