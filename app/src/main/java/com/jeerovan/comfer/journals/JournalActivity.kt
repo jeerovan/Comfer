@@ -135,6 +135,8 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
         disabledBorderColor = mutedGray.copy(alpha = .6f)
     )
     val scope = rememberCoroutineScope()
+    val guides = remember(context) { JournalGuideProgress(context) }
+    var guideEditRequest by remember { mutableStateOf<String?>(null) }
     val draft by model.draft.collectAsState()
     val error by model.error.collectAsState()
     val busy by model.busy.collectAsState()
@@ -209,6 +211,12 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
     LaunchedEffect(undo) { if (undo != null) { delay(5000); undo = null } }
     // Each navigation surface starts at its natural origin; Archive cannot reuse the feed's index.
     // Reverse layout makes Journal's origin the newest entry at the bottom, without startup scrolling.
+    LaunchedEffect(editing?.id) {
+        if (editing != null && editing?.id == guideEditRequest) {
+            guides.performed(JournalGuide.EDIT)
+            guideEditRequest = null
+        }
+    }
     fun changed() = editing?.let { it.text != localEdit || it.image != editDraft?.image || it.createdAt != (editDraft?.createdAt ?: it.createdAt) || it.day != editDraft?.day } == true
     fun leave() {
         if (capturing) { if(recoveryPending && !model.speech.active) model.error.value = "Retry saving dictation before closing." else model.speech.stop(); return }
@@ -255,6 +263,9 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
             val entries = remember(loadedEntries, limit) { loadedEntries.takeLast(limit) }
             val newestFirst = remember(entries) { entries.asReversed() }
             val hasOlder = loadedEntries.size > limit
+            LaunchedEffect(entries.isNotEmpty()) {
+                if (entries.isNotEmpty()) guides.activate()
+            }
             val pageNavigationSerial = remember { navigationSerial }
             val listState = key(trash, pageDay, pageNavigationSerial) { rememberLazyListState() }
             LaunchedEffect(entries, savedEntryId) {
@@ -263,6 +274,11 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                     savedEntryId = null
                 }
             }
+            val guideEntryId by remember(newestFirst, listState) { derivedStateOf {
+                val ids = newestFirst.map { it.id }.toSet()
+                listState.layoutInfo.visibleItemsInfo.firstOrNull { it.key in ids }?.key
+                    ?: newestFirst.firstOrNull()?.id
+            } }
             BoxWithConstraints(Modifier.fillMaxSize()) {
                 val reach = rememberThumbReach((maxHeight - 360.dp).coerceAtLeast(0.dp), trash)
                 val offset = with(LocalDensity.current) { reach.offset.toDp() }
@@ -299,11 +315,12 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                             }
                             LaunchedEffect(dismiss, dismiss.settledValue) {
                                 if (dismiss.settledValue != SwipeToDismissBoxValue.Settled) {
-                                    model.delete(currentEntry, done = { undo = it }, failed = { scope.launch { dismiss.reset() } })
+                                    model.delete(currentEntry, done = { undo = it; guides.performed(JournalGuide.DELETE) }, failed = { scope.launch { dismiss.reset() } })
                                 }
                             }
                             SwipeToDismissBox(state = dismiss, modifier = Modifier.clipToBounds(), enableDismissFromStartToEnd = editing == null && !capturing, enableDismissFromEndToStart = editing == null && !capturing,
                                 backgroundContent = {}) {
+                                Box {
                                 Card(Modifier.fillMaxWidth().semantics {
                                     customActions = listOf(CustomAccessibilityAction(resources.getString(R.string.journal_delete)) {
                                         if (editing == null && !capturing) { model.delete(entry) { undo = it }; true } else false
@@ -319,7 +336,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                                         if (provisionalText.isNotBlank()) Text(provisionalText, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = mutedGray)
                                     } else Text(entry.text.ifBlank { " " }, Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(enabled = !capturing && !busy) {
                                         if (editing != null && changed()) { pendingEdit = entry; confirmLeave = true }
-                                        else { if (editing != null) model.finishEdit(false); model.beginEdit(entry) }
+                                        else { if (editing != null) model.finishEdit(false); guideEditRequest = entry.id; model.beginEdit(entry) }
                                     })
                                     val image = if (editing?.id == entry.id) editDraft?.image else entry.image
                                     image?.let { id -> JournalImage(model.media, id, Modifier.fillMaxWidth().heightIn(max = 220.dp).clickable(enabled = !capturing && !busy && (editing == null || editing?.id == entry.id)) { imageTarget = entry; imagePreview = true }) }
@@ -336,6 +353,13 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
 
 
                                 } }
+                                if (entry.id == guideEntryId && pageDay == day && editing == null && !capturing && !busy && !settings && !options && !imagePreview && dateRequest == null) {
+                                    guides.current?.takeIf { it == JournalGuide.EDIT || it == JournalGuide.DELETE }?.let {
+                                        // The text area opens editing; an image tap opens preview.
+                                        JournalGestureGuide(it, if (it == JournalGuide.EDIT) Modifier.align(Alignment.TopCenter).padding(top = 20.dp) else Modifier.align(Alignment.Center))
+                                    }
+                                }
+                                }
                             }
                             }
                         }
@@ -363,6 +387,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                                 if (navigationEnabled && kotlin.math.abs(distance) >= threshold) {
                                     val forward = if (rtl) distance > 0 else distance < 0
                                     selectDay(day + if (forward) 1 else -1)
+                                    guides.performed(JournalGuide.DATE)
                                 }
                             })
                     }) {
@@ -381,6 +406,9 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                         }, label = "journal-date-slide") { date ->
                             Text(if (date == LocalDate.now().toEpochDay()) stringResource(R.string.journal_today) else dayLabel(date))
                         }
+                    }
+                    if (guides.current == JournalGuide.DATE && navigationEnabled && !settings && !options && dateRequest == null && !imagePreview) {
+                        JournalGestureGuide(JournalGuide.DATE, Modifier.align(Alignment.Center))
                     }
                     Box(Modifier.align(Alignment.CenterEnd)) {
                         IconButton(onClick = { options = true }, enabled = navigationEnabled) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.journal_options), tint = mutedGray) }

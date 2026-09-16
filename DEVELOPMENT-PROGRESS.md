@@ -11,6 +11,8 @@ Reproduced unintended coasting after fling → tap to stop → slow drag → imm
 
 ## Journals — first emulator test build (15 September 2026)
 
+16 September gesture onboarding: persistent label-free tap-to-edit → swipe-to-delete → date-row swipe animations now advance only after each action succeeds. Four focused emulator tests passed, including persistence, input transparency and partial swipe handling. See [Journal features](Journal-Features.md) and the [validation record](docs/journals-implementation.md).
+
 16 September UI refinement: date/feed transitions slide in swipe direction; swipe deletion completes its exit before animated list repositioning, with Undo state restored correctly. Composer mic is vertically centered; Archive is available through the date-row menu rather than settings. Six focused emulator UI tests passed. See the [Journal validation record](docs/journals-implementation.md).
 
 16 September dictation follow-up: fixed redundant provider Stop commands and cancellation before provider readiness; added explicit no-provider setup messaging. Seven speech-controller emulator tests and 166 JVM tests passed. Emulator lacks a recognition provider. A subsequent Galaxy A13 log capture confirmed the dedicated Google on-device provider crashes natively during Hindi recognition; an explicit, consented default-provider alternative is now implemented, with physical transcription acceptance pending. See the [Journal investigation record](docs/journals-implementation.md).

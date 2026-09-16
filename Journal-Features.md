@@ -168,3 +168,11 @@ Image interaction: tapping a composer or saved-entry image opens a secure full-s
 Feed anchoring: use a reverse-layout list backed by newest-first items, so the latest entry is the natural bottom origin while visual reading order stays oldest-to-newest. Journal and Archive must not share a scroll position. Returning from Archive starts Journal at the latest entry without an on-return scroll workaround. Date separators stay above their groups; older/newer paging remains bounded. Explicit new-entry submission still reveals the newly saved content.
 
 Theme consistency: the translucent Journal surface explicitly supplies the active theme’s foreground. Text, icons, inputs, buttons, sheets and preview controls inherit their semantic Material colors. Journal date/time selection and device-security setup messaging use themed Compose dialogs instead of fixed-light platform widgets; short/landscape screens use compact picker input.
+
+## First-entry gesture guides
+
+- After the first entry appears, show a looping tap-hand guide on an entry to teach editing.
+- After the user taps an entry and editing opens, show a looping horizontal-swipe guide on an entry to teach swipe deletion.
+- After a swipe successfully deletes an entry, show a looping left/right swipe guide on the date row, even if the feed is now empty.
+- Show only one step at a time, with no visible labels or dismiss button. Keep each step pending until its action is performed; elapsed time, partial swipes, Undo and reopening do not complete it.
+- Persist progress locally across app restarts. Guides are decorative, never intercept input or perform actions, and pause visually on incompatible surfaces such as editing, Archive, settings, pickers and active dictation.
