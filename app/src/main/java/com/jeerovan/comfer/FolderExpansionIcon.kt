@@ -27,6 +27,22 @@ data class FolderIconMotion(
     val scaleInPlace: Boolean = false,
 )
 
+/** Shared geometry for installed-app and built-in workspace icons. */
+internal fun Modifier.folderIconLayer(
+    fraction: () -> Float,
+    originDeltaDp: Offset,
+    horizontalDirection: Float,
+    scaleInPlace: Boolean,
+    fullScaleRange: Boolean,
+): Modifier = graphicsLayer {
+    val progress = fraction()
+    translationX = if (scaleInPlace) 0f else originDeltaDp.x * horizontalDirection * density * (1f - progress)
+    translationY = if (scaleInPlace) 0f else originDeltaDp.y * density * (1f - progress)
+    scaleX = if (fullScaleRange) progress else .35f + .65f * progress
+    scaleY = scaleX
+    alpha = progress
+}
+
 /** Animate the icon layer without moving its final layout slot or its siblings. */
 @Composable
 internal fun FolderExpansionIcon(
@@ -55,14 +71,10 @@ internal fun FolderExpansionIcon(
                     easing = FastOutSlowInEasing)
             }, label = "drawer-folder-icon-$index",
         ) { if (it == EnterExitState.Visible) 1f else 0f }
-        Box(Modifier.graphicsLayer {
-            val fraction = visibilityProgress?.value ?: motion?.progress?.value ?: progress.value
-            translationX = if (motion?.scaleInPlace == true) 0f else originDeltaDp.x * horizontalDirection * density * (1f - fraction)
-            translationY = if (motion?.scaleInPlace == true) 0f else originDeltaDp.y * density * (1f - fraction)
-            scaleX = if (motion != null) fraction else .35f + .65f * fraction
-            scaleY = scaleX
-            alpha = fraction
-        }) {
+        Box(Modifier.folderIconLayer(
+            { visibilityProgress?.value ?: motion?.progress?.value ?: progress.value },
+            originDeltaDp, horizontalDirection, motion?.scaleInPlace == true, motion != null,
+        )) {
             AppIcon(app, notificationPackages, shape, iconSize = iconSize,
                 clickable = visibilityTransition?.let { it.targetState == EnterExitState.Visible }
                     ?: motion?.interactive ?: true, onTappingFolder = onTappingFolder)

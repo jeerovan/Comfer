@@ -11,6 +11,7 @@ import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
 import com.jeerovan.comfer.HomeFolderLayout
+import com.jeerovan.comfer.WorkspaceModule
 import com.jeerovan.comfer.StartupCoordinator
 import kotlinx.coroutines.runBlocking
 import org.junit.*
@@ -19,16 +20,21 @@ import org.junit.Assert.*
 class TasksUiTest {
     @get:Rule val compose = createComposeRule()
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
-    @Test fun circularLongPressOpensTasksWithoutSearchAndTapStillSearches() = entry(true)
-    @Test fun columnLongPressOpensTasksWithoutSearchAndTapStillSearches() = entry(false)
+    @Test fun circularWorkspaceOffersTasksAndSearch() = entry(true)
+    @Test fun columnWorkspaceOffersTasksAndSearch() = entry(false)
     private fun entry(circular: Boolean) {
-        var search = 0; var tasks = 0
-        compose.setContent { MaterialTheme { HomeFolderLayout(emptyList(), emptyMap(), null, circular, emptyList(), 48.dp, CircleShape, { search++ }, false, null, false, {}, onShowTasks = { tasks++ }) } }
-        compose.onNodeWithTag("home-search-button").performTouchInput { longClick() }
-        compose.runOnIdle { assertEquals(1, tasks); assertEquals(0, search) }
-        compose.onNodeWithTag("home-search-button").performTouchInput { click() }
-        compose.runOnIdle { assertEquals(1, search) }
+        val opened = androidx.compose.runtime.mutableStateOf(false)
+        var selected: WorkspaceModule? = null
+        compose.setContent { MaterialTheme { HomeFolderLayout(emptyList(), emptyMap(), null, circular, emptyList(), 48.dp, CircleShape,
+            { opened.value = !opened.value }, false, null, false, {}, workspaceOpen = opened.value,
+            onModuleSelected = { selected = it }) } }
+        compose.onNodeWithContentDescription("Workspace").performClick()
+        compose.onNodeWithContentDescription("Tasks").performClick()
+        compose.runOnIdle { assertEquals(WorkspaceModule.TASKS, selected) }
+        compose.onNodeWithContentDescription("Search").performClick()
+        compose.runOnIdle { assertEquals(WorkspaceModule.SEARCH, selected) }
     }
+
     @Test fun smallScreenCapturesTaskAndReturnsToList() {
         runBlocking { check(context.packageName.endsWith(".notificationtest")); StartupCoordinator.awaitReady(); TaskStore.exclusive(context) { TaskStore.write(context, TaskSnapshot()) } }
         compose.setContent { MaterialTheme { Box(Modifier.size(320.dp, 480.dp)) { TasksScreen({}) } } }

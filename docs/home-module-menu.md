@@ -1,25 +1,20 @@
-# Planned home module menu
+# Home workspace menu
 
-Confirmed 15 September 2026. Future behavior; not implemented yet.
+Updated 16 September 2026. The user approved implementing the four-icon menu now, with Notes marked as coming soon. This supersedes the earlier three-dot design and the requirement to wait for a working Notes module.
 
-Replace the middle Search icon in `QuickListOverlay` with a three-dot icon at the same position. Tapping it opens a built-in folder-style menu containing four individually tappable module icons: **Journals, Tasks, Search, Notes**. Each icon opens its own module. Search remains Search, rather than searching across private Journal/Notes content.
+The middle Search control in `QuickListOverlay` is now **Workspace** (Material Workspaces icon). Tapping it opens four built-in module icons using ordinary folder slots. In the circular layout: Notes (`Notes`) left, Journal (`MenuBook`) right, Tasks (`TaskAlt`) above and Search (`Search`) below. In the five-column layout, the left-to-right order is **Notes | Tasks | Close | Search | Journal**, keeping Tasks and Search next to the center. RTL mirrors these positions. The center becomes Close; tapping it or Android Back closes the menu.
 
-Use the existing home folder expansion layout, timing and reversal behavior in both circular and five-column quick-list layouts:
+Both circular and five-column layouts reuse `HomeFolderLayout`'s 320 ms FastOutSlowIn transition and the same icon geometry used for installed-app folders:
 
-- The four module icons expand out from the three-dot control into the normal folder-icon positions.
-- Existing quick-list icons shrink into their own centers and disappear while the menu opens.
-- The center control becomes Close while expanded. Closing reverses module expansion back into the origin; existing quick-list icons emerge from their own centers and reclaim their positions.
-- Reuse current home-folder close timing, interruption/reversal and input handling. Do not substitute the app-drawer convergence behavior for the home layout's own-center disappearance.
-- Only one ordinary app folder or module menu is active at once. Android Back closes the open menu before leaving home. Selecting a module closes the menu and opens that destination once; returning to home starts with the menu closed.
-- Keep module IDs/navigation actions separate from installed app package IDs. These are internal destinations, not fake installed apps or a user-editable app folder. Preserve ordinary app folder data and backup behavior.
-- Give icons visible labels and accessible names, with at least 48 dp targets. Update center-control semantics and relevant gesture guides to describe opening the module menu, not directly opening Search or Tasks.
+- Module icons expand from the center Workspace control. Existing home icons shrink into their own centers and disappear.
+- Closing reverses module movement back to the center. Existing home icons emerge from their own centers and regain their positions.
+- Keep outgoing icons composed until animation completion. Center Close supports immediate reversal; icon taps are disabled while the transition is running so repeated taps cannot reach a returning home icon.
+- Only one app folder or workspace menu can be active. Selecting a module closes the menu and waits for the real transition completion before launching once. Returning home starts closed. Back during a pending close cancels the pending launch.
+- Internal `WorkspaceModule` destinations never become `AppInfo` package IDs or persisted user folder entries, and do not affect backup data.
+- Use themed icons without visible labels, retaining accessible names; mirror existing folder geometry in RTL. The home Inbox gesture remains anchored to the center control, and guides are hidden while the workspace is active.
 
-This is the final shared entry design, superseding the proposed dedicated Search-long-press Journal shortcut when the menu is delivered. Tasks' alternative entry is resolved: its own icon inside this menu. Current app behavior remains until implementation; no new launcher Settings section or extra default gesture is required.
+Search opens the existing launcher search overlay. Tasks and Journal open their existing activities. Notes currently closes the menu and displays **Notes is coming soon**, with the same status in its accessible name; implementing the Notes module is separate work. There is no longer a Journal long-press action on the center control.
 
-Integration gate: Journals and Notes must have working destinations before presenting this as a complete four-module menu. Do not silently ship dead icons, redirect Notes to Tasks, or invent placeholder behavior. Menu construction can be tested with fake module destinations before those modules are complete. Any interim rollout with fewer modules or an interim gesture needs an explicit integration decision.
+Validation: 13 focused API-24 emulator tests passed (`WorkspaceMenuTest`, `WorkspaceHomeRoutingTest`, existing `FolderExpansionTest` and two updated Tasks entry cases). Coverage includes both layouts, RTL, own-center shrink/return, expansion/merge, early reversal, ordinary home/drawer folder regression, individually tappable modules, deferred single launch, real Tasks/Journal/Search navigation, Notes status, Back and return home. All 167 JVM tests passed; debug build and whitespace checks passed. Emulator updated; Samsung unchanged. Physical-device and TalkBack acceptance remain open.
 
-Verification: both layouts, all four destinations, center Close/Back, rapid open-close reversal, repeated taps, ordinary folder transitions, module launch/return, RTL/large text/TalkBack, no duplicate launches and no accidental Search action on menu tap.
-
-## Interim Journal test build — approved 15 September 2026
-
-Until Notes is implemented, Search long-press opens Journal; ordinary tap continues to open Search. This is an explicitly approved interim route, not the four-icon menu rollout. No dead Notes icon is displayed.
+The first repeated-tap regression exposed click-through into a returning home folder before the pending module could launch. Disabling icon interaction until the transition settles fixed it while preserving center-button reversal. The first cold Journal return test also sent Back before its screen composed; the test now waits for the composer. Reports are under `validation-artifacts/device-checkpoint/2026-09-16-workspace/`.

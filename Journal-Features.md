@@ -2,7 +2,7 @@
 
 Updated 15 September 2026 for Comfer. Proposed behavior specification; not a claim of implementation or completed device testing. Phased delivery: [Plan-Journals.md](Plan-Journals.md).
 
-Implementation is underway in the English first-test build; progress and unverified acceptance gates are in [Plan-Journals.md](Plan-Journals.md). User approved temporarily opening Journal from home Search long-press until the four-module menu and Notes are ready.
+Implementation is underway in the English first-test build; progress and unverified acceptance gates are in [Plan-Journals.md](Plan-Journals.md). Journal now opens from the home Workspace menu; Notes is explicitly marked as coming soon until implemented.
 
 ## 1. Scope
 
@@ -10,7 +10,7 @@ Provide a separate Journal space with a dated feed and a bottom composer for tex
 
 Carry forward the local-first baseline: no account, sync, automatic cloud backup, or remote AI writing. Typed entries and saved images work offline. Speech availability depends on the device, language, and recognition engine; disclose network recognition and require explicit opt-in before using it. No saved audio recordings or audio playback feature is required: the microphone transcribes speech into journal text.
 
-The planned home entry is the [four-module menu](docs/home-module-menu.md): a three-dot icon replaces the middle Search icon in QuickListOverlay; tapping expands Journals, Tasks, Search and Notes icons using the existing home-folder animation. Each icon launches its own module. This final shared navigation replaces the earlier proposed Journal-only Search-long-press shortcut when implemented. Preserve Tasks data, reminders and other navigation. Optional mood tracking, streaks, rich text, reminders, and memory resurfacing are not part of this initial journal experience.
+The home entry is the [Workspace menu](docs/home-module-menu.md): the Workspaces icon replaces the middle Search icon in QuickListOverlay; tapping expands the Notes, Journal, Tasks and Search icons in their layout-specific positions using the existing home-folder animation. Search, Tasks and Journal open their modules; Notes shows a coming-soon message. This replaces the interim Journal Search-long-press shortcut. Preserve Tasks data, reminders and other navigation. Optional mood tracking, streaks, rich text, reminders, and memory resurfacing are not part of this initial journal experience.
 
 ## 2. Feed and navigation by date
 

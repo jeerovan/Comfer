@@ -6,7 +6,7 @@ Updated 15 September 2026. This record supplements Plan-Journals.md; incomplete 
 
 - Backup password minimum is four characters (16 September refinement). The export dialog shows no upfront length restriction and keeps Backup enabled; submitting fewer than four characters shows an inline error. Confirmation mismatch is also reported on submit. Both Journal export formats enforce the same minimum, and restore retains compatibility with existing longer passwords.
 
-- User approved English-only labels/prompts for the first test build, localized dates and RTL, and interim Search long-press → Journal. Ordinary Search tap remains Search. Full Journals/Tasks/Search/Notes folder menu waits for a working Notes destination; no placeholder launches.
+- User approved English-only labels/prompts for the first test build, localized dates and RTL. The interim Search long-press → Journal route is superseded by the 16 September Workspace menu: Search, Tasks and Journal have working destinations; Notes explicitly reports coming soon as authorized in the new request.
 - Ownership is `journals/`: separate Room database, store, activity/view model, immutable media manager, pure speech protocol, Android recognition adapter, protection boundary and backup adapter. Existing Tasks tables/reminders are independent.
 - `journals.db` is under `noBackupFilesDir`, Room schema 3 with exported schemas and non-destructive 1→2→3 migrations. Schema 2 adds a restore generation; schema 3 adds an active-entry/date/order composite index to avoid sorting the archive: writers queued before replacement cannot reinsert old drafts or dictation. The migrations preserve all earlier entries, drafts and segments. The feed retains at most 150 entries plus one lookahead row; Trash retains 100 plus one, with explicit older/newer paging.
 - UUID entry/draft identity is the submit idempotency key. Order is calendar date, actual creation instant, ID. Date is epoch-day selected by the writer; zone is captured with the draft. Editing never changes date or creation time. Revision checks reject stale edits, deletion and Undo.
@@ -60,9 +60,9 @@ Journal test classes are under `app/src/androidTest/java/com/jeerovan/comfer/jou
 
 Debug APK SHA-256: `383e46df1ecb7f6f4f994843907f75349007a05bcf87e9c8d5325b6117dd5386`.
 
-Remaining acceptance: real on-device/network recognizers, permission revocation and physical microphone shutdown, actual credential authentication/enrollment changes, TalkBack/reduced motion and complete layout/date-navigation matrix, full-disk exhaustion, different-device transfer and signed release acceptance. Fake recognizer and injected database failures cover deterministic protocol/recovery behavior, not every physical-device failure. The four-module menu remains blocked on Notes under the approved interim entry decision.
+Remaining acceptance: real on-device/network recognizers, permission revocation and physical microphone shutdown, actual credential authentication/enrollment changes, TalkBack/reduced motion and complete layout/date-navigation matrix, full-disk exhaustion, different-device transfer and signed release acceptance. Fake recognizer and injected database failures cover deterministic protocol/recovery behavior, not every physical-device failure. The Workspace menu is implemented under the 16 September decision; the Notes destination and physical/TalkBack menu acceptance remain pending.
 
-Reserved future internal menu IDs: `module:journals` → JournalActivity, `module:tasks` → TasksActivity, `module:search` → existing Search overlay, `module:notes` → future Notes destination. These are navigation identities, not installed application package IDs; the final menu is not shipped in this build.
+Internal `WorkspaceModule` actions route Journal → JournalActivity, Tasks → TasksActivity, Search → existing Search overlay and Notes → coming-soon status. These enum values are not installed application package IDs or persisted folders. See [Workspace contract](home-module-menu.md) for animation, routing and validation.
 
 ## Journal UI follow-up — 15 September 2026
 

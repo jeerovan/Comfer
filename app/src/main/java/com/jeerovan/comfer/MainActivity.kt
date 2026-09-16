@@ -255,6 +255,7 @@ import kotlin.math.pow
 
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.outlined.Workspaces
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.ui.AbsoluteAlignment
@@ -2204,9 +2205,14 @@ fun QuickListOverlay(apps: List<AppInfo>,
     val settings by settingsModel.uiState.collectAsState()
 
     var activeFolderId by remember { mutableStateOf<String?>(null) }
+    var workspaceOpen by remember { mutableStateOf(false) }
+    var pendingModule by remember { mutableStateOf<WorkspaceModule?>(null) }
+    androidx.activity.compose.BackHandler(activeFolderId != null || workspaceOpen || pendingModule != null) {
+        activeFolderId = null; workspaceOpen = false; pendingModule = null
+    }
 
     val handleFolderTap: (String) -> Unit = { folderId ->
-        activeFolderId = folderId
+        if (pendingModule == null) { workspaceOpen = false; activeFolderId = folderId }
     }
 
     fun openDefaultLauncherSettings() {
@@ -2232,6 +2238,9 @@ fun QuickListOverlay(apps: List<AppInfo>,
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) {
+                activeFolderId = null; workspaceOpen = false; pendingModule = null
+            }
             if (event == Lifecycle.Event.ON_RESUME) {
                 lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     val newIconSize = PreferenceManager.getIconSize(context).dp
@@ -2322,7 +2331,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
         if (widgetClockLongPressShown) add(HomeGuideStep.CLOCK_LONG_PRESS)
         if (inboxGestureShown) add(HomeGuideStep.INBOX)
     }
-    val activeGuide by rememberUpdatedState(if (canShowGuide && !showWidgetSettings && activeFolderId == null &&
+    val activeGuide by rememberUpdatedState(if (canShowGuide && !showWidgetSettings && activeFolderId == null && !workspaceOpen && pendingModule == null &&
         (feedbackShown || !isDefault)) nextHomeGuideStep(
         completed = completedGuides,
         hasClock = !settings.hasCustomWidgets && "time" in settings.widgetIds,
@@ -2647,10 +2656,9 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 }
                             }
                             val onCenterAction = {
-                                if (activeFolderId != null) {
-                                    activeFolderId = null
-                                } else {
-                                    onShowSearch()
+                                if (pendingModule == null) {
+                                    if (activeFolderId != null) activeFolderId = null
+                                    else workspaceOpen = !workspaceOpen
                                 }
                             }
                             HomeFolderLayout(
@@ -2662,7 +2670,24 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 iconSize = iconSize,
                                 iconShape = iconShape,
                                 onCenterAction = onCenterAction,
-                                onShowTasks = { com.jeerovan.comfer.journals.JournalActivity.open(context) },
+                                workspaceOpen = workspaceOpen,
+                                onModuleSelected = { module ->
+                                    if (workspaceOpen && pendingModule == null) {
+                                        pendingModule = module
+                                        workspaceOpen = false
+                                    }
+                                },
+                                onClosed = {
+                                    val destination = pendingModule
+                                    pendingModule = null
+                                    when (destination) {
+                                        WorkspaceModule.SEARCH -> onShowSearch()
+                                        WorkspaceModule.TASKS -> com.jeerovan.comfer.tasks.TasksActivity.open(context)
+                                        WorkspaceModule.JOURNAL -> com.jeerovan.comfer.journals.JournalActivity.open(context)
+                                        WorkspaceModule.NOTES -> android.widget.Toast.makeText(context, R.string.workspace_notes_coming_soon, android.widget.Toast.LENGTH_SHORT).show()
+                                        null -> Unit
+                                    }
+                                },
                                 showThemedIcon = showThemedIcon,
                                 themedColors = settings.themedColors,
                                 isLightMode = settings.isLightHour,
@@ -4735,7 +4760,7 @@ fun SearchIcon(
     themedColors: WallpaperThemeColors?,
     isLightMode: Boolean,
     isFolderActive: Boolean = false,
-    onShowTasks: (() -> Unit)? = null,
+    workspaceCenter: Boolean = false,
 ) {
     val view = LocalView.current
 
@@ -4759,7 +4784,7 @@ fun SearchIcon(
     val shape = remember(iconShape, iconSize) { getShapeFromShape(iconShape, iconSize) }
 
     val iconResource = if (isFolderActive) R.drawable.outline_close_24 else R.drawable.outline_search_24
-    val iconDescription = if (isFolderActive) stringResource(R.string.close) else stringResource(R.string.search)
+    val iconDescription = stringResource(if (isFolderActive) R.string.close else if (workspaceCenter) R.string.home_workspace else R.string.search)
 
     Box(
         modifier = Modifier
@@ -4769,8 +4794,6 @@ fun SearchIcon(
             .size(iconSize)
             .scale(0.8f)
             .combinedClickable(
-                onLongClickLabel = if (!isFolderActive && onShowTasks != null) stringResource(R.string.journal_open) else null,
-                onLongClick = if (!isFolderActive) onShowTasks else null,
                 onClick = {
                     view.playSoundEffect(SoundEffectConstants.CLICK)
                     onShowSearch()
@@ -4778,7 +4801,9 @@ fun SearchIcon(
             ),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
+        if (workspaceCenter && !isFolderActive) Icon(
+            Icons.Outlined.Workspaces, iconDescription, Modifier.size(iconSize), tint = foregroundColor,
+        ) else Icon(
             painter = painterResource(iconResource),
             contentDescription = iconDescription,
             modifier = Modifier.size(iconSize),
@@ -5256,7 +5281,9 @@ fun CircularLayout(
     onFolderPosition: ((Offset) -> Unit)? = null,
     showCenter: Boolean = true,
     visibilityTransition: androidx.compose.animation.core.Transition<androidx.compose.animation.EnterExitState>? = null,
-    onShowTasks: (() -> Unit)? = null,
+    workspaceCenter: Boolean = false,
+    itemCount: Int = apps.size,
+    itemContent: (@Composable (Int, Offset) -> Unit)? = null,
 ) {
     var expansionOrigin by remember { mutableStateOf(Offset.Zero) }
     val radius = iconSize * 1.768f
@@ -5275,16 +5302,17 @@ fun CircularLayout(
             themedColors = themedColors,
             isLightMode = isLightMode,
             isFolderActive = isFolderActive,
-            onShowTasks = onShowTasks,
+            workspaceCenter = workspaceCenter,
         )
-        apps.take(8).forEachIndexed { index, app ->
+        (0 until itemCount.coerceAtMost(8)).forEach { index ->
             val angleRad = Math.toRadians(angles[index].toDouble())
             val xOffset = (radius.value * cos(angleRad)).dp
             val yOffset = (radius.value * sin(angleRad)).dp
 
             Box(modifier = Modifier.offset(x = xOffset, y = yOffset)) {
-                FolderExpansionIcon(
-                    app, notificationPackages, iconShape, iconSize, index,
+                if (itemContent != null) itemContent(index, -Offset(xOffset.value, yOffset.value))
+                else FolderExpansionIcon(
+                    apps[index], notificationPackages, iconShape, iconSize, index,
                     if (isFolderActive) expansionKey ?: "folder" else null,
                     (iconMotion?.origin ?: expansionOrigin) - Offset(xOffset.value, yOffset.value),
                     onTappingFolder = { folderId ->
@@ -5334,25 +5362,28 @@ fun FiveColumnLayout(
     iconMotion: FolderIconMotion? = null,
     onFolderPosition: ((Offset) -> Unit)? = null,
     showCenter: Boolean = true,
-    onShowTasks: (() -> Unit)? = null,
+    workspaceCenter: Boolean = false,
+    itemCount: Int = apps.size,
+    itemContent: (@Composable (Int, Offset) -> Unit)? = null,
 ) {
     val gap = 20.dp
     var expansionOrigin by remember { mutableStateOf(Offset.Zero) }
     @Composable
     fun Slot(index: Int) {
-        if (index >= apps.size) return
+        if (index >= itemCount) return
         val column = when (index % 4) { 0 -> 1; 1 -> 3; 2 -> 0; else -> 4 }
         // Empty columns have zero width, but their adjacent gaps remain in the Row.
         val widths = listOf(2, 0, -1, 1, 3).map {
-            if (it == -1 || apps.size > it) iconSize.value else 0f
+            if (it == -1 || itemCount > it) iconSize.value else 0f
         }
-        val hasSecondRow = apps.size > index % 4 + 4
+        val hasSecondRow = itemCount > index % 4 + 4
         val target = Offset(
             -(widths.sum() + 4 * gap.value) / 2 +
                 widths.take(column).sum() + column * gap.value + iconSize.value / 2,
             if (!hasSecondRow) 0f else (iconSize + gap).value * if (index < 4) -.5f else .5f,
         )
-        FolderExpansionIcon(
+        if (itemContent != null) itemContent(index, -target)
+        else FolderExpansionIcon(
             apps[index], notificationPackages, iconShape, iconSize, index,
             if (isFolderActive) expansionKey ?: "folder" else null,
             (iconMotion?.origin ?: expansionOrigin) - target,
@@ -5393,7 +5424,7 @@ fun FiveColumnLayout(
                 themedColors = themedColors,
                 isLightMode = isLightMode,
                 isFolderActive = isFolderActive,
-                onShowTasks = onShowTasks,
+                workspaceCenter = workspaceCenter,
             )
             }
 

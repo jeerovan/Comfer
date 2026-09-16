@@ -2,12 +2,12 @@
 
 Updated 15 September 2026. Requirements: [Journal-Features.md](Journal-Features.md). Shared layout: [thumb reach](docs/thumb-reach.md). Repository release record: [DEVELOPMENT-PROGRESS.md](DEVELOPMENT-PROGRESS.md).
 
-Implementation and test evidence are tracked below. Core Journal code is present; phase exits remain open until their stated checks pass. User approved the interim Search long-press → Journal route; Tasks storage, reminders and notification actions remain intact.
+Implementation and test evidence are tracked below. Core Journal code is present; phase exits remain open until their stated checks pass. The interim Search long-press route is superseded by the Workspace menu (phase 9); Tasks storage, reminders and notification actions remain intact.
 
 ## Confirmed integration and scope
 
-- The final home entry is the [four-module menu](docs/home-module-menu.md): replace the middle Search icon with three dots; tap expands Journals, Tasks, Search and Notes icons exactly like a home app folder in both quick-list layouts. Each icon launches its own destination.
-- This supersedes the planned dedicated Journal Search-long-press shortcut when the shared menu ships. Preserve current behavior until integration is ready. Tasks keeps its data, reminders, notification actions and backup/restore; its icon in the module menu resolves the alternative-entry decision.
+- The final home entry is the [four-module menu](docs/home-module-menu.md): replace the middle Search icon with Workspaces; tap expands the Notes, Journal, Tasks and Search icons in their layout-specific positions exactly like a home app folder in both quick-list layouts. Notes explicitly reports coming soon; the other icons launch their modules.
+- This supersedes the interim Journal Search-long-press shortcut now that the shared Workspace menu is implemented. Tasks keeps its data, reminders, notification actions and backup/restore; its icon in the module menu resolves the alternative-entry decision.
 - Journal is separate from Notes and Tasks, with its own activity/navigation, storage namespace and manual-backup section. No Journal content in Notes navigation/search or launcher global search.
 - Initial scope: dated text/image feed, durable composer, one image per entry, live dictation, in-place edits, swipe deletion, five-second Undo, 7-day Archive, optional protection and portable manual backup. No audio files/playback, sync, accounts, remote AI, moods, streaks, rich text, reminders or resurfacing.
 - Journal must open at today's latest entries without forcing the feed to its oldest item. Full-height initial layout means no reach gap; it does not override the required initial date/scroll position. At the actual scroll boundary, use the shared pull-down reach behavior, with the fixed composer/keyboard excluded from scrolling content.
@@ -27,7 +27,7 @@ Use Not started, In progress, Blocked, or Complete. A phase is complete only whe
 | 6 | Android speech integration and composer controls | 5 | In progress | Adapter and controls implemented; real provider/language/network/microphone acceptance pending |
 | 7 | Optional Journal protection and privacy surfaces | 1–6 | In progress | Device credential gate, secure window, recovery and export authentication implemented; credential-device acceptance pending |
 | 8 | Portable backup/restore, including protected media | 3–7 | In progress | Archive v4, encrypted fresh-install transfer and cold interrupted-restore recovery passed; real credential and full-disk acceptance remain open |
-| 9 | Integrate four-module home menu | 2, 7–8; 6 and working Notes for full-feature build | Blocked | Working Notes is outside this implementation. Approved interim Journal long-press route is implemented; complete menu is deferred |
+| 9 | Integrate four-module home menu | 2, 7–8; Notes later | Emulator verified | Workspace routes Search/Tasks/Journal; Notes coming soon approved 16 September. 13 UI tests passed; physical/TalkBack and Notes remain open |
 | 10 | Accessibility, performance, migration and release acceptance | 1–9 | In progress | Emulator suites, real activity keyboard/rotation, 10,000-row queries and streamed media validation; user/device/release acceptance pending |
 
 ## Phase 0 — Contracts and integration audit
@@ -140,15 +140,18 @@ Use Not started, In progress, Blocked, or Complete. A phase is complete only whe
 
 ## Phase 9 — Four-module home menu integration
 
-- [ ] Implement the [shared menu contract](docs/home-module-menu.md) in both quick-list layouts: three-dot control at the current center Search position, four labeled module icons, folder-style expansion and Close reversal.
-- [ ] Reuse home folder animation: existing icons shrink to their own centers; module icons expand from the center control. Reverse on close without changing ordinary folder behavior.
-- [ ] Route Journals, Tasks, Search and Notes independently. Journal and Notes remain separate spaces; preserve task reminder deep links and Complete actions.
-- [ ] Add Journal activity/action and replace the old `onShowTasks` center-control callback with module-menu semantics. Update accessible labels and affected home guides.
-- [ ] Guard rapid taps, animation reversal, active app folders, Back, launch/return and duplicate launches. Selecting a module closes the menu; returning home leaves it closed.
-- [ ] Require working Journal and Notes destinations before complete-menu rollout. Test the menu independently with fake destinations; record an explicit decision if an interim build is needed.
-- [ ] Update home-routing tests and Tasks/Journal/Notes/progress docs, distinguishing future integration from currently shipped entry behavior.
+16 September decision: ship the Workspace center icon and four module icons now. Notes is explicitly coming soon; its full implementation remains separate. This supersedes the earlier three-dot/working-Notes integration gate.
 
-**Exit checks:** both layouts; all four destinations; folder open/closed/closing animation; center Close and Android Back; repeated taps; reversal; RTL/TalkBack; module launch and return. No dead module icons or accidental Search launch when tapping three dots. This replaces the earlier proposed Journal-only long-press route.
+- [x] Implement the [shared menu contract](docs/home-module-menu.md) in both quick-list layouts: Workspace center control, four icons without visible labels and Close reversal.
+- [x] Reuse home-folder animation: home icons shrink into their own centers, modules expand from the center, and closing reverses both.
+- [x] Route Search, Tasks and Journal independently; Notes reports coming soon without pretending to launch an implemented module.
+- [x] Remove the old `onShowTasks`/Journal-long-press center callback; update accessible labels and guide visibility.
+- [x] Guard rapid taps, animation reversal, mutual exclusion with folders, Back, pending launch cancellation and launch/return.
+- [x] Complete emulator validation and update the test build: 13 focused UI tests and 167 JVM tests passed; see development progress.
+- [ ] Implement and validate the Notes destination when its module is ready.
+- [ ] Physical-device and TalkBack acceptance of the shared menu.
+
+**Exit checks:** both layouts; three live destinations and Notes status; ordinary folder regression; Close and Back; repeated taps; reversal; RTL; launch/return. No accidental Search launch from tapping Workspace.
 
 ## Phase 10 — Final acceptance and deployment
 

@@ -354,4 +354,8 @@
     <string name="more_from_jeerovan">More from Jeerovan</string>
     <string name="fife_subtitle">Encrypted Cloud Storage</string>
     <string name="scroll_speed">Scroll Speed</string>
+    <string name="home_workspace">Workspace</string>
+    <string name="workspace_notes">Notes</string>
+    <string name="workspace_tasks">Tasks</string>
+    <string name="workspace_notes_coming_soon">Notes is coming soon</string>
 </resources>
