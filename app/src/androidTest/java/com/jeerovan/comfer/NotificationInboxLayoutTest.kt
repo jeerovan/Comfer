@@ -65,6 +65,31 @@ class NotificationInboxLayoutTest {
         }
     }
 
+    @Test fun headersStayPinnedAcrossSettingsAndHistoryPages() {
+        compose.setContent { MaterialTheme { NotificationInbox(onBack = {}) } }
+        fun checkPinned() {
+            val title = compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot()
+            val header = compose.onNodeWithTag("notification-fixed-header").getUnclippedBoundsInRoot()
+            val list = compose.onNodeWithTag("notification-inbox-list")
+            list.performTouchInput { swipeUp() }
+            assertEquals(title, compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot())
+            assertEquals(header, compose.onNodeWithTag("notification-fixed-header").getUnclippedBoundsInRoot())
+            list.performTouchInput { swipeDown() }
+            assertEquals(header, compose.onNodeWithTag("notification-fixed-header").getUnclippedBoundsInRoot())
+        }
+        checkPinned()
+        compose.onNodeWithContentDescription("Settings").performClick()
+        checkPinned()
+        for (page in listOf("Quiet hours", "Filters", "History", "Connection and privacy")) {
+            compose.onNodeWithTag("notification-inbox-list").performScrollToNode(hasText(page))
+            compose.onNodeWithText(page).performClick()
+            checkPinned()
+            androidx.test.espresso.Espresso.pressBack()
+        }
+        compose.onNodeWithContentDescription("Saved").performClick()
+        checkPinned()
+    }
+
     @Test fun enlargedTextKeepsControlsInsideFullHeightViewport() {
         compose.setContent {
             val density = androidx.compose.ui.platform.LocalDensity.current
@@ -94,16 +119,21 @@ class NotificationInboxLayoutTest {
         val root = compose.onRoot().getUnclippedBoundsInRoot()
         assertTrue("Portrait fills safe height", (panel.bottom - panel.top).value > (root.bottom - root.top).value * .8f)
         val heading = compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot()
-        val boundary = panel.bottom.value - reachableHeightDp((panel.bottom - panel.top).value)
-        assertTrue("First element starts at top", heading.top.value < boundary)
+        val content = compose.onNodeWithText("Chronological").getUnclippedBoundsInRoot()
+        val listBounds = compose.onNodeWithTag("notification-inbox-list").getUnclippedBoundsInRoot()
+        val boundary = listBounds.bottom.value - reachableHeightDp((listBounds.bottom - listBounds.top).value)
+        assertTrue("Header starts at top", heading.top.value < boundary)
         compose.onNodeWithTag("notification-inbox-list").performTouchInput { swipeDown(startY = height * .1f, endY = height * .9f, durationMillis = 600) }
-        assertTrue("Pull brings first element within reach", compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot().top.value >= boundary - 1f)
+        assertEquals("Module title stays pinned during thumb reach", heading, compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot())
+        val lowered = compose.onNodeWithText("Chronological").getUnclippedBoundsInRoot()
+        assertTrue("Body controls move into thumb reach", lowered.top > content.top)
         val back = compose.onNodeWithContentDescription("All apps").getUnclippedBoundsInRoot()
         compose.onNodeWithTag("notification-inbox-list").performTouchInput {
             swipeUp(startY = height * .8f, endY = height * .65f, durationMillis = 500)
         }
-        val moved = compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot()
-        assertTrue("Content moves into upper viewport", moved.top.value < boundary)
+        val moved = compose.onNodeWithText("Chronological").getUnclippedBoundsInRoot()
+        assertTrue("Content moves back upward", moved.top < lowered.top)
+        assertEquals(heading, compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot())
         assertEquals(back, compose.onNodeWithContentDescription("All apps").getUnclippedBoundsInRoot())
         compose.onNodeWithContentDescription("All apps").performClick()
         compose.waitUntil(5000) {

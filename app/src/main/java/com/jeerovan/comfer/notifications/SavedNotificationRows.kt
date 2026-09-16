@@ -44,8 +44,8 @@ internal fun LazyListScope.savedNotificationItems(
         Box(Modifier.animateItem(fadeInSpec = tween(200), placementSpec = tween(250), fadeOutSpec = tween(200))) {
             val copy = row.record
             if (copy != null) {
-                NotificationGuideTarget(listOf(NotificationGuide.CARD_HOLD, NotificationGuide.CARD_SWIPE),
-                    enabled = enabled && selected.isEmpty() && copy.id == rows.firstOrNull { it.record != null }?.record?.id) {
+                NotificationGuideTarget((if (selected.isEmpty()) listOf(NotificationGuide.CARD_HOLD) else emptyList()) + NotificationGuide.CARD_SWIPE,
+                    enabled = enabled && copy.id == rows.firstOrNull { it.record != null }?.record?.id) {
                 SavedNotificationCard(copy, selectionMode = selected.isNotEmpty(), selected = copy.id in selected,
                     enabled = enabled, onSelect = { onSelect(copy.id) }, onOpen = { onOpen(copy) }, onDismiss = { onDelete(copy) })
                 }

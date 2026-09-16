@@ -9,6 +9,14 @@ this file.
 
 Reproduced unintended coasting after fling → tap to stop → slow drag → immediate release on the API-24 emulator through the production gesture handler, at high sensitivity. Release now uses Android's device-scaled fling threshold before sensitivity and the same gain as dragging. The regression passed after the fix; all 12 drawer gesture/center-selection tests and 166 JVM tests passed. Emulator debug build updated; the user subsequently confirmed the fix works on the affected device. Broader production monitoring remains pending. See attempt 50-06 in the [issue-fix ledger](docs/release-50-issues.md) for before/after evidence and artifact identity.
 
+## Notification Inbox fixed titles (16 September 2026)
+
+Module and page titles remain pinned across Inbox, Saved history and settings subpages. Body content retains thumb-reach scrolling below the fixed header. Seven focused emulator UI tests and 166 JVM tests passed; emulator updated. See [notification validation](docs/notifications-validation.md).
+
+Notification gesture guides now use label-free looping hand animations, completing through successful actions rather than the former six-second timeout. Cards teach long-press then swipe; rule swipe completion requires confirmed, saved deletion. Progress persists locally, with legacy timer-based flags deliberately ignored. Five focused emulator tests and 166 JVM tests passed; emulator updated. Samsung verification remains pending.
+
+Follow-up: Inbox long-press now reuses the home-screen progress-ring hand animation. Swipe guidance targets the first dismissible card even below a protected notification, and remains available in selection mode (also in Saved). Shared thumb-reach state survives selection-toolbar resizing, preventing the jump to the top. Real Android fixture coverage passed selection/deselection and protected-first guide targeting on API 24; small viewport adjustments remain while the toolbar animates. See notification validation for the test setup correction and evidence.
+
 ## Journals — first emulator test build (15 September 2026)
 
 16 September gesture onboarding: persistent label-free tap-to-edit → swipe-to-delete → date-row swipe animations now advance only after each action succeeds. Four focused emulator tests passed, including persistence, input transparency and partial swipe handling. See [Journal features](Journal-Features.md) and the [validation record](docs/journals-implementation.md).

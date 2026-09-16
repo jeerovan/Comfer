@@ -7,6 +7,20 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ThumbReachTest {
+    @Test fun toolbarResizePreservesReachUntilUserScrolls() {
+        val state = ThumbReachState(240f)
+        state.onPostScroll(Offset.Zero, Offset(0f, 220f), NestedScrollSource.UserInput)
+        state.updateLimit(180f)
+        assertEquals(220f, state.offset, 0f)
+        assertEquals(Offset.Zero, state.onPostScroll(Offset.Zero, Offset(0f, 20f), NestedScrollSource.UserInput))
+        state.updateLimit(240f)
+        assertEquals(220f, state.offset, 0f)
+        assertEquals(Offset(0f, -220f), state.onPreScroll(Offset(0f, -300f), NestedScrollSource.UserInput))
+        assertEquals(0f, state.offset, 0f)
+        state.onPostScroll(Offset.Zero, Offset(0f, 100f), NestedScrollSource.UserInput)
+        state.updateLimit(0f)
+        assertEquals("Landscape/compact height clears reach space", 0f, state.offset, 0f)
+    }
     @Test fun startsAtTopAndPullIsCappedWithoutConsumingHorizontalMotion() {
         val state = ThumbReachState(240f)
         assertEquals(0f, state.offset, 0f)

@@ -360,27 +360,31 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
     }
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface.copy(alpha = .8f)).safeDrawingPadding().imePadding()) {
         val landscape = maxWidth > maxHeight
-        val startPadding = if (landscape) 0.dp else (maxHeight.value - reachableHeightDp(maxHeight.value)).coerceAtLeast(0f).dp
-        val reach = rememberThumbReach(startPadding, screen)
-        val reachTop = with(androidx.compose.ui.platform.LocalDensity.current) { reach.offset.toDp() }
         Surface(Modifier.fillMaxSize().testTag("notification-inbox-panel"), color = androidx.compose.ui.graphics.Color.Transparent, contentColor = MaterialTheme.colorScheme.onSurface, tonalElevation = 0.dp) {
             Column(Modifier.fillMaxSize().padding(horizontal = 12.dp)) {
+                Column(Modifier.fillMaxWidth().testTag("notification-fixed-header")) {
+                    Text(stringResource(R.string.notification_inbox), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 8.dp))
+                    if (settings) Text(if (settingsPage == "root") resources.getString(R.string.ui_notification_settings) else when (settingsPage) {
+                        "rule_editor" -> resources.getString(R.string.ui_content_rule); "quiet" -> resources.getString(R.string.ui_quiet_hours); "focus" -> resources.getString(R.string.ui_focus_timers)
+                        "schedule" -> resources.getString(R.string.notification_schedule_title); "filters" -> resources.getString(R.string.ui_filters); "history" -> resources.getString(R.string.ui_history)
+                        else -> resources.getString(R.string.ui_connection_and_privacy)
+                    }, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 6.dp))
+                    else if (savedTab && !actionsVisible) Text(stringResource(R.string.notification_saved), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 6.dp))
+                }
+                BoxWithConstraints(Modifier.weight(1f)) {
+                val startPadding = if (landscape) 0.dp else (maxHeight.value - reachableHeightDp(maxHeight.value)).coerceAtLeast(0f).dp
+                val reach = rememberThumbReach(startPadding, screen)
+                val reachTop = with(androidx.compose.ui.platform.LocalDensity.current) { reach.offset.toDp() }
                 key(screen) {
-                LazyColumn(Modifier.weight(1f).nestedScroll(reach).testTag("notification-inbox-list"), state = listState,
+                LazyColumn(Modifier.fillMaxSize().nestedScroll(reach).testTag("notification-inbox-list"), state = listState,
                     contentPadding = PaddingValues(top = reachTop),
                     verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    item { Text(stringResource(R.string.notification_inbox), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 8.dp)) }
                     item { if (!access || snapshot.health != ListenerHealth.CONNECTED) Text(stringResource(if (!access) R.string.notification_access_needed else if (snapshot.health == ListenerHealth.RESTRICTED) R.string.notification_restricted else if (snapshot.health == ListenerHealth.RECOVERY_NEEDED) R.string.notification_recovery_needed else R.string.notification_reconnecting), style = MaterialTheme.typography.bodySmall) }
                     item { if (snapshot.reconciliationNeeded) Text(stringResource(R.string.notification_reconciling), style = MaterialTheme.typography.bodySmall) }
                     item { if (recoveryNeeded) Text(stringResource(R.string.notification_configuration_recovery), style = MaterialTheme.typography.bodySmall) }
                     item { if (status.isNotEmpty()) Text(status, style = MaterialTheme.typography.bodySmall) }
                     if (quietStatus.health == QuietHealth.CLEANUP_NEEDED || quietStatus.health == QuietHealth.FAILED) item { Text(stringResource(if (quietStatus.health == QuietHealth.CLEANUP_NEEDED) R.string.notification_quiet_cleanup else R.string.notification_quiet_failed)) }
                     if (settings) {
-                        item { Text(if (settingsPage == "root") resources.getString(R.string.ui_notification_settings) else when (settingsPage) {
-                            "rule_editor" -> resources.getString(R.string.ui_content_rule); "quiet" -> resources.getString(R.string.ui_quiet_hours); "focus" -> resources.getString(R.string.ui_focus_timers)
-                            "schedule" -> resources.getString(R.string.notification_schedule_title); "filters" -> resources.getString(R.string.ui_filters); "history" -> resources.getString(R.string.ui_history)
-                            else -> resources.getString(R.string.ui_connection_and_privacy)
-                        }, style = MaterialTheme.typography.titleMedium) }
                         if (settingsPage == "root") {
                             item { NotificationViewChoices(config.chronological) { chronological -> save { it.copy(chronological = chronological) } } }
                             item {
@@ -449,9 +453,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                 })
                         }
                     } else if (savedTab) {
-                        item { Text(stringResource(R.string.notification_saved), style = MaterialTheme.typography.titleMedium) }
                         item { OutlinedTextField(savedQuery, { savedQuery = it.take(256) }, label = { Text(stringResource(R.string.notification_saved_search)) }, singleLine = true, modifier = Modifier.fillMaxWidth().testTag("saved-search")) }
-                        item { Text(stringResource(R.string.notification_saved_swipe_hint), style = MaterialTheme.typography.bodySmall) }
                         if (historyLocked) item { Text(stringResource(R.string.ui_unlock_your_device_to_view_saved_notifications)) }
                         else {
                             val copies = savedCopies
@@ -511,8 +513,11 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                     key(item.key, item.revision, snapshot.sessionId) {
                                         val preview = remember { NotificationBodyPreviewState() }
                                         NotificationGuideTarget(
-                                            listOf(NotificationGuide.CARD_HOLD) + if (canManageNotification(item, config.protectedApps)) listOf(NotificationGuide.CARD_SWIPE) else emptyList(),
-                                            enabled = !busy && !selectionMode && snapshot.health == ListenerHealth.CONNECTED && item.key == displayRows.firstOrNull { it.notification != null }?.notification?.key,
+                                            buildList {
+                                                if (!selectionMode && item.key == displayRows.firstOrNull { it.notification != null }?.notification?.key) add(NotificationGuide.CARD_HOLD)
+                                                if (item.key == displayRows.firstOrNull { row -> row.notification?.let { canManageNotification(it, config.protectedApps) } == true }?.notification?.key) add(NotificationGuide.CARD_SWIPE)
+                                            },
+                                            enabled = !busy && snapshot.health == ListenerHealth.CONNECTED,
                                         ) {
                                         NotificationSwipeContainer(
                                             enabled = !busy && snapshot.health == ListenerHealth.CONNECTED && canManageNotification(item, config.protectedApps),
@@ -558,6 +563,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                         }
 
                     }
+                }
                 }
                 }
                 // Permission is authoritative even if a late listener update reports connected.

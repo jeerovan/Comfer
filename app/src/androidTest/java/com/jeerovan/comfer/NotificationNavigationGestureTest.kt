@@ -13,6 +13,7 @@ class NotificationNavigationGestureTest {
     @get:Rule val compose = createAndroidComposeRule<NotificationInboxActivity>()
     private val context get() = compose.activity
     private var granted = false
+    private var originalAccess = ""
     private lateinit var previous: NotificationConfiguration
     private fun shell(command: String): String = InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(command).use {
         android.os.ParcelFileDescriptor.AutoCloseInputStream(it).bufferedReader().readText()
@@ -30,7 +31,10 @@ class NotificationNavigationGestureTest {
     @Before fun setup() {
         previous = NotificationPreferences.state.value
         granted = MyNotificationListenerService.hasAccess(context)
-        shell("cmd notification allow_listener ${context.packageName}/com.jeerovan.comfer.MyNotificationListenerService")
+        originalAccess = shell("settings get secure enabled_notification_listeners").trim().takeUnless { it == "null" }.orEmpty()
+        val component = "${context.packageName}/com.jeerovan.comfer.MyNotificationListenerService"
+        if (android.os.Build.VERSION.SDK_INT >= 27) shell("cmd notification allow_listener $component")
+        else shell("settings put secure enabled_notification_listeners ${(originalAccess.split(':').filter { it.isNotBlank() } + component).distinct().joinToString(":")}")
         MyNotificationListenerService.refresh(context, force = true)
         await { MyNotificationListenerService.snapshot.value.health == ListenerHealth.CONNECTED }
         runBlocking { NotificationPreferences.update { NotificationConfiguration(setup = true) } }
@@ -38,8 +42,44 @@ class NotificationNavigationGestureTest {
     @After fun cleanup() {
         for (id in listOf(24, 26, 76, 77) + (60..67)) post("mail", id, "--es operation remove")
         runBlocking { NotificationPreferences.update { previous } }
-        if (!granted) shell("cmd notification disallow_listener ${context.packageName}/com.jeerovan.comfer.MyNotificationListenerService")
+        if (android.os.Build.VERSION.SDK_INT >= 27) {
+            if (!granted) shell("cmd notification disallow_listener ${context.packageName}/com.jeerovan.comfer.MyNotificationListenerService")
+        } else if (originalAccess.isEmpty()) shell("settings delete secure enabled_notification_listeners")
+        else shell("settings put secure enabled_notification_listeners $originalAccess")
     }
+    @Test fun selectionRetainsThumbReachAndSwipeGuideUsesDismissibleCard() {
+        val prefs = context.getSharedPreferences(NOTIFICATION_GUIDE_PREFERENCES, android.content.Context.MODE_PRIVATE)
+        val previousGuides = prefs.all
+        try {
+            prefs.edit().clear().commit()
+            runBlocking { NotificationPreferences.update { it.copy(chronological = true) } }
+            post("mail", 24, "--es title DismissibleGuide")
+            await { fixtures().any { it.title == "DismissibleGuide" } }
+            post("mail", 26, "--es title ProtectedGuide --es kind ongoing")
+            await { fixtures().any { it.title == "ProtectedGuide" } }
+            val protected = fixtures().first { it.title == "ProtectedGuide" }
+            val dismissible = fixtures().first { it.title == "DismissibleGuide" }
+            val list = compose.onNodeWithTag("notification-inbox-list")
+            list.performTouchInput { swipeDown(startY = height * .1f, endY = height * .8f, durationMillis = 700) }
+            val card = compose.onNodeWithTag("notification-card-${protected.key}")
+            val lowered = card.getUnclippedBoundsInRoot().top.value
+            assertTrue("Notification is pulled into reach", lowered > 150f)
+            compose.onNodeWithTag("notification-guide-CARD_HOLD").assertIsDisplayed()
+            card.performTouchInput { longClick() }
+            compose.onNodeWithTag("notification-selected-actions").assertIsDisplayed()
+            assertEquals("Selection must stay near the pulled-down position as the toolbar animates", lowered, card.getUnclippedBoundsInRoot().top.value, 24f)
+            compose.onNodeWithTag("notification-guide-CARD_SWIPE").assertIsDisplayed()
+            val hand = compose.onNodeWithTag("notification-guide-CARD_SWIPE").getUnclippedBoundsInRoot()
+            val swipeCard = compose.onNodeWithTag("notification-card-${dismissible.key}").getUnclippedBoundsInRoot()
+            assertTrue("Swipe guide targets dismissible card below protected first card", hand.top >= swipeCard.top && hand.bottom <= swipeCard.bottom)
+            compose.onNodeWithTag("notification-select-${protected.key}", useUnmergedTree = true).performClick()
+            assertEquals("Deselection must stay near the pulled-down position", lowered, card.getUnclippedBoundsInRoot().top.value, 24f)
+            compose.onNodeWithTag("notification-guide-CARD_SWIPE").assertIsDisplayed()
+        } finally {
+            prefs.edit().clear().also { editor -> previousGuides.forEach { (key, value) -> if (value is Boolean) editor.putBoolean(key, value) } }.commit()
+        }
+    }
+
     @Test fun horizontalSwipeDismissesAndTapOpensSource() {
         post("mail", 24, "--es title SwipeFixture")
         await { fixtures().any { it.title == "SwipeFixture" } }

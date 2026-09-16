@@ -31,23 +31,23 @@ internal fun NotificationRulesSettings(onEdit: (String?) -> Unit) {
     val scope = rememberCoroutineScope()
     var failure by remember { mutableStateOf(false) }
     var deletingRuleId by rememberSaveable { mutableStateOf<String?>(null) }
+    var deletionFromSwipe by rememberSaveable { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(R.string.ui_content_based_rules), style = MaterialTheme.typography.titleMedium)
         Text(stringResource(R.string.notification_rules_help), style = MaterialTheme.typography.bodySmall)
         if (config.paused) Text(stringResource(R.string.notification_rules_paused))
         if (failure) Text(stringResource(R.string.ui_could_not_save_rule_changes), color = MaterialTheme.colorScheme.error)
         Button(enabled = config.rules.size < 20, onClick = { onEdit(null) }) { Text(stringResource(R.string.ui_create_content_rule)) }
-        Text(stringResource(R.string.notification_rules_tap_gestures), style = MaterialTheme.typography.bodySmall)
         for ((index, rule) in config.rules.withIndex()) key(rule.id) {
             NotificationGuideTarget(listOf(NotificationGuide.RULE_SWIPE), enabled = index == 0 && deletingRuleId == null) {
             NotificationSwipeContainer(enabled = deletingRuleId == null, onDismiss = {
-                finishNotificationGuide(context, NotificationGuide.RULE_SWIPE)
+                deletionFromSwipe = true
                 deletingRuleId = rule.id
                 false // Keep the rule and restore its card until deletion is confirmed.
             }) {
                 OutlinedCard(Modifier.fillMaxWidth().testTag("rule-card:${rule.id}")
                     .clickable(onClickLabel = resources.getString(R.string.ui_edit_and_preview)) { onEdit(rule.id) }
-                    .semantics { customActions = listOf(CustomAccessibilityAction(resources.getString(R.string.ui_delete_rule_action)) { deletingRuleId = rule.id; true }) }) {
+                    .semantics { customActions = listOf(CustomAccessibilityAction(resources.getString(R.string.ui_delete_rule_action)) { deletionFromSwipe = false; deletingRuleId = rule.id; true }) }) {
                     Column(Modifier.padding(12.dp)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Text(rule.appId?.let { appLabel(context, it.substringAfter(':')) } ?: resources.getString(R.string.notification_all),
@@ -90,8 +90,12 @@ internal fun NotificationRulesSettings(onEdit: (String?) -> Unit) {
             title = { Text(stringResource(R.string.ui_delete_rule)) },
             text = { Text(stringResource(R.string.notification_delete_named_rule, config.rules.firstOrNull { it.id == id }?.name ?: resources.getString(R.string.ui_this_rule))) },
             confirmButton = { TextButton(onClick = {
+                val fromSwipe = deletionFromSwipe
                 deletingRuleId = null
-                scope.launch { failure = !NotificationPreferences.update { it.copy(rules = it.rules.filterNot { rule -> rule.id == id }) } }
+                scope.launch {
+                    failure = !NotificationPreferences.update { it.copy(rules = it.rules.filterNot { rule -> rule.id == id }) }
+                    if (!failure && fromSwipe) finishNotificationGuide(context, NotificationGuide.RULE_SWIPE)
+                }
             }) { Text(stringResource(R.string.ui_delete)) } },
             dismissButton = { TextButton(onClick = { deletingRuleId = null }) { Text(stringResource(R.string.notification_cancel)) } })
     }
