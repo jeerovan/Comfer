@@ -163,3 +163,61 @@ Validation: **166 JVM tests passed**, debug/test APK builds passed, and `git dif
 Final debug APK SHA-256: `c3b3d06330f456c133ebb4eb733f9974d9c561bfe12d4781d72dd854f3ac9ca3`. This is a Journal-scoped correction; it does not change global launcher themes or force colors on Android-owned permission/credential dialogs. Samsung hardware theme/contrast acceptance remains pending.
 
 Deployment: emulator debug update succeeded with app data preserved; disposable test packages removed. Samsung remains on the previously requested release, unchanged by this follow-up.
+
+## Recording controls alignment — 16 September 2026
+
+Recording controls now share one full-width, vertically centered row: audio-level bar, pause/resume, then stop at the trailing microphone position. The bar retains its space when the speech provider has not supplied an audio level. Removed the visible “Listening” label; starting, paused, finalizing and recovery status remain available. This is a layout-only change; speech capture callbacks are unchanged.
+
+Validation: debug build and whitespace checks passed; emulator updated in place. Live speech-provider visual acceptance was not performed for this layout-only update. Samsung was not updated.
+
+## Dictation provider/start-stop investigation — 16 September 2026
+
+- Reports: emulator does not start; connected Samsung reports no on-device dictation; another Samsung reports provider error 5 after Stop with no visible activity. The latter device/model and provider logs are unavailable, so its startup failure is not yet diagnosed.
+- Device evidence: API-24 emulator has a null `voice_recognition_service` and no RecognitionService entry in package dumps. Connected Galaxy A30 runs API 30 with Google's `GoogleRecognitionService` selected. Android's dedicated on-device recognition API starts at API 31; on API 30 the existing consented system-provider path is required. Offline keyboard dictation is not proof of dedicated SpeechRecognizer availability.
+- Attempt: reject unavailable-provider starts with an explicit setup message and disabled Start; clarify the consented provider option. Cancel a pending startup when Stop is tapped, invalidate its callbacks, avoid duplicate stop commands during finalization, and await natural endpoint results without calling stopListening again. Preserve final text and partial-result recovery. Natural endpoint results have a bounded 10-second drain; manual stop retains the existing 2-second recovery deadline. Startup timeout now identifies provider startup failure.
+- Evidence: injected-backend regression first failed for natural-end duplicate Stop and repeated Stop (2 failures / 5 tests). After those fixes, added the user-clarified startup-stop regression, which failed independently (1 failure / 7 tests). These reproduce incorrect command sequences, not the other Samsung's native error or microphone failure.
+- Reference: https://developer.android.com/reference/android/speech/SpeechRecognizer (automatic endpoint stopping, ERROR_CLIENT and dedicated on-device API availability).
+
+Validation: all 7 speech-controller instrumentation cases passed on API 24 after fixes, plus all 166 JVM tests; debug/instrumentation builds passed. Logs: `validation-artifacts/device-checkpoint/2026-09-16-journal-speech/`. Actual speech transcription cannot be verified on this emulator without a provider. Samsung was inspected read-only, not updated; other-Samsung startup/error acceptance remains pending.
+
+16 September 2026, user-requested affected-device install: built and signature-verified release 51 / 51.0 with the dictation changes, installed on Galaxy A13 SM-A135F (`RZ8W200C74V`, Android 14), and verified cold launch Status: ok. APK SHA-256 `758485880604371bc75d43553975ce81dea0d5b24259912af973d89fe1538bbd`. User will test actual dictation; installation does not establish provider/startup resolution.
+
+## Galaxy A13 provider crash and explicit alternative — 16 September 2026
+
+The user reported error 5 again on release `758485880604371bc75d43553975ce81dea0d5b24259912af973d89fe1538bbd`; the lifecycle fixes did not resolve this device failure. Retain the prior attempts above as command-sequencing fixes, not a confirmed solution to the Samsung report.
+
+ADB logs now show Comfer starting `hi-IN` recognition through Google's `AiAiSpeechRecognitionService` (`com.google.android.as`). The provider opens the microphone and starts SODA detection, then its `-conformer_enco` thread crashes with native SIGSEGV at 06:25:33 and again at 06:26:03. Subsequent Stop reaches a restarted provider with no active session and Comfer logs “not connected to the recognition service”. Comfer's microphone permission is granted. Relevant evidence is saved in `validation-artifacts/device-checkpoint/2026-09-16-journal-speech/a13-provider-crash.txt`. The exact underlying native-model defect is not diagnosed.
+
+Attempt: offer **Use device speech provider** for each session even when Android advertises a dedicated on-device recognizer. The switch is off by default and states that the default provider may send audio to its servers; choosing it routes to Android's default SpeechRecognizer, preserving the choice through Resume. No automatic network fallback or device-setting modification. On this phone, the default is Google's separate `GoogleTTSRecognitionService` in `com.google.android.tts`. Its actual transcription remains to be tested by the user.
+
+Provider-routing regression failed before the change (explicit selection still chose the dedicated recognizer); unavailable-provider selection also lacked its intended rejection. Baseline: 2 failures / 9 adapter tests. This workaround bypasses the crashing provider; it does not repair Google's native process.
+
+Validation: all 9 adapter tests passed after routing changes; all 166 JVM tests passed. Debug/release builds and release-signature verification passed. Updated emulator debug and connected Galaxy A13 release in place. Release 51.0 APK SHA-256 `570b20a8f6c68caa8981f49f78b2bd48fb21383e4f69768bdd569c3d2036ef24`; retained locally as `validation-artifacts/device-checkpoint/2026-09-16-journal-speech/a13-provider-choice-release-51.apk`. No live audio was sent through the alternate provider by the agent; user transcription acceptance remains pending.
+
+## Journal motion and composer alignment — 16 September 2026
+
+Removed Archive from Journal settings; the bottom date-row menu remains its entry point. Date text and the corresponding feed now slide/fade together for 320 ms in chronological swipe direction (mirrored in RTL), retaining each outgoing day's own query and scroll state. Composer actions are vertically centered beside multi-line input/prompts.
+
+Swipe deletion now accepts the gesture, waits for the dismissed anchor to settle offscreen, then archives the entry. Remaining lazy-list items animate placement over 260 ms. A failed archive operation resets the swipe. Undo restores the same ID with a new revision, so swipe state is keyed to revision to prevent immediately dismissing the restored entry again.
+
+Initial focused UI run: date navigation, RTL alignment and Archive return passed; three deletion/Undo cases failed because restored entries retained a dismissed saveable state. Added the revision key and reran. The new timing test verifies persistence is unchanged before the swipe exit settles and that Undo returns the card; existing partial-swipe and stale-edit checks are retained. Local reports: `validation-artifacts/device-checkpoint/2026-09-16-journal-motion/`.
+
+Final validation: 6 focused Journal UI tests passed; debug build and whitespace checks passed. The 166-test JVM suite passed earlier in this change. Emulator updated; Samsung not updated for these UI refinements.
+
+16 September 2026 requested Samsung UI update: signed release 51.0 built and signature verified, installed in place on the connected Galaxy A30 (`RZ8M80E8ZPZ`) from 50.0 with data preserved. Launch Status: ok. APK SHA-256 `bc12034ffb9d9bc5ee321056f20da20b2cd0bd18704ec871c5cfe139e888d46b`. Includes the Journal motion, composer alignment and dictation provider choice changes; hands-on acceptance remains pending.
+
+## Muted Journal palette preview — 16 September 2026
+
+User-requested visual experiment: Journal and Archive entry cards use black at 80% opacity with soft light-gray content for readability. Entry dates/times use gray (#9E9E9E); composer placeholders and focused/unfocused borders use the same gray. Editing text remains readable on the dark card. The date-row options menu uses a dark charcoal background (#202020), muted gray text (#B0B0B0), and no tonal elevation. These surfaces deliberately use the requested palette rather than theme-generated card/menu colors. Debug build and whitespace checks passed; visual acceptance is pending. No additional tests were added for this color-only change.
+
+Palette correction: supersedes the black-card/charcoal-menu experiment above. Entry cards now use the current theme’s surfaceContainerHighest at **20% opacity**, with onSurface text (including the editor). The options menu uses surfaceContainerLow and onSurfaceVariant text with zero tonal elevation. Gray timestamps, placeholders and borders remain.
+
+API-24/IDE warning investigation: core-library desugaring was already enabled in app/build.gradle.kts with desugar_jdk_libs 2.1.4, and the generated lint model includes its API support list. Gradle lint reported no Java time NewApi issues in JournalActivity.kt. It did find four configuration-unaware LocalContext resource lookups; changed those to LocalResources.current. After the change, JournalActivity.kt has zero lint issues. Debug assemble and emulator install passed; full-project lint still fails with unrelated errors elsewhere (220 errors). No API-warning suppression or minimum-SDK increase was introduced. IDE Java time warnings require checking Gradle sync/project-model state.
+
+## Swipe icon showing through translucent cards — 16 September 2026
+
+Cause: SwipeToDismissBox always drew its delete background icon, previously hidden by opaque cards. At 20% card opacity it became visible on every resting entry. Fix: render that background only while the swipe has a non-settled direction. No per-entry delete button was added. Extended the partial-swipe/Undo UI check to verify the indicator is absent both at rest and after a cancelled swipe.
+
+Validation: focused resting/partial-swipe/delete/Undo instrumentation passed (1 test), debug/release builds and signature verification passed. Emulator and Galaxy A30 updated in place, preserving data. Release 51.0 APK SHA-256 `c3e4c42f80b53b89e87fe6e0b2c4f49f10cd45e0557442cf36d7eb7d1dbec63d`; retained with the test report under `validation-artifacts/device-checkpoint/2026-09-16-journal-delete-icon/`.
+
+User refinement: removed the Journal swipe-delete background icon entirely, including during dragging. Swipe completion, animated list repositioning and Undo are unchanged. Supersedes the conditional-icon treatment above.

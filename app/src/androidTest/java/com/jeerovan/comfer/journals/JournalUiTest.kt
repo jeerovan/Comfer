@@ -239,6 +239,27 @@ class JournalUiTest {
         compose.waitUntil(10000) { runBlocking { model.store.dao.exportEntries().single().deletedAt == null } }
     }
 
+    @Test fun swipeWaitsUntilOffscreenBeforeDeleting() {
+        compose.onNodeWithTag("journal-composer").performTextInput("Animated deletion")
+        compose.onNodeWithTag("journal-submit").performClick()
+        compose.waitUntil(10000) { runBlocking { model.store.dao.exportEntries().size == 1 } }
+        compose.waitForIdle()
+        compose.mainClock.autoAdvance = false
+        try {
+            compose.onNodeWithText("Animated deletion").performTouchInput {
+                // Pass the dismissal threshold, but leave part of the card visible.
+                swipe(centerRight - androidx.compose.ui.geometry.Offset(8f, 0f), centerLeft + androidx.compose.ui.geometry.Offset(width * .3f, 0f), 500)
+            }
+            compose.mainClock.advanceTimeByFrame()
+            assertNull("Deletion must wait for the exit animation", runBlocking { model.store.dao.exportEntries().single().deletedAt })
+            compose.mainClock.advanceTimeBy(1200)
+        } finally { compose.mainClock.autoAdvance = true }
+        compose.waitUntil(10000) { runBlocking { model.store.dao.exportEntries().single().deletedAt != null } }
+        compose.onNodeWithText("Undo").performClick()
+        compose.waitUntil(10000) { runBlocking { model.store.dao.exportEntries().single().deletedAt == null } }
+        compose.onNodeWithText("Animated deletion").assertIsDisplayed()
+    }
+
     @Test fun rtlAndLargeTextKeepComposerActionsOnTheTrailingSide() {
         compose.runOnIdle { rtlLarge.value = true }
         compose.onNodeWithText("Journal", substring = false).assertIsDisplayed()
@@ -247,5 +268,6 @@ class JournalUiTest {
         val input = compose.onNodeWithTag("journal-composer").fetchSemanticsNode().boundsInRoot
         val submit = compose.onNodeWithTag("journal-submit").fetchSemanticsNode().boundsInRoot
         assertTrue("RTL trailing action must be to the left of input", submit.right <= input.left + 1f)
+        assertEquals("Mic stays vertically centered even with a wrapped prompt", input.center.y, submit.center.y, 1f)
     }
 }

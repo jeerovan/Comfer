@@ -147,6 +147,10 @@ class JournalViewModel(application: Application, private val savedState: android
             editing.value = next; editDraft.value = buffer
         }
     }
-    fun delete(entry: JournalEntry, done: (JournalEntry) -> Unit) = enqueue { done(store.delete(entry)) }
+    fun delete(entry: JournalEntry, failed: () -> Unit = {}, done: (JournalEntry) -> Unit) = enqueue {
+        try { done(store.delete(entry)) }
+        catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+        catch (error: Exception) { failed(); throw error }
+    }
     fun restore(entry: JournalEntry) = enqueue { store.restore(entry) }
 }

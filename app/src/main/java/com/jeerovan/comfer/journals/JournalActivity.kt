@@ -1,6 +1,9 @@
 @file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 package com.jeerovan.comfer.journals
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.clipToBounds
 import androidx.room.withTransaction
 import android.app.ActivityOptions
 import android.content.Context
@@ -38,8 +41,11 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorProducer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -118,6 +124,16 @@ private fun dayLabel(day: Long) = LocalDate.ofEpochDay(day).format(DateTimeForma
 @Composable
 internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
     val context = LocalContext.current
+    val resources = LocalResources.current
+    val mutedGray = Color(0xFF9E9E9E)
+    val cardText = MaterialTheme.colorScheme.onSurface
+    val journalCardColors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f), contentColor = cardText)
+    val composerColors = OutlinedTextFieldDefaults.colors(
+        focusedPlaceholderColor = mutedGray, unfocusedPlaceholderColor = mutedGray,
+        disabledPlaceholderColor = mutedGray.copy(alpha = .6f),
+        focusedBorderColor = mutedGray, unfocusedBorderColor = mutedGray,
+        disabledBorderColor = mutedGray.copy(alpha = .6f)
+    )
     val scope = rememberCoroutineScope()
     val draft by model.draft.collectAsState()
     val error by model.error.collectAsState()
@@ -161,10 +177,6 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
     var trash by rememberSaveable { mutableStateOf(false) }
     var limit by remember(day, trash) { mutableIntStateOf(50) }
     var windowOffset by remember(day, trash) { mutableIntStateOf(0) }
-    val loadedEntries by remember(day, limit, windowOffset) { model.store.dao.observeDay(day, limit + 1, windowOffset) }.collectAsState(emptyList())
-    val entries = remember(loadedEntries, limit) { loadedEntries.takeLast(limit) }
-    val newestFirst = remember(entries) { entries.asReversed() }
-    val hasOlder = loadedEntries.size > limit
     var settings by remember { mutableStateOf(false) }
     var options by remember { mutableStateOf(false) }
     var savedEntryId by remember { mutableStateOf<String?>(null) }
@@ -197,13 +209,6 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
     LaunchedEffect(undo) { if (undo != null) { delay(5000); undo = null } }
     // Each navigation surface starts at its natural origin; Archive cannot reuse the feed's index.
     // Reverse layout makes Journal's origin the newest entry at the bottom, without startup scrolling.
-    val listState = key(trash, day, navigationSerial) { rememberLazyListState() }
-    LaunchedEffect(entries, savedEntryId) {
-        if (savedEntryId != null && entries.any { it.id == savedEntryId }) {
-            listState.animateScrollToItem(0)
-            savedEntryId = null
-        }
-    }
     fun changed() = editing?.let { it.text != localEdit || it.image != editDraft?.image || it.createdAt != (editDraft?.createdAt ?: it.createdAt) || it.day != editDraft?.day } == true
     fun leave() {
         if (capturing) { if(recoveryPending && !model.speech.active) model.error.value = "Retry saving dictation before closing." else model.speech.stop(); return }
@@ -239,7 +244,26 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                 Text(stringResource(if (trash) R.string.journal_trash else R.string.journal_title), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
                 if(draftSaving) CircularProgressIndicator(Modifier.size(16.dp).semantics { contentDescription = draftSavingLabel })
             }
-            BoxWithConstraints(Modifier.weight(1f)) {
+            val rtlLayout = LocalLayoutDirection.current == LayoutDirection.Rtl
+            AnimatedContent(targetState = day, modifier = Modifier.weight(1f).clipToBounds(),
+                transitionSpec = {
+                    val direction = if ((targetState > initialState) != rtlLayout) AnimatedContentTransitionScope.SlideDirection.Left else AnimatedContentTransitionScope.SlideDirection.Right
+                    (slideIntoContainer(direction, tween(320)) + fadeIn(tween(240))) togetherWith
+                        (slideOutOfContainer(direction, tween(320)) + fadeOut(tween(240)))
+                }, label = "journal-day-content") { pageDay ->
+            val loadedEntries by remember(pageDay, limit, windowOffset) { model.store.dao.observeDay(pageDay, limit + 1, windowOffset) }.collectAsState(emptyList())
+            val entries = remember(loadedEntries, limit) { loadedEntries.takeLast(limit) }
+            val newestFirst = remember(entries) { entries.asReversed() }
+            val hasOlder = loadedEntries.size > limit
+            val pageNavigationSerial = remember { navigationSerial }
+            val listState = key(trash, pageDay, pageNavigationSerial) { rememberLazyListState() }
+            LaunchedEffect(entries, savedEntryId) {
+                if (pageDay == day && savedEntryId != null && entries.any { it.id == savedEntryId }) {
+                    listState.animateScrollToItem(0)
+                    savedEntryId = null
+                }
+            }
+            BoxWithConstraints(Modifier.fillMaxSize()) {
                 val reach = rememberThumbReach((maxHeight - 360.dp).coerceAtLeast(0.dp), trash)
                 val offset = with(LocalDensity.current) { reach.offset.toDp() }
                 LazyColumn(Modifier.fillMaxSize().testTag("journal-feed").nestedScroll(reach).padding(top = offset), state = listState, reverseLayout = !trash, contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp, if (trash) Alignment.Top else Alignment.Bottom)) {
@@ -248,8 +272,8 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                         if (trashOffset > 0) item { TextButton(onClick = { trashOffset = (trashOffset - 100).coerceAtLeast(0) }) { Text(stringResource(R.string.journal_load_newer)) } }
                         if (hasOlderArchive) item { TextButton(onClick = { trashOffset += 100 }) { Text(stringResource(R.string.journal_load_older)) } }
                         items(deleted, key = { it.id }) { entry ->
-                            Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp)) {
-                                Text(dayLabel(entry.day)); Text(entry.text)
+                            Card(Modifier.fillMaxWidth(), colors = journalCardColors) { Column(Modifier.padding(16.dp)) {
+                                Text(dayLabel(entry.day), color = mutedGray); Text(entry.text)
                                 Row { TextButton(onClick = { model.restore(entry) }) { Text(stringResource(R.string.journal_restore)) }
                                     IconButton(onClick = { confirmDelete = entry }) { Icon(Icons.Outlined.DeleteForever, stringResource(R.string.journal_delete_forever)) } }
                             } }
@@ -259,31 +283,40 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                         if (windowOffset > 0) item { TextButton(onClick = { windowOffset = (windowOffset - 50).coerceAtLeast(0) }) { Text(stringResource(R.string.journal_load_newer)) } }
                         if (entries.isEmpty()) item { Text(stringResource(R.string.journal_empty)) }
                         itemsIndexed(newestFirst, key = { _, entry -> entry.id }) { index, entry ->
-                            Column(Modifier.fillMaxWidth()) {
+                            Column(Modifier.fillMaxWidth().animateItem(fadeInSpec = tween(200), placementSpec = tween(260), fadeOutSpec = null)) {
                             if (index == newestFirst.lastIndex || newestFirst[index + 1].day != entry.day) Box(Modifier.fillMaxWidth().padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
-                                Text(dayLabel(entry.day), style = MaterialTheme.typography.labelSmall)
+                                Text(dayLabel(entry.day), style = MaterialTheme.typography.labelSmall, color = mutedGray)
                             }
                             // The remembered gesture state must read the latest row revision after edits.
                             val currentEntry by rememberUpdatedState(entry)
                             val canDelete by rememberUpdatedState(editing == null && !capturing)
-                            val dismiss = rememberSwipeToDismissBoxState(confirmValueChange = { value ->
-                                if (value != SwipeToDismissBoxValue.Settled && canDelete) model.delete(currentEntry) { undo = it }
-                                false
-                            })
-                            SwipeToDismissBox(state = dismiss, enableDismissFromStartToEnd = editing == null && !capturing, enableDismissFromEndToStart = editing == null && !capturing,
-                                backgroundContent = { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Icon(Icons.Outlined.DeleteOutline, null) } }) {
+                            // Undo restores the same item ID with a new revision. Its
+                            // saved swipe state must not dismiss the restored entry again.
+                            val dismiss = key(entry.revision) {
+                                rememberSwipeToDismissBoxState(confirmValueChange = { value ->
+                                    value == SwipeToDismissBoxValue.Settled || canDelete
+                                })
+                            }
+                            LaunchedEffect(dismiss, dismiss.settledValue) {
+                                if (dismiss.settledValue != SwipeToDismissBoxValue.Settled) {
+                                    model.delete(currentEntry, done = { undo = it }, failed = { scope.launch { dismiss.reset() } })
+                                }
+                            }
+                            SwipeToDismissBox(state = dismiss, modifier = Modifier.clipToBounds(), enableDismissFromStartToEnd = editing == null && !capturing, enableDismissFromEndToStart = editing == null && !capturing,
+                                backgroundContent = {}) {
                                 Card(Modifier.fillMaxWidth().semantics {
-                                    customActions = listOf(CustomAccessibilityAction(context.getString(R.string.journal_delete)) {
+                                    customActions = listOf(CustomAccessibilityAction(resources.getString(R.string.journal_delete)) {
                                         if (editing == null && !capturing) { model.delete(entry) { undo = it }; true } else false
                                     })
-                                }) { Column(Modifier.padding(16.dp)) {
+                                }, colors = journalCardColors) { Column(Modifier.padding(16.dp)) {
                                     if (editing?.id == entry.id) {
-                                        OutlinedTextField(value = localEdit, onValueChange = { localEdit = it; model.changeEdit(text = it) }, modifier = Modifier.fillMaxWidth().testTag("journal-edit"), minLines = 2)
+                                        OutlinedTextField(value = localEdit, onValueChange = { localEdit = it; model.changeEdit(text = it) }, modifier = Modifier.fillMaxWidth().testTag("journal-edit"), minLines = 2,
+                                            colors = composerColors.copy(focusedTextColor = cardText, unfocusedTextColor = cardText))
                                         Row { IconButton(onClick = { if (localEdit.isBlank() && editDraft?.image == null) confirmDelete = entry else model.finishEdit(true) }) { Icon(Icons.Outlined.Check, stringResource(R.string.journal_save)) }
                                             IconButton(onClick = { model.finishEdit(false) }) { Icon(Icons.Outlined.Close, stringResource(R.string.journal_cancel)) } }
                                     } else if (capturing && entry.id == liveEntryId) {
                                         Text(committedText)
-                                        if (provisionalText.isNotBlank()) Text(provisionalText, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        if (provisionalText.isNotBlank()) Text(provisionalText, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = mutedGray)
                                     } else Text(entry.text.ifBlank { " " }, Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(enabled = !capturing && !busy) {
                                         if (editing != null && changed()) { pendingEdit = entry; confirmLeave = true }
                                         else { if (editing != null) model.finishEdit(false); model.beginEdit(entry) }
@@ -296,7 +329,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                                     val created = Instant.ofEpochMilli(timestamp).atZone(ZoneId.of(entry.zone))
                                     Text(if (created.toLocalDate().toEpochDay() == shownDay) created.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
                                         else created.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)),
-                                        style = MaterialTheme.typography.labelSmall,
+                                        style = MaterialTheme.typography.labelSmall, color = mutedGray,
                                         modifier = Modifier.align(Alignment.End).testTag("journal-time-${entry.id}").clickable(enabled = !capturing && !busy && (editing == null || editing?.id == entry.id)) {
                                             dateRequest = JournalDateRequest(timestamp, entry.zone, entry)
                                         }.padding(top = 8.dp, bottom = 4.dp))
@@ -309,6 +342,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                         if (hasOlder) item { TextButton(onClick = { if(limit < 150) limit += 50 else windowOffset += 50 }) { Text(stringResource(R.string.journal_load_older)) } }
                     }
                 }
+            }
             }
             undo?.let { item -> Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.journal_deleted), Modifier.weight(1f))
@@ -337,14 +371,22 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                         dateRequest = JournalDateRequest(LocalDate.ofEpochDay(day).atStartOfDay(zone).toInstant().toEpochMilli(), zone.id)
                     }, enabled = navigationEnabled, modifier = Modifier.align(Alignment.Center).testTag("journal-date").semantics {
                         customActions = listOf(
-                            CustomAccessibilityAction(context.getString(R.string.journal_previous)) { if (navigationEnabled) { selectDay(day - 1); true } else false },
-                            CustomAccessibilityAction(context.getString(R.string.journal_next)) { if (navigationEnabled) { selectDay(day + 1); true } else false })
-                    }) { Text(if (day == LocalDate.now().toEpochDay()) stringResource(R.string.journal_today) else dayLabel(day)) }
+                            CustomAccessibilityAction(resources.getString(R.string.journal_previous)) { if (navigationEnabled) { selectDay(day - 1); true } else false },
+                            CustomAccessibilityAction(resources.getString(R.string.journal_next)) { if (navigationEnabled) { selectDay(day + 1); true } else false })
+                    }) {
+                        AnimatedContent(targetState = day, modifier = Modifier.clipToBounds(), transitionSpec = {
+                            val direction = if ((targetState > initialState) != rtl) AnimatedContentTransitionScope.SlideDirection.Left else AnimatedContentTransitionScope.SlideDirection.Right
+                            (slideIntoContainer(direction, tween(320)) + fadeIn(tween(240))) togetherWith
+                                (slideOutOfContainer(direction, tween(320)) + fadeOut(tween(240)))
+                        }, label = "journal-date-slide") { date ->
+                            Text(if (date == LocalDate.now().toEpochDay()) stringResource(R.string.journal_today) else dayLabel(date))
+                        }
+                    }
                     Box(Modifier.align(Alignment.CenterEnd)) {
-                        IconButton(onClick = { options = true }, enabled = navigationEnabled) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.journal_options)) }
-                        DropdownMenu(expanded = options, onDismissRequest = { options = false }) {
-                            DropdownMenuItem(text = { Text(stringResource(R.string.journal_settings)) }, onClick = { options = false; settings = true })
-                            DropdownMenuItem(text = { Text(stringResource(R.string.journal_trash)) }, onClick = { options = false; trash = true })
+                        IconButton(onClick = { options = true }, enabled = navigationEnabled) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.journal_options), tint = mutedGray) }
+                        DropdownMenu(expanded = options, onDismissRequest = { options = false }, containerColor = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = 0.dp) {
+                            DropdownMenuItem(text = { Text(stringResource(R.string.journal_settings), color = MaterialTheme.colorScheme.onSurfaceVariant ) }, onClick = { options = false; settings = true })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.journal_trash), color = MaterialTheme.colorScheme.onSurfaceVariant) }, onClick = { options = false; trash = true })
                         }
                     }
                 }
@@ -353,24 +395,29 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                 if (capturing) {
                     Text("${durationSeconds / 60}:${(durationSeconds % 60).toString().padStart(2, '0')}")
                     Text(liveText, maxLines = 5)
-                    Text(stringResource(when(captureState) {
+                    val captureStatus = when(captureState) {
                         JournalSpeech.State.STARTING -> R.string.journal_starting
                         JournalSpeech.State.FINALIZING -> R.string.journal_finalizing
                         JournalSpeech.State.PAUSED -> R.string.journal_paused
-                        else -> R.string.journal_listening
-                    }), modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
-                    audioLevel?.let { LinearProgressIndicator(progress = { ((it + 2f) / 12f).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth()) }
+                        else -> null
+                    }
+                    captureStatus?.let { Text(stringResource(it), modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
                     if (recoveryPending) TextButton(onClick = { model.retryRecovery() }) { Text(stringResource(R.string.journal_retry)) }
-                    Row {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        LinearProgressIndicator(
+                            progress = { audioLevel?.let { ((it + 2f) / 12f).coerceIn(0f, 1f) } ?: 0f },
+                            modifier = Modifier.weight(1f).padding(end = 8.dp)
+                        )
                         IconButton(onClick = { if(captureState == JournalSpeech.State.PAUSED) model.speech.resume() else model.speech.stop(true) }, enabled = captureState != JournalSpeech.State.FINALIZING) {
                             Icon(if(captureState == JournalSpeech.State.PAUSED) Icons.Outlined.PlayArrow else Icons.Outlined.Pause, stringResource(if(captureState == JournalSpeech.State.PAUSED) R.string.journal_resume else R.string.journal_pause))
                         }
-                        IconButton(onClick = { model.speech.stop() }) { Icon(Icons.Outlined.Stop, stringResource(R.string.journal_stop)) }
+                        IconButton(onClick = { model.speech.stop() }, modifier = Modifier.size(48.dp)) { Icon(Icons.Outlined.Stop, stringResource(R.string.journal_stop)) }
                     }
                 } else {
                 draft?.image?.let { id -> JournalImage(model.media, id, Modifier.height(90.dp).clickable(enabled = editing == null && !busy) { imageTarget = null; imagePreview = true }) }
-                Row(verticalAlignment = Alignment.Bottom) {
-                    OutlinedTextField(localText, onValueChange = { localText = it; model.change(text = it) }, modifier = Modifier.weight(1f).heightIn(max = 180.dp).testTag("journal-composer").semantics { contentDescription = context.getString(R.string.journal_input) }, enabled = editing == null && !busy && draft != null,
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(localText, onValueChange = { localText = it; model.change(text = it) }, modifier = Modifier.weight(1f).heightIn(max = 180.dp).testTag("journal-composer").semantics { contentDescription = resources.getString(R.string.journal_input) }, enabled = editing == null && !busy && draft != null,
+                        colors = composerColors,
                         placeholder = { Text(stringResource(listOf(R.string.journal_prompt_0, R.string.journal_prompt_1, R.string.journal_prompt_2, R.string.journal_prompt_3)[draft?.prompt ?: 0])) },
                         trailingIcon = { IconButton(onClick = { imageTarget = null; model.prepareImagePicker(null); picker.launch("image/*") }, enabled = editing == null && !busy) { Icon(Icons.Outlined.AddPhotoAlternate, stringResource(R.string.journal_add_image)) } })
                     val canSubmit = localText.isNotBlank() || draft?.image != null
@@ -426,7 +473,6 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
             })
         }
         Text(stringResource(R.string.journal_privacy_explanation), Modifier.padding(16.dp))
-        TextButton(onClick = { settings = false; trash = true }) { Text(stringResource(R.string.journal_trash)) }
         Spacer(Modifier.height(24.dp))
     }
     if (speechOptions) AlertDialog(onDismissRequest = { speechOptions = false }, title = { Text(stringResource(R.string.journal_start_dictation)) }, text = {
@@ -439,12 +485,14 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                 }
             }
             Text(stringResource(R.string.journal_language_availability), style = MaterialTheme.typography.bodySmall)
-            if (!model.speech.onDeviceAvailable()) {
-                Text(stringResource(R.string.journal_network_disclosure))
-                Row(verticalAlignment = Alignment.CenterVertically) { Text(stringResource(R.string.journal_network_allow), Modifier.weight(1f)); Switch(networkConsent, { networkConsent = it }) }
+            if (!model.speech.recognitionAvailable()) {
+                Text(stringResource(R.string.journal_speech_unavailable))
+            } else if (model.speech.systemProviderAvailable()) {
+                Text(stringResource(if (model.speech.onDeviceAvailable()) R.string.journal_provider_choice_disclosure else R.string.journal_network_disclosure))
+                Row(verticalAlignment = Alignment.CenterVertically) { Text(stringResource(R.string.journal_provider_choice), Modifier.weight(1f)); Switch(networkConsent, { networkConsent = it }) }
             }
         }
-    }, confirmButton = { TextButton(enabled = language.isNotBlank() && (model.speech.onDeviceAvailable() || networkConsent), onClick = { speechOptions = false; permission.launch(android.Manifest.permission.RECORD_AUDIO) }) { Text(stringResource(R.string.journal_start)) } }, dismissButton = { TextButton(onClick = { speechOptions = false }) { Text(stringResource(R.string.journal_cancel)) } })
+    }, confirmButton = { TextButton(enabled = model.speech.recognitionAvailable() && language.isNotBlank() && (model.speech.onDeviceAvailable() || networkConsent), onClick = { speechOptions = false; permission.launch(android.Manifest.permission.RECORD_AUDIO) }) { Text(stringResource(R.string.journal_start)) } }, dismissButton = { TextButton(onClick = { speechOptions = false }) { Text(stringResource(R.string.journal_cancel)) } })
     if (confirmLeave) AlertDialog(onDismissRequest = { confirmLeave = false; pendingEdit = null }, title = { Text(stringResource(R.string.journal_changes)) },
         confirmButton = { TextButton(onClick = { model.finishEdit(true, pendingEdit); confirmLeave = false; pendingEdit = null }) { Text(stringResource(R.string.journal_save)) } },
         dismissButton = { Row { TextButton(onClick = { model.finishEdit(false, pendingEdit); pendingEdit = null; confirmLeave = false }) { Text(stringResource(R.string.journal_discard)) }; TextButton(onClick = { confirmLeave = false; pendingEdit = null }) { Text(stringResource(R.string.journal_keep_editing)) } } })

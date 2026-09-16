@@ -41,8 +41,11 @@
     <string name="journal_stop">Stop dictation</string>
     <string name="journal_start_dictation">Start dictation</string>
     <string name="journal_language">Speech language</string>
-    <string name="journal_network_disclosure">On-device dictation is unavailable. Your device speech provider may send audio to its servers. Comfer does not store audio.</string>
+    <string name="journal_network_disclosure">Dedicated on-device dictation is unavailable. You can use your device speech provider instead; it may send audio to its servers. Comfer does not store audio.</string>
+    <string name="journal_speech_unavailable">No speech recognition service is available. Install or enable a speech provider in Android settings, then reopen dictation.</string>
     <string name="journal_network_allow">Allow network dictation for this session</string>
+    <string name="journal_provider_choice">Use device speech provider</string>
+    <string name="journal_provider_choice_disclosure">If on-device dictation fails, try your default device speech provider for this session. It may send audio to its servers. Comfer does not store audio.</string>
     <string name="journal_start">Start</string>
     <string name="journal_jump_latest">Jump to latest</string>
     <string name="journal_settings">Settings</string>

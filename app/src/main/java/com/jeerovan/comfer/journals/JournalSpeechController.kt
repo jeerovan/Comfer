@@ -45,11 +45,16 @@ internal class JournalSpeechController(
     private var generation = 0
     val active get() = protocol.state !in setOf(JournalSpeech.State.IDLE, JournalSpeech.State.FINISHED)
     fun onDeviceAvailable() = deviceAvailable()
+    fun systemProviderAvailable() = providerAvailable()
+    fun recognitionAvailable() = onDeviceAvailable() || providerAvailable()
     fun start(id: String, prefix: String, language: String, networkConsent: Boolean) {
         check(!active)
+        require(recognitionAvailable()) { "No speech recognition service is available. Install or enable a speech provider in Android settings." }
         require(onDeviceAvailable() || networkConsent) { "Network dictation requires your permission" }
-        require(onDeviceAvailable() || providerAvailable()) { "Speech recognition is not available on this device" }
-        this.network = !onDeviceAvailable() && networkConsent
+        require(!networkConsent || systemProviderAvailable()) { "The selected device speech provider is unavailable" }
+        // Explicit consent selects the default provider even if the dedicated
+        // on-device service advertises availability but fails at runtime.
+        this.network = networkConsent
         this.language = language
         protocol.start(id, prefix)
         listen()
@@ -65,9 +70,17 @@ internal class JournalSpeechController(
             recognizer!!.setRecognitionListener(object : RecognitionListener {
                 override fun onReadyForSpeech(params: Bundle?) { if (generation != token) return; protocol.ready(id, part); update(protocol, null) }
                 override fun onBeginningOfSpeech() = Unit
-                override fun onRmsChanged(rmsdB: Float) { if (protocol.session == id && protocol.segment == part && protocol.state == JournalSpeech.State.LISTENING) update(protocol, rmsdB) }
+                override fun onRmsChanged(rmsdB: Float) { if (generation == token && protocol.session == id && protocol.segment == part && protocol.state == JournalSpeech.State.LISTENING) update(protocol, rmsdB) }
                 override fun onBufferReceived(buffer: ByteArray?) = Unit
-                override fun onEndOfSpeech() { if (protocol.session == id && protocol.segment == part && protocol.state != JournalSpeech.State.FINALIZING) stop(true) }
+                override fun onEndOfSpeech() {
+                    if (generation != token || protocol.session != id || protocol.segment != part) return
+                    if (protocol.state !in setOf(JournalSpeech.State.STARTING, JournalSpeech.State.LISTENING)) return
+                    // The provider has already stopped its microphone. Wait for its
+                    // final result; another stopListening call can cause ERROR_CLIENT.
+                    protocol.stop(true)
+                    awaitFinalResult(10000)
+                    update(protocol, null)
+                }
                 override fun onError(error: Int) {
                     if (generation != token || protocol.session != id || protocol.segment != part || !active) return
                     protocol.interrupted(when (error) {
@@ -76,6 +89,9 @@ internal class JournalSpeechController(
                         SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Microphone permission is unavailable"
                         SpeechRecognizer.ERROR_NETWORK, SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Speech recognition lost its network connection"
                         SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "The provider did not recognize speech"
+                        SpeechRecognizer.ERROR_CLIENT, SpeechRecognizer.ERROR_SERVER_DISCONNECTED -> if (!network) {
+                            "On-device dictation stopped (error $error). Reopen dictation and try Use device speech provider."
+                        } else "The device speech provider could not complete dictation (error $error). Check its settings and try again."
                         else -> "Speech recognition stopped (provider error $error)"
                     }); release(); update(protocol, null)
                 }
@@ -98,18 +114,39 @@ internal class JournalSpeechController(
                 .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                 .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1))
             // Starting cannot wait indefinitely for a missing/broken provider.
-            deadline = Runnable { if (protocol.state == JournalSpeech.State.STARTING) interrupt() }.also { handler.postDelayed(it, 10000) }
+            if (protocol.state == JournalSpeech.State.STARTING) {
+                deadline = Runnable {
+                    if (protocol.state == JournalSpeech.State.STARTING) {
+                        protocol.interrupted("The speech provider did not start. Check your device's speech provider and microphone settings, then try again.")
+                        release(); update(protocol, null)
+                    }
+                }.also { handler.postDelayed(it, 10000) }
+            }
             update(protocol, null)
         } catch (_: Exception) { protocol.interrupted(); release(); update(protocol, null) }
     }
     fun stop(pause: Boolean = false) {
         if (!active) return
+        if (protocol.state == JournalSpeech.State.STARTING) {
+            // There is no ready microphone session to drain yet. Cancel it and
+            // ignore late provider callbacks rather than asking it to stop listening.
+            protocol.stop(pause)
+            protocol.timeout()
+            release(); update(protocol, null)
+            return
+        }
+        val alreadyStopped = protocol.state == JournalSpeech.State.FINALIZING || protocol.state == JournalSpeech.State.PAUSED
         protocol.stop(pause)
-        try { recognizer?.stopListening() } catch (_: Exception) { }
-        deadline?.let(handler::removeCallbacks)
         if (protocol.state == JournalSpeech.State.FINISHED) { release(); update(protocol, null); return }
-        deadline = Runnable { protocol.timeout(); release(); update(protocol, null) }.also { handler.postDelayed(it, 2000) }
+        if (!alreadyStopped) {
+            try { recognizer?.stopListening() } catch (_: Exception) { }
+            if (protocol.state == JournalSpeech.State.FINALIZING) awaitFinalResult(2000)
+        }
         update(protocol, null)
+    }
+    private fun awaitFinalResult(timeoutMillis: Long) {
+        deadline?.let(handler::removeCallbacks)
+        deadline = Runnable { protocol.timeout(); release(); update(protocol, null) }.also { handler.postDelayed(it, timeoutMillis) }
     }
     fun interrupt() { if (active) { protocol.interrupted(); release(); update(protocol, null) } else release() }
     private fun release() {
