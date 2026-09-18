@@ -131,12 +131,20 @@ class NotesEditorTest {
             activity!!.onActivity{ViewModelProvider(it)[NotesViewModel::class.java].queueImage(Uri.fromFile(source))}
             compose.waitUntil(15000){saved().images.size==1}
             source.delete()
+            compose.onNodeWithTag("notes-editor-after-image-1").performScrollTo().performClick().performTextInput("Below the image")
+            compose.waitUntil(10000){saved().text.endsWith("Below the image")}
+            compose.onNodeWithTag("notes-editor-after-image-1").performSemanticsAction(SemanticsActions.SetSelection){it(0,5,false)}
+            format();compose.onNodeWithContentDescription("Italic").performClick();androidx.test.espresso.Espresso.pressBack()
+            compose.waitUntil(10000){saved().marks.any{it.kind=="italic"&&it.start==saved().images.single().offset}}
+            compose.onNodeWithContentDescription("All notes").performClick()
+            compose.onNodeWithTag("note-editor").performClick()
+            compose.onNodeWithTag("notes-editor-after-image-1").performScrollTo().assertTextContains("Below the image")
             val rich=saved();assertNotNull(NotesImages.decode(rich.images.single()))
             androidx.test.espresso.Espresso.closeSoftKeyboard()
             capture("image")
-            compose.onNodeWithContentDescription("Undo edit").performScrollTo().performClick()
+            activity!!.onActivity{ViewModelProvider(it)[NotesViewModel::class.java].removeImage(rich.images.single().id)}
             compose.waitUntil(10000){saved().images.isEmpty()}
-            compose.onNodeWithContentDescription("Redo edit").performClick()
+            compose.onNodeWithContentDescription("Undo edit").performScrollTo().performClick()
             compose.waitUntil(10000){saved()==rich}
             val row=runBlocking{NotesDatabase.get(context).dao().note("editor")!!}
             assertFalse(row.payload.toString(Charsets.UTF_8).contains(rich.images.single().jpeg.take(30)))
@@ -148,5 +156,28 @@ class NotesEditorTest {
                 assertTrue(NotesBackup.snapshot(context).notes.any{it.content==rich})
             }
         } finally {source.delete();archive.delete()}
+    }
+    @Test fun olderImagesGainWritingAreasAndTypingBetweenImagesKeepsTheirOrder() {
+        val source=File(context.cacheDir,"notes-legacy-image.png")
+        val bitmap=Bitmap.createBitmap(100,50,Bitmap.Config.ARGB_8888)
+        source.outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)};bitmap.recycle()
+        try {
+            val image=NotesImages.read(context,Uri.fromFile(source))
+            runBlocking {
+                val store=NotesStore(NotesDatabase.get(context));val note=store.note("editor")!!
+                store.mutate(note.id,note.revision){it.copy(content=it.content.copy(images=listOf(image,image.copy(id="second-image"))))}
+            }
+            launch()
+            compose.onNodeWithTag("notes-editor-after-image-1").performScrollTo().performClick().performTextInput("Between")
+            compose.onNodeWithTag("notes-editor-after-image-2").performScrollTo().performClick().performTextInput("After")
+            compose.waitUntil(10000){saved().text.endsWith("After")}
+            val content=saved();val canvas=NoteFormatting.canvas(content)
+            assertEquals("Between\n\n",canvas.substring(content.images[0].offset!!,content.images[1].offset!!))
+            assertEquals("After",canvas.substring(content.images[1].offset!!))
+            compose.onNodeWithTag("notes-canvas").performScrollToIndex(0)
+            compose.onNodeWithTag("notes-editor").performTextReplacement("")
+            compose.waitUntil(10000){saved().title.isEmpty()}
+            assertTrue(saved().text.contains("Between"));assertTrue(saved().text.endsWith("After"))
+        }finally{source.delete()}
     }
 }

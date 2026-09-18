@@ -5,7 +5,7 @@ import java.net.URI
 import java.util.UUID
 
 @Serializable data class NoteMark(val start:Int,val end:Int,val kind:String,val value:String="")
-@Serializable data class NoteImage(val id:String=UUID.randomUUID().toString(),val jpeg:String,val width:Int,val height:Int)
+@Serializable data class NoteImage(val id:String=UUID.randomUUID().toString(),val jpeg:String,val width:Int,val height:Int,val offset:Int?=null)
 internal data class NoteCanvasCommand(val sequence:Int,val kind:String,val value:String="",val text:String="")
 
 /** UTF-16 ranges match Android/Compose selection offsets; plain text is never parsed as HTML. */
@@ -24,6 +24,20 @@ object NoteFormatting {
         while(oldEnd>start&&newEnd>start&&before[oldEnd-1]==after[newEnd-1]){oldEnd--;newEnd--}
         if(oldEnd>start&&oldEnd<before.length&&before[oldEnd].isLowSurrogate()){oldEnd++;newEnd++}
         return Change(start,oldEnd,newEnd)
+    }
+    /** Image boundaries stay before typing in their following paragraph. */
+    fun rebaseImages(images:List<NoteImage>,before:String,after:String,segment:Int):List<NoteImage> {
+        val c=change(before,after);val delta=c.newEnd-c.oldEnd
+        return images.mapIndexed { index,image ->
+            val at=image.offset?:before.length
+            val next=when {
+                at<c.start -> at
+                at>c.oldEnd -> at+delta
+                at==c.start && index<segment -> c.start
+                else -> c.newEnd
+            }
+            image.copy(offset=next.coerceIn(0,after.length))
+        }
     }
     fun rebase(marks:List<NoteMark>,before:String,after:String):List<NoteMark> {
         if(before==after)return marks

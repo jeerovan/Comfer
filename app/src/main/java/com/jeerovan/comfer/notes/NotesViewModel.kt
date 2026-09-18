@@ -87,16 +87,23 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
                 val image=withContext(Dispatchers.IO){NotesImages.read(getApplication(),uri)}
                 check(draft?.id==id){"Reopen the note before adding this image"}
                 if(sensitive)NotesSession.requireUnlocked()
-                val candidate=content().copy(images=images+image)
+                val before=NoteFormatting.canvas(content())
+                val after=before+"\n\n"
+                val placed=image.copy(offset=after.length)
+                val candidate=content().copy(text=after.substringAfter('\n',""),images=images+placed)
                 require(Json.encodeToString(candidate).toByteArray().size<=900_000){"This note is full. Use a smaller image or remove an existing image."}
-                rememberUndo();images=images+image;changed();flush()
+                rememberUndo();body=TextFieldValue(candidate.text);images=candidate.images;changed();flush()
             } finally {importingImage=false}
         }
     }
     fun removeImage(id:String){rememberUndo();images=images.filterNot{it.id==id};changed()}
     private suspend fun show(value: NoteDraft) {
         draft = value
-        val content=value.note.content.asText()
+        var content=value.note.content.asText()
+        if(content.images.any{it.offset==null}) {
+            val canvas=NoteFormatting.canvas(content)+"\n\n"
+            content=content.copy(text=canvas.substringAfter('\n',""),images=content.images.map{if(it.offset==null)it.copy(offset=canvas.length)else it})
+        }
         title=content.title;marks=content.marks;images=content.images;typingStyles=emptyMap();canvasSelection=TextRange.Zero
         body=TextFieldValue(content.text,TextRange(value.selectionStart.coerceIn(0,content.text.length),value.selectionEnd.coerceIn(0,content.text.length)))
         history.clear();future.clear();findTarget=null
@@ -156,7 +163,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     fun updateBody(value: TextFieldValue) {
         if(value.text != body.text) { rememberUndo(); body=value;changed() } else body=value
     }
-    fun updateCanvas(value: TextFieldValue,listEdit:Boolean=false) {
+    fun updateCanvas(value: TextFieldValue,listEdit:Boolean=false,segment:Int=0) {
         val heading=value.text.substringBefore('\n')
         val text=value.text.substringAfter('\n', "")
         val offset=if('\n' in value.text) heading.length+1 else heading.length
@@ -165,6 +172,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             rememberUndo()
             val before=NoteFormatting.canvas(content())
             val delta=NoteFormatting.change(before,value.text)
+            images=NoteFormatting.rebaseImages(images,before,value.text,segment)
             marks=if(listEdit)NoteFormatting.rebaseList(marks,before,value.text)else NoteFormatting.rebase(marks,before,value.text)
             if(delta.newEnd>delta.start)typingStyles.forEach{(kind,style)->marks=NoteFormatting.apply(marks,delta.start,delta.newEnd,kind,style,false)}
             title=heading;body=TextFieldValue(text,selection);changed()

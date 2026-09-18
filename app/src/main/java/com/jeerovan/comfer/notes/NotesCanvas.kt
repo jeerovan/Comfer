@@ -26,6 +26,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.platform.testTag
@@ -43,14 +44,14 @@ internal fun inlineChecks(text:String):List<InlineCheck> = Regex("(?m)^\\[([ xX]
 @Composable internal fun NotesCanvas(model:NotesViewModel,modifier:Modifier=Modifier) {
     fun text()=model.title+if(model.body.text.isNotEmpty())"\n"+model.body.text else ""
     var value by remember(model.draft?.id){mutableStateOf(TextFieldValue(text()))}
-    var layout by remember{mutableStateOf<TextLayoutResult?>(null)}
     var commandSeen by remember(model.draft?.id){mutableIntStateOf(model.canvasCommand?.sequence?:0)}
     var preview by remember{mutableStateOf<NoteImage?>(null)}
-    val focus=remember{FocusRequester()}
+    var activeSegment by remember(model.draft?.id){mutableIntStateOf(0)}
+    val focuses=remember(model.draft?.id){mutableMapOf<String,FocusRequester>()}
     fun update(next:TextFieldValue,listEdit:Boolean=false){
         val continued=if(next.text!=value.text)NoteFormatting.continueList(value.text,next.text)else null
         val updated=continued?.let{TextFieldValue(it.first,TextRange(it.second))}?:next
-        value=updated;model.updateCanvas(updated,listEdit)
+        value=updated;model.updateCanvas(updated,listEdit,activeSegment)
     }
     fun toggle(start:Int){if(start+2<value.text.length){val c=if(value.text[start+1]==' ')"x" else " ";update(value.copy(text=value.text.replaceRange(start+1,start+2,c)))}}
     LaunchedEffect(model.title,model.body.text){if(value.text.substringBefore('\n')!=model.title||value.text.substringAfter('\n',"")!=model.body.text){val next=text();value=TextFieldValue(next,TextRange(value.selection.start.coerceAtMost(next.length)))}}
@@ -68,7 +69,7 @@ internal fun inlineChecks(text:String):List<InlineCheck> = Regex("(?m)^\\[([ xX]
             val next=NoteFormatting.list(value.text,value.selection.min,value.selection.max,command.kind)
             update(TextFieldValue(next.first,TextRange(next.second)),listEdit=true)
         }
-        focus.requestFocus()
+        focuses[model.images.getOrNull(activeSegment-1)?.id?:"note-text"]?.requestFocus()
     }}}
     // Observe formatting in composition so toolbar-only edits invalidate text layout immediately.
     val marks=model.marks
@@ -82,28 +83,51 @@ internal fun inlineChecks(text:String):List<InlineCheck> = Regex("(?m)^\\[([ xX]
     val toggleCurrent by rememberUpdatedState<(Int)->Unit>(::toggle)
     BoxWithConstraints(modifier){
         val minHeight=maxHeight
-        LazyColumn(Modifier.fillMaxSize()) {
-            item(key="note-text") {
-            BasicTextField(value,{update(it)},Modifier.fillMaxWidth().heightIn(min=if(model.images.isEmpty())minHeight else 160.dp).focusRequester(focus).testTag("notes-editor")
-                .semantics{customActions=checks.mapIndexed{index,item->CustomAccessibilityAction("${if(item.checked)"Uncheck" else "Check"} item ${index+1}: ${item.label}"){toggle(item.start);true}}}
-                .pointerInput(Unit){awaitEachGesture{
+        LazyColumn(Modifier.fillMaxSize().testTag("notes-canvas")) {
+            items(model.images.size+1,key={index->model.images.getOrNull(index-1)?.id?:"note-text"}) { segment ->
+            val previous=model.images.getOrNull(segment-1)
+            val start=(previous?.offset?:0).coerceIn(0,value.text.length)
+            val end=(model.images.getOrNull(segment)?.offset?:value.text.length).coerceIn(start,value.text.length)
+            val key=previous?.id?:"note-text"
+            val focus=remember(key){focuses.getOrPut(key){FocusRequester()}}
+            var layout by remember(key){mutableStateOf<TextLayoutResult?>(null)}
+            val renderedText=value.text
+            val localValue=TextFieldValue(value.text.substring(start,end),TextRange((value.selection.start-start).coerceIn(0,end-start),(value.selection.end-start).coerceIn(0,end-start)),
+                value.composition?.takeIf{it.min>=start&&it.max<=end}?.let{TextRange(it.start-start,it.end-start)})
+            Column {
+            previous?.let{image->NoteImageView(image,Modifier.fillMaxWidth().padding(vertical=8.dp).clickable{preview=image})}
+            BasicTextField(localValue,onChange@{next->
+                activeSegment=segment
+                // Keep an image on its own paragraph, including when all preceding text is erased.
+                val replacement=if(segment<model.images.size&&!next.text.endsWith("\n\n"))next.text.trimEnd('\n')+"\n\n" else next.text
+                // IME callbacks can arrive before recomposition after undo/replacement.
+                val currentStart=(model.images.getOrNull(segment-1)?.offset?:0).coerceIn(0,value.text.length)
+                val currentEnd=(model.images.getOrNull(segment)?.offset?:value.text.length).coerceIn(currentStart,value.text.length)
+                if(next.text==localValue.text&&next.text!=value.text.substring(currentStart,currentEnd))return@onChange
+                update(TextFieldValue(value.text.replaceRange(currentStart,currentEnd,replacement),TextRange(currentStart+next.selection.start,currentStart+next.selection.end),next.composition?.let{TextRange(currentStart+it.start,currentStart+it.end)}))
+            },Modifier.fillMaxWidth().heightIn(min=if(model.images.isEmpty())minHeight else if(segment==model.images.size)120.dp else 48.dp).focusRequester(focus)
+                .onFocusChanged{if(it.isFocused)activeSegment=segment}
+                .testTag(if(segment==0)"notes-editor" else "notes-editor-after-image-${segment}")
+                .semantics{customActions=checks.filter{it.start>=start&&it.start<end}.mapIndexed{index,item->CustomAccessibilityAction("${if(item.checked)"Uncheck" else "Check"} item ${index+1}: ${item.label}"){toggle(item.start);true}}}
+                .pointerInput(start,end){awaitEachGesture{
                     val down=awaitFirstDown(requireUnconsumed=false,pass=PointerEventPass.Initial)
                     val result=layout ?: return@awaitEachGesture
-                    val index=result.getOffsetForPosition(down.position)
+                    val index=start+result.getOffsetForPosition(down.position)
                     val check=latestChecks.firstOrNull{index in it.start..it.start+3} ?: return@awaitEachGesture
-                    val bounds=result.getBoundingBox(check.start)
-                    if(down.position.y<bounds.top||down.position.y>bounds.bottom||down.position.x>result.getBoundingBox(check.start+3).right)return@awaitEachGesture
+                    val bounds=result.getBoundingBox(check.start-start)
+                    if(down.position.y<bounds.top||down.position.y>bounds.bottom||down.position.x>result.getBoundingBox(check.start+3-start).right)return@awaitEachGesture
                     down.consume()
                     val up=waitForUpOrCancellation(pass=PointerEventPass.Initial)
                     if(up!=null){up.consume();toggleCurrent(check.start)}
                 }},
                 textStyle=body.copy(color=MaterialTheme.colorScheme.onSurface,lineHeight=androidx.compose.ui.unit.TextUnit.Unspecified),cursorBrush=SolidColor(MaterialTheme.colorScheme.primary),
-                onTextLayout={layout=it},visualTransformation=VisualTransformation{input->
+                onTextLayout={layout=it},visualTransformation=VisualTransformation{_->
+                    val input=AnnotatedString(renderedText)
                     val found=inlineChecks(input.text)
                     val display=StringBuilder(input.text);found.forEach{display.replace(it.start,it.start+4,if(it.checked)"●   " else "○   ")}
-                    val end=input.text.indexOf('\n').let{if(it<0)input.length else it}
+                    val titleEnd=input.text.indexOf('\n').let{if(it<0)input.length else it}
                     TransformedText(buildAnnotatedString{
-                        append(display.toString());addStyle(heading.toSpanStyle(),0,end)
+                        append(display.toString());addStyle(heading.toSpanStyle(),0,titleEnd)
                         marks.sortedBy{if(it.kind=="paragraph")0 else 1}.forEach{mark->
                             val style=when(mark.kind){
                                 "paragraph"->when(mark.value){"title"->heading.toSpanStyle();"heading"->subheadingStyle.toSpanStyle();"subheading"->smallHeadingStyle.toSpanStyle();else->body.toSpanStyle()}
@@ -123,12 +147,11 @@ internal fun inlineChecks(text:String):List<InlineCheck> = Regex("(?m)^\\[([ xX]
                             val from=maxOf(under.start,strike.start);val to=minOf(under.end,strike.end,input.length)
                             if(to>from)addStyle(SpanStyle(textDecoration=TextDecoration.Underline+TextDecoration.LineThrough),from,to)
                         }}
-                    },OffsetMapping.Identity)
-                },decorationBox={inner->Box{if(value.text.isEmpty())Text("Title",style=heading,color=MaterialTheme.colorScheme.onSurfaceVariant);inner()}})
+                    }.subSequence(start,end),OffsetMapping.Identity)
+                },decorationBox={inner->Box{if(segment==0&&value.text.isEmpty())Text("Title",style=heading,color=MaterialTheme.colorScheme.onSurfaceVariant);inner()}})
             }
-            items(model.images,key={it.id}){image->
-                NoteImageView(image,Modifier.fillMaxWidth().padding(vertical=8.dp).clickable{preview=image})
             }
+
         }
     }
     preview?.let{image->AlertDialog(onDismissRequest={preview=null},text={NoteImageView(image,Modifier.fillMaxWidth())},

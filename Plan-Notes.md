@@ -266,3 +266,10 @@ User promoted the formatting toolbar and image picker from deferred P1 scope. Ca
 - [x] Store formatting ranges and copied/compressed photos inside existing encrypted note content; preserve old notes and app-wide backup integration.
 - [x] Validate formatting edits/undo/reopen, native picker, circular checklists, image failures and backup/restore; visual review complete. 23 UI/interaction, 22 storage/backup and 176 JVM checks passed.
 - [x] Build and install the normal debug APK on emulator; isolated test packages/fixture removed. Physical testing remains deferred.
+
+## 18 September — cursor space below images
+
+- [x] Replace the image-only tail with editable paragraphs; reserve 120 dp below the last image.
+- [x] Persist image positions with encrypted content; retain existing text, formatting, undo and backup behavior.
+- [x] Make older image notes editable underneath their images.
+- [x] Verify boundary edits, multiple images, formatting, reopen and backup: 12 emulator tests and 178 JVM tests passed; debug emulator build updated.

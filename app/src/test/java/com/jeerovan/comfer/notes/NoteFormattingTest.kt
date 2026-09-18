@@ -45,4 +45,14 @@ class NoteFormattingTest {
         try{NoteContent("Title","Body",marks=listOf(NoteMark(0,500,"bold"))).validate();fail()}catch(_:IllegalArgumentException){}
         try{NoteContent("Title","Body",marks=listOf(NoteMark(0,2,"url","javascript:1"))).validate();fail()}catch(_:IllegalArgumentException){}
     }
+    @Test fun imageBoundarySeparatesTypingAboveAndBelow() {
+        val image=NoteImage(jpeg="/9j/",width=1,height=1,offset=7)
+        assertEquals(7,NoteFormatting.rebaseImages(listOf(image),"Title\n\n","Title\n\nBelow",1).single().offset)
+        assertEquals(12,NoteFormatting.rebaseImages(listOf(image),"Title\n\n","Title\n\nAbove",0).single().offset)
+        assertEquals(3,NoteFormatting.rebaseImages(listOf(image),"Title\n\n","T\n\n",0).single().offset)
+    }
+    @Test fun imagePositionsDecodeFromOldContentAndRejectInvalidOffsets() {
+        assertNull(Json.decodeFromString<NoteImage>("""{"jpeg":"/9j/","width":1,"height":1}""").offset)
+        try {NoteContent("Title",images=listOf(NoteImage(jpeg="/9j/",width=1,height=1,offset=99))).validate();fail()}catch(_:IllegalArgumentException){}
+    }
 }

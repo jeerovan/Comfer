@@ -162,3 +162,13 @@ Validation attempts:
 - Reviewed toolbar/formatting/styled-text/image screenshots. Native Android GetContent picker round trip passed with a synthetic image (selection completed via the picker's keyboard activation path). System-picker lifecycle returned to a saved note. Temporary fixture and isolated packages were removed after validation.
 
 Evidence is retained under `validation-artifacts/device-checkpoint/2026-09-18-notes/editor-*`. Protected-picker reauthentication, broad TalkBack/RTL/IME, low-storage interruption and physical-device/media performance remain acceptance gates; no new physical-device acceptance is claimed.
+
+### Image cursor space — 18 September 2026
+
+Cause: images were appended after a single BasicTextField, with no editor beneath them. Extra padding alone would not allow typing there. The canvas now renders text segments around persisted UTF-16 image offsets, with a minimum 120 dp final writing area. Selection and marks still use the shared text offsets, so toolbar actions and search operate on the same stored content. Image offsets rebase during edits; removing an image rejoins its surrounding text. Image paragraphs keep separating newlines when preceding text is erased. Existing image payloads without offsets gain trailing paragraphs when opened; new fields have backward-compatible defaults. No Room schema change or separate plaintext media storage is introduced.
+
+Validation includes typing/formatting below an image, reopening, undoing image removal, actual app backup/restore, legacy images, text between two images, and erasing text above images. Physical-device checks remain deferred.
+
+The initial expanded regression run caught an IME callback using pre-replacement text bounds. The callback now resolves current image boundaries and ignores stale selection-only events; focus changes no longer write old selection state back into the canvas. The existing title/body replacement-and-undo test covers this recovery path. A legacy multi-image test was corrected to scroll the lazy list to index 0 before accessing an uncomposed first editor.
+
+Final validation: all 12 affected emulator tests and 178 JVM tests passed; debug APK installed on the emulator. The rendered image-and-text layout was visually inspected. Isolated test apps were removed.

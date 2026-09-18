@@ -18,6 +18,8 @@ import java.util.UUID
         require(marks.filter{it.kind=="url"}.all{NoteFormatting.validUrl(it.value)}) { "Invalid note link" }
         require(marks.filter{it.kind=="color"}.all{it.value in NoteFormatting.colors}) { "Invalid note text color" }
         require(marks.filter{it.kind=="paragraph"}.all{it.value in NoteFormatting.paragraphs}) { "Invalid paragraph style" }
+        val offsets=images.mapNotNull{it.offset}
+        require(offsets.all{it in 0..NoteFormatting.canvas(this).length}&&offsets.zipWithNext().all{it.first<=it.second}) { "Invalid note image position" }
         require(images.map{it.id}.distinct().size==images.size&&images.all{it.id.isNotBlank()&&it.jpeg.length in 4..400_000&&it.jpeg.startsWith("/9j/")&&it.width in 1..1440&&it.height in 1..1440}) { "Invalid note image" }
     }
 }
