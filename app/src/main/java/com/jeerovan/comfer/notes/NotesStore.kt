@@ -13,7 +13,7 @@ class NotesStore(val db: NotesDatabase, private val cipher: NotesCipher = Keysto
     private fun identity(kind: String, id: String, revision: Long = 0) = "Comfer Notes 1:$kind:$id:$revision"
     private inline fun <reified T> seal(value: T, kind: String, id: String, revision: Long = 0, protected: Boolean = false):ByteArray {
         val bytes=json.encodeToString(value).toByteArray(Charsets.UTF_8)
-        require(bytes.size<=1_000_000) { "This build supports up to 1 MB per note or draft, including checklist structure. Your input is retained here; copy your text before shortening it." }
+        require(bytes.size<=1_000_000) { "This build supports up to 1 MB per note or draft, including formatting and images. Your input is retained here; copy your text before shortening it." }
         return cipher.seal(bytes, identity(kind,id,revision),protected)
     }
     private inline fun <reified T> open(payload: ByteArray, kind: String, id: String, revision: Long = 0, protected: Boolean = false): T =

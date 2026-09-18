@@ -186,13 +186,13 @@ class NotesInteractionTest {
         launch();compose.onNodeWithTag("note-a").performClick()
         compose.waitUntil(10000){compose.onAllNodesWithTag("notes-editor").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("notes-editor").performTextReplacement("Mixed\nBefore\n[ ] Milk\nAfter")
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
         val layouts=mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
         compose.onNodeWithTag("notes-editor").performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult){it(layouts)}
         val bounds=layouts.last().getBoundingBox("Mixed\nBefore\n".length)
         compose.onNodeWithTag("notes-editor").performTouchInput{click(bounds.center)}
         compose.waitUntil(10000){saved("a").content.text=="Before\n[x] Milk\nAfter"}
-        compose.onNodeWithContentDescription("Notes options").performClick()
-        compose.onNodeWithText("Insert checkbox",substring=false).performClick()
+        compose.onNodeWithContentDescription("Insert checklist").performScrollTo().performClick()
         compose.onNodeWithTag("notes-editor").performTextInput("New item")
         compose.waitUntil(10000){saved("a").content.text.contains("[ ] ")&&saved("a").content.text.contains("New item")}
         assertFalse(saved("a").content.checklist)

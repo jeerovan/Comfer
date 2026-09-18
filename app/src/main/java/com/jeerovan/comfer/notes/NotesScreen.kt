@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.jeerovan.comfer.ui.rememberThumbReach
 import kotlinx.coroutines.*
 
-@Composable internal fun NotesScreen(model:NotesViewModel,close:()->Unit,unlock:((()->Unit)->Unit),locked:Boolean=false) {
+@Composable internal fun NotesScreen(model:NotesViewModel,close:()->Unit,unlock:((()->Unit)->Unit),locked:Boolean=false,pickImage:()->Unit={}) {
     val context=LocalContext.current
     val keyboard=LocalSoftwareKeyboardController.current
     val focusManager=LocalFocusManager.current
@@ -42,9 +42,6 @@ import kotlinx.coroutines.*
     var recovery by remember { mutableStateOf(false) }
     var preview by remember { mutableStateOf<Note?>(null) }
     var purge by remember { mutableStateOf<List<Note>?>(null) }
-    var find by remember { mutableStateOf("") }
-    var findOpen by remember { mutableStateOf(false) }
-    var matchIndex by remember { mutableIntStateOf(0) }
     var debounced by remember { mutableStateOf("") }
     LaunchedEffect(model.query){delay(300);debounced=model.query}
     var filtered by remember { mutableStateOf(emptyList<Note>()) }
@@ -83,13 +80,6 @@ import kotlinx.coroutines.*
                 LaunchedEffect(model.draft?.id){if(model.draft!=null)focus.requestFocus()}
                 LaunchedEffect(model.findTarget,model.findSelection){if(model.findTarget!=null)focus.requestFocus()}
                 if(model.recovery)Text("Recovered draft",style=MaterialTheme.typography.labelSmall)
-                if(findOpen){
-                    val matches=remember(model.editorText,find){NotesSearch.matches(model.editorText,find)}
-                    Row(verticalAlignment=Alignment.CenterVertically){OutlinedTextField(find,{find=it;matchIndex=0},Modifier.weight(1f),placeholder={Text("Find in note")});Text("${if(matches.isEmpty())0 else matchIndex+1}/${matches.size}")
-                        NotesIconButton(onClick={if(matches.isNotEmpty()){matchIndex=(matchIndex-1+matches.size)%matches.size;model.selectMatch(matches[matchIndex])}}){Icon(Icons.Outlined.KeyboardArrowUp,"Previous match")}
-                        NotesIconButton(onClick={if(matches.isNotEmpty()){matchIndex=(matchIndex+1)%matches.size;model.selectMatch(matches[matchIndex])}}){Icon(Icons.Outlined.KeyboardArrowDown,"Next match")}
-                        NotesIconButton(onClick={findOpen=false;model.clearFind()}){Icon(Icons.Outlined.Close,"Close find")}}
-                }
                 NotesCanvas(model,Modifier.weight(1f).fillMaxWidth().focusRequester(focus))
                 Text(model.status,style=MaterialTheme.typography.labelSmall,color=if(model.status=="Couldn't save")MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
                 if(model.status=="Couldn't save")Row{
@@ -98,7 +88,8 @@ import kotlinx.coroutines.*
                     TextButton(onClick={model.saveCopy()}){Text("Save a copy")}
                 }
             }
-            Row(Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("notes-action-bar").clickable{keyboard?.hide();options=true},verticalAlignment=Alignment.CenterVertically) {
+            if(!model.collection)NotesEditorToolbar(model,onBack={keyboard?.hide();model.browse()},onLabels={labelsForSelection()},onImage=pickImage)
+            else Row(Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("notes-action-bar").clickable{keyboard?.hide();options=true},verticalAlignment=Alignment.CenterVertically) {
                 if(model.collection) {
                     if(model.selected.isNotEmpty()) {
                         NotesIconButton(onClick={model.selected=emptySet()}){Icon(Icons.Outlined.Close,"Clear selection")}
@@ -113,10 +104,6 @@ import kotlinx.coroutines.*
                             NotesIconButton(onClick={model.batch(targets()){it.copy(deletedAt=System.currentTimeMillis())}}){Icon(Icons.Outlined.Delete,"Move selected to Bin")}
                         }
                     }
-                } else {
-                    NotesIconButton(onClick={keyboard?.hide();model.browse()}){Icon(Icons.Outlined.ArrowBack,"All notes")}
-                    NotesIconButton(onClick={model.undoEdit()}){Icon(Icons.Outlined.Undo,"Undo edit")}
-                    NotesIconButton(onClick={model.redoEdit()}){Icon(Icons.Outlined.Redo,"Redo edit")}
                 }
                 Spacer(Modifier.weight(1f))
                 NotesIconButton(onClick={keyboard?.hide();options=true}){Icon(Icons.Outlined.MoreVert,"Notes options",tint=Color.Gray)}
@@ -129,13 +116,8 @@ import kotlinx.coroutines.*
             }
         }
     }
-    if(options) ModalBottomSheet(onDismissRequest={options=false},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true)) {
+    if(options&&model.collection) ModalBottomSheet(onDismissRequest={options=false},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true)) {
         Column(Modifier.padding(horizontal=20.dp).padding(bottom=24.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-            if(!model.collection){
-                TextButton(onClick={options=false;model.insertChecklist()}){Text("Insert checkbox")}
-                TextButton(onClick={options=false;findOpen=true}){Text("Find in note")}
-                TextButton(onClick={options=false;labelsForSelection()}){Text("Manage labels")}
-            }
             Text("Sort",style=MaterialTheme.typography.titleMedium)
             FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) { listOf("updated" to "Updated","created" to "Created","title" to "Title","manual" to "Manual").forEach{(sort,label)->FilterChip(model.prefs.sort==sort,{model.updatePreferences(model.prefs.copy(sort=sort))},{Text(label)})} }
             Row(verticalAlignment=Alignment.CenterVertically){Text("Grid view",Modifier.weight(1f));Switch(model.prefs.grid,{model.updatePreferences(model.prefs.copy(grid=it))},Modifier.scale(.7f))}
@@ -201,13 +183,13 @@ internal val noteColors=listOf("default" to "Default","rose" to "Rose","amber" t
         val text=note.content.asText().text
         val matches=remember(text,query){NotesSearch.matches(text,query)}
         val start=(matches.firstOrNull()?.start?.minus(40)?:0).coerceAtLeast(0);val end=(start+200).coerceAtMost(text.length)
-        val display=Regex("(?m)^\\[([ xX])\\] ").replace(text){if(it.groupValues[1]==" ")"☐   " else "☑   "}
+        val display=Regex("(?m)^\\[([ xX])\\] ").replace(text){if(it.groupValues[1]==" ")"○   " else "●   "}
         if(text.isNotEmpty())Text(buildAnnotatedString{append(display.substring(start,end));matches.filter{it.start>=start&&it.end<=end}.forEach{addStyle(SpanStyle(background=Color.Yellow.copy(alpha=.25f)),it.start-start,it.end-start)}},maxLines=4)
         if(note.tags.isNotEmpty())FlowRow(horizontalArrangement=Arrangement.spacedBy(6.dp),verticalArrangement=Arrangement.spacedBy(4.dp),modifier=Modifier.padding(top=8.dp)){labels.filter{it.id in note.tags}.forEach{label->Surface(shape=MaterialTheme.shapes.small,color=MaterialTheme.colorScheme.secondaryContainer.copy(alpha=.65f)){Text(label.name,Modifier.padding(horizontal=10.dp,vertical=4.dp),style=MaterialTheme.typography.labelMedium)}}}
     }}
 }
 
-@Composable private fun NotesIconButton(onClick:()->Unit,enabled:Boolean=true,content:@Composable ()->Unit) {
+@Composable internal fun NotesIconButton(onClick:()->Unit,enabled:Boolean=true,content:@Composable ()->Unit) {
     IconButton(onClick=onClick,enabled=enabled) {
         Box(Modifier.size(40.dp).border(1.dp,Color.Gray.copy(alpha=if(enabled).55f else .25f),CircleShape),contentAlignment=Alignment.Center) {
             content()

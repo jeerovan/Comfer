@@ -35,8 +35,8 @@ Update the table and checkboxes after each work session. Record actual commands,
 | 8 | P0 backup, export and transactional restore | 1–7 | Implemented / validation pending | Portable protected round trip and safe rollback |
 | 9 | P0 Workspace/share integration | 3–8 | Implemented / validation pending | Both Workspace layouts passed after keyboard-return fix; share/recovery and physical acceptance remain open |
 | 10 | P0 accessibility, performance and release gate | 0–9 | In progress | Emulator PIN authentication, cancellation/rejection, background/device re-lock and protected process recovery passed. Physical acceptance deferred by user; remaining accessibility/performance gates stay open. |
-| 11 | P1 photos | 10 | Deferred | Managed media, privacy, backup and cleanup together |
-| 12 | P1 rich text and templates | 10 | Deferred | Lossless migrations, selection and export fidelity |
+| 11 | P1 photos | 10 | In progress | System-picker compressed images promoted by 18 September editor request; encryption/backup checks in progress; camera and broad media stress remain deferred |
+| 12 | P1 rich text and templates | 10 | In progress | Formatting toolbar promoted by 18 September editor request; templates remain deferred |
 | 13 | P1 explicit Tasks links | 10 | Deferred | Stable links and no cascading deletion/reminders |
 | 14 | P2 voice, OCR, sketches and PDF | 10; media where needed | Deferred | Separate capability and acceptance gates |
 
@@ -159,7 +159,7 @@ Update the table and checkboxes after each work session. Record actual commands,
 
 **Exit:** all P0 data-integrity/privacy gates verified, measured performance and accessibility evidence recorded, no hidden deferred P0 requirements, and release acceptance distinguished from test-build delivery.
 
-## Deferred phases — P1 and P2
+## Additional phases — P1 and P2
 
 ### Phase 11 — Managed photos (P1)
 
@@ -212,7 +212,7 @@ For every implementation/fix attempt record: date; phase/requirement; observed p
 | 2026-09-17 | Foundation | Debug Kotlin compiled; eight initial emulator storage/encryption tests passed. The initial test-build command omitted the repository build-type property; corrected before tests. Later UI/backup additions still undergoing validation. | Finish UI, expanded privacy/restore tests and full P0 gates. |
 | 2026-09-17 | Emulator acceptance | 23/23 editor/storage/search/recovery/navigation checks; 4/4 focused follow-ups (includes repeats); 167/167 JVM tests. Default and 200% editor visual check passed; font setting restored. | Await intended Samsung connection/install instruction for physical acceptance; P1/P2 remain deferred. |
 
-Implementation checkpoint: the P0 surfaces and integrations are available in code; **Implemented / validation pending** is not release approval. Unchecked items retain their outstanding edge-case or manual validation. Read `docs/notes-implementation.md` for the 1 MB record / 128 MiB archive budgets, in-memory collection loading, retention timing, off-screen drag limitation and test attempts. P1/P2 have not started.
+Implementation checkpoint: the P0 surfaces and integrations are available in code; **Implemented / validation pending** is not release approval. Unchecked items retain their outstanding edge-case or manual validation. Read `docs/notes-implementation.md` for the 1 MB record / 128 MiB archive budgets, in-memory collection loading, retention timing, off-screen drag limitation and test attempts. P1 formatting and compressed picker images were subsequently promoted by the 18 September editor request; templates, camera and remaining P1/P2 scope stay deferred.
 
 Process-recovery follow-up: 14/14 storage checks passed, followed by a successful isolated app force-stop/new-process recovery of both the previous committed note and a pending durable draft. See the implementation log for commands, artifact hash and limitations.
 
@@ -255,3 +255,14 @@ Process-recovery follow-up: 14/14 storage checks passed, followed by a successfu
 - [x] Use opaque card fills consistently, with no color/alpha change while held.
 - [x] Verify held destination gaps in list/grid, unequal heights, overlapping-card pixel consistency and cancellation; final 16 emulator interaction/editor checks and 167 JVM tests passed.
 - [x] Install corrected debug build on emulator; remove isolated test apps. Samsung unchanged.
+
+## 18 September — individual-note editor enhancement
+
+User promoted the formatting toolbar and image picker from deferred P1 scope. Camera, templates, OCR, recordings and Tasks links remain deferred.
+
+- [x] Fixed Back plus horizontally scrolling controls; remove editor three-dot/options sheet, preserve collection options.
+- [x] Group Undo/Redo and numbered/circular bullets; expose labels and circular checklists directly.
+- [x] Aa sheet: Title, Heading, Subheading, Body, Bold, Italic, Underline, Strikethrough, text colors and HTTP(S) links.
+- [x] Store formatting ranges and copied/compressed photos inside existing encrypted note content; preserve old notes and app-wide backup integration.
+- [x] Validate formatting edits/undo/reopen, native picker, circular checklists, image failures and backup/restore; visual review complete. 23 UI/interaction, 22 storage/backup and 176 JVM checks passed.
+- [x] Build and install the normal debug APK on emulator; isolated test packages/fixture removed. Physical testing remains deferred.

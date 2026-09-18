@@ -23,6 +23,7 @@ class NotesActivity : AppCompatActivity() {
     private var blocked by mutableStateOf(true)
     private var afterAuthentication:(()->Unit)?=null
     private var shareConsumed=false
+    private val imagePicker=registerForActivityResult(ActivityResultContracts.GetContent()){uri->uri?.let(model::queueImage)}
     private val authenticate=registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         authenticating=false
         if(result.resultCode==RESULT_OK){NotesSession.authorize();blocked=false;model.start(shared());val action=afterAuthentication;afterAuthentication=null;action?.invoke()}
@@ -51,7 +52,7 @@ class NotesActivity : AppCompatActivity() {
             val sensitive=blocked||model.sensitive
             SideEffect { if(sensitive)window.addFlags(WindowManager.LayoutParams.FLAG_SECURE) else window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE) }
             LaunchedEffect(Unit) { while(true){delay(1000);if(lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)&&!NotesSession.unlocked()&&model.sensitive&&!authenticating){model.background();resumeNotes()}} }
-            NotesScreen(model,::finish, { action -> unlock(action) }, blocked)
+            NotesScreen(model,::finish, { action -> unlock(action) }, blocked,pickImage={imagePicker.launch("image/*")})
         } }
     }
     override fun onResume(){super.onResume();if(!authenticating)resumeNotes()}

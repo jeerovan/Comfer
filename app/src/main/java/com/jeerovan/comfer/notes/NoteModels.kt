@@ -3,16 +3,22 @@ package com.jeerovan.comfer.notes
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
-// Legacy item-list fields remain decodable for old backups; the editor uses mixed plain text.
+// Legacy item-list fields remain decodable; formatting and images are additive encrypted content.
 @Serializable data class NoteItem(val id: String = UUID.randomUUID().toString(), val text: String = "", val checked: Boolean = false)
-@Serializable data class NoteContent(val title: String = "", val text: String = "", val checklist: Boolean = false, val items: List<NoteItem> = emptyList()) {
-    val meaningful: Boolean get() = title.isNotBlank() || text.isNotBlank() || items.any { it.text.isNotBlank() }
+@Serializable data class NoteContent(val title: String = "", val text: String = "", val checklist: Boolean = false, val items: List<NoteItem> = emptyList(), val marks: List<NoteMark> = emptyList(), val images: List<NoteImage> = emptyList()) {
+    val meaningful: Boolean get() = title.isNotBlank() || text.isNotBlank() || items.any { it.text.isNotBlank() } || images.isNotEmpty()
     val preview: String get() = title.ifBlank { searchableText.lineSequence().firstOrNull { it.isNotBlank() }.orEmpty() }.take(160)
     val searchableText: String get() = if (checklist) items.joinToString("\n") { it.text } else text
     fun asText() = if (!checklist) this else copy(checklist = false, text = listOf(text, items.joinToString("\n") { "[${if (it.checked) "x" else " "}] ${it.text}" }).filter { it.isNotEmpty() }.joinToString("\n"), items = emptyList())
     fun validate() {
         require(items.map { it.id }.toSet().size == items.size) { "Duplicate checklist item" }
         require(items.all { it.id.isNotBlank() })
+        val length=title.length+1+text.length
+        require(marks.all{it.start>=0&&it.end>it.start&&it.end<=length&&it.kind in NoteFormatting.kinds}) { "Invalid note formatting" }
+        require(marks.filter{it.kind=="url"}.all{NoteFormatting.validUrl(it.value)}) { "Invalid note link" }
+        require(marks.filter{it.kind=="color"}.all{it.value in NoteFormatting.colors}) { "Invalid note text color" }
+        require(marks.filter{it.kind=="paragraph"}.all{it.value in NoteFormatting.paragraphs}) { "Invalid paragraph style" }
+        require(images.map{it.id}.distinct().size==images.size&&images.all{it.id.isNotBlank()&&it.jpeg.length in 4..400_000&&it.jpeg.startsWith("/9j/")&&it.width in 1..1440&&it.height in 1..1440}) { "Invalid note image" }
     }
 }
 @Serializable data class Note(

@@ -1,6 +1,9 @@
 package com.jeerovan.comfer.notes
 
 import android.app.Application
+import android.net.Uri
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import androidx.room.withTransaction
 import androidx.compose.runtime.*
 import androidx.compose.ui.text.TextRange
@@ -50,11 +53,51 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     private var initialized = false
     private var pendingShared: String? = null
     val sensitive get() = prefs.moduleLocked || draft?.note?.protected == true || (collection && notes.any { it.protected })
-    private fun content() = NoteContent(title, body.text)
+    var marks by mutableStateOf(emptyList<NoteMark>()); private set
+    var images by mutableStateOf(emptyList<NoteImage>()); private set
+    var canvasSelection by mutableStateOf(TextRange.Zero); private set
+    var typingStyles by mutableStateOf(emptyMap<String,String>()); private set
+    internal var canvasCommand by mutableStateOf<NoteCanvasCommand?>(null); private set
+    private var commandSequence=0
+    private var pendingImage:Uri?=null
+    var importingImage by mutableStateOf(false); private set
+    private fun content() = NoteContent(title, body.text,marks=marks,images=images)
+    fun selectedText():String {val text=NoteFormatting.canvas(content());return text.substring(canvasSelection.min.coerceAtMost(text.length),canvasSelection.max.coerceAtMost(text.length))}
+    fun command(kind:String,value:String="",text:String=""){canvasCommand=NoteCanvasCommand(++commandSequence,kind,value,text)}
+    fun format(kind:String,value:String="") {
+        val text=NoteFormatting.canvas(content())
+        var start=canvasSelection.min.coerceAtMost(text.length);var end=canvasSelection.max.coerceAtMost(text.length)
+        if(kind=="paragraph") {val range=NoteFormatting.paragraphRange(text,start,end);start=range.first;end=range.last+1}
+        if(start==end){
+            typingStyles=if(kind in typingStyles&&typingStyles[kind]==value)typingStyles-kind else typingStyles+(kind to value)
+            return
+        }
+        rememberUndo();marks=NoteFormatting.apply(marks,start,end,kind,value,toggle=kind !in setOf("paragraph","color","url"));changed()
+    }
+    fun link(start:Int,end:Int,url:String,recordUndo:Boolean=true){if(!NoteFormatting.validUrl(url)){error="Enter a valid http or https URL";return};if(recordUndo)rememberUndo();marks=NoteFormatting.apply(marks,start,end,"url",url,false);changed()}
+    fun queueImage(uri:Uri){pendingImage=uri;if(ready)consumeImage()}
+    private fun consumeImage() {
+        val uri=pendingImage?:return
+        if(importingImage||draft==null)return
+        pendingImage=null
+        val id=draft?.id
+        importingImage=true
+        action {
+            try {
+                val image=withContext(Dispatchers.IO){NotesImages.read(getApplication(),uri)}
+                check(draft?.id==id){"Reopen the note before adding this image"}
+                if(sensitive)NotesSession.requireUnlocked()
+                val candidate=content().copy(images=images+image)
+                require(Json.encodeToString(candidate).toByteArray().size<=900_000){"This note is full. Use a smaller image or remove an existing image."}
+                rememberUndo();images=images+image;changed();flush()
+            } finally {importingImage=false}
+        }
+    }
+    fun removeImage(id:String){rememberUndo();images=images.filterNot{it.id==id};changed()}
     private suspend fun show(value: NoteDraft) {
         draft = value
         val content=value.note.content.asText()
-        title=content.title
+        title=content.title;marks=content.marks;images=content.images;typingStyles=emptyMap();canvasSelection=TextRange.Zero
         body=TextFieldValue(content.text,TextRange(value.selectionStart.coerceIn(0,content.text.length),value.selectionEnd.coerceIn(0,content.text.length)))
         history.clear();future.clear();findTarget=null
         val committed=withContext(Dispatchers.IO){store.note(value.note.id)}
@@ -86,6 +129,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             if(status == "Saving") flush()
             recoveredDrafts=withContext(Dispatchers.IO){store.drafts()}
             ready=true
+            consumeImage()
             observeJob?.cancel()
             observeJob=viewModelScope.launch {
                 val cache=mutableMapOf<String,Pair<Pair<Long,Int>,Note>>()
@@ -112,17 +156,26 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     fun updateBody(value: TextFieldValue) {
         if(value.text != body.text) { rememberUndo(); body=value;changed() } else body=value
     }
-    fun updateCanvas(value: TextFieldValue) {
+    fun updateCanvas(value: TextFieldValue,listEdit:Boolean=false) {
         val heading=value.text.substringBefore('\n')
         val text=value.text.substringAfter('\n', "")
         val offset=if('\n' in value.text) heading.length+1 else heading.length
         val selection=TextRange((value.selection.start-offset).coerceIn(0,text.length),(value.selection.end-offset).coerceIn(0,text.length))
         if(heading!=title || text!=body.text) {
-            rememberUndo();title=heading;body=TextFieldValue(text,selection);changed()
-        } else body=body.copy(selection=selection)
+            rememberUndo()
+            val before=NoteFormatting.canvas(content())
+            val delta=NoteFormatting.change(before,value.text)
+            marks=if(listEdit)NoteFormatting.rebaseList(marks,before,value.text)else NoteFormatting.rebase(marks,before,value.text)
+            if(delta.newEnd>delta.start)typingStyles.forEach{(kind,style)->marks=NoteFormatting.apply(marks,delta.start,delta.newEnd,kind,style,false)}
+            title=heading;body=TextFieldValue(text,selection);changed()
+        } else {
+            body=body.copy(selection=selection)
+            if(canvasSelection!=value.selection)typingStyles=marks.filter{if(value.selection.collapsed)value.selection.start>it.start&&value.selection.start<=it.end else value.selection.min>=it.start&&value.selection.min<it.end}.associate{it.kind to it.value}
+        }
+        canvasSelection=value.selection
     }
     private fun rememberUndo() { history.addLast(content());if(history.size>50)history.removeFirst();future.clear() }
-    private fun applyContent(value:NoteContent) { title=value.title;body=TextFieldValue(value.text);changed() }
+    private fun applyContent(value:NoteContent) { title=value.title;body=TextFieldValue(value.text);marks=value.marks;images=value.images;typingStyles=emptyMap();changed() }
     fun undoEdit() { if(history.isNotEmpty()){future.addLast(content());applyContent(history.removeLast())} }
     fun redoEdit() { if(future.isNotEmpty()){history.addLast(content());applyContent(future.removeLast())} }
     private fun changed() {
@@ -215,7 +268,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         batch(targets){it.copy(tags=if(remove)it.tags-label.id else it.tags+label.id)}
     }
     var checklistInsert by mutableIntStateOf(0); private set
-    fun insertChecklist(){checklistInsert++}
+    fun insertChecklist(){checklistInsert++;command("checklist")}
     fun switchView(value:String){view=value;query="";selected=emptySet()}
 
     fun persistBrowse(index:Int,offset:Int) = action {
