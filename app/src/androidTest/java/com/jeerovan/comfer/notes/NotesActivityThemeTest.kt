@@ -65,7 +65,8 @@ class NotesActivityThemeTest {
             val bitmap=requireNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
             java.io.File(context.cacheDir,"notes-theme-native-$dark.png").outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) }
             bitmap.recycle()
-            compose.onNodeWithContentDescription("All notes").performClick()
+            androidx.test.espresso.Espresso.closeSoftKeyboard()
+            androidx.test.espresso.Espresso.pressBack()
         }
     }
 }

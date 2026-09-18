@@ -39,14 +39,13 @@ class NotesEditorTest {
         File(context.cacheDir,"notes-editor-$name.png").outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)};bitmap.recycle()
     }
     private fun format()=compose.onNodeWithContentDescription("Text formatting").performScrollTo().performClick()
-    @Test fun toolbarScrollKeepsBackFixedAndHasNoOptionsMenu() {
+    @Test fun toolbarScrollHasNoBackButtonOrOptionsMenu() {
         launch()
         compose.onNodeWithContentDescription("Notes options").assertDoesNotExist()
-        val back=compose.onNodeWithContentDescription("All notes").fetchSemanticsNode().boundsInRoot
+        compose.onNodeWithContentDescription("All notes").assertDoesNotExist()
         compose.onNodeWithContentDescription("Add image").performScrollTo().assertIsDisplayed()
         capture("toolbar")
-        val after=compose.onNodeWithContentDescription("All notes").fetchSemanticsNode().boundsInRoot
-        assertEquals(back.left,after.left,0f);assertEquals(back.right,after.right,0f)
+        compose.onNodeWithContentDescription("All notes").assertDoesNotExist()
         compose.onNodeWithContentDescription("Numbered list").assertExists()
         compose.onNodeWithContentDescription("Manage labels").performScrollTo().performClick()
         compose.onNodeWithText("Labels",substring=false).assertExists()
@@ -70,7 +69,8 @@ class NotesEditorTest {
         compose.waitUntil(10000){saved().marks.none{it.kind=="paragraph"}}
         compose.onNodeWithContentDescription("Redo edit").performClick()
         compose.waitUntil(10000){saved().marks==content.marks}
-        compose.onNodeWithContentDescription("All notes").performClick()
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        androidx.test.espresso.Espresso.pressBack()
         compose.waitUntil(10000){compose.onAllNodesWithTag("note-editor").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("note-editor").performClick()
         compose.waitUntil(10000){compose.onAllNodesWithTag("notes-editor").fetchSemanticsNodes().isNotEmpty()}
@@ -136,7 +136,8 @@ class NotesEditorTest {
             compose.onNodeWithTag("notes-editor-after-image-1").performSemanticsAction(SemanticsActions.SetSelection){it(0,5,false)}
             format();compose.onNodeWithContentDescription("Italic").performClick();androidx.test.espresso.Espresso.pressBack()
             compose.waitUntil(10000){saved().marks.any{it.kind=="italic"&&it.start==saved().images.single().offset}}
-            compose.onNodeWithContentDescription("All notes").performClick()
+            androidx.test.espresso.Espresso.closeSoftKeyboard()
+            androidx.test.espresso.Espresso.pressBack()
             compose.onNodeWithTag("note-editor").performClick()
             compose.onNodeWithTag("notes-editor-after-image-1").performScrollTo().assertTextContains("Below the image")
             val rich=saved();assertNotNull(NotesImages.decode(rich.images.single()))

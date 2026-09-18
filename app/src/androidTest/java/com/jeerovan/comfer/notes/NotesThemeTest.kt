@@ -188,7 +188,7 @@ class NotesThemeTest {
         for (night in listOf(true,false)) {
             theme(night)
             assertEquals(scheme.onSurface,layout(compose.onNodeWithTag("notes-editor")).layoutInput.style.color)
-            rendered(compose.onNodeWithContentDescription("All notes"),scheme.onSurface)
+            compose.onNodeWithContentDescription("All notes").assertDoesNotExist()
             rendered(compose.onNodeWithContentDescription("Undo edit"),scheme.onSurface)
             compose.onNodeWithContentDescription("Text formatting").performScrollTo()
             rendered(compose.onNodeWithContentDescription("Text formatting"),scheme.onSurface)

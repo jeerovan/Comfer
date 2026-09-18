@@ -9,6 +9,11 @@ import org.junit.Assert.*
 
 class NotesUiTest {
     @get:Rule val compose=createAndroidComposeRule<NotesActivity>()
+    private fun waitForSaved(timeout:Long=10000,predicate:(Note)->Boolean) {
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        compose.waitUntil(timeout){runBlocking{NotesBackup.snapshot(context).notes.any(predicate)}}
+        compose.onNodeWithText("Saved",useUnmergedTree=true).assertDoesNotExist()
+    }
     private fun blankEditor() {
         compose.waitUntil(10000){compose.onAllNodesWithContentDescription("New note").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithContentDescription("New note").performClick()
@@ -18,9 +23,11 @@ class NotesUiTest {
         val marker="UI note ${System.nanoTime()}"
         blankEditor()
         compose.onNodeWithContentDescription("Close editor").assertDoesNotExist()
+        compose.onNodeWithContentDescription("All notes").assertDoesNotExist()
         compose.onNodeWithTag("notes-editor").performTextReplacement(marker)
-        compose.waitUntil(10000){compose.onAllNodesWithText("Saved",useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()}
-        compose.onNodeWithContentDescription("All notes").performClick()
+        waitForSaved { it.content.title==marker }
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        androidx.test.espresso.Espresso.pressBack()
         compose.waitUntil(10000){compose.onAllNodesWithTag("notes-search").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("notes-search").performTextInput(marker)
         compose.waitUntil(10000){compose.onAllNodesWithText(marker,substring=true).fetchSemanticsNodes().size>=2}
@@ -29,30 +36,33 @@ class NotesUiTest {
         compose.onNodeWithTag("note-${note.id}").performClick()
         compose.waitUntil(5000){compose.onAllNodesWithTag("notes-editor").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("notes-editor").assertTextContains(marker)
-        compose.onNodeWithContentDescription("All notes").performClick()
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        androidx.test.espresso.Espresso.pressBack()
     }
     @Test fun longNoteAutosavesWithoutTruncation() {
         blankEditor()
         val text="word ".repeat(20_000)
         compose.onNodeWithTag("notes-editor").performTextReplacement("Long note\n"+text)
-        compose.waitUntil(30000){compose.onAllNodesWithText("Saved",useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()}
+        waitForSaved(30000) { it.content.title=="Long note" && it.content.text==text }
         val context=InstrumentationRegistry.getInstrumentation().targetContext
         assertTrue(runBlocking{NotesBackup.snapshot(context).notes.any{it.content.text==text}})
-        compose.onNodeWithContentDescription("All notes").performClick()
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        androidx.test.espresso.Espresso.pressBack()
         compose.waitUntil(10000){compose.onAllNodesWithTag("notes-search").fetchSemanticsNodes().isNotEmpty()}
     }
     @Test fun canvasSplitsTitleAndBodyAndUndoRestoresBoth() {
         blankEditor()
         val marker="Canvas ${System.nanoTime()}"
         compose.onNodeWithTag("notes-editor").performTextReplacement("$marker\nBody line\nLast line")
-        compose.waitUntil(10000){compose.onAllNodesWithText("Saved",useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()}
+        waitForSaved { it.content.title==marker && it.content.text=="Body line\nLast line" }
         val context=InstrumentationRegistry.getInstrumentation().targetContext
         val saved=runBlocking{NotesBackup.snapshot(context).notes.first{it.content.title==marker}}
         assertEquals("Body line\nLast line",saved.content.text)
         compose.onNodeWithTag("notes-editor").performTextReplacement("Merged title")
         compose.onNodeWithContentDescription("Undo edit").performClick()
         compose.onNodeWithTag("notes-editor").assertTextContains("$marker\nBody line\nLast line")
-        compose.onNodeWithContentDescription("All notes").performClick()
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        androidx.test.espresso.Espresso.pressBack()
         compose.waitUntil(10000){compose.onAllNodesWithTag("notes-search").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("note-${saved.id}").performClick()
         compose.waitUntil(10000){compose.onAllNodesWithTag("notes-editor").fetchSemanticsNodes().isNotEmpty()}
@@ -63,11 +73,12 @@ class NotesUiTest {
         compose.onNodeWithTag("notes-editor").performTextReplacement("Mixed note\nBefore\n[ ] Item\nAfter")
         val actions=compose.onNodeWithTag("notes-editor").fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsActions.CustomActions]
         compose.runOnIdle { actions.first{it.label.startsWith("Check item")}.action() }
-        compose.waitUntil(10000){compose.onAllNodesWithText("Saved",useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()}
+        waitForSaved { it.content.title=="Mixed note" && it.content.text=="Before\n[x] Item\nAfter" }
         val context=InstrumentationRegistry.getInstrumentation().targetContext
         val saved=runBlocking{NotesBackup.snapshot(context).notes.first{it.content.title=="Mixed note"}}
         assertFalse(saved.content.checklist)
         assertEquals("Before\n[x] Item\nAfter",saved.content.text)
-        compose.onNodeWithContentDescription("All notes").performClick()
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        androidx.test.espresso.Espresso.pressBack()
     }
 }

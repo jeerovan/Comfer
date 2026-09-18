@@ -6,6 +6,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -22,6 +23,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.SpanStyle
@@ -82,14 +84,14 @@ import kotlinx.coroutines.*
                 LaunchedEffect(model.findTarget,model.findSelection){if(model.findTarget!=null)focus.requestFocus()}
                 if(model.recovery)Text("Recovered draft",style=MaterialTheme.typography.labelSmall)
                 NotesCanvas(model,Modifier.weight(1f).fillMaxWidth().focusRequester(focus))
-                Text(model.status,style=MaterialTheme.typography.labelSmall,color=if(model.status=="Couldn't save")MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+                if(model.status.isNotEmpty()&&model.status!="Saved")Text(model.status,style=MaterialTheme.typography.labelSmall,color=if(model.status=="Couldn't save")MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
                 if(model.status=="Couldn't save")Row{
                     TextButton(onClick={model.retry()}){Text("Retry")}
                     TextButton(onClick={try{(context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager).setPrimaryClip(ClipData.newPlainText("Note",model.editorText))}catch(_:Exception){model.error="Could not copy this draft. Please retry."}}){Text("Copy draft")}
                     TextButton(onClick={model.saveCopy()}){Text("Save a copy")}
                 }
             }
-            if(!model.collection)NotesEditorToolbar(model,onBack={keyboard?.hide();model.browse()},onLabels={labelsForSelection()},onImage=pickImage)
+            if(!model.collection)NotesEditorToolbar(model,onLabels={labelsForSelection()},onImage=pickImage)
             else Row(Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("notes-action-bar").clickable{keyboard?.hide();options=true},verticalAlignment=Alignment.CenterVertically) {
                 if(model.collection) {
                     if(model.selected.isNotEmpty()) {
@@ -110,8 +112,22 @@ import kotlinx.coroutines.*
                 NotesIconButton(onClick={keyboard?.hide();options=true}){Icon(Icons.Outlined.MoreVert,"Notes options",tint=MaterialTheme.colorScheme.onSurfaceVariant)}
             }
             if(model.collection) Row(Modifier.fillMaxWidth().padding(bottom=8.dp).testTag("notes-search-row"),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
-                OutlinedTextField(model.query,{model.query=it;model.selected=emptySet()},Modifier.weight(1f).testTag("notes-search"),placeholder={Text(if(model.view=="Bin")"Search Bin" else "Search notes")},singleLine=true,shape=CircleShape,
-                    colors=OutlinedTextFieldDefaults.colors(focusedBorderColor=MaterialTheme.colorScheme.outline.copy(alpha=.55f),unfocusedBorderColor=MaterialTheme.colorScheme.outline.copy(alpha=.55f)))
+                BasicTextField(
+                    value=model.query,
+                    onValueChange={model.query=it;model.selected=emptySet()},
+                    modifier=Modifier.weight(1f).heightIn(min=40.dp).testTag("notes-search")
+                        .border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=.55f),CircleShape)
+                        .padding(horizontal=16.dp,vertical=8.dp),
+                    singleLine=true,
+                    textStyle=MaterialTheme.typography.bodyMedium.copy(color=MaterialTheme.colorScheme.onSurface),
+                    cursorBrush=SolidColor(MaterialTheme.colorScheme.primary),
+                    decorationBox={innerTextField->
+                        Box(contentAlignment=Alignment.CenterStart) {
+                            if(model.query.isEmpty())Text(if(model.view=="Bin")"Search Bin" else "Search notes",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                            innerTextField()
+                        }
+                    },
+                )
                 if(model.query.isEmpty())NotesIconButton(onClick={model.capture()}){Icon(Icons.Outlined.Add,"New note")}
                 else NotesIconButton(onClick={model.query="";model.selected=emptySet()}){Icon(Icons.Outlined.Close,"Clear search")}
             }

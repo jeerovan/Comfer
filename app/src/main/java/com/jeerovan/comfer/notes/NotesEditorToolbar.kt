@@ -17,13 +17,12 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
-@Composable internal fun NotesEditorToolbar(model:NotesViewModel,onBack:()->Unit,onLabels:()->Unit,onImage:()->Unit) {
+@Composable internal fun NotesEditorToolbar(model:NotesViewModel,onLabels:()->Unit,onImage:()->Unit) {
     var formatting by remember{mutableStateOf(false)}
     var link by remember{mutableStateOf(false)}
     val uriHandler=LocalUriHandler.current
     val keyboard=LocalSoftwareKeyboardController.current
     Row(Modifier.fillMaxWidth().padding(bottom=8.dp).testTag("notes-editor-toolbar"),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
-        NotesIconButton(onClick=onBack){Icon(Icons.Outlined.ArrowBack,"All notes")}
         Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()).testTag("notes-editor-actions"),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
             EditorButtonGroup {
                 IconButton(onClick={model.undoEdit()}){Icon(Icons.Outlined.Undo,"Undo edit")}
