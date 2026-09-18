@@ -2684,7 +2684,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                         WorkspaceModule.SEARCH -> onShowSearch()
                                         WorkspaceModule.TASKS -> com.jeerovan.comfer.tasks.TasksActivity.open(context)
                                         WorkspaceModule.JOURNAL -> com.jeerovan.comfer.journals.JournalActivity.open(context)
-                                        WorkspaceModule.NOTES -> android.widget.Toast.makeText(context, R.string.workspace_notes_coming_soon, android.widget.Toast.LENGTH_SHORT).show()
+                                        WorkspaceModule.NOTES -> com.jeerovan.comfer.notes.NotesActivity.open(context)
                                         null -> Unit
                                     }
                                 },

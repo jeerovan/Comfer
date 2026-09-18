@@ -2,6 +2,7 @@ package com.jeerovan.comfer
 
 import androidx.room.withTransaction
 import com.jeerovan.comfer.journals.*
+import com.jeerovan.comfer.notes.*
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
@@ -44,7 +45,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-private const val BACKUP_FORMAT_VERSION = 4
+private const val BACKUP_FORMAT_VERSION = 5
 private const val MANIFEST_ENTRY = "manifest.json"
 private const val PAYLOAD_ENTRY = "payload.json"
 private const val MAX_ARCHIVE_BYTES = 512L * 1024L * 1024L
@@ -79,6 +80,7 @@ internal data class BackupPayload(
     val notifications: NotificationSettingsBackup? = null,
     val tasks: TaskSnapshot? = null,
     val journals: JournalArchive? = null,
+    val notes: NotesArchive? = null,
 )
 
 @Serializable
@@ -121,6 +123,7 @@ internal data class RestoreJournal(
     val notificationConfiguration: String? = null,
     val tasks: TaskSnapshot? = null,
     val journals: JournalLocalSnapshot? = null,
+    val notes: NotesLocalSnapshot? = null,
 )
 
 data class BackupSummary(
@@ -143,6 +146,9 @@ data class RestorePreview(
     val taskListCount: Int? = null,
     val journalsIncluded: Boolean = false,
     val journalsEncrypted: Boolean = false,
+    val notesIncluded: Boolean = false,
+    val notesEncrypted: Boolean = false,
+    val notesProtected: Boolean = false,
 )
 
 data class RestoreResult(
@@ -170,16 +176,18 @@ object BackupRestoreManager {
         NotificationPreferences.withBackupAccess(context) {
           TaskStore.exclusive(context) { taskSnapshot ->
            JournalDatabase.get(context).withTransaction {
+            NotesDatabase.get(context).withTransaction {
             val settings = PreferenceManager.snapshotForBackup()
             val room = ComferRepository.snapshot(context).toBackupData()
             if (JournalProtection.enabled(context)) {
                 JournalProtection.requireAuthorization()
                 require(!journalPassword.isNullOrEmpty()) { "Protected Journals require an export password" }
             }
+            val notesPrepared = NotesBackup.pack(NotesBackup.snapshot(context), journalPassword)
             val journalPrepared = JournalArchiveMedia.prepare(context, journalPassword)
             try {
             val journalArchive = journalPrepared.archive
-            val payload = BackupPayload(settings, room, appLocaleTags, notifications = export(), tasks = taskSnapshot.portableTasks(), journals = journalArchive)
+            val payload = BackupPayload(settings, room, appLocaleTags, notifications = export(), tasks = taskSnapshot.portableTasks(), journals = journalArchive, notes = notesPrepared.first)
             validateBackupPayload(payload)
             val payloadBytes = backupJson.encodeToString(payload).encodeToByteArray()
             requireWithinLimit(payloadBytes.size.toLong(), MAX_JSON_BYTES, "Backup data")
@@ -216,13 +224,14 @@ object BackupRestoreManager {
             )
             val manifestBytes = backupJson.encodeToString(manifest).encodeToByteArray()
 
-            requireWithinLimit(payloadBytes.size.toLong() + manifestBytes.size + (wallpaperFile?.length() ?: 0) + journalPrepared.files.values.sumOf { it.length() } + 1024 * 1024, MAX_ARCHIVE_BYTES, "Backup")
+            requireWithinLimit(payloadBytes.size.toLong() + manifestBytes.size + (wallpaperFile?.length() ?: 0) + notesPrepared.second.size + journalPrepared.files.values.sumOf { it.length() } + 1024 * 1024, MAX_ARCHIVE_BYTES, "Backup")
             val output = context.contentResolver.openOutputStream(destination, "w")
                 ?: throw IOException("The selected backup destination cannot be opened")
             output.buffered().use { buffered ->
                 ZipOutputStream(buffered).use { zip ->
                     zip.writeEntry(MANIFEST_ENTRY, manifestBytes)
                     zip.writeEntry(PAYLOAD_ENTRY, payloadBytes)
+                    zip.writeEntry(NotesBackup.ENTRY, notesPrepared.second)
                     journalPrepared.files.forEach { (name, file) ->
                         zip.putNextEntry(ZipEntry(name))
                         file.inputStream().use { it.copyToLimited(zip, 2_000_016, "Journal image") }
@@ -237,6 +246,10 @@ object BackupRestoreManager {
                     }
                 }
             }
+            withStagedArchive(context, destination) { completed ->
+                readAndValidateArchive(context.packageName, completed, false)
+            }
+            NotesDocuments.record(context, NotesExportRecord(System.currentTimeMillis(), notesPrepared.first.count, destination.toString(), "Completed"))
             BackupSummary(
                 appListCount = room.appLists.size,
                 folderCount = room.folders.size,
@@ -246,6 +259,7 @@ object BackupRestoreManager {
                 taskListCount = taskSnapshot.lists.size,
             )
             } finally { journalPrepared.close() }
+            }
           }
         }
     }
@@ -272,6 +286,9 @@ object BackupRestoreManager {
                     taskListCount = validated.payload.tasks?.lists?.size,
                     journalsIncluded = validated.payload.journals != null,
                     journalsEncrypted = validated.payload.journals?.encrypted == true,
+                    notesEncrypted = validated.payload.notes?.encrypted == true,
+                    notesIncluded = validated.payload.notes != null,
+                    notesProtected = validated.payload.notes?.protectedContent == true,
                 )
             }
         }
@@ -284,6 +301,7 @@ object BackupRestoreManager {
             NotificationPreferences.withBackupAccess(context) {
               TaskStore.exclusive(context) { taskSnapshot ->
                JournalDatabase.get(context).withTransaction {
+            NotesDatabase.get(context).withTransaction {
                 withStagedArchive(context, source) { archive ->
                     val validated = readAndValidateArchive(
                         expectedPackageName = context.packageName,
@@ -291,6 +309,11 @@ object BackupRestoreManager {
                         loadWallpaper = true,
                     )
                     if (validated.payload.journals != null && JournalProtection.enabled(context)) JournalProtection.requireAuthorization()
+                    val incomingNotes = validated.payload.notes?.let { descriptor ->
+                        val bytes = if(descriptor.external) ZipFile(archive).use { NotesBackup.read(it, descriptor) } else null
+                        NotesBackup.unpack(descriptor, journalPassword, bytes)
+                    }
+                    val previousNotes = if(incomingNotes != null) NotesBackup.local(context) else null
                     val incomingJournals = validated.payload.journals?.let {
                         val staged = if(it.externalMedia) JournalArchiveMedia.stage(context, archive, it, journalPassword)
                         else JournalBackup.stageInline(context, JournalBackup.unpack(it, journalPassword))
@@ -302,7 +325,7 @@ object BackupRestoreManager {
                     val previousNotifications = if (validated.payload.notifications != null) snapshot() else null
                     writeRestoreJournal(
                         context,
-                        RestoreJournal(previousSettings, previousRoom.toBackupData(), previousNotifications, if(validated.payload.tasks != null) taskSnapshot else null, previousJournals),
+                        RestoreJournal(previousSettings, previousRoom.toBackupData(), previousNotifications, if(validated.payload.tasks != null) taskSnapshot else null, previousJournals, previousNotes),
                     )
 
                     var restoredWallpaper: File? = null
@@ -331,6 +354,7 @@ object BackupRestoreManager {
                         validated.payload.notifications?.let { restore(it) }
                         validated.payload.tasks?.let { TaskStore.write(context, it.restoredTasks(taskSnapshot)) }
                         incomingJournals?.let { JournalArchiveMedia.replaceLocal(context, it) }
+                        incomingNotes?.let { NotesBackup.restore(context, it) }
                         if (validated.payload.notifications != null) {
                             withContext(NonCancellable) { NotificationQuietHours.reconcile(context) }
                         }
@@ -355,6 +379,7 @@ object BackupRestoreManager {
                                 previousNotifications?.let { rollback(it) }
                                 if(validated.payload.tasks != null) TaskStore.write(context, taskSnapshot)
                                 previousJournals?.let { JournalArchiveMedia.replaceLocal(context, it) }
+                                previousNotes?.let { NotesBackup.restoreLocal(context, it) }
                                 deleteRestoreJournal(context)
                                 if (previousNotifications != null) NotificationQuietHours.reconcile(context)
                             }
@@ -367,6 +392,7 @@ object BackupRestoreManager {
                 }
               }
             }
+        }
         }
         }
         withContext(NonCancellable + Dispatchers.IO) {
@@ -396,6 +422,7 @@ object BackupRestoreManager {
                 journal.notificationConfiguration?.let { rollback(it) }
                 journal.tasks?.let { TaskStore.write(context, it) }
                 journal.journals?.let { JournalArchiveMedia.replaceLocal(context, it) }
+                journal.notes?.let { NotesBackup.restoreLocal(context, it) }
                 deleteRestoreJournal(context)
                 if (journal.notificationConfiguration != null) NotificationQuietHours.reconcile(context)
                 Log.w("BackupRestore", "Recovered data after an interrupted restore")
@@ -456,9 +483,10 @@ object BackupRestoreManager {
                     throw InvalidBackupException("Backup data is malformed", error)
                 }
                 validateBackupPayload(payload)
-                val allowedNames = setOfNotNull(MANIFEST_ENTRY, PAYLOAD_ENTRY, manifest.wallpaperEntry) + payload.journals?.media.orEmpty().map { it.entry }
+                val allowedNames = setOfNotNull(MANIFEST_ENTRY, PAYLOAD_ENTRY, manifest.wallpaperEntry) + payload.journals?.media.orEmpty().map { it.entry } + (if(payload.notes?.external == true) setOf(NotesBackup.ENTRY) else emptySet())
                 if(entries.any { it.isDirectory || it.name !in allowedNames }) throw InvalidBackupException("Backup contains an unexpected file")
                 payload.journals?.takeIf { it.externalMedia }?.let { JournalArchiveMedia.verifyFiles(zip, it) }
+                payload.notes?.takeIf { it.external }?.let { NotesBackup.read(zip, it) }
 
                 val automaticWallpaperEnabled = isAutomaticWallpaperEnabled(payload.settings)
                 val shouldRestoreWallpaper = automaticWallpaperEnabled &&
@@ -503,6 +531,7 @@ object BackupRestoreManager {
     }
 
     internal fun validateBackupPayload(payload: BackupPayload) {
+        payload.notes?.let { NotesBackup.validate(it) }
         payload.journals?.let {
             require(it.version == 1 && it.content.length <= 28_000_000) { "Invalid Journal section" }
             JournalArchiveMedia.validateDescriptors(it)

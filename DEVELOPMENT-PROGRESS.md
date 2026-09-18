@@ -1,9 +1,31 @@
 # Development progress
 
-Current feature and release status, updated 2026-09-15. Maintain this document as
+Current feature and release status, updated 2026-09-18. Maintain this document as
 a concise reference: what is available, restrictions, attempted alternatives and
 remaining work. Keep implementation discussions and detailed test output out of
 this file.
+
+## Notes — P0 test build in progress (17 September 2026)
+
+Notes now has its own Workspace destination, durable autosave text/checklists, collection organization/search, 7-day Bin, optional module protection and app-wide backup/restore. English-only labels are approved; RTL and localized dates remain included. Comfer backup format 5 adds Notes and preserves existing Notes when older archives omit the section. Explicit Notes replacement imports rotate device keys for key-loss recovery. See [phase tracking](Plan-Notes.md) and [design, attempts and limitations](docs/notes-implementation.md).
+
+Automated checks have covered storage/conflict recovery, Unicode search, the real editor, 10,000-record archives, password/tamper rejection, actual Comfer merge and both Workspace routes. The final 23-case emulator suite and four focused follow-up checks passed (some cases repeated), plus all 167 JVM tests. The editor was visually checked at default/200% text size. All 14 final storage checks and an actual isolated process-restart recovery passed. Emulator debug 51 / 51.0 updated. Physical testing is deferred by user request. Real PIN authentication on the API-24 emulator passed protection, cancellation, wrong-PIN rejection, background/device re-lock and protected module/draft recovery after process restart. Credential-change/expiry cases, second-device protected restore, TalkBack and device performance remain acceptance gates. P1/P2 remain deferred. Samsung has not been updated for Notes.
+
+Notes canvas refinement: one borderless editor now derives the title from its larger first line. Existing content is preserved; checklist fields also use borderless styling. Four final editor regression tests and the visual check passed; emulator debug build updated.
+
+Notes collection refinement: launch opens Notes with all non-deleted notes; cards omit timestamps/action icons and show label chips. The editor autosaves without a check button. Archive and module export/import controls are removed; older archived content remains visible. Protection now follows Journal’s automatic credential entry/cancel flow, retaining encryption; legacy item protection migrates to the module switch. All 29 affected emulator checks and manual PIN/card checks passed. Emulator updated; Samsung unchanged.
+
+Notes two-view revision: only Notes and Bin remain. Pinned notes lead every sort; old notebook content stays visible. Search/Add are fixed at the bottom, with selection actions and options above. Notes now support prose and inline checkboxes together; standalone checklist/folder controls are removed. Long press selects, hold-and-drag reorders in list/grid, and selection supports pin, color, labels and delete. Final eleven interaction/editor checks, 24 storage/backup/home checks and 167 JVM tests passed. Visual refinements verified; debug emulator updated. Samsung remains unchanged.
+
+Notes label refinement (18 September): wrapped chips separate ring/circle selection from name-based edit/delete, with a + chip for creation. Only deletion shows “Deleted” / Undo for five seconds. All 13 interaction/editor emulator tests and 167 JVM tests passed; emulator debug updated.
+
+Notes card/search styling (18 September): trailing pin icon replaces Pinned text; icon buttons have muted circular rings, search has a pill border, and the external + switches to clear-search X while typing. Debug build and manual emulator visual/search checks passed; emulator updated. Follow-up adds a muted gray search border in both focus states and 8 dp bottom row spacing; build passed and emulator updated.
+
+Notes label outline follow-up (18 September): label chips and + use transparent backgrounds with muted gray borders; placeholder is “Search notes”. Debug build passed and emulator updated.
+
+Notes drag refinement (18 September): neighbors animate aside and dropped cards spring into place; removed drag scaling, shadows and item fades to retain note appearance. All nine Notes interaction emulator checks passed; debug emulator updated.
+
+Notes live-drag correction (18 September): reproduced a 144 px jump with unequal-height cards. Replaced translated items with a floating card/full-size reserved slot, fixed competing scroll and stale layout targeting, and made card fills consistently opaque. Final 16 emulator interaction/editor tests and 167 JVM tests passed; held list/grid/overlap screenshots reviewed. Corrected debug build installed on emulator. See the Notes attempt log for earlier failed checks and corrections.
 
 ## Drawer precision-release fix (15 September 2026)
 
@@ -33,7 +55,7 @@ Restore confirmation now displays only the backup's Comfer version and localized
 
 16 September dictation follow-up: fixed redundant provider Stop commands and cancellation before provider readiness; added explicit no-provider setup messaging. Seven speech-controller emulator tests and 166 JVM tests passed. Emulator lacks a recognition provider. A subsequent Galaxy A13 log capture confirmed the dedicated Google on-device provider crashes natively during Hindi recognition; an explicit, consented default-provider alternative is now implemented, with physical transcription acceptance pending. See the [Journal investigation record](docs/journals-implementation.md).
 
-English first-test implementation is available under `journals/`: separate Room storage, durable drafts, dated feed, managed JPEG/PNG images, in-place editing, Trash/Undo, dictation protocol and Android adapter, optional device-credential gate and portable Journal backup section. Journal, Tasks and Search now open from the home Workspace menu. Notes is present with an explicit coming-soon status until its implementation is ready.
+English first-test implementation is available under `journals/`: separate Room storage, durable drafts, dated feed, managed JPEG/PNG images, in-place editing, Trash/Undo, dictation protocol and Android adapter, optional device-credential gate and portable Journal backup section. Journal, Tasks and Search now open from the home Workspace menu. Notes now opens its own test-build screen; see the Notes section above.
 
 See [Plan-Journals.md](Plan-Journals.md) for phase gates and [implementation/validation](docs/journals-implementation.md) for actual attempts and limitations. Journal acceptance is not complete. Debug build installed on the API-24 emulator with normal app data preserved. Final JVM suite: 166 passed; targeted Journal instrumentation: 28 passed, plus subsequent cold-start, protected fresh-install transfer and interrupted-restore checks. Real speech-provider and device-credential acceptance remain open. Samsung now has the signed Journal release test build installed fresh following user approval; backup restoration and hands-on acceptance remain pending. Comfer source version is 51 / 51.0; the connected Galaxy A30 was updated in place to release 51.0 on 16 September with the Journal UI and dictation changes.
 

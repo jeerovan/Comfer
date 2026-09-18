@@ -62,7 +62,7 @@ Debug APK SHA-256: `383e46df1ecb7f6f4f994843907f75349007a05bcf87e9c8d5325b6117dd
 
 Remaining acceptance: real on-device/network recognizers, permission revocation and physical microphone shutdown, actual credential authentication/enrollment changes, TalkBack/reduced motion and complete layout/date-navigation matrix, full-disk exhaustion, different-device transfer and signed release acceptance. Fake recognizer and injected database failures cover deterministic protocol/recovery behavior, not every physical-device failure. The Workspace menu is implemented under the 16 September decision; the Notes destination and physical/TalkBack menu acceptance remain pending.
 
-Internal `WorkspaceModule` actions route Journal → JournalActivity, Tasks → TasksActivity, Search → existing Search overlay and Notes → coming-soon status. These enum values are not installed application package IDs or persisted folders. See [Workspace contract](home-module-menu.md) for animation, routing and validation.
+Internal `WorkspaceModule` actions route Journal → JournalActivity, Tasks → TasksActivity, Search → existing Search overlay and Notes → NotesActivity (17 September test build). These enum values are not installed application package IDs or persisted folders. See [Workspace contract](home-module-menu.md) for animation, routing and validation.
 
 ## Journal UI follow-up — 15 September 2026
 

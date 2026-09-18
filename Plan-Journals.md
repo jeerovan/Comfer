@@ -6,7 +6,7 @@ Implementation and test evidence are tracked below. Core Journal code is present
 
 ## Confirmed integration and scope
 
-- The final home entry is the [four-module menu](docs/home-module-menu.md): replace the middle Search icon with Workspaces; tap expands the Notes, Journal, Tasks and Search icons in their layout-specific positions exactly like a home app folder in both quick-list layouts. Notes explicitly reports coming soon; the other icons launch their modules.
+- The final home entry is the [four-module menu](docs/home-module-menu.md): replace the middle Search icon with Workspaces; tap expands the Notes, Journal, Tasks and Search icons in their layout-specific positions exactly like a home app folder in both quick-list layouts. All four icons now launch their modules; Notes is a 17 September test build tracked in [Plan-Notes.md](Plan-Notes.md).
 - This supersedes the interim Journal Search-long-press shortcut now that the shared Workspace menu is implemented. Tasks keeps its data, reminders, notification actions and backup/restore; its icon in the module menu resolves the alternative-entry decision.
 - Journal is separate from Notes and Tasks, with its own activity/navigation, storage namespace and manual-backup section. No Journal content in Notes navigation/search or launcher global search.
 - Initial scope: dated text/image feed, durable composer, one image per entry, live dictation, in-place edits, swipe deletion, five-second Undo, 7-day Archive, optional protection and portable manual backup. No audio files/playback, sync, accounts, remote AI, moods, streaks, rich text, reminders or resurfacing.
@@ -27,7 +27,7 @@ Use Not started, In progress, Blocked, or Complete. A phase is complete only whe
 | 6 | Android speech integration and composer controls | 5 | In progress | Adapter and controls implemented; real provider/language/network/microphone acceptance pending |
 | 7 | Optional Journal protection and privacy surfaces | 1–6 | In progress | Device credential gate, secure window, recovery and export authentication implemented; credential-device acceptance pending |
 | 8 | Portable backup/restore, including protected media | 3–7 | In progress | Archive v4, encrypted fresh-install transfer and cold interrupted-restore recovery passed; real credential and full-disk acceptance remain open |
-| 9 | Integrate four-module home menu | 2, 7–8; Notes later | Emulator verified | Workspace routes Search/Tasks/Journal; Notes coming soon approved 16 September. 13 UI tests passed; physical/TalkBack and Notes remain open |
+| 9 | Integrate four-module home menu | 2, 7–8; Notes later | Emulator verified | Workspace routes all four modules; Notes destination verified 17 September. Physical/TalkBack acceptance remains open |
 | 10 | Accessibility, performance, migration and release acceptance | 1–9 | In progress | Emulator suites, real activity keyboard/rotation, 10,000-row queries and streamed media validation; user/device/release acceptance pending |
 
 ## Phase 0 — Contracts and integration audit
@@ -140,6 +140,8 @@ Use Not started, In progress, Blocked, or Complete. A phase is complete only whe
 
 ## Phase 9 — Four-module home menu integration
 
+17 September update: Notes now opens its own capture/recovery screen. The earlier coming-soon route below is historical; see Plan-Notes.md for implementation and acceptance.
+
 16 September decision: ship the Workspace center icon and four module icons now. Notes is explicitly coming soon; its full implementation remains separate. This supersedes the earlier three-dot/working-Notes integration gate.
 
 - [x] Implement the [shared menu contract](docs/home-module-menu.md) in both quick-list layouts: Workspace center control, four icons without visible labels and Close reversal.
@@ -148,7 +150,7 @@ Use Not started, In progress, Blocked, or Complete. A phase is complete only whe
 - [x] Remove the old `onShowTasks`/Journal-long-press center callback; update accessible labels and guide visibility.
 - [x] Guard rapid taps, animation reversal, mutual exclusion with folders, Back, pending launch cancellation and launch/return.
 - [x] Complete emulator validation and update the test build: 13 focused UI tests and 167 JVM tests passed; see development progress.
-- [ ] Implement and validate the Notes destination when its module is ready.
+- [x] Implement and validate the Notes destination (17 September); its P0 acceptance remains tracked separately in Plan-Notes.md.
 - [ ] Physical-device and TalkBack acceptance of the shared menu.
 
 **Exit checks:** both layouts; three live destinations and Notes status; ordinary folder regression; Close and Back; repeated taps; reversal; RTL; launch/return. No accidental Search launch from tapping Workspace.

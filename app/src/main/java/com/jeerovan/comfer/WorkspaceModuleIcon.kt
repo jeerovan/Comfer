@@ -52,7 +52,7 @@ internal fun WorkspaceModuleIcon(
         else if (light) Color.Black else Color.White.copy(alpha = .7f)
     val background = if (themed && colors != null) Color(getThemedBackgroundColor(colors, light)) else getBackgroundColor(light)
     val title = stringResource(module.title)
-    val description = if (module == WorkspaceModule.NOTES) stringResource(R.string.workspace_notes_coming_soon) else title
+    val description = title
     Box(Modifier.folderIconLayer({ motion.progress.value }, originDelta,
         if (LocalLayoutDirection.current == LayoutDirection.Rtl) -1f else 1f, false, true)
         .size(iconSize).testTag("workspace-module-${module.name.lowercase()}")) {

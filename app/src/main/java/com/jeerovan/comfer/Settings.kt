@@ -296,6 +296,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         settingsViewModel.setWeatherWidgetEnabled(granted)
     }
     var journalPassword by remember { mutableStateOf("") }
+    var protectedNotesForBackup by remember { mutableStateOf(false) }
     var showJournalExportPassword by remember { mutableStateOf(false) }
     var authorizedJournalAction by remember { mutableStateOf<(() -> Unit)?>(null) }
     val journalAuthentication = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -303,15 +304,19 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         authorizedJournalAction = null
         if (result.resultCode == Activity.RESULT_OK) {
             com.jeerovan.comfer.journals.JournalProtection.authorize()
+            com.jeerovan.comfer.notes.NotesSession.authorize()
             action?.invoke()
         }
     }
-    fun withJournalAuthorization(action: () -> Unit) {
-        if (!com.jeerovan.comfer.journals.JournalProtection.enabled(context)) action()
-        else {
-            val intent = context.getSystemService(android.app.KeyguardManager::class.java).createConfirmDeviceCredentialIntent("Unlock Journal", "Authorize Journal backup or restore")
-            if (intent != null) { authorizedJournalAction = action; journalAuthentication.launch(intent) }
-            else Toast.makeText(context, R.string.journal_lock_setup, Toast.LENGTH_LONG).show()
+    fun withJournalAuthorization(forceNotes: Boolean = false, action: () -> Unit) {
+        coroutineScope.launch {
+            val notesProtected = try { withContext(Dispatchers.IO) { com.jeerovan.comfer.notes.NotesBackup.requiresAuthentication(context) } } catch (error: Exception) { Toast.makeText(context, resources.getString(backupErrorLabel(error)), Toast.LENGTH_LONG).show(); return@launch }
+            if (!forceNotes && !notesProtected && !com.jeerovan.comfer.journals.JournalProtection.enabled(context)) action()
+            else {
+                val intent = context.getSystemService(android.app.KeyguardManager::class.java).createConfirmDeviceCredentialIntent("Unlock protected content", "Authorize backup or restore")
+                if (intent != null) { authorizedJournalAction = action; journalAuthentication.launch(intent) }
+                else Toast.makeText(context, R.string.journal_lock_setup, Toast.LENGTH_LONG).show()
+            }
         }
     }
     val createBackupLauncher = rememberLauncherForActivityResult(
@@ -1027,7 +1032,9 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         }
                     },
                     modifier = Modifier.clickable(enabled = backupRestoreOperation == null) {
-                        if (com.jeerovan.comfer.journals.JournalProtection.enabled(context)) {
+                        coroutineScope.launch {
+                        protectedNotesForBackup = try { withContext(Dispatchers.IO) { com.jeerovan.comfer.notes.NotesBackup.requiresAuthentication(context) } } catch (error: Exception) { Toast.makeText(context, resources.getString(backupErrorLabel(error)), Toast.LENGTH_LONG).show(); return@launch }
+                        if (com.jeerovan.comfer.journals.JournalProtection.enabled(context) || protectedNotesForBackup) {
                             journalPassword = ""; showJournalExportPassword = true
                         } else if (!launchDocumentPickerSafely {
                                 journalPassword = ""
@@ -1040,6 +1047,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                                 R.string.backup_document_picker_unavailable,
                                 Toast.LENGTH_SHORT,
                             ).show()
+                        }
                         }
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
@@ -1213,6 +1221,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         }
     }
     if (showJournalExportPassword) com.jeerovan.comfer.journals.JournalExportPasswordDialog(
+        includeNotes = protectedNotesForBackup,
         onDismiss = { showJournalExportPassword = false; journalPassword = "" },
         onConfirm = { password ->
             journalPassword = password
@@ -1236,13 +1245,13 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                             createdAt,
                         ),
                     )
-                    if (preview.journalsEncrypted) OutlinedTextField(journalPassword, { journalPassword = it }, label = { Text(stringResource(R.string.journal_password)) }, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
+                    if (preview.journalsEncrypted || preview.notesEncrypted) OutlinedTextField(journalPassword, { journalPassword = it }, label = { Text(stringResource(R.string.journal_password)) }, visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation())
                 }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        withJournalAuthorization {
+                        withJournalAuthorization(forceNotes = preview.notesProtected) {
                         pendingRestore = null
                         backupRestoreOperation = BackupRestoreOperation.RESTORE
                         coroutineScope.launch {

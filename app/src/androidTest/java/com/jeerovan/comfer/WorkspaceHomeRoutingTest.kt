@@ -56,7 +56,11 @@ class WorkspaceHomeRoutingTest {
         shell("input keyevent 4")
         home()
         open()
-        compose.onNodeWithContentDescription("Notes is coming soon").performClick()
+        compose.onNodeWithContentDescription("Notes").performClick()
+        resumed("NotesActivity")
+        compose.waitUntil(10000) { compose.onAllNodesWithTag("notes-search").fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty() }
+        Espresso.closeSoftKeyboard()
+        shell("input keyevent 4")
         home()
         resumed("MainActivity")
         open()

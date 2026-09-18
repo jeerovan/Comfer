@@ -8,15 +8,15 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.jeerovan.comfer.R
 
 @Composable
-internal fun JournalExportPasswordDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+internal fun JournalExportPasswordDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit, includeNotes: Boolean = false) {
     var password by remember { mutableStateOf("") }
     var confirmation by remember { mutableStateOf("") }
     var error by remember { mutableIntStateOf(0) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.journal_export_password)) },
+        title = { Text(if (includeNotes) "Encrypted backup" else stringResource(R.string.journal_export_password)) },
         text = { Column {
-            Text(stringResource(R.string.journal_password_explanation))
+            Text(if (includeNotes) "Include protected content in this encrypted backup. Keep this password: it is required to restore on another device and cannot be reset." else stringResource(R.string.journal_password_explanation))
             OutlinedTextField(password, { password = it; error = 0 },
                 label = { Text(stringResource(R.string.journal_password)) },
                 isError = error == R.string.journal_password_too_short,

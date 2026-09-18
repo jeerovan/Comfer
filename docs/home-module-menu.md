@@ -1,6 +1,6 @@
 # Home workspace menu
 
-Updated 16 September 2026. The user approved implementing the four-icon menu now, with Notes marked as coming soon. This supersedes the earlier three-dot design and the requirement to wait for a working Notes module.
+Updated 17 September 2026. Notes now has a working test-build destination; the initial menu approval below was on 16 September. The user approved implementing the four-icon menu now, with Notes marked as coming soon. This supersedes the earlier three-dot design and the requirement to wait for a working Notes module.
 
 The middle Search control in `QuickListOverlay` is now **Workspace** (Material Workspaces icon). Tapping it opens four built-in module icons using ordinary folder slots. In the circular layout: Notes (`Notes`) left, Journal (`MenuBook`) right, Tasks (`TaskAlt`) above and Search (`Search`) below. In the five-column layout, the left-to-right order is **Notes | Tasks | Close | Search | Journal**, keeping Tasks and Search next to the center. RTL mirrors these positions. The center becomes Close; tapping it or Android Back closes the menu.
 
@@ -13,7 +13,7 @@ Both circular and five-column layouts reuse `HomeFolderLayout`'s 320 ms FastOutS
 - Internal `WorkspaceModule` destinations never become `AppInfo` package IDs or persisted user folder entries, and do not affect backup data.
 - Use themed icons without visible labels, retaining accessible names; mirror existing folder geometry in RTL. The home Inbox gesture remains anchored to the center control, and guides are hidden while the workspace is active.
 
-Search opens the existing launcher search overlay. Tasks and Journal open their existing activities. Notes currently closes the menu and displays **Notes is coming soon**, with the same status in its accessible name; implementing the Notes module is separate work. There is no longer a Journal long-press action on the center control.
+Search opens the existing launcher search overlay. Tasks and Journal open their existing activities. Notes opens its main collection; New note starts capture and pending drafts remain accessible (17 September test build); its accessible name is Notes. See [Notes implementation](notes-implementation.md) for validation and remaining release gates. There is no longer a Journal long-press action on the center control.
 
 Validation: 13 focused API-24 emulator tests passed (`WorkspaceMenuTest`, `WorkspaceHomeRoutingTest`, existing `FolderExpansionTest` and two updated Tasks entry cases). Coverage includes both layouts, RTL, own-center shrink/return, expansion/merge, early reversal, ordinary home/drawer folder regression, individually tappable modules, deferred single launch, real Tasks/Journal/Search navigation, Notes status, Back and return home. All 167 JVM tests passed; debug build and whitespace checks passed. Emulator updated; Samsung unchanged. Physical-device and TalkBack acceptance remain open.
 
