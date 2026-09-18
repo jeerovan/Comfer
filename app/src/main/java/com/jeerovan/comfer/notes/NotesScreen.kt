@@ -171,7 +171,7 @@ import kotlinx.coroutines.*
 private fun Set<String>.toggle(id:String)=if(id in this)this-id else this+id
 internal val noteColors=listOf("default" to "Default","rose" to "Rose","amber" to "Amber","green" to "Green","blue" to "Blue","violet" to "Violet")
 @Composable internal fun noteColor(id:String):Color {
-    val base=MaterialTheme.colorScheme.surfaceContainer
+    val base=MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f)
     val tint=when(id){"rose"->Color(0xFFE57373);"amber"->Color(0xFFFFCA28);"green"->Color(0xFF66BB6A);"blue"->Color(0xFF42A5F5);"violet"->Color(0xFFAB47BC);else->return base}
     return androidx.compose.ui.graphics.lerp(base,tint,.22f)
 }
@@ -187,7 +187,7 @@ internal val noteColors=listOf("default" to "Default","rose" to "Rose","amber" t
         val start=(matches.firstOrNull()?.start?.minus(40)?:0).coerceAtLeast(0);val end=(start+200).coerceAtMost(text.length)
         val display=Regex("(?m)^\\[([ xX])\\] ").replace(text){if(it.groupValues[1]==" ")"○   " else "●   "}
         if(text.isNotEmpty())Text(buildAnnotatedString{append(display.substring(start,end));matches.filter{it.start>=start&&it.end<=end}.forEach{addStyle(SpanStyle(background=colors.tertiaryContainer,color=colors.onTertiaryContainer),it.start-start,it.end-start)}},maxLines=4)
-        if(note.tags.isNotEmpty())FlowRow(horizontalArrangement=Arrangement.spacedBy(6.dp),verticalArrangement=Arrangement.spacedBy(4.dp),modifier=Modifier.padding(top=8.dp)){labels.filter{it.id in note.tags}.forEach{label->Surface(shape=MaterialTheme.shapes.small,color=colors.secondaryContainer,contentColor=colors.onSecondaryContainer){Text(label.name,Modifier.padding(horizontal=10.dp,vertical=4.dp),style=MaterialTheme.typography.labelMedium)}}}
+        if(note.tags.isNotEmpty())FlowRow(horizontalArrangement=Arrangement.spacedBy(6.dp),verticalArrangement=Arrangement.spacedBy(4.dp),modifier=Modifier.padding(top=8.dp)){labels.filter{it.id in note.tags}.forEach{label->Surface(shape=MaterialTheme.shapes.small,color=Color.Transparent,contentColor=if(selected)colors.onSecondaryContainer else colors.onSurfaceVariant,border=BorderStroke(1.dp,colors.outlineVariant)){Text(label.name,Modifier.padding(horizontal=10.dp,vertical=4.dp),style=MaterialTheme.typography.labelMedium)}}}
     }}
 }
 
