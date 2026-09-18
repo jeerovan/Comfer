@@ -212,3 +212,9 @@ The first post-fix run passed 18/19; the existing options-sheet test asserted vi
 Evidence: `validation-artifacts/device-checkpoint/2026-09-18-notes/thumb-reach/`. No new physical-device or exhaustive off-screen edge-scroll stress verification is claimed; Samsung was not updated with this revision.
 
 Emulator delivery: the streaming install stalled; retrying with `adb install --no-streaming -r` succeeded with app data retained. Debug APK SHA-256: `da442441c7c91768e93ccb48009fc3e9639f0075d008b39c52bd4da12380bc83`.
+
+## 18 September — editor grouped-button height
+
+The Undo/Redo and list groups previously outlined the full 48 dp button row and then added vertical padding, while individual buttons outlined a centered 40 dp circle. Their shared group helper now draws a vertically inset outline behind the unmodified touch row, matching the single buttons' 40 dp outline and preserving 48 dp touch targets.
+
+Debug and isolated test builds passed. The existing `toolbarScrollKeepsBackFixedAndHasNoOptionsMenu` emulator check passed; its screenshot confirms the grouped list outline aligns with neighboring single-button outlines. No new test or broad suite rerun was needed for this visual-only change. Evidence: `validation-artifacts/device-checkpoint/2026-09-18-notes/toolbar-height/`. Normal debug emulator build updated; physical-device checks were not run.

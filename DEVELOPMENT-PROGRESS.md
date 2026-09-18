@@ -7,6 +7,8 @@ this file.
 
 ## Notes — P0 test build in progress (17 September 2026)
 
+Notes toolbar height (18 September): Undo/Redo and list groups now draw the same 40 dp outline height as individual buttons, retaining 48 dp touch targets. Debug/test builds and the existing toolbar interaction check passed; emulator screenshot alignment reviewed and debug emulator updated.
+
 Notes thumb-reach touch fix (18 September): card hit detection and drag coordinates now include the grid's reach padding. Taps/holds follow visible cards, vacated top space is inactive, and dragging/settling uses the visible slot. Three regressions failed before the fix; all 19 final emulator interaction tests and 178 JVM tests passed. List/grid held screenshots reviewed; debug emulator updated.
 
 Notes autosave cancellation fix (18 September): reproduced “StandaloneCoroutine was cancelled” during an interrupted atomic save and after backgrounding. Autosave now propagates cancellation instead of showing it as a storage failure. All 32 cancellation/editor/UI/storage emulator tests and 178 JVM tests passed; latest edits, durable writes, resume and genuine failure recovery verified. Debug emulator updated; see the Notes validation record.

@@ -86,5 +86,9 @@ import androidx.compose.ui.unit.dp
     }
 }
 @Composable private fun EditorButtonGroup(content:@Composable RowScope.()->Unit) {
-    Row(Modifier.padding(vertical=4.dp).border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=.55f),CircleShape),verticalAlignment=Alignment.CenterVertically,content=content)
+    Box(contentAlignment=Alignment.Center) {
+        // Match the single buttons' 40 dp outline while preserving 48 dp touch targets.
+        Box(Modifier.matchParentSize().padding(vertical=4.dp).border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=.55f),CircleShape))
+        Row(verticalAlignment=Alignment.CenterVertically,content=content)
+    }
 }
