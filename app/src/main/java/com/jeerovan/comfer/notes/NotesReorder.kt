@@ -24,6 +24,10 @@ import kotlin.math.roundToInt
 
 private data class HeldNote(val note:Note,val size:IntSize)
 
+// Lazy-grid offsets exclude before-content padding; pointer/overlay coordinates include it.
+private fun LazyGridItemInfo.viewportOffset(layout:LazyGridLayoutInfo)=
+    Offset(offset.x.toFloat(),(offset.y-layout.viewportStartOffset).toFloat())
+
 /** A stationary parent owns the gesture; the grid reserves a real slot for the floating card. */
 @Composable internal fun NotesReorderGrid(
     values:List<Note>,grid:Boolean,canDrag:Boolean,onDrop:(List<Note>)->Unit,
@@ -56,15 +60,17 @@ private data class HeldNote(val note:Note,val size:IntSize)
     fun commit(){val current=latest.associateBy{it.id};val ids=preview.map{it.id}.toSet();drop(preview.mapNotNull{current[it.id]}+latest.filter{it.id !in ids})}
     fun updateTarget() {
         val active=held?:return
-        val layout=state.layoutInfo.visibleItemsInfo
+        val info=state.layoutInfo
+        val layout=info.visibleItemsInfo
         val slot=layout.firstOrNull{it.key==active.note.id}?:return
         // Pointer events can outrun layout. Do not move back over the same stale neighbor
         // before the grid has measured the order requested by the previous event.
         if(slot.index!=preview.indexOfFirst{it.id==active.note.id})return
         val center=position+Offset(active.size.width/2f,active.size.height/2f)
         val target=layout.firstOrNull {
-            it.key!=active.note.id&&center.x>=it.offset.x&&center.x<=it.offset.x+it.size.width&&
-                center.y>=it.offset.y&&center.y<=it.offset.y+it.size.height
+            val offset=it.viewportOffset(info)
+            it.key!=active.note.id&&center.x>=offset.x&&center.x<=offset.x+it.size.width&&
+                center.y>=offset.y&&center.y<=offset.y+it.size.height
         }
         if(target!=null&&target.index==preview.indexOfFirst{it.id==target.key})move(active.note.id,target.key as String)
     }
@@ -77,8 +83,9 @@ private data class HeldNote(val note:Note,val size:IntSize)
             settle.snapTo(position)
             // Wait for the reserved slot to be laid out after the last move (or cancellation).
             withFrameNanos { };withFrameNanos { }
-            state.layoutInfo.visibleItemsInfo.firstOrNull{it.key==active.note.id}?.let { slot->
-                settle.animateTo(Offset(slot.offset.x.toFloat(),slot.offset.y.toFloat()),spring(stiffness=Spring.StiffnessMediumLow))
+            val info=state.layoutInfo
+            info.visibleItemsInfo.firstOrNull{it.key==active.note.id}?.let { slot->
+                settle.animateTo(slot.viewportOffset(info),spring(stiffness=Spring.StiffnessMediumLow))
             }
             held=null;settling=false
             preview=latest
@@ -90,19 +97,23 @@ private data class HeldNote(val note:Note,val size:IntSize)
         val center=position.y+active.size.height/2f
         val info=state.layoutInfo
         val edge=with(density){64.dp.toPx()};val speed=with(density){8.dp.toPx()}
-        val step=when{center>info.viewportEndOffset-edge->speed;center<info.viewportStartOffset+edge->-speed;else->0f}
+        val viewportHeight=info.viewportEndOffset-info.viewportStartOffset
+        val step=when{center>viewportHeight-edge->speed;center<edge->-speed;else->0f}
         if(step!=0f&&state.scrollBy(step)!=0f)updateTarget()
         delay(16)
     }}
     Box(modifier.clipToBounds().pointerInput(grid){
         awaitEachGesture {
             val down=awaitFirstDown(requireUnconsumed=false)
-            val source=state.layoutInfo.visibleItemsInfo.firstOrNull {
-                down.position.x>=it.offset.x&&down.position.x<=it.offset.x+it.size.width&&
-                    down.position.y>=it.offset.y&&down.position.y<=it.offset.y+it.size.height
+            val info=state.layoutInfo
+            val source=info.visibleItemsInfo.firstOrNull {
+                val offset=it.viewportOffset(info)
+                down.position.x>=offset.x&&down.position.x<=offset.x+it.size.width&&
+                    down.position.y>=offset.y&&down.position.y<=offset.y+it.size.height
             }
             val id=source?.key as? String
             if(id==null||settling)return@awaitEachGesture
+            val origin=source.viewportOffset(info)
             val longPress=awaitLongPressOrCancellation(down.id)
             if(longPress==null){
                 val up=currentEvent.changes.firstOrNull{it.id==down.id}
@@ -127,7 +138,7 @@ private data class HeldNote(val note:Note,val size:IntSize)
                         }
                     }
                     if(held!=null){
-                        position=Offset(source.offset.x.toFloat(),source.offset.y.toFloat())+distance
+                        position=origin+distance
                         updateTarget()
                     }
                     change.consume()

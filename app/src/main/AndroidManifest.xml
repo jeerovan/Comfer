@@ -83,7 +83,7 @@
             android:name="google_analytics_default_allow_ad_personalization_signals"
             android:value="false" />
         <activity android:name=".notifications.NotificationInboxActivity" android:exported="false" />
-        <activity android:name=".notes.NotesActivity" android:exported="true" android:label="@string/workspace_notes" android:windowSoftInputMode="adjustResize">
+        <activity android:name=".notes.NotesActivity" android:exported="true" android:label="@string/workspace_notes" android:theme="@style/Theme.Comfer.Notes" android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />

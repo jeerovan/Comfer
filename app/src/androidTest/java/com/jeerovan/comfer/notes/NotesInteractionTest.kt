@@ -36,6 +36,54 @@ class NotesInteractionTest {
     }
     private fun hold(id:String)=compose.onNodeWithTag("note-$id").performTouchInput{longClick(durationMillis=750)}
     private fun saved(id:String)=runBlocking{NotesBackup.snapshot(context).notes.first{it.id==id}}
+    private fun pullForThumbReach():androidx.compose.ui.geometry.Rect {
+        val original=compose.onNodeWithTag("note-pin").fetchSemanticsNode().boundsInRoot
+        compose.onRoot().performTouchInput {
+            swipe(original.center,original.center+androidx.compose.ui.geometry.Offset(0f,240f),600)
+        }
+        compose.waitUntil(5000) { compose.onNodeWithTag("note-pin").fetchSemanticsNode().boundsInRoot.top>original.top+50f }
+        compose.waitForIdle()
+        return original
+    }
+    @Test fun thumbReachListTapUsesVisibleCardAndEmptySpaceIsInactive()=thumbReachTap(false)
+    @Test fun thumbReachGridTapUsesVisibleCardAndEmptySpaceIsInactive()=thumbReachTap(true)
+    private fun thumbReachTap(grid:Boolean) {
+        launch(grid)
+        val original=pullForThumbReach()
+        // Tap where the first card used to be: reach padding must not retain its touch target.
+        compose.onRoot().performTouchInput { click(androidx.compose.ui.geometry.Offset(original.center.x,original.top+8f)) }
+        compose.onNodeWithTag("notes-editor").assertDoesNotExist()
+        compose.onRoot().performTouchInput { longClick(androidx.compose.ui.geometry.Offset(original.center.x,original.top+8f),750) }
+        compose.onNodeWithContentDescription("Note color").assertDoesNotExist()
+        val visible=compose.onNodeWithTag("note-a").fetchSemanticsNode().boundsInRoot
+        compose.onRoot().performTouchInput { click(visible.center) }
+        compose.waitUntil(5000) { compose.onAllNodesWithTag("notes-editor").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("notes-editor").assertTextContains("Alpha\nAlpha body")
+    }
+    @Test fun thumbReachListLongPressSelectsVisibleCard()=thumbReachHold(false)
+    @Test fun thumbReachGridLongPressSelectsVisibleCard()=thumbReachHold(true)
+    private fun thumbReachHold(grid:Boolean) {
+        launch(grid);pullForThumbReach()
+        val visible=compose.onNodeWithTag("note-a").fetchSemanticsNode().boundsInRoot
+        compose.onRoot().performTouchInput { longClick(visible.center,750) }
+        compose.onNodeWithContentDescription("Note color").performClick()
+        compose.onNodeWithText("Blue",substring=false).performClick()
+        compose.waitUntil(5000) { saved("a").color=="blue" }
+        assertEquals("default",saved("pin").color)
+        assertEquals("default",saved("b").color)
+        assertEquals("default",saved("c").color)
+    }
+    @Test fun thumbReachCollapseRestoresTouchTargets() {
+        launch();val original=pullForThumbReach()
+        val moved=compose.onNodeWithTag("note-pin").fetchSemanticsNode().boundsInRoot
+        compose.onRoot().performTouchInput { swipe(moved.center,moved.center-androidx.compose.ui.geometry.Offset(0f,moved.top-original.top),600) }
+        // Touch-slop may leave a few pixels of reach space; target the actual settled position.
+        compose.waitUntil(5000) { compose.onNodeWithTag("note-pin").fetchSemanticsNode().boundsInRoot.top<moved.top-40f }
+        val visible=compose.onNodeWithTag("note-a").fetchSemanticsNode().boundsInRoot
+        compose.onRoot().performTouchInput { click(visible.center) }
+        compose.waitUntil(5000) { compose.onAllNodesWithTag("notes-editor").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("notes-editor").assertTextContains("Alpha\nAlpha body")
+    }
     @Test fun onlyNotesAndBinSearchIsScopedAndBottomRowsAreOrdered() {
         launch()
         compose.onNodeWithContentDescription("Notebooks and views").assertDoesNotExist()
@@ -47,6 +95,8 @@ class NotesInteractionTest {
         compose.waitUntil(10000){compose.onAllNodesWithTag("note-b").fetchSemanticsNodes().isEmpty()}
         compose.onNodeWithTag("note-a").assertExists();compose.onNodeWithTag("note-bin").assertDoesNotExist()
         compose.onNodeWithContentDescription("Notes options").performClick()
+        // The native keyboard can still be hiding after Compose finishes the sheet animation.
+        compose.waitUntil(5000){compose.onNodeWithText("Deleted notes are kept for 7 days").isDisplayed()}
         compose.onNodeWithText("Deleted notes are kept for 7 days").assertIsDisplayed()
         compose.onNodeWithText("Bin",substring=false).assertIsDisplayed().performClick()
         compose.waitUntil(10000){compose.onAllNodesWithTag("note-bin").fetchSemanticsNodes().isNotEmpty()}
@@ -102,9 +152,12 @@ class NotesInteractionTest {
     }
     @Test fun heldDragMakesRoomBeforeRelease()=livePreview(false)
     @Test fun gridHeldDragMakesRoomBeforeRelease()=livePreview(true)
-    private fun livePreview(grid:Boolean) {
+    @Test fun thumbReachListDragKeepsCardUnderFingerAndReservesVisibleSlot()=livePreview(false,true)
+    @Test fun thumbReachGridDragKeepsCardUnderFingerAndReservesVisibleSlot()=livePreview(true,true)
+    private fun livePreview(grid:Boolean,thumbReach:Boolean=false) {
         runBlocking {NotesStore(NotesDatabase.get(context)).replace(fixture(grid).copy(notes=fixture().notes.map{if(it.id=="a")it.copy(content=NoteContent("Alpha","One\nTwo\nThree\nFour"))else it}))}
         launch()
+        if(thumbReach)pullForThumbReach()
         val originalA=compose.onNodeWithTag("note-a").fetchSemanticsNode().boundsInRoot
         val originalB=compose.onNodeWithTag("note-b").fetchSemanticsNode().boundsInRoot
         compose.onRoot().performTouchInput {
@@ -121,10 +174,12 @@ class NotesInteractionTest {
         val heldA=compose.onNodeWithTag("note-a").fetchSemanticsNode().boundsInRoot
         assertEquals("Held note must remain under the finger",originalB.center.y,heldA.center.y,8f)
         val screenshot=InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
-        java.io.File(context.cacheDir,"notes-held-${if(grid)"grid" else "list"}.png").outputStream().use{screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}
+        java.io.File(context.cacheDir,"notes-held-${if(thumbReach)"reach-" else ""}${if(grid)"grid" else "list"}.png").outputStream().use{screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}
         screenshot.recycle()
         compose.onRoot().performTouchInput{up()}
         compose.waitUntil(10000){saved("b").order<saved("a").order}
+        compose.waitUntil(5000){compose.onAllNodesWithTag("note-slot-a").fetchSemanticsNodes().isEmpty()}
+        assertEquals("Released card must settle in its visible slot",slot.top,compose.onNodeWithTag("note-a").fetchSemanticsNode().boundsInRoot.top,2f)
     }
     @Test fun draggingOverAnotherCardKeepsBackgroundOpaque() {
         runBlocking {NotesStore(NotesDatabase.get(context)).replace(fixture().copy(notes=fixture().notes.map{when(it.id){

@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
@@ -58,7 +57,7 @@ import androidx.compose.ui.unit.dp
             FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                 NoteFormatting.colors.forEach{color->
                     NotesIconButton(onClick={model.format("color",color)}){
-                        Icon(if(color=="default")Icons.Outlined.FormatColorReset else Icons.Outlined.Circle,"Text color $color",tint=if(color=="default")MaterialTheme.colorScheme.onSurface else noteTextColor(color))
+                        Icon(if(color=="default")Icons.Outlined.FormatColorReset else Icons.Outlined.Circle,"Text color $color",tint=if(color=="default")MaterialTheme.colorScheme.onSurface else noteTextColor(color,MaterialTheme.colorScheme.surface))
                     }
                 }
             }
@@ -87,5 +86,5 @@ import androidx.compose.ui.unit.dp
     }
 }
 @Composable private fun EditorButtonGroup(content:@Composable RowScope.()->Unit) {
-    Row(Modifier.padding(vertical=4.dp).border(1.dp,Color.Gray.copy(alpha=.55f),CircleShape),verticalAlignment=Alignment.CenterVertically,content=content)
+    Row(Modifier.padding(vertical=4.dp).border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=.55f),CircleShape),verticalAlignment=Alignment.CenterVertically,content=content)
 }

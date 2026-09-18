@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -78,6 +79,7 @@ internal fun inlineChecks(text:String):List<InlineCheck> = Regex("(?m)^\\[([ xX]
     val subheadingStyle=MaterialTheme.typography.headlineSmall
     val smallHeadingStyle=MaterialTheme.typography.titleMedium
     val linkColor=MaterialTheme.colorScheme.primary
+    val surfaceColor=MaterialTheme.colorScheme.surface
     val checks=remember(value.text){inlineChecks(value.text)}
     val latestChecks by rememberUpdatedState(checks)
     val toggleCurrent by rememberUpdatedState<(Int)->Unit>(::toggle)
@@ -135,7 +137,7 @@ internal fun inlineChecks(text:String):List<InlineCheck> = Regex("(?m)^\\[([ xX]
                                 "italic"->SpanStyle(fontStyle=FontStyle.Italic)
                                 "underline"->SpanStyle(textDecoration=TextDecoration.Underline)
                                 "strike"->SpanStyle(textDecoration=TextDecoration.LineThrough)
-                                "color"->SpanStyle(color=noteTextColor(mark.value))
+                                "color"->SpanStyle(color=noteTextColor(mark.value,surfaceColor))
                                 "url"->SpanStyle(color=linkColor,textDecoration=TextDecoration.Underline)
                                 else->SpanStyle()
                             }
@@ -164,6 +166,10 @@ internal fun inlineChecks(text:String):List<InlineCheck> = Regex("(?m)^\\[([ xX]
     result.first?.let{Image(it.asImageBitmap(),"Note image",modifier.aspectRatio(image.width.toFloat()/image.height),contentScale=ContentScale.Fit)}
         ?:Text(if(result.second)"Loading image…" else "Image unavailable",modifier)
 }
-internal fun noteTextColor(value:String):Color=when(value){
-    "red"->Color(0xFFD94B4B);"orange"->Color(0xFFBF7C20);"green"->Color(0xFF388E5B);"blue"->Color(0xFF427ED0);"purple"->Color(0xFF9966CC);else->Color.Unspecified
-}
+/** Persist color names, not theme-specific RGB values. Match the active surface, including dynamic themes. */
+internal fun noteTextColor(value:String,surface:Color=Color.White):Color =
+    if(surface.luminance()<.5f) when(value){
+        "red"->Color(0xFFFF9C99);"orange"->Color(0xFFF3C06B);"green"->Color(0xFF85D69F);"blue"->Color(0xFF9DC4FF);"purple"->Color(0xFFD3B0FF);else->Color.Unspecified
+    } else when(value){
+        "red"->Color(0xFF902323);"orange"->Color(0xFF6A4700);"green"->Color(0xFF205A34);"blue"->Color(0xFF234C82);"purple"->Color(0xFF653780);else->Color.Unspecified
+    }

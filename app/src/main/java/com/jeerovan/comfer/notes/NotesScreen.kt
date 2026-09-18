@@ -52,7 +52,8 @@ import kotlinx.coroutines.*
     fun back(){when{model.selected.isNotEmpty()->model.selected=emptySet();!model.collection->model.browse();model.view=="Bin"->model.switchView("Notes");else->close()}}
     if(locked){Surface(Modifier.fillMaxSize()){Column(Modifier.safeDrawingPadding().padding(24.dp),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally){Text("Notes is locked");model.error?.let{Text(it,color=MaterialTheme.colorScheme.error)};Button(onClick={unlock{}}){Text("Unlock")};TextButton(onClick={context.startActivity(Intent(android.provider.Settings.ACTION_SECURITY_SETTINGS))}){Text("Device security settings")}}};return}
     BackHandler(onBack=::back)
-    Surface(Modifier.fillMaxSize(),color=MaterialTheme.colorScheme.surface.copy(alpha=.8f)) {
+    // A translucent color no longer matches contentColorFor(surface); provide its pair explicitly.
+    Surface(Modifier.fillMaxSize(),color=MaterialTheme.colorScheme.surface.copy(alpha=.8f),contentColor=MaterialTheme.colorScheme.onSurface) {
         Column(Modifier.safeDrawingPadding().imePadding().fillMaxSize().padding(horizontal=16.dp)) {
             Row(Modifier.heightIn(min=48.dp),verticalAlignment=Alignment.CenterVertically) {
                 Text(if(model.collection)model.view else "Notes",Modifier.weight(1f),style=MaterialTheme.typography.titleLarge)
@@ -106,11 +107,11 @@ import kotlinx.coroutines.*
                     }
                 }
                 Spacer(Modifier.weight(1f))
-                NotesIconButton(onClick={keyboard?.hide();options=true}){Icon(Icons.Outlined.MoreVert,"Notes options",tint=Color.Gray)}
+                NotesIconButton(onClick={keyboard?.hide();options=true}){Icon(Icons.Outlined.MoreVert,"Notes options",tint=MaterialTheme.colorScheme.onSurfaceVariant)}
             }
             if(model.collection) Row(Modifier.fillMaxWidth().padding(bottom=8.dp).testTag("notes-search-row"),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
                 OutlinedTextField(model.query,{model.query=it;model.selected=emptySet()},Modifier.weight(1f).testTag("notes-search"),placeholder={Text(if(model.view=="Bin")"Search Bin" else "Search notes")},singleLine=true,shape=CircleShape,
-                    colors=OutlinedTextFieldDefaults.colors(focusedBorderColor=Color.Gray.copy(alpha=.55f),unfocusedBorderColor=Color.Gray.copy(alpha=.55f)))
+                    colors=OutlinedTextFieldDefaults.colors(focusedBorderColor=MaterialTheme.colorScheme.outline.copy(alpha=.55f),unfocusedBorderColor=MaterialTheme.colorScheme.outline.copy(alpha=.55f)))
                 if(model.query.isEmpty())NotesIconButton(onClick={model.capture()}){Icon(Icons.Outlined.Add,"New note")}
                 else NotesIconButton(onClick={model.query="";model.selected=emptySet()}){Icon(Icons.Outlined.Close,"Clear search")}
             }
@@ -129,7 +130,7 @@ import kotlinx.coroutines.*
     if(colors) ModalBottomSheet(onDismissRequest={colors=false}) {
         Text("Note background",Modifier.padding(20.dp),style=MaterialTheme.typography.titleMedium)
         FlowRow(Modifier.padding(20.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){noteColors.forEach{(id,name)->
-            AssistChip(onClick={model.batch(targets()){it.copy(color=id)};colors=false},label={Text(name)},colors=AssistChipDefaults.assistChipColors(containerColor=noteColor(id)))
+            AssistChip(onClick={model.batch(targets()){it.copy(color=id)};colors=false},label={Text(name)},colors=AssistChipDefaults.assistChipColors(containerColor=noteColor(id),labelColor=MaterialTheme.colorScheme.onSurface))
         }}
     }
     labelTargets?.let{ids->ModalBottomSheet(onDismissRequest={labelTargets=null}) {
@@ -139,7 +140,7 @@ import kotlinx.coroutines.*
             FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
                 model.labels.filter{it.tag}.forEach{label->
                     val checked=notes.isNotEmpty()&&notes.all{label.id in it.tags}
-                    Surface(shape=MaterialTheme.shapes.large,color=Color.Transparent,contentColor=MaterialTheme.colorScheme.onSurface,border=BorderStroke(1.dp,Color.Gray.copy(alpha=.55f))) {
+                    Surface(shape=MaterialTheme.shapes.large,color=Color.Transparent,contentColor=MaterialTheme.colorScheme.onSurface,border=BorderStroke(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=.55f))) {
                         Row(verticalAlignment=Alignment.CenterVertically) {
                             Box(Modifier.size(48.dp).semantics{contentDescription="Select label ${label.name}"}
                                 .toggleable(value=checked,role=Role.Checkbox,onValueChange={
@@ -154,7 +155,7 @@ import kotlinx.coroutines.*
                         }
                     }
                 }
-                Surface(onClick={labelEdit=NoteLabel(name="",tag=true)},shape=MaterialTheme.shapes.large,color=Color.Transparent,contentColor=MaterialTheme.colorScheme.onSurface,border=BorderStroke(1.dp,Color.Gray.copy(alpha=.55f))) {
+                Surface(onClick={labelEdit=NoteLabel(name="",tag=true)},shape=MaterialTheme.shapes.large,color=Color.Transparent,contentColor=MaterialTheme.colorScheme.onSurface,border=BorderStroke(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=.55f))) {
                     Box(Modifier.size(48.dp),contentAlignment=Alignment.Center){Icon(Icons.Outlined.Add,"Add label")}
                 }
             }
@@ -175,23 +176,24 @@ internal val noteColors=listOf("default" to "Default","rose" to "Rose","amber" t
     return androidx.compose.ui.graphics.lerp(base,tint,.22f)
 }
 @Composable private fun NoteCard(note:Note,query:String,labels:List<NoteLabel>,selected:Boolean){
-    Card(Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=if(selected)MaterialTheme.colorScheme.secondaryContainer else noteColor(note.color))){Column(Modifier.padding(12.dp)){
+    val colors=MaterialTheme.colorScheme
+    Card(Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=if(selected)colors.secondaryContainer else noteColor(note.color),contentColor=if(selected)colors.onSecondaryContainer else colors.onSurface)){Column(Modifier.padding(12.dp)){
         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             Text(note.content.preview.ifBlank{"Untitled"},Modifier.weight(1f),style=MaterialTheme.typography.titleMedium,maxLines=2)
-            if(note.pinned)Icon(Icons.Outlined.PushPin,"Pinned",Modifier.size(18.dp),tint=MaterialTheme.colorScheme.onSurfaceVariant)
+            if(note.pinned)Icon(Icons.Outlined.PushPin,"Pinned",Modifier.size(18.dp),tint=if(selected)colors.onSecondaryContainer else colors.onSurfaceVariant)
         }
         val text=note.content.asText().text
         val matches=remember(text,query){NotesSearch.matches(text,query)}
         val start=(matches.firstOrNull()?.start?.minus(40)?:0).coerceAtLeast(0);val end=(start+200).coerceAtMost(text.length)
         val display=Regex("(?m)^\\[([ xX])\\] ").replace(text){if(it.groupValues[1]==" ")"○   " else "●   "}
-        if(text.isNotEmpty())Text(buildAnnotatedString{append(display.substring(start,end));matches.filter{it.start>=start&&it.end<=end}.forEach{addStyle(SpanStyle(background=Color.Yellow.copy(alpha=.25f)),it.start-start,it.end-start)}},maxLines=4)
-        if(note.tags.isNotEmpty())FlowRow(horizontalArrangement=Arrangement.spacedBy(6.dp),verticalArrangement=Arrangement.spacedBy(4.dp),modifier=Modifier.padding(top=8.dp)){labels.filter{it.id in note.tags}.forEach{label->Surface(shape=MaterialTheme.shapes.small,color=MaterialTheme.colorScheme.secondaryContainer.copy(alpha=.65f)){Text(label.name,Modifier.padding(horizontal=10.dp,vertical=4.dp),style=MaterialTheme.typography.labelMedium)}}}
+        if(text.isNotEmpty())Text(buildAnnotatedString{append(display.substring(start,end));matches.filter{it.start>=start&&it.end<=end}.forEach{addStyle(SpanStyle(background=colors.tertiaryContainer,color=colors.onTertiaryContainer),it.start-start,it.end-start)}},maxLines=4)
+        if(note.tags.isNotEmpty())FlowRow(horizontalArrangement=Arrangement.spacedBy(6.dp),verticalArrangement=Arrangement.spacedBy(4.dp),modifier=Modifier.padding(top=8.dp)){labels.filter{it.id in note.tags}.forEach{label->Surface(shape=MaterialTheme.shapes.small,color=colors.secondaryContainer,contentColor=colors.onSecondaryContainer){Text(label.name,Modifier.padding(horizontal=10.dp,vertical=4.dp),style=MaterialTheme.typography.labelMedium)}}}
     }}
 }
 
 @Composable internal fun NotesIconButton(onClick:()->Unit,enabled:Boolean=true,content:@Composable ()->Unit) {
     IconButton(onClick=onClick,enabled=enabled) {
-        Box(Modifier.size(40.dp).border(1.dp,Color.Gray.copy(alpha=if(enabled).55f else .25f),CircleShape),contentAlignment=Alignment.Center) {
+        Box(Modifier.size(40.dp).border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=if(enabled).55f else .25f),CircleShape),contentAlignment=Alignment.Center) {
             content()
         }
     }

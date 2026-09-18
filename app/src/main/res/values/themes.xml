@@ -8,6 +8,13 @@
         <item name="android:windowAnimationStyle">@style/LauncherReappearOnAppExit</item>
     </style>
 
+    <!-- Native text-selection controls must follow the same night mode as Notes' Compose UI. -->
+    <style name="Theme.Comfer.Notes" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowShowWallpaper">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowAnimationStyle">@style/LauncherReappearOnAppExit</item>
+    </style>
+
     <style name="LauncherReappearOnAppExit" parent="@android:style/Animation.Activity">
         <item name="android:taskCloseEnterAnimation">@null</item>
     </style>

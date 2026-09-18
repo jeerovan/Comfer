@@ -172,3 +172,43 @@ Validation includes typing/formatting below an image, reopening, undoing image r
 The initial expanded regression run caught an IME callback using pre-replacement text bounds. The callback now resolves current image boundaries and ignores stale selection-only events; focus changes no longer write old selection state back into the canvas. The existing title/body replacement-and-undo test covers this recovery path. A legacy multi-image test was corrected to scroll the lazy list to index 0 before accessing an uncomposed first editor.
 
 Final validation: all 12 affected emulator tests and 178 JVM tests passed; debug APK installed on the emulator. The rendered image-and-text layout was visually inspected. Isolated test apps were removed.
+
+## 18 September — Notes theme audit
+
+The translucent root surface did not provide an explicit content color: its alpha-adjusted background no longer matched Material's surface-to-content lookup. This let default text and icons inherit an unrelated color. The root now provides `onSurface`; tinted cards, selected cards and label chips explicitly pair their content/background roles. Label chips use the opaque secondary container to retain that pairing. Options icons, circular/group borders and search outlines follow the current theme; search matches use the tertiary container/content pair instead of fixed yellow.
+
+Named formatting colors remain stored as names, with darker light-theme and brighter dark-theme rendering selected from the active surface luminance. Editor spans and color swatches share the palette and recompose on theme changes without rewriting content. Notes has its own native AppCompat DayNight theme, preserving wallpaper, window animation and resize behavior, so native text controls also follow night mode.
+
+Evidence and attempts:
+- Current source audit covered NotesScreen, NotesCanvas, NotesEditorToolbar, NotesActivity, the app theme and manifest, including dialogs, image placeholders/previews, errors, loading/locked states and recovery feedback. Graph freshness/coverage tools were unavailable; Serena's Kotlin server failed initialization. No graph completeness claims are made.
+- Before implementation, the rendered collection-heading regression failed. A separate real-activity regression later failed because native primary text retained the light-only theme in night mode; both pass after their fixes.
+- The first expanded run caught insufficient light-mode named-text contrast over a dark wallpaper. Darkened the palette; the final checks require at least 4.5:1 against both black and white wallpaper extremes beneath the 80% surface.
+- Corrected test-harness issues: keyboard resize mode, screen-relative coordinates for dialog screenshots, merged-card text-layout lookup, theme recomposition timing, and the native test's JUnit cleanup return type. Dialog actions correctly use the theme's primary color. Native window transitions required a 350 ms settling interval for reliable screenshots.
+- Final API-24 emulator suite: **33/33 passed** (8 theme, 1 real-activity theme, 8 editor, 4 collection/editor UI, 12 interaction). Two focused production/native visual checks also passed after screenshot stabilization. Coverage includes live custom/light/dark palette switching, all note background colors, selected cards/pins, labels, disabled controls, search highlights, Bin preview/delete dialogs, error/link validation, locked/empty states, rich-text colors/links/checklists, unchanged formatting data, and image-preview controls. Existing editing, autosave, undo/redo, image backup/restore and drag checks passed alongside the new tests.
+- Final JVM suite: **178 passed, 0 failures/errors/skips**. Debug and isolated instrumentation builds passed; whitespace checks passed. Normal debug 51 / 51.0 installed in place on `emulator-5554`; Notes launch returned `Status: ok`. APK SHA-256: `0dfafa1af595b6fa6416db6b4b5361847997b296f1a35bcfb36ed31691ace757`.
+
+Logs and reviewed screenshots: `validation-artifacts/device-checkpoint/2026-09-18-notes/theme/`. Android 12+ platform dynamic-color generation, broad accessibility/RTL and physical-device acceptance were not run in this change; injected custom palettes exercise theme-role propagation on API 24. Samsung was not updated with this revision.
+
+## 18 September — coroutine cancellation shown as an autosave error
+
+`NotesViewModel.changed()` cancels the preceding autosave job when a new edit arrives; leaving the editor/backgrounding also cancels pending saves. `flush()` deliberately completes its database write in `NonCancellable + Dispatchers.IO`. Returning to a cancelled caller can then throw `CancellationException`, which its generic exception handler incorrectly converted into “Couldn't save” and the raw coroutine message. The surrounding action/observer handlers already propagated cancellation correctly.
+
+Added a cancellation-specific rethrow before the genuine save-failure handler. Atomic write protection, mutex serialization, edit-version checks and retained draft behavior remain intact; error-message string filtering is not used.
+
+Deterministic emulator regressions hold Room's writer while a save enters its atomic section, cancel the caller, and release the writer. Before the fix, **2/4 failed** with the exact “StandaloneCoroutine was cancelled” message, including an error appearing after backgrounding. After the fix, **32/32 passed**: four cancellation/failure regressions, eight editor tests, four UI/autosave tests and sixteen storage tests. Checks verify latest-edit persistence after cancellation, durable completion followed by resume, cancellation while waiting for the save mutex, and genuine size-limit failure retaining both the previous saved note and the editable buffer before a successful retry. **178 JVM tests passed**, with zero failures/errors/skips. Debug/test builds and whitespace checks passed.
+
+Normal debug APK installed in place on the API-24 emulator; Notes launch verified. SHA-256: `cefa996c557596423115ee8be89a0dfbb7bd69b6726760694a5380886ed05487`. Disposable test packages removed. Evidence: `validation-artifacts/device-checkpoint/2026-09-18-notes/cancellation/`. This reproduces the reported message through the save path, not a captured trace from the user's physical-device session; no new physical-device or release-minification test is claimed. Samsung was not updated in this revision.
+
+## 18 September — thumb-reach touch coordinates
+
+The Notes reorder grid's parent gesture recognizer compared viewport-local pointer positions directly with lazy-grid item offsets. Those item offsets exclude before-content padding, so pulling the cards down for thumb reach left their gesture targets at the old location. The same coordinate mismatch affected held-card placement, destination detection and settling.
+
+Item positions now convert to viewport coordinates using the current layout's `viewportStartOffset`. Hit testing, drag origin/target and settling share that conversion; edge-scroll zones also use the physical viewport extent. Reach behavior, pin-group boundaries and existing list/grid layout are preserved.
+
+Before the fix, all three targeted list regressions failed: a tap in the vacated top area opened the pinned note, long press affected the wrong note, and drag reserved the wrong card's height. Seven new cases use physical coordinate gestures rather than semantic clicks to exercise list/grid taps, long presses, held drag and collapse of reach space. They verify inactive old positions, the intended note's persisted color, finger alignment, full-height reservation and release into the visible slot.
+
+The first post-fix run passed 18/19; the existing options-sheet test asserted visibility before the native keyboard had finished hiding. Added a bounded visibility wait. Final **19/19 emulator interaction tests passed**, including all seven reach regressions and existing drag/cancellation/opacity/label/search/checklist checks. **178 JVM tests passed**, zero failures/errors/skips. Debug/test builds and whitespace checks passed. Reviewed held list/grid screenshots, installed the normal debug build in place on the API-24 emulator and verified Notes launch; removed disposable test packages.
+
+Evidence: `validation-artifacts/device-checkpoint/2026-09-18-notes/thumb-reach/`. No new physical-device or exhaustive off-screen edge-scroll stress verification is claimed; Samsung was not updated with this revision.
+
+Emulator delivery: the streaming install stalled; retrying with `adb install --no-streaming -r` succeeded with app data retained. Debug APK SHA-256: `da442441c7c91768e93ccb48009fc3e9639f0075d008b39c52bd4da12380bc83`.

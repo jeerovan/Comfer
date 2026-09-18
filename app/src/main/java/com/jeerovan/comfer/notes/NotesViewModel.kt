@@ -205,6 +205,10 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             }
             if(version==editVersion){status=if(updated.note.content.meaningful || current.baseRevision>=0)"Saved" else "";recovery=false}
             true
+        } catch(e: CancellationException) {
+            // A newer edit/backgrounding may cancel the caller while the atomic write completes.
+            // withContext then rethrows cancellation on return; it is not a storage failure.
+            throw e
         } catch(e: Exception) {status="Couldn't save";error=e.message ?: "Couldn't save. Retry or copy your draft.";false}
     }
     fun retry() = action { flush() }

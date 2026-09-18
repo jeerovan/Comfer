@@ -273,3 +273,25 @@ User promoted the formatting toolbar and image picker from deferred P1 scope. Ca
 - [x] Persist image positions with encrypted content; retain existing text, formatting, undo and backup behavior.
 - [x] Make older image notes editable underneath their images.
 - [x] Verify boundary edits, multiple images, formatting, reopen and backup: 12 emulator tests and 178 JVM tests passed; debug emulator build updated.
+
+## 18 September — theme consistency
+
+- [x] Audit Notes text, icons, fields, cards, labels, sheets, dialogs, image controls and native text controls.
+- [x] Reproduce root content-color and native light-only theme failures before fixing them.
+- [x] Pair surface/content colors, use themed borders/highlights and adapt named text colors without changing stored marks.
+- [x] Pass 33 API-24 emulator tests, 2 focused visual reruns and 178 JVM tests; review light/dark screenshots.
+- [x] Install the normal debug build on the emulator and verify Notes launch. Android 12+ platform dynamic colors and physical-device acceptance remain untested in this revision.
+
+## 18 September — autosave cancellation error
+
+- [x] Reproduce the reported coroutine message with controlled cancellation during the atomic save, including background/resume.
+- [x] Propagate cancellation without converting it into a save error; preserve actual failure reporting and write protection.
+- [x] Verify latest-edit persistence, cancelled mutex waiters, retained drafts and successful retry: 32 emulator tests and 178 JVM tests passed.
+- [x] Install the debug fix on the emulator and remove isolated test packages.
+
+## 18 September — thumb-reach gesture alignment
+
+- [x] Reproduce stale tap/long-press targets and incorrect dragged-card geometry after pulling the collection down.
+- [x] Convert item coordinates to the visible viewport consistently for hit testing, drag targeting, settling and edge zones.
+- [x] Verify list/grid physical taps, holds, inactive reach space, collapse and drag: all 19 interaction tests and 178 JVM tests passed.
+- [x] Review held screenshots, install the corrected debug emulator build and remove disposable test packages.

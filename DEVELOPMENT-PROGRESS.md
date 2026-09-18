@@ -7,6 +7,12 @@ this file.
 
 ## Notes — P0 test build in progress (17 September 2026)
 
+Notes thumb-reach touch fix (18 September): card hit detection and drag coordinates now include the grid's reach padding. Taps/holds follow visible cards, vacated top space is inactive, and dragging/settling uses the visible slot. Three regressions failed before the fix; all 19 final emulator interaction tests and 178 JVM tests passed. List/grid held screenshots reviewed; debug emulator updated.
+
+Notes autosave cancellation fix (18 September): reproduced “StandaloneCoroutine was cancelled” during an interrupted atomic save and after backgrounding. Autosave now propagates cancellation instead of showing it as a storage failure. All 32 cancellation/editor/UI/storage emulator tests and 178 JVM tests passed; latest edits, durable writes, resume and genuine failure recovery verified. Debug emulator updated; see the Notes validation record.
+
+Notes theme audit (18 September): paired text/icon colors explicitly with translucent and tinted surfaces, made control outlines and search highlights theme-aware, and added readable light/dark formatting colors without changing saved marks. Notes now uses a native DayNight theme for text controls. All 33 emulator theme/editor/interaction tests and 178 JVM tests passed; light/dark screenshots reviewed and debug emulator updated. Android 12+ wallpaper-derived palettes still need platform-device verification; custom palette switching was covered on API 24. See the Notes validation record.
+
 Notes image cursor fix (18 September): editable paragraphs now follow images, with at least 120 dp of writing space below the last image. Text between images, image positions, formatting and undo survive autosave/reopen and backup. Older image notes remain supported. Regression testing caught and corrected stale keyboard callbacks during text replacement/toolbar edits. All 12 affected emulator checks and 178 JVM tests passed; debug emulator updated. Physical testing remains deferred.
 
 Notes now has its own Workspace destination, durable autosave text/checklists, collection organization/search, 7-day Bin, optional module protection and app-wide backup/restore. English-only labels are approved; RTL and localized dates remain included. Comfer backup format 5 adds Notes and preserves existing Notes when older archives omit the section. Explicit Notes replacement imports rotate device keys for key-loss recovery. See [phase tracking](Plan-Notes.md) and [design, attempts and limitations](docs/notes-implementation.md).
