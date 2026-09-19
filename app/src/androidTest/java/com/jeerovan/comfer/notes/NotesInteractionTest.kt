@@ -88,9 +88,10 @@ class NotesInteractionTest {
         launch()
         compose.onNodeWithContentDescription("Notebooks and views").assertDoesNotExist()
         compose.onNodeWithContentDescription("New checklist").assertDoesNotExist()
-        val bar=compose.onNodeWithTag("notes-action-bar").fetchSemanticsNode().boundsInRoot
+        val bar=compose.onNodeWithContentDescription("Notes options").fetchSemanticsNode().boundsInRoot
         val search=compose.onNodeWithTag("notes-search-row").fetchSemanticsNode().boundsInRoot
         assertTrue(bar.bottom<=search.top)
+        compose.onNodeWithContentDescription("Search notes").performClick()
         compose.onNodeWithTag("notes-search").performTextInput("Alpha")
         compose.waitUntil(10000){compose.onAllNodesWithTag("note-b").fetchSemanticsNodes().isEmpty()}
         compose.onNodeWithTag("note-a").assertExists();compose.onNodeWithTag("note-bin").assertDoesNotExist()

@@ -164,6 +164,7 @@ class NotesThemeTest {
     @Test fun searchHighlightsUsePairedThemeColorsAndBinRemainsReadable() {
         for (night in listOf(true,false)) {
             theme(night)
+            compose.onNodeWithContentDescription("Search notes").performClick()
             compose.onNodeWithTag("notes-search").performTextReplacement("Searchable")
             compose.mainClock.advanceTimeBy(400)
             compose.waitUntil(5000) {
@@ -172,7 +173,7 @@ class NotesThemeTest {
             val span=layout(compose.onNodeWithText("Searchable body",useUnmergedTree=true)).layoutInput.text.spanStyles.single().item
             assertEquals(scheme.tertiaryContainer,span.background)
             assertEquals(scheme.onTertiaryContainer,span.color)
-            compose.onNodeWithContentDescription("Clear search").performClick()
+            compose.onNodeWithContentDescription("Close search").performClick()
             compose.runOnIdle { model.switchView("Bin") }
             compose.waitUntil(5000) { compose.onAllNodesWithText("Bin is empty").fetchSemanticsNodes().isNotEmpty() }
             rendered(compose.onNodeWithText("Bin"),scheme.onSurface)

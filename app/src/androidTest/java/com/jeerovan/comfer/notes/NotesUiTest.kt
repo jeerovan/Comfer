@@ -9,6 +9,14 @@ import org.junit.Assert.*
 
 class NotesUiTest {
     @get:Rule val compose=createAndroidComposeRule<NotesActivity>()
+    private fun keyboardVisible():Boolean {
+        var visible=false
+        compose.runOnUiThread {
+            visible=androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)
+                ?.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime())==true
+        }
+        return visible
+    }
     private fun waitForSaved(timeout:Long=10000,predicate:(Note)->Boolean) {
         val context=InstrumentationRegistry.getInstrumentation().targetContext
         compose.waitUntil(timeout){runBlocking{NotesBackup.snapshot(context).notes.any(predicate)}}
@@ -19,6 +27,37 @@ class NotesUiTest {
         compose.onNodeWithContentDescription("New note").performClick()
         compose.waitUntil(10000){compose.onAllNodesWithTag("notes-editor").fetchSemanticsNodes().isNotEmpty()}
     }
+    @Test fun searchStartsCollapsedAndCloseResetsItEvenWhenEmpty() {
+        compose.waitUntil(10000){compose.onAllNodesWithContentDescription("New note").fetchSemanticsNodes().isNotEmpty()}
+        compose.onNodeWithTag("notes-search").assertDoesNotExist()
+        compose.onNodeWithTag("notes-action-bar").assertDoesNotExist()
+        val search=compose.onNodeWithContentDescription("Search notes").fetchSemanticsNode().boundsInRoot
+        val add=compose.onNodeWithContentDescription("New note").fetchSemanticsNode().boundsInRoot
+        val options=compose.onNodeWithContentDescription("Notes options").fetchSemanticsNode().boundsInRoot
+        val title=compose.onNodeWithText("Notes",substring=false).fetchSemanticsNode().boundsInRoot
+        assertTrue(search.right<=add.left)
+        assertEquals(search.center.y,add.center.y,1f)
+        assertEquals(title.center.y,options.center.y,1f)
+        assertTrue(options.bottom<search.top)
+        repeat(2) { attempt->
+            compose.onNodeWithContentDescription("Search notes").performClick()
+            compose.onNodeWithTag("notes-search").assertIsFocused()
+            compose.onNodeWithContentDescription("New note").assertDoesNotExist()
+            if(attempt==1)compose.onNodeWithTag("notes-search").performTextInput("missing-${System.nanoTime()}")
+            compose.waitUntil(5000){keyboardVisible()}
+            compose.onNodeWithContentDescription("Close search").performClick()
+            compose.waitUntil(5000){!keyboardVisible()}
+            compose.onNodeWithTag("notes-search").assertDoesNotExist()
+            compose.onNodeWithContentDescription("New note").assertIsDisplayed()
+        }
+        compose.onNodeWithContentDescription("Search notes").performClick()
+        compose.onNodeWithTag("notes-search").assert(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.EditableText,androidx.compose.ui.text.AnnotatedString("")))
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        androidx.test.espresso.Espresso.pressBack()
+        compose.onNodeWithTag("notes-search").assertDoesNotExist()
+        compose.onNodeWithContentDescription("New note").performClick()
+        compose.onNodeWithTag("notes-editor").assertExists()
+    }
     @Test fun autosaveCollectionSearchAndEditorRoundTrip() {
         val marker="UI note ${System.nanoTime()}"
         blankEditor()
@@ -28,7 +67,8 @@ class NotesUiTest {
         waitForSaved { it.content.title==marker }
         androidx.test.espresso.Espresso.closeSoftKeyboard()
         androidx.test.espresso.Espresso.pressBack()
-        compose.waitUntil(10000){compose.onAllNodesWithTag("notes-search").fetchSemanticsNodes().isNotEmpty()}
+        compose.waitUntil(10000){compose.onAllNodesWithTag("notes-search-row").fetchSemanticsNodes().isNotEmpty()}
+        compose.onNodeWithContentDescription("Search notes").performClick()
         compose.onNodeWithTag("notes-search").performTextInput(marker)
         compose.waitUntil(10000){compose.onAllNodesWithText(marker,substring=true).fetchSemanticsNodes().size>=2}
         val context=InstrumentationRegistry.getInstrumentation().targetContext
@@ -48,7 +88,7 @@ class NotesUiTest {
         assertTrue(runBlocking{NotesBackup.snapshot(context).notes.any{it.content.text==text}})
         androidx.test.espresso.Espresso.closeSoftKeyboard()
         androidx.test.espresso.Espresso.pressBack()
-        compose.waitUntil(10000){compose.onAllNodesWithTag("notes-search").fetchSemanticsNodes().isNotEmpty()}
+        compose.waitUntil(10000){compose.onAllNodesWithTag("notes-search-row").fetchSemanticsNodes().isNotEmpty()}
     }
     @Test fun canvasSplitsTitleAndBodyAndUndoRestoresBoth() {
         blankEditor()
@@ -63,7 +103,7 @@ class NotesUiTest {
         compose.onNodeWithTag("notes-editor").assertTextContains("$marker\nBody line\nLast line")
         androidx.test.espresso.Espresso.closeSoftKeyboard()
         androidx.test.espresso.Espresso.pressBack()
-        compose.waitUntil(10000){compose.onAllNodesWithTag("notes-search").fetchSemanticsNodes().isNotEmpty()}
+        compose.waitUntil(10000){compose.onAllNodesWithTag("notes-search-row").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("note-${saved.id}").performClick()
         compose.waitUntil(10000){compose.onAllNodesWithTag("notes-editor").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("notes-editor").assertTextContains("$marker\nBody line\nLast line")

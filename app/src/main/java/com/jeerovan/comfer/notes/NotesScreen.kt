@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -35,9 +36,11 @@ import kotlinx.coroutines.*
 @Composable internal fun NotesScreen(model:NotesViewModel,close:()->Unit,unlock:((()->Unit)->Unit),locked:Boolean=false,pickImage:()->Unit={}) {
     val context=LocalContext.current
     val keyboard=LocalSoftwareKeyboardController.current
+    val view=LocalView.current
     val focusManager=LocalFocusManager.current
     LaunchedEffect(model.ready,model.collection){if(model.ready&&model.collection){focusManager.clearFocus();keyboard?.hide()}}
     var options by remember { mutableStateOf(false) }
+    var searching by rememberSaveable { mutableStateOf(false) }
     var colors by remember { mutableStateOf(false) }
     var labelTargets by remember { mutableStateOf<Set<String>?>(null) }
     var labelEdit by remember { mutableStateOf<NoteLabel?>(null) }
@@ -51,7 +54,15 @@ import kotlinx.coroutines.*
     val visible=filtered.filter{(it.deletedAt!=null)==(model.view=="Bin") && (!it.protected||NotesSession.unlocked())}
     fun targets()=model.notes.filter{it.id in model.selected && (!it.protected||NotesSession.unlocked())}
     fun labelsForSelection(){labelTargets=if(model.collection)model.selected else setOfNotNull(model.draft?.note?.id)}
-    fun back(){when{model.selected.isNotEmpty()->model.selected=emptySet();!model.collection->model.browse();model.view=="Bin"->model.switchView("Notes");else->close()}}
+    fun closeSearch(){
+        // Dismiss before removing the field and its text-input session.
+        keyboard?.hide()
+        (context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager)
+            ?.hideSoftInputFromWindow(view.windowToken,0)
+        focusManager.clearFocus(force=true)
+        searching=false;model.query="";debounced="";model.selected=emptySet()
+    }
+    fun back(){when{model.selected.isNotEmpty()->model.selected=emptySet();!model.collection->model.browse();searching->closeSearch();model.view=="Bin"->model.switchView("Notes");else->close()}}
     if(locked){Surface(Modifier.fillMaxSize()){Column(Modifier.safeDrawingPadding().padding(24.dp),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally){Text("Notes is locked");model.error?.let{Text(it,color=MaterialTheme.colorScheme.error)};Button(onClick={unlock{}}){Text("Unlock")};TextButton(onClick={context.startActivity(Intent(android.provider.Settings.ACTION_SECURITY_SETTINGS))}){Text("Device security settings")}}};return}
     BackHandler(onBack=::back)
     // A translucent color no longer matches contentColorFor(surface); provide its pair explicitly.
@@ -60,6 +71,7 @@ import kotlinx.coroutines.*
             Row(Modifier.heightIn(min=48.dp),verticalAlignment=Alignment.CenterVertically) {
                 Text(if(model.collection)model.view else "Notes",Modifier.weight(1f),style=MaterialTheme.typography.titleLarge)
                 if(model.collection&&model.view=="Bin") TextButton(onClick={purge=model.notes.filter{it.deletedAt!=null}},enabled=model.notes.any{it.deletedAt!=null}){Text("Empty")}
+                if(model.collection)IconButton(onClick={keyboard?.hide();options=true}){Icon(Icons.Outlined.MoreVert,"Notes options",tint=MaterialTheme.colorScheme.onSurfaceVariant)}
             }
             model.error?.let{Row(verticalAlignment=Alignment.CenterVertically){Text(it,Modifier.weight(1f),color=MaterialTheme.colorScheme.error);NotesIconButton(onClick={model.error=null}){Icon(Icons.Outlined.Close,"Dismiss error")}}}
             if(!model.ready) Box(Modifier.weight(1f).fillMaxWidth(),contentAlignment=Alignment.Center){CircularProgressIndicator()}
@@ -92,44 +104,45 @@ import kotlinx.coroutines.*
                 }
             }
             if(!model.collection)NotesEditorToolbar(model,onLabels={labelsForSelection()},onImage=pickImage)
-            else Row(Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("notes-action-bar").clickable{keyboard?.hide();options=true},verticalAlignment=Alignment.CenterVertically) {
-                if(model.collection) {
-                    if(model.selected.isNotEmpty()) {
-                        NotesIconButton(onClick={model.selected=emptySet()}){Icon(Icons.Outlined.Close,"Clear selection")}
-                        if(model.view=="Bin"){
-                            NotesIconButton(onClick={model.batch(targets()){it.copy(deletedAt=null)}}){Icon(Icons.Outlined.Restore,"Restore selected")}
-                            NotesIconButton(onClick={purge=targets()}){Icon(Icons.Outlined.DeleteForever,"Delete selected permanently")}
-                        } else {
-                            val allPinned=targets().all{it.pinned}
-                            NotesIconButton(onClick={model.batch(targets()){it.copy(pinned=!allPinned)}}){Icon(Icons.Outlined.PushPin,if(allPinned)"Unpin selected" else "Pin selected")}
-                            NotesIconButton(onClick={colors=true}){Icon(Icons.Outlined.Palette,"Note color")}
-                            NotesIconButton(onClick={labelsForSelection()}){Icon(Icons.Outlined.Label,"Manage labels")}
-                            NotesIconButton(onClick={model.batch(targets()){it.copy(deletedAt=System.currentTimeMillis())}}){Icon(Icons.Outlined.Delete,"Move selected to Bin")}
-                        }
-                    }
+            else if(model.selected.isNotEmpty())Row(Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("notes-action-bar"),verticalAlignment=Alignment.CenterVertically) {
+                NotesIconButton(onClick={model.selected=emptySet()}){Icon(Icons.Outlined.Close,"Clear selection")}
+                if(model.view=="Bin"){
+                    NotesIconButton(onClick={model.batch(targets()){it.copy(deletedAt=null)}}){Icon(Icons.Outlined.Restore,"Restore selected")}
+                    NotesIconButton(onClick={purge=targets()}){Icon(Icons.Outlined.DeleteForever,"Delete selected permanently")}
+                } else {
+                    val allPinned=targets().all{it.pinned}
+                    NotesIconButton(onClick={model.batch(targets()){it.copy(pinned=!allPinned)}}){Icon(Icons.Outlined.PushPin,if(allPinned)"Unpin selected" else "Pin selected")}
+                    NotesIconButton(onClick={colors=true}){Icon(Icons.Outlined.Palette,"Note color")}
+                    NotesIconButton(onClick={labelsForSelection()}){Icon(Icons.Outlined.Label,"Manage labels")}
+                    NotesIconButton(onClick={model.batch(targets()){it.copy(deletedAt=System.currentTimeMillis())}}){Icon(Icons.Outlined.Delete,"Move selected to Bin")}
                 }
-                Spacer(Modifier.weight(1f))
-                NotesIconButton(onClick={keyboard?.hide();options=true}){Icon(Icons.Outlined.MoreVert,"Notes options",tint=MaterialTheme.colorScheme.onSurfaceVariant)}
             }
             if(model.collection) Row(Modifier.fillMaxWidth().padding(bottom=8.dp).testTag("notes-search-row"),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
-                BasicTextField(
-                    value=model.query,
-                    onValueChange={model.query=it;model.selected=emptySet()},
-                    modifier=Modifier.weight(1f).heightIn(min=40.dp).testTag("notes-search")
-                        .border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=.55f),CircleShape)
-                        .padding(horizontal=16.dp,vertical=8.dp),
-                    singleLine=true,
-                    textStyle=MaterialTheme.typography.bodyMedium.copy(color=MaterialTheme.colorScheme.onSurface),
-                    cursorBrush=SolidColor(MaterialTheme.colorScheme.primary),
-                    decorationBox={innerTextField->
-                        Box(contentAlignment=Alignment.CenterStart) {
-                            if(model.query.isEmpty())Text(if(model.view=="Bin")"Search Bin" else "Search notes",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
-                            innerTextField()
-                        }
-                    },
-                )
-                if(model.query.isEmpty())NotesIconButton(onClick={model.capture()}){Icon(Icons.Outlined.Add,"New note")}
-                else NotesIconButton(onClick={model.query="";model.selected=emptySet()}){Icon(Icons.Outlined.Close,"Clear search")}
+                if(searching) {
+                    val searchFocus=remember{FocusRequester()}
+                    LaunchedEffect(Unit){searchFocus.requestFocus()}
+                    BasicTextField(
+                        value=model.query,
+                        onValueChange={model.query=it;model.selected=emptySet()},
+                        modifier=Modifier.weight(1f).heightIn(min=40.dp).testTag("notes-search").focusRequester(searchFocus)
+                            .border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=.55f),CircleShape)
+                            .padding(horizontal=16.dp,vertical=8.dp),
+                        singleLine=true,
+                        textStyle=MaterialTheme.typography.bodyMedium.copy(color=MaterialTheme.colorScheme.onSurface),
+                        cursorBrush=SolidColor(MaterialTheme.colorScheme.primary),
+                        decorationBox={innerTextField->
+                            Box(contentAlignment=Alignment.CenterStart) {
+                                if(model.query.isEmpty())Text(if(model.view=="Bin")"Search Bin" else "Search notes",style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                                innerTextField()
+                            }
+                        },
+                    )
+                    NotesIconButton(onClick=::closeSearch){Icon(Icons.Outlined.Close,"Close search")}
+                } else {
+                    Spacer(Modifier.weight(1f))
+                    NotesIconButton(onClick={searching=true}){Icon(Icons.Outlined.Search,"Search notes")}
+                    NotesIconButton(onClick={model.capture()}){Icon(Icons.Outlined.Add,"New note")}
+                }
             }
         }
     }
