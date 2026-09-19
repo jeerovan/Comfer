@@ -2,6 +2,8 @@
 package com.jeerovan.comfer.journals
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,17 +33,27 @@ internal fun JournalDateTimeDialog(value: Long, zone: String, includeTime: Boole
         val picker = rememberDatePickerState(initialSelectedDateMillis = initial.toLocalDate()
             .atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
             yearRange = minOf(1900, initial.year)..maxOf(2100, initial.year),
-            initialDisplayMode = if (compact) DisplayMode.Input else DisplayMode.Picker)
+            initialDisplayMode = DisplayMode.Picker)
+        val selectDate by rememberUpdatedState<(Long) -> Unit> { millis ->
+            val date = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
+            if (includeTime) selectedDay = date.toEpochDay()
+            else onConfirm(date.atStartOfDay(ZoneId.of(zone)).toInstant().toEpochMilli())
+        }
+        // Observe explicit selections, including tapping the already-highlighted day.
+        // Initial state creation and month navigation must not confirm a date.
+        val immediatePicker = remember(picker) {
+            object : DatePickerState by picker {
+                override var selectedDateMillis: Long?
+                    get() = picker.selectedDateMillis
+                    set(value) {
+                        picker.selectedDateMillis = value
+                        value?.let { selectDate(it) }
+                    }
+            }
+        }
         DatePickerDialog(onDismissRequest = onDismiss, modifier = Modifier.testTag("journal-date-dialog"),
-            confirmButton = { IconButton(enabled = picker.selectedDateMillis != null, onClick = {
-                picker.selectedDateMillis?.let { millis ->
-                    val date = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
-                    if (includeTime) selectedDay = date.toEpochDay()
-                    else onConfirm(date.atStartOfDay(ZoneId.of(zone)).toInstant().toEpochMilli())
-                }
-            }) { Icon(Icons.Outlined.Check, stringResource(R.string.journal_save)) } },
-            dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.journal_cancel)) } }) {
-            DatePicker(picker, showModeToggle = !compact)
+            confirmButton = {}) {
+            DatePicker(immediatePicker, modifier = Modifier.verticalScroll(rememberScrollState()), showModeToggle = false)
         }
     } else {
         val time = rememberTimePickerState(initial.hour, initial.minute,

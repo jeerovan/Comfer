@@ -61,11 +61,19 @@ class JournalGuideUiTest {
         compose.waitUntil(10000) { model.editing.value != null }
         compose.onNodeWithContentDescription("Cancel").performClick()
         compose.onNodeWithTag("journal-guide-delete").assertIsDisplayed()
-        compose.onNodeWithText("Guide entry").performTouchInput { swipe(center, center.copy(x = center.x - 30f), 300) }
-        compose.onNodeWithTag("journal-guide-delete").assertIsDisplayed()
+        val smallDrag = 32f * context.resources.displayMetrics.density
+        compose.onNodeWithText("Guide entry").performTouchInput {
+            down(center)
+            moveBy(androidx.compose.ui.geometry.Offset(-smallDrag, 0f), 300)
+        }
+        compose.onNodeWithTag("journal-guide-delete").assertDoesNotExist()
+        assertNull(runBlocking { model.store.dao.exportEntries().single().deletedAt })
+        compose.onNodeWithText("Guide entry").performTouchInput { up() }
+        assertNull(runBlocking { model.store.dao.exportEntries().single().deletedAt })
         compose.mainClock.advanceTimeBy(10000)
         reopen()
-        compose.onNodeWithTag("journal-guide-delete").assertIsDisplayed()
+        compose.onNodeWithTag("journal-guide-delete").assertDoesNotExist()
+        compose.onNodeWithTag("journal-guide-date").assertIsDisplayed()
         compose.onNodeWithText("Guide entry").performTouchInput { swipeLeft() }
         compose.waitUntil(10000) { runBlocking { model.store.dao.exportEntries().single().deletedAt != null } }
         compose.onNodeWithTag("journal-guide-date").assertIsDisplayed()

@@ -65,6 +65,7 @@ import com.jeerovan.comfer.ui.rememberThumbReach
 import com.jeerovan.comfer.ui.theme.ComferTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -353,9 +354,16 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                                     value == SwipeToDismissBoxValue.Settled || canDelete
                                 })
                             }
+                            LaunchedEffect(dismiss, guides.current, canDelete) {
+                                if (canDelete && guides.current == JournalGuide.DELETE) {
+                                    snapshotFlow { dismiss.dismissDirection }
+                                        .first { it != SwipeToDismissBoxValue.Settled }
+                                    guides.performed(JournalGuide.DELETE)
+                                }
+                            }
                             LaunchedEffect(dismiss, dismiss.settledValue) {
                                 if (dismiss.settledValue != SwipeToDismissBoxValue.Settled) {
-                                    model.delete(currentEntry, done = { undo = it; guides.performed(JournalGuide.DELETE) }, failed = { scope.launch { dismiss.reset() } })
+                                    model.delete(currentEntry, done = { undo = it }, failed = { scope.launch { dismiss.reset() } })
                                 }
                             }
                             SwipeToDismissBox(state = dismiss, modifier = Modifier.clipToBounds(), enableDismissFromStartToEnd = editing == null && !capturing, enableDismissFromEndToStart = editing == null && !capturing,

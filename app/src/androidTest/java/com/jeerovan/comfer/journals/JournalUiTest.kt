@@ -90,7 +90,7 @@ class JournalUiTest {
         compose.onNodeWithText("Searchable edited").assertExists()
         compose.onNodeWithTag("journal-time-${entry.id}").performClick()
         compose.onNodeWithTag("journal-date-dialog").assertIsDisplayed()
-        compose.onNodeWithContentDescription("Save").performClick()
+        compose.onNode(isSelected() and hasClickAction()).performScrollTo().performClick()
         compose.onNodeWithTag("journal-time-dialog").assertIsDisplayed()
         compose.onNodeWithContentDescription("Save").performClick()
         compose.waitUntil(10000) { model.editing.value != null }
@@ -296,7 +296,7 @@ class JournalUiTest {
         assertRenderedColor(compose.onNodeWithTag("journal-date"), Color.Blue)
         compose.onNodeWithTag("journal-date").performClick()
         compose.onNodeWithTag("journal-date-dialog").assertIsDisplayed()
-        compose.onNodeWithText("Cancel").performClick()
+        androidx.test.espresso.Espresso.pressBack()
 
     }
 
@@ -308,7 +308,7 @@ class JournalUiTest {
         val original = runBlocking { model.store.dao.exportEntries().single() }
         compose.onNodeWithTag("journal-time-${original.id}").performClick()
         compose.onNodeWithTag("journal-date-dialog").assertIsDisplayed()
-        compose.onNodeWithContentDescription("Save").performClick()
+        compose.onNode(isSelected() and hasClickAction()).performScrollTo().performClick()
         compose.onNodeWithTag("journal-time-dialog").assertIsDisplayed()
         compose.onNodeWithText("Cancel").performClick()
         assertNull(model.editing.value)
