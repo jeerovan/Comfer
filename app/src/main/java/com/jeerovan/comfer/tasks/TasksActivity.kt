@@ -18,6 +18,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.zIndex
@@ -50,7 +57,16 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.semantics.semantics
@@ -112,6 +128,9 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
     var route by rememberSaveable { mutableStateOf("browse") }
     var view by rememberSaveable { mutableStateOf(if(initialStarred) "starred" else "selected") }
     var searching by rememberSaveable { mutableStateOf(false) }
+    val keyboard=LocalSoftwareKeyboardController.current
+    val focusManager=LocalFocusManager.current
+    val inputView=LocalView.current
     var includeCompleted by rememberSaveable { mutableStateOf(false) }
     var completedExpanded by rememberSaveable { mutableStateOf(false) }
     var sheet by rememberSaveable { mutableStateOf<String?>(null) }
@@ -182,9 +201,16 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
         } catch (e: Exception) { error = e.localizedMessage }
     }
     LaunchedEffect(error) { error?.let { snackbar.showSnackbar(context.getString(R.string.tasks_error, it)); error = null } }
+    fun closeSearch() {
+        keyboard?.hide()
+        (context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager)
+            ?.hideSoftInputFromWindow(inputView.windowToken,0)
+        focusManager.clearFocus(force=true)
+        searching=false;query=""
+    }
     fun back() {
         route = when (route) {
-            "browse" -> { if(searching) { searching = false; query = "" } else onFinish(); "browse" }
+            "browse" -> { if(searching) closeSearch() else onFinish(); "browse" }
             "edit" -> { confirmation = "discard"; "edit" }
             "listActions" -> "browse"
             "reorderLists" -> "manage"
@@ -383,7 +409,11 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                         scope.launch { try { TaskStore.undo(context, token); pendingFocusId = token.before.tasks.firstOrNull { old -> token.after.tasks.none { it == old } }?.id; undo = null } catch(e: Exception) { error = e.localizedMessage } finally { busy = false } }
                     }) { Text(stringResource(R.string.tasks_undo)) }
                 }
-                if(searching) {
+                AnimatedVisibility(
+                    visible=searching,
+                    enter=expandVertically(tween(220))+fadeIn(tween(160)),
+                    exit=shrinkVertically(tween(220))+fadeOut(tween(120)),
+                ) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                         val includeLabel = stringResource(R.string.tasks_include_completed)
                         Text(includeLabel, Modifier.weight(1f))
@@ -391,13 +421,42 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                             Switch(includeCompleted, null, Modifier.graphicsLayer { scaleX = 0.7f; scaleY = 0.7f })
                         }
                     }
-                    OutlinedTextField(query, { query = it }, placeholder = { Text(stringResource(R.string.tasks_search)) }, trailingIcon = if(query.isNotEmpty()) {{ IconButton(onClick = { query = "" }) { Icon(Icons.Outlined.Close, stringResource(R.string.tasks_clear_search)) } }} else null, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).testTag("tasks-search-input"))
                 }
-                Row(Modifier.fillMaxWidth().onSizeChanged { controlsHeight = it.height }.padding(8.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    IconToggleButton(checked = searching, onCheckedChange = { searching = it; if(!it) query = "" }) { Icon(Icons.Outlined.Search, stringResource(R.string.tasks_search)) }
-                    IconToggleButton(checked = view == "starred", onCheckedChange = { view = if(it) "starred" else "selected"; searching = false }) { Icon(if(view == "starred") Icons.Filled.Star else Icons.Outlined.StarBorder, stringResource(R.string.tasks_star)) }
-                    IconButton(onClick = { add() }, enabled = !busy) { Icon(Icons.Outlined.Add, stringResource(R.string.tasks_add)) }
-                    IconButton(onClick = { sheet = "choose" }, modifier = Modifier.testTag("tasks-list-picker")) { Icon(Icons.Outlined.Menu, stringResource(R.string.tasks_choose_list)) }
+                AnimatedContent(
+                    targetState=searching,
+                    modifier=Modifier.fillMaxWidth(),
+                    transitionSpec={
+                        (fadeIn(tween(180))+expandHorizontally(tween(220),expandFrom=Alignment.Start)) togetherWith
+                            (fadeOut(tween(120))+shrinkHorizontally(tween(220),shrinkTowards=Alignment.Start))
+                    },
+                    label="tasks-search-mode",
+                ) { searchMode ->
+                    Row(Modifier.fillMaxWidth().testTag("tasks-bottom-actions").onSizeChanged { controlsHeight = it.height }.padding(8.dp), horizontalArrangement = if(searchMode) Arrangement.spacedBy(8.dp) else Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                        if(searchMode) {
+                            val searchFocus=remember{FocusRequester()}
+                            LaunchedEffect(searching){if(searching)searchFocus.requestFocus()}
+                            BasicTextField(
+                                value=query,onValueChange={query=it},singleLine=true,enabled=searching,
+                                modifier=Modifier.weight(1f).heightIn(min=40.dp).testTag("tasks-search-input").focusRequester(searchFocus)
+                                    .border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=.55f),CircleShape)
+                                    .padding(horizontal=16.dp,vertical=8.dp),
+                                textStyle=MaterialTheme.typography.bodyMedium.copy(color=MaterialTheme.colorScheme.onSurface),
+                                cursorBrush=SolidColor(MaterialTheme.colorScheme.primary),
+                                decorationBox={innerTextField->
+                                    Box(contentAlignment=Alignment.CenterStart) {
+                                        if(query.isEmpty())Text(stringResource(R.string.tasks_search),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                                        innerTextField()
+                                    }
+                                },
+                            )
+                            IconButton(onClick=::closeSearch,enabled=searching){Icon(Icons.Outlined.Close,stringResource(R.string.tasks_close_search))}
+                        } else {
+                            IconButton(onClick = { searching = true }, enabled = !searching) { Icon(Icons.Outlined.Search, stringResource(R.string.tasks_search)) }
+                            IconToggleButton(enabled = !searching, checked = view == "starred", onCheckedChange = { view = if(it) "starred" else "selected"; searching = false }) { Icon(if(view == "starred") Icons.Filled.Star else Icons.Outlined.StarBorder, stringResource(R.string.tasks_star)) }
+                            IconButton(onClick = { add() }, enabled = !busy && !searching) { Icon(Icons.Outlined.Add, stringResource(R.string.tasks_add)) }
+                            IconButton(onClick = { sheet = "choose" }, enabled = !searching, modifier = Modifier.testTag("tasks-list-picker")) { Icon(Icons.Outlined.Menu, stringResource(R.string.tasks_choose_list)) }
+                        }
+                    }
                 }
             } else {
                 BoxWithConstraints(Modifier.weight(1f)) {

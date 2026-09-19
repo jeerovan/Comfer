@@ -118,6 +118,7 @@
     <string name="tasks_due_date">Reminder Date</string>
     <string name="tasks_include_completed">Include completed</string>
     <string name="tasks_clear_search">Clear search</string>
+    <string name="tasks_close_search">Close search</string>
     <string name="tasks_find_list">Find list</string>
     <string name="tasks_views">Views</string>
     <string name="tasks_moved">Moved to %1$s</string>

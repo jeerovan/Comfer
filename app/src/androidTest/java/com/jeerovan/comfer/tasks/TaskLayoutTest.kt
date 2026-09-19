@@ -44,6 +44,42 @@ class TaskLayoutTest {
         compose.onNodeWithText("Item 80").assertIsDisplayed()
         compose.onNodeWithContentDescription("Add").assertIsDisplayed()
     }
+    @Test fun searchReplacesBottomActionsAndCloseRestoresThem() {
+        val context=InstrumentationRegistry.getInstrumentation().targetContext
+        runBlocking { check(context.packageName.endsWith(".notificationtest")); StartupCoordinator.awaitReady(); TaskStore.exclusive(context) {
+            TaskStore.write(context,TaskSnapshot(tasks=listOf(TaskItem(id="search",listId="tasks",title="Search fixture")),preferences=TaskPreferences(guidanceDismissed=true)))
+        } }
+        compose.setContent { MaterialTheme { TasksScreen({}) } }
+        compose.waitUntil(10000){compose.onAllNodesWithContentDescription("Add").fetchSemanticsNodes().isNotEmpty()}
+        repeat(2) { attempt->
+            compose.onNodeWithContentDescription("Search tasks").performClick()
+            compose.onNodeWithTag("tasks-search-input").assertIsFocused()
+            compose.onNodeWithContentDescription("Add").assertDoesNotExist()
+            compose.onNode(hasContentDescription("Star") and hasAnyAncestor(hasTestTag("tasks-bottom-actions"))).assertDoesNotExist()
+            compose.onNodeWithContentDescription("Search tasks").assertDoesNotExist()
+            compose.onNodeWithTag("tasks-list-picker").assertDoesNotExist()
+            val include=compose.onNodeWithContentDescription("Include completed").fetchSemanticsNode().boundsInRoot
+            val input=compose.onNodeWithTag("tasks-search-input").fetchSemanticsNode().boundsInRoot
+            assertTrue(include.bottom<=input.top)
+            if(attempt==1) {
+                compose.onNodeWithTag("tasks-search-input").performTextInput("No matching task")
+                compose.onNodeWithText("Search fixture").assertDoesNotExist()
+            }
+            compose.onNodeWithContentDescription("Close search").performClick()
+            compose.onNodeWithTag("tasks-search-input").assertDoesNotExist()
+            compose.onNodeWithContentDescription("Include completed").assertDoesNotExist()
+            compose.onNodeWithContentDescription("Search tasks").assertIsDisplayed()
+            compose.onNodeWithContentDescription("Add").assertIsDisplayed()
+            compose.onNode(hasContentDescription("Star") and hasAnyAncestor(hasTestTag("tasks-bottom-actions"))).assertIsDisplayed()
+            compose.onNodeWithTag("tasks-list-picker").assertIsDisplayed()
+            compose.onNodeWithText("Search fixture").assertExists()
+        }
+        compose.onNodeWithContentDescription("Search tasks").performClick()
+        compose.onNodeWithTag("tasks-search-input").assert(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.EditableText,androidx.compose.ui.text.AnnotatedString("")))
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        androidx.test.espresso.Espresso.pressBack()
+        compose.onNodeWithContentDescription("Add").assertIsDisplayed()
+    }
     @Test fun optionsSheetCombinesSortAndPersistentSettings() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         runBlocking { check(context.packageName.endsWith(".notificationtest")); StartupCoordinator.awaitReady(); TaskStore.exclusive(context) { TaskStore.write(context, TaskSnapshot()) } }
