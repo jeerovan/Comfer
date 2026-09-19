@@ -55,6 +55,7 @@
     <string name="tasks_no_match">No matching tasks</string>
     <string name="tasks_search">Search tasks</string>
     <string name="tasks_sort">Sort</string>
+    <string name="tasks_options">Task options</string>
     <string name="tasks_manual">Manual order</string>
     <string name="tasks_date">Due date</string>
     <string name="tasks_alphabetical">Alphabetical</string>
@@ -70,7 +71,7 @@
     <string name="tasks_reparent">Choose parent</string>
     <string name="tasks_children">Subtasks: %1$d of %2$d complete</string>
     <string name="tasks_complete_children">Complete this task and its unfinished subtasks?</string>
-    <string name="tasks_clear_completed">Clear completed</string>
+    <string name="tasks_clear_completed">Clear</string>
     <string name="tasks_clear_review">Delete completed tasks in this view? Unfinished tasks and recurring schedules are kept.</string>
     <string name="tasks_up">Move up</string>
     <string name="tasks_down">Move down</string>

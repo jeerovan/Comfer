@@ -187,7 +187,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
             "browse" -> { if(searching) { searching = false; query = "" } else onFinish(); "browse" }
             "edit" -> { confirmation = "discard"; "edit" }
             "listActions" -> "browse"
-            "reorderLists" -> "preferences"
+            "reorderLists" -> "manage"
             "listName" -> if(listId.isEmpty()) { sheet = "choose"; "browse" } else "listActions"
             "destination" -> if(deletingList) "deleteList" else "listActions"
             "deleteList" -> "listActions"
@@ -216,8 +216,8 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
     } }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface.copy(alpha = .8f), contentColor = MaterialTheme.colorScheme.onSurface, tonalElevation = 0.dp) {
         Column(Modifier.safeDrawingPadding().imePadding().fillMaxSize()) {
-            if(route != "browse" && route != "preferences") Text(stringResource(when(route) {
-                "edit" -> R.string.tasks_details; "manage", "listActions" -> R.string.tasks_manage; "preferences" -> R.string.tasks_preferences
+            if(route != "browse") Text(stringResource(when(route) {
+                "edit" -> R.string.tasks_details; "manage", "listActions" -> R.string.tasks_manage
                 "listName" -> if(listId.isEmpty()) R.string.tasks_new_list else R.string.tasks_rename
                 "destination" -> R.string.tasks_move_to; "reviewMove" -> R.string.tasks_move; "deleteList" -> R.string.tasks_delete_list
                 "reorderLists" -> R.string.tasks_manual; else -> R.string.tasks_title
@@ -228,6 +228,26 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                     TaskEditor(taskJson.decodeFromString(draft!!), state, busy, onCancel = { confirmation = "discard" }, onClose = { draft = null; route = "browse" }, onDraft = { draft = taskJson.encodeToString(it) }, onSave = { item, repeat, future -> mutate("browse", success = { draft = null }) { it.saveTask(item, repeat, future) } })
                 }
             } else if (route == "browse") {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp).heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.weight(1f)) {
+                    Box(Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp), contentAlignment = Alignment.CenterStart) {
+                    Text(if(searching) stringResource(R.string.tasks_search) else when(view) {
+                        "starred" -> stringResource(R.string.tasks_starred); "all" -> stringResource(R.string.tasks_all)
+                        "today" -> stringResource(R.string.tasks_today); "upcoming" -> stringResource(R.string.tasks_upcoming)
+                        "overdue" -> stringResource(R.string.tasks_overdue); else -> selected.name
+                    }, Modifier.widthIn(min = 48.dp).testTag("tasks-heading").then(if(!searching && view == "selected") Modifier.clickable {
+                        listId = selected.id; listName = selected.name; sheet = "listActions"
+                        if(!state.preferences.listGuideShown) mutate { it.copy(preferences = it.preferences.copy(listGuideShown = true)) }
+                    } else Modifier), style = MaterialTheme.typography.headlineSmall)
+                    if(!searching && view == "selected" && sheet == null && !state.preferences.listGuideShown) {
+                        TaskGestureGuide(TaskGuide.LIST, 0f, Modifier.align(Alignment.Center)) {
+                            scope.launch { runCatching { TaskStore.change(context) { it.copy(preferences = it.preferences.copy(listGuideShown = true)) } }.onFailure { snackbar.showSnackbar(it.localizedMessage ?: "Could not save guide progress") } }
+                        }
+                    }
+                    }
+                    }
+                    IconButton(onClick = { sheet = "sort" }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.tasks_options)) }
+                }
                 BoxWithConstraints(Modifier.weight(1f)) {
                     val cardMaxHeight = maxHeight
                     val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
@@ -238,32 +258,12 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                         val reach = rememberThumbReach(top)
                         val reachTop = with(LocalDensity.current) { reach.offset.toDp() }
                         LazyColumn(Modifier.fillMaxSize().nestedScroll(reach).testTag("tasks-list"), state = scroll, contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = reachTop, bottom = 12.dp)) {
-                            item { Row(verticalAlignment = Alignment.CenterVertically) {
-                                Box(Modifier.weight(1f)) {
-                                Box(Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp), contentAlignment = Alignment.CenterStart) {
-                                Text(if(searching) stringResource(R.string.tasks_search) else when(view) {
-                                    "starred" -> stringResource(R.string.tasks_starred); "all" -> stringResource(R.string.tasks_all)
-                                    "today" -> stringResource(R.string.tasks_today); "upcoming" -> stringResource(R.string.tasks_upcoming)
-                                    "overdue" -> stringResource(R.string.tasks_overdue); else -> selected.name
-                                }, Modifier.widthIn(min = 48.dp).testTag("tasks-heading").then(if(!searching && view == "selected") Modifier.clickable {
-                                    listId = selected.id; listName = selected.name; sheet = "listActions"
-                                    if(!state.preferences.listGuideShown) mutate { it.copy(preferences = it.preferences.copy(listGuideShown = true)) }
-                                } else Modifier), style = MaterialTheme.typography.headlineSmall)
-                                if(!searching && view == "selected" && sheet == null && !state.preferences.listGuideShown) {
-                                    TaskGestureGuide(TaskGuide.LIST, 0f, Modifier.align(Alignment.Center)) {
-                                        scope.launch { runCatching { TaskStore.change(context) { it.copy(preferences = it.preferences.copy(listGuideShown = true)) } }.onFailure { snackbar.showSnackbar(it.localizedMessage ?: "Could not save guide progress") } }
-                                    }
-                                }
-                                }
-                                }
-                                IconButton(onClick = { sheet = "sort" }) { Icon(Icons.Outlined.Sort, stringResource(R.string.tasks_sort)) }
-                            } }
                             if (visible.isEmpty()) item { Text(stringResource(if(query.isNotBlank()) R.string.tasks_no_match else if(view == "starred") R.string.tasks_empty_starred else R.string.tasks_empty), Modifier.padding(vertical = 32.dp)) }
                             val roots = visible.filter { it.parentId == null || visible.none { parent -> parent.id == it.parentId } }
                             val orderedRows = roots.flatMap { root -> listOf(root) + if(root.id in expanded || query.isNotBlank()) visible.filter { it.parentId == root.id } else emptyList() }
                             val displayed = orderedRows.filter { it.completedAt == null || it.id in completingIds }
                             if(displayed.isNotEmpty()) item {
-                                Card(Modifier.fillMaxWidth().testTag("tasks-incomplete-card"), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
+                                Card(Modifier.fillMaxWidth().testTag("tasks-incomplete-card"), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f), contentColor = MaterialTheme.colorScheme.onSurface)) {
                                     val cardScroll = rememberLazyListState()
                                     var preview by remember { mutableStateOf<TaskDragPreview?>(null) }
                                     LaunchedEffect(state.tasks) { preview = null }
@@ -322,7 +322,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                                     }
                                 }
                             }
-                            if(visible.any { it.completedAt != null }) item { Card(Modifier.fillMaxWidth().padding(top = 12.dp).testTag("tasks-completed-card"), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
+                            if(visible.any { it.completedAt != null }) item { Card(Modifier.fillMaxWidth().padding(top = 12.dp).testTag("tasks-completed-card"), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f), contentColor = MaterialTheme.colorScheme.onSurface)) {
                                 TextButton(onClick = { completedExpanded = !completedExpanded }, modifier = Modifier.fillMaxWidth().testTag("tasks-completed-toggle")) {
                                     Text(stringResource(R.string.tasks_completed) + " · " + visible.count { it.completedAt != null }, Modifier.weight(1f))
                                     Icon(if(completedExpanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, null)
@@ -398,17 +398,10 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                     IconToggleButton(checked = view == "starred", onCheckedChange = { view = if(it) "starred" else "selected"; searching = false }) { Icon(if(view == "starred") Icons.Filled.Star else Icons.Outlined.StarBorder, stringResource(R.string.tasks_star)) }
                     IconButton(onClick = { add() }, enabled = !busy) { Icon(Icons.Outlined.Add, stringResource(R.string.tasks_add)) }
                     IconButton(onClick = { sheet = "choose" }, modifier = Modifier.testTag("tasks-list-picker")) { Icon(Icons.Outlined.Menu, stringResource(R.string.tasks_choose_list)) }
-                    IconButton(onClick = { route = "preferences" }) { Icon(Icons.Outlined.Settings, stringResource(R.string.tasks_preferences)) }
                 }
             } else {
                 BoxWithConstraints(Modifier.weight(1f)) {
-                val landscape = LocalConfiguration.current.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-                val bottom = with(LocalDensity.current) { controlsHeight.toDp().value }
-                val reachPadding = if(route != "preferences" || landscape) 0.dp else (maxHeight.value + bottom - reachableHeightDp(maxHeight.value + bottom)).coerceAtLeast(0f).dp
-                val reach = rememberThumbReach(reachPadding)
-                val reachTop = with(LocalDensity.current) { reach.offset.toDp() }
-                Column(Modifier.fillMaxSize().nestedScroll(reach).testTag("tasks-settings-scroll").verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, top = reachTop, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if(route == "preferences") Text(stringResource(R.string.tasks_preferences), Modifier.testTag("tasks-settings-heading"), style = MaterialTheme.typography.titleLarge)
+                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     when (route) {
                         "choose" -> {
                             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { state.lists.sortedBy { it.position }.forEach { list -> FilterChip(selected = list.id == selected.id, onClick = { view = "selected"; mutate("browse") { it.copy(preferences = it.preferences.copy(selectedList = list.id)) } }, leadingIcon = if(list.id == selected.id) {{ Icon(Icons.Outlined.Check, null) }} else null, label = { Text(list.name) }) } }
@@ -456,31 +449,18 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                                 Icon(Icons.Outlined.DragHandle, stringResource(R.string.tasks_reorder), Modifier.size(48.dp).pointerInput(listOrder) { detectDragGesturesAfterLongPress(onDragEnd = { move(with(density) { (drag / 48.dp.toPx()).toInt() }); drag = 0f }, onDragCancel = { drag = 0f }) { change, amount -> change.consume(); drag += amount.y } })
                             }
                           }
-                          Button(enabled = !busy, onClick = { mutate("preferences") { s -> require(s.lists.map { it.id }.toSet() == listOrder.toSet()) { "Lists changed; reopen ordering" }; s.copy(lists = listOrder.mapIndexed { i, id -> s.lists.first { it.id == id }.copy(position = i) }) } }) { Text(stringResource(R.string.tasks_save)) }
+                          Button(enabled = !busy, onClick = { mutate("browse", success = { sheet = "sort" }) { s -> require(s.lists.map { it.id }.toSet() == listOrder.toSet()) { "Lists changed; reopen ordering" }; s.copy(lists = listOrder.mapIndexed { i, id -> s.lists.first { it.id == id }.copy(position = i) }) } }) { Text(stringResource(R.string.tasks_save)) }
                         }
                         "sort" -> listOf("manual" to R.string.tasks_manual, "date" to R.string.tasks_date, "alphabetical" to R.string.tasks_alphabetical).forEach { (sort, label) -> Action(label) { mutate("browse") { it.copy(preferences = it.preferences.copy(sort = sort)) } } }
-                        "preferences" -> {
-                            ReminderPermissions()
-                            PreferenceToggle(R.string.tasks_date_reminders, state.preferences.dateOnlyReminders, compact = true) { value -> mutate { it.copy(preferences = it.preferences.copy(dateOnlyReminders = value)) } }
-                            Action(R.string.tasks_default_time) { pickTime(context, state.preferences.defaultMinute) { minute -> mutate { it.copy(preferences = it.preferences.copy(defaultMinute = minute)) } } }
-                            Text(timeLabel(state.preferences.defaultMinute))
-                            PreferenceToggle(R.string.tasks_private, state.preferences.privateNotifications, compact = true) { value -> mutate { it.copy(preferences = it.preferences.copy(privateNotifications = value)) } }
-                        }
+
                     }
                 }
             }
             }
-            if(route == "preferences") Row(Modifier.fillMaxWidth().onSizeChanged { controlsHeight = it.height }.padding(8.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-                IconButton(onClick = { searching = true; route = "browse" }) { Icon(Icons.Outlined.Search, stringResource(R.string.tasks_search)) }
-                IconButton(onClick = { view = "starred"; searching = false; route = "browse" }) { Icon(Icons.Outlined.StarBorder, stringResource(R.string.tasks_star)) }
-                IconButton(onClick = { add() }) { Icon(Icons.Outlined.Add, stringResource(R.string.tasks_add)) }
-                IconButton(onClick = { route = "browse"; sheet = "choose" }) { Icon(Icons.Outlined.Menu, stringResource(R.string.tasks_choose_list)) }
-                IconToggleButton(checked = true, onCheckedChange = { route = "browse" }) { Icon(Icons.Filled.Settings, stringResource(R.string.tasks_preferences)) }
-            }
             SnackbarHost(snackbar)
         }
     }
-    if(sheet != null) ModalBottomSheet(onDismissRequest = { sheet = null; moveTaskId = null }) {
+    if(sheet != null) ModalBottomSheet(onDismissRequest = { sheet = null; moveTaskId = null }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = sheet == "sort")) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(if(sheet == "listActions") (if(listId.isEmpty()) R.string.tasks_add_list else R.string.tasks_rename) else if(sheet == "sort") R.string.tasks_sort else if(sheet == "move") R.string.tasks_move_to_list else R.string.tasks_choose_list), style = MaterialTheme.typography.titleLarge)
             if(sheet == "listActions") {
@@ -505,9 +485,20 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                 }
                 if(listId.isNotEmpty() && state.lists.size == 1) Text(stringResource(R.string.tasks_keep_list))
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-            } else if(sheet == "sort") FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { listOf("manual" to R.string.tasks_my_order, "date" to R.string.tasks_due_date, "starred" to R.string.tasks_starred, "alphabetical" to R.string.tasks_task_title).forEach { (value, label) ->
-                FilterChip(selected = state.preferences.sort == value, onClick = { mutate { it.copy(preferences = it.preferences.copy(sort = value)) }; sheet = null }, label = { Text(stringResource(label)) })
-            } } else {
+            } else if(sheet == "sort") {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    listOf("manual" to R.string.tasks_my_order, "date" to R.string.tasks_due_date, "starred" to R.string.tasks_starred, "alphabetical" to R.string.tasks_task_title).forEach { (value, label) ->
+                        FilterChip(selected = state.preferences.sort == value, onClick = { mutate { it.copy(preferences = it.preferences.copy(sort = value)) }; sheet = null }, label = { Text(stringResource(label)) })
+                    }
+                }
+                HorizontalDivider()
+                Text(stringResource(R.string.tasks_preferences), Modifier.testTag("tasks-settings-heading"), style = MaterialTheme.typography.titleMedium)
+                ReminderPermissions()
+                PreferenceToggle(R.string.tasks_date_reminders, state.preferences.dateOnlyReminders, compact = true) { value -> mutate { it.copy(preferences = it.preferences.copy(dateOnlyReminders = value)) } }
+                Action(R.string.tasks_default_time) { pickTime(context, state.preferences.defaultMinute) { minute -> mutate { it.copy(preferences = it.preferences.copy(defaultMinute = minute)) } } }
+                Text(timeLabel(state.preferences.defaultMinute))
+                PreferenceToggle(R.string.tasks_private, state.preferences.privateNotifications, compact = true) { value -> mutate { it.copy(preferences = it.preferences.copy(privateNotifications = value)) } }
+            } else {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { state.lists.sortedBy { it.position }.forEach { list ->
                     FilterChip(selected = list.id == selected.id, onClick = {
                         if(sheet == "move") {
@@ -662,7 +653,8 @@ internal fun reorderTask(state: TaskSnapshot, id: String, delta: Int): TaskSnaps
                 }
             }
         },
-        shape = rowShape, shadowElevation = if(holding) 8.dp else 0.dp, color = if (drag == 0f && !holding) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.secondaryContainer) {
+        shape = rowShape, shadowElevation = if(holding) 8.dp else 0.dp, color = if (drag == 0f && !holding) androidx.compose.ui.graphics.Color.Transparent else MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = if(drag == 0f && !holding) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSecondaryContainer) {
         Row(Modifier.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onComplete) { Icon(if(item.completedAt != null) Icons.Outlined.CheckCircle else Icons.Outlined.RadioButtonUnchecked, completeLabel) }
             Column(Modifier.weight(1f).padding(vertical = 8.dp)) {

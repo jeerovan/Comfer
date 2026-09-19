@@ -102,13 +102,13 @@ class TaskRedesignTest {
     @Test fun sortUsesDueDateNotSnoozeAndPreservesManualOrder() {
         val today = java.time.LocalDate.now().toEpochDay()
         show(listOf(TaskItem(id = "late", listId = "tasks", title = "Later", day = today + 2, snoozedUntil = 1, starred = true, position = 0), TaskItem(id = "soon", listId = "tasks", title = "Sooner", day = today + 1, snoozedUntil = Long.MAX_VALUE, position = 1)))
-        compose.onNodeWithContentDescription("Sort").performClick()
+        compose.onNodeWithContentDescription("Task options").performClick()
         compose.onNodeWithText("Reminder Date").performClick()
         compose.waitUntil(10000) { TaskStore.state.value.preferences.sort == "date" }
         compose.onNodeWithTag("tasks-incomplete-list").performScrollToNode(hasText("Sooner"))
         assertTrue(compose.onNodeWithText("Sooner").fetchSemanticsNode().boundsInRoot.top < compose.onNodeWithText("Later").fetchSemanticsNode().boundsInRoot.top)
         compose.onNodeWithTag("tasks-list").performScrollToIndex(0)
-        compose.onNodeWithContentDescription("Sort").performClick()
+        compose.onNodeWithContentDescription("Task options").performClick()
         compose.onNodeWithText("Starred").performClick()
         compose.waitUntil(10000) { TaskStore.state.value.preferences.sort == "starred" }
         assertEquals(listOf("late", "soon"), TaskStore.state.value.tasks.sortedBy { it.position }.map { it.id })
@@ -248,7 +248,7 @@ class TaskRedesignTest {
         compose.onNodeWithContentDescription("Done").performClick()
         compose.onNodeWithContentDescription("Cancel").performClick()
         compose.onNodeWithText("Discard").performClick()
-        compose.onNodeWithContentDescription("Task preferences").performClick()
+        compose.onNodeWithContentDescription("Task options").performClick()
         compose.onNodeWithText("Manual order").assertDoesNotExist()
         compose.onNodeWithText("Show Tasks panel on home").assertDoesNotExist()
         compose.onNodeWithText("Notification settings").performScrollTo().performClick()

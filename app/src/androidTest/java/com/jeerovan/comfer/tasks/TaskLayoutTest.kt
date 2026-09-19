@@ -17,7 +17,7 @@ import org.junit.Assert.*
 
 class TaskLayoutTest {
     @get:Rule val compose = createComposeRule()
-    @Test fun largeTextRtlKeepsFiveIconControlsAndWrappedSelectorReachable() {
+    @Test fun largeTextRtlKeepsControlsAndWrappedSelectorReachable() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val name = "قائمة العمل والمواعيد المهمة"
         runBlocking { check(context.packageName.endsWith(".notificationtest")); StartupCoordinator.awaitReady(); TaskStore.exclusive(context) { TaskStore.write(context, TaskSnapshot(lists = listOf(TaskList("tasks", name)))) } }
@@ -44,39 +44,47 @@ class TaskLayoutTest {
         compose.onNodeWithText("Item 80").assertIsDisplayed()
         compose.onNodeWithContentDescription("Add").assertIsDisplayed()
     }
-    @Test fun settingsStartsAtTopAndPullsIntoBottomReach() {
+    @Test fun optionsSheetCombinesSortAndPersistentSettings() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         runBlocking { check(context.packageName.endsWith(".notificationtest")); StartupCoordinator.awaitReady(); TaskStore.exclusive(context) { TaskStore.write(context, TaskSnapshot()) } }
         compose.setContent { MaterialTheme { TasksScreen({}) } }
-        compose.waitUntil(10000) { compose.onAllNodesWithContentDescription("Task preferences").fetchSemanticsNodes().isNotEmpty() }
-        compose.onNodeWithContentDescription("Task preferences").performClick()
-        val heading = compose.onNodeWithTag("tasks-settings-heading").fetchSemanticsNode().boundsInRoot
-        val viewport = compose.onNodeWithTag("tasks-settings-scroll").fetchSemanticsNode().boundsInRoot
-        val bottom = compose.onNodeWithContentDescription("Task preferences").fetchSemanticsNode().boundsInRoot.bottom
-        val density = context.resources.displayMetrics.density
-        assertTrue(heading.top <= viewport.top + 16 * density)
-        compose.onNodeWithTag("tasks-settings-scroll").performTouchInput { swipeDown(startY = height * .1f, endY = height * .9f, durationMillis = 600) }
-        val pulled = compose.onNodeWithTag("tasks-settings-heading").fetchSemanticsNode().boundsInRoot
-        assertTrue(pulled.top > heading.top + 40 * density)
-        assertTrue(bottom - pulled.top <= 360 * density)
-        compose.onNodeWithTag("tasks-settings-scroll").performTouchInput { swipeUp() }
-        assertTrue(compose.onNodeWithTag("tasks-settings-heading").fetchSemanticsNode().boundsInRoot.top < pulled.top)
+        compose.waitUntil(10000) { compose.onAllNodesWithContentDescription("Task options").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithContentDescription("Task preferences").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Sort").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Task options").performClick()
+        compose.onNodeWithText("My Order").assertExists()
+        compose.waitUntil(5000){compose.onNodeWithText("Default reminder time").isDisplayed()}
+        compose.onNodeWithText("Default reminder time").performScrollTo().assertIsDisplayed()
+        val before=TaskStore.state.value.preferences.privateNotifications
+        compose.onNodeWithContentDescription("Hide task text on lock screen").performScrollTo().performClick()
+        compose.waitUntil(10000){TaskStore.state.value.preferences.privateNotifications!=before}
+        androidx.test.espresso.Espresso.pressBack()
         compose.onNodeWithContentDescription("Add").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Task options").performClick()
+        compose.onNodeWithContentDescription("Hide task text on lock screen").performScrollTo().assertIsToggleable()
+        compose.onNodeWithText("Title").performScrollTo().performClick()
+        compose.waitUntil(10000){TaskStore.state.value.preferences.sort=="alphabetical"}
+        compose.onNodeWithTag("tasks-settings-heading").assertDoesNotExist()
     }
 
-    @Test fun taskListStartsAtTopAndPullsIntoReach() {
+    @Test fun taskContentPullsIntoReachWhileHeaderStaysFixed() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        runBlocking { check(context.packageName.endsWith(".notificationtest")); StartupCoordinator.awaitReady(); TaskStore.exclusive(context) { TaskStore.write(context, TaskSnapshot()) } }
+        runBlocking { check(context.packageName.endsWith(".notificationtest")); StartupCoordinator.awaitReady(); TaskStore.exclusive(context) { TaskStore.write(context, TaskSnapshot(tasks=listOf(TaskItem(id="pinned-header",listId="tasks",title="Header fixture")),preferences=TaskPreferences(guidanceDismissed=true))) } }
         compose.setContent { MaterialTheme { TasksScreen({}) } }
         compose.waitUntil(10000) { compose.onAllNodesWithTag("tasks-heading").fetchSemanticsNodes().isNotEmpty() }
         val start = compose.onNodeWithTag("tasks-heading").fetchSemanticsNode().boundsInRoot.top
-        val viewport = compose.onNodeWithTag("tasks-list").fetchSemanticsNode().boundsInRoot
-        assertTrue(start < viewport.top + 60f)
+        val options = compose.onNodeWithContentDescription("Task options").fetchSemanticsNode().boundsInRoot.top
+        val card = compose.onNodeWithTag("tasks-incomplete-card").fetchSemanticsNode().boundsInRoot.top
         compose.onNodeWithTag("tasks-list").performTouchInput { swipeDown(startY = height * .1f, endY = height * .9f, durationMillis = 600) }
         val pulled = compose.onNodeWithTag("tasks-heading").fetchSemanticsNode().boundsInRoot.top
-        assertTrue(pulled > start + 50f)
+        assertEquals(start,pulled,1f)
+        assertEquals(options,compose.onNodeWithContentDescription("Task options").fetchSemanticsNode().boundsInRoot.top,1f)
+        assertTrue(compose.onNodeWithTag("tasks-incomplete-card").fetchSemanticsNode().boundsInRoot.top > card + 50f)
         compose.onNodeWithTag("tasks-list").performTouchInput { swipeUp() }
-        assertTrue(compose.onNodeWithTag("tasks-heading").fetchSemanticsNode().boundsInRoot.top < pulled)
+        assertEquals(start,compose.onNodeWithTag("tasks-heading").fetchSemanticsNode().boundsInRoot.top,1f)
+        compose.onNodeWithContentDescription("Task options").performClick()
+        compose.onNodeWithText("My Order").assertExists()
+        androidx.test.espresso.Espresso.pressBack()
         compose.onNodeWithContentDescription("Add").assertIsDisplayed()
     }
 

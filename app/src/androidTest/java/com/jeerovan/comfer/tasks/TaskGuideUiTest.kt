@@ -49,8 +49,8 @@ class TaskGuideUiTest {
         val before = TaskStore.state.value.tasks
         compose.waitUntil(15000) { TaskStore.state.value.preferences.reorderGuideShown }
         assertEquals(before, TaskStore.state.value.tasks)
-        compose.onNodeWithContentDescription("Task preferences").performClick()
-        compose.onNodeWithContentDescription("Task preferences").performClick()
+        compose.onNodeWithContentDescription("Task options").performClick()
+        androidx.test.espresso.Espresso.pressBack()
         compose.onNodeWithTag("tasks-guide-swipe").assertDoesNotExist()
         compose.onNodeWithTag("tasks-guide-reorder").assertDoesNotExist()
         val context = InstrumentationRegistry.getInstrumentation().targetContext
