@@ -20,7 +20,7 @@ class JournalActivityTest {
             previous = JournalArchiveMedia.localSnapshot(context)
             JournalArchiveMedia.replaceLocal(context, JournalLocalSnapshot(emptyList(), emptyList()))
         }
-        JournalProtection.setEnabled(context, false)
+        runBlocking { JournalProtection.setEnabled(context, false) }
         context.getSharedPreferences("journal-position", 0).edit().clear().commit()
         scenario = ActivityScenario.launch(JournalActivity::class.java)
         // Synthetic fixture only: allow screenshot verification without weakening app privacy.
@@ -94,13 +94,37 @@ class JournalActivityTest {
         compose.waitUntil(10000) { runBlocking { JournalDatabase.get(context).dao().exportEntries().size == 1 } }
     }
 
+    @Test fun protectJournalsRequiresConfiguredDeviceCredentials() {
+        compose.onNodeWithContentDescription("Journal options").performClick()
+        compose.onNodeWithText("Settings", substring = false).performClick()
+        compose.onNodeWithText("Protect Journals").assertIsDisplayed()
+        compose.onNode(isToggleable()).performClick()
+        if (context.getSystemService(android.app.KeyguardManager::class.java).isDeviceSecure) {
+            awaitCredentialPromptAndCancel()
+        } else compose.onNodeWithText(context.getString(com.jeerovan.comfer.R.string.journal_lock_setup)).assertIsDisplayed()
+        assertFalse(runBlocking { JournalProtection.requiresAuthentication(context) })
+    }
+
     @Test fun protectionEnabledWhileAwayRequiresAuthenticationOnReturn() {
-        org.junit.Assume.assumeFalse(context.getSystemService(android.app.KeyguardManager::class.java).isDeviceSecure)
         scenario!!.moveToState(androidx.lifecycle.Lifecycle.State.CREATED)
+        runBlocking { val dao = JournalDatabase.get(context).rawDao(); dao.state(dao.storageState()!!.copy(moduleLocked = true)) }
         JournalProtection.restoreState(context, true)
         scenario!!.moveToState(androidx.lifecycle.Lifecycle.State.RESUMED)
-        compose.onNodeWithText(context.getString(com.jeerovan.comfer.R.string.journal_lock_unavailable)).assertIsDisplayed()
-        compose.onNodeWithTag("journal-composer").assertDoesNotExist()
+        if (context.getSystemService(android.app.KeyguardManager::class.java).isDeviceSecure) {
+            awaitCredentialPromptAndCancel()
+        } else {
+            compose.waitUntil(10000) { compose.onAllNodesWithText(context.getString(com.jeerovan.comfer.R.string.journal_lock_unavailable)).fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithTag("journal-composer").assertDoesNotExist()
+        }
+        runBlocking { val dao = JournalDatabase.get(context).rawDao(); dao.state(dao.storageState()!!.copy(moduleLocked = false)) }
         JournalProtection.restoreState(context, false)
+    }
+    private fun awaitCredentialPromptAndCancel() {
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        compose.waitUntil(10000) {
+            automation.rootInActiveWindow?.findAccessibilityNodeInfosByText("Unlock Journal")?.isNotEmpty() == true
+        }
+        android.os.ParcelFileDescriptor.AutoCloseInputStream(automation.executeShellCommand("input keyevent 4")).use { it.readBytes() }
+        compose.waitUntil(10000) { scenario!!.state == androidx.lifecycle.Lifecycle.State.DESTROYED }
     }
 }

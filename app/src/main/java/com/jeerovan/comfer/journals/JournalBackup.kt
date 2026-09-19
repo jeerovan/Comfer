@@ -7,7 +7,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import java.io.FileOutputStream
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.Cipher
@@ -39,14 +38,12 @@ object JournalBackup {
         val ids = (entries.mapNotNull { it.image } + drafts.mapNotNull { it.image }).distinct()
         var total = 0L
         val images = ids.map { id ->
-            val file = media.file(id)
-            require(file.length() in 1..2_000_000) { "A Journal image is unavailable" }
-            total += file.length()
+            val bytes = media.read(id)
+            total += bytes.size
             if (total > 12_000_000) throw JournalArchiveException("Journal media exceeds this test build’s 12 MB backup limit")
-            val bytes = file.readBytes()
             JournalMediaBackup(id, hash(bytes), encode(bytes))
         }
-        JournalSnapshot(entries = entries, drafts = drafts, media = images, segments = dao.exportSegments(), protectionEnabled = JournalProtection.enabled(context))
+        JournalSnapshot(entries = entries, drafts = drafts, media = images, segments = dao.exportSegments(), protectionEnabled = JournalDatabase.get(context).rawDao().storageState()!!.moduleLocked)
     }
     fun pack(snapshot: JournalSnapshot, password: String?): JournalArchive {
         require(!snapshot.protectionEnabled || password != null) { "Protected Journal data requires encryption" }
@@ -112,7 +109,7 @@ object JournalBackup {
     suspend fun replace(context: Context, snapshot: JournalSnapshot) {
         JournalArchiveMedia.replaceLocal(context, stageInline(context, snapshot))
     }
-    fun stageInline(context: Context, snapshot: JournalSnapshot): JournalLocalSnapshot {
+    fun stageInline(context: Context, snapshot: JournalSnapshot, protect: Boolean = false): JournalLocalSnapshot {
         validate(snapshot)
         val media = JournalMedia(context)
         val created = mutableListOf<java.io.File>()
@@ -120,10 +117,10 @@ object JournalBackup {
             val remap = snapshot.media.associate { image ->
                 val id = "${java.util.UUID.randomUUID()}.jpg"
                 val file = media.file(id); created += file
-                FileOutputStream(file).use { it.write(decode(image.bytes)); it.fd.sync() }
+                media.write(id, decode(image.bytes), snapshot.protectionEnabled || protect)
                 image.id to id
             }
-            return JournalLocalSnapshot(snapshot.entries.map { it.copy(image = it.image?.let(remap::getValue)) }, snapshot.drafts.map { it.copy(image = it.image?.let(remap::getValue)) }, snapshot.segments, snapshot.protectionEnabled)
+            return JournalLocalSnapshot(snapshot.entries.map { it.copy(image = it.image?.let(remap::getValue)) }, snapshot.drafts.map { it.copy(image = it.image?.let(remap::getValue)) }, snapshot.segments, snapshot.protectionEnabled || protect)
         } catch(e: Exception) { created.forEach(java.io.File::delete); throw e }
     }
 }

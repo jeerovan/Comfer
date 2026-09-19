@@ -10,7 +10,6 @@ import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
 import java.util.UUID
 
 /** Private immutable files are published before a row references them. Failed commits leave an orphan,
@@ -22,29 +21,26 @@ class JournalMedia(private val context: Context) {
         return File(root, id)
     }
     suspend fun import(uri: Uri): String = withContext(Dispatchers.IO) {
-        val source = File.createTempFile("import-", ".tmp", root)
         var bitmap: Bitmap? = null
         try {
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                FileOutputStream(source).use { output ->
-                    val buffer = ByteArray(8192)
-                    var total = 0L
-                    while (true) {
-                        val n = input.read(buffer)
-                        if (n < 0) break
-                        total += n
-                        require(total <= 10_000_000) { "Choose an image smaller than 10 MB" }
-                        output.write(buffer, 0, n)
-                    }
-                    output.fd.sync()
+            // Decode bounded input in memory: protected photos never enter a plaintext temp file.
+            val source = context.contentResolver.openInputStream(uri)?.use { input ->
+                val output = java.io.ByteArrayOutputStream()
+                val buffer = ByteArray(8192)
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    require(output.size() + count <= 10_000_000) { "Choose an image smaller than 10 MB" }
+                    output.write(buffer, 0, count)
                 }
+                output.toByteArray()
             } ?: error("The image is no longer available")
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            BitmapFactory.decodeFile(source.path, bounds)
+            BitmapFactory.decodeByteArray(source, 0, source.size, bounds)
             require(bounds.outMimeType in setOf("image/jpeg", "image/png")) { "Choose a JPEG or PNG image" }
             require(bounds.outWidth > 0 && bounds.outHeight > 0 && bounds.outWidth.toLong() * bounds.outHeight <= 20_000_000) { "Image is damaged or exceeds 20 megapixels" }
             if (bounds.outMimeType == "image/png") {
-                java.io.DataInputStream(source.inputStream().buffered()).use { input ->
+                java.io.DataInputStream(java.io.ByteArrayInputStream(source)).use { input ->
                     input.skipBytes(8)
                     while (input.available() > 0) {
                         val length = input.readInt()
@@ -60,8 +56,8 @@ class JournalMedia(private val context: Context) {
                 inSampleSize = 1
                 while ((maxOf(bounds.outWidth, bounds.outHeight).toLong() + inSampleSize - 1) / inSampleSize > 2048) inSampleSize *= 2
             }
-            bitmap = BitmapFactory.decodeFile(source.path, options) ?: error("Image is damaged")
-            val orientation = ExifInterface(source.path).getAttributeInt(ExifInterface.TAG_ORIENTATION, 1)
+            bitmap = BitmapFactory.decodeByteArray(source, 0, source.size, options) ?: error("Image is damaged")
+            val orientation = ExifInterface(java.io.ByteArrayInputStream(source)).getAttributeInt(ExifInterface.TAG_ORIENTATION, 1)
             val matrix = Matrix().apply {
                 when (orientation) {
                     2 -> setScale(-1f, 1f)
@@ -78,20 +74,40 @@ class JournalMedia(private val context: Context) {
             val normalized = Bitmap.createBitmap(bitmap!!, 0, 0, bitmap!!.width, bitmap!!.height, matrix, true)
             if (normalized !== bitmap) { bitmap!!.recycle(); bitmap = normalized }
             val id = "${UUID.randomUUID()}.jpg"
-            val target = file(id)
-            try {
-                var quality = 90
-                do {
-                    FileOutputStream(target).use { output ->
-                        check(bitmap!!.compress(Bitmap.CompressFormat.JPEG, quality, output)) { "Could not prepare image" }
-                        output.fd.sync()
-                    }
-                    quality -= 10
-                } while (target.length() > 2_000_000 && quality >= 30)
-                require(target.length() in 1..2_000_000) { "Image cannot fit the storage limit" }
-                id
-            } catch (e: Exception) { target.delete(); throw e }
-        } finally { bitmap?.recycle(); source.delete() }
+            var quality = 90
+            var bytes: ByteArray
+            do {
+                val output = java.io.ByteArrayOutputStream()
+                check(bitmap!!.compress(Bitmap.CompressFormat.JPEG, quality, output)) { "Could not prepare image" }
+                bytes = output.toByteArray()
+                quality -= 10
+            } while (bytes.size > 2_000_000 && quality >= 30)
+            require(bytes.size in 1..2_000_000) { "Image cannot fit the storage limit" }
+            val db = JournalDatabase.get(context)
+            db.withTransaction {
+                val state = db.dao().initialize()
+                write(id, bytes, state.moduleLocked)
+            }
+            id
+        } finally { bitmap?.recycle() }
+    }
+    internal fun write(id: String, bytes: ByteArray, protected: Boolean) {
+        val payload = JournalDatabase.get(context).cipher.seal(bytes, "Comfer Journal image 1:$id", protected)
+        val atomic = android.util.AtomicFile(file(id))
+        val output = atomic.startWrite()
+        try { output.write(payload); atomic.finishWrite(output) }
+        catch (e: Exception) { atomic.failWrite(output); throw e }
+    }
+    internal fun read(id: String): ByteArray {
+        val file = file(id)
+        require(file.length() in 1..2_000_090) { "A Journal image is unavailable" }
+        val bytes = file.readBytes()
+        return JournalDatabase.get(context).cipher.open(bytes, "Comfer Journal image 1:$id")
+    }
+    internal fun copyEncrypted(id: String, protected: Boolean): String {
+        val next = "${UUID.randomUUID()}.jpg"
+        write(next, read(id), protected)
+        return next
     }
     suspend fun collect(db: JournalDatabase, now: Long = System.currentTimeMillis()) = withContext(Dispatchers.IO) {
         db.withTransaction {
@@ -112,13 +128,13 @@ class JournalMedia(private val context: Context) {
     }
     suspend fun thumbnail(id: String, maxEdge: Int = 512): Bitmap? = withContext(Dispatchers.IO) {
         require(maxEdge in 1..2048)
-        val path = file(id).path
+        val bytes = read(id)
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(path, bounds)
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
         val options = BitmapFactory.Options().apply {
             inSampleSize = 1
             while (maxOf(bounds.outWidth, bounds.outHeight) / inSampleSize > maxEdge) inSampleSize *= 2
         }
-        BitmapFactory.decodeFile(path, options)
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
     }
 }

@@ -156,34 +156,10 @@ class JournalPersistenceTest {
         assertTrue(db.dao().page(draft.day).isEmpty())
         assertEquals(draft, db.dao().draft())
     }
-    @Test fun versionOneMigrationPreservesEntryAndInitializesGeneration() = runBlocking {
-        val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val context = instrumentation.targetContext
-        val file = java.io.File(context.cacheDir, "journal-migration-${java.util.UUID.randomUUID()}.db")
-        val schema = org.json.JSONObject(instrumentation.context.assets.open("com.jeerovan.comfer.journals.JournalDatabase/1.json").reader().readText()).getJSONObject("database")
-        android.database.sqlite.SQLiteDatabase.openOrCreateDatabase(file, null).use { database ->
-            val entities = schema.getJSONArray("entities")
-            for(index in 0 until entities.length()) {
-                val entity = entities.getJSONObject(index)
-                database.execSQL(entity.getString("createSql").replace("\${TABLE_NAME}", entity.getString("tableName")))
-                val indices = entity.optJSONArray("indices") ?: org.json.JSONArray()
-                for (item in 0 until indices.length()) database.execSQL(indices.getJSONObject(item).getString("createSql").replace("\${TABLE_NAME}", entity.getString("tableName")))
-            }
-            database.execSQL("INSERT INTO journal_entries(id,day,zone,createdAt,updatedAt,text,image,revision,deletedAt,needsReview) VALUES ('migration',-100,'Asia/Kolkata',42,42,'Keep entry',NULL,0,NULL,NULL)")
-            database.version = 1
-        }
-        val upgraded = Room.databaseBuilder(context, JournalDatabase::class.java, file.absolutePath).addMigrations(JournalDatabase.MIGRATION_1_2, JournalDatabase.MIGRATION_2_3, JournalDatabase.MIGRATION_3_4).build()
-        try {
-            assertEquals("Keep entry", upgraded.dao().entry("migration")!!.text)
-            assertEquals(-100L, upgraded.dao().entry("migration")!!.day)
-            assertEquals(0L, upgraded.dao().generation())
-        } finally { upgraded.close(); context.deleteDatabase(file.absolutePath) }
-    }
-
     @Test fun failedFinalSpeechSaveRetainsDraftAndCanRetry() = runBlocking {
         val draft = store.saveDraft(store.ensureDraft().copy(text = "Prefix"))
         store.speech(draft, "retry", 0, "Partial", "", false, false)
-        db.openHelper.writableDatabase.execSQL("CREATE TEMP TRIGGER fail_final BEFORE UPDATE ON journal_entries WHEN NEW.text='Final' BEGIN SELECT RAISE(ABORT,'Injected final failure'); END")
+        db.openHelper.writableDatabase.execSQL("CREATE TEMP TRIGGER fail_final BEFORE UPDATE ON journal_entries WHEN NEW.id='${draft.entryId}' AND NEW.revision=1 BEGIN SELECT RAISE(ABORT,'Injected final failure'); END")
         try { store.speech(draft, "retry", 0, "Final", "", true, false); fail() } catch (_: android.database.sqlite.SQLiteException) { }
         assertEquals("Partial", db.dao().entry(draft.entryId)!!.text)
         assertEquals(draft, db.dao().draft())

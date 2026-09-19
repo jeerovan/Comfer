@@ -28,9 +28,10 @@ class JournalTransferTest {
         store.speech(speech, "portable-session", 0, "Dictated", "Unconfirmed", false, true)
         store.saveDraft(store.ensureDraft().copy(text = "Portable draft", day = -123))
         store.saveDraft(store.beginEdit(entry).copy(text = "Portable unsaved edit"))
-        // Simulate an already-authenticated export; real credential UI is a separate acceptance check.
-        JournalProtection.restoreState(context, true)
+        // This manual transfer fixture requires a recently unlocked secure emulator/device.
+        check(context.getSystemService(android.app.KeyguardManager::class.java).isDeviceSecure) { "Configure and unlock device credentials before this fixture" }
         JournalProtection.authorize()
+        JournalProtection.setEnabled(context, true)
         BackupRestoreManager.createBackup(context, Uri.fromFile(File(context.filesDir, "journal-transfer.zip")), "en", password)
         assertEquals(2, store.dao.exportEntries().size)
     }
@@ -40,12 +41,13 @@ class JournalTransferTest {
         assertTrue("Requires a fresh isolated installation", dao.exportEntries().isEmpty())
         val archive = Uri.fromFile(File(context.filesDir, "journal-transfer.zip"))
         assertTrue(BackupRestoreManager.inspectBackup(context, archive).journalsEncrypted)
+        JournalProtection.authorize()
         BackupRestoreManager.restoreBackup(context, archive, password)
         assertTrue(JournalProtection.enabled(context))
         val entries = dao.exportEntries()
         assertEquals(2, entries.size)
         val imageEntry = entries.single { it.text == "Portable Journal fixture" }
-        val image = android.graphics.BitmapFactory.decodeFile(JournalMedia(context).file(imageEntry.image!!).path)
+        val image = requireNotNull(JournalMedia(context).thumbnail(imageEntry.image!!, 2048))
         assertEquals(40, image.width); assertEquals(24, image.height)
         assertTrue(Color.blue(image.getPixel(0, 0)) > 200); assertTrue(Color.red(image.getPixel(0, 0)) < 20); image.recycle()
         assertEquals("Portable unsaved edit", dao.draft("edit:${imageEntry.id}")!!.text)

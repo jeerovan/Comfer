@@ -17,6 +17,7 @@ class JournalBackupTest {
     @Before fun setup() = runBlocking {
         check(context.packageName.endsWith(".notificationtest"))
         StartupCoordinator.awaitReady()
+        androidx.work.WorkManager.getInstance(context).cancelUniqueWork("ImageWorker").result.get()
         previous = JournalBackup.snapshot(context)
         JournalBackup.replace(context, JournalSnapshot(entries = emptyList(), drafts = emptyList(), media = emptyList()))
     }
@@ -154,7 +155,7 @@ class JournalBackupTest {
         val room = com.jeerovan.comfer.data.ComferRepository.snapshot(context)
         val notifications = com.jeerovan.comfer.notifications.NotificationPreferences.withBackupAccess(context) { snapshot() }
         try {
-            store.db.openHelper.writableDatabase.execSQL("CREATE TEMP TRIGGER reject_journal_restore BEFORE INSERT ON journal_entries WHEN NEW.text='Reject Journal restore' BEGIN SELECT RAISE(ABORT,'Injected Journal write failure'); END")
+            store.db.openHelper.writableDatabase.execSQL("CREATE TEMP TRIGGER reject_journal_restore BEFORE INSERT ON journal_entries WHEN NEW.id='${incoming.id}' AND NEW.revision=${incoming.revision} BEGIN SELECT RAISE(ABORT,'Injected Journal write failure'); END")
             try { BackupRestoreManager.restoreBackup(context, Uri.fromFile(file)); fail("Failed write accepted") } catch (_: android.database.sqlite.SQLiteException) { }
             assertEquals(before, JournalBackup.snapshot(context))
             assertEquals(tasks, com.jeerovan.comfer.tasks.TaskStore.snapshot(context))
@@ -179,7 +180,7 @@ class JournalBackupTest {
         db.withTransaction {
             repeat(copies) {
                 val id = "${java.util.UUID.randomUUID()}.jpg"
-                source.copyTo(media.file(id))
+                media.write(id, media.read(first), false)
                 db.dao().insert(JournalEntry(text = "Synthetic image $it", image = id))
             }
         }
@@ -213,7 +214,7 @@ class JournalBackupTest {
         val restored = store.dao.entry(entry.id)!!
         assertNull(restored.deletedAt)
         assertEquals(entry.text, restored.text)
-        assertArrayEquals(JournalMedia(context).file(image).readBytes(), JournalMedia(context).file(restored.image!!).readBytes())
+        assertArrayEquals(JournalMedia(context).read(image), JournalMedia(context).read(restored.image!!))
         archive.delete(); input.delete(); Unit
     }
 
@@ -238,7 +239,7 @@ class JournalBackupTest {
         val media = JournalMedia(context)
         val id = media.import(Uri.fromFile(file))
         val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        android.graphics.BitmapFactory.decodeFile(media.file(id).path, bounds)
+        media.read(id).let { android.graphics.BitmapFactory.decodeByteArray(it, 0, it.size, bounds) }
         assertTrue(bounds.outWidth <= 2048 && bounds.outHeight <= 2048)
         file.writeBytes(png(5000, 4001))
         try { media.import(Uri.fromFile(file)); fail() } catch(e: IllegalArgumentException) { assertTrue(e.message!!.contains("20 megapixels")) }

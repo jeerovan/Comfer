@@ -39,6 +39,22 @@ class NotesStore(val db: NotesDatabase, private val cipher: NotesCipher = Keysto
         }
         verify()
     }
+    /** Re-encrypt old authenticated-key payloads without changing IDs, revisions or content. */
+    suspend fun upgradeProtectedContent() = db.withTransaction {
+        verify()
+        var offset = 0
+        while (true) {
+            val rows = dao.page(offset = offset)
+            if (rows.isEmpty()) break
+            rows.filter { cipher.needsSessionUpgrade(it.payload, it.protected) }.forEach { row ->
+                dao.put(row.copy(payload = seal(decode(row), "note", row.id, row.revision, true)))
+            }
+            offset += rows.size
+        }
+        dao.drafts().filter { cipher.needsSessionUpgrade(it.payload, it.protected) }.forEach { row ->
+            dao.putDraft(row.copy(payload = seal(decode(row), "draft", row.id, row.revision, true)))
+        }
+    }
     suspend fun preferences(): NotesPreferences {
         val state = dao.state() ?: return NotesPreferences()
         if (state.moduleLocked) NotesSession.requireUnlocked()

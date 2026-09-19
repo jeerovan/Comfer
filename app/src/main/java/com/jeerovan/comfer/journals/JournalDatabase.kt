@@ -50,10 +50,15 @@ data class JournalSegment(
 )
 
 @Entity(tableName = "journal_state")
-data class JournalState(@PrimaryKey val id: Int = 1, val generation: Long = 0)
+data class JournalState(@PrimaryKey val id: Int = 1, val generation: Long = 0,
+    @ColumnInfo(defaultValue = "0") val storageVersion: Int = 0,
+    @ColumnInfo(defaultValue = "0") val moduleLocked: Boolean = false,
+    @ColumnInfo(defaultValue = "0") val cleanupPending: Boolean = false)
 
 @Dao
-interface JournalDao {
+interface JournalRawDao {
+    @Query("SELECT * FROM journal_state WHERE id=1") suspend fun storageState(): JournalState?
+    @Query("SELECT * FROM journal_segments ORDER BY sessionId,segmentId") suspend fun allSegments(): List<JournalSegment>
     @Query("SELECT COALESCE(MAX(generation),0) FROM journal_state") suspend fun generation(): Long
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun state(state: JournalState)
     @Query("SELECT * FROM journal_segments WHERE entryId IN (SELECT id FROM journal_entries) ORDER BY sessionId,segmentId") suspend fun exportSegments(): List<JournalSegment>
@@ -69,8 +74,6 @@ interface JournalDao {
     suspend fun page(day: Long, limit: Int = 50, offset: Int = 0): List<JournalEntry>
     @Query("SELECT * FROM (SELECT * FROM journal_entries WHERE day<=:day AND deletedAt IS NULL ORDER BY day DESC,createdAt DESC,id DESC LIMIT :limit OFFSET :offset) ORDER BY day,createdAt,id")
     fun observeDay(day: Long, limit: Int, offset: Int = 0): Flow<List<JournalEntry>>
-    @Query("SELECT * FROM (SELECT * FROM journal_entries WHERE deletedAt IS NULL AND instr(lower(text), lower(:query)) > 0 ORDER BY day DESC,createdAt DESC,id DESC LIMIT :limit OFFSET :offset) ORDER BY day,createdAt,id")
-    fun search(query: String, limit: Int, offset: Int = 0): Flow<List<JournalEntry>>
     @Query("SELECT DISTINCT day FROM journal_entries WHERE deletedAt IS NULL AND day<:day ORDER BY day DESC LIMIT 1")
     suspend fun previousDay(day: Long): Long?
     @Query("SELECT DISTINCT day FROM journal_entries WHERE deletedAt IS NULL AND day>:day ORDER BY day LIMIT 1")
@@ -82,10 +85,6 @@ interface JournalDao {
     @Update suspend fun update(entry: JournalEntry)
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun putDraft(draft: JournalDraft)
     @Query("DELETE FROM journal_drafts WHERE `key`=:key") suspend fun removeDraft(key: String)
-    @Query("UPDATE journal_entries SET text=:text,image=:image,updatedAt=:now,revision=revision+1 WHERE id=:id AND revision=:expected AND deletedAt IS NULL")
-    suspend fun edit(id: String, expected: Long, text: String, image: String?, now: Long): Int
-    @Query("UPDATE journal_entries SET deletedAt=:deletedAt,revision=revision+1 WHERE id=:id AND revision=:expected")
-    suspend fun setDeleted(id: String, expected: Long, deletedAt: Long?): Int
     @Query("SELECT * FROM journal_entries WHERE deletedAt IS NOT NULL AND (deletedAt>:cutoff OR id IN (SELECT entryId FROM journal_drafts WHERE `key` LIKE 'edit:%')) ORDER BY deletedAt DESC LIMIT :limit OFFSET :offset")
     fun trash(cutoff: Long = System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000, limit: Int = 100, offset: Int = 0): Flow<List<JournalEntry>>
     @Query("SELECT * FROM journal_entries WHERE deletedAt IS NOT NULL AND deletedAt<=:cutoff AND id NOT IN (SELECT entryId FROM journal_drafts WHERE `key` LIKE 'edit:%') LIMIT 100")
@@ -103,29 +102,23 @@ interface JournalDao {
     @Query("SELECT * FROM journal_segments WHERE entryId=:id ORDER BY sessionId,segmentId") suspend fun segments(id: String): List<JournalSegment>
 }
 
-@Database(entities = [JournalEntry::class, JournalDraft::class, JournalSegment::class, JournalState::class], version = 4, exportSchema = true)
+@Database(entities = [JournalEntry::class, JournalDraft::class, JournalSegment::class, JournalState::class], version = 5, exportSchema = true)
 abstract class JournalDatabase : RoomDatabase() {
-    abstract fun dao(): JournalDao
+    abstract fun rawDao(): JournalRawDao
+    internal var storageContext: Context? = null
+    internal var cipher: JournalCipher = KeystoreJournalCipher()
+    private val contentDao by lazy { JournalDao(this) }
+    fun dao(): JournalDao = contentDao
     companion object {
-        val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
-            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
-                db.execSQL("CREATE TABLE IF NOT EXISTS journal_state (id INTEGER NOT NULL, generation INTEGER NOT NULL, PRIMARY KEY(id))")
-            }
-        }
-        val MIGRATION_2_3 = object : androidx.room.migration.Migration(2, 3) {
-            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
-                db.execSQL("CREATE INDEX IF NOT EXISTS index_journal_entries_deletedAt_day_createdAt_id ON journal_entries(deletedAt,day,createdAt,id)")
-            }
-        }
-        val MIGRATION_3_4 = object : androidx.room.migration.Migration(3, 4) {
-            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE journal_drafts ADD COLUMN createdAt INTEGER")
-            }
-        }
         @Volatile private var instance: JournalDatabase? = null
         fun get(context: Context): JournalDatabase = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(context.applicationContext, JournalDatabase::class.java,
-                File(context.noBackupFilesDir, "journals.db").absolutePath).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build().also { instance = it }
+                File(context.noBackupFilesDir, "journals.db").absolutePath)
+                .addCallback(object : Callback() {
+                    override fun onOpen(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                        db.query("PRAGMA secure_delete=ON").use { it.moveToFirst() }
+                    }
+                }).build().also { it.storageContext = context.applicationContext; instance = it }
         }
     }
 }

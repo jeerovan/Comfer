@@ -17,6 +17,30 @@ class JournalViewModel(application: Application, private val savedState: android
         get() = savedState["imageRevision"]
         private set(value) { savedState["imageRevision"] = value }
     fun prepareImagePicker(entry: JournalEntry?) { pendingImageTarget = entry?.id; pendingImageRevision = entry?.revision }
+    fun queueImage(uri: android.net.Uri?) {
+        savedState["imageUri"] = uri?.toString()
+        if (uri == null) { prepareImagePicker(null); return }
+        enqueue {
+            if (!JournalProtection.requiresAuthentication(getApplication()) || JournalProtection.authorized()) importPendingImage()
+        }
+    }
+    private suspend fun importPendingImage() {
+        val uri = savedState.get<String>("imageUri") ?: return
+        busy.value = true
+        try {
+            val id = media.import(android.net.Uri.parse(uri))
+            val targetId = pendingImageTarget
+            if (targetId != null) {
+                val target = store.dao.entry(targetId) ?: throw JournalConflict()
+                if (target.revision != pendingImageRevision || (editing.value != null && editing.value?.id != targetId)) throw JournalConflict()
+                val current = editDraft.value ?: store.beginEdit(target)
+                editing.value = target
+                editDraft.value = store.saveDraft(current.copy(image = id))
+            } else {
+                mutableDraft.value = store.saveDraft((mutableDraft.value ?: store.ensureDraft()).copy(image = id))
+            }
+        } finally { busy.value = false; savedState["imageUri"] = null; prepareImagePicker(null) }
+    }
     val store = JournalStore(JournalDatabase.get(application))
     val media = JournalMedia(application)
     private val commands = Channel<suspend () -> Unit>(Channel.UNLIMITED)
@@ -24,6 +48,8 @@ class JournalViewModel(application: Application, private val savedState: android
     val draft = mutableDraft.asStateFlow()
     val error = MutableStateFlow<String?>(null)
     val busy = MutableStateFlow(false)
+    val protectionEnabled = MutableStateFlow(JournalProtection.enabled(application))
+    private var reloadAfterProtectionChange = false
     val draftSaving = MutableStateFlow(false)
     private var draftWrites = 0
     val captureState = MutableStateFlow(JournalSpeech.State.IDLE)
@@ -86,13 +112,52 @@ class JournalViewModel(application: Application, private val savedState: android
     val editDraft = MutableStateFlow<JournalDraft?>(null)
     init {
         viewModelScope.launch {
-            try { com.jeerovan.comfer.StartupCoordinator.awaitReady(); media.collect(store.db); mutableDraft.value = store.ensureDraft().let { store.saveDraft(it.copy(createdAt = null, prompt = (it.prompt + 1 + kotlin.random.Random.nextInt(3)) % 4)) } } catch (_: Exception) { error.value = "Journal could not be opened. Please reopen it." }
+            try { com.jeerovan.comfer.StartupCoordinator.awaitReady(); if (!JournalProtection.requiresAuthentication(application) || JournalProtection.authorized()) openStorage() } catch (_: Exception) { error.value = "Journal could not be opened. Please reopen it." }
             for (command in commands) try { command() } catch (e: Exception) {
                 error.value = if (e is JournalConflict) e.message else "Could not save. Your draft is still here; try again."
                 busy.value = false
                 recoveryPending.value = pendingSpeech != null
             }
         }
+    }
+    private suspend fun openStorage() {
+        JournalProtection.prepare(getApplication())
+        protectionEnabled.value = JournalProtection.requiresAuthentication(getApplication())
+        if (reloadAfterProtectionChange) reloadProtectedBuffers()
+        media.collect(store.db)
+        if (mutableDraft.value == null) mutableDraft.value = store.ensureDraft().let {
+            store.saveDraft(it.copy(createdAt = null, prompt = (it.prompt + 1 + kotlin.random.Random.nextInt(3)) % 4))
+        }
+    }
+    fun resumeAfterUnlock() = enqueue {
+        openStorage()
+        mutableDraft.value?.let { mutableDraft.value = store.saveDraft(it) }
+        editDraft.value?.let { editDraft.value = store.saveDraft(it) }
+        pendingSpeech?.let { it(); pendingSpeech = null; recoveryPending.value = false }
+        importPendingImage()
+        error.value = null
+    }
+    fun changeProtection(enabled: Boolean, done: () -> Unit) {
+        busy.value = true
+        enqueue {
+            try {
+                mutableDraft.value?.let { mutableDraft.value = store.saveDraft(it) }
+                editDraft.value?.let { editDraft.value = store.saveDraft(it) }
+                reloadAfterProtectionChange = true
+                try { JournalProtection.setEnabled(getApplication(), enabled) }
+                finally {
+                    protectionEnabled.value = JournalProtection.requiresAuthentication(getApplication())
+                    if (!protectionEnabled.value || JournalProtection.authorized()) reloadProtectedBuffers()
+                }
+                done()
+            } finally { busy.value = false }
+        }
+    }
+    private suspend fun reloadProtectedBuffers() {
+        mutableDraft.value = store.dao.draft()
+        editing.value = editing.value?.let { store.dao.entry(it.id) }
+        editDraft.value = editDraft.value?.let { store.dao.draft(it.key) }
+        reloadAfterProtectionChange = false
     }
     private fun enqueue(block: suspend () -> Unit) { commands.trySend(block) }
     private fun enqueueDraft(block: suspend () -> Unit) {

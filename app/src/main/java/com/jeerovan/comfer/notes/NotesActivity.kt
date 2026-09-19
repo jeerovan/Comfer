@@ -25,9 +25,17 @@ class NotesActivity : AppCompatActivity() {
     private var shareConsumed=false
     private val imagePicker=registerForActivityResult(ActivityResultContracts.GetContent()){uri->uri?.let(model::queueImage)}
     private val authenticate=registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        authenticating=false
-        if(result.resultCode==RESULT_OK){NotesSession.authorize();blocked=false;model.start(shared());val action=afterAuthentication;afterAuthentication=null;action?.invoke()}
-        else {afterAuthentication=null;finish()}
+        if(result.resultCode==RESULT_OK) lifecycleScope.launch {
+            try {
+                com.jeerovan.comfer.ProtectionSession.completeAuthentication(this@NotesActivity)
+                blocked=false; model.start(shared())
+                val action=afterAuthentication; afterAuthentication=null; action?.invoke()
+            } catch (error: Exception) {
+                afterAuthentication=null
+                android.widget.Toast.makeText(this@NotesActivity, error.message ?: "Could not unlock Notes", android.widget.Toast.LENGTH_LONG).show()
+                finish()
+            } finally { authenticating=false }
+        } else { authenticating=false; afterAuthentication=null; finish() }
     }
     private fun shared():String? {
         if(shareConsumed||intent.action!=Intent.ACTION_SEND)return null
@@ -36,6 +44,7 @@ class NotesActivity : AppCompatActivity() {
     }
     private fun unlock(action:()->Unit = {}) {
         if(isFinishing || isDestroyed || authenticating)return
+        if(NotesSession.unlocked()){action();return}
         val request=getSystemService(KeyguardManager::class.java).createConfirmDeviceCredentialIntent("Unlock Notes","Use your device PIN, pattern or password")
         if(request==null){model.error="Set a device PIN, pattern or password before protecting Notes.";return}
         afterAuthentication=action;authenticating=true;blocked=true;authenticate.launch(request)
@@ -47,7 +56,7 @@ class NotesActivity : AppCompatActivity() {
         if(blocked){if(!authenticating)unlock()} else model.start(shared())
     } }
     override fun onCreate(savedInstanceState:Bundle?) {
-        super.onCreate(savedInstanceState);if(savedInstanceState==null)NotesSession.lock();shareConsumed=savedInstanceState?.getBoolean("shareConsumed")?:false;enableEdgeToEdge()
+        super.onCreate(savedInstanceState);shareConsumed=savedInstanceState?.getBoolean("shareConsumed")?:false;enableEdgeToEdge()
         setContent { ComferTheme {
             val sensitive=blocked||model.sensitive
             SideEffect { if(sensitive)window.addFlags(WindowManager.LayoutParams.FLAG_SECURE) else window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE) }
@@ -55,9 +64,11 @@ class NotesActivity : AppCompatActivity() {
             NotesScreen(model,::finish, { action -> unlock(action) }, blocked,pickImage={imagePicker.launch("image/*")})
         } }
     }
-    override fun onResume(){super.onResume();if(!authenticating)resumeNotes()}
+    override fun onResume(){super.onResume();com.jeerovan.comfer.ProtectionSession.enter(this)}
+    // Wait until Activity/Fragment lifecycle dispatch has reached RESUMED before checking it.
+    override fun onPostResume(){super.onPostResume();if(!authenticating)resumeNotes()}
     override fun onPause(){if(!authenticating && model.ready)model.retry();super.onPause()}
-    override fun onStop(){if(!authenticating){model.background();blocked=true};super.onStop()}
+    override fun onStop(){com.jeerovan.comfer.ProtectionSession.leave(this);if(!authenticating){model.background();blocked=true};super.onStop()}
     override fun onSaveInstanceState(outState:Bundle){outState.putBoolean("shareConsumed",shareConsumed);super.onSaveInstanceState(outState)}
     override fun onNewIntent(intent:Intent){super.onNewIntent(intent);setIntent(intent);shareConsumed=false;resumeNotes()}
     companion object {

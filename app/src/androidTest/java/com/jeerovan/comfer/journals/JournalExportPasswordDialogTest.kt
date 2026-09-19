@@ -18,7 +18,7 @@ class JournalExportPasswordDialogTest {
         val submit = compose.onNodeWithText("Backup", ignoreCase = true)
         submit.assertIsEnabled().performClick()
         compose.onNodeWithText(error).assertIsDisplayed()
-        val password = compose.onNodeWithText("Journal export password", substring = false)
+        val password = compose.onNodeWithText("Backup password", substring = false)
         val confirmation = compose.onNodeWithText("Repeat password")
         password.performTextInput("123")
         confirmation.performTextInput("123")

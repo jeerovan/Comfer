@@ -303,15 +303,16 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         val action = authorizedJournalAction
         authorizedJournalAction = null
         if (result.resultCode == Activity.RESULT_OK) {
-            com.jeerovan.comfer.journals.JournalProtection.authorize()
-            com.jeerovan.comfer.notes.NotesSession.authorize()
-            action?.invoke()
+            coroutineScope.launch {
+                try { ProtectionSession.completeAuthentication(context); action?.invoke() }
+                catch (error: Exception) { Toast.makeText(context, error.message ?: "Could not unlock protected content", Toast.LENGTH_LONG).show() }
+            }
         }
     }
     fun withJournalAuthorization(forceNotes: Boolean = false, action: () -> Unit) {
         coroutineScope.launch {
             val notesProtected = try { withContext(Dispatchers.IO) { com.jeerovan.comfer.notes.NotesBackup.requiresAuthentication(context) } } catch (error: Exception) { Toast.makeText(context, resources.getString(backupErrorLabel(error)), Toast.LENGTH_LONG).show(); return@launch }
-            if (!forceNotes && !notesProtected && !com.jeerovan.comfer.journals.JournalProtection.enabled(context)) action()
+            if (ProtectionSession.authorized() || (!forceNotes && !notesProtected && !com.jeerovan.comfer.journals.JournalProtection.requiresAuthentication(context))) action()
             else {
                 val intent = context.getSystemService(android.app.KeyguardManager::class.java).createConfirmDeviceCredentialIntent("Unlock protected content", "Authorize backup or restore")
                 if (intent != null) { authorizedJournalAction = action; journalAuthentication.launch(intent) }
@@ -1015,6 +1016,8 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
+            item { SectionHeader(stringResource(R.string.protection_settings)) }
+            item { ProtectionTimeoutSetting(settingsState.protectionTimeoutSeconds, settingsViewModel::setProtectionTimeout) }
             item { SectionHeader(stringResource(R.string.title_backup_section)) }
             item {
                 ListItem(
@@ -1034,7 +1037,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     modifier = Modifier.clickable(enabled = backupRestoreOperation == null) {
                         coroutineScope.launch {
                         protectedNotesForBackup = try { withContext(Dispatchers.IO) { com.jeerovan.comfer.notes.NotesBackup.requiresAuthentication(context) } } catch (error: Exception) { Toast.makeText(context, resources.getString(backupErrorLabel(error)), Toast.LENGTH_LONG).show(); return@launch }
-                        if (com.jeerovan.comfer.journals.JournalProtection.enabled(context) || protectedNotesForBackup) {
+                        if (com.jeerovan.comfer.journals.JournalProtection.requiresAuthentication(context) || protectedNotesForBackup) {
                             journalPassword = ""; showJournalExportPassword = true
                         } else if (!launchDocumentPickerSafely {
                                 journalPassword = ""
@@ -1221,7 +1224,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         }
     }
     if (showJournalExportPassword) com.jeerovan.comfer.journals.JournalExportPasswordDialog(
-        includeNotes = protectedNotesForBackup,
         onDismiss = { showJournalExportPassword = false; journalPassword = "" },
         onConfirm = { password ->
             journalPassword = password
@@ -1251,7 +1253,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        withJournalAuthorization(forceNotes = preview.notesProtected) {
+                        withJournalAuthorization(forceNotes = preview.notesProtected || preview.journalsEncrypted) {
                         pendingRestore = null
                         backupRestoreOperation = BackupRestoreOperation.RESTORE
                         coroutineScope.launch {
@@ -1810,7 +1812,8 @@ fun SelectOptionsWithListItemSettingItem(
     icon: @Composable (() -> Unit)?,
     selectedOption: String,
     onSelectionClick: (String) -> Unit,
-    options: Array<KeyTextObject>
+    options: Array<KeyTextObject>,
+    dialogTitleRes: Int = R.string.title_choose_action,
 ) {
     var showDialog by remember { mutableStateOf(false) }
     val selectedFrequency = getKeyTextObject(selectedOption,LocalContext.current)
@@ -1828,7 +1831,7 @@ fun SelectOptionsWithListItemSettingItem(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text(stringResource(R.string.title_choose_action)) },
+            title = { Text(stringResource(dialogTitleRes)) },
             text = {
                 LazyColumn {
                     items(options) {
@@ -2102,4 +2105,22 @@ fun PromoAppSection(
             )
         }
 
+}
+
+@Composable
+internal fun ProtectionTimeoutSetting(seconds: Int, onSelected: (Int) -> Unit) {
+    val choices = arrayOf(
+        KeyTextObject(stringResource(R.string.protection_timeout_30_seconds), "30"),
+        KeyTextObject(stringResource(R.string.protection_timeout_2_minutes), "120"),
+        KeyTextObject(stringResource(R.string.protection_timeout_5_minutes), "300"),
+    )
+    SelectOptionsWithListItemSettingItem(
+        headline = stringResource(R.string.protection_timeout),
+        supportingLine = stringResource(R.string.protection_timeout_subtitle),
+        icon = null,
+        selectedOption = choices.first { it.key == ProtectionSession.validTimeout(seconds).toString() }.text,
+        onSelectionClick = { onSelected(it.toInt()) },
+        options = choices,
+        dialogTitleRes = R.string.protection_choose_duration,
+    )
 }

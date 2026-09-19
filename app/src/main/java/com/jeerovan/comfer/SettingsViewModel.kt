@@ -55,6 +55,7 @@ internal fun widgetPositionPreferenceKey(
 }
 
 data class SettingsUiState(
+    val protectionTimeoutSeconds: Int = ProtectionSession.DEFAULT_SECONDS,
     val autoWallpapers: Boolean = false,
     val wallpaperMotionEnabled: Boolean = true,
     val wallpaperDirectory: String? = null,
@@ -282,6 +283,15 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 }
         }
     }
+    fun setProtectionTimeout(seconds: Int) {
+        require(seconds in ProtectionSession.options)
+        // Observe expiration before changing the duration, so an old session stays expired.
+        ProtectionSession.authorized()
+        PreferenceManager.setInt(getApplication(), ProtectionSession.PREFERENCE_KEY, seconds)
+        ProtectionSession.authorized()
+        _uiState.update { it.copy(protectionTimeoutSeconds = seconds) }
+    }
+
     fun loadSettings() {
         if (settingsLoadJob?.isActive == true) return
         val loadStartedAtMs = android.os.SystemClock.elapsedRealtime()
@@ -460,6 +470,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             withContext(Dispatchers.Main) {
                 _uiState.update {
                     it.copy(
+                        protectionTimeoutSeconds = ProtectionSession.timeoutSeconds(),
                         autoWallpapers = autoWallpapers,
                         wallpaperMotionEnabled = wallpaperMotion,
                         wallpaperOnLockScreen = wallpaperOnLockScreen,

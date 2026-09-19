@@ -30,6 +30,7 @@ class ComferApp : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
+        ProtectionSession.initialize(this)
         enableStrictMode()
         // One-time import of legacy SharedPreferences into Room + DataStore, then
         // load the scalar settings snapshot. Both are suspend and run off the main

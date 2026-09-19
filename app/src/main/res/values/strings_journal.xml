@@ -49,13 +49,12 @@
     <string name="journal_start">Start</string>
     <string name="journal_jump_latest">Jump to latest</string>
     <string name="journal_settings">Settings</string>
-    <string name="journal_protect">Require device credentials</string>
-    <string name="journal_privacy_explanation">Journal stays in private app storage and is hidden in recent-app previews. This lock guards access within Comfer; it does not separately encrypt the database. Uninstalling Comfer or clearing its data removes your journals. Keep a portable backup.</string>
-    <string name="journal_export_password">Protect your Journal export</string>
-    <string name="journal_password_explanation">This password protects Journal text and images in the backup, independently of your device. Keep it safely: a forgotten password cannot be recovered. Other Comfer backup sections are not encrypted.</string>
+    <string name="journal_protect">Protect Journals</string>
+    <string name="journal_export_password">Encrypted backup</string>
+    <string name="journal_password_explanation">To protect your Notes &amp; Journals</string>
     <string name="journal_password_too_short">Password must contain at least 4 characters</string>
     <string name="journal_password_mismatch">Passwords do not match</string>
-    <string name="journal_password">Journal export password</string>
+    <string name="journal_password">Backup password</string>
     <string name="journal_password_confirm">Repeat password</string>
     <string name="journal_restore_replace">Replace all Journal entries, drafts and Archive with this backup, including if it is empty.</string>
     <string name="journal_restore_missing">This backup has no Journals. Your current Journals will be kept.</string>

@@ -29,6 +29,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.semantics.*
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.catch
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.foundation.Image
@@ -74,42 +76,79 @@ class JournalActivity : AppCompatActivity() {
     private val model: JournalViewModel by viewModels()
     private var unlocked by mutableStateOf(false)
     private var authenticating = false
-    private var credentialVerified = false
+    private var afterAuthentication: (() -> Unit)? = null
+    private var checkingLock = false
+    private val imagePicker = registerForActivityResult(ActivityResultContracts.GetContent()) { uri -> model.queueImage(uri) }
     private var lockDialogShowing by mutableStateOf(false)
     private val authenticate = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        authenticating = false
-        unlocked = result.resultCode == RESULT_OK
-        credentialVerified = unlocked
-        if (!unlocked) finish() else JournalProtection.authorize()
+        if (result.resultCode == RESULT_OK) lifecycleScope.launch {
+            try {
+                com.jeerovan.comfer.ProtectionSession.completeAuthentication(this@JournalActivity)
+                unlocked = true
+                model.resumeAfterUnlock()
+                afterAuthentication?.invoke(); afterAuthentication = null
+            } catch (error: Exception) {
+                afterAuthentication = null
+                android.widget.Toast.makeText(this@JournalActivity, error.message ?: "Could not unlock Journal", android.widget.Toast.LENGTH_LONG).show()
+                finish()
+            } finally { authenticating = false }
+        } else { authenticating = false; afterAuthentication = null; finish() }
     }
     private fun unlock() {
-        if (!JournalProtection.enabled(this)) { unlocked = true; return }
+        if (authenticating || isFinishing || isDestroyed) return
+        if (JournalProtection.authorized()) {
+            val action = afterAuthentication; afterAuthentication = null
+            action?.invoke()
+            return
+        }
         val intent = getSystemService(android.app.KeyguardManager::class.java).createConfirmDeviceCredentialIntent("Unlock Journal", "Use your device credentials to open Journal")
         if (intent == null) {
-            lockDialogShowing = true
+            afterAuthentication = null
+            if (unlocked) model.error.value = getString(R.string.journal_lock_setup)
+            else lockDialogShowing = true
             return
         }
         authenticating = true; authenticate.launch(intent)
     }
-    override fun onResume() {
-        super.onResume()
-        if (JournalProtection.enabled(this) && !credentialVerified) unlocked = false
-        if (!unlocked && !authenticating) unlock()
+    private fun checkLock() {
+        if (checkingLock || authenticating || isFinishing || isDestroyed) return
+        checkingLock = true
+        lifecycleScope.launch {
+            try {
+                com.jeerovan.comfer.StartupCoordinator.awaitReady()
+                val protected = JournalProtection.requiresAuthentication(this@JournalActivity)
+                if (isFinishing || isDestroyed || !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@launch
+                if (protected && !JournalProtection.authorized()) {
+                    unlocked = false
+                    unlock()
+                } else {
+                    if (!unlocked) model.resumeAfterUnlock()
+                    unlocked = true
+                }
+            } catch (e: Exception) { model.error.value = e.message; unlocked = false }
+            finally { checkingLock = false }
+        }
     }
+    override fun onResume() { super.onResume(); com.jeerovan.comfer.ProtectionSession.enter(this) }
+    override fun onPostResume() { super.onPostResume(); checkLock() }
     override fun onStop() {
+        com.jeerovan.comfer.ProtectionSession.leave(this)
         model.speech.interrupt()
         if (!authenticating) {
-            credentialVerified = false
-            if (JournalProtection.enabled(this)) unlocked = false
+            unlocked = false
         }
         super.onStop()
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        lifecycleScope.launch { while (true) { delay(1000); if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) checkLock() } }
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE)
         setContent { ComferTheme {
-            if (unlocked) JournalScreen(model, ::finish)
+            if (unlocked) JournalScreen(model, ::finish, pickImage = { imagePicker.launch("image/*") }, authorize = { action ->
+                afterAuthentication = action
+                unlock()
+            })
             else {
                 Surface(Modifier.fillMaxSize()) { }
                 if (lockDialogShowing) AlertDialog(onDismissRequest = { finish() },
@@ -133,7 +172,7 @@ private data class JournalDateRequest(val timestamp: Long, val zone: String, val
 private fun dayLabel(day: Long) = LocalDate.ofEpochDay(day).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
 
 @Composable
-internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
+internal fun JournalScreen(model: JournalViewModel, close: () -> Unit, authorize: ((() -> Unit) -> Unit) = { it() }, pickImage: () -> Unit = {}) {
     val context = LocalContext.current
     val resources = LocalResources.current
     val keyboard = LocalSoftwareKeyboardController.current
@@ -203,9 +242,9 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
     var settings by remember { mutableStateOf(false) }
     var options by remember { mutableStateOf(false) }
     var savedEntryId by remember { mutableStateOf<String?>(null) }
-    var protection by remember { mutableStateOf(JournalProtection.enabled(context)) }
+    val protection by model.protectionEnabled.collectAsState()
     var trashOffset by remember { mutableIntStateOf(0) }
-    val loadedArchive by remember(trashOffset) { model.store.dao.trash(limit = 101, offset = trashOffset) }.collectAsState(emptyList())
+    val loadedArchive by remember(trashOffset) { model.store.dao.trash(limit = 101, offset = trashOffset).catch { model.error.value = it.message; emit(emptyList()) } }.collectAsState(emptyList())
     val deleted = remember(loadedArchive) { loadedArchive.take(100) }
     val hasOlderArchive = loadedArchive.size > 100
     var emptyArchive by remember { mutableStateOf(false) }
@@ -253,27 +292,6 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
     }
     BackHandler { leave() }
     fun selectDay(value: Long) { if(model.speech.active || editing != null) return; windowOffset = 0; navigationSerial++; followingToday = value == LocalDate.now().toEpochDay(); day = value; if (draft?.hasContent == false && localText.isBlank()) model.change(day = value) }
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            val targetId = model.pendingImageTarget
-            val targetRevision = model.pendingImageRevision
-            model.busy.value = true
-            scope.launch {
-                try {
-                    val id = model.media.import(uri)
-                    if (targetId != null) {
-                        val target = model.store.dao.entry(targetId) ?: throw JournalConflict()
-                        if (target.revision != targetRevision || (model.editing.value != null && model.editing.value?.id != targetId)) throw JournalConflict()
-                        if (model.editing.value == null) model.beginEdit(target)
-                        model.changeEdit(image = id, changeImage = true)
-                    } else model.change(image = id, changeImage = true)
-                    android.widget.Toast.makeText(context, R.string.journal_image_copy, android.widget.Toast.LENGTH_SHORT).show()
-                } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
-                catch (e: Exception) { model.error.value = e.message ?: "Could not read image" }
-                finally { model.busy.value = false; model.prepareImagePicker(null) }
-            }
-        } else model.prepareImagePicker(null)
-    }
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface.copy(alpha = .8f), contentColor = MaterialTheme.colorScheme.onSurface, tonalElevation = 0.dp) {
         Column(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -296,9 +314,10 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                 }, label = "journal-day-content") { pageDay ->
             val loadedEntries by key(searchMode, searchQuery) {
                 remember(pageDay, searchMode, searchQuery, limit, windowOffset) {
-                    if (!searchMode) model.store.dao.observeDay(pageDay, limit + 1, windowOffset)
+                    val source = if (!searchMode) model.store.dao.observeDay(pageDay, limit + 1, windowOffset)
                     else if (searchQuery.isEmpty()) kotlinx.coroutines.flow.flowOf(emptyList<JournalEntry>())
                     else model.store.dao.search(searchQuery, limit + 1, windowOffset)
+                    source.catch { model.error.value = it.message; emit(emptyList()) }
                 }.collectAsState(emptyList())
             }
             val entries = remember(loadedEntries, limit) { loadedEntries.takeLast(limit) }
@@ -517,7 +536,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                         colors = composerColors, shape = RoundedCornerShape(24.dp),
                         singleLine = mode,
                         placeholder = { Text(stringResource(if (mode) R.string.journal_search else listOf(R.string.journal_prompt_0, R.string.journal_prompt_1, R.string.journal_prompt_2, R.string.journal_prompt_3)[draft?.prompt ?: 0])) },
-                        trailingIcon = if (mode) null else { { IconButton(onClick = { imageTarget = null; model.prepareImagePicker(null); picker.launch("image/*") }, enabled = editing == null && !busy && !searchMode) { Icon(Icons.Outlined.AddPhotoAlternate, stringResource(R.string.journal_add_image), tint = cardText) } } })
+                        trailingIcon = if (mode) null else { { IconButton(onClick = { imageTarget = null; model.prepareImagePicker(null); pickImage() }, enabled = editing == null && !busy && !searchMode) { Icon(Icons.Outlined.AddPhotoAlternate, stringResource(R.string.journal_add_image), tint = cardText) } } })
                     if(mode) IconButton(onClick=::closeSearch,enabled=searchMode,modifier=Modifier.testTag("journal-search-toggle")) {
                         Box(Modifier.size(40.dp).border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=if(searchMode).55f else .25f),CircleShape),contentAlignment=Alignment.Center){
                             Icon(Icons.Outlined.Close,stringResource(R.string.journal_search_close))
@@ -573,12 +592,11 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
     if (settings) ModalBottomSheet(onDismissRequest = { settings = false }) {
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.journal_protect), Modifier.weight(1f))
-            Switch(protection, modifier = Modifier.scale(.7f), onCheckedChange = {
-                try { JournalProtection.setEnabled(context, it); protection = it }
-                catch (e: Exception) { model.error.value = e.message }
+            Switch(protection, enabled = !busy && !model.speech.active, modifier = Modifier.scale(.7f), onCheckedChange = { value ->
+                settings = false
+                authorize { model.changeProtection(value) {} }
             })
         }
-        Text(stringResource(R.string.journal_privacy_explanation), Modifier.padding(16.dp))
         Spacer(Modifier.height(24.dp))
     }
     if (speechOptions) AlertDialog(onDismissRequest = { speechOptions = false }, title = { Text(stringResource(R.string.journal_start_dictation)) }, text = {
@@ -610,7 +628,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
         val imageId = if (target == null) draft?.image else if (editing?.id == target.id) editDraft?.image else target.image
         if (imageId != null) JournalImagePreview(model.media, imageId,
             onClose = { imagePreview = false },
-            onChange = { imagePreview = false; model.prepareImagePicker(target); picker.launch("image/*") },
+            onChange = { imagePreview = false; model.prepareImagePicker(target); pickImage() },
             onDelete = {
                 if (target == null) model.change(image = null, changeImage = true)
                 else if ((if (editing?.id == target.id) localEdit else target.text).isBlank()) confirmDelete = target
@@ -623,6 +641,10 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
 
 @Composable
 private fun JournalImage(media: JournalMedia, id: String, modifier: Modifier) {
-    val bitmap by produceState<android.graphics.Bitmap?>(null, id) { value = media.thumbnail(id) }
+    val bitmap by produceState<android.graphics.Bitmap?>(null, id) {
+        try { value = media.thumbnail(id) }
+        catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+        catch (_: Exception) { value = null }
+    }
     bitmap?.let { Image(it.asImageBitmap(), stringResource(R.string.journal_image), modifier) }
 }

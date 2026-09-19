@@ -17,7 +17,11 @@ class NotesStorageTest {
     class TestCipher : NotesCipher {
         private val key = KeyGenerator.getInstance("AES").apply { init(256) }.generateKey()
         var failNote = false
+        var upgradeRequired = false
+        var sealsUntilFailure = Int.MAX_VALUE
+        override fun needsSessionUpgrade(bytes: ByteArray, protected: Boolean) = upgradeRequired && protected
         override fun seal(bytes: ByteArray, identity: String, protected: Boolean): ByteArray {
+            check(sealsUntilFailure-- > 0) { "Injected upgrade failure" }
             if(failNote && identity.contains(":note:")) throw java.io.IOException("Injected full storage")
             if(protected) NotesSession.requireUnlocked()
             val c=Cipher.getInstance("AES/GCM/NoPadding"); c.init(Cipher.ENCRYPT_MODE,key); c.updateAAD(identity.toByteArray())
@@ -35,6 +39,25 @@ class NotesStorageTest {
     }
     @After fun close() { db.close();NotesSession.lock() }
     private suspend fun saved(text:String):NoteDraft = store.commit(store.saveDraft(store.newDraft().let { it.copy(note=it.note.copy(content=NoteContent(text=text))) }))
+    @Test fun sessionKeyUpgradePreservesContentAndRollsBackPartialFailure() = runBlocking {
+        NotesSession.authorize()
+        store.preferences(store.preferences().copy(moduleLocked = true))
+        val first = saved("First protected content")
+        val second = saved("Second protected content")
+        val beforeRows = db.dao().page()
+        val beforeDrafts = store.drafts()
+        crypto.upgradeRequired = true
+        crypto.sealsUntilFailure = 1
+        try { store.upgradeProtectedContent(); fail("Partial upgrade committed") } catch (_: IllegalStateException) { }
+        beforeRows.forEach { assertArrayEquals(it.payload, db.dao().note(it.id)!!.payload) }
+        assertEquals(beforeDrafts, store.drafts())
+        crypto.sealsUntilFailure = Int.MAX_VALUE
+        store.upgradeProtectedContent()
+        assertEquals(first.note, store.note(first.note.id))
+        assertEquals(second.note, store.note(second.note.id))
+        assertEquals(beforeDrafts, store.drafts())
+        beforeRows.forEach { assertFalse(it.payload.contentEquals(db.dao().note(it.id)!!.payload)) }
+    }
     @Test fun durableLongUnicodeDraftAndCommittedStateSurviveNewStore() = runBlocking {
         val text="हिन्दी 中文 <literal> 👩🏽‍💻\n".repeat(6000)
         val draft=saved(text)

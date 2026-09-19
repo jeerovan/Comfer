@@ -182,7 +182,7 @@ class JournalUiTest {
         val id = "${java.util.UUID.randomUUID()}.jpg"
         val bitmap = android.graphics.Bitmap.createBitmap(800, 600, android.graphics.Bitmap.Config.ARGB_8888)
         bitmap.eraseColor(android.graphics.Color.BLUE)
-        model.media.file(id).outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, it) }
+        java.io.ByteArrayOutputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, it); model.media.write(id, it.toByteArray(), false) }
         bitmap.recycle()
         compose.runOnIdle { model.change(text = "Image entry", image = id, changeImage = true) }
         compose.waitUntil(10000) { model.draft.value?.image == id }

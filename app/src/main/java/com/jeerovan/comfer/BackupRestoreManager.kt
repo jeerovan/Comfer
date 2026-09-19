@@ -173,13 +173,14 @@ object BackupRestoreManager {
         journalPassword: String? = null,
     ): BackupSummary = withContext(Dispatchers.IO) {
         StartupCoordinator.awaitReady()
+        JournalProtection.prepare(context)
         NotificationPreferences.withBackupAccess(context) {
           TaskStore.exclusive(context) { taskSnapshot ->
            JournalDatabase.get(context).withTransaction {
             NotesDatabase.get(context).withTransaction {
             val settings = PreferenceManager.snapshotForBackup()
             val room = ComferRepository.snapshot(context).toBackupData()
-            if (JournalProtection.enabled(context)) {
+            if (JournalProtection.requiresAuthentication(context)) {
                 JournalProtection.requireAuthorization()
                 require(!journalPassword.isNullOrEmpty()) { "Protected Journals require an export password" }
             }
@@ -308,16 +309,16 @@ object BackupRestoreManager {
                         archive = archive,
                         loadWallpaper = true,
                     )
-                    if (validated.payload.journals != null && JournalProtection.enabled(context)) JournalProtection.requireAuthorization()
+                    if (validated.payload.journals != null && JournalProtection.requiresAuthentication(context)) JournalProtection.requireAuthorization()
                     val incomingNotes = validated.payload.notes?.let { descriptor ->
                         val bytes = if(descriptor.external) ZipFile(archive).use { NotesBackup.read(it, descriptor) } else null
                         NotesBackup.unpack(descriptor, journalPassword, bytes)
                     }
                     val previousNotes = if(incomingNotes != null) NotesBackup.local(context) else null
                     val incomingJournals = validated.payload.journals?.let {
-                        val staged = if(it.externalMedia) JournalArchiveMedia.stage(context, archive, it, journalPassword)
-                        else JournalBackup.stageInline(context, JournalBackup.unpack(it, journalPassword))
-                        staged.copy(protectionEnabled = staged.protectionEnabled || JournalProtection.enabled(context))
+                        val staged = if(it.externalMedia) JournalArchiveMedia.stage(context, archive, it, journalPassword, protect = JournalProtection.requiresAuthentication(context))
+                        else JournalBackup.stageInline(context, JournalBackup.unpack(it, journalPassword), protect = JournalProtection.requiresAuthentication(context))
+                        staged.copy(protectionEnabled = staged.protectionEnabled || JournalProtection.requiresAuthentication(context))
                     }
                     val previousJournals = if(incomingJournals != null) JournalArchiveMedia.localSnapshot(context) else null
                     val previousSettings = PreferenceManager.snapshotForBackup()
@@ -421,7 +422,7 @@ object BackupRestoreManager {
                 PreferenceManager.replaceSnapshot(context, journal.settings)
                 journal.notificationConfiguration?.let { rollback(it) }
                 journal.tasks?.let { TaskStore.write(context, it) }
-                journal.journals?.let { JournalArchiveMedia.replaceLocal(context, it) }
+                journal.journals?.let { JournalArchiveMedia.restoreCheckpoint(context, it) }
                 journal.notes?.let { NotesBackup.restoreLocal(context, it) }
                 deleteRestoreJournal(context)
                 if (journal.notificationConfiguration != null) NotificationQuietHours.reconcile(context)

@@ -157,7 +157,6 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     /** UI state is never placed in savedInstanceState. Activity removes sensitive composition on lock. */
     fun background() {
         saveJob?.cancel(); observeJob?.cancel(); notes=emptyList();ready=false;query="";selected=emptySet();undo=null;error=null;recoveredDrafts=emptyList()
-        NotesSession.lock()
         // Retain the in-memory editor buffer for authenticated retry; last durable draft survives death.
     }
     fun updateBody(value: TextFieldValue) {

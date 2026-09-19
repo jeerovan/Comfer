@@ -23,7 +23,7 @@ import javax.crypto.spec.SecretKeySpec
 @Serializable
 data class JournalExternalMedia(val id: String, val entry: String, val size: Long, val sha256: String, val nonce: String? = null)
 @Serializable
-data class JournalLocalSnapshot(val entries: List<JournalEntry>, val drafts: List<JournalDraft>, val segments: List<JournalSegment> = emptyList(), val protectionEnabled: Boolean = false)
+data class JournalLocalSnapshot(val entries: List<JournalEntry>, val drafts: List<JournalDraft>, val segments: List<JournalSegment> = emptyList(), val protectionEnabled: Boolean = false, val deviceEncrypted: Boolean = false)
 
 /** Image payloads are streamed through ZIP as separate, bounded files. Only one decoded file's
  * bytes are held at a time. Staging always precedes replacement, including authenticated images. */
@@ -46,11 +46,18 @@ object JournalArchiveMedia {
         override fun close() { staging.deleteRecursively() }
     }
     suspend fun localSnapshot(context: Context): JournalLocalSnapshot = JournalDatabase.get(context).withTransaction {
-        val dao = JournalDatabase.get(context).dao()
-        JournalLocalSnapshot(dao.exportEntries(), dao.exportDrafts(), dao.exportSegments(), JournalProtection.enabled(context))
+        val db = JournalDatabase.get(context)
+        if (db.rawDao().storageState()?.storageVersion != 1) db.dao().initialize()
+        val dao = db.rawDao()
+        JournalLocalSnapshot(dao.exportEntries(), dao.exportDrafts(), dao.allSegments(), dao.storageState()!!.moduleLocked, deviceEncrypted = true)
+    }
+    private suspend fun decodedSnapshot(context: Context): JournalLocalSnapshot = JournalDatabase.get(context).withTransaction {
+        val db = JournalDatabase.get(context)
+        val dao = db.dao()
+        JournalLocalSnapshot(dao.exportEntries(), dao.exportDrafts(), dao.exportSegments(), db.rawDao().storageState()!!.moduleLocked)
     }
     suspend fun prepare(context: Context, password: String?): Prepared {
-        val local = localSnapshot(context)
+        val local = decodedSnapshot(context)
         if(local.protectionEnabled) { JournalProtection.requireAuthorization(); require(password != null) { "Protected Journals require an export password" } }
         val ids = (local.entries.mapNotNull { it.image } + local.drafts.mapNotNull { it.image }).distinct()
         val staging = File(context.noBackupFilesDir, "journal-export-${UUID.randomUUID()}").apply { check(mkdirs()) }
@@ -61,16 +68,14 @@ object JournalArchiveMedia {
             val files = linkedMapOf<String, File>()
             var total = 0L
             val media = ids.map { id ->
-                val source = JournalMedia(context).file(id)
-                require(source.length() in 1..2_000_000) { "A Journal image is unavailable" }
-                total += source.length()
+                val bytes = JournalMedia(context).read(id)
+                total += bytes.size
                 if(total > 480L * 1024 * 1024) throw JournalArchiveException("Journal images exceed the 480 MB archive limit")
-                val bytes = source.readBytes()
                 validateImage(bytes)
                 val nonce = secret?.let { random(12) }
                 val payload = if(secret != null) crypt(Cipher.ENCRYPT_MODE, secret, nonce!!, bytes, "Comfer Journal image 1:$id") else bytes
                 val entry = "journals/$id"
-                val file = if(secret == null) source else File(staging, id).also { file -> FileOutputStream(file).use { it.write(payload); it.fd.sync() } }
+                val file = File(staging, id).also { file -> FileOutputStream(file).use { it.write(payload); it.fd.sync() } }
                 files[entry] = file
                 JournalExternalMedia(id, entry, payload.size.toLong(), hash(payload), nonce?.let(::b64))
             }
@@ -119,7 +124,7 @@ object JournalArchiveMedia {
         require(bytes.size.toLong() == item.size && hash(bytes) == item.sha256) { "Journal image checksum does not match" }
         return bytes
     }
-    fun stage(context: Context, zipFile: File, archive: JournalArchive, password: String?): JournalLocalSnapshot {
+    fun stage(context: Context, zipFile: File, archive: JournalArchive, password: String?, protect: Boolean = false): JournalLocalSnapshot {
         validateDescriptors(archive)
         val secret = if(archive.encrypted) {
             if(password.isNullOrEmpty()) throw JournalArchiveException("Enter the Journal export password")
@@ -143,23 +148,43 @@ object JournalArchiveMedia {
                 validateImage(bytes)
                 val id = "${UUID.randomUUID()}.jpg"
                 val file = JournalMedia(context).file(id); created += file
-                FileOutputStream(file).use { it.write(bytes); it.fd.sync() }
+                JournalMedia(context).write(id, bytes, snapshot.protectionEnabled || protect)
                 item.id to id
             } }
-            return JournalLocalSnapshot(snapshot.entries.map { it.copy(image = it.image?.let(mapping::getValue)) }, snapshot.drafts.map { it.copy(image = it.image?.let(mapping::getValue)) }, snapshot.segments, snapshot.protectionEnabled)
+            return JournalLocalSnapshot(snapshot.entries.map { it.copy(image = it.image?.let(mapping::getValue)) }, snapshot.drafts.map { it.copy(image = it.image?.let(mapping::getValue)) }, snapshot.segments, snapshot.protectionEnabled || protect)
         } catch(e: Exception) { created.forEach(File::delete); throw e }
     }
     suspend fun replaceLocal(context: Context, snapshot: JournalLocalSnapshot) {
         val ids = (snapshot.entries.mapNotNull { it.image } + snapshot.drafts.mapNotNull { it.image }).toSet()
-        JournalBackup.validate(JournalSnapshot(entries = snapshot.entries, drafts = snapshot.drafts, media = emptyList(), segments = snapshot.segments), ids)
+        if (!snapshot.deviceEncrypted) JournalBackup.validate(JournalSnapshot(entries = snapshot.entries, drafts = snapshot.drafts, media = emptyList(), segments = snapshot.segments), ids)
         ids.forEach { require(JournalMedia(context).file(it).isFile) { "A recovery image is missing" } }
         val db = JournalDatabase.get(context)
         db.withTransaction {
-            val dao = db.dao(); dao.clearSegments(); dao.clearDrafts(); dao.clearEntries()
-            snapshot.entries.forEach { dao.insert(it) }; snapshot.drafts.forEach { dao.putDraft(it) }; snapshot.segments.forEach { dao.segment(it) }
-            dao.state(JournalState(generation = dao.generation() + 1))
+            val raw = db.rawDao()
+            val generation = raw.generation() + 1
+            val previousState = raw.storageState()
+            val needsCleanup = previousState?.cleanupPending == true
+            val remap = if (!snapshot.deviceEncrypted) {
+                if (JournalProtection.requiresAuthentication(context) || snapshot.protectionEnabled) JournalProtection.requireAuthorization()
+                // Re-key staged images to the destination protection level, including unprotected
+                // archives restored into an already-protected Journal.
+                ids.associateWith { JournalMedia(context).copyEncrypted(it, snapshot.protectionEnabled) }
+            } else emptyMap()
+            raw.clearSegments(); raw.clearDrafts(); raw.clearEntries()
+            raw.state(JournalState(generation = generation, storageVersion = 1, moduleLocked = snapshot.protectionEnabled, cleanupPending = needsCleanup))
+            if (snapshot.deviceEncrypted) {
+                // Same-device rollback can run at cold start without decrypting private content.
+                snapshot.entries.forEach { raw.insert(it) }; snapshot.drafts.forEach { raw.putDraft(it) }; snapshot.segments.forEach { raw.segment(it) }
+            } else {
+                val dao = db.dao()
+                snapshot.entries.forEach { dao.insert(it.copy(image = it.image?.let(remap::getValue))) }; snapshot.drafts.forEach { dao.putDraft(it.copy(image = it.image?.let(remap::getValue))) }; snapshot.segments.forEach { dao.segment(it) }
+            }
             JournalProtection.restoreState(context, snapshot.protectionEnabled)
         }
+    }
+    internal suspend fun restoreCheckpoint(context: Context, snapshot: JournalLocalSnapshot) {
+        require(snapshot.deviceEncrypted) { "Journal recovery requires an encrypted checkpoint" }
+        replaceLocal(context, snapshot)
     }
     private fun validateImage(bytes: ByteArray) {
         require(bytes.size in 2..2_000_000 && bytes[bytes.size - 2] == 0xff.toByte() && bytes.last() == 0xd9.toByte())

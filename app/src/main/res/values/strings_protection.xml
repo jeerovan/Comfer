@@ -1,0 +1,9 @@
+<resources>
+    <string name="protection_settings">Protection</string>
+    <string name="protection_timeout">Protection Timeout</string>
+    <string name="protection_choose_duration">Choose duration</string>
+    <string name="protection_timeout_subtitle">For notes and journals.</string>
+    <string name="protection_timeout_30_seconds">30 sec</string>
+    <string name="protection_timeout_2_minutes">2 min</string>
+    <string name="protection_timeout_5_minutes">5 min</string>
+</resources>
