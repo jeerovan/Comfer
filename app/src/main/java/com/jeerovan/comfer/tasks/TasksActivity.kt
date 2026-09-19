@@ -431,7 +431,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                     },
                     label="tasks-search-mode",
                 ) { searchMode ->
-                    Row(Modifier.fillMaxWidth().testTag("tasks-bottom-actions").onSizeChanged { controlsHeight = it.height }.padding(8.dp), horizontalArrangement = if(searchMode) Arrangement.spacedBy(8.dp) else Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().testTag("tasks-bottom-actions").onSizeChanged { controlsHeight = it.height }.padding(if(searchMode) PaddingValues(start=16.dp,end=16.dp,bottom=8.dp) else PaddingValues(8.dp)), horizontalArrangement = if(searchMode) Arrangement.spacedBy(8.dp) else Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                         if(searchMode) {
                             val searchFocus=remember{FocusRequester()}
                             LaunchedEffect(searching){if(searching)searchFocus.requestFocus()}
@@ -449,7 +449,11 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                                     }
                                 },
                             )
-                            IconButton(onClick=::closeSearch,enabled=searching){Icon(Icons.Outlined.Close,stringResource(R.string.tasks_close_search))}
+                            IconButton(onClick=::closeSearch,enabled=searching){
+                                Box(Modifier.size(40.dp).border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=if(searching).55f else .25f),CircleShape),contentAlignment=Alignment.Center){
+                                    Icon(Icons.Outlined.Close,stringResource(R.string.tasks_close_search))
+                                }
+                            }
                         } else {
                             IconButton(onClick = { searching = true }, enabled = !searching) { Icon(Icons.Outlined.Search, stringResource(R.string.tasks_search)) }
                             IconToggleButton(enabled = !searching, checked = view == "starred", onCheckedChange = { view = if(it) "starred" else "selected"; searching = false }) { Icon(if(view == "starred") Icons.Filled.Star else Icons.Outlined.StarBorder, stringResource(R.string.tasks_star)) }

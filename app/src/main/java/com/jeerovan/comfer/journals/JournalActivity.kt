@@ -16,6 +16,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.semantics.*
 import androidx.lifecycle.Lifecycle
@@ -125,14 +135,17 @@ private fun dayLabel(day: Long) = LocalDate.ofEpochDay(day).format(DateTimeForma
 internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
     val context = LocalContext.current
     val resources = LocalResources.current
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val inputView = LocalView.current
     val mutedGray = Color(0xFF9E9E9E)
     val cardText = MaterialTheme.colorScheme.onSurface
     val journalCardColors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f), contentColor = cardText)
     val composerColors = OutlinedTextFieldDefaults.colors(
         focusedPlaceholderColor = mutedGray, unfocusedPlaceholderColor = mutedGray,
         disabledPlaceholderColor = mutedGray.copy(alpha = .6f),
-        focusedBorderColor = mutedGray, unfocusedBorderColor = mutedGray,
-        disabledBorderColor = mutedGray.copy(alpha = .6f)
+        focusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = .55f), unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = .55f),
+        disabledBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = .25f)
     )
     val scope = rememberCoroutineScope()
     val guides = remember(context) { JournalGuideProgress(context) }
@@ -225,10 +238,17 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
         }
     }
     fun changed() = editing?.let { it.text != localEdit || it.image != editDraft?.image || it.createdAt != (editDraft?.createdAt ?: it.createdAt) || it.day != editDraft?.day } == true
+    fun closeSearch() {
+        keyboard?.hide()
+        (context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager)
+            ?.hideSoftInputFromWindow(inputView.windowToken,0)
+        focusManager.clearFocus(force=true)
+        searchMode=false;searchText="";searchQuery=""
+    }
     fun leave() {
         if (capturing) { if(recoveryPending && !model.speech.active) model.error.value = "Retry saving dictation before closing." else model.speech.stop(); return }
         if (editing != null) { if (changed()) confirmLeave = true else model.finishEdit(false) }
-        else if (trash) trash = false else if (searchMode) searchMode = false else model.closeWhenSaved(close)
+        else if (trash) trash = false else if (searchMode) closeSearch() else model.closeWhenSaved(close)
     }
     BackHandler { leave() }
     fun selectDay(value: Long) { if(model.speech.active || editing != null) return; windowOffset = 0; navigationSerial++; followingToday = value == LocalDate.now().toEpochDay(); day = value; if (draft?.hasContent == false && localText.isBlank()) model.change(day = value) }
@@ -258,6 +278,13 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(if (trash) R.string.journal_trash else if (searchMode) R.string.journal_search_title else R.string.journal_title), Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
                 if(draftSaving) CircularProgressIndicator(Modifier.size(16.dp).semantics { contentDescription = draftSavingLabel })
+                if (!trash) Box {
+                    IconButton(onClick = { options = true }, enabled = editing == null && !capturing && !busy) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.journal_options), tint = cardText) }
+                    DropdownMenu(expanded = options, onDismissRequest = { options = false }, containerColor = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = 0.dp) {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.journal_settings), color = MaterialTheme.colorScheme.onSurfaceVariant ) }, onClick = { options = false; settings = true })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.journal_trash), color = MaterialTheme.colorScheme.onSurfaceVariant) }, onClick = { options = false; trash = true })
+                    }
+                }
             }
             val rtlLayout = LocalLayoutDirection.current == LayoutDirection.Rtl
             AnimatedContent(targetState = day, modifier = Modifier.weight(1f).clipToBounds(),
@@ -423,16 +450,10 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                     if (guides.current == JournalGuide.DATE && navigationEnabled && !settings && !options && dateRequest == null && !imagePreview) {
                         JournalGestureGuide(JournalGuide.DATE, Modifier.align(Alignment.Center))
                     }
-                    Box(Modifier.align(Alignment.CenterEnd)) {
-                        IconButton(onClick = { options = true }, enabled = navigationEnabled) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.journal_options), tint = mutedGray) }
-                        DropdownMenu(expanded = options, onDismissRequest = { options = false }, containerColor = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = 0.dp) {
-                            DropdownMenuItem(text = { Text(stringResource(R.string.journal_settings), color = MaterialTheme.colorScheme.onSurfaceVariant ) }, onClick = { options = false; settings = true })
-                            DropdownMenuItem(text = { Text(stringResource(R.string.journal_trash), color = MaterialTheme.colorScheme.onSurfaceVariant) }, onClick = { options = false; trash = true })
-                        }
-                    }
+
                 }
             }
-            if (!trash) Column(Modifier.padding(horizontal = 12.dp)) {
+            if (!trash) Column(Modifier.padding(horizontal = if(searchMode) 16.dp else 12.dp)) {
                 if (capturing) {
                     Text("${durationSeconds / 60}:${(durationSeconds % 60).toString().padStart(2, '0')}")
                     Text(liveText, maxLines = 5)
@@ -456,21 +477,47 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                     }
                 } else {
                 if (!searchMode) draft?.image?.let { id -> JournalImage(model.media, id, Modifier.height(90.dp).clickable(enabled = editing == null && !busy) { imageTarget = null; imagePreview = true }) }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(if (searchMode) searchText else localText, onValueChange = {
-                        if (searchMode) searchText = it else { localText = it; model.change(text = it) }
-                    }, modifier = Modifier.weight(1f).heightIn(max = 180.dp).testTag("journal-composer").semantics { contentDescription = resources.getString(if (searchMode) R.string.journal_search else R.string.journal_input) }, enabled = editing == null && !busy && draft != null,
-                        colors = composerColors,
-                        singleLine = searchMode,
-                        placeholder = { Text(stringResource(if (searchMode) R.string.journal_search else listOf(R.string.journal_prompt_0, R.string.journal_prompt_1, R.string.journal_prompt_2, R.string.journal_prompt_3)[draft?.prompt ?: 0])) },
-                        leadingIcon = { IconButton(onClick = { searchMode = !searchMode }, enabled = editing == null && !busy,
-                            modifier = Modifier.testTag("journal-search-toggle")) {
-                            Icon(if (searchMode) Icons.Outlined.Close else Icons.Outlined.Search, stringResource(if (searchMode) R.string.journal_search_close else R.string.journal_search_title), tint = mutedGray)
-                        } },
-                        trailingIcon = if (searchMode) null else { { IconButton(onClick = { imageTarget = null; model.prepareImagePicker(null); picker.launch("image/*") }, enabled = editing == null && !busy) { Icon(Icons.Outlined.AddPhotoAlternate, stringResource(R.string.journal_add_image), tint = mutedGray) } } })
-                    if (!searchMode) {
+                AnimatedContent(targetState=searchMode, transitionSpec={
+                    (fadeIn(tween(180))+expandHorizontally(tween(220),expandFrom=Alignment.Start)) togetherWith
+                        (fadeOut(tween(120))+shrinkHorizontally(tween(220),shrinkTowards=Alignment.Start))
+                }, label="journal-search-mode") { mode ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(if(mode) 8.dp else 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    val composerFocus=remember{FocusRequester()}
+                    LaunchedEffect(searchMode){if(mode && searchMode)composerFocus.requestFocus()}
+                    if(!mode) IconButton(onClick={searchMode=true},enabled=editing==null && !busy && !searchMode,modifier=Modifier.testTag("journal-search-toggle")) {
+                        Icon(Icons.Outlined.Search,stringResource(R.string.journal_search_title),tint=cardText)
+                    }
+                    if(mode) BasicTextField(
+                        value=searchText,onValueChange={searchText=it},singleLine=true,
+                        enabled=editing==null && !busy && draft!=null && searchMode,
+                        modifier=Modifier.weight(1f).heightIn(min=40.dp).focusRequester(composerFocus).testTag("journal-composer")
+                            .semantics { contentDescription=resources.getString(R.string.journal_search) }
+                            .border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=.55f),CircleShape)
+                            .padding(horizontal=16.dp,vertical=8.dp),
+                        textStyle=MaterialTheme.typography.bodyMedium.copy(color=MaterialTheme.colorScheme.onSurface),
+                        cursorBrush=SolidColor(MaterialTheme.colorScheme.primary),
+                        decorationBox={innerTextField->
+                            Box(contentAlignment=Alignment.CenterStart){
+                                if(searchText.isEmpty())Text(stringResource(R.string.journal_search),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                                innerTextField()
+                            }
+                        },
+                    ) else
+                    OutlinedTextField(if (mode) searchText else localText, onValueChange = {
+                        if (mode) searchText = it else { localText = it; model.change(text = it) }
+                    }, modifier = Modifier.weight(1f).heightIn(max = 180.dp).focusRequester(composerFocus).testTag("journal-composer").semantics { contentDescription = resources.getString(if (mode) R.string.journal_search else R.string.journal_input) }, enabled = editing == null && !busy && draft != null && mode == searchMode,
+                        colors = composerColors, shape = RoundedCornerShape(24.dp),
+                        singleLine = mode,
+                        placeholder = { Text(stringResource(if (mode) R.string.journal_search else listOf(R.string.journal_prompt_0, R.string.journal_prompt_1, R.string.journal_prompt_2, R.string.journal_prompt_3)[draft?.prompt ?: 0])) },
+                        trailingIcon = if (mode) null else { { IconButton(onClick = { imageTarget = null; model.prepareImagePicker(null); picker.launch("image/*") }, enabled = editing == null && !busy && !searchMode) { Icon(Icons.Outlined.AddPhotoAlternate, stringResource(R.string.journal_add_image), tint = cardText) } } })
+                    if(mode) IconButton(onClick=::closeSearch,enabled=searchMode,modifier=Modifier.testTag("journal-search-toggle")) {
+                        Box(Modifier.size(40.dp).border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=if(searchMode).55f else .25f),CircleShape),contentAlignment=Alignment.Center){
+                            Icon(Icons.Outlined.Close,stringResource(R.string.journal_search_close))
+                        }
+                    }
+                    if (!mode) {
                     val canSubmit = localText.isNotBlank() || draft?.image != null
-                    Box(Modifier.size(48.dp).testTag("journal-submit").combinedClickable(enabled = editing == null && !busy && draft != null,
+                    Box(Modifier.size(48.dp).testTag("journal-submit").combinedClickable(enabled = editing == null && !busy && draft != null && mode == searchMode,
                         onClick = { if (canSubmit) model.submit { entry -> selectDay(entry.day); savedEntryId = entry.id; model.change(day = entry.day) } else model.error.value = "Hold the microphone to start dictation." },
                         onLongClickLabel = stringResource(R.string.journal_start_dictation),
                         onLongClick = { networkConsent = false; speechOptions = true }).semantics {
@@ -479,6 +526,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit) {
                         if(busy) CircularProgressIndicator(Modifier.size(24.dp))
                         else Icon(if (canSubmit) Icons.Outlined.Check else Icons.Outlined.Mic, stringResource(if(canSubmit) R.string.journal_save else R.string.journal_start_dictation))
                     }
+                }
                 }
                 }
                 }

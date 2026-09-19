@@ -47,6 +47,26 @@ class JournalUiTest {
         compose.waitUntil(10000) { model.draft.value != null }
     }
     @After fun cleanup() { compose.runOnUiThread { model.speech.interrupt() }; runBlocking { JournalBackup.replace(context, previous) } }
+    @Test fun headerOptionsAndComposerActionsStayOutsideTheInput() {
+        val title=compose.onNodeWithText("Journal",substring=false).fetchSemanticsNode().boundsInRoot
+        val options=compose.onNodeWithContentDescription("Journal options").fetchSemanticsNode().boundsInRoot
+        val search=compose.onNodeWithTag("journal-search-toggle").fetchSemanticsNode().boundsInRoot
+        val input=compose.onNodeWithTag("journal-composer").fetchSemanticsNode().boundsInRoot
+        val image=compose.onNodeWithContentDescription("Add image").fetchSemanticsNode().boundsInRoot
+        val mic=compose.onNodeWithTag("journal-submit").fetchSemanticsNode().boundsInRoot
+        assertEquals(title.center.y,options.center.y,1f)
+        assertTrue(options.bottom<input.top)
+        assertTrue(search.right<=input.left)
+        assertTrue(image.left>=input.left && image.right<=input.right)
+        assertTrue(input.right<=mic.left)
+        compose.onNodeWithTag("journal-search-toggle").performClick()
+        compose.onNodeWithTag("journal-composer").assertIsFocused()
+        compose.onNodeWithTag("journal-submit").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Add image").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Close search").performClick()
+        compose.onNodeWithTag("journal-submit").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Add image").assertIsDisplayed()
+    }
     @Test fun searchPreservesDraftAndSupportsEntryActionsAcrossDates() {
         val yesterday = java.time.LocalDate.now().minusDays(1).toEpochDay()
         val entry = JournalEntry(day = yesterday, text = "Searchable memory")
@@ -89,6 +109,7 @@ class JournalUiTest {
     @Test fun searchDebouncesAndClearingQueryDoesNotShowAllEntries() {
         runBlocking { model.store.dao.insert(JournalEntry(text = "Debounce target")) }
         compose.onNodeWithTag("journal-search-toggle").performClick()
+        compose.waitForIdle()
         compose.mainClock.autoAdvance = false
         compose.onNodeWithTag("journal-composer").performTextInput("Debounce")
         compose.mainClock.advanceTimeBy(100)
@@ -253,7 +274,7 @@ class JournalUiTest {
             // Compose idleness can precede the emulator compositor's displayed frame.
             compose.waitUntil(5000) {
                 val bounds = node.fetchSemanticsNode().boundsInWindow
-                val bitmap = requireNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
+                val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot() ?: return@waitUntil false
                 var matching = 0
                 for (y in bounds.top.toInt().coerceAtLeast(0) until bounds.bottom.toInt().coerceAtMost(bitmap.height)) {
                     for (x in bounds.left.toInt().coerceAtLeast(0) until bounds.right.toInt().coerceAtMost(bitmap.width)) {
