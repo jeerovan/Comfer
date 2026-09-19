@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 
 internal enum class HomeGuideStep(val preferenceKey: String) {
     SWIPE_UP("quick_apps_swipe"),
@@ -34,6 +35,18 @@ internal fun nextHomeGuideStep(
     step !in completed && when (step) {
         HomeGuideStep.CLOCK_TAP, HomeGuideStep.CLOCK_LONG_PRESS -> hasClock
         else -> true
+    }
+}
+
+/** Stop teaching after 15 seconds even when the user never performs the gesture. */
+@Composable
+internal fun InboxGuideTimeout(active: Boolean, onTimeout: () -> Unit) {
+    val dismiss by rememberUpdatedState(onTimeout)
+    LaunchedEffect(active) {
+        if (active) {
+            delay(15_000)
+            dismiss()
+        }
     }
 }
 

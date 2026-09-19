@@ -20,6 +20,44 @@ import org.junit.Test
 class InboxGestureGuideTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun guideExpiresAfterFifteenSecondsWithoutAnyGestureAndAdvancesSequence() {
+        var completed by mutableStateOf(HomeGuideStep.entries.toSet() - HomeGuideStep.INBOX - HomeGuideStep.CLOCK_TAP)
+        var dismissals = 0
+        compose.mainClock.autoAdvance = false
+        compose.setContent {
+            val active = nextHomeGuideStep(completed, hasClock = true) == HomeGuideStep.INBOX
+            InboxGuideTimeout(active) { dismissals++; completed = completed + HomeGuideStep.INBOX }
+            if (active) InboxGestureHint()
+        }
+        compose.mainClock.advanceTimeByFrame()
+        compose.mainClock.advanceTimeBy(14_900)
+        compose.onNodeWithTag("home-inbox-guide").assertExists()
+        compose.runOnIdle { assertEquals(0, dismissals) }
+        compose.mainClock.advanceTimeBy(200)
+        compose.onNodeWithTag("home-inbox-guide").assertDoesNotExist()
+        compose.runOnIdle {
+            assertEquals(1, dismissals)
+            assertEquals(HomeGuideStep.CLOCK_TAP, nextHomeGuideStep(completed, true))
+        }
+        compose.mainClock.advanceTimeBy(30_000)
+        compose.runOnIdle { assertEquals(1, dismissals) }
+    }
+
+    @Test fun inactiveGuideDoesNotExpireAndInterruptedTimerIsCancelled() {
+        var active by mutableStateOf(false)
+        var dismissals = 0
+        compose.mainClock.autoAdvance = false
+        compose.setContent { InboxGuideTimeout(active) { dismissals++ } }
+        compose.mainClock.advanceTimeBy(20_000)
+        compose.runOnIdle { assertEquals(0, dismissals); active = true }
+        compose.mainClock.advanceTimeByFrame()
+        compose.mainClock.advanceTimeBy(10_000)
+        compose.runOnIdle { active = false }
+        compose.mainClock.advanceTimeByFrame()
+        compose.mainClock.advanceTimeBy(20_000)
+        compose.runOnIdle { assertEquals(0, dismissals) }
+    }
+
     @Test fun handDemonstratesOneContinuousDownAndReturn() {
         compose.mainClock.autoAdvance = false
         compose.setContent { InboxGestureHint() }
@@ -82,6 +120,7 @@ class InboxGestureGuideTest {
         var opened = 0
         compose.setContent {
             val step = nextHomeGuideStep(completed, hasClock = true)
+            InboxGuideTimeout(step == HomeGuideStep.INBOX) { completed = completed + HomeGuideStep.INBOX }
             Box(Modifier.fillMaxSize().testTag("guide-home").detectGestures(onInbox = {
                 opened++
                 if (step == HomeGuideStep.INBOX) completed = completed + HomeGuideStep.INBOX

@@ -2336,6 +2336,10 @@ fun QuickListOverlay(apps: List<AppInfo>,
         completed = completedGuides,
         hasClock = !settings.hasCustomWidgets && "time" in settings.widgetIds,
     ) else null)
+    InboxGuideTimeout(active = activeGuide == HomeGuideStep.INBOX) {
+        settingsModel.setStepGuideShown(context, inboxGestureKey)
+        inboxGestureShown = true
+    }
     val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
     fun exitWidgetSettings() {
         showWidgetSettings = false
