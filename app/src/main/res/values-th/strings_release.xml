@@ -150,7 +150,7 @@
     <string name="notification_days_from_now">วันตั้งแต่วันนี้: %1$d</string>
     <string name="notification_resume_clock">เริ่มใหม่ในเวลาของวัน</string>
     <string name="notification_apply_resume">ปรับใช้เวลาทำการต่อไปที่กำหนดเอง</string>
-    <string name="notification_quiet_unavailable">Comfer สามารถควบคุมการไม่รบกวนได้ด้วยการตั้งค่าการแจ้งเตือนปัจจุบัน ใช้การตั้งค่าของแอนดรอยด์ที่ไม่รบกวนแทน</string>
+    <string name="notification_quiet_unavailable">Comfer ไม่สามารถควบคุมโหมดห้ามรบกวนด้วยการตั้งค่าปลุกปัจจุบันได้ ใช้การตั้งค่าโหมดห้ามรบกวนของ Android แทน</string>
     <string name="notification_system_dnd_off">ปิดการใช้งานระบบ Android ไม่รบกวน</string>
     <string name="notification_system_dnd_on">ปิดการใช้งานการไม่รบกวนของแอนดรอยด์ (กฎอื่น ๆ อาจมีผล)</string>
     <string name="notification_schedule_device_quiet">เปิดใช้การแจ้งเตือนอย่ารบกวน ระหว่างเวลาที่กำหนดไว้นี้</string>
@@ -168,11 +168,11 @@
     <string name="notification_focus_help">ใช้โหมดไม่รบกวนของแอนดรอยด์เพื่อพักสั้นๆ เลือกระยะเวลาที่จะเริ่มการจับเวลาใหม่ หรือแทนที่ด้วยการจับเวลาปัจจุบัน ข้อยกเว้นของแอนดรอยด์ของคุณยังคงมีผล</string>
     <string name="notification_focus_until">เครื่องจับเวลาจะหมดเวลาที่ %1$s</string>
     <string name="notification_focus_none">ไม่มีเวลาตั้งค่าการโฟกัส</string>
-    <string name="notification_schedule_title">จัดตารางการทำซ้ำ: whatsthis</string>
+    <string name="notification_schedule_title">จัดตารางการทำซ้ำ</string>
     <string name="notification_schedule_enabled">ปรับปรุงตารางงานที่บันทึกไว้</string>
     <string name="notification_schedule_disabled">ปิดการจัดตารางงานที่บันทึกไว้</string>
     <string name="notification_schedule_help">เลือกว่าเมื่อไหร่จะทำซ้ำ และทำอะไร แล้วบันทึก วันหมายถึงวันที่เริ่มต้นของตารางเวลา เวลาสิ้นสุดก่อนที่การเริ่มจะคงอยู่ต่อไปในวันถัดไป</string>
-    <string name="notification_schedule_days">ทำซ้ำเมื่อ@ option: check</string>
+    <string name="notification_schedule_days">ทำซ้ำเมื่อ</string>
     <string name="notification_schedule_empty_apps">แอพพลิเคชันจะปรากฏที่นี่เมื่อมีการแจ้งเตือน</string>
     <string name="notification_schedule_invalid">เลือกอย่างน้อยวันหนึ่ง, เวลาเริ่มและจบที่แตกต่างกัน และการกระทำอย่างน้อยหนึ่งครั้ง</string>
     <string name="notification_schedule_actions">ระหว่างตารางเวลานี้</string>

@@ -1,5 +1,7 @@
 package com.jeerovan.comfer.notes
 
+import androidx.compose.ui.platform.LocalResources
+import com.jeerovan.comfer.R
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
@@ -43,6 +45,7 @@ internal fun inlineChecks(text:String):List<InlineCheck> = Regex("(?m)^\\[([ xX]
 }.toList()
 
 @Composable internal fun NotesCanvas(model:NotesViewModel,modifier:Modifier=Modifier) {
+    val resources=LocalResources.current
     fun text()=model.title+if(model.body.text.isNotEmpty())"\n"+model.body.text else ""
     var value by remember(model.draft?.id){mutableStateOf(TextFieldValue(text()))}
     var commandSeen by remember(model.draft?.id){mutableIntStateOf(model.canvasCommand?.sequence?:0)}
@@ -110,7 +113,7 @@ internal fun inlineChecks(text:String):List<InlineCheck> = Regex("(?m)^\\[([ xX]
             },Modifier.fillMaxWidth().heightIn(min=if(model.images.isEmpty())minHeight else if(segment==model.images.size)120.dp else 48.dp).focusRequester(focus)
                 .onFocusChanged{if(it.isFocused)activeSegment=segment}
                 .testTag(if(segment==0)"notes-editor" else "notes-editor-after-image-${segment}")
-                .semantics{customActions=checks.filter{it.start>=start&&it.start<end}.mapIndexed{index,item->CustomAccessibilityAction("${if(item.checked)"Uncheck" else "Check"} item ${index+1}: ${item.label}"){toggle(item.start);true}}}
+                .semantics{customActions=checks.filter{it.start>=start&&it.start<end}.mapIndexed{index,item->CustomAccessibilityAction(resources.getString(if(item.checked)R.string.module_uncheck_item_1_d_2_s else R.string.module_check_item_1_d_2_s,index+1,item.label)){toggle(item.start);true}}}
                 .pointerInput(start,end){awaitEachGesture{
                     val down=awaitFirstDown(requireUnconsumed=false,pass=PointerEventPass.Initial)
                     val result=layout ?: return@awaitEachGesture
@@ -150,21 +153,22 @@ internal fun inlineChecks(text:String):List<InlineCheck> = Regex("(?m)^\\[([ xX]
                             if(to>from)addStyle(SpanStyle(textDecoration=TextDecoration.Underline+TextDecoration.LineThrough),from,to)
                         }}
                     }.subSequence(start,end),OffsetMapping.Identity)
-                },decorationBox={inner->Box{if(segment==0&&value.text.isEmpty())Text("Title",style=heading,color=MaterialTheme.colorScheme.onSurfaceVariant);inner()}})
+                },decorationBox={inner->Box{if(segment==0&&value.text.isEmpty())Text(resources.getString(R.string.ui_title),style=heading,color=MaterialTheme.colorScheme.onSurfaceVariant);inner()}})
             }
             }
 
         }
     }
     preview?.let{image->AlertDialog(onDismissRequest={preview=null},text={NoteImageView(image,Modifier.fillMaxWidth())},
-        confirmButton={NotesIconButton(onClick={model.removeImage(image.id);preview=null}){Icon(Icons.Outlined.Delete,"Remove image")}},
-        dismissButton={NotesIconButton(onClick={preview=null}){Icon(Icons.Outlined.Close,"Close image")}})}
+        confirmButton={NotesIconButton(onClick={model.removeImage(image.id);preview=null}){Icon(Icons.Outlined.Delete,resources.getString(R.string.module_remove_image))}},
+        dismissButton={NotesIconButton(onClick={preview=null}){Icon(Icons.Outlined.Close,resources.getString(R.string.module_close_image))}})}
 }
 
 @Composable internal fun NoteImageView(image:NoteImage,modifier:Modifier=Modifier) {
+    val resources=LocalResources.current
     val result by produceState<Pair<android.graphics.Bitmap?,Boolean>>(null to true,image.id,image.jpeg){value=withContext(Dispatchers.Default){NotesImages.decode(image)} to false}
-    result.first?.let{Image(it.asImageBitmap(),"Note image",modifier.aspectRatio(image.width.toFloat()/image.height),contentScale=ContentScale.Fit)}
-        ?:Text(if(result.second)"Loading image…" else "Image unavailable",modifier)
+    result.first?.let{Image(it.asImageBitmap(),resources.getString(R.string.module_note_image),modifier.aspectRatio(image.width.toFloat()/image.height),contentScale=ContentScale.Fit)}
+        ?:Text(if(result.second)resources.getString(R.string.module_loading_image) else resources.getString(R.string.module_image_unavailable),modifier)
 }
 /** Persist color names, not theme-specific RGB values. Match the active surface, including dynamic themes. */
 internal fun noteTextColor(value:String,surface:Color=Color.White):Color =

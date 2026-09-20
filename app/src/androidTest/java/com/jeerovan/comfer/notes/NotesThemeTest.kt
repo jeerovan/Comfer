@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.test.platform.app.InstrumentationRegistry
 import com.jeerovan.comfer.ui.theme.ComferTheme
+import com.jeerovan.comfer.R
 import kotlinx.coroutines.runBlocking
 import org.junit.*
 import org.junit.Assert.*
@@ -122,12 +123,12 @@ class NotesThemeTest {
             rendered(compose.onNodeWithContentDescription("New note"), scheme.onSurface)
             rendered(compose.onNodeWithContentDescription("Notes options"), scheme.onSurfaceVariant)
             rendered(compose.onNodeWithText("Theme note"), scheme.onSurface)
-            rendered(compose.onNodeWithText("Theme label"), scheme.onSecondaryContainer)
+            rendered(compose.onNodeWithText("Theme label"), scheme.onSurfaceVariant)
             rendered(compose.onNodeWithContentDescription("Pinned"), scheme.onSurfaceVariant)
             capture("collection-$night")
             compose.runOnIdle { model.selected=setOf("theme") }
-            rendered(compose.onNodeWithText("Theme note"), scheme.onSecondaryContainer)
-            rendered(compose.onNodeWithContentDescription("Pinned"), scheme.onSecondaryContainer)
+            rendered(compose.onNodeWithText("Theme note"), scheme.onSurface)
+            rendered(compose.onNodeWithContentDescription("Pinned"), scheme.onSurfaceVariant)
             rendered(compose.onNodeWithContentDescription("Move selected to Bin"), scheme.onSurface)
             compose.runOnIdle { model.selected=emptySet() }
         }
@@ -147,7 +148,7 @@ class NotesThemeTest {
             androidx.test.espresso.Espresso.pressBack()
             compose.onNodeWithContentDescription("Note color").performClick()
             rendered(compose.onNodeWithText("Note background"), scheme.onSurface)
-            for ((_, name) in noteColors) rendered(compose.onNodeWithText(name), scheme.onSurface)
+            for ((_, name) in noteColors) rendered(compose.onNodeWithText(context.getString(name)), scheme.onSurface)
             capture("palette-$night")
             androidx.test.espresso.Espresso.pressBack()
             compose.onNodeWithContentDescription("Notes options").performClick()
@@ -156,7 +157,7 @@ class NotesThemeTest {
             capture("options-$night")
             androidx.test.espresso.Espresso.pressBack()
             compose.runOnIdle { model.selected=emptySet(); model.error="Theme error" }
-            rendered(compose.onNodeWithText("Theme error"), scheme.error)
+            rendered(compose.onNodeWithText(context.getString(R.string.module_could_not_complete_this_action_please_try_again)), scheme.error)
             compose.onNodeWithContentDescription("Dismiss error").performClick()
         }
     }
@@ -195,7 +196,7 @@ class NotesThemeTest {
             rendered(compose.onNodeWithContentDescription("Text formatting"),scheme.onSurface)
             compose.onNodeWithContentDescription("Text formatting").performClick()
             rendered(compose.onNodeWithContentDescription("Bold"),scheme.onSurface)
-            rendered(compose.onNodeWithContentDescription("Text color default"),scheme.onSurface)
+            rendered(compose.onNodeWithContentDescription(context.getString(R.string.module_text_color_1_s, context.getString(R.string.module_default))),scheme.onSurface)
             capture("formatting-$night")
             androidx.test.espresso.Espresso.pressBack()
         }
@@ -248,7 +249,7 @@ class NotesThemeTest {
             androidx.test.espresso.Espresso.closeSoftKeyboard()
             capture("rich-editor-$night")
             compose.onNodeWithContentDescription("Text formatting").performScrollTo().performClick()
-            names.forEachIndexed { index, name -> rendered(compose.onNodeWithContentDescription("Text color $name"),colors[index]) }
+            names.forEachIndexed { index, name -> rendered(compose.onNodeWithContentDescription(context.getString(R.string.module_text_color_1_s, name.replaceFirstChar { it.uppercaseChar() })),colors[index]) }
             compose.onNodeWithContentDescription("URL").performClick()
             compose.onNode(hasSetTextAction() and hasText("URL")).performTextReplacement("javascript:alert(1)")
             compose.onNodeWithContentDescription("Save link").performClick()
@@ -270,7 +271,7 @@ class NotesThemeTest {
                 compose.waitUntil(5000) { model.notes.single().color==id }
                 rendered(compose.onNodeWithText("Theme note"),scheme.onSurface)
                 rendered(compose.onNodeWithText("Searchable body"),scheme.onSurface)
-                rendered(compose.onNodeWithText("Theme label"),scheme.onSecondaryContainer)
+                rendered(compose.onNodeWithText("Theme label"),scheme.onSurfaceVariant)
             }
             compose.runOnIdle { model.batch(model.notes) { it.copy(deletedAt=System.currentTimeMillis()) } }
             compose.waitUntil(5000) { model.notes.single().deletedAt!=null }

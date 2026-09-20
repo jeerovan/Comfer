@@ -91,7 +91,7 @@ class JournalActivity : AppCompatActivity() {
                 afterAuthentication?.invoke(); afterAuthentication = null
             } catch (error: Exception) {
                 afterAuthentication = null
-                android.widget.Toast.makeText(this@JournalActivity, error.message ?: "Could not unlock Journal", android.widget.Toast.LENGTH_LONG).show()
+                android.widget.Toast.makeText(this@JournalActivity, com.jeerovan.comfer.localizedModuleMessage(resources,error.message), android.widget.Toast.LENGTH_LONG).show()
                 finish()
             } finally { authenticating = false }
         } else { authenticating = false; afterAuthentication = null; finish() }
@@ -103,10 +103,10 @@ class JournalActivity : AppCompatActivity() {
             action?.invoke()
             return
         }
-        val intent = getSystemService(android.app.KeyguardManager::class.java).createConfirmDeviceCredentialIntent("Unlock Journal", "Use your device credentials to open Journal")
+        val intent = getSystemService(android.app.KeyguardManager::class.java).createConfirmDeviceCredentialIntent(getString(R.string.module_unlock_journal), getString(R.string.module_use_your_device_credentials_to_open_journal))
         if (intent == null) {
             afterAuthentication = null
-            if (unlocked) model.error.value = getString(R.string.journal_lock_setup)
+            if (unlocked) model.error.value = "Set a device PIN, pattern or password, then return to unlock Journal. Your entries remain on this device."
             else lockDialogShowing = true
             return
         }
@@ -648,7 +648,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit, authorize
                 imagePreview = false
             })
     }
-    error?.let { message -> AlertDialog(onDismissRequest = { model.error.value = null }, title = { Text(message) }, confirmButton = { TextButton(onClick = { model.error.value = null }) { Text(stringResource(R.string.journal_close)) } }) }
+    error?.let { message -> AlertDialog(onDismissRequest = { model.error.value = null }, title = { Text(com.jeerovan.comfer.localizedModuleMessage(androidx.compose.ui.platform.LocalResources.current,message)) }, confirmButton = { TextButton(onClick = { model.error.value = null }) { Text(stringResource(R.string.journal_close)) } }) }
 }
 
 @Composable

@@ -148,7 +148,7 @@
     <string name="notification_days_from_now">ຈຳນວນມື້ນັບຈາກມື້ນີ້: %1$d</string>
     <string name="notification_resume_clock">ເວລາ​ໃນ​ມື້</string>
     <string name="notification_apply_resume">ປະຕິບັດ​ເວລາ​ສືບຕໍ່​ຕາມ​ໃຈ</string>
-    <string name="notification_quiet_unavailable">Comfer ບໍ່ສາມາດ​ຄວບຄຸມ ການບໍ່ລົບກວນ​ໄດ້ ດ້ວຍ​ການຕັ້ງຄ່າ​ການແຈ້ງເຕືອນ​ປັດຈຸບັນ.: whatsthis ໃຊ້ການຕັ້ງຄ່າ Android ຂອງ Do Not Disturb ແທນ.</string>
+    <string name="notification_quiet_unavailable">Comfer ບໍ່ສາມາດ​ຄວບຄຸມ ການບໍ່ລົບກວນ​ໄດ້ ດ້ວຍ​ການຕັ້ງຄ່າ​ການແຈ້ງເຕືອນ​ປັດຈຸບັນ. ໃຊ້ການຕັ້ງຄ່າ Android ຂອງ Do Not Disturb ແທນ.</string>
     <string name="notification_system_dnd_off">Android កុំ​ລົບກວນ: ປິດ</string>
     <string name="notification_system_dnd_on">Android ບໍ່ໄດ້ລົບກວນ: ເປີດ (ກົດລະບຽບອື່ນໆອາດຈະປະກອບສ່ວນ)</string>
     <string name="notification_schedule_device_quiet">ເປີດ​ການ​ບໍ່​ລົບກວນ​ໃນ​ເວລາ​ທີ່​ກຳນົດ</string>
@@ -170,7 +170,7 @@
     <string name="notification_schedule_enabled">ຈັດ​ຕາຕະລາງ​ທີ່​ໄດ້​ເກັບ: ເປີດ</string>
     <string name="notification_schedule_disabled">ເວລາ​ທີ່​ໄດ້​ບັນທຶກ: ປິດ</string>
     <string name="notification_schedule_help">ເລືອກເວລາທີ່ມັນຈະເກີດຂື້ນ ແລະ ສິ່ງທີ່ມັນເຮັດ, ຈາກນັ້ນບັນທຶກ. ວັນ ໝາຍເຖິງວັນທີ່ກຳນົດເວລາເລີ່ມ. ເວລາ​ຢຸດກ່ອນທີ່​ຈະ​ເລີ່ມ​ຕົ້ນ​ຕໍ່​ໄປ​ໃນ​ມື້​ຕໍ່ມາ.</string>
-    <string name="notification_schedule_days">ເຮັດ​ຄືນ​ໃໝ່: whatsthis</string>
+    <string name="notification_schedule_days">ເຮັດ​ຄືນ​ໃໝ່</string>
     <string name="notification_schedule_empty_apps">កម្មវិធី​ຈະ​ປາກົດຢູ່ທີ່ນີ້ ເມື່ອ​ມີ​ການແຈ້ງເຕືອນ.</string>
     <string name="notification_schedule_invalid">ເລືອກຢ່າງໜ້ອຍມື້ໜຶ່ງ, ເວລາເລີ່ມຕົ້ນ ແລະ ເວລາຈົບທີ່ແຕກຕ່າງ ແລະ ການກະທຳຢ່າງໜ້ອຍໜຶ່ງ.</string>
     <string name="notification_schedule_actions">ໃນລະຫວ່າງ​ເວລາ​ກຳນົດ​ນີ້</string>

@@ -68,7 +68,7 @@ def check(root):
                 errors.append(f'{directory.name}: wrong resource type {key}')
             if node.tag == 'string' and arguments(''.join(node.itertext())) != arguments(text):
                 errors.append(f'{directory.name}: format arguments differ for {key}')
-            if re.search(r'ZXQ\s*\d+|<2[a-z-]+>|\[TRANSLATE|<0x[0-9a-f]+>|&\s*#\s*160\s*;|@\s*info\b', text, re.IGNORECASE):
+            if re.search(r'ZXQ\s*\d+|<2[a-z-]+>|\[TRANSLATE|<0x[0-9a-f]+>|&\s*#\s*160\s*;|@\s*(?:info|label|title|action|option)\b|\bwhatsthis\b', text, re.IGNORECASE):
                 errors.append(f'{directory.name}: untranslated marker in {key}')
     return errors, len(directories), len(required)
 

@@ -34,7 +34,7 @@ class TranslationChecksTest(unittest.TestCase):
                 (root / d).mkdir()
             (root / 'values/strings.xml').write_text('<resources><string name="label">Snow</string></resources>')
             (root / 'xml/locales_config.xml').write_text('<locale-config xmlns:android="http://schemas.android.com/apk/res/android"><locale android:name="en"/><locale android:name="fr"/></locale-config>')
-            for text in ('&lt;0xE9&gt;', '&amp; # 160;', 'Neige @ info', 'ZXQ1ZXQ'):
+            for text in ('&lt;0xE9&gt;', '&amp; # 160;', 'Neige @ info', 'ZXQ1ZXQ', 'texte : whatsthis', '@ label texte'):
                 with self.subTest(text=text):
                     (root / 'values-fr/strings.xml').write_text(f'<resources><string name="label">{text}</string></resources>')
                     errors, _, _ = module.check(root)

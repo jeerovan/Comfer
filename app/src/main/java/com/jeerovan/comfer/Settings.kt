@@ -305,7 +305,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
         if (result.resultCode == Activity.RESULT_OK) {
             coroutineScope.launch {
                 try { ProtectionSession.completeAuthentication(context); action?.invoke() }
-                catch (error: Exception) { Toast.makeText(context, error.message ?: "Could not unlock protected content", Toast.LENGTH_LONG).show() }
+                catch (error: Exception) { Toast.makeText(context, localizedModuleMessage(resources, error.message), Toast.LENGTH_LONG).show() }
             }
         }
     }
@@ -314,7 +314,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
             val notesProtected = try { withContext(Dispatchers.IO) { com.jeerovan.comfer.notes.NotesBackup.requiresAuthentication(context) } } catch (error: Exception) { Toast.makeText(context, resources.getString(backupErrorLabel(error)), Toast.LENGTH_LONG).show(); return@launch }
             if (ProtectionSession.authorized() || (!forceNotes && !notesProtected && !com.jeerovan.comfer.journals.JournalProtection.requiresAuthentication(context))) action()
             else {
-                val intent = context.getSystemService(android.app.KeyguardManager::class.java).createConfirmDeviceCredentialIntent("Unlock protected content", "Authorize backup or restore")
+                val intent = context.getSystemService(android.app.KeyguardManager::class.java).createConfirmDeviceCredentialIntent(resources.getString(R.string.module_unlock_protected), resources.getString(R.string.module_authorize_backup))
                 if (intent != null) { authorizedJournalAction = action; journalAuthentication.launch(intent) }
                 else Toast.makeText(context, R.string.journal_lock_setup, Toast.LENGTH_LONG).show()
             }
@@ -348,7 +348,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         context,
                         resources.getString(
                             R.string.backup_failed,
-                            if (error is com.jeerovan.comfer.journals.JournalArchiveException) error.message.orEmpty() else resources.getString(backupErrorLabel(error)),
+                            if (error is com.jeerovan.comfer.journals.JournalArchiveException) localizedModuleMessage(resources, error.message) else resources.getString(backupErrorLabel(error)),
                         ),
                         Toast.LENGTH_LONG,
                     ).show()
@@ -371,7 +371,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                         context,
                         resources.getString(
                             R.string.restore_invalid,
-                            if (error is com.jeerovan.comfer.journals.JournalArchiveException) error.message.orEmpty() else resources.getString(backupErrorLabel(error)),
+                            if (error is com.jeerovan.comfer.journals.JournalArchiveException) localizedModuleMessage(resources, error.message) else resources.getString(backupErrorLabel(error)),
                         ),
                         Toast.LENGTH_LONG,
                     ).show()
@@ -1271,7 +1271,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                                     context,
                                     resources.getString(
                                         R.string.restore_failed,
-                                        if (error is com.jeerovan.comfer.journals.JournalArchiveException) error.message.orEmpty() else resources.getString(backupErrorLabel(error)),
+                                        if (error is com.jeerovan.comfer.journals.JournalArchiveException) localizedModuleMessage(resources, error.message) else resources.getString(backupErrorLabel(error)),
                                     ),
                                     Toast.LENGTH_LONG,
                                 ).show()

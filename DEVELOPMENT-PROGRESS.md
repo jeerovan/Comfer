@@ -1,9 +1,13 @@
 # Development progress
 
-Current feature and release status, updated 2026-09-18. Maintain this document as
+Current feature and release status, updated 2026-09-20. Maintain this document as
 a concise reference: what is available, restrictions, attempted alternatives and
 remaining work. Keep implementation discussions and detailed test output out of
 this file.
+
+## Module localization (20 September 2026)
+
+Notes, Tasks, Journal and new Settings now have resources for English plus all 34 supported translations. Display text and module failures follow the current language; saved content and identifiers remain unchanged. Translation generation, contextual corrections and validation are recorded in [the localization notes](docs/module-localization.md). Native-speaker proofreading is still pending. No release/version change is included.
 
 ## Notes — P0 test build in progress (17 September 2026)
 
@@ -17,7 +21,7 @@ Notes theme audit (18 September): paired text/icon colors explicitly with transl
 
 Notes image cursor fix (18 September): editable paragraphs now follow images, with at least 120 dp of writing space below the last image. Text between images, image positions, formatting and undo survive autosave/reopen and backup. Older image notes remain supported. Regression testing caught and corrected stale keyboard callbacks during text replacement/toolbar edits. All 12 affected emulator checks and 178 JVM tests passed; debug emulator updated. Physical testing remains deferred.
 
-Notes now has its own Workspace destination, durable autosave text/checklists, collection organization/search, 7-day Bin, optional module protection and app-wide backup/restore. English-only labels are approved; RTL and localized dates remain included. Comfer backup format 5 adds Notes and preserves existing Notes when older archives omit the section. Explicit Notes replacement imports rotate device keys for key-loss recovery. See [phase tracking](Plan-Notes.md) and [design, attempts and limitations](docs/notes-implementation.md).
+Notes now has its own Workspace destination, durable autosave text/checklists, collection organization/search, 7-day Bin, optional module protection and app-wide backup/restore. Labels now use the app’s supported locales; RTL and localized dates remain included. Comfer backup format 5 adds Notes and preserves existing Notes when older archives omit the section. Explicit Notes replacement imports rotate device keys for key-loss recovery. See [phase tracking](Plan-Notes.md) and [design, attempts and limitations](docs/notes-implementation.md).
 
 Automated checks have covered storage/conflict recovery, Unicode search, the real editor, 10,000-record archives, password/tamper rejection, actual Comfer merge and both Workspace routes. The final 23-case emulator suite and four focused follow-up checks passed (some cases repeated), plus all 167 JVM tests. The editor was visually checked at default/200% text size. All 14 final storage checks and an actual isolated process-restart recovery passed. Emulator debug 51 / 51.0 updated. Physical testing is deferred by user request. Real PIN authentication on the API-24 emulator passed protection, cancellation, wrong-PIN rejection, background/device re-lock and protected module/draft recovery after process restart. Credential-change/expiry cases, second-device protected restore, TalkBack and device performance remain acceptance gates. The 18 September editor request promotes formatting and compressed picker images from P1; other P1/P2 work remains deferred. Samsung has not been updated for Notes.
 

@@ -32,7 +32,7 @@ class NotesActivity : AppCompatActivity() {
                 val action=afterAuthentication; afterAuthentication=null; action?.invoke()
             } catch (error: Exception) {
                 afterAuthentication=null
-                android.widget.Toast.makeText(this@NotesActivity, error.message ?: "Could not unlock Notes", android.widget.Toast.LENGTH_LONG).show()
+                android.widget.Toast.makeText(this@NotesActivity, com.jeerovan.comfer.localizedModuleMessage(resources,error.message), android.widget.Toast.LENGTH_LONG).show()
                 finish()
             } finally { authenticating=false }
         } else { authenticating=false; afterAuthentication=null; finish() }
@@ -45,7 +45,7 @@ class NotesActivity : AppCompatActivity() {
     private fun unlock(action:()->Unit = {}) {
         if(isFinishing || isDestroyed || authenticating)return
         if(NotesSession.unlocked()){action();return}
-        val request=getSystemService(KeyguardManager::class.java).createConfirmDeviceCredentialIntent("Unlock Notes","Use your device PIN, pattern or password")
+        val request=getSystemService(KeyguardManager::class.java).createConfirmDeviceCredentialIntent(getString(R.string.module_unlock_notes),getString(R.string.module_use_your_device_pin_pattern_or_password))
         if(request==null){model.error="Set a device PIN, pattern or password before protecting Notes.";return}
         afterAuthentication=action;authenticating=true;blocked=true;authenticate.launch(request)
     }

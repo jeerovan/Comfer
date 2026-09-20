@@ -178,7 +178,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                 menuId = null
                 confirmation = null
                 success?.invoke()
-            } catch (e: Exception) { error = e.localizedMessage ?: e.javaClass.simpleName }
+            } catch (e: Exception) { error = com.jeerovan.comfer.localizedModuleMessage(context.resources,e.localizedMessage) }
             finally { busy = false }
         }
     }
@@ -200,7 +200,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                 if(confirmComplete && it.completedAt == null) { menuId = it.id; confirmation = "complete" } else edit(it)
             }
             else if (draft == null && quickAdd) edit(TaskItem(listId = TaskStore.state.value.preferences.selectedList, title = "", day = quickDay, starred = initialStarred))
-        } catch (e: Exception) { error = e.localizedMessage }
+        } catch (e: Exception) { error = com.jeerovan.comfer.localizedModuleMessage(context.resources,e.localizedMessage) }
     }
     LaunchedEffect(error) { error?.let { snackbar.showSnackbar(context.getString(R.string.tasks_error, it)); error = null } }
     fun closeSearch() {
@@ -269,7 +269,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                     } else Modifier), style = MaterialTheme.typography.headlineSmall)
                     if(!searching && view == "selected" && sheet == null && !state.preferences.listGuideShown) {
                         TaskGestureGuide(TaskGuide.LIST, 0f, Modifier.align(Alignment.Center)) {
-                            scope.launch { runCatching { TaskStore.change(context) { it.copy(preferences = it.preferences.copy(listGuideShown = true)) } }.onFailure { snackbar.showSnackbar(it.localizedMessage ?: "Could not save guide progress") } }
+                            scope.launch { runCatching { TaskStore.change(context) { it.copy(preferences = it.preferences.copy(listGuideShown = true)) } }.onFailure { snackbar.showSnackbar(com.jeerovan.comfer.localizedModuleMessage(context.resources,it.localizedMessage)) } }
                         }
                     }
                     }
@@ -314,7 +314,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                                                 Modifier.align(Alignment.TopCenter).offset { androidx.compose.ui.unit.IntOffset(0, source.offset + source.size / 2 - with(density) { 24.dp.roundToPx() }) }) {
                                                 scope.launch {
                                                     runCatching { TaskStore.change(context) { snapshot -> snapshot.copy(preferences = if(guide == TaskGuide.SWIPE) snapshot.preferences.copy(swipeGuideShown = true) else snapshot.preferences.copy(reorderGuideShown = true)) } }
-                                                        .onFailure { snackbar.showSnackbar(it.localizedMessage ?: "Could not save guide progress") }
+                                                        .onFailure { snackbar.showSnackbar(com.jeerovan.comfer.localizedModuleMessage(context.resources,it.localizedMessage)) }
                                                 }
                                             }
                                         }
@@ -348,7 +348,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                     TextButton(enabled = !busy, onClick = {
                         val token = undo ?: return@TextButton
                         busy = true
-                        scope.launch { try { TaskStore.undo(context, token); pendingFocusId = token.before.tasks.firstOrNull { old -> token.after.tasks.none { it == old } }?.id; undo = null } catch(e: Exception) { error = e.localizedMessage } finally { busy = false } }
+                        scope.launch { try { TaskStore.undo(context, token); pendingFocusId = token.before.tasks.firstOrNull { old -> token.after.tasks.none { it == old } }?.id; undo = null } catch(e: Exception) { error = com.jeerovan.comfer.localizedModuleMessage(context.resources,e.localizedMessage) } finally { busy = false } }
                     }) { Text(stringResource(R.string.tasks_undo)) }
                 }
                 AnimatedVisibility(
