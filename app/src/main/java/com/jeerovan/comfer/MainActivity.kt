@@ -563,7 +563,7 @@ data class BoundWidget(
 
 data class WidgetProviderGroup(
     val appName: String,
-    val appIcon: Drawable?,
+    val packageName: String,
     val providers: List<AppWidgetProviderInfo>
 )
 
@@ -635,18 +635,8 @@ class MainActivity : AppCompatActivity() {
             settingsViewModel.loadSettings()
             mainViewModel.reloadImagePath()
         }
-        // Move binder IPC (AppWidgetHost.startListening) off the main thread.
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                widgetHosts.startListening()
-            } catch (e: RuntimeException) {
-                // Log the error if needed, but safe to ignore as it's a system-side failure
-                Log.e("MainActivity", "System widget service crash in startListening", e)
-            } catch (e: NullPointerException) {
-                // Some variations of this crash might throw NPE directly
-                Log.e("MainActivity", "System widget service NPE in startListening", e)
-            }
-        }
+        // Preserve lifecycle order; the manager applies pending RemoteViews on Main.
+        widgetHosts.startListening()
     }
 
     override fun onStop(){
@@ -658,18 +648,7 @@ class MainActivity : AppCompatActivity() {
                 mainViewModel.clearImagePath()
             }
         }
-        // Move binder IPC (AppWidgetHost.stopListening) off the main thread.
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                widgetHosts.stopListening()
-            } catch (e: RuntimeException) {
-                // Log the error if needed, but safe to ignore as it's a system-side failure
-                Log.e("MainActivity", "System widget service crash in stopListening", e)
-            } catch (e: NullPointerException) {
-                // Some variations of this crash might throw NPE directly
-                Log.e("MainActivity", "System widget service NPE in stopListening", e)
-            }
-        }
+        widgetHosts.stopListening()
     }
 }
 
@@ -1732,15 +1711,26 @@ fun WidgetPickerFullScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(widgetProviderGroups) { group ->
+                items(widgetProviderGroups, key = { it.packageName }) { group ->
+                    val appIcon by produceState<androidx.compose.ui.graphics.ImageBitmap?>(
+                        initialValue = null, key1 = group.packageName,
+                    ) {
+                        value = loadWidgetImage(128) {
+                            context.packageManager.getApplicationIcon(group.packageName)
+                        }
+                    }
                     Card(elevation = CardDefaults.cardElevation(4.dp)) {
                         Column(Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Image(
-                                    painter = rememberDrawableBitmapPainter(group.appIcon),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(32.dp)
-                                )
+                                if (appIcon != null) {
+                                    Image(
+                                        bitmap = appIcon!!,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(32.dp),
+                                    )
+                                } else {
+                                    Spacer(Modifier.size(32.dp))
+                                }
                                 Spacer(Modifier.width(12.dp))
                                 Text(group.appName, style = MaterialTheme.typography.titleLarge)
                             }
@@ -1787,27 +1777,36 @@ private fun WidgetPreviewItem(
     onSelected: () -> Unit
 ) {
     val context = LocalContext.current
-    var previewDrawable by remember { mutableStateOf<Drawable?>(null) }
+    var previewBitmap by remember(provider) {
+        mutableStateOf<androidx.compose.ui.graphics.ImageBitmap?>(null)
+    }
+    var previewLoaded by remember(provider) { mutableStateOf(false) }
     var label by remember(provider) { mutableStateOf("") }
 
     LaunchedEffect(provider) {
-        val (loadedLabel, drawable) = withContext(Dispatchers.IO) {
-            provider.loadLabel(context.packageManager).orEmpty() to
-                (provider.loadPreviewImage(context, 0) ?: provider.loadIcon(context, 0))
+        label = withContext(Dispatchers.IO) {
+            try {
+                provider.loadLabel(context.packageManager).orEmpty()
+            } catch (_: RuntimeException) {
+                provider.provider.shortClassName
+            }
         }
-        label = loadedLabel
-        previewDrawable = drawable
+        previewBitmap = loadWidgetImage(256) {
+            provider.loadPreviewImage(context, android.util.DisplayMetrics.DENSITY_DEFAULT)
+                ?: provider.loadIcon(context, android.util.DisplayMetrics.DENSITY_DEFAULT)
+        }
+        previewLoaded = true
     }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .width(120.dp)
-            .clickable(enabled = previewDrawable != null) { onSelected() }
+            .clickable(enabled = previewLoaded) { onSelected() }
     ) {
-        if (previewDrawable != null) {
+        if (previewBitmap != null) {
             Image(
-                painter = rememberDrawableBitmapPainter(previewDrawable),
+                bitmap = previewBitmap!!,
                 contentDescription = label,
                 modifier = Modifier
                     .height(100.dp)
@@ -1823,7 +1822,7 @@ private fun WidgetPreviewItem(
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                if (!previewLoaded) CircularProgressIndicator(modifier = Modifier.size(24.dp))
             }
         }
         Text(
@@ -1847,13 +1846,15 @@ private suspend fun getGroupedWidgetProviders(context: Context): List<WidgetProv
             return@withContext emptyList()
         }
 
-        installedProviders.groupBy { it.provider.packageName }
+        installedProviders.filterNot {
+            WidgetInflationGuard.isKnownUnsafe(it.provider.flattenToShortString())
+        }.groupBy { it.provider.packageName }
             .map { (packageName, providers) ->
                 try {
                     val appInfo = packageManager.getApplicationInfo(packageName, 0)
                     WidgetProviderGroup(
                         appName = appInfo.loadLabel(packageManager).toString(),
-                        appIcon = appInfo.loadIcon(packageManager),
+                        packageName = packageName,
                         providers = providers
                     )
                 } catch (_: Exception) {
@@ -5982,7 +5983,10 @@ class WidgetHostManager(private val context: Context) {
     lateinit var leftHost: AppWidgetHost
     lateinit var rightHost: AppWidgetHost
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    // startListening also applies pending RemoteViews and adapter updates inline.
+    // Running it on IO races with layout/draw and corrupts the widget hierarchy.
+    // Main.immediate serializes lifecycle calls with createView and view traversal.
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     fun initHosts() {
         mainHost = AppWidgetHost(context, MAIN_WIDGET_HOST_ID)
@@ -5992,12 +5996,9 @@ class WidgetHostManager(private val context: Context) {
 
     fun startListening() {
         scope.launch {
-            // Offload binder calls to background thread
-            withContext(Dispatchers.IO) {
+            for (host in listOf(mainHost, leftHost, rightHost)) {
                 try {
-                    mainHost.startListening()
-                    leftHost.startListening()
-                    rightHost.startListening()
+                    host.startListening()
                 } catch (e: Exception) {
                     // Log error - widget updates may not work
                     Log.e("WidgetHostManager", "Error starting widget hosts", e)
@@ -6008,11 +6009,9 @@ class WidgetHostManager(private val context: Context) {
 
     fun stopListening() {
         scope.launch {
-            withContext(Dispatchers.IO) {
+            for (host in listOf(mainHost, leftHost, rightHost)) {
                 try {
-                    mainHost.stopListening()
-                    leftHost.stopListening()
-                    rightHost.stopListening()
+                    host.stopListening()
                 } catch (e: Exception) {
                     Log.e("WidgetHostManager", "Error stopping widget hosts", e)
                 }

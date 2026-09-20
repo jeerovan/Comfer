@@ -786,7 +786,7 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
 
             // for each FolderData, map its packages to find AppInfo with matching packageName
             val foldersWithAppInfo: Map<String, List<AppInfo>> = savedFolders.mapValues { (_, folderData) ->
-                folderData.packages.mapNotNull { pkgName ->
+                folderData.packages.distinct().mapNotNull { pkgName ->
                     restAppMap[pkgName]
                 }
             }

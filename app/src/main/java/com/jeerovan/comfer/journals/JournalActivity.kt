@@ -217,8 +217,11 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit, authorize
     var speechOptions by remember { mutableStateOf(false) }
     var language by rememberSaveable { mutableStateOf(java.util.Locale.getDefault().toLanguageTag()) }
     var languageMenu by remember { mutableStateOf(false) }
-    val speechLanguages = remember {
-        (listOf(java.util.Locale.getDefault()) + java.util.Locale.getAvailableLocales().filter { it.language.isNotBlank() && it.country.isEmpty() }).distinctBy { it.toLanguageTag() }.sortedBy { it.displayName }
+    val displayLocale = LocalResources.current.configuration.locales[0]
+    val speechLanguages by produceState<List<SpeechLanguageOption>>(
+        initialValue = emptyList(), key1 = speechOptions, key2 = displayLocale,
+    ) {
+        if (speechOptions) value = loadSpeechLanguages(displayLocale)
     }
     var networkConsent by remember { mutableStateOf(false) }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -610,9 +613,11 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit, authorize
         Column {
             Text(stringResource(R.string.journal_language))
             Box {
-                TextButton(onClick = { languageMenu = true }) { Text(java.util.Locale.forLanguageTag(language).displayName) }
+                TextButton(onClick = { languageMenu = true }, enabled = speechLanguages.isNotEmpty()) {
+                    Text(speechLanguages.firstOrNull { it.tag == language }?.label ?: language)
+                }
                 DropdownMenu(expanded = languageMenu, onDismissRequest = { languageMenu = false }, modifier = Modifier.heightIn(max = 300.dp)) {
-                    speechLanguages.forEach { locale -> DropdownMenuItem(text = { Text(locale.displayName) }, onClick = { language = locale.toLanguageTag(); languageMenu = false }) }
+                    speechLanguages.forEach { option -> DropdownMenuItem(text = { Text(option.label) }, onClick = { language = option.tag; languageMenu = false }) }
                 }
             }
             Text(stringResource(R.string.journal_language_availability), style = MaterialTheme.typography.bodySmall)

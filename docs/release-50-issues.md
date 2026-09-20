@@ -24,6 +24,11 @@ For every future attempt, append an attempt ID, full provider issue ID, affected
 
 ## Preserve and evaluate earlier attempts
 
+- 20 September follow-up: [version-51 analysis](release-51-issues.md) preserves
+  these attempts and records the recurring Honor/widget/search failures and new
+  candidates. Attempt 50-04 recurs with 8 events; 50-01/02/03/05 have no exact-ID
+  group in the queried import-3 window, which is not production verification.
+
 - `e001473`, `7dc831c` (source at version 48): bounded owned icon snapshots, Honor power-save compatibility, WorkManager platform preflight/manual initialization, widget ownership and unsafe OEM provider guards. Keep these safeguards. The version-49 snapshot has no exact Honor power-save/WorkManager startup group; that is encouraging but affected-device exposure is unknown, so neither is production verified.
 - Widget hierarchy group `b9243dd5994a058da551ec3dcf57b5c3` persists in version 49 (one event), as do Huawei weather and Honor gallery provider crashes. Prior fixes are not sufficient evidence of resolution. Verify exact provider component and shipped artifact before widening guards; asynchronous vendor failures cannot be safely repaired by catching unrelated UI exceptions.
 - `511dd6c`: wallpaper decoding was changed to bounded sampled decode with smaller retries on allocation failure. The version-49 sample still shows createScaledBitmap, which is absent from the current decoder. Preserve the current fix and rerun allocation-failure tests; confirm the release artifact before attributing improvement.

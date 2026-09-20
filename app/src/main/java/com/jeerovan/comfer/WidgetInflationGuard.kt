@@ -23,6 +23,7 @@ internal object WidgetInflationGuard {
         "com.hihonor.gallery/",
         "com.android.gallery3d/",
         "com.huawei.android.totemweather/",
+        "com.hihonor.android.totemweather/",
         "com.android.calendar/",
         "com.vivo.doubletimezoneclock/",
         "com.vivo.cleanwidget/",

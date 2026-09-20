@@ -39,10 +39,7 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import io.ktor.client.statement.bodyAsChannel
-import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -501,28 +498,9 @@ object CommonUtil {
         destination: File,
     ): Boolean {
         return try {
-            val response = getHttpClient(context).get(imageUrl)
-            if (!response.status.isSuccess()) return false
-            val channel = response.bodyAsChannel()
-            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-            var totalBytes = 0L
-            try {
-                FileOutputStream(destination).use { output ->
-                    while (true) {
-                        val count = channel.readAvailable(buffer, 0, buffer.size)
-                        if (count < 0) break
-                        totalBytes += count
-                        if (totalBytes > MAX_WALLPAPER_SOURCE_BYTES) {
-                            Log.e("DownloadImage", "Wallpaper exceeds source byte limit")
-                            return false
-                        }
-                        output.write(buffer, 0, count)
-                    }
-                }
-            } finally {
-                channel.cancel(null)
-            }
-            true
+            downloadWithinLimit(
+                getHttpClient(context), imageUrl, destination, MAX_WALLPAPER_SOURCE_BYTES,
+            )
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

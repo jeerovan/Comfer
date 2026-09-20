@@ -13,6 +13,10 @@ import xml.etree.ElementTree as ET
 
 ANDROID_NS = "{http://schemas.android.com/apk/res/android}"
 COMPONENT_TAGS = ("activity", "service", "receiver", "provider")
+# Firmware loads this by name without consulting our manifest/component factory.
+COMFER_DYNAMIC_CLASSES = {
+    "com.hihonor.android.launcher.powersavemode.PowerSaveModeLauncher",
+}
 
 
 def resolve_apkanalyzer(explicit: str | None) -> Path:
@@ -87,14 +91,15 @@ def main() -> int:
     classes = dex_classes(
         run(apkanalyzer, "dex", "packages", "--defined-only", str(args.apk))
     )
-    missing = sorted(components - classes)
+    required = components | COMFER_DYNAMIC_CLASSES
+    missing = sorted(required - classes)
     if missing:
-        print("Missing manifest component classes:", file=sys.stderr)
+        print("Missing manifest or dynamic compatibility classes:", file=sys.stderr)
         for class_name in missing:
             print(f"- {class_name}", file=sys.stderr)
         return 1
 
-    print(f"Verified {len(components)} manifest component classes in {args.apk}")
+    print(f"Verified {len(components)} manifest and {len(COMFER_DYNAMIC_CLASSES)} dynamic classes in {args.apk}")
     return 0
 
 

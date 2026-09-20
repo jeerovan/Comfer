@@ -67,7 +67,7 @@ class ComferAppComponentFactory : CoreComponentFactory() {
  * No UI or Honor behavior is emulated. This activity exists only to terminate a
  * malformed OEM task that was delivered to Comfer's process/class loader.
  */
-class HonorPowerSaveCompatibilityActivity : Activity() {
+open class HonorPowerSaveCompatibilityActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (isTaskRoot) {

@@ -1563,6 +1563,9 @@ fun AppDrawer(
     var drawerOffsetY by remember { mutableStateOf(initialOffsetY) }
 
     var appsList by remember { mutableStateOf(apps) }
+    // Key/content lambdas must read the same immutable snapshot as itemCount,
+    // including when Compose prefetch runs across a reorder or inventory update.
+    val displayedApps = appsList
     val lazyGridState = rememberLazyGridState()
     val cellHeight = iconSize + if (showAppTitles) 34.dp else 8.dp
     val verticalPadding = contentPadding.calculateTopPadding() +
@@ -1642,10 +1645,10 @@ fun AppDrawer(
                 verticalArrangement = Arrangement.spacedBy(verticalSpacing)
             ) {
                 items(
-                    count = appsList.size,
-                    key = { index -> appsList[index].packageName }
+                    count = displayedApps.size,
+                    key = { index -> displayedApps[index].packageName }
                 ) { index ->
-                    val app = appsList[index]
+                    val app = displayedApps[index]
                     if(canReOrder) {
                         ReorderableItem(
                             reorderableLazyGridState,

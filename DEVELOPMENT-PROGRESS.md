@@ -372,7 +372,15 @@ Release requirements:
 
 ## Production reporting and issue ledger
 
-Published evidence now includes version 49. It shipped without notification-settings
+Version-51 recurrence analysis and next-release candidates are recorded in the
+[version-51 ledger](docs/release-51-issues.md), including all 236 Firebase groups
+from import 3. New attempts cover Honor factory bypass, widget update threading,
+Honor weather providers, wallpaper response streaming, widget picker allocations,
+drawer key snapshots and Journal locale loading. Duplicate-key and sampled
+system/native ANRs remain investigations; local checks do not establish production
+resolution. Preserve the earlier version-50 attempts and append release outcomes.
+
+Historical version 49 shipped without notification-settings
 backup/restore; the local implementation is intended for version 50. Keep Play and Crashlytics counts separate. Prioritize Honor
 startup, WorkManager startup, widget hierarchy failures, icon memory pressure,
 document pickers and package-registration ANRs during release monitoring.
