@@ -120,14 +120,14 @@ import kotlinx.coroutines.*
             else AnimatedContent(
                 targetState=model.selected.isNotEmpty(),
                 modifier=Modifier.fillMaxWidth().padding(bottom=8.dp).testTag("notes-bottom-actions"),
-                contentAlignment=Alignment.BottomEnd,
+                contentAlignment=Alignment.BottomCenter,
                 transitionSpec={
                     (fadeIn(tween(180))+slideInVertically(tween(220)){it/2}) togetherWith
                         (fadeOut(tween(120))+slideOutVertically(tween(220)){-it/2})
                 },
                 label="notes-selection-actions",
             ) { selecting ->
-            if(selecting)Row(Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("notes-action-bar"),verticalAlignment=Alignment.CenterVertically) {
+            if(selecting)Row(Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("notes-action-bar"),horizontalArrangement=Arrangement.Center,verticalAlignment=Alignment.CenterVertically) {
                 NotesIconButton(onClick={model.selected=emptySet()}){Icon(Icons.Outlined.Close,resources.getString(R.string.module_clear_selection))}
                 if(model.view=="Bin"){
                     NotesIconButton(onClick={model.batch(targets()){it.copy(deletedAt=null)}}){Icon(Icons.Outlined.Restore,resources.getString(R.string.module_restore_selected))}
@@ -140,7 +140,7 @@ import kotlinx.coroutines.*
                     NotesIconButton(onClick={model.batch(targets()){it.copy(deletedAt=System.currentTimeMillis())}}){Icon(Icons.Outlined.Delete,resources.getString(R.string.module_move_selected_to_bin))}
                 }
             }
-            else Row(Modifier.fillMaxWidth().testTag("notes-search-row"),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
+            else Row(Modifier.fillMaxWidth().testTag("notes-search-row"),horizontalArrangement=Arrangement.spacedBy(8.dp,Alignment.CenterHorizontally),verticalAlignment=Alignment.CenterVertically) {
                 if(searching) {
                     val searchFocus=remember{FocusRequester()}
                     LaunchedEffect(Unit){searchFocus.requestFocus()}
@@ -162,7 +162,6 @@ import kotlinx.coroutines.*
                     )
                     NotesIconButton(onClick=::closeSearch){Icon(Icons.Outlined.Close,resources.getString(R.string.tasks_close_search))}
                 } else {
-                    Spacer(Modifier.weight(1f))
                     NotesIconButton(onClick={searching=true}){Icon(Icons.Outlined.Search,resources.getString(R.string.module_search_notes))}
                     NotesIconButton(onClick={model.capture()}){Icon(Icons.Outlined.Add,resources.getString(R.string.module_new_note))}
                 }

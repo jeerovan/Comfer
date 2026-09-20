@@ -22,7 +22,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
@@ -377,19 +377,10 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                         if(searchMode) {
                             val searchFocus=remember{FocusRequester()}
                             LaunchedEffect(searching){if(searching)searchFocus.requestFocus()}
-                            BasicTextField(
+                            TaskInputField(
                                 value=query,onValueChange={query=it},singleLine=true,enabled=searching,
-                                modifier=Modifier.weight(1f).heightIn(min=40.dp).testTag("tasks-search-input").focusRequester(searchFocus)
-                                    .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.3f),CircleShape)
-                                    .padding(horizontal=16.dp,vertical=8.dp),
-                                textStyle=MaterialTheme.typography.bodyMedium.copy(color=MaterialTheme.colorScheme.onSurface),
-                                cursorBrush=SolidColor(MaterialTheme.colorScheme.primary),
-                                decorationBox={innerTextField->
-                                    Box(contentAlignment=Alignment.CenterStart) {
-                                        if(query.isEmpty())Text(stringResource(R.string.tasks_search),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
-                                        innerTextField()
-                                    }
-                                },
+                                placeholder=stringResource(R.string.tasks_search),
+                                modifier=Modifier.weight(1f).testTag("tasks-search-input").focusRequester(searchFocus),
                             )
                             IconButton(onClick=::closeSearch,enabled=searching){
                                 Box(Modifier.size(40.dp),contentAlignment=Alignment.Center){
@@ -681,6 +672,35 @@ private fun pickTime(context: Context, initial: Int?, onPick: (Int) -> Unit) {
 }
 
 @Composable
+private fun TaskInputField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+    singleLine: Boolean = false,
+    enabled: Boolean = true,
+) {
+    BasicTextField(
+        value=value,
+        onValueChange=onValueChange,
+        singleLine=singleLine,
+        enabled=enabled,
+        modifier=modifier.heightIn(min=40.dp)
+            .semantics { contentDescription = placeholder }
+            .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.3f),RoundedCornerShape(20.dp))
+            .padding(horizontal=16.dp,vertical=8.dp),
+        textStyle=MaterialTheme.typography.bodyMedium.copy(color=MaterialTheme.colorScheme.onSurface),
+        cursorBrush=SolidColor(MaterialTheme.colorScheme.primary),
+        decorationBox={innerTextField->
+            Box(contentAlignment=Alignment.CenterStart) {
+                if(value.isEmpty())Text(placeholder,style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
+                innerTextField()
+            }
+        },
+    )
+}
+
+@Composable
 private fun ColumnScope.TaskEditor(initial: TaskItem, state: TaskSnapshot, busy: Boolean, onCancel: () -> Unit, onClose: () -> Unit, onDraft: (TaskItem) -> Unit, onSave: (TaskItem, TaskRepeat?, Boolean) -> Unit) {
     val context = LocalContext.current
     val baseline by rememberSaveable { mutableStateOf(taskJson.encodeToString(initial)) }
@@ -713,8 +733,8 @@ private fun ColumnScope.TaskEditor(initial: TaskItem, state: TaskSnapshot, busy:
     }
     Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Bottom)) {
         if(page == "capture") {
-        OutlinedTextField(task.title, { update(task.copy(title = it)) }, placeholder = { Text(stringResource(R.string.tasks_task_title)) }, modifier = Modifier.fillMaxWidth().focusRequester(titleFocus).testTag("task-title"))
-        OutlinedTextField(task.notes, { update(task.copy(notes = it)) }, placeholder = { Text(stringResource(R.string.tasks_notes)) }, modifier = Modifier.fillMaxWidth(), minLines = 1)
+        TaskInputField(task.title, { update(task.copy(title = it)) }, placeholder = stringResource(R.string.tasks_task_title), modifier = Modifier.fillMaxWidth().focusRequester(titleFocus).testTag("task-title"))
+        TaskInputField(task.notes, { update(task.copy(notes = it)) }, placeholder = stringResource(R.string.tasks_notes), modifier = Modifier.fillMaxWidth().testTag("task-description"))
         android.util.Patterns.WEB_URL.matcher(task.notes).let { matcher ->
             val links = mutableListOf<String>(); while(matcher.find() && links.size < 5) links += matcher.group()
             links.distinct().forEach { link -> TextButton(onClick = {
