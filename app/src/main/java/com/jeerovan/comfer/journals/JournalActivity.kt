@@ -1,6 +1,8 @@
 @file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 package com.jeerovan.comfer.journals
 
+import com.jeerovan.comfer.ui.ModuleIconButton as IconButton
+
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.clipToBounds
@@ -16,7 +18,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.graphics.SolidColor
@@ -181,11 +183,14 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit, authorize
     val mutedGray = Color(0xFF9E9E9E)
     val cardText = MaterialTheme.colorScheme.onSurface
     val journalCardColors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f), contentColor = cardText)
+    val composerBackground = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = .3f)
     val composerColors = OutlinedTextFieldDefaults.colors(
         focusedPlaceholderColor = mutedGray, unfocusedPlaceholderColor = mutedGray,
         disabledPlaceholderColor = mutedGray.copy(alpha = .6f),
-        focusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = .55f), unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = .55f),
-        disabledBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = .25f)
+        focusedContainerColor = composerBackground, unfocusedContainerColor = composerBackground,
+        disabledContainerColor = composerBackground, errorContainerColor = composerBackground,
+        focusedBorderColor = Color.Transparent, unfocusedBorderColor = Color.Transparent,
+        disabledBorderColor = Color.Transparent, errorBorderColor = Color.Transparent,
     )
     val scope = rememberCoroutineScope()
     val guides = remember(context) { JournalGuideProgress(context) }
@@ -519,7 +524,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit, authorize
                         enabled=editing==null && !busy && draft!=null && searchMode,
                         modifier=Modifier.weight(1f).heightIn(min=40.dp).focusRequester(composerFocus).testTag("journal-composer")
                             .semantics { contentDescription=resources.getString(R.string.journal_search) }
-                            .border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=.55f),CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.3f),CircleShape)
                             .padding(horizontal=16.dp,vertical=8.dp),
                         textStyle=MaterialTheme.typography.bodyMedium.copy(color=MaterialTheme.colorScheme.onSurface),
                         cursorBrush=SolidColor(MaterialTheme.colorScheme.primary),
@@ -538,7 +543,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit, authorize
                         placeholder = { Text(stringResource(if (mode) R.string.journal_search else listOf(R.string.journal_prompt_0, R.string.journal_prompt_1, R.string.journal_prompt_2, R.string.journal_prompt_3)[draft?.prompt ?: 0])) },
                         trailingIcon = if (mode) null else { { IconButton(onClick = { imageTarget = null; model.prepareImagePicker(null); pickImage() }, enabled = editing == null && !busy && !searchMode) { Icon(Icons.Outlined.AddPhotoAlternate, stringResource(R.string.journal_add_image), tint = cardText) } } })
                     if(mode) IconButton(onClick=::closeSearch,enabled=searchMode,modifier=Modifier.testTag("journal-search-toggle")) {
-                        Box(Modifier.size(40.dp).border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=if(searchMode).55f else .25f),CircleShape),contentAlignment=Alignment.Center){
+                        Box(Modifier.size(40.dp),contentAlignment=Alignment.Center){
                             Icon(Icons.Outlined.Close,stringResource(R.string.journal_search_close))
                         }
                     }
@@ -550,8 +555,10 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit, authorize
                         onLongClick = { networkConsent = false; speechOptions = true }).semantics {
                             customActions = listOf(CustomAccessibilityAction("Start dictation") { networkConsent = false; speechOptions = true; true })
                         }, contentAlignment = Alignment.Center) {
-                        if(busy) CircularProgressIndicator(Modifier.size(24.dp))
-                        else Icon(if (canSubmit) Icons.Outlined.Check else Icons.Outlined.Mic, stringResource(if(canSubmit) R.string.journal_save else R.string.journal_start_dictation))
+                        com.jeerovan.comfer.ui.ModuleIconSurface {
+                            if(busy) CircularProgressIndicator(Modifier.size(24.dp))
+                            else Icon(if (canSubmit) Icons.Outlined.Check else Icons.Outlined.Mic, stringResource(if(canSubmit) R.string.journal_save else R.string.journal_start_dictation))
+                        }
                     }
                 }
                 }
@@ -589,7 +596,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit, authorize
                 } catch (_: Exception) { model.error.value = "Could not empty Archive. Please try again." }
             }
         }) { Text(stringResource(R.string.journal_delete)) } }, dismissButton = { TextButton(onClick = { emptyArchive = false }) { Text(stringResource(R.string.journal_cancel)) } })
-    if (settings) ModalBottomSheet(onDismissRequest = { settings = false }) {
+    if (settings) ModalBottomSheet(containerColor=MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.9f),contentColor=MaterialTheme.colorScheme.onSurface,tonalElevation=0.dp,onDismissRequest = { settings = false }) {
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.journal_protect), Modifier.weight(1f))
             Switch(protection, enabled = !busy && !model.speech.active, modifier = Modifier.scale(.7f), onCheckedChange = { value ->

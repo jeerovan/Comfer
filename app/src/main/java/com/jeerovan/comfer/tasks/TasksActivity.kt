@@ -1,6 +1,9 @@
 @file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class, androidx.compose.foundation.ExperimentalFoundationApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 package com.jeerovan.comfer.tasks
 
+import com.jeerovan.comfer.ui.ModuleIconButton as IconButton
+import com.jeerovan.comfer.ui.ModuleIconToggleButton as IconToggleButton
+
 import com.jeerovan.comfer.ui.rememberThumbReach
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 
@@ -19,7 +22,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.graphics.SolidColor
@@ -378,7 +380,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                             BasicTextField(
                                 value=query,onValueChange={query=it},singleLine=true,enabled=searching,
                                 modifier=Modifier.weight(1f).heightIn(min=40.dp).testTag("tasks-search-input").focusRequester(searchFocus)
-                                    .border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=.55f),CircleShape)
+                                    .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.3f),CircleShape)
                                     .padding(horizontal=16.dp,vertical=8.dp),
                                 textStyle=MaterialTheme.typography.bodyMedium.copy(color=MaterialTheme.colorScheme.onSurface),
                                 cursorBrush=SolidColor(MaterialTheme.colorScheme.primary),
@@ -390,7 +392,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                                 },
                             )
                             IconButton(onClick=::closeSearch,enabled=searching){
-                                Box(Modifier.size(40.dp).border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=if(searching).55f else .25f),CircleShape),contentAlignment=Alignment.Center){
+                                Box(Modifier.size(40.dp),contentAlignment=Alignment.Center){
                                     Icon(Icons.Outlined.Close,stringResource(R.string.tasks_close_search))
                                 }
                             }
@@ -463,7 +465,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
             SnackbarHost(snackbar)
         }
     }
-    if(sheet != null) ModalBottomSheet(onDismissRequest = { sheet = null; moveTaskId = null }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = sheet == "sort")) {
+    if(sheet != null) ModalBottomSheet(containerColor=MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.9f),contentColor=MaterialTheme.colorScheme.onSurface,tonalElevation=0.dp,onDismissRequest = { sheet = null; moveTaskId = null }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = sheet == "sort")) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(if(sheet == "listActions") (if(listId.isEmpty()) R.string.tasks_add_list else R.string.tasks_rename) else if(sheet == "sort") R.string.tasks_sort else if(sheet == "move") R.string.tasks_move_to_list else R.string.tasks_choose_list), style = MaterialTheme.typography.titleLarge)
             if(sheet == "listActions") {
@@ -771,7 +773,7 @@ private fun ColumnScope.TaskEditor(initial: TaskItem, state: TaskSnapshot, busy:
             IconButton(onClick = { page = "capture" }) { Icon(Icons.Outlined.Check, stringResource(R.string.tasks_done)) }
         }
     }
-    if(choosingList) ModalBottomSheet(onDismissRequest = { choosingList = false }) {
+    if(choosingList) ModalBottomSheet(containerColor=MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.9f),contentColor=MaterialTheme.colorScheme.onSurface,tonalElevation=0.dp,onDismissRequest = { choosingList = false }) {
         FlowRow(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             state.lists.sortedBy { it.position }.forEach { list -> FilterChip(selected = task.listId == list.id, onClick = { update(task.copy(listId = list.id)); choosingList = false }, label = { Text(list.name) }) }
         }

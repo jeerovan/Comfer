@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
             NotesIconButton(onClick={keyboard?.hide();onImage()},enabled=!model.importingImage){Icon(Icons.Outlined.AddPhotoAlternate,if(model.importingImage)"Adding image" else "Add image")}
         }
     }
-    if(formatting)ModalBottomSheet(onDismissRequest={formatting=false},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true)) {
+    if(formatting)ModalBottomSheet(containerColor=MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.9f),contentColor=MaterialTheme.colorScheme.onSurface,tonalElevation=0.dp,onDismissRequest={formatting=false},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true)) {
         Column(Modifier.fillMaxWidth().padding(horizontal=20.dp).padding(bottom=24.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             Text("Text formatting",style=MaterialTheme.typography.titleMedium)
             FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -72,7 +72,7 @@ import androidx.compose.ui.unit.dp
         var text by remember{mutableStateOf(model.selectedText())}
         var url by remember{mutableStateOf(model.marks.firstOrNull{it.kind=="url"&&model.canvasSelection.start in it.start..it.end}?.value.orEmpty())}
         var invalid by remember{mutableStateOf(false)}
-        ModalBottomSheet(onDismissRequest={link=false},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true)) {
+        ModalBottomSheet(containerColor=MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.9f),contentColor=MaterialTheme.colorScheme.onSurface,tonalElevation=0.dp,onDismissRequest={link=false},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true)) {
             Column(Modifier.fillMaxWidth().padding(20.dp).imePadding(),verticalArrangement=Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(text,{text=it},Modifier.fillMaxWidth(),label={Text("Link text")})
                 OutlinedTextField(url,{url=it;invalid=false},Modifier.fillMaxWidth(),label={Text("URL")},singleLine=true,isError=invalid,supportingText={if(invalid)Text("Enter a valid http or https URL")})
@@ -86,8 +86,8 @@ import androidx.compose.ui.unit.dp
 }
 @Composable private fun EditorButtonGroup(content:@Composable RowScope.()->Unit) {
     Box(contentAlignment=Alignment.Center) {
-        // Match the single buttons' 40 dp outline while preserving 48 dp touch targets.
-        Box(Modifier.matchParentSize().padding(vertical=4.dp).border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=.55f),CircleShape))
+        // Match the single buttons' 40 dp background while preserving 48 dp touch targets.
+        Box(Modifier.matchParentSize().padding(vertical=4.dp).background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.3f),CircleShape))
         Row(verticalAlignment=Alignment.CenterVertically,content=content)
     }
 }

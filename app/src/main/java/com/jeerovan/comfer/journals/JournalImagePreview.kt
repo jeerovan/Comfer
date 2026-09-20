@@ -1,5 +1,7 @@
 package com.jeerovan.comfer.journals
 
+import com.jeerovan.comfer.ui.ModuleIconButton as IconButton
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*

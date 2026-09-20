@@ -13,6 +13,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -79,7 +80,7 @@ import kotlinx.coroutines.*
             Row(Modifier.heightIn(min=48.dp),verticalAlignment=Alignment.CenterVertically) {
                 Text(if(model.collection)model.view else "Notes",Modifier.weight(1f),style=MaterialTheme.typography.titleLarge)
                 if(model.collection&&model.view=="Bin") TextButton(onClick={purge=model.notes.filter{it.deletedAt!=null}},enabled=model.notes.any{it.deletedAt!=null}){Text("Empty")}
-                if(model.collection)IconButton(onClick={keyboard?.hide();options=true}){Icon(Icons.Outlined.MoreVert,"Notes options",tint=MaterialTheme.colorScheme.onSurfaceVariant)}
+                if(model.collection)NotesIconButton(onClick={keyboard?.hide();options=true}){Icon(Icons.Outlined.MoreVert,"Notes options",tint=MaterialTheme.colorScheme.onSurfaceVariant)}
             }
             model.error?.let{Row(verticalAlignment=Alignment.CenterVertically){Text(it,Modifier.weight(1f),color=MaterialTheme.colorScheme.error);NotesIconButton(onClick={model.error=null}){Icon(Icons.Outlined.Close,"Dismiss error")}}}
             if(!model.ready) Box(Modifier.weight(1f).fillMaxWidth(),contentAlignment=Alignment.Center){CircularProgressIndicator()}
@@ -143,7 +144,7 @@ import kotlinx.coroutines.*
                         value=model.query,
                         onValueChange={model.query=it;model.selected=emptySet()},
                         modifier=Modifier.weight(1f).heightIn(min=40.dp).testTag("notes-search").focusRequester(searchFocus)
-                            .border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=.55f),CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.3f),CircleShape)
                             .padding(horizontal=16.dp,vertical=8.dp),
                         singleLine=true,
                         textStyle=MaterialTheme.typography.bodyMedium.copy(color=MaterialTheme.colorScheme.onSurface),
@@ -165,7 +166,7 @@ import kotlinx.coroutines.*
             }
         }
     }
-    if(options&&model.collection) ModalBottomSheet(onDismissRequest={options=false},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true)) {
+    if(options&&model.collection) ModalBottomSheet(containerColor=MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.9f),contentColor=MaterialTheme.colorScheme.onSurface,tonalElevation=0.dp,onDismissRequest={options=false},sheetState=rememberModalBottomSheetState(skipPartiallyExpanded=true)) {
         Column(Modifier.padding(horizontal=20.dp).padding(bottom=24.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             Text("Sort",style=MaterialTheme.typography.titleMedium)
             FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) { listOf("updated" to "Updated","created" to "Created","title" to "Title","manual" to "Manual").forEach{(sort,label)->FilterChip(model.prefs.sort==sort,{model.updatePreferences(model.prefs.copy(sort=sort))},{Text(label)})} }
@@ -175,13 +176,13 @@ import kotlinx.coroutines.*
             if(model.recoveredDrafts.isNotEmpty())TextButton(onClick={options=false;recovery=true}){Text("Recovered drafts (${model.recoveredDrafts.size})")}
         }
     }
-    if(colors) ModalBottomSheet(onDismissRequest={colors=false}) {
+    if(colors) ModalBottomSheet(containerColor=MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.9f),contentColor=MaterialTheme.colorScheme.onSurface,tonalElevation=0.dp,onDismissRequest={colors=false}) {
         Text("Note background",Modifier.padding(20.dp),style=MaterialTheme.typography.titleMedium)
         FlowRow(Modifier.padding(20.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){noteColors.forEach{(id,name)->
             AssistChip(onClick={model.batch(targets()){it.copy(color=id)};colors=false},label={Text(name)},colors=AssistChipDefaults.assistChipColors(containerColor=noteColor(id),labelColor=MaterialTheme.colorScheme.onSurface))
         }}
     }
-    labelTargets?.let{ids->ModalBottomSheet(onDismissRequest={labelTargets=null}) {
+    labelTargets?.let{ids->ModalBottomSheet(containerColor=MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.9f),contentColor=MaterialTheme.colorScheme.onSurface,tonalElevation=0.dp,onDismissRequest={labelTargets=null}) {
         Column(Modifier.padding(20.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             Text("Labels",style=MaterialTheme.typography.titleMedium)
             val notes=if(model.collection)model.notes.filter{it.id in ids} else listOfNotNull(model.draft?.note)
@@ -210,11 +211,11 @@ import kotlinx.coroutines.*
         }
     }}
     labelEdit?.let{label->var name by remember(label){mutableStateOf(label.name)}
-        ModalBottomSheet(onDismissRequest={labelEdit=null}){Row(Modifier.padding(20.dp),verticalAlignment=Alignment.CenterVertically){OutlinedTextField(name,{name=it},Modifier.weight(1f),label={Text("Label")});if(label.name.isNotEmpty())NotesIconButton(onClick={model.removeLabel(label);labelEdit=null;labelTargets=null}){Icon(Icons.Outlined.Delete,"Delete label; keep notes")};NotesIconButton(onClick={model.saveLabel(label.copy(name=name));labelEdit=null},enabled=name.isNotBlank()){Icon(Icons.Outlined.Check,"Save name")}}}
+        ModalBottomSheet(containerColor=MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.9f),contentColor=MaterialTheme.colorScheme.onSurface,tonalElevation=0.dp,onDismissRequest={labelEdit=null}){Row(Modifier.padding(20.dp),verticalAlignment=Alignment.CenterVertically){OutlinedTextField(name,{name=it},Modifier.weight(1f),label={Text("Label")});if(label.name.isNotEmpty())NotesIconButton(onClick={model.removeLabel(label);labelEdit=null;labelTargets=null}){Icon(Icons.Outlined.Delete,"Delete label; keep notes")};NotesIconButton(onClick={model.saveLabel(label.copy(name=name));labelEdit=null},enabled=name.isNotBlank()){Icon(Icons.Outlined.Check,"Save name")}}}
     }
     preview?.let{note->AlertDialog(onDismissRequest={preview=null},title={Text(note.content.preview)},text={Column(Modifier.verticalScroll(rememberScrollState())){Text(note.content.asText().text)}},confirmButton={TextButton(onClick={model.batch(listOf(note)){it.copy(deletedAt=null)};preview=null}){Text("Restore")}},dismissButton={NotesIconButton(onClick={preview=null}){Icon(Icons.Outlined.Close,"Close")}})}
     purge?.let{notes->AlertDialog(onDismissRequest={purge=null},title={Text("Permanently delete ${notes.size} notes?")},text={Text("This cannot be undone.")},confirmButton={TextButton(onClick={model.purge(notes);purge=null;model.selected=emptySet()}){Text("Delete")}},dismissButton={NotesIconButton(onClick={purge=null}){Icon(Icons.Outlined.Close,"Cancel")}})}
-    if(recovery)ModalBottomSheet(onDismissRequest={recovery=false}){LazyColumn(Modifier.padding(20.dp)){items(model.recoveredDrafts,key={it.id}){draft->TextButton(onClick={model.resumeDraft(draft.id);recovery=false}){Text(draft.note.content.preview.ifBlank{"Untitled draft"})}}}}
+    if(recovery)ModalBottomSheet(containerColor=MaterialTheme.colorScheme.surfaceContainer.copy(alpha=.9f),contentColor=MaterialTheme.colorScheme.onSurface,tonalElevation=0.dp,onDismissRequest={recovery=false}){LazyColumn(Modifier.padding(20.dp)){items(model.recoveredDrafts,key={it.id}){draft->TextButton(onClick={model.resumeDraft(draft.id);recovery=false}){Text(draft.note.content.preview.ifBlank{"Untitled draft"})}}}}
 }
 private fun Set<String>.toggle(id:String)=if(id in this)this-id else this+id
 internal val noteColors=listOf("default" to "Default","rose" to "Rose","amber" to "Amber","green" to "Green","blue" to "Blue","violet" to "Violet")
@@ -225,24 +226,20 @@ internal val noteColors=listOf("default" to "Default","rose" to "Rose","amber" t
 }
 @Composable private fun NoteCard(note:Note,query:String,labels:List<NoteLabel>,selected:Boolean){
     val colors=MaterialTheme.colorScheme
-    Card(Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=if(selected)colors.secondaryContainer else noteColor(note.color),contentColor=if(selected)colors.onSecondaryContainer else colors.onSurface)){Column(Modifier.padding(12.dp)){
+    Card(Modifier.fillMaxWidth().semantics{this.selected=selected},border=if(selected)BorderStroke(2.dp,Color(0xFF9E9E9E)) else null,colors=CardDefaults.cardColors(containerColor=noteColor(note.color),contentColor=colors.onSurface)){Column(Modifier.padding(12.dp)){
         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             Text(note.content.preview.ifBlank{"Untitled"},Modifier.weight(1f),style=MaterialTheme.typography.titleMedium,maxLines=2)
-            if(note.pinned)Icon(Icons.Outlined.PushPin,"Pinned",Modifier.size(18.dp),tint=if(selected)colors.onSecondaryContainer else colors.onSurfaceVariant)
+            if(note.pinned)Icon(Icons.Outlined.PushPin,"Pinned",Modifier.size(18.dp),tint=colors.onSurfaceVariant)
         }
         val text=note.content.asText().text
         val matches=remember(text,query){NotesSearch.matches(text,query)}
         val start=(matches.firstOrNull()?.start?.minus(40)?:0).coerceAtLeast(0);val end=(start+200).coerceAtMost(text.length)
         val display=Regex("(?m)^\\[([ xX])\\] ").replace(text){if(it.groupValues[1]==" ")"○   " else "●   "}
         if(text.isNotEmpty())Text(buildAnnotatedString{append(display.substring(start,end));matches.filter{it.start>=start&&it.end<=end}.forEach{addStyle(SpanStyle(background=colors.tertiaryContainer,color=colors.onTertiaryContainer),it.start-start,it.end-start)}},maxLines=4)
-        if(note.tags.isNotEmpty())FlowRow(horizontalArrangement=Arrangement.spacedBy(6.dp),verticalArrangement=Arrangement.spacedBy(4.dp),modifier=Modifier.padding(top=8.dp)){labels.filter{it.id in note.tags}.forEach{label->Surface(shape=MaterialTheme.shapes.small,color=Color.Transparent,contentColor=if(selected)colors.onSecondaryContainer else colors.onSurfaceVariant,border=BorderStroke(1.dp,colors.outlineVariant)){Text(label.name,Modifier.padding(horizontal=10.dp,vertical=4.dp),style=MaterialTheme.typography.labelMedium)}}}
+        if(note.tags.isNotEmpty())FlowRow(horizontalArrangement=Arrangement.spacedBy(6.dp),verticalArrangement=Arrangement.spacedBy(4.dp),modifier=Modifier.padding(top=8.dp)){labels.filter{it.id in note.tags}.forEach{label->Surface(shape=MaterialTheme.shapes.small,color=Color.Transparent,contentColor=colors.onSurfaceVariant,border=BorderStroke(1.dp,colors.outlineVariant)){Text(label.name,Modifier.padding(horizontal=10.dp,vertical=4.dp),style=MaterialTheme.typography.labelMedium)}}}
     }}
 }
 
 @Composable internal fun NotesIconButton(onClick:()->Unit,enabled:Boolean=true,content:@Composable ()->Unit) {
-    IconButton(onClick=onClick,enabled=enabled) {
-        Box(Modifier.size(40.dp).border(1.dp,MaterialTheme.colorScheme.outline.copy(alpha=if(enabled).55f else .25f),CircleShape),contentAlignment=Alignment.Center) {
-            content()
-        }
-    }
+    com.jeerovan.comfer.ui.ModuleIconButton(onClick=onClick,enabled=enabled,content=content)
 }
