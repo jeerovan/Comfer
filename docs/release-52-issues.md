@@ -7,7 +7,7 @@ This records user acceptance; it does not claim independent verification of
 every OEM scenario or production resolution of the reported issues.
 
 Source baseline: `97f1cbef6c5ca0c0eeb1e5630c2743a2376bd3d2` (`UI changes.`).
-The source currently declares version 51 / 51.0. Version-52 packaging, final
+The source version was bumped to 52 / 52.0 on 20 September 2026. Version-52 release packaging, final
 release commit, signed APK/AAB hashes and rollout date remain to be recorded
 when that release is prepared. This document is not evidence of a shipped build.
 
