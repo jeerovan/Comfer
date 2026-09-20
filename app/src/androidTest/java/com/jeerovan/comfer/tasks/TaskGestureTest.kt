@@ -1,8 +1,11 @@
 package com.jeerovan.comfer.tasks
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
@@ -25,7 +28,9 @@ class TaskGestureTest {
                     scale = LocalDensity.current.density
                     var reveal by remember { mutableIntStateOf(0) }
                     val item = TaskItem(id = "one", listId = "tasks", title = "Gesture task")
-                    TaskRow(item, TaskSnapshot(tasks = listOf(item)), Modifier.width(360.dp).testTag("row"), reveal, { reveal = it }, false, {}, { events += "open" }, { events += "complete" }, { events += "star" }, { events += "menu" }, { events += "move:$it" }, onMove = { events += "move-sheet" }, onDelete = { events += "delete" })
+                    Surface { TasksReorderList(listOf(item, item.copy(id = "two", title = "Other task")), true, rememberLazyListState(), Modifier.width(360.dp).height(400.dp), "slot", onDrop = { _, _ -> events += "move" }) { row ->
+                    TaskRow(row, TaskSnapshot(tasks = listOf(item)), Modifier.fillMaxWidth().testTag(if(row.id == "one") "row" else "other-row"), reveal, { reveal = it }, false, {}, { events += "open" }, { events += "complete" }, { events += "star" }, { events += "menu" }, onMove = { events += "move-sheet" }, onDelete = { events += "delete" })
+                    } }
                 }
             }
         }
@@ -38,7 +43,7 @@ class TaskGestureTest {
         compose.runOnIdle { assertEquals(listOf("open", "open", "open"), events) }
         compose.onNodeWithText("Gesture task").performTouchInput { longClick() }
         compose.runOnIdle { assertEquals(listOf("open", "open", "open"), events) }
-        compose.onNodeWithContentDescription("Star").performClick()
+        compose.onAllNodesWithContentDescription("Star").onFirst().performClick()
         compose.runOnIdle { assertEquals("star", events.last()); assertEquals(4, events.size) }
     }
     @Test fun partialSwipeAndCancellationDoNotMutate() {
@@ -49,6 +54,36 @@ class TaskGestureTest {
         compose.onNodeWithText("Gesture task").performTouchInput { down(center); moveBy(Offset(70f * scale, 0f), 150); cancel() }
         compose.runOnIdle { assertTrue(events.isEmpty()) }
     }
+    @Test fun draggingKeepsTheRestingBackgroundColor() {
+        show()
+        fun background(): Int {
+            compose.waitForIdle()
+            val bounds = compose.onNodeWithTag("row").fetchSemanticsNode().boundsInWindow
+            val image = checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
+            val colors = mutableMapOf<Int, Int>()
+            for(y in bounds.top.toInt() until bounds.bottom.toInt() step 4) {
+                for(x in bounds.left.toInt() until bounds.right.toInt() step 4) {
+                    val color = image.getPixel(x, y)
+                    colors[color] = (colors[color] ?: 0) + 1
+                }
+            }
+            image.recycle()
+            return colors.maxBy { it.value }.key
+        }
+        // Window enter animation is independent of the Compose test clock.
+        android.os.SystemClock.sleep(600)
+        val resting = background()
+        compose.onNodeWithText("Gesture task").performTouchInput {
+            down(center); moveBy(Offset(40f * scale, 0f), 150)
+        }
+        assertEquals(resting, background())
+        compose.onNodeWithText("Gesture task").performTouchInput { cancel() }
+        compose.onNodeWithText("Gesture task").performTouchInput {
+            down(center); advanceEventTime(700); moveBy(Offset(0f, 10f * scale), 150)
+        }
+        assertEquals(resting, background())
+        compose.onNodeWithText("Gesture task").performTouchInput { cancel() }
+    }
     @Test fun rtlFullSwipeDeletesOnlyOnce() {
         show(true)
         compose.onNodeWithText("Gesture task").performTouchInput { swipe(center, center + Offset(-170f * scale, 0f), 300) }
@@ -57,9 +92,9 @@ class TaskGestureTest {
     @Test fun holdAndDragReordersWithoutOpeningMoveSheet() {
         show()
         compose.onNodeWithText("Gesture task").performTouchInput {
-            down(center); advanceEventTime(700); moveBy(Offset(0f, 120f * scale), 300); up()
+            down(center); advanceEventTime(700); moveBy(Offset(0f, 56f * scale), 300); up()
         }
-        compose.runOnIdle { assertEquals(1, events.size); assertTrue(events.single().startsWith("move:")) }
+        compose.runOnIdle { assertEquals(1, events.size); assertEquals("move", events.single()) }
     }
 
 }

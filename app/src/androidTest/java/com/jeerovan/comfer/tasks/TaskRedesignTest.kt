@@ -180,15 +180,20 @@ class TaskRedesignTest {
         show(listOf(TaskItem(id = "first", listId = "tasks", title = "First", position = 0), TaskItem(id = "done", listId = "tasks", title = "Already done", completedAt = System.currentTimeMillis(), position = 1), TaskItem(id = "second", listId = "tasks", title = "Second", notes = "A longer row with notes to test measured drop positions", position = 2), TaskItem(id = "third", listId = "tasks", title = "Third", position = 3)))
         compose.onNode(hasText("First") and hasAnyAncestor(hasTestTag("tasks-incomplete-card"))).assertExists()
         compose.onNode(hasText("Second") and hasAnyAncestor(hasTestTag("tasks-incomplete-card"))).assertExists()
+        val firstBounds = compose.onNodeWithTag("task-first").fetchSemanticsNode().boundsInRoot
         val originalSecondTop = compose.onNodeWithText("Second").fetchSemanticsNode().boundsInRoot.top
         val distance = compose.onNodeWithText("Second").fetchSemanticsNode().boundsInRoot.center.y - compose.onNodeWithText("First").fetchSemanticsNode().boundsInRoot.center.y
         compose.onNodeWithText("First").performTouchInput {
-            down(center); advanceEventTime(700)
+            down(androidx.compose.ui.geometry.Offset(center.x, 8f)); advanceEventTime(700)
             moveBy(androidx.compose.ui.geometry.Offset(0f, distance / 2), 150)
             moveBy(androidx.compose.ui.geometry.Offset(0f, distance / 2 + 20), 150)
         }
         compose.mainClock.advanceTimeBy(400)
         compose.onNodeWithTag("tasks-drop-target").assertIsDisplayed()
+        val heldBounds = compose.onNodeWithTag("task-first").fetchSemanticsNode().boundsInRoot
+        val slotBounds = compose.onNodeWithTag("tasks-drop-target").fetchSemanticsNode().boundsInRoot
+        assertEquals(firstBounds.height, slotBounds.height, 1f)
+        assertEquals(firstBounds.top + distance + 20f, heldBounds.top, 1f)
         compose.onNodeWithText("First").assertIsDisplayed()
         val screenshot = checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
         java.io.File(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null), "tasks-drag-preview.png").outputStream().use { screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }

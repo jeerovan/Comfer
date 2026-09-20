@@ -16,6 +16,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.border
@@ -27,12 +28,10 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.zIndex
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.ui.semantics.onClick
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -291,45 +290,17 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                             if(displayed.isNotEmpty()) item {
                                 Card(Modifier.fillMaxWidth().testTag("tasks-incomplete-card"), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f), contentColor = MaterialTheme.colorScheme.onSurface)) {
                                     val cardScroll = rememberLazyListState()
-                                    var preview by remember { mutableStateOf<TaskDragPreview?>(null) }
-                                    LaunchedEffect(state.tasks) { preview = null }
+                                    var dragging by remember { mutableStateOf(false) }
                                     var cardVisible by remember { mutableStateOf(false) }
                                     Box(Modifier.onGloballyPositioned { cardVisible = it.boundsInWindow().height > 0f }) {
                                     val density = LocalDensity.current
-                                    LazyColumn(Modifier.fillMaxWidth().heightIn(max = cardMaxHeight).testTag("tasks-incomplete-list"), state = cardScroll) {
-                            items(displayed, key = { it.id }) { item ->
-                                val index = displayed.indexOfFirst { it.id == item.id }
-                                val shift = preview?.let { drag -> when {
-                                    item.id == drag.id -> 0f
-                                    drag.targetIndex > drag.sourceIndex && index in (drag.sourceIndex + 1)..drag.targetIndex -> -drag.height.toFloat()
-                                    drag.targetIndex < drag.sourceIndex && index in drag.targetIndex until drag.sourceIndex -> drag.height.toFloat()
-                                    else -> 0f
-                                } } ?: 0f
-                                val neighborOffset by androidx.compose.animation.core.animateFloatAsState(shift, label = "task-neighbor-placement")
-                                if(state.preferences.sort == "date" && item.day == null && displayed.firstOrNull { it.day == null }?.id == item.id) Text(stringResource(R.string.tasks_no_date), Modifier.padding(vertical = 8.dp), style = MaterialTheme.typography.titleSmall)
-                                TaskRow(item, state, modifier = Modifier.animateItem().graphicsLayer { translationY = neighborOffset }, onDragProgress = { distance ->
-                                    val layout = cardScroll.layoutInfo.visibleItemsInfo
-                                    val source = layout.find { it.key == item.id }
-                                    if(source != null) {
-                                        val target = layout.filter { info -> displayed.any { it.id == info.key && it.listId == item.listId && it.parentId == item.parentId } }.minByOrNull { kotlin.math.abs(it.offset + it.size / 2f - (source.offset + source.size / 2f + distance)) }
-                                        if(target != null) preview = TaskDragPreview(item.id, source.index, target.index, source.size, if(target.index > source.index) target.offset + target.size - source.size else target.offset)
+                                    TasksReorderList(displayed, state.preferences.sort == "manual", cardScroll,
+                                        Modifier.fillMaxWidth().heightIn(max = cardMaxHeight).testTag("tasks-incomplete-list"),
+                                        "tasks-drop-target", onDrop = { id, target -> mutate { reorderTaskTo(it, id, target) } }, onDragging = { dragging = it }) { item ->
+                                        if(state.preferences.sort == "date" && item.day == null && displayed.firstOrNull { it.day == null }?.id == item.id) Text(stringResource(R.string.tasks_no_date), Modifier.padding(vertical = 8.dp), style = MaterialTheme.typography.titleSmall)
+                                        TaskRow(item, state, modifier = Modifier, rowShape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp), completing = item.id in completingIds, onCompletedAnimation = { completingIds = completingIds - item.id }, reveal = if(revealedId == item.id) revealDirection else 0, onReveal = { revealedId = item.id; revealDirection = it }, expanded = item.id in expanded, onExpand = { expanded = if(item.id in expanded) expanded - item.id else expanded + item.id }, onOpen = { edit(item) }, onComplete = { revealedId = null; complete(item) }, onStar = { mutate { s -> s.copy(tasks = s.tasks.map { if (it.id == item.id) it.copy(starred = !it.starred, version = it.version + 1) else it }) } }, onMenu = { menuId = item.id }, onMove = { moveTaskId = item.id; sheet = "move" }, onDelete = { delete(item) }, restoreFocus = pendingFocusId == item.id, onFocusRestored = { pendingFocusId = null })
                                     }
-                                }, onDragFinished = { preview = null }, onDropAt = { distance ->
-                                    val layout = cardScroll.layoutInfo.visibleItemsInfo
-                                    val source = layout.find { it.key == item.id }
-                                    if(source != null) {
-                                        val center = source.offset + source.size / 2f + distance
-                                        val target = layout.filter { info -> displayed.any { it.id == info.key && it.listId == item.listId && it.parentId == item.parentId } }.minByOrNull { kotlin.math.abs(it.offset + it.size / 2f - center) }
-                                        if(target != null) mutate { snapshot ->
-                                            val siblings = snapshot.tasks.filter { it.listId == item.listId && it.parentId == item.parentId && it.completedAt == null }.sortedBy { it.position }
-                                            reorderTask(snapshot, item.id, siblings.indexOfFirst { it.id == target.key } - siblings.indexOfFirst { it.id == item.id })
-                                        }
-                                    }
-                                }, rowShape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp), completing = item.id in completingIds, onCompletedAnimation = { completingIds = completingIds - item.id }, reveal = if(revealedId == item.id) revealDirection else 0, onReveal = { revealedId = item.id; revealDirection = it }, expanded = item.id in expanded, onExpand = { expanded = if(item.id in expanded) expanded - item.id else expanded + item.id }, onOpen = { edit(item) }, onComplete = { revealedId = null; complete(item) }, onStar = { mutate { s -> s.copy(tasks = s.tasks.map { if (it.id == item.id) it.copy(starred = !it.starred, version = it.version + 1) else it }) } }, onMenu = { menuId = item.id }, onMove = { moveTaskId = item.id; sheet = "move" }, onDelete = { delete(item) }, onReorder = { delta -> mutate { reorderTask(it, item.id, delta) } }, restoreFocus = pendingFocusId == item.id, onFocusRestored = { pendingFocusId = null })
-                            }
-                                    }
-                                    preview?.let { drag -> Box(Modifier.fillMaxWidth().offset { androidx.compose.ui.unit.IntOffset(0, drag.top) }.height(with(density) { drag.height.toDp() }).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f), MaterialTheme.shapes.medium).testTag("tasks-drop-target")) }
-                                    val guide = if(cardVisible && state.preferences.listGuideShown && sheet == null && !searching && view == "selected" && preview == null) nextTaskGuide(displayed, state.preferences) else null
+                                    val guide = if(cardVisible && state.preferences.listGuideShown && sheet == null && !searching && view == "selected" && !dragging) nextTaskGuide(displayed, state.preferences) else null
                                     val rows = cardScroll.layoutInfo.visibleItemsInfo.filter { info -> displayed.any { it.id == info.key && it.completedAt == null } && info.offset >= 0 && info.offset + info.size <= cardScroll.layoutInfo.viewportEndOffset }
                                     val source = rows.firstOrNull()
                                     val sourceTask = displayed.find { it.id == source?.key }
@@ -356,43 +327,11 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                                 if(completedExpanded) {
                                     val done = orderedRows.filter { it.completedAt != null && it.id !in completingIds }
                                     val cardScroll = rememberLazyListState()
-                                    var preview by remember { mutableStateOf<TaskDragPreview?>(null) }
-                                    LaunchedEffect(state.tasks) { preview = null }
-                                    val density = LocalDensity.current
-                                    Box {
-                                    LazyColumn(Modifier.fillMaxWidth().heightIn(max = 480.dp).testTag("tasks-completed-list"), state = cardScroll) {
-                                        items(done, key = { it.id }) { item ->
-                                val index = done.indexOfFirst { it.id == item.id }
-                                val shift = preview?.let { drag -> when {
-                                    item.id == drag.id -> 0f
-                                    drag.targetIndex > drag.sourceIndex && index in (drag.sourceIndex + 1)..drag.targetIndex -> -drag.height.toFloat()
-                                    drag.targetIndex < drag.sourceIndex && index in drag.targetIndex until drag.sourceIndex -> drag.height.toFloat()
-                                    else -> 0f
-                                } } ?: 0f
-                                val neighborOffset by androidx.compose.animation.core.animateFloatAsState(shift, label = "task-neighbor-placement")
-                                            TaskRow(item, state, Modifier.animateItem().graphicsLayer { translationY = neighborOffset }, 0, {}, item.id in expanded, { expanded = if(item.id in expanded) expanded - item.id else expanded + item.id }, { edit(item) }, { complete(item) }, {}, { menuId = item.id }, { delta -> mutate { reorderTask(it, item.id, delta) } }, onMove = { moveTaskId = item.id; sheet = "move" }, onDelete = { delete(item) }, onDragProgress = { distance ->
-                                    val layout = cardScroll.layoutInfo.visibleItemsInfo
-                                    val source = layout.find { it.key == item.id }
-                                    if(source != null) {
-                                        val target = layout.filter { info -> done.any { it.id == info.key && it.listId == item.listId && it.parentId == item.parentId } }.minByOrNull { kotlin.math.abs(it.offset + it.size / 2f - (source.offset + source.size / 2f + distance)) }
-                                        if(target != null) preview = TaskDragPreview(item.id, source.index, target.index, source.size, if(target.index > source.index) target.offset + target.size - source.size else target.offset)
-                                    }
-                                }, onDragFinished = { preview = null }, onDropAt = { distance ->
-                                    val layout = cardScroll.layoutInfo.visibleItemsInfo
-                                    val source = layout.find { it.key == item.id }
-                                    if(source != null) {
-                                        val center = source.offset + source.size / 2f + distance
-                                        val target = layout.filter { info -> done.any { it.id == info.key && it.listId == item.listId && it.parentId == item.parentId } }.minByOrNull { kotlin.math.abs(it.offset + it.size / 2f - center) }
-                                        if(target != null) mutate { snapshot ->
-                                            val siblings = snapshot.tasks.filter { it.listId == item.listId && it.parentId == item.parentId && it.completedAt != null }.sortedBy { it.position }
-                                            reorderTask(snapshot, item.id, siblings.indexOfFirst { it.id == target.key } - siblings.indexOfFirst { it.id == item.id })
-                                        }
-                                    }
-                                }, rowShape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp))
-                                        }
-                                        if(done.isNotEmpty()) item { TextButton(onClick = { confirmation = "clear" }) { Text(stringResource(R.string.tasks_clear_completed)) } }
-                                    }
-                                    preview?.let { drag -> Box(Modifier.fillMaxWidth().offset { androidx.compose.ui.unit.IntOffset(0, drag.top) }.height(with(density) { drag.height.toDp() }).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.08f), MaterialTheme.shapes.medium).testTag("tasks-completed-drop-target")) }
+                                    TasksReorderList(done, state.preferences.sort == "manual", cardScroll,
+                                        Modifier.fillMaxWidth().heightIn(max = 480.dp).testTag("tasks-completed-list"),
+                                        "tasks-completed-drop-target", onDrop = { id, target -> mutate { reorderTaskTo(it, id, target) } },
+                                        footer = { if(done.isNotEmpty()) TextButton(onClick = { confirmation = "clear" }) { Text(stringResource(R.string.tasks_clear_completed)) } }) { item ->
+                                        TaskRow(item, state, Modifier, 0, {}, item.id in expanded, { expanded = if(item.id in expanded) expanded - item.id else expanded + item.id }, { edit(item) }, { complete(item) }, {}, { menuId = item.id }, onMove = { moveTaskId = item.id; sheet = "move" }, onDelete = { delete(item) }, rowShape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp))
                                     }
                                 }
                             } }
@@ -625,7 +564,13 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
     }
 }
 
-private data class TaskDragPreview(val id: String, val sourceIndex: Int, val targetIndex: Int, val height: Int, val top: Int)
+private fun reorderTaskTo(state: TaskSnapshot, id: String, target: String): TaskSnapshot {
+    val item = state.tasks.find { it.id == id } ?: return state
+    val siblings = state.tasks.filter { it.listId == item.listId && it.parentId == item.parentId && (it.completedAt == null) == (item.completedAt == null) }.sortedBy { it.position }
+    val from = siblings.indexOfFirst { it.id == id }
+    val to = siblings.indexOfFirst { it.id == target }
+    return if(to < 0) state else reorderTask(state, id, to - from)
+}
 
 internal fun reorderTask(state: TaskSnapshot, id: String, delta: Int): TaskSnapshot {
     val item = state.tasks.find { it.id == id } ?: return state
@@ -648,7 +593,7 @@ internal fun reorderTask(state: TaskSnapshot, id: String, delta: Int): TaskSnaps
     }
 }
 
-@Composable internal fun TaskRow(item: TaskItem, state: TaskSnapshot, modifier: Modifier, reveal: Int, onReveal: (Int) -> Unit, expanded: Boolean, onExpand: () -> Unit, onOpen: () -> Unit, onComplete: () -> Unit, onStar: () -> Unit, onMenu: () -> Unit, onReorder: (Int) -> Unit, restoreFocus: Boolean = false, onFocusRestored: () -> Unit = {}, onMove: () -> Unit = onMenu, onDelete: () -> Unit = onMenu, completing: Boolean = false, onCompletedAnimation: () -> Unit = {}, onDropAt: ((Float) -> Unit)? = null, onDragProgress: (Float) -> Unit = {}, onDragFinished: () -> Unit = {}, rowShape: androidx.compose.ui.graphics.Shape = MaterialTheme.shapes.medium) {
+@Composable internal fun TaskRow(item: TaskItem, state: TaskSnapshot, modifier: Modifier, reveal: Int, onReveal: (Int) -> Unit, expanded: Boolean, onExpand: () -> Unit, onOpen: () -> Unit, onComplete: () -> Unit, onStar: () -> Unit, onMenu: () -> Unit, restoreFocus: Boolean = false, onFocusRestored: () -> Unit = {}, onMove: () -> Unit = onMenu, onDelete: () -> Unit = onMenu, completing: Boolean = false, onCompletedAnimation: () -> Unit = {}, rowShape: androidx.compose.ui.graphics.Shape = MaterialTheme.shapes.medium) {
     val squeeze = remember { androidx.compose.animation.core.Animatable(1f) }
     val finishAnimation by rememberUpdatedState(onCompletedAnimation)
     LaunchedEffect(completing) {
@@ -660,64 +605,30 @@ internal fun reorderTask(state: TaskSnapshot, id: String, delta: Int): TaskSnaps
     val latestDelete by rememberUpdatedState(onDelete)
     val direction = if(LocalLayoutDirection.current == LayoutDirection.Rtl) -1 else 1
     var drag by remember { mutableFloatStateOf(0f) }
-    var movement by remember { mutableFloatStateOf(0f) }
-    val reorder by rememberUpdatedState(onReorder)
-    val dropAt by rememberUpdatedState(onDropAt)
-    val dragProgress by rememberUpdatedState(onDragProgress)
-    val dragFinished by rememberUpdatedState(onDragFinished)
-    var holding by remember { mutableStateOf(false) }
     val openTask by rememberUpdatedState(onOpen)
     val openLabel = stringResource(R.string.tasks_details)
-    var rowHeight by remember { mutableIntStateOf(1) }
     val focus = remember { FocusRequester() }
     LaunchedEffect(restoreFocus) { if(restoreFocus) { withFrameNanos { }; focus.requestFocus(); onFocusRestored() } }
-    Column(modifier.zIndex(if(holding) 1f else 0f)) {
+    Column(modifier) {
     Surface(Modifier.fillMaxWidth().padding(start = if(item.parentId != null) 20.dp else 0.dp, top = 0.dp)
         .focusRequester(focus)
-        .onSizeChanged { rowHeight = it.height }.graphicsLayer { translationX = drag; translationY = movement; scaleX = squeeze.value; scaleY = squeeze.value; alpha = squeeze.value }
+        .graphicsLayer { translationX = drag; scaleX = squeeze.value; scaleY = squeeze.value; alpha = squeeze.value }
         .pointerInput(item.id, threshold, direction) { detectHorizontalDragGestures(onDragStart = { drag = 0f }, onDragCancel = { drag = 0f }, onDragEnd = { val distance = drag * direction; if(kotlin.math.abs(distance) > threshold * 2) latestDelete(); drag = 0f }) { change, amount -> change.consume(); drag += amount } }
         .semantics(mergeDescendants = true) {
             onClick(openLabel) { openTask(); true }
         }
-        .pointerInput(item.id, state.preferences.sort, rowHeight) {
+        .pointerInput(item.id) {
             awaitEachGesture {
                 val down = awaitFirstDown(requireUnconsumed = false)
-                var released = false
-                val up = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
-                    waitForUpOrCancellation().also { released = true }
-                }
-                if(released) {
-                    if(up != null) {
-                        up.consume()
-                        openTask()
-                    }
-                } else {
-                    movement = 0f
-                    holding = state.preferences.sort == "manual"
-                    if(holding) dragProgress(0f)
-                    var cancelled = false
-                    var ended = false
-                    while(!ended) {
-                        val change = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial).changes.firstOrNull { it.id == down.id }
-                        if(change == null || change.isConsumed) { cancelled = true; break }
-                        movement += change.position.y - change.previousPosition.y
-                        if(holding) dragProgress(movement)
-                        ended = !change.pressed
-                        change.consume()
-                    }
-                    if(!cancelled) {
-                        if(kotlin.math.abs(movement) > viewConfiguration.touchSlop) {
-                            if(state.preferences.sort == "manual") { if(dropAt != null) dropAt?.invoke(movement) else { val delta = kotlin.math.round(movement / rowHeight.coerceAtLeast(1)).toInt(); if(delta != 0) reorder(delta) } }
-                        }
-                    }
-                    movement = 0f
-                    holding = false
-                    dragFinished()
+                val up = waitForUpOrCancellation()
+                if(up != null && up.uptimeMillis - down.uptimeMillis < viewConfiguration.longPressTimeoutMillis) {
+                    up.consume()
+                    openTask()
                 }
             }
         },
-        shape = rowShape, shadowElevation = if(holding) 8.dp else 0.dp, color = if (drag == 0f && !holding) androidx.compose.ui.graphics.Color.Transparent else MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = if(drag == 0f && !holding) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSecondaryContainer) {
+        shape = rowShape, color = androidx.compose.ui.graphics.Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onSurface) {
         Row(Modifier.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onComplete) { Icon(if(item.completedAt != null) Icons.Outlined.CheckCircle else Icons.Outlined.RadioButtonUnchecked, completeLabel) }
             Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
