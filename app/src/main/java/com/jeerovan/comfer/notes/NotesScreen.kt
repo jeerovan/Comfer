@@ -2,6 +2,8 @@
 package com.jeerovan.comfer.notes
 
 import android.content.*
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -62,6 +64,12 @@ import kotlinx.coroutines.*
         focusManager.clearFocus(force=true)
         searching=false;model.query="";debounced="";model.selected=emptySet()
     }
+    LaunchedEffect(model.selected.isNotEmpty()) {
+        if(model.selected.isNotEmpty()) {
+            focusManager.clearFocus(force=true)
+            keyboard?.hide()
+        }
+    }
     fun back(){when{model.selected.isNotEmpty()->model.selected=emptySet();!model.collection->model.browse();searching->closeSearch();model.view=="Bin"->model.switchView("Notes");else->close()}}
     if(locked){Surface(Modifier.fillMaxSize()){Column(Modifier.safeDrawingPadding().padding(24.dp),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally){Text("Notes is locked");model.error?.let{Text(it,color=MaterialTheme.colorScheme.error)};Button(onClick={unlock{}}){Text("Unlock")};TextButton(onClick={context.startActivity(Intent(android.provider.Settings.ACTION_SECURITY_SETTINGS))}){Text("Device security settings")}}};return}
     BackHandler(onBack=::back)
@@ -104,7 +112,17 @@ import kotlinx.coroutines.*
                 }
             }
             if(!model.collection)NotesEditorToolbar(model,onLabels={labelsForSelection()},onImage=pickImage)
-            else if(model.selected.isNotEmpty())Row(Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("notes-action-bar"),verticalAlignment=Alignment.CenterVertically) {
+            else AnimatedContent(
+                targetState=model.selected.isNotEmpty(),
+                modifier=Modifier.fillMaxWidth().padding(bottom=8.dp).testTag("notes-bottom-actions"),
+                contentAlignment=Alignment.BottomEnd,
+                transitionSpec={
+                    (fadeIn(tween(180))+slideInVertically(tween(220)){it/2}) togetherWith
+                        (fadeOut(tween(120))+slideOutVertically(tween(220)){-it/2})
+                },
+                label="notes-selection-actions",
+            ) { selecting ->
+            if(selecting)Row(Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("notes-action-bar"),verticalAlignment=Alignment.CenterVertically) {
                 NotesIconButton(onClick={model.selected=emptySet()}){Icon(Icons.Outlined.Close,"Clear selection")}
                 if(model.view=="Bin"){
                     NotesIconButton(onClick={model.batch(targets()){it.copy(deletedAt=null)}}){Icon(Icons.Outlined.Restore,"Restore selected")}
@@ -117,7 +135,7 @@ import kotlinx.coroutines.*
                     NotesIconButton(onClick={model.batch(targets()){it.copy(deletedAt=System.currentTimeMillis())}}){Icon(Icons.Outlined.Delete,"Move selected to Bin")}
                 }
             }
-            if(model.collection) Row(Modifier.fillMaxWidth().padding(bottom=8.dp).testTag("notes-search-row"),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
+            else Row(Modifier.fillMaxWidth().testTag("notes-search-row"),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
                 if(searching) {
                     val searchFocus=remember{FocusRequester()}
                     LaunchedEffect(Unit){searchFocus.requestFocus()}
@@ -143,6 +161,7 @@ import kotlinx.coroutines.*
                     NotesIconButton(onClick={searching=true}){Icon(Icons.Outlined.Search,"Search notes")}
                     NotesIconButton(onClick={model.capture()}){Icon(Icons.Outlined.Add,"New note")}
                 }
+            }
             }
         }
     }

@@ -106,6 +106,31 @@ class NotesInteractionTest {
         compose.onNodeWithTag("note-a").assertDoesNotExist()
         compose.onNodeWithTag("note-bin").assertExists()
     }
+    @Test fun selectionActionsAnimateInTheSameBottomRow() {
+        launch()
+        val initial = compose.onNodeWithTag("notes-bottom-actions").fetchSemanticsNode().boundsInRoot
+        compose.mainClock.autoAdvance = false
+        hold("a")
+        compose.mainClock.advanceTimeBy(80)
+        // Both contents exist during the transition, inside one shared bottom slot.
+        compose.onNodeWithTag("notes-action-bar").assertExists()
+        compose.onNodeWithTag("notes-search-row").assertExists()
+        compose.mainClock.advanceTimeBy(400)
+        compose.onNodeWithContentDescription("Search notes").assertDoesNotExist()
+        compose.onNodeWithContentDescription("New note").assertDoesNotExist()
+        val selected = compose.onNodeWithTag("notes-bottom-actions").fetchSemanticsNode().boundsInRoot
+        assertEquals(initial.top, selected.top, 1f)
+        assertEquals(initial.bottom, selected.bottom, 1f)
+        compose.onNodeWithContentDescription("Clear selection").performClick()
+        compose.mainClock.advanceTimeBy(80)
+        compose.onNodeWithTag("notes-action-bar").assertExists()
+        compose.onNodeWithTag("notes-search-row").assertExists()
+        compose.mainClock.advanceTimeBy(400)
+        compose.onNodeWithTag("notes-action-bar").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Search notes").assertIsDisplayed()
+        compose.onNodeWithContentDescription("New note").assertIsDisplayed()
+        compose.mainClock.autoAdvance = true
+    }
     @Test fun holdSelectsAndColorLabelPinPersist() {
         launch();hold("a")
         compose.onNodeWithContentDescription("Note color").performClick()

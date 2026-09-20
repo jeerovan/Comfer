@@ -40,6 +40,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -497,8 +498,9 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                 Text(stringResource(R.string.tasks_preferences), Modifier.testTag("tasks-settings-heading"), style = MaterialTheme.typography.titleMedium)
                 ReminderPermissions()
                 PreferenceToggle(R.string.tasks_date_reminders, state.preferences.dateOnlyReminders, compact = true) { value -> mutate { it.copy(preferences = it.preferences.copy(dateOnlyReminders = value)) } }
-                Action(R.string.tasks_default_time) { pickTime(context, state.preferences.defaultMinute) { minute -> mutate { it.copy(preferences = it.preferences.copy(defaultMinute = minute)) } } }
-                Text(timeLabel(state.preferences.defaultMinute))
+                TaskSettingAction(R.string.tasks_default_time, trailing = { Text(timeLabel(state.preferences.defaultMinute)) }) {
+                    pickTime(context, state.preferences.defaultMinute) { minute -> mutate { it.copy(preferences = it.preferences.copy(defaultMinute = minute)) } }
+                }
                 PreferenceToggle(R.string.tasks_private, state.preferences.privateNotifications, compact = true) { value -> mutate { it.copy(preferences = it.preferences.copy(privateNotifications = value)) } }
             } else {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { state.lists.sortedBy { it.position }.forEach { list ->
@@ -583,6 +585,18 @@ internal fun reorderTask(state: TaskSnapshot, id: String, delta: Int): TaskSnaps
 }
 
 @Composable private fun Action(label: Int, onClick: () -> Unit) { TextButton(onClick = onClick, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(stringResource(label)) } }
+@Composable private fun TaskSettingAction(label: Int, trailing: @Composable () -> Unit, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 48.dp)
+            .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = onClick)
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(stringResource(label), Modifier.weight(1f))
+        trailing()
+    }
+}
 @Composable private fun PreferenceToggle(label: Int, checked: Boolean, compact: Boolean = false, change: (Boolean) -> Unit) {
     val title = stringResource(label)
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -777,7 +791,9 @@ private fun ColumnScope.TaskEditor(initial: TaskItem, state: TaskSnapshot, busy:
     val notifications = remember(refresh) { TaskReminders.notificationsAllowed(context) }
     val exact = remember(refresh) { TaskReminders.exactAllowed(context) }
     Text(stringResource(if(!notifications) R.string.tasks_permission_blocked else if(!exact) R.string.tasks_permission_approximate else R.string.tasks_permission_ready))
-    if(showNotificationSettings) Action(R.string.tasks_enable_notifications) {
+    if(showNotificationSettings) TaskSettingAction(R.string.tasks_enable_notifications, trailing = {
+        Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = null)
+    }) {
         val intent = if(android.os.Build.VERSION.SDK_INT >= 26) Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
         else Intent("android.settings.APP_NOTIFICATION_SETTINGS").putExtra("app_package", context.packageName).putExtra("app_uid", context.applicationInfo.uid)
         runCatching { context.startActivity(intent) }.onFailure {
