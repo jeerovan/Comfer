@@ -376,6 +376,12 @@ Release requirements:
 
 ## Production reporting and issue ledger
 
+20 September 2026: user confirmed manual device testing is complete. The
+[version-52 baseline](docs/release-52-issues.md) links the seven existing fix
+attempts to source commit `97f1cbef6c5ca0c0eeb1e5630c2743a2376bd3d2` and records
+the recurrence-review procedure. Version-52 packaging and shipped artifact
+identity remain pending; manual acceptance does not establish production resolution.
+
 Version-51 recurrence analysis and next-release candidates are recorded in the
 [version-51 ledger](docs/release-51-issues.md), including all 236 Firebase groups
 from import 3. New attempts cover Honor factory bypass, widget update threading,

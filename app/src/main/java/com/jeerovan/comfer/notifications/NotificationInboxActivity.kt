@@ -30,6 +30,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.foundation.border
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -453,7 +456,26 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                 })
                         }
                     } else if (savedTab) {
-                        item { OutlinedTextField(savedQuery, { savedQuery = it.take(256) }, label = { Text(stringResource(R.string.notification_saved_search)) }, singleLine = true, modifier = Modifier.fillMaxWidth().testTag("saved-search")) }
+                        item {
+                            val searchLabel = stringResource(R.string.notification_saved_search)
+                            BasicTextField(
+                                value = savedQuery,
+                                onValueChange = { savedQuery = it.take(256) },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 40.dp).testTag("saved-search")
+                                    .semantics { contentDescription = searchLabel }
+                                    .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = .3f), RoundedCornerShape(20.dp))
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                                decorationBox = { innerTextField ->
+                                    Box(contentAlignment = Alignment.CenterStart) {
+                                        if (savedQuery.isEmpty()) Text(searchLabel, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        innerTextField()
+                                    }
+                                },
+                            )
+                        }
                         if (historyLocked) item { Text(stringResource(R.string.ui_unlock_your_device_to_view_saved_notifications)) }
                         else {
                             val copies = savedCopies
@@ -532,8 +554,8 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                                     selections = selections + (item.key to item.revision)
                                                     selectedKey = item.key; selectedRevision = item.revision; actionsVisible = false
                                                 },
-                                            ), colors = CardDefaults.cardColors(containerColor = if (item.key in selections) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer)) {
-                                                Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            ), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = .5f), contentColor = MaterialTheme.colorScheme.onSurface)) {
+                                                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                                     val checked = item.key in selections
                                                     // Reserve the same space in both modes; only selection mode
                                                     // exposes a checkbox action and draws its indicator.
@@ -545,7 +567,7 @@ fun NotificationInbox(onBack: () -> Unit, initialApp: String? = null, initialCon
                                                     }
                                                     Column(Modifier.weight(1f)) {
                                                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                                            Text(item.title.ifEmpty { resources.getString(R.string.notification_preview_unavailable) }, modifier = Modifier.weight(1f).alignByBaseline(), style = MaterialTheme.typography.titleSmall)
+                                                            Text(item.title.ifEmpty { resources.getString(R.string.notification_preview_unavailable) }, modifier = Modifier.weight(1f).alignByBaseline(), style = MaterialTheme.typography.titleMedium)
                                                             Text(java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(item.postedAt)), modifier = Modifier.alignByBaseline(), style = MaterialTheme.typography.labelMedium, maxLines = 1)
                                                         }
                                                         if (config.chronological) Text(appLabel(context, item.app), style = MaterialTheme.typography.labelMedium)

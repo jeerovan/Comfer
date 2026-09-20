@@ -46,15 +46,15 @@ internal fun SavedNotificationCard(
             customActions = listOf(CustomAccessibilityAction(dismissLabel) {
                 if (enabled) scope.launch { dismiss() }; enabled
             })
-        }, colors = CardDefaults.cardColors(containerColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer)) {
-            Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        }, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = .5f), contentColor = MaterialTheme.colorScheme.onSurface)) {
+            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(48.dp).then(if (selectionMode) Modifier.testTag("saved-select:${record.id}").semantics { contentDescription = selectLabel }
                     .toggleable(selected, enabled = enabled, role = Role.Checkbox, onValueChange = { onSelect() }) else Modifier), contentAlignment = Alignment.Center) {
                     if (selectionMode) NotificationRingDot(selected)
                 }
                 Column(Modifier.weight(1f)) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(record.title.ifBlank { stringResource(R.string.notification_preview_unavailable) }, modifier = Modifier.weight(1f).alignByBaseline(), style = MaterialTheme.typography.titleSmall)
+                        Text(record.title.ifBlank { stringResource(R.string.notification_preview_unavailable) }, modifier = Modifier.weight(1f).alignByBaseline(), style = MaterialTheme.typography.titleMedium)
                         Text(DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(record.postedAt)), modifier = Modifier.alignByBaseline(), style = MaterialTheme.typography.labelMedium, maxLines = 1)
                     }
                     Text("${appLabel(context, record.app)} · ${DateFormat.getDateInstance().format(Date(record.postedAt))}", style = MaterialTheme.typography.labelMedium)
