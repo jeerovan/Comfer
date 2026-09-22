@@ -545,6 +545,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
             }
             item { SectionHeader(stringResource(R.string.title_wallpapers)) }
+            item { com.jeerovan.comfer.spatial.SpatialWallpaperSetting() }
             if(!settingsState.monochrome)item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_auto_wallpapers)) },
@@ -597,7 +598,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            if(settingsState.autoWallpapers)item {
+            item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_wallpaper_motion)) },
                     supportingContent = { Text(stringResource(R.string.wallpaper_motion_text)) },

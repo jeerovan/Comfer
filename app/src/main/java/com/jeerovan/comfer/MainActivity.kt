@@ -4183,7 +4183,13 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         val maxWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
         val maxHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
-        if(settingInfoUiState.autoWallpapers || settingInfoUiState.monochrome){
+        val spatialScene by com.jeerovan.comfer.spatial.rememberSpatialWallpaper()
+        if (spatialScene != 0) {
+            com.jeerovan.comfer.spatial.SpatialWallpaper(
+                scene = spatialScene,
+                motionEnabled = settingInfoUiState.wallpaperMotionEnabled && !settingInfoUiState.isBatterySaver,
+            )
+        } else if(settingInfoUiState.autoWallpapers || settingInfoUiState.monochrome){
             AnimatedBackground(
                 backgroundImage,
                 mainUiState.iconVersion,
