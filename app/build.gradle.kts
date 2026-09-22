@@ -1,6 +1,16 @@
 import com.android.build.gradle.internal.dsl.NdkOptions
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
+import com.android.build.api.instrumentation.InstrumentationScope
+import com.jeerovan.buildlogic.FrameworkCompatibilityTransform
+import com.android.build.api.instrumentation.AsmClassVisitorFactory
+import com.android.build.api.instrumentation.InstrumentationParameters
+import com.android.build.api.instrumentation.ClassData
+import com.android.build.api.instrumentation.ClassContext
+import org.objectweb.asm.ClassVisitor
+import com.jeerovan.buildlogic.VerifyRoomImplementations
+import com.android.build.api.artifact.ScopedArtifact
+import com.android.build.api.variant.ScopedArtifacts
 
 plugins {
     alias(libs.plugins.android.application)
@@ -9,6 +19,39 @@ plugins {
     alias(libs.plugins.ksp)
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
+}
+
+// Keep the AGP-dependent adapter in this script's plugin classloader. Putting
+// AGP APIs on buildSrc's parent classpath breaks KSP's internal AGP type checks.
+abstract class FrameworkCompatibilityVisitor : AsmClassVisitorFactory<InstrumentationParameters.None> {
+    override fun isInstrumentable(classData: ClassData) =
+        FrameworkCompatibilityTransform.shouldInstrument(classData.className)
+    override fun createClassVisitor(classContext: ClassContext, nextClassVisitor: ClassVisitor): ClassVisitor =
+        FrameworkCompatibilityTransform.visitor(nextClassVisitor)
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        // Includes AndroidX and Kotlin-inlined app calls. The visitor only redirects
+        // two exact API signatures; operand types/stack frames remain unchanged.
+        variant.instrumentation.transformClassesWith(
+            FrameworkCompatibilityVisitor::class.java, InstrumentationScope.ALL
+        ) {}
+        val capitalizedName = variant.name.replaceFirstChar { it.uppercaseChar() }
+        val verifyRoom = tasks.register<VerifyRoomImplementations>("verify${capitalizedName}RoomImplementations") {
+            implementationNames.set(listOf(
+                "com.jeerovan.comfer.data.ComferDatabase_Impl",
+                "com.jeerovan.comfer.notes.NotesDatabase_Impl",
+                "com.jeerovan.comfer.tasks.TaskDatabase_Impl",
+                "com.jeerovan.comfer.journals.JournalDatabase_Impl",
+            ))
+        }
+        variant.artifacts.forScope(ScopedArtifacts.Scope.PROJECT).use(verifyRoom).toGet(
+            ScopedArtifact.CLASSES, VerifyRoomImplementations::getJars, VerifyRoomImplementations::getDirectories
+        )
+        tasks.matching { it.name == "package$capitalizedName" || it.name == "package${capitalizedName}Bundle" }
+            .configureEach { dependsOn(verifyRoom) }
+    }
 }
 
 val jksProperties = Properties().apply {

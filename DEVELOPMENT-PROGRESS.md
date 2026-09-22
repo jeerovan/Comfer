@@ -376,6 +376,21 @@ Release requirements:
 
 ## Production reporting and issue ledger
 
+22 September 2026: [53-03](docs/release-53-issues.md) corrects a local release
+regression introduced by the first 53-02 build. Missing compiled Room
+implementations prevented Samsung's launcher app lists/icons from loading.
+AGP build logic is now isolated from buildSrc's parent classpath; all four Room
+implementations compile/package again. A mandatory pre-packaging class check and
+two negative/positive guard tests prevent silent recurrence. Initial 53-02
+artifacts are rejected; use the replacement hashes in the v53 ledger.
+
+22 September 2026 follow-up: attempt [53-02](docs/release-53-issues.md) guards two
+missing API-34 framework calls behind eight version-52 crashes across five groups.
+Seven host tests and five Samsung tests pass, including the transformed AndroidX
+implementations. Normal API behavior and unrelated failures are preserved. Widget
+Binder latency remains open because off-main `startListening` would also apply
+pending view/adapter updates off Main. Production resolution is pending.
+
 22 September 2026: version **53.0 (53)** prepares the Journal recovery fix
 [53-01](docs/release-53-issues.md): registered schema migrations 1–4→5 plus
 transactional conversion of legacy plaintext and image references. Seven new

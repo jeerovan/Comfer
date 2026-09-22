@@ -5,6 +5,11 @@ Journal migration and legacy plaintext conversion in the local version-53
 candidate. This does not change the historical refresh below or establish
 production resolution. Other platform/ANR groups remain investigations.
 
+Additional follow-up: [attempt 53-02](release-53-issues.md) guards the two absent
+framework methods behind five v52 crash groups (eight events). Missing-method
+regressions were reproduced before the fix; seven host and five Samsung tests
+pass afterward. Widget Binder and other system/SDK issues remain investigations.
+
 ## Firebase refresh — 22 September 2026
 
 Firebase MCP import **4**, filtered to **52.0 (52)**, covers

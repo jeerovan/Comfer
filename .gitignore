@@ -1,5 +1,5 @@
 *.iml
-.gradle
+.gradle/
 gradle/gradle-daemon-jvm.properties
 /local.properties
 /.idea/caches
@@ -9,8 +9,10 @@ gradle/gradle-daemon-jvm.properties
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .DS_Store
-# Gradle output in every module, including notification fixtures
-build/
+# Root and module Gradle output, including buildSrc and notification fixtures.
+# Anchor these so a source package named "build" is not accidentally ignored.
+/build/
+/*/build/
 /captures
 .externalNativeBuild
 .cxx
@@ -51,5 +53,11 @@ __pycache__/
 # Release artifacts should be distributed through Google Play, not Git
 *.apk
 *.aab
+*.apks
+*.idsig
+
+# Loose compiler/DEX output; keep Gradle's wrapper JAR trackable.
+*.class
+*.dex
 
 *.codex

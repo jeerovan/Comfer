@@ -1,5 +1,9 @@
 # Version 53 remediation
 
+**Current candidate: 53-03 below.** The first 53-02 build was rejected after the
+user reported missing app icons on Samsung. Its hashes remain here only as
+history; do not distribute that build.
+
 Prepared 22 September 2026 on `main`, based on
 `7f7cdb042507893fb2a9bac3eafd5b69dd1e2c56`. Version code/name: **53 / 53.0**.
 Changes are local; production resolution requires version-53 telemetry after rollout.
@@ -51,17 +55,75 @@ The other **11 persistence tests pass** in a separate Samsung run excluding that
 one stress test. In total, **27 focused device tests pass** (7 migration,
 9 encryption, 11 persistence).
 
-Signed release APK and AAB builds, including release vital lint, pass.
-Local candidate artifact SHA-256 values (not evidence of a Play upload):
+Initial **53-01-only** signed release APK and AAB builds, including release vital
+lint, passed. These hashes are retained as history; 53-02 replaces the artifacts.
+Initial candidate SHA-256 values (not evidence of a Play upload):
 
 | Artifact | Bytes | SHA-256 |
 | --- | ---: | --- |
 | `app/build/outputs/apk/release/app-release.apk` | 8597497 | `0d0a84110f7f8784f4286595b44c187af52450a0ce3417696dca70cf14df29ed` |
 | `app/build/outputs/bundle/release/app-release.aab` | 12484002 | `6b728f452e9caacb60146f2a0f9168f5238492cf44c18d8081dc79141fd2766d` |
 
+## 53-02 — missing API-34 framework methods
+
+Follow-up to migration commit `d0ab736`, 22 September 2026. Targets eight
+version-52 crashes across five groups:
+
+- `87073ca8fd3c019e5e5bb6172c9d96e1` (4),
+  `0aeaa43763a36f5ba69451942c902f67` (1),
+  `a0a49e222e9a6533a72abea121ca7b19` (1),
+  `b7313afe656f494ee046862d3a0d2b30` (1): missing
+  `WindowInsets.Type.systemOverlays()`.
+- `ecdb3c221473dea4b125a2b3eba81cfa` (1): missing
+  `AccessibilityEvent.setAccessibilityDataSensitive(boolean)`.
+
+The exception signatures establish absent runtime methods, although the reason
+the sampled Pixel 8 Pro / Android-14 runtime lacks them remains unknown.
+`FrameworkCompatibility` guards only these exact method calls against
+`NoSuchMethodError`. Complete frameworks retain their actual overlay mask and
+both sensitivity states. Missing overlay support contributes zero to the inset
+mask; the absent accessibility setter uses AndroidX's pre-34 no-op behavior,
+preserving the event and password metadata. Other errors are not swallowed.
+An incomplete framework cannot provide the API-34 sensitivity restriction.
+
+The calls originate in AndroidX/Compose, so a small AGP bytecode visitor redirects
+the exact owner/name/descriptors in dependencies and app code to the bridge.
+It excludes the bridge itself to prevent recursion. `@Keep` preserves that
+boundary through R8. No SDK level spoofing, blanket exception handler, dependency
+downgrade, or accessibility disabling is used.
+
+Before the fix, Samsung tests reproduced both exact linkage failures. A JVM
+fixture compiled against complete APIs and then run with the two methods absent
+also failed with `NoSuchMethodError`; complete-API and unrelated-error fixtures
+passed. After the guard, all **seven host tests and five Samsung device tests
+pass**, including forced execution of both AndroidX API-34 implementations on
+Android 11, event/password metadata preservation, and mixed inset type masks.
+The reported Pixel runtime is not available for direct testing. Production
+resolution remains pending.
+
+Final 53-02 candidate validation: all **196 app unit tests** pass, and signed
+APK/AAB builds including release vital lint pass. APK signature matches the
+existing upload certificate. Release DEX inspection confirms both
+`NoSuchMethodError` catch boundaries survive R8 and all direct calls to the two
+affected APIs are confined to that guarded bridge.
+
+Replacement **53.0 (53)** artifacts (migration fix plus 53-02; not uploaded):
+
+| Artifact | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `app/build/outputs/apk/release/app-release.apk` | 8548345 | `9a4bdf540766754ee212f31097a7c9de05aa5213c3f8c60cdca412f23192a98c` |
+| `app/build/outputs/bundle/release/app-release.aab` | 12381536 | `8e4949213fdbe93540e4a4113dbf896270771b65985b57c3222f3843fa44d621` |
+
+Earlier 53-01 UI/backup and stress-test limitations remain outstanding; these
+checks do not establish full release acceptance or a production resolution.
+
+References: [AndroidX accessibility implementation](https://raw.githubusercontent.com/androidx/androidx/androidx-main/core/core/src/main/java/androidx/core/view/accessibility/AccessibilityEventCompat.java)
+and the installed AGP 9.4 `AsmClassVisitorFactory`/`Instrumentation` API sources.
+
 ## Other version-52 investigations
 
-No speculative platform workaround is included in this urgent release:
+The following preserves the initial 53-01 investigation; 53-02 above subsequently
+adds the narrow missing-method guard after regression reproduction:
 
 - `87073ca8fd3c019e5e5bb6172c9d96e1`, `0aeaa43763a36f5ba69451942c902f67`,
   `a0a49e222e9a6533a72abea121ca7b19`, `b7313afe656f494ee046862d3a0d2b30`,
@@ -72,6 +134,10 @@ No speculative platform workaround is included in this urgent release:
 - `1ea5988c748d88947b0a46bb05ff104d`: three widget startListening Binder ANRs.
   Moving the entire operation off Main risks reintroducing the view hierarchy
   corruption addressed in attempt 51-02. Await a safe targeted reproduction.
+  Follow-up source verification: [AOSP AppWidgetHost.startListening](https://raw.githubusercontent.com/aosp-mirror/platform_frameworks_base/master/core/java/android/appwidget/AppWidgetHost.java)
+  performs the synchronous service call and then dispatches pending view,
+  provider and collection updates inline. The public API does not expose a
+  separate fetch/apply boundary. No off-main change was made.
 - `8d782ca9e751c6476994a4d4f4ad0075`: selected stack concerns Google certificate
   validation/measurement, despite the CLOSE_SYSTEM_DIALOGS group title. No
   broadcast-permission workaround is supported by that stack.
@@ -84,3 +150,52 @@ preserved. See [the v52 evidence](release-52-issues.md) for the full inventory.
 Samsung SM-A305F was updated in place with the signed APK; Package Manager
 confirms 53.0 (53), and MainActivity launches. App data was not cleared. This
 startup check does not replace the outstanding full UI/backup acceptance checks.
+
+The replacement 53-02 APK was installed in place on Samsung SM-A305F on
+22 September 2026. App data was retained; version remains 53.0 (53).
+
+## 53-03 — restore generated Room implementations in the release
+
+User-reported Samsung regression, 22 September 2026: saved launcher icons/app
+lists were absent after installing the initial 53-02 candidate. Device logs
+showed `Cannot find implementation for com.jeerovan.comfer.data.ComferDatabase`.
+Generated Kotlin sources existed, but all four database implementations were
+absent from compiled release classes and the final APK. The app-list load failed
+before publishing icons; this was not an icon drawable/cache defect.
+
+The buildSrc AGP API dependency introduced by 53-02 polluted the parent plugin
+classpath and disrupted KSP's AGP generated-source wiring. The fix removes all
+AGP/Kotlin plugin dependencies from buildSrc. Only the pure ASM transform remains
+there; the small AGP factory adapter now lives in the app build script's plugin
+classloader. Compiler input verification confirms KSP-generated Room sources are
+included again, without manual generated-directory wiring or keep-rule workarounds.
+Both API compatibility guards and the Journal migration remain in place.
+
+`verify<Variant>RoomImplementations` checks the final project class directories
+and JARs for Comfer, Notes, Tasks and Journal implementations before APK/bundle
+packaging. Tests reject generated-source-only and partially complete outputs,
+and accept compiled implementations split across directories/JARs. All nine
+build-logic tests pass. Signed release/vital-lint builds and the four-class gate
+pass. Final APK DEX inspection confirms all four named implementations and both
+`NoSuchMethodError` handlers survived shrinking.
+
+Corrected **53.0 (53)** artifacts:
+
+| Artifact | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `app/build/outputs/apk/release/app-release.apk` | 8581113 | `6c7770c649bb7f0552a272b1c4cfa0f9eaaf963aed564beff2ac37293c00953c` |
+| `app/build/outputs/bundle/release/app-release.aab` | 12482019 | `6e6e972490d1260ade51ea13367162ef6a56d743374310c9f3e080e931166f1f` |
+
+Samsung was updated in place without clearing data. Earlier 53-01 broad UI/backup
+and stress-test limitations remain; production resolution is not established.
+
+The isolated Samsung `DatabasePackagingTest` passed, opening all four generated
+databases and checking their schema versions. After a clean release startup, the
+previous missing-implementation error no longer appears. Visual verification in
+launcher search confirmed icons including WhatsApp, Instagram and Clock; entering
+`c` produced matching Camera, ChatGPT and Clock icons. App lists are loading again.
+Evidence: `/tmp/comfer-v53-icons-search.png`,
+`/tmp/comfer-v53-icons-search-results.png`, and the `comfer-v53-icons-*.log` files.
+
+The five Samsung framework-compatibility tests also pass again with the isolated
+AGP adapter, including the actual AndroidX API-34 paths.
