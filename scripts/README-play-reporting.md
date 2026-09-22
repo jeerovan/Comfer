@@ -103,6 +103,27 @@ through 2026-09-11 23:59:59 UTC:
 All 206 groups / 1,182 events reconciled with the Firebase version report.
 Crashlytics returned no version-46 data.
 
+### Latest Crashlytics verification on 2026-09-22
+
+Import **4** stores `52.0 (52)`, 2026-09-01 00:00:00 through
+2026-09-22 08:21:01 UTC: **46 groups / 127 events**, comprising **8 crash groups /
+44 events** and **38 ANR groups / 83 events**. All events reconcile with the
+top-versions report; a separate non-fatal query returned no groups. The top-issues
+response returned 46 rows for page size 1,000 with no continuation token.
+
+Default `sampleEvent` references are not reliably version-filtered: eight samples
+were version 51. Replace mismatches with `crashlytics_list_events` using the same
+interval, version display name and issue ID. All 46 imported samples were checked
+for package, version, issue, error type and timestamp. Each carries revision
+`7f7cdb042507893fb2a9bac3eafd5b69dd1e2c56`.
+
+The top-versions endpoint rejected combining a version filter with the error-type
+filter in this refresh; retrying without the version filter returned all versions,
+including the matching version-52 total. Do not treat that rejected request as an
+empty result. See [the version-52 ledger](../docs/release-52-issues.md) for the full
+inventory and interpretation. Earlier releases and Play records were preserved;
+SQLite checks and six importer tests passed.
+
 ## Earlier Play verification on 2026-09-07
 
 The database initially contained 1,436 issues and five import runs:

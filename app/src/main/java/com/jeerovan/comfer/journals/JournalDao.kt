@@ -36,9 +36,47 @@ class JournalDao internal constructor(private val db: JournalDatabase) {
     }
     internal suspend fun initialize(): JournalState = db.withTransaction {
         val state = raw.storageState() ?: JournalState(storageVersion = 1).also { raw.state(it) }
+        if (state.storageVersion == LEGACY_JOURNAL_STORAGE) return@withTransaction migrateLegacyContent(state)
         check(state.storageVersion == 1) { "Unsupported Journal storage version" }
         if (state.moduleLocked) JournalProtection.requireAuthorization()
         state
+    }
+
+    /** Called only inside the owning Room transaction. Originals survive any failed commit. */
+    private suspend fun migrateLegacyContent(state: JournalState): JournalState {
+        check(!state.moduleLocked) { "Legacy Journal protection state is invalid" }
+        val entries = raw.exportEntries()
+        val drafts = raw.exportDrafts()
+        val segments = raw.allSegments()
+        val created = mutableListOf<java.io.File>()
+        try {
+            val images = (entries.mapNotNull { it.image } + drafts.mapNotNull { it.image }).distinct()
+            val remap = images.associateWith { id ->
+                val context = checkNotNull(db.storageContext) { "Journal media storage is unavailable" }
+                val media = JournalMedia(context)
+                val original = media.file(id)
+                require(original.length() in 1..2_000_000) { "A legacy Journal image is unavailable; original data has been retained" }
+                val next = "${java.util.UUID.randomUUID()}.jpg"
+                val target = media.file(next)
+                created += target
+                val encrypted = db.cipher.seal(original.readBytes(), identity("image", next), false)
+                val atomic = android.util.AtomicFile(target)
+                val output = atomic.startWrite()
+                try { output.write(encrypted); atomic.finishWrite(output) }
+                catch (error: Exception) { atomic.failWrite(output); throw error }
+                next
+            }
+            entries.forEach { raw.update(encode(it.copy(image = it.image?.let(remap::getValue)), false)) }
+            drafts.forEach { raw.putDraft(encode(it.copy(image = it.image?.let(remap::getValue)), false)) }
+            segments.forEach { raw.segment(encode(it, false)) }
+            return state.copy(storageVersion = 1, cleanupPending = true).also { raw.state(it) }
+        } catch (error: Exception) {
+            created.forEach { it.delete() }
+            throw error
+        }
+        // Later outer-transaction failure or process death can leave encrypted orphan
+        // copies, but never replace referenced originals. prepare() collects them only
+        // after a successful conversion and any interrupted backup recovery.
     }
     /** Compatible cipher upgrade; atomic image replacement preserves IDs and old checkpoints. */
     internal suspend fun upgradeProtectedContent() = db.withTransaction {

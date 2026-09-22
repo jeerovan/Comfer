@@ -1,6 +1,6 @@
 # Development progress
 
-Current feature and release status, updated 2026-09-20. Maintain this document as
+Current feature and release status, updated 2026-09-22. Maintain this document as
 a concise reference: what is available, restrictions, attempted alternatives and
 remaining work. Keep implementation discussions and detailed test output out of
 this file.
@@ -376,11 +376,34 @@ Release requirements:
 
 ## Production reporting and issue ledger
 
+22 September 2026: version **53.0 (53)** prepares the Journal recovery fix
+[53-01](docs/release-53-issues.md): registered schema migrations 1–4→5 plus
+transactional conversion of legacy plaintext and image references. Seven new
+Samsung migration tests pass, including encryption failure/retry; the 196-test
+unit suite passes on retry after one unrelated HTTP timeout. Other version-52
+platform crashes and ANRs remain investigations. Signed APK/AAB builds pass;
+Samsung is updated to 53.0 (53). All 27 focused device tests pass. Broader UI/backup
+and 10,000-entry stress checks remain outstanding; see the v53 ledger. Production
+outcome is pending.
+
+22 September 2026: Firebase MCP import **4** stored **46 version-52 groups /
+127 events** (8 crash groups / 44 events; 38 ANR groups / 83 events), for
+1 September 00:00–22 September 08:21:01 UTC. All 46 samples match version 52 and
+carry revision `7f7cdb042507893fb2a9bac3eafd5b69dd1e2c56`; eight default samples
+from version 51 were replaced before import. The [version-52 ledger](docs/release-52-issues.md)
+contains the full inventory, verification limits and priorities: missing Room
+migration 4→5 (34 events / 21 users), Android API compatibility crashes (8 events
+across five groups), and widget startListening Binder latency (3 ANRs / 2 users).
+Counts reconcile with the version report; no non-fatal groups were returned.
+Previous database records and triage history were preserved. Firebase states and
+Play data were not changed. No application-code fixes are part of this refresh.
+
 20 September 2026: user confirmed manual device testing is complete. The
 [version-52 baseline](docs/release-52-issues.md) links the seven existing fix
 attempts to source commit `97f1cbef6c5ca0c0eeb1e5630c2743a2376bd3d2` and records
-the recurrence-review procedure. Version-52 packaging and shipped artifact
-identity remain pending; manual acceptance does not establish production resolution.
+the recurrence-review procedure. Version-52 telemetry is now recorded above;
+exact shipped artifact identity remains unverified, and manual acceptance does
+not establish production resolution.
 
 Version-51 recurrence analysis and next-release candidates are recorded in the
 [version-51 ledger](docs/release-51-issues.md), including all 236 Firebase groups

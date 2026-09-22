@@ -112,14 +112,18 @@ abstract class JournalDatabase : RoomDatabase() {
     companion object {
         @Volatile private var instance: JournalDatabase? = null
         fun get(context: Context): JournalDatabase = instance ?: synchronized(this) {
-            instance ?: Room.databaseBuilder(context.applicationContext, JournalDatabase::class.java,
-                File(context.noBackupFilesDir, "journals.db").absolutePath)
+            instance ?: open(context, File(context.noBackupFilesDir, "journals.db").absolutePath)
+                .also { instance = it }
+        }
+        /** Shared production/test factory so upgrade tests cover the registered paths. */
+        internal fun open(context: Context, path: String): JournalDatabase =
+            Room.databaseBuilder(context.applicationContext, JournalDatabase::class.java, path)
+                .addMigrations(*JOURNAL_MIGRATIONS)
                 .addCallback(object : Callback() {
                     override fun onOpen(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                         db.query("PRAGMA secure_delete=ON").use { it.moveToFirst() }
                     }
-                }).build().also { it.storageContext = context.applicationContext; instance = it }
-        }
+                }).build().also { it.storageContext = context.applicationContext }
     }
 }
 

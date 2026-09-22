@@ -6,6 +6,18 @@ building a local APK does not ship these fixes. Firebase issues remain open.
 
 ## Evidence
 
+**Follow-up, 22 September 2026:** version-52 import 4 contains 46 groups / 127
+events; all selected samples carry revision `7f7cdb042507893fb2a9bac3eafd5b69dd1e2c56`.
+See [the version-52 ledger](release-52-issues.md) for complete evidence. None of
+the exact target IDs listed under attempts 51-01 through 51-07 below appears in
+that version-52 snapshot; limited exposure and differing windows prevent a
+resolution claim. Attempt 51-02's documented main-thread Binder-latency risk is
+now represented by new group `1ea5988c748d88947b0a46bb05ff104d` (3 ANRs / 2 users),
+with `IAppWidgetService.startListening` in the version-52 sample. This does not
+establish recurrence of the old hierarchy exceptions. Keep the original attempts
+and triage states. The misleading CLOSE_SYSTEM_DIALOGS group also appears again;
+its new sample is still a Google measurement certificate rejection.
+
 Firebase MCP import **3**, `51.0 (51)`, 23 June–20 September 2026 04:33:25 UTC:
 **236 groups / 935 events**, comprising 24 crash groups / 268 events and 212 ANR
 groups / 667 events. All totals reconcile with the version report. Ten default
