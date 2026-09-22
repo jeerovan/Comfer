@@ -31,7 +31,9 @@ internal object TaskReminders {
     fun exactAllowed(context: Context) = Build.VERSION.SDK_INT < 31 || context.getSystemService(AlarmManager::class.java).canScheduleExactAlarms()
     private fun alarm(context: Context) = PendingIntent.getBroadcast(context, 4211, Intent(context, TaskReminderReceiver::class.java).setAction("comfer.tasks.ALARM"), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-    suspend fun reconcile(context: Context) {
+    suspend fun reconcile(context: Context) = TaskReminderDelivery.reconcile(context) { reconcileState(context) }
+
+    private suspend fun reconcileState(context: Context) {
         StartupCoordinator.awaitReady()
         TaskStore.exclusive(context) { original ->
             val manager = context.getSystemService(NotificationManager::class.java)
@@ -131,15 +133,13 @@ internal fun applyReminderAction(state: TaskSnapshot, id: String, version: Long,
 
 class TaskReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val pending = goAsync()
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            try {
-                StartupCoordinator.awaitReady()
-                val id = intent.getStringExtra("task")
-                if(id != null && intent.action in listOf("comfer.tasks.COMPLETE", "comfer.tasks.SNOOZE")) TaskReminders.act(context, id, intent.getLongExtra("version", -1), intent.action!!.substringAfterLast('.'), intent.getIntExtra("minutes", 10))
-                else TaskReminders.reconcile(context)
-            } catch(e: Exception) { Log.e("TaskReminders", "Reminder work will retry on next reconciliation", e) }
-            finally { pending.finish() }
+        when (intent.action) {
+            "comfer.tasks.ALARM", "comfer.tasks.COMPLETE", "comfer.tasks.SNOOZE", TaskReminderDelivery.RETRY,
+            Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED,
+            Intent.ACTION_MY_PACKAGE_REPLACED, AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> Unit
+            else -> return
         }
+        val pending = goAsync()
+        TaskReminderDelivery.receive(context, Intent(intent)) { pending.finish() }
     }
 }

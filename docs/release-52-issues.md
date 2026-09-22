@@ -1,5 +1,11 @@
 # Version 52 issues and fix-history baseline
 
+Latest refresh: the [version-53 readiness audit](release-53-readiness.md) records
+Firebase import **5** (50 groups / 145 events, through 22 September 10:58:33 UTC)
+and Play import **9** (30 groups / 77 events, through 11:00 UTC). The import-4
+inventory below is retained as historical evidence. Current records are in
+`play_reporting.db`; local triage notes and prior snapshots were preserved.
+
 22 September follow-up: [attempt 53-01](release-53-issues.md) fixes the missing
 Journal migration and legacy plaintext conversion in the local version-53
 candidate. This does not change the historical refresh below or establish

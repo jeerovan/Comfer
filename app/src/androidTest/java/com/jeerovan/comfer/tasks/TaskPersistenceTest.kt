@@ -151,7 +151,8 @@ class TaskPersistenceTest {
         TaskReminders.act(context, delivered.id, delivered.version, "SNOOZE", 30)
         val snoozed = TaskStore.snapshot(context).tasks.single()
         assertTrue(snoozed.snoozedUntil!! > System.currentTimeMillis())
-        assertFalse(manager.activeNotifications.any { it.tag?.startsWith("task:reminder:") == true })
+        // NotificationManager cancellation is processed asynchronously by the system.
+        withTimeout(3000) { while(manager.activeNotifications.any { it.tag?.startsWith("task:reminder:") == true }) delay(50) }
         TaskReminders.act(context, delivered.id, delivered.version, "COMPLETE")
         assertNull(TaskStore.snapshot(context).tasks.single().completedAt)
         TaskReminders.act(context, snoozed.id, snoozed.version, "COMPLETE")

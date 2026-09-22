@@ -1,6 +1,6 @@
 # Version 53 remediation
 
-**Current candidate: 53-03 below.** The first 53-02 build was rejected after the
+**Current candidate: 53-05 receiver recovery; [release audit](release-53-readiness.md).** The first 53-02 build was rejected after the
 user reported missing app icons on Samsung. Its hashes remain here only as
 history; do not distribute that build.
 
@@ -8,6 +8,63 @@ Prepared 22 September 2026 on `main`, based on
 `7f7cdb042507893fb2a9bac3eafd5b69dd1e2c56`. Version code/name: **53 / 53.0**.
 Changes are local; production resolution requires version-53 telemetry after rollout.
 The spatial-wallpaper experiment remains on its separate branch.
+
+## 53-05 — bounded reminder broadcasts and durable action recovery
+
+The receiver previously held `goAsync()` while waiting indefinitely for startup.
+An injected stalled-startup regression reproduced this on API 37: the ordered
+broadcast remained held after nine seconds. The change addresses that demonstrated
+code risk; it does not establish the original cause of Play ANRs
+`ceb8910ffa30f8b98fad228e54a08897` (boot) or
+`a1a2dafcd4d391213ad4715781eb4989` (package replacement).
+
+- A separate six-second deadline finishes the broadcast once and cancels waiting
+  work without joining blocked file/Binder calls. This leaves headroom under
+  Android's [broadcast execution guidance](https://developer.android.com/develop/background-work/background-tasks/broadcasts).
+- Before waiting for startup, atomically persist a receipt in `noBackupFilesDir`
+  and schedule an inexact retry through the existing receiver. Receipts contain
+  task IDs, versions, actions and original timestamps, never task text. All fields
+  are encoded explicitly so constructor defaults cannot change on replay.
+- The retry receiver requests startup recovery. Normal startup and reminder
+  reconciliation also drain receipts. A failed startup attempt returns promptly;
+  activities keep their existing wait-for-recovery behavior.
+- Acknowledge receipts only after task changes and notification reconciliation
+  succeed. Task version checks make replay after a commit safe: Complete applies
+  once, stale actions are ignored, and Snooze retains the original requested time.
+- Inbox writes and acknowledgement share a lock; processing is serialized. An
+  interrupted atomic write retains the prior accepted actions. A one-MiB limit
+  bounds inbox decoding; storage/scheduling failures are logged and previously
+  persisted receipts are retained for recovery.
+- No database schema, permission, manifest component, feature module or library
+  dependency is added. The fix does not depend on WorkManager on runtimes where
+  the existing compatibility preflight disables it.
+
+Inexact retries remain subject to Android scheduling/Doze delays; the one-minute
+requested delay is not a delivery guarantee. Durable receipts survive process
+restart/reboot, with replay when startup or a retry receiver can run. Clearing app
+data removes them. A completely blocked OS broadcast queue is outside the
+receiver's completion logic. Current validation and artifact hashes are recorded
+in the release audit.
+
+## 53-04 — fixes-only release audit
+
+The [readiness audit](release-53-readiness.md) records the replacement signed
+artifacts, full release lint, host/device regression results and complete current
+Firebase/Play inventories. It supersedes the earlier acceptance limitations below
+only where a completed check is explicitly recorded. No feature or product module
+was added. The additional source changes make existing wallpaper API guards
+explicit, observe Tasks resources/weekday locale correctly, remove an unused
+constraints container and brace the existing Journal composer branch.
+
+Firebase import 5 has 50 groups / 145 events; Play import 9 has 30 groups /
+77 events. These are separate providers, not additive incident counts. All remote
+issues remain open and no production resolution is claimed.
+
+Emulator follow-up: **31 focused tests passed on API 24 and 36 on API 37**
+(16 KB pages), with no failures/skips. Both real Tasks alarm-delivery checks passed
+twice on each emulator. The signed release also starts and renders launcher icons
+on both. Samsung's undispatched-broadcast limitation and the separate receiver
+startup-wait risk remain open; see the audit for the current publication decision.
 
 ## 53-01 — Journal schema migration and encrypted-content conversion
 

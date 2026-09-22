@@ -56,7 +56,8 @@ class TaskLayoutTest {
             compose.onNodeWithTag("tasks-search-input").assertIsFocused()
             compose.onNodeWithContentDescription("Add").assertDoesNotExist()
             compose.onNode(hasContentDescription("Star") and hasAnyAncestor(hasTestTag("tasks-bottom-actions"))).assertDoesNotExist()
-            compose.onNodeWithContentDescription("Search tasks").assertDoesNotExist()
+            // The search field intentionally shares the button's accessible label.
+            compose.onNode(hasContentDescription("Search tasks") and !hasTestTag("tasks-search-input")).assertDoesNotExist()
             compose.onNodeWithTag("tasks-list-picker").assertDoesNotExist()
             val include=compose.onNodeWithContentDescription("Include completed").fetchSemanticsNode().boundsInRoot
             val input=compose.onNodeWithTag("tasks-search-input").fetchSemanticsNode().boundsInRoot

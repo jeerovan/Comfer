@@ -537,7 +537,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit, authorize
                                 innerTextField()
                             }
                         },
-                    ) else
+                    ) else {
                     OutlinedTextField(if (mode) searchText else localText, onValueChange = {
                         if (mode) searchText = it else { localText = it; model.change(text = it) }
                     }, modifier = Modifier.weight(1f).heightIn(max = 180.dp).focusRequester(composerFocus).testTag("journal-composer").semantics { contentDescription = resources.getString(if (mode) R.string.journal_search else R.string.journal_input) }, enabled = editing == null && !busy && draft != null && mode == searchMode,
@@ -545,6 +545,7 @@ internal fun JournalScreen(model: JournalViewModel, close: () -> Unit, authorize
                         singleLine = mode,
                         placeholder = { Text(stringResource(if (mode) R.string.journal_search else listOf(R.string.journal_prompt_0, R.string.journal_prompt_1, R.string.journal_prompt_2, R.string.journal_prompt_3)[draft?.prompt ?: 0])) },
                         trailingIcon = if (mode) null else { { IconButton(onClick = { imageTarget = null; model.prepareImagePicker(null); pickImage() }, enabled = editing == null && !busy && !searchMode) { Icon(Icons.Outlined.AddPhotoAlternate, stringResource(R.string.journal_add_image), tint = cardText) } } })
+                    }
                     if(mode) IconButton(onClick=::closeSearch,enabled=searchMode,modifier=Modifier.testTag("journal-search-toggle")) {
                         Box(Modifier.size(40.dp),contentAlignment=Alignment.Center){
                             Icon(Icons.Outlined.Close,stringResource(R.string.journal_search_close))

@@ -376,6 +376,28 @@ Release requirements:
 
 ## Production reporting and issue ledger
 
+22 September 2026: [53-05](docs/release-53-issues.md#53-05--bounded-reminder-broadcasts-and-durable-action-recovery)
+bounds reminder broadcasts to six seconds and durably retains actions for retry.
+Final focused suites pass **36 tests on API 24, 41 on API 37 and 41 on Samsung**;
+all include actual alarm delivery. Real process-restart replay passes on Samsung
+and API 37. **200 JVM, 9 build-logic and 26 Python tests pass**; release lint has
+0 errors / 380 warnings. Signed APK/AAB rebuilt; Samsung updated with data retained.
+The [release audit](docs/release-53-readiness.md) now recommends a staged rollout;
+production ANRs remain unverified. Nothing committed, pushed or published.
+
+22 September 2026: the [v53 readiness audit](docs/release-53-readiness.md) covers
+the fixes-only baseline diff, all 50 current Firebase and 30 Play issue groups,
+full release lint, signed artifacts and Samsung regression testing. Firebase
+import 5 and Play import 9 preserve previous triage/history in `play_reporting.db`.
+See the audit's decision and validation gates for current publication readiness;
+older build hashes and acceptance limitations below are historical.
+
+Emulator follow-up: API 24 passed 31 focused regression tests; API 37 (16 KB pages)
+passed 36, with no failures/skips. Both actual reminder-delivery tests passed twice
+per emulator. The signed v53 candidate starts and shows icons on both. This does
+not clear Samsung's blocked broadcast queue or the separate unbounded receiver
+startup-wait risk; the readiness audit records those remaining limitations.
+
 22 September 2026: [53-03](docs/release-53-issues.md) corrects a local release
 regression introduced by the first 53-02 build. Missing compiled Room
 implementations prevented Samsung's launcher app lists/icons from loading.

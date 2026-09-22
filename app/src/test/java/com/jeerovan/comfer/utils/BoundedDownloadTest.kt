@@ -8,7 +8,6 @@ import org.junit.Test
 import java.io.File
 import java.net.ServerSocket
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 class BoundedDownloadTest {
@@ -23,13 +22,16 @@ class BoundedDownloadTest {
                     write(response.toByteArray())
                     flush()
                 }
-                release.await(10, TimeUnit.SECONDS)
+                // Never finish the response until the client has returned or
+                // timed out. A delayed server close must not make a test pass.
+                release.await()
             }
         }
         val file = File.createTempFile("bounded-download", ".tmp")
         val client = HttpClient(OkHttp)
         try {
-            runBlocking { withTimeout(5_000) { test(client, "http://127.0.0.1:${server.localPort}/", file) } }
+            // Includes cold Ktor/OkHttp initialization under a full build load.
+            runBlocking { withTimeout(15_000) { test(client, "http://127.0.0.1:${server.localPort}/", file) } }
         } finally {
             release.countDown()
             client.close()

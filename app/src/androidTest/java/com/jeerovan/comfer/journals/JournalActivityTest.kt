@@ -45,9 +45,16 @@ class JournalActivityTest {
         compose.waitUntil(10000) { compose.onAllNodesWithText("Entry 29").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("Entry 29").assertIsDisplayed()
         compose.onNodeWithText("Entry 0").assertDoesNotExist()
-        val latest = compose.onNodeWithText("Entry 29").fetchSemanticsNode().boundsInRoot
+        val latest = compose.onNodeWithTag("journal-time-opening-29").fetchSemanticsNode().boundsInRoot
         val feed = compose.onNodeWithTag("journal-feed").fetchSemanticsNode().boundsInRoot
-        assertTrue("Latest entry must occupy the bottom of the feed", latest.bottom > feed.bottom - 150f)
+        // The timestamp is the last element in the card. Compare its trailing
+        // edge using the card/feed padding in dp, not a text-to-feed pixel gap
+        // that changes with density and the timestamp's height.
+        val bottomPadding = 32f * context.resources.displayMetrics.density
+        assertEquals("Latest entry must occupy the bottom of the feed", feed.bottom - bottomPadding, latest.bottom, 2f)
+        val older = compose.onNodeWithText("Entry 28").fetchSemanticsNode().boundsInRoot
+        val newestText = compose.onNodeWithText("Entry 29").fetchSemanticsNode().boundsInRoot
+        assertTrue("Older entries must appear above the latest entry", older.bottom < newestText.top)
         val secondPrompt = runBlocking { dao.draft()!!.prompt }
         compose.onNodeWithText(context.getString(prompts[secondPrompt])).assertIsDisplayed()
         scenario!!.recreate()

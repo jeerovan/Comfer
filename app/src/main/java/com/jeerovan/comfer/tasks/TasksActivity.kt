@@ -53,6 +53,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
@@ -114,6 +115,7 @@ internal fun timeLabel(minute: Int): String = LocalTime.of(minute / 60, minute %
 @Composable
 internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTask: String? = null, quickAdd: Boolean = false, confirmComplete: Boolean = false, initialStarred: Boolean = false, quickDay: Long? = null) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     val lifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current
@@ -202,7 +204,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
             else if (draft == null && quickAdd) edit(TaskItem(listId = TaskStore.state.value.preferences.selectedList, title = "", day = quickDay, starred = initialStarred))
         } catch (e: Exception) { error = com.jeerovan.comfer.localizedModuleMessage(context.resources,e.localizedMessage) }
     }
-    LaunchedEffect(error) { error?.let { snackbar.showSnackbar(context.getString(R.string.tasks_error, it)); error = null } }
+    LaunchedEffect(error) { error?.let { snackbar.showSnackbar(resources.getString(R.string.tasks_error, it)); error = null } }
     fun closeSearch() {
         keyboard?.hide()
         (context.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager)
@@ -396,7 +398,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                     }
                 }
             } else {
-                BoxWithConstraints(Modifier.weight(1f)) {
+                Box(Modifier.weight(1f)) {
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     when (route) {
                         "choose" -> {
@@ -500,7 +502,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                     FilterChip(selected = list.id == selected.id, onClick = {
                         if(sheet == "move") {
                             val moving = state.tasks.find { it.id == moveTaskId }
-                            if(moving != null) mutate("browse", success = { sheet = null; moveTaskId = null; scope.launch { snackbar.showSnackbar(context.getString(R.string.tasks_moved, list.name)) } }) { snapshot -> snapshot.saveTask(moving.copy(listId = list.id, parentId = null)) }
+                            if(moving != null) mutate("browse", success = { sheet = null; moveTaskId = null; scope.launch { snackbar.showSnackbar(resources.getString(R.string.tasks_moved, list.name)) } }) { snapshot -> snapshot.saveTask(moving.copy(listId = list.id, parentId = null)) }
                         } else { view = "selected"; searching = false; mutate("browse") { it.copy(preferences = it.preferences.copy(selectedList = list.id)) } }
                         if(sheet != "move") { sheet = null; moveTaskId = null }
                     }, enabled = !busy, leadingIcon = if(list.id == selected.id) {{ Icon(Icons.Outlined.Check, null) }} else null, label = { Text(list.name) })
@@ -703,6 +705,7 @@ private fun TaskInputField(
 @Composable
 private fun ColumnScope.TaskEditor(initial: TaskItem, state: TaskSnapshot, busy: Boolean, onCancel: () -> Unit, onClose: () -> Unit, onDraft: (TaskItem) -> Unit, onSave: (TaskItem, TaskRepeat?, Boolean) -> Unit) {
     val context = LocalContext.current
+    val locale = LocalConfiguration.current.locales[0]
     val baseline by rememberSaveable { mutableStateOf(taskJson.encodeToString(initial)) }
     var encoded by rememberSaveable { mutableStateOf(taskJson.encodeToString(initial)) }
     val task = taskJson.decodeFromString<TaskItem>(encoded)
@@ -769,7 +772,7 @@ private fun ColumnScope.TaskEditor(initial: TaskItem, state: TaskSnapshot, busy:
             }
             if (repeatUnit.isNotEmpty()) {
                 OutlinedTextField(interval, { interval = it }, label = { Text(stringResource(R.string.tasks_interval)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-                if(repeatUnit == "WEEKLY") FlowRow { (1..7).forEach { day -> FilterChip(selected = day in weekdays, onClick = { weekdays = if(day in weekdays) weekdays - day else weekdays + day }, label = { Text(DayOfWeek.of(day).getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault())) }) } }
+                if(repeatUnit == "WEEKLY") FlowRow { (1..7).forEach { day -> FilterChip(selected = day in weekdays, onClick = { weekdays = if(day in weekdays) weekdays - day else weekdays + day }, label = { Text(DayOfWeek.of(day).getDisplayName(java.time.format.TextStyle.SHORT, locale)) }) } }
                 OutlinedTextField(count, { count = it }, label = { Text(stringResource(R.string.tasks_end_count)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                 TextButton(onClick = { pickDate(context, end ?: task.day) { end = it } }) { Text(end?.let(::dateLabel) ?: stringResource(R.string.tasks_end_date)) }
                 if(end != null) TextButton(onClick = { end = null }) { Text(stringResource(R.string.tasks_no_end)) }

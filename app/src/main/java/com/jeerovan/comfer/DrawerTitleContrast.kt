@@ -52,8 +52,8 @@ internal fun rememberDrawerContrast(path: String?, version: Int, motion: Boolean
     DisposableEffect(context, path) {
         val manager = WallpaperManager.getInstance(context)
         val listener = if (path == null && Build.VERSION.SDK_INT >= 27) WallpaperManager.OnColorsChangedListener { _, _ -> systemRevision++ } else null
-        if (listener != null) try { manager.addOnColorsChangedListener(listener, android.os.Handler(android.os.Looper.getMainLooper())) } catch (_: Exception) { }
-        onDispose { if (listener != null) try { manager.removeOnColorsChangedListener(listener) } catch (_: Exception) { } }
+        if (Build.VERSION.SDK_INT >= 27 && listener != null) try { manager.addOnColorsChangedListener(listener, android.os.Handler(android.os.Looper.getMainLooper())) } catch (_: Exception) { }
+        onDispose { if (Build.VERSION.SDK_INT >= 27 && listener != null) try { manager.removeOnColorsChangedListener(listener) } catch (_: Exception) { } }
     }
     val result by produceState<DrawerContrast?>(null, path, version, motion, systemRevision) {
         value = null
@@ -77,7 +77,7 @@ internal fun rememberDrawerContrast(path: String?, version: Int, motion: Boolean
                 val colors = if (Build.VERSION.SDK_INT >= 27) WallpaperManager.getInstance(context).getWallpaperColors(WallpaperManager.FLAG_SYSTEM) else null
                 if (colors != null && Build.VERSION.SDK_INT >= 31) {
                     if (colors.colorHints and android.app.WallpaperColors.HINT_SUPPORTS_DARK_TEXT != 0) Color.Black else Color.White
-                } else colors?.primaryColor?.toArgb()?.let { contrastingTitleColor(Color(it)) }
+                } else if (Build.VERSION.SDK_INT >= 27) colors?.primaryColor?.toArgb()?.let { contrastingTitleColor(Color(it)) } else null
             } catch (_: Exception) { null }
             DrawerContrast(samples, fallback, motion)
         }
