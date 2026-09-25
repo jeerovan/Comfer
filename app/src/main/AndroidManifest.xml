@@ -15,6 +15,11 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Spatial wallpaper uses rotation vectors at 50 Hz: no sensor permission needed.
+         Optional hardware keeps static wallpapers available on all devices. -->
+    <uses-feature android:name="android.hardware.sensor.gyroscope" android:required="false" />
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
+
     <!-- Keep Analytics and Crashlytics without advertising identifiers or attribution. -->
     <uses-permission
         android:name="com.google.android.gms.permission.AD_ID"

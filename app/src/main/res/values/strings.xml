@@ -151,6 +151,11 @@
     <string name="title_color_less_world">Color-less mode</string>
     <string name="icon_monochrome">Monochrome icon</string>
 
+    <string name="spatial_title">Spatial wallpapers</string>
+    <string name="spatial_off">Off · Use regular wallpaper</string>
+    <string name="spatial_valley">Ocean valley</string>
+    <string name="spatial_panda">Meditating panda</string>
+    <string name="spatial_description">Choose a wallpaper, then tilt your phone on the Home screen to explore its depth. Wallpaper motion controls the effect. Applies inside Comfer; the system and lock screen keep their regular wallpaper.</string>
     <string name="title_wallpaper_motion">Wallpaper motion</string>
     <string name="wallpaper_motion_text">Animate your Home screen</string>
     <string name="icon_wallpaper_motion">Wallpaper motion icon</string>

@@ -597,7 +597,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            if(settingsState.autoWallpapers)item {
+            item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_wallpaper_motion)) },
                     supportingContent = { Text(stringResource(R.string.wallpaper_motion_text)) },
@@ -648,6 +648,9 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     isDefaultLauncher = isDefaultLauncherState,
                     onSelectDirectory = { directoryUri -> settingsViewModel.setWallpaperDirectory(directoryUri)},
                     selectedDirectory = settingsState.wallpaperDirectory)
+            }
+            if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) item {
+                com.jeerovan.comfer.spatial.LocalWallpaperSetting()
             }
             if(isDefaultLauncherState){
                 item {

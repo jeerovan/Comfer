@@ -1,0 +1,14 @@
+Depth Anything V2 Small
+Authors: Lihe Yang, Bingyi Kang, Zilong Huang, Zhen Zhao, Xiaogang Xu,
+Jiashi Feng, Hengshuang Zhao.
+Project: https://github.com/DepthAnything/Depth-Anything-V2
+License: Apache License 2.0 (see adjacent LICENSE file).
+
+Comfer downloads the LiteRT community INT8-weight / FP32-interface conversion
+only after local spatial wallpaper opt-in. The model is not included in the APK.
+Export: https://huggingface.co/litert-community/depth-anything-v2-small
+Export revision: 178427e448dbf4da93b1e7b1b2abc103ad329bd6
+Source checkpoint revision: 5426e4f0f36572d16453bbda7a8389317b1bef99
+SHA-256: f74509422e4a9270a354b249a9193abdd4903354be63701262238a7f4b869611
+The export fixes input dimensions and quantizes weights. Comfer resizes RGB
+input, normalizes channels, and normalizes the resulting relative inverse depth.

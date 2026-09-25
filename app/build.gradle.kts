@@ -194,6 +194,8 @@ kotlin {
 }
 
 dependencies {
+    implementation("com.google.ai.edge.litert:litert:2.2.0")
+    implementation("com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     implementation(libs.app.update)
     implementation(libs.app.update.ktx)
