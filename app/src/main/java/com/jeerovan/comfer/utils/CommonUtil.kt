@@ -266,12 +266,15 @@ object CommonUtil {
             val filename = getFileNameFromUri(context, nextLocalImageUri)
             if (filename != null) {
                 // 2. Create a destination file in your app"s private storage
-                val destinationFile = File(context.filesDir, filename)
+                val destinationFile = File.createTempFile("local-import-", ".image", context.filesDir)
                 // 3. Copy the file
                 val success = copyFileFromUri(context, nextLocalImageUri, destinationFile)
                 if (success) {
                     PreferenceManager.setBackgroundImageUri(context, nextLocalImageUri)
-                    val newFilePath = destinationFile.absolutePath
+                    val immutableFile = File(context.filesDir, "local-${com.jeerovan.comfer.spatial.sha256(destinationFile)}.image")
+                    if (immutableFile.exists()) destinationFile.delete()
+                    else check(destinationFile.renameTo(immutableFile))
+                    val newFilePath = immutableFile.absolutePath
                     val oldFilePath:String? = PreferenceManager.getBackgroundImagePath(context)
                     PreferenceManager.setBackgroundImagePath(
                         context,

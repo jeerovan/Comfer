@@ -162,6 +162,7 @@ data class LauncherSettingsUiState(
     val showThemedIcons: Boolean = false,
     val wallpaperMotionEnabled: Boolean = true,
     val isBatterySaver: Boolean = false,
+    val wallpaperDirectory: String? = null,
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -181,6 +182,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 state.showThemedIcons,
                 state.wallpaperMotionEnabled,
                 state.isBatterySaver,
+                state.wallpaperDirectory,
             )
         }
         .distinctUntilChanged()

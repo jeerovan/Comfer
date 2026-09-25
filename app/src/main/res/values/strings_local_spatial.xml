@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- English fallback until the new feature is included in the localization pass. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="local_wallpaper_name">My photo</string>
+    <string name="local_wallpaper_choose">Choose my wallpaper</string>
+    <string name="local_wallpaper_choose_description">Apply a photo from your device</string>
+    <string name="local_wallpaper_importing">Applying photo…</string>
+    <string name="local_spatial_title">3D Effect</string>
+    <string name="local_spatial_description">Spatial effect on wallpaper</string>
+    <string name="local_spatial_preparing">Preparing spatial wallpaper</string>
+    <string name="local_spatial_retry">Could not prepare spatial effect. Tap to retry.</string>
+    <string name="local_spatial_import_error">Could not open this photo. Choose an image smaller than 50 MB.</string>
+    <string name="local_spatial_download_description">Enable to download the 3D model (about 28 MB, plus a subject model). Photos stay on your device.</string>
+    <string name="local_spatial_downloading">Downloading 3D model…</string>
+    <string name="local_spatial_model_failed">Model download failed. Turn off and on to retry.</string>
+</resources>

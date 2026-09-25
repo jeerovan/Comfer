@@ -4183,20 +4183,26 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         val maxWidthPx = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
         val maxHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
 
-        val spatialScene by com.jeerovan.comfer.spatial.rememberSpatialWallpaper()
-        if (spatialScene != 0) {
-            com.jeerovan.comfer.spatial.SpatialWallpaper(
-                scene = spatialScene,
-                motionEnabled = settingInfoUiState.wallpaperMotionEnabled && !settingInfoUiState.isBatterySaver,
+        var spatialHint: com.jeerovan.comfer.spatial.LocalSpatialHint? = null
+        // onStop temporarily clears imagePath; retain the applied image while Home is inactive.
+        var spatialPath by remember { mutableStateOf<String?>(null) }
+        if (backgroundImage != null) spatialPath = backgroundImage
+        val cloudData = remember(spatialPath) { PreferenceManager.getImageData(context) }
+        val cloudDepth = cloudData?.takeIf { spatialPath?.endsWith("comfer_${it.id}.jpg") == true }?.depthUrl
+        if (settingInfoUiState.autoWallpapers) {
+            spatialHint = com.jeerovan.comfer.spatial.renderLocalSpatialWallpaper(
+                motionEnabled = wallpaperMotionEnabled,
+                width = maxWidthPx, height = maxHeightPx,
+                path = spatialPath,
+                ownWallpapers = settingInfoUiState.wallpaperDirectory != null &&
+                    spatialPath?.substringAfterLast('/')?.startsWith("comfer_") != true,
+                cloudDepthUrl = cloudDepth,
             )
-        } else if(settingInfoUiState.autoWallpapers || settingInfoUiState.monochrome){
-            AnimatedBackground(
-                backgroundImage,
-                mainUiState.iconVersion,
-                wallpaperMotionEnabled,
-                maxWidthPx,
-                maxHeightPx,
-            )
+        } else if (settingInfoUiState.monochrome) {
+            AnimatedBackground(backgroundImage, mainUiState.iconVersion, false, maxWidthPx, maxHeightPx)
+        }
+        LaunchedEffect(settingInfoUiState.autoWallpapers) {
+            if (!settingInfoUiState.autoWallpapers) com.jeerovan.comfer.spatial.LocalSpatialRepository.prepare(context, null, false)
         }
 
         // Quick-list layer, goes up and hides, come down and shows up
@@ -4327,6 +4333,13 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
             )
         }
 
+        spatialHint?.let { hint ->
+            if (hint.pending || hint.failed) com.jeerovan.comfer.spatial.SpatialProgressHint(
+                modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(16.dp),
+                active = com.jeerovan.comfer.spatial.rememberWallpaperActive(),
+                failed = hint.failed, progress = hint.progress, onRetry = hint.retry,
+            )
+        }
         AutoUpdateManager(snackbarHostState,settingInfoUiState.shouldAppUpdatePromptUserCounter)
         SnackbarHost(
             hostState = snackbarHostState,
@@ -4345,7 +4358,9 @@ fun AnimatedBackground(
     cacheVersion: Int,
     wallpaperMotionEnabled: Boolean,
     maxWidthPx: Float,
-    maxHeightPx: Float
+    maxHeightPx: Float,
+    externalOrbit: State<Double>? = null,
+    spatialOverscan: Boolean = false,
 ) {
     val context = LocalContext.current
 
@@ -4362,38 +4377,24 @@ fun AnimatedBackground(
             .build()
     }
 
-    // 2. Animation State: Do NOT use 'by' delegation here.
-    // Keep it as a State<Float> object to read it later.
-    val infiniteTransition = rememberInfiniteTransition(label = "wallpaper_motion")
-    val angleState = if (wallpaperMotionEnabled) {
-        infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = (2f * Math.PI).toFloat(),
-            animationSpec = infiniteRepeatable(
-                animation = tween(60000, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart
-            ),
-            label = "angle-animation"
-        )
-    } else {
-        remember { mutableFloatStateOf(0f) }
-    }
+    val active = com.jeerovan.comfer.spatial.rememberWallpaperActive()
+    val angleState = externalOrbit ?: com.jeerovan.comfer.spatial.rememberWallpaperOrbit(wallpaperMotionEnabled, active)
 
     AsyncImage(
         model = imageRequest,
         contentDescription = stringResource(R.string.background_image),
         modifier = Modifier
             .fillMaxSize()
-            .scale(if (wallpaperMotionEnabled) 1.2f else 1f)
+            .scale(if (spatialOverscan) 1.24f else if (wallpaperMotionEnabled) 1.2f else 1f)
             .graphicsLayer {
                 // 3. Defer Read: Only read the state INSIDE this block.
                 // This runs on the RenderThread/Layout phase, NOT the Main Thread composition.
                 if (wallpaperMotionEnabled) {
-                    val angle = angleState.value // Reading here is safe
+                    val angle = angleState.value / 60.0 * 2.0 * Math.PI // Drawing-only read
                     val x = kotlin.math.cos(angle) * maxWidthPx * 0.08f
                     val y = kotlin.math.sin(angle) * maxHeightPx * 0.08f
-                    translationX = x
-                    translationY = y
+                    translationX = x.toFloat()
+                    translationY = y.toFloat()
                 } else {
                     translationX = 0f
                     translationY = 0f

@@ -14,7 +14,8 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 @JsonIgnoreUnknownKeys
 data class ImageData(
     val id:Int,
-    val imageUrl: String
+    val imageUrl: String,
+    val depthUrl: String? = null,
 )
 
 internal enum class ImageWorkOutcome { SUCCESS, RETRY }
