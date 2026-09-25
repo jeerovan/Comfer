@@ -64,7 +64,9 @@ class ImageWorker(appContext: Context, workerParams: WorkerParameters) :
             (applicationContext as? ComferApp)?.initializeApplicationData()
             StartupCoordinator.awaitReady()
             WallpaperWorkCoordinator.runExclusive {
-                when (refreshWallpaper(applicationContext)) {
+                val outcome = refreshWallpaper(applicationContext)
+                com.jeerovan.comfer.spatial.LocalSpatialRepository.maintainCache(applicationContext)
+                when (outcome) {
                     ImageWorkOutcome.SUCCESS -> Result.success()
                     ImageWorkOutcome.RETRY -> Result.retry()
                 }

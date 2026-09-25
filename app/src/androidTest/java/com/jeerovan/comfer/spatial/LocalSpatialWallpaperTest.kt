@@ -98,7 +98,7 @@ class LocalSpatialWallpaperTest {
 
     @Test
     @androidx.test.filters.SdkSuppress(minSdkVersion = 26)
-    fun cachedEffectAppliesOnHomeAndOptOutRestoresOriginalWithoutPreview() {
+    fun archivedEffectAppliesOnHomeAndOptOutRestoresOriginalWithoutPreview() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val prefs = spatialPreferences(context)
         val oldPath = prefs.getString(LOCAL_PATH, null)
@@ -115,6 +115,18 @@ class LocalSpatialWallpaperTest {
         writeSolid(File(directory, "background.png"), android.graphics.Color.GREEN)
         File(directory, "background.depth").writeText("1 1 0 0 0 0")
         File(directory, "ready").writeText("1")
+        // Seed only an archive. Its deliberately GREEN layer differs from the BLUE original,
+        // so rendering green proves repository archive reuse rather than fresh ML generation.
+        val fixture = File(context.cacheDir, "archive-ui-fixture").apply { deleteRecursively(); mkdirs() }
+        val fixtureLocal = File(fixture, "local").apply { mkdirs() }
+        check(directory.renameTo(File(fixtureLocal, directory.name)))
+        val fixtureCache = SpatialSceneCache(fixtureLocal, File(fixture, "cloud"),
+            { File(it, "ready").isFile })
+        fixtureCache.maintain()
+        val archive = File(context.noBackupFilesDir, "local-spatial/archives/${directory.name}.zip")
+        archive.parentFile!!.mkdirs()
+        fixtureCache.archiveFile(directory.name).copyTo(archive, overwrite = true)
+        fixture.deleteRecursively()
         try {
             prefs.edit().putString(LOCAL_PATH, source.path).putBoolean(LOCAL_SPATIAL, true).commit()
             compose.setContent {
@@ -133,6 +145,7 @@ class LocalSpatialWallpaperTest {
             prefs.edit().putString(LOCAL_PATH, oldPath).putBoolean(LOCAL_SPATIAL, oldEnabled).commit()
             source.delete()
             directory.deleteRecursively()
+            archive.delete()
         }
     }
 }

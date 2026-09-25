@@ -43,6 +43,7 @@ internal object LocalSpatialRepository {
     private val mutex = Mutex()
     private var job: Job? = null
     private var request: String? = null
+    private var selectedPath: String? = null
     private var requestedDepth: Pair<String?, String?>? = null
     private var generation = 0L
     private val mutableStatus = MutableStateFlow<LocalSpatialStatus>(LocalSpatialStatus.Idle)
@@ -52,20 +53,27 @@ internal object LocalSpatialRepository {
     fun prepare(context: Context, path: String?, enabled: Boolean, retry: Boolean = false, invalidateCache: Boolean = false, cloudDepthUrl: String? = null, cloudSceneUrl: String? = null) {
         val next = path?.takeIf { enabled }
         val cloudRequest = cloudDepthUrl to cloudSceneUrl
-        if (request == next && requestedDepth == cloudRequest && !retry) return
+        if (request == next && selectedPath == path && requestedDepth == cloudRequest && !retry) return
+        selectedPath = path
         requestedDepth = cloudRequest
         request = next
         val ticket = ++generation
         job?.cancel()
         mutableStatus.value = if (next == null) LocalSpatialStatus.Idle else
             LocalSpatialStatus.Preparing(next, PreparationStage.MODEL)
-        if (next == null) return
         val app = context.applicationContext
         job = scope.launch {
             try {
                 mutex.withLock {
                     ensureActive()
-                    val root = File(app.noBackupFilesDir, "local-spatial").apply { mkdirs() }
+                    val cache = sceneCache(app)
+                    // A transient null while Home starts/stops is not a wallpaper change.
+                    if (path != null) cache.select(path)
+                    cache.pruneExpired()
+                    if (next == null) {
+                        cache.maintain()
+                        return@withLock
+                    }
                     val source = File.createTempFile("spatial-source-", ".image", app.cacheDir)
                     try {
                         File(next).inputStream().use { input -> source.outputStream().use { output ->
@@ -75,10 +83,13 @@ internal object LocalSpatialRepository {
                         val suffix = if (cloudAsset == null) PIPELINE_VERSION else "cloud-v2-" +
                             java.security.MessageDigest.getInstance("SHA-256").digest(((if (cloudSceneUrl != null) "scene:" else "depth:") + cloudAsset).toByteArray()).joinToString("") { "%02x".format(it) }
                         val key = sha256(source) + "-" + suffix
-                        val destination = File(root, key)
-                        if (invalidateCache || !validScene(destination)) {
+                        val cloud = cloudAsset != null
+                        val destination = cache.directory(key, cloud)
+                        if (invalidateCache) cache.invalidate(key, cloud)
+                        if (cache.find(key, cloud) == null) {
                             destination.deleteRecursively()
-                            val staging = File(root, "$key.partial")
+                            check(destination.parentFile!!.isDirectory || destination.parentFile!!.mkdirs())
+                            val staging = File(destination.parentFile, "$key.partial")
                             staging.deleteRecursively()
                             check(staging.mkdirs())
                             try {
@@ -90,24 +101,46 @@ internal object LocalSpatialRepository {
                             } finally { staging.deleteRecursively() }
                         }
                         ensureActive()
-                        // Retain the active scene and two recently used scenes.
-                        destination.setLastModified(System.currentTimeMillis())
-                        root.listFiles()?.filter { it != destination && it.isDirectory }
-                            ?.sortedByDescending { it.lastModified() }?.drop(2)?.forEach { it.deleteRecursively() }
+                        cache.activate(key, cloud, next)
                         publish(ticket, LocalSpatialStatus.Ready(next, destination))
+                        // Cache housekeeping must never turn a successfully prepared scene into an error.
+                        try { cache.maintain() }
+                        catch (cancelled: CancellationException) { throw cancelled }
+                        catch (error: Exception) { android.util.Log.w("LocalSpatial", "Cache maintenance deferred", error) }
                     } finally { source.delete() }
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
                 android.util.Log.w("LocalSpatial", "Wallpaper preparation failed", error)
-                publish(ticket, LocalSpatialStatus.Failed(next))
+                if (next != null) publish(ticket, LocalSpatialStatus.Failed(next))
             } catch (_: OutOfMemoryError) {
-                publish(ticket, LocalSpatialStatus.Failed(next))
+                if (next != null) publish(ticket, LocalSpatialStatus.Failed(next))
             } catch (_: LinkageError) {
-                publish(ticket, LocalSpatialStatus.Failed(next))
+                if (next != null) publish(ticket, LocalSpatialStatus.Failed(next))
             }
         }
+    }
+
+    private suspend fun sceneCache(context: Context): SpatialSceneCache {
+        val coroutine = currentCoroutineContext()
+        return SpatialSceneCache(File(context.noBackupFilesDir, "local-spatial"),
+            File(context.noBackupFilesDir, "cloud-spatial"), ::validScene,
+            checkpoint = { coroutine.ensureActive() })
+    }
+
+    /** Reuses existing startup/background work; never performs model inference or downloads. */
+    internal suspend fun maintainCache(context: Context) = withContext(Dispatchers.IO) {
+        try {
+            // Housekeeping must not delay startup or wallpaper rotation behind native inference.
+            if (!mutex.tryLock()) return@withContext
+            try {
+                val cache = sceneCache(context)
+                cache.select(com.jeerovan.comfer.PreferenceManager.getBackgroundImagePath(context))
+                cache.maintain()
+            } finally { mutex.unlock() }
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (error: Exception) { android.util.Log.w("LocalSpatial", "Cache maintenance deferred", error) }
     }
 
     @Synchronized
@@ -272,20 +305,22 @@ internal object LocalSpatialRepository {
     } catch (_: Exception) { false }
 
     suspend fun loadScene(directory: File): LocalScene = withContext(Dispatchers.IO) {
-        check(validScene(directory))
-        val names = spatialLayerNames(File(directory, "ready").readText().toInt())
-        val layers = mutableListOf<LocalLayer>()
-        try {
-            for (name in names) {
-                val mesh = DepthMesh.parse(File(directory, "$name.depth").readText())
-                val bitmap = BitmapFactory.decodeFile(File(directory, "$name.png").path)
-                    ?: throw IOException("Prepared wallpaper is unreadable")
-                layers.add(LocalLayer(bitmap, mesh))
+        mutex.withLock {
+            check(validScene(directory))
+            val names = spatialLayerNames(File(directory, "ready").readText().toInt())
+            val layers = mutableListOf<LocalLayer>()
+            try {
+                for (name in names) {
+                    val mesh = DepthMesh.parse(File(directory, "$name.depth").readText())
+                    val bitmap = BitmapFactory.decodeFile(File(directory, "$name.png").path)
+                        ?: throw IOException("Prepared wallpaper is unreadable")
+                    layers.add(LocalLayer(bitmap, mesh))
+                }
+                LocalScene(layers)
+            } catch (error: Throwable) {
+                layers.forEach { it.bitmap.recycle() }
+                throw error
             }
-            LocalScene(layers)
-        } catch (error: Throwable) {
-            layers.forEach { it.bitmap.recycle() }
-            throw error
         }
     }
 }

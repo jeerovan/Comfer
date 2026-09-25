@@ -59,6 +59,7 @@ class ComferApp : Application(), ImageLoaderFactory {
                 StartupCoordinator.markReady()
                 com.jeerovan.comfer.tasks.TaskReminders.request(applicationContext)
                 Log.i("ComferApp", "Application data initialization complete")
+                com.jeerovan.comfer.spatial.LocalSpatialRepository.maintainCache(applicationContext)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

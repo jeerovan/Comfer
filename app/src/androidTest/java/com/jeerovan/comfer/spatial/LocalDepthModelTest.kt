@@ -46,11 +46,11 @@ class LocalDepthModelTest {
                 output.recycle()
             }
             scene.layers.forEach { assertFalse(it.bitmap.isRecycled); it.bitmap.recycle() }
-            val modified = File(directory, "background.png").lastModified()
+            val cachedImage = sha256(File(directory, "background.png"))
             LocalSpatialRepository.prepare(context, null, false)
             LocalSpatialRepository.prepare(context, source.path, true)
             withTimeout(10_000) { LocalSpatialRepository.status.first { it is LocalSpatialStatus.Ready } }
-            assertEquals(modified, File(directory, "background.png").lastModified())
+            assertEquals(cachedImage, sha256(File(directory, "background.png")))
         } finally {
             LocalSpatialRepository.prepare(context, null, false)
             source.delete()

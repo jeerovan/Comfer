@@ -71,9 +71,37 @@ visible until all layers are ready.
 - Relative depth is normalized, bilinearly sampled onto a 48 × 96 grid, and slope
   limited to avoid foldovers. Foreground/background depths occupy separate ranges.
 - Ready markers and atomic directory renames prevent partial caches from appearing.
-  The cache key includes the source digest and pipeline version. At most three
-  prepared scenes are retained. Model files and generated scenes are excluded from
-  Android backup via `noBackupFilesDir`.
+  The cache key includes the source digest and pipeline version. Local and cloud
+  caches are separate, as described below. Model files and generated scenes are
+  excluded from Android backup via `noBackupFilesDir`.
+
+## Cache policy
+
+- Cloud: `noBackupFilesDir/cloud-spatial` retains only the current prepared cloud
+  scene. Changing to another wallpaper removes the previous cloud scene, including
+  changes while motion is disabled. Cloud scenes are never added to local archives.
+- Local: `noBackupFilesDir/local-spatial` keeps the active scene expanded for loading.
+  Other prepared scenes are stored as `archives/<image-hash>-<pipeline-version>.zip`.
+  A matching valid expanded scene or archive is reused before any ML runs. Identical
+  source bytes share a key; an algorithm-version change uses a different key.
+- PNG layers are already losslessly compressed. ZIP stores their original bytes
+  without recompressing pixels; text meshes use fast DEFLATE. Extra space savings
+  therefore mainly come from meshes, not another large reduction in PNG size.
+- Archives expire after 30 days without use. Last-use time is refreshed on activation
+  and when switching away from a wallpaper, so a wallpaper kept active for weeks is
+  protected. Archiving alone does not refresh the timestamp. There is no three-scene
+  limit or hard byte quota for local archives.
+- Cleanup runs on wallpaper preparation/changes, app initialization, and the existing
+  periodic wallpaper worker. Background scheduling can be deferred by Android and
+  battery constraints; expiry is applied at the next available cleanup, not an exact
+  wall-clock alarm. Housekeeping yields while inference/loading owns the cache mutex.
+- ZIP creation and restoration use staging files/directories. A complete archive is
+  published before its expanded source is removed. Failed compression preserves the
+  source; failed/cancelled extraction preserves the archive. Invalid archives fall
+  back to regeneration, without publishing incomplete assets. Entry allowlists,
+  sizes, CRCs and the existing layer validation protect archive loading.
+- Existing flat local caches are reused or archived without rerunning ML. Model
+  downloads are kept separately and are not expired by the scene-cache policy.
 
 ## Motion and lifecycle
 
@@ -133,3 +161,15 @@ New strings currently use English fallback pending the localization pass.
   match exactly. Inspected the exported four-layer maximum-tilt image.
 - Four layers are a supported maximum, not a minimum or a measured battery guarantee.
   Real-photo layer selection and battery/thermal profiling need broader validation.
+
+### Archive cache validation (2026-09-25)
+
+- Debug build and 228 JVM tests passed. New tests cover reuse across six photos,
+  exact byte preservation, 30-day expiry/reset and clock rollback, cloud/local
+  isolation, legacy local cache reuse, corrupt/unsafe ZIP entries, disk-full recovery
+  and interrupted extraction. Time boundaries use an injected clock.
+- 21 Samsung tests passed, including actual archive restoration on Home (using a
+  cached layer with different pixels from the source to distinguish reuse from ML),
+  real depth inference, four-layer rendering, lifecycle and startup/database checks.
+- Physical battery consumption and long-term storage growth are not benchmarked.
+  PNG layers remain lossless; archive size savings mainly come from mesh compression.
