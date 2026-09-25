@@ -32,7 +32,7 @@ class LocalDepthModelTest {
             assertTrue("Preparation result: $result", result is LocalSpatialStatus.Ready)
             val directory = (result as LocalSpatialStatus.Ready).directory
             val scene = LocalSpatialRepository.loadScene(directory)
-            assertTrue(scene.layers.size in 1..2)
+            assertTrue(scene.layers.size in 1..4)
             android.util.Log.i("SpatialValidation", "preparedLayers=${scene.layers.size}")
             for ((label, tilt) in listOf("neutral" to 0f, "tilted" to 1f)) {
                 val output = android.graphics.Bitmap.createBitmap(380, 822, android.graphics.Bitmap.Config.ARGB_8888)

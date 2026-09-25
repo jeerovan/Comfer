@@ -76,14 +76,15 @@ fun LocalWallpaperSetting() {
 /** Applies completed assets in place. There is deliberately no preview or confirmation screen. */
 @Composable
 internal fun renderLocalSpatialWallpaper(motionEnabled: Boolean, width: Float, height: Float,
-    path: String? = null, ownWallpapers: Boolean = true, cloudDepthUrl: String? = null): LocalSpatialHint {
+    path: String? = null, ownWallpapers: Boolean = true, cloudDepthUrl: String? = null, cloudSceneUrl: String? = null): LocalSpatialHint {
     val context = LocalContext.current.applicationContext
     val preference = rememberLocalWallpaperChoice()
-    val choice = LocalWallpaperChoice(path, if (ownWallpapers) preference.spatial else motionEnabled && cloudDepthUrl != null)
+    val choice = LocalWallpaperChoice(path, if (ownWallpapers) preference.spatial else motionEnabled && (cloudDepthUrl != null || cloudSceneUrl != null))
     val status by LocalSpatialRepository.status.collectAsState()
     val active = rememberWallpaperActive()
-    LaunchedEffect(choice, cloudDepthUrl) {
-        LocalSpatialRepository.prepare(context, choice.path, choice.spatial, cloudDepthUrl = if (ownWallpapers) null else cloudDepthUrl)
+    LaunchedEffect(choice, cloudDepthUrl, cloudSceneUrl) {
+        LocalSpatialRepository.prepare(context, choice.path, choice.spatial, cloudDepthUrl = if (ownWallpapers) null else cloudDepthUrl,
+            cloudSceneUrl = if (ownWallpapers) null else cloudSceneUrl)
     }
     val ready = (status as? LocalSpatialStatus.Ready)?.takeIf { it.source == choice.path && choice.spatial }
     var loadFailed by remember(ready) { mutableStateOf(false) }
@@ -129,7 +130,8 @@ internal fun renderLocalSpatialWallpaper(motionEnabled: Boolean, width: Float, h
         (loadFailed || (status as? LocalSpatialStatus.Failed)?.source == choice.path)
     return LocalSpatialHint(pending, failed, (status as? LocalSpatialStatus.Preparing)?.progress) {
         loadFailed = false
-        LocalSpatialRepository.prepare(context, choice.path, true, retry = true, invalidateCache = ready != null, cloudDepthUrl = if (ownWallpapers) null else cloudDepthUrl)
+        LocalSpatialRepository.prepare(context, choice.path, true, retry = true, invalidateCache = ready != null, cloudDepthUrl = if (ownWallpapers) null else cloudDepthUrl,
+            cloudSceneUrl = if (ownWallpapers) null else cloudSceneUrl)
     }
 }
 

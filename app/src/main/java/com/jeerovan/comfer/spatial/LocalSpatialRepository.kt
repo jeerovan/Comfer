@@ -9,6 +9,7 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import coil.size.Scale
+import coil.size.Precision
 import com.jeerovan.comfer.utils.copyStreamWithLimit
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,7 @@ import java.io.IOException
 internal const val LOCAL_SCENE = 3
 internal const val LOCAL_PATH = "local_path"
 internal const val LOCAL_SPATIAL = "local_spatial"
-internal const val PIPELINE_VERSION = "depth-v1-layers-v3"
+internal const val PIPELINE_VERSION = "depth-v1-layers-v4"
 
 internal fun spatialPreferences(context: Context) = context.getSharedPreferences("spatial_wallpapers", Context.MODE_PRIVATE)
 
@@ -42,16 +43,17 @@ internal object LocalSpatialRepository {
     private val mutex = Mutex()
     private var job: Job? = null
     private var request: String? = null
-    private var requestedDepth: String? = null
+    private var requestedDepth: Pair<String?, String?>? = null
     private var generation = 0L
     private val mutableStatus = MutableStateFlow<LocalSpatialStatus>(LocalSpatialStatus.Idle)
     val status = mutableStatus.asStateFlow()
 
     @Synchronized
-    fun prepare(context: Context, path: String?, enabled: Boolean, retry: Boolean = false, invalidateCache: Boolean = false, cloudDepthUrl: String? = null) {
+    fun prepare(context: Context, path: String?, enabled: Boolean, retry: Boolean = false, invalidateCache: Boolean = false, cloudDepthUrl: String? = null, cloudSceneUrl: String? = null) {
         val next = path?.takeIf { enabled }
-        if (request == next && requestedDepth == cloudDepthUrl && !retry) return
-        requestedDepth = cloudDepthUrl
+        val cloudRequest = cloudDepthUrl to cloudSceneUrl
+        if (request == next && requestedDepth == cloudRequest && !retry) return
+        requestedDepth = cloudRequest
         request = next
         val ticket = ++generation
         job?.cancel()
@@ -69,8 +71,9 @@ internal object LocalSpatialRepository {
                         File(next).inputStream().use { input -> source.outputStream().use { output ->
                             check(copyStreamWithLimit(input, output, 50L * 1024 * 1024))
                         } }
-                        val suffix = if (cloudDepthUrl == null) PIPELINE_VERSION else "cloud-" +
-                            java.security.MessageDigest.getInstance("SHA-256").digest(cloudDepthUrl.toByteArray()).joinToString("") { "%02x".format(it) }
+                        val cloudAsset = cloudSceneUrl ?: cloudDepthUrl
+                        val suffix = if (cloudAsset == null) PIPELINE_VERSION else "cloud-v2-" +
+                            java.security.MessageDigest.getInstance("SHA-256").digest(((if (cloudSceneUrl != null) "scene:" else "depth:") + cloudAsset).toByteArray()).joinToString("") { "%02x".format(it) }
                         val key = sha256(source) + "-" + suffix
                         val destination = File(root, key)
                         if (invalidateCache || !validScene(destination)) {
@@ -79,8 +82,9 @@ internal object LocalSpatialRepository {
                             staging.deleteRecursively()
                             check(staging.mkdirs())
                             try {
-                                if (cloudDepthUrl == null) generate(app, source.path, staging, ticket, next)
-                                else generateCloud(app, source, cloudDepthUrl, staging)
+                                if (cloudSceneUrl != null) generateCloudScene(app, cloudSceneUrl, staging)
+                                else if (cloudDepthUrl != null) generateCloud(app, source, cloudDepthUrl, staging)
+                                else generate(app, source.path, staging, ticket, next)
                                 ensureActive()
                                 check(staging.renameTo(destination))
                             } finally { staging.deleteRecursively() }
@@ -136,46 +140,112 @@ internal object LocalSpatialRepository {
                 android.util.Log.i("LocalSpatial", "Incomplete or low-contrast cutout; using continuous depth")
                 mask = null
             }
-            if (mask == null) {
-                writeBitmap(bitmap, File(output, "background.png"))
-                writeMesh(depth.mesh(), File(output, "background.depth"))
-            } else {
-                val filled = fillSubjectBackground(pixels, mask, bitmap.width, bitmap.height)
-                val background = Bitmap.createBitmap(filled, bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
-                try { writeBitmap(background, File(output, "background.png")) }
-                finally { background.recycle() }
-                for (i in pixels.indices) pixels[i] = (pixels[i] and 0x00ffffff) or
-                    ((mask[i] * 255).toInt().coerceIn(0, 255) shl 24)
-                val foreground = Bitmap.createBitmap(pixels, bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
-                try { writeBitmap(foreground, File(output, "foreground.png")) }
-                finally { foreground.recycle() }
-                writeMesh(depth.mesh(false), File(output, "background.depth"))
-                writeMesh(depth.mesh(true), File(output, "foreground.depth"))
-            }
-            currentCoroutineContext().ensureActive()
-            // Written last; incomplete assets are never considered ready.
-            File(output, "ready").writeText(if (mask == null) "1" else "2")
+            writeLocalLayers(bitmap, depth, mask, pixels, output)
         } finally { bitmap.recycle() }
     }
 
-    /** Static depth only: this path never downloads or invokes an ML model. */
-    private suspend fun generateCloud(context: Context, source: File, url: String, output: File) {
-        require(java.net.URI(url).scheme == "https")
-        val connection = java.net.URL(url).openConnection().apply {
-            connectTimeout = 15_000
-            readTimeout = 20_000
+    /** Shared generated/cache format: opaque reconstructed background, then far-to-near cutouts. */
+    internal suspend fun writeLocalLayers(bitmap: Bitmap, depth: SpatialDepth, mask: FloatArray?,
+                                         pixels: IntArray, output: File) {
+        val plan = mask?.let { planSubjectLayers(it, bitmap.width, bitmap.height, depth) }
+        if (plan == null || plan.depths.isEmpty()) {
+            writeBitmap(bitmap, File(output, "background.png"))
+            writeMesh(depth.mesh(), File(output, "background.depth"))
+            File(output, "ready").writeText("1")
+            return
         }
-        val mesh = try {
-            val bytes = java.io.ByteArrayOutputStream()
-            connection.getInputStream().use { check(copyStreamWithLimit(it, bytes, 1024L * 1024)) }
+        val filled = fillSubjectBackground(pixels, mask!!, bitmap.width, bitmap.height)
+        val background = Bitmap.createBitmap(filled, bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        try { writeBitmap(background, File(output, "background.png")) }
+        finally { background.recycle() }
+        writeMesh(depth.mesh(false), File(output, "background.depth"))
+        val names = spatialLayerNames(plan.depths.size + 1)
+        // Build/write one cutout at a time; do not retain four working bitmaps during ML preparation.
+        for (index in plan.depths.indices) {
             currentCoroutineContext().ensureActive()
-            DepthMesh.parse(bytes.toString("UTF-8"))
-        } finally { (connection as? java.net.HttpURLConnection)?.disconnect() }
+            for (i in pixels.indices) filled[i] = if (plan.labels[i] == index + 1)
+                (pixels[i] and 0x00ffffff) or ((mask[i] * 255).toInt().coerceIn(0, 255) shl 24) else 0
+            val layer = Bitmap.createBitmap(filled, bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+            try { writeBitmap(layer, File(output, "${names[index + 1]}.png")) }
+            finally { layer.recycle() }
+            val mesh = depth.mesh(true)
+            if (plan.depths.size > 1) {
+                val mean = plan.depths[index]
+                for (i in mesh.depths.indices) {
+                    val original = (mesh.depths[i] - 0.65f) / 0.35f
+                    mesh.depths[i] = (0.35f + mean * 0.65f + (original - mean) * 0.08f).coerceIn(0.35f, 1f)
+                }
+            }
+            writeMesh(mesh, File(output, "${names[index + 1]}.depth"))
+        }
+        currentCoroutineContext().ensureActive()
+        File(output, "ready").writeText(names.size.toString())
+    }
+
+    /** Static assets only: neither cloud path downloads or invokes an ML model. */
+    private suspend fun generateCloud(context: Context, source: File, url: String, output: File) {
+        val mesh = DepthMesh.parse(downloadAsset(url, 1024L * 1024).toString(Charsets.UTF_8))
         val bitmap = decodeLocalWallpaper(context, source)
         try { writeBitmap(bitmap, File(output, "background.png")) }
         finally { bitmap.recycle() }
         writeMesh(mesh, File(output, "background.depth"))
         File(output, "ready").writeText("1")
+    }
+
+    internal suspend fun generateCloudScene(context: Context, url: String, output: File,
+        fetch: suspend (String, Long) -> ByteArray = ::downloadAsset) {
+        requireHttpsAsset(url)
+        val manifest = SpatialSceneManifest.parse(fetch(url, 64L * 1024).toString(Charsets.UTF_8))
+        val names = spatialLayerNames(manifest.layers.size)
+        var width = 0; var height = 0
+        for ((index, asset) in manifest.layers.withIndex()) {
+            currentCoroutineContext().ensureActive()
+            val mesh = DepthMesh.parse(fetch(asset.depthUrl, 1024L * 1024).toString(Charsets.UTF_8))
+            val temporary = File.createTempFile("cloud-layer-", ".image", context.cacheDir)
+            try {
+                temporary.writeBytes(fetch(asset.imageUrl, 25L * 1024 * 1024))
+                val bitmap = decodeLocalWallpaper(context, temporary)
+                try {
+                    if (index == 0) { width = bitmap.width; height = bitmap.height }
+                    require(bitmap.width == width && bitmap.height == height) { "Layer canvases must match" }
+                    if (index == 0) {
+                        val row = IntArray(width)
+                        for (y in 0 until height) {
+                            bitmap.getPixels(row, 0, width, 0, y, width, 1)
+                            require(row.all { it ushr 24 == 255 }) { "Background must be opaque" }
+                        }
+                    }
+                    writeBitmap(bitmap, File(output, "${names[index]}.png"))
+                } finally { bitmap.recycle() }
+                writeMesh(mesh, File(output, "${names[index]}.depth"))
+            } finally { temporary.delete() }
+        }
+        currentCoroutineContext().ensureActive()
+        File(output, "ready").writeText(names.size.toString())
+    }
+
+    private suspend fun downloadAsset(url: String, limit: Long): ByteArray {
+        requireHttpsAsset(url)
+        val connection = java.net.URL(url).openConnection().apply {
+            connectTimeout = 15_000
+            readTimeout = 20_000
+        }
+        return try {
+            val bytes = java.io.ByteArrayOutputStream()
+            connection.getInputStream().use { input ->
+                val buffer = ByteArray(16 * 1024)
+                val started = android.os.SystemClock.elapsedRealtime()
+                while (true) {
+                    currentCoroutineContext().ensureActive()
+                    check(android.os.SystemClock.elapsedRealtime() - started < 120_000) { "Asset download timed out" }
+                    val read = input.read(buffer)
+                    if (read < 0) break
+                    check(bytes.size().toLong() + read <= limit) { "Spatial asset exceeds size limit" }
+                    bytes.write(buffer, 0, read)
+                }
+            }
+            bytes.toByteArray()
+        } finally { (connection as? java.net.HttpURLConnection)?.disconnect() }
     }
 
     private fun writeBitmap(bitmap: Bitmap, file: File) {
@@ -191,17 +261,19 @@ internal object LocalSpatialRepository {
 
     private fun validScene(directory: File): Boolean = try {
         val count = File(directory, "ready").readText().toInt()
-        count in 1..2 && (if (count == 2) listOf("background", "foreground") else listOf("background")).all {
+        var width = 0; var height = 0
+        spatialLayerNames(count).all {
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(File(directory, "$it.png").path, bounds)
             DepthMesh.parse(File(directory, "$it.depth").readText())
-            bounds.outWidth in 1..2048 && bounds.outHeight in 1..2048
+            if (width == 0) { width = bounds.outWidth; height = bounds.outHeight }
+            bounds.outWidth in 1..2048 && bounds.outHeight in 1..2048 && bounds.outWidth == width && bounds.outHeight == height
         }
     } catch (_: Exception) { false }
 
     suspend fun loadScene(directory: File): LocalScene = withContext(Dispatchers.IO) {
         check(validScene(directory))
-        val names = if (File(directory, "ready").readText() == "2") listOf("background", "foreground") else listOf("background")
+        val names = spatialLayerNames(File(directory, "ready").readText().toInt())
         val layers = mutableListOf<LocalLayer>()
         try {
             for (name in names) {
@@ -218,10 +290,10 @@ internal object LocalSpatialRepository {
     }
 }
 
-/** Coil applies EXIF orientation; the app owns the software bitmap and bounds decoding. */
+/** Coil applies EXIF orientation; bound decoding without upscaling already-small layer assets. */
 internal suspend fun decodeLocalWallpaper(context: Context, file: File): Bitmap {
     val result = context.imageLoader.execute(ImageRequest.Builder(context).data(file)
-        .size(2048, 2048).scale(Scale.FIT).allowHardware(false)
+        .size(2048, 2048).scale(Scale.FIT).precision(Precision.INEXACT).allowHardware(false)
         .memoryCachePolicy(CachePolicy.DISABLED).diskCachePolicy(CachePolicy.DISABLED).build()) as? SuccessResult
         ?: throw IOException("Cannot decode wallpaper")
     val decoded = (result.drawable as? BitmapDrawable)?.bitmap ?: throw IOException("Unsupported image")

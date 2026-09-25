@@ -4188,7 +4188,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         var spatialPath by remember { mutableStateOf<String?>(null) }
         if (backgroundImage != null) spatialPath = backgroundImage
         val cloudData = remember(spatialPath) { PreferenceManager.getImageData(context) }
-        val cloudDepth = cloudData?.takeIf { spatialPath?.endsWith("comfer_${it.id}.jpg") == true }?.depthUrl
+        val currentCloud = cloudData?.takeIf { spatialPath?.endsWith("comfer_${it.id}.jpg") == true }
         if (settingInfoUiState.autoWallpapers) {
             spatialHint = com.jeerovan.comfer.spatial.renderLocalSpatialWallpaper(
                 motionEnabled = wallpaperMotionEnabled,
@@ -4196,7 +4196,8 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
                 path = spatialPath,
                 ownWallpapers = settingInfoUiState.wallpaperDirectory != null &&
                     spatialPath?.substringAfterLast('/')?.startsWith("comfer_") != true,
-                cloudDepthUrl = cloudDepth,
+                cloudDepthUrl = currentCloud?.depthUrl,
+                cloudSceneUrl = currentCloud?.spatialSceneUrl,
             )
         } else if (settingInfoUiState.monochrome) {
             AnimatedBackground(backgroundImage, mainUiState.iconVersion, false, maxWidthPx, maxHeightPx)

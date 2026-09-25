@@ -16,6 +16,7 @@ data class ImageData(
     val id:Int,
     val imageUrl: String,
     val depthUrl: String? = null,
+    val spatialSceneUrl: String? = null,
 )
 
 internal enum class ImageWorkOutcome { SUCCESS, RETRY }

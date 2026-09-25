@@ -1,4 +1,4 @@
-# Local spatial wallpapers
+# Spatial wallpapers
 
 Settings → Wallpapers → Own wallpapers uses the existing folder picker and rotation.
 Only while Own wallpapers is enabled, a “3D Effect” switch appears. It defaults off.
@@ -17,7 +17,29 @@ full image orientation and aspect ratio. Grids are bounded to 128 × 128 and dow
 to 1 MiB. A 48 × 96 grid is recommended. Use versioned URLs for changed depth assets.
 Missing metadata preserves ordinary wallpaper motion. Invalid/unreachable assets
 preserve the original image and show retry. Server publishing is separate: existing
-cloud API responses without `depthUrl` cannot display a depth effect yet.
+cloud API responses without spatial asset metadata cannot display a depth effect yet.
+
+For multiple layers, supply `spatialSceneUrl` (HTTPS) instead. It takes precedence
+over `depthUrl` and points to a versioned JSON manifest (maximum 64 KiB):
+
+```json
+{
+  "version": 1,
+  "layers": [
+    {"imageUrl": "https://cdn.example.com/scene/v1/background.png", "depthUrl": "https://cdn.example.com/scene/v1/background.depth"},
+    {"imageUrl": "https://cdn.example.com/scene/v1/subject.png", "depthUrl": "https://cdn.example.com/scene/v1/subject.depth"}
+  ]
+}
+```
+
+The manifest accepts one to four layers in back-to-front order. Every image uses
+the same full canvas and orientation; the first must be opaque, with reconstructed
+background behind the subjects. Foreground assets retain alpha (PNG/WebP). Each
+image download is bounded to 25 MiB and decoded within 2048 × 2048. Every layer has
+its own depth mesh, using the format above. Use a new manifest URL for any asset
+revision. Both sources share the scene cache, validation, mesh renderer and motion
+lifecycle. Incomplete scenes are never applied; the original wallpaper remains
+visible until all layers are ready.
 
 ## Processing
 
@@ -32,8 +54,15 @@ cloud API responses without `depthUrl` cannot display a depth effect yet.
   closed after inference. A single app-scoped preparation job serializes ML work;
   cancelled or superseded work cannot publish into a newer selection.
 - ML Kit subject segmentation downloads its own optional model after opt-in.
-  When available and a usable subject is found, it produces a transparent foreground
-  and a background filled from exterior pixels. These are the only two layers.
+  When available and a usable subject is found, it produces an opaque reconstructed
+  background and one to three foreground layers (two to four total). Eight-connected
+  mask components keep attached details together. Components with less than 1% of
+  the image area or less than 0.12 mean-depth separation are merged; if more than
+  three groups remain, the closest depth groups merge. All retained subject pixels
+  remain represented. Connected subjects are never sliced into arbitrary depth bands.
+  These are conservative visual-benefit heuristics, not a guarantee for every photo.
+  Additional layers reuse the same depth/segmentation result; inference is not repeated.
+  Cutout bitmaps are generated and written sequentially to bound working memory.
   A conservative boundary-contrast check rejects cutouts that appear to clip
   attached subject parts or have ambiguous edges, preventing duplicate silhouettes.
   When segmentation is unavailable or unsuitable, the continuous ML depth mesh is
@@ -66,7 +95,10 @@ Run JVM tests with `:app:testDebugUnitTest`. Build isolated device tests using
 `LocalSpatialWallpaperTest` checks opt-out, cloud fallback, cached application, accessible progress/retry, and
 orbit pause/resume. `SpatialDepthTest` checks normalization, flat/invalid depth,
 extreme-tilt foldovers, background fill and inactive motion gates. Existing spatial
-tests verify edge coverage and bundled-wallpaper compatibility.
+tests verify edge coverage and bundled-wallpaper compatibility. `SpatialLayersTest`
+checks grouping, ordering, tiny fragments, layer limits and manifest validation.
+`SpatialSceneTest` compares locally generated four-layer scenes with the same assets
+loaded through the cloud pipeline at neutral/extreme tilt, and rejects partial downloads.
 
 `LocalDepthModelTest` is optional in the general suite: seed the checksum-verified
 model at `no_backup/spatial-models/<DEPTH_MODEL_SHA256>.tflite` in the isolated app,
@@ -88,3 +120,16 @@ New strings currently use English fallback pending the localization pass.
 - The cloud fallback test initially timed out waiting for continuous orbit to become
   idle; controlling its animation clock fixed the test, without changing production.
 - Live server depth delivery and physical battery/thermal measurements remain untested.
+
+### Adaptive layer validation (2026-09-25)
+
+- Debug build and 216 JVM tests passed.
+- Eight Samsung tests passed: four-layer local/cloud asset and render equivalence,
+  incomplete cloud download rejection, six existing UI/lifecycle checks, and actual
+  depth inference/cache reuse. Cloud fetching used deterministic asset fixtures;
+  live CDN delivery is not exercised by this suite.
+- The equivalence regression exposed unnecessary texture upscaling in Coil. Inexact
+  decoding now keeps small textures at their original size; layer pixels and renders
+  match exactly. Inspected the exported four-layer maximum-tilt image.
+- Four layers are a supported maximum, not a minimum or a measured battery guarantee.
+  Real-photo layer selection and battery/thermal profiling need broader validation.
