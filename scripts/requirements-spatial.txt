@@ -1,0 +1,11 @@
+# Python 3.11; install PyTorch/torchvision for your CUDA driver first (see docs).
+numpy==1.26.4
+Pillow==11.3.0
+opencv-python==4.11.0.86
+requests==2.32.5
+transformers==4.51.3
+huggingface-hub==0.30.2
+timm==1.0.15
+kornia==0.8.0
+# DA3's own dependencies are resolved by pip; GPU Linux is recommended.
+depth-anything-3 @ git+https://github.com/ByteDance-Seed/Depth-Anything-3.git@3d835ec1a5802d64a8b8b15f817a1ab54809bfe4

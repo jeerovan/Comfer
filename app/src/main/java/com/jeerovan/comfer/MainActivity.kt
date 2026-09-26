@@ -4430,7 +4430,12 @@ fun UshapedAppList(
     val totalIcons = apps.size
     if (totalIcons == 0) return
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    // The arc uses physical left-origin coordinates for graphics translations.
+    // Keep that origin in RTL without overriding descendants' text direction.
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = AbsoluteAlignment.TopLeft,
+    ) {
         val density = LocalDensity.current
         val availableWidthPx = with(density) { maxWidth.toPx() }
         val availableHeightPx = with(density) { maxHeight.toPx() }

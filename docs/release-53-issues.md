@@ -1,13 +1,35 @@
 # Version 53 remediation
 
-**Current candidate: 53-05 receiver recovery; [release audit](release-53-readiness.md).** The first 53-02 build was rejected after the
+## 26 September follow-up — RTL app drawer resolved in tested build
+
+The reported Arabic drawer issue is **resolved in the fixed local build**:
+the physical-coordinate canvas now uses `AbsoluteAlignment.TopLeft`, preventing
+RTL parent alignment from shifting the icons off-screen. See the
+[investigation and validation record](app-drawer-rtl-investigation.md).
+
+Validation: 228 unit tests and 16 emulator tests passed; Samsung Galaxy A30 /
+Android 11 passed 17 tests under system English and 5 under system Arabic.
+System-language and in-app-language switching produced identical drawer geometry
+for both Arabic and English, with correct inherited layout direction and tap
+targets. Actual launcher screenshots verified both columns and the centered arc.
+The phone's original English/Hindi system-language list was restored.
+
+The fixed isolated build is installed on Samsung. The signed release APK was
+rebuilt, but its attempted in-place installation was rejected because the
+existing production app uses a different signing certificate. Production app
+data was preserved. This closes the demonstrated RTL code defect, not the
+distribution/update blocker or unrelated production issues below.
+
+## Earlier 22 September release audit
+
+**22 September candidate: 53-05 receiver recovery; [release audit](release-53-readiness.md).** The first 53-02 build was rejected after the
 user reported missing app icons on Samsung. Its hashes remain here only as
 history; do not distribute that build.
 
 Prepared 22 September 2026 on `main`, based on
 `7f7cdb042507893fb2a9bac3eafd5b69dd1e2c56`. Version code/name: **53 / 53.0**.
 Changes are local; production resolution requires version-53 telemetry after rollout.
-The spatial-wallpaper experiment remains on its separate branch.
+At that audit, the spatial-wallpaper experiment remained on its separate branch.
 
 ## 53-05 — bounded reminder broadcasts and durable action recovery
 

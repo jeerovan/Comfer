@@ -40,6 +40,7 @@ __pycache__/
 *.py[cod]
 /play_reporting.db*
 /play_stats.db*
+/play_reviews.db*
 /crashlytics-export*.json
 
 # Credentials and release-signing material
@@ -61,3 +62,7 @@ __pycache__/
 *.dex
 
 *.codex
+
+# Offline cloud spatial asset pipeline (sources, model weights, SQLite, output).
+/spatial-output/
+/.venv-spatial/
