@@ -40,7 +40,7 @@ class ComferApp : Application(), ImageLoaderFactory {
             Thread.setDefaultUncaughtExceptionHandler(CrashHandler(this))
             LogcatRecorder(this).startLogging()
         }
-        setupImageWorker()
+        scheduleImageWorker()
     }
 
     /**
@@ -94,6 +94,23 @@ class ComferApp : Application(), ImageLoaderFactory {
             )
         }
     }
+
+    // WorkManager builds Room and acquires system services synchronously. Keep
+    // the whole optional setup off Main, independently of the startup data gate.
+    internal fun scheduleImageWorker(setup: () -> Unit = ::setupImageWorker): Job =
+        appScope.launch {
+            try {
+                setup()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: LinkageError) {
+                Log.e("ComferApp", "Periodic wallpaper WorkManager is incompatible", error)
+            } catch (error: Exception) {
+                // A failed scheduling attempt must not take down the launcher.
+                // The next process startup retries the same unique work request.
+                Log.e("ComferApp", "Periodic wallpaper scheduling failed", error)
+            }
+        }
 
     private fun setupImageWorker() {
         val hasNamespaceMethod = Build.VERSION.SDK_INT <

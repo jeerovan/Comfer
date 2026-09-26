@@ -1,10 +1,11 @@
 # Arabic / RTL drawer issue reported on version 53
 
 **Status: resolved in the fixed local build, verified on emulator and Samsung
-Galaxy A30 (Android 11) on 2026-09-26.** The updated isolated test app is installed
-on Samsung. Updating its existing production app was blocked by a signing-key
-mismatch; this is not a claim that the production installation or Play release
-has been updated.
+Galaxy A30 (Android 11) on 2026-09-26.** Both the isolated test app and the rebuilt
+signed release are installed on Samsung. After an in-place update was blocked by
+a signing-key mismatch, the user explicitly requested uninstalling the old app
+and installing the fresh release. That replacement succeeded. No Play rollout
+is claimed.
 
 Investigated 2026-09-26 against working-tree revision `ddc559c`. Inputs:
 [`app-drawer-issue-v-53.txt`](../app-drawer-issue-v-53.txt) and
@@ -220,13 +221,15 @@ The tested isolated APK is
 SHA-256 11c58f858b537d18dfad90564b0fa467723e556238157a86719adc301d321d28
 ```
 
-The attempt to update `com.jeerovan.comfer` with `adb install -r` failed with
-`INSTALL_FAILED_UPDATE_INCOMPATIBLE`: its installed signing certificate differs
-from the locally signed release. The existing installation was preserved.
-Updating it in place requires a build signed with its existing key or an update
-through the distribution channel that signs it. The signed release APK was built
-but was not runtime-tested on this phone; physical-device runtime verification
-used the installed isolated build of the same drawer source.
+The initial attempt to update `com.jeerovan.comfer` with `adb install -r` failed
+with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`: its installed signing certificate
+differed from the locally signed release. The installation was initially
+preserved. The user then explicitly authorized uninstalling the old build and
+installing the fresh one. Both commands succeeded, removing the old installation's
+local data. Package inspection confirms the signed release **53 / 53.0**, and
+`MainActivity` launched successfully. A captured release screenshot shows the
+arc and both icon columns. Automated physical-device regressions used the isolated
+build; the fresh signed release received this launch/render smoke check.
 
 Samsung logs, per-locale geometry JSON, screenshots, APK hashes, and installation
 status are retained under

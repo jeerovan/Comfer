@@ -157,6 +157,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import androidx.compose.runtime.withFrameNanos
@@ -3575,6 +3576,7 @@ fun AppListOverlay(apps: List<AppInfo>,
                    onSwipeDown: () -> Unit) {
     val context = LocalContext.current
     val view = LocalView.current
+    val clickSound = rememberDrawerClickSound()
     val packageManager = context.packageManager
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
@@ -3621,11 +3623,7 @@ fun AppListOverlay(apps: List<AppInfo>,
 
             // Check if at least 50ms have passed since the last sound
             if (currentTime - lastSoundTime >= 50) {
-                try {
-                    view.playSoundEffect(SoundEffectConstants.CLICK)
-                } catch (e: RuntimeException) {
-                    Log.w("AppListOverlay", "System sound service unavailable", e)
-                }
+                if (view.isAttachedToWindow && view.isSoundEffectsEnabled) clickSound.request()
                 lastSoundTime = currentTime
             }
 
@@ -5998,8 +5996,52 @@ class WidgetHostManager(private val context: Context) {
 
     // startListening also applies pending RemoteViews and adapter updates inline.
     // Running it on IO races with layout/draw and corrupts the widget hierarchy.
-    // Main.immediate serializes lifecycle calls with createView and view traversal.
+    // Only stopListening (a service call with no view mutation) runs on IO.
+    // One consumer keeps a new start behind an in-flight stop. Conflation bounds
+    // queued lifecycle work if the service stalls during repeated resume/pause.
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val listeningRequests = kotlinx.coroutines.channels.Channel<Boolean>(
+        kotlinx.coroutines.channels.Channel.CONFLATED
+    )
+    private val startedHosts = mutableSetOf<AppWidgetHost>()
+    private val hostsNeedingStop = mutableSetOf<AppWidgetHost>()
+
+    init {
+        scope.launch {
+            for (listening in listeningRequests) {
+                if (listening) {
+                    for (host in listOf(mainHost, leftHost, rightHost)) {
+                        if (host in startedHosts) continue
+                        // A start can register remotely before throwing while
+                        // applying pending views. It still needs a matching stop.
+                        hostsNeedingStop.add(host)
+                        try {
+                            host.startListening()
+                            startedHosts.add(host)
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (error: Exception) {
+                            Log.e("WidgetHostManager", "Error starting widget host", error)
+                        }
+                    }
+                } else {
+                    for (host in hostsNeedingStop.toList()) {
+                        try {
+                            withContext(Dispatchers.IO) { host.stopListening() }
+                            hostsNeedingStop.remove(host)
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (error: Exception) {
+                            // Retain the stop obligation for the next stop request.
+                            Log.e("WidgetHostManager", "Error stopping widget host", error)
+                        } finally {
+                            startedHosts.remove(host)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     fun initHosts() {
         mainHost = AppWidgetHost(context, MAIN_WIDGET_HOST_ID)
@@ -6008,31 +6050,15 @@ class WidgetHostManager(private val context: Context) {
     }
 
     fun startListening() {
-        scope.launch {
-            for (host in listOf(mainHost, leftHost, rightHost)) {
-                try {
-                    host.startListening()
-                } catch (e: Exception) {
-                    // Log error - widget updates may not work
-                    Log.e("WidgetHostManager", "Error starting widget hosts", e)
-                }
-            }
-        }
+        listeningRequests.trySend(true)
     }
 
     fun stopListening() {
-        scope.launch {
-            for (host in listOf(mainHost, leftHost, rightHost)) {
-                try {
-                    host.stopListening()
-                } catch (e: Exception) {
-                    Log.e("WidgetHostManager", "Error stopping widget hosts", e)
-                }
-            }
-        }
+        listeningRequests.trySend(false)
     }
 
     fun cleanup() {
+        listeningRequests.close()
         scope.cancel()
     }
 }

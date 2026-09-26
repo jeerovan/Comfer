@@ -6,6 +6,13 @@ building a local APK does not ship these fixes. Firebase issues remain open.
 
 ## Evidence
 
+**26 September outcome:** [version-53 recurrence review](release-53-recurrence.md)
+finds none of the exact target crash/ANR IDs for attempts 51-01 through 51-07 in
+import 6. The separate widget Binder risk from 51-02 persists: six start events
+and eight stop events. Attempt 53-08 moves only stop calls off Main while retaining
+Main-thread pending-view updates. Keep this earlier attempt and its rationale;
+absence of its original hierarchy crashes is not a production-resolution claim.
+
 **Follow-up, 22 September 2026:** version-52 import 4 contains 46 groups / 127
 events; all selected samples carry revision `7f7cdb042507893fb2a9bac3eafd5b69dd1e2c56`.
 See [the version-52 ledger](release-52-issues.md) for complete evidence. None of

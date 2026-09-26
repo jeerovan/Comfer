@@ -1,6 +1,6 @@
 # Development progress
 
-Current feature and release status, updated 2026-09-22. Maintain this document as
+Current feature and release status, updated 2026-09-26. Maintain this document as
 a concise reference: what is available, restrictions, attempted alternatives and
 remaining work. Keep implementation discussions and detailed test output out of
 this file.
@@ -375,6 +375,16 @@ Release requirements:
 5. Require meaningful affected-device exposure before marking fixes production verified.
 
 ## Production reporting and issue ledger
+
+26 September: [version-53 recurrence review](docs/release-53-recurrence.md)
+analyzes all 195 Firebase groups / 605 events: 72 previously seen IDs and 123
+newly observed IDs. Five next-release fixes address background scheduler startup,
+ordered widget stops, vibration permission, deferred launcher service lookup and
+drawer sound service waits. They target nine groups / 17 events and pass local
+regressions (228 unit, 36 Samsung, 34 applicable emulator and 10 reporting tests).
+Remaining reports stay under investigation; rollout verification and seven
+pre-existing lint errors remain open. Database notes and a repeatable recurrence
+analyzer preserve the plan and outcomes for future comparisons.
 
 22 September 2026: [53-05](docs/release-53-issues.md#53-05--bounded-reminder-broadcasts-and-durable-action-recovery)
 bounds reminder broadcasts to six seconds and durably retains actions for retry.

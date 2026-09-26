@@ -62,14 +62,16 @@ class Release51RegressionTest {
     }
 
     @Test
-    fun pendingWidgetUpdatesAndLifecycleCallsAreSerializedOnMain() {
+    fun pendingWidgetUpdatesStayOnMainAndStopsRemainOrdered() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val calls = Collections.synchronizedList(mutableListOf<String>())
         val latch = CountDownLatch(6)
+        val started = CountDownLatch(3)
         val manager = WidgetHostManager(context)
         fun host(id: Int) = object : AppWidgetHost(context, id) {
             override fun startListening() {
                 calls.add("start:$id:${Looper.myLooper() == Looper.getMainLooper()}")
+                started.countDown()
                 latch.countDown()
             }
             override fun stopListening() {
@@ -83,11 +85,12 @@ class Release51RegressionTest {
                 manager.leftHost = host(2)
                 manager.rightHost = host(3)
                 manager.startListening()
-                manager.stopListening()
             }
+            assertTrue(started.await(5, TimeUnit.SECONDS))
+            InstrumentationRegistry.getInstrumentation().runOnMainSync { manager.stopListening() }
             assertTrue(latch.await(10, TimeUnit.SECONDS))
             assertEquals(listOf("start:1:true", "start:2:true", "start:3:true",
-                "stop:1:true", "stop:2:true", "stop:3:true"), calls.toList())
+                "stop:1:false", "stop:2:false", "stop:3:false"), calls.toList())
         } finally {
             manager.cleanup()
         }
@@ -97,11 +100,14 @@ class Release51RegressionTest {
     fun failingWidgetHostDoesNotSkipOtherHostsAndCanRecover() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val manager = WidgetHostManager(context)
-        val calls = mutableListOf<Int>()
+        val calls = Collections.synchronizedList(mutableListOf<Int>())
+        val firstAttempt = CountDownLatch(3)
+        val recovered = CountDownLatch(1)
         var failFirst = true
         fun host(id: Int) = object : AppWidgetHost(context, id) {
             override fun startListening() {
                 calls.add(id)
+                if (calls.size <= 3) firstAttempt.countDown() else recovered.countDown()
                 if (id == 1 && failFirst) throw IllegalStateException("injected service failure")
             }
         }
@@ -111,10 +117,14 @@ class Release51RegressionTest {
                 manager.leftHost = host(2)
                 manager.rightHost = host(3)
                 manager.startListening()
+            }
+            assertTrue(firstAttempt.await(5, TimeUnit.SECONDS))
+            InstrumentationRegistry.getInstrumentation().runOnMainSync {
                 failFirst = false
                 manager.startListening()
-                assertEquals(listOf(1, 2, 3, 1, 2, 3), calls)
             }
+            assertTrue(recovered.await(5, TimeUnit.SECONDS))
+            assertEquals(listOf(1, 2, 3, 1), calls.toList())
         } finally { manager.cleanup() }
     }
 }

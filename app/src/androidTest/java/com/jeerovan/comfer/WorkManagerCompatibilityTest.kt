@@ -36,6 +36,13 @@ class WorkManagerCompatibilityTest {
                 assertTrue("Unsupported startup must not enqueue any jobs",
                     scheduler.pendingJobsInAllNamespaces.values.flatten().isEmpty())
             } else {
+                await("Background WorkManager initialization must finish") {
+                    runCatching { WorkManager.getInstance(context) }.isSuccess
+                }
+                await("Background setup must enqueue its unique wallpaper work") {
+                    WorkManager.getInstance(context).getWorkInfosForUniqueWork("ImageWorker")
+                        .get(5, TimeUnit.SECONDS).isNotEmpty()
+                }
                 val work = WorkManager.getInstance(context)
                     .getWorkInfosForUniqueWork("ImageWorker").get(30, TimeUnit.SECONDS)
                 assertEquals("Normal startup must retain one periodic wallpaper request", 1, work.size)

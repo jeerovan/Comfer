@@ -449,8 +449,15 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LauncherAppsUiState())
 
     // System Services for modern launcher tracking
-    private val launcherApps = application.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-    private val userManager = application.getSystemService(Context.USER_SERVICE) as UserManager
+    // First use is callback registration on packageManagerDispatcher or the IO
+    // inventory refresh. Service lookup can itself perform a blocking Binder call;
+    // do not do it in the ViewModel constructor on Main.
+    private val launcherApps by lazy {
+        application.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+    }
+    private val userManager by lazy {
+        application.getSystemService(Context.USER_SERVICE) as UserManager
+    }
     private val refreshRequests = MutableSharedFlow<Unit>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST

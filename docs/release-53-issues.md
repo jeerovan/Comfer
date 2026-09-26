@@ -1,5 +1,13 @@
 # Version 53 remediation
 
+## 26 September Firebase recurrence follow-up
+
+Import 6 contains 195 groups / 605 events for version 53. The
+[recurrence analysis and next-release fix ledger](release-53-recurrence.md)
+records 72 previously seen IDs, 123 newly observed IDs, the outcome of earlier
+attempts and five new local fixes (53-07 through 53-11). Its linked inventory
+retains all 195 dispositions. These are not production-resolution claims.
+
 ## 26 September follow-up — RTL app drawer resolved in tested build
 
 The reported Arabic drawer issue is **resolved in the fixed local build**:
@@ -14,11 +22,13 @@ for both Arabic and English, with correct inherited layout direction and tap
 targets. Actual launcher screenshots verified both columns and the centered arc.
 The phone's original English/Hindi system-language list was restored.
 
-The fixed isolated build is installed on Samsung. The signed release APK was
-rebuilt, but its attempted in-place installation was rejected because the
-existing production app uses a different signing certificate. Production app
-data was preserved. This closes the demonstrated RTL code defect, not the
-distribution/update blocker or unrelated production issues below.
+The fixed isolated build and rebuilt signed release are installed on Samsung.
+The first in-place release update was rejected for a signing-certificate mismatch.
+Following the user's explicit request, the old production app was uninstalled
+and the fresh **53 / 53.0** release installed successfully; the old installation's
+local data was removed. Launch and drawer rendering were verified on the release.
+This closes the demonstrated RTL defect and local installation blocker; no Play
+rollout or resolution of unrelated production issues below is claimed.
 
 ## Earlier 22 September release audit
 

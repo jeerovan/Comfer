@@ -3,11 +3,13 @@ package com.jeerovan.comfer.compat
 import android.annotation.SuppressLint
 import android.view.WindowInsets
 import android.view.accessibility.AccessibilityEvent
+import androidx.test.filters.SdkSuppress
 import org.junit.Assert.*
 import org.junit.Test
 
 @SuppressLint("NewApi")
 class FrameworkCompatibilityTest {
+    @SdkSuppress(minSdkVersion = 30) // WindowInsets.Type does not exist before API 30.
     @Test fun androidXApi34OverlayImplementationIsActuallyGuarded() {
         val method = Class.forName("androidx.core.view.WindowInsetsCompat\$TypeImpl34")
             .getDeclaredMethod("toPlatformType", Int::class.javaPrimitiveType).apply { isAccessible = true }
@@ -26,6 +28,7 @@ class FrameworkCompatibilityTest {
         finally { event.recycle() }
     }
 
+    @SdkSuppress(minSdkVersion = 30)
     @Test fun overlayTypeMatchesPlatformOrFallsBackWhenTheMethodIsMissing() {
         val expected = try { WindowInsets.Type.systemOverlays() } catch (_: NoSuchMethodError) { 0 }
         assertEquals(expected, FrameworkCompatibility.systemOverlays())

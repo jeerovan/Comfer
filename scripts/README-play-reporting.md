@@ -6,6 +6,19 @@ The current triage/fix ledger is maintained in
 
 ## Google Play import
 
+Latest Firebase recurrence review: [version 53](../docs/release-53-recurrence.md),
+with the complete inventory, previous-fix outcomes and next-release attempt IDs.
+For a repeatable read-only comparison after a future import:
+
+```sh
+venv/bin/python scripts/analyze_crashlytics_recurrence.py --version 54 \
+  --output validation-artifacts/firebase-v54-recurrence.json
+```
+
+Substitute the actual version. This compares exact IDs within the Firebase app,
+retains current/prior sample signatures and build stamps, and never treats
+different release windows as comparable rates or overwrites existing triage.
+
 From the repository root, using the existing virtual environment:
 
 ```sh
