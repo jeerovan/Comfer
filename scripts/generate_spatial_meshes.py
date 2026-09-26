@@ -1,4 +1,4 @@
-"""Rebuild hand-authored 2.5D depth grids for the two supplied wallpapers.
+"""Rebuild hand-authored 2.5D depth grids for the two test fixture wallpapers.
 
 No model/download required. Depth is artistic, normalized near=1/far=0,
 not a metric reconstruction. Original JPEGs are copied without modification.
@@ -8,7 +8,7 @@ import math
 import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / 'app/src/main/assets/spatial'
+OUTPUT = ROOT / 'app/src/androidTest/assets/spatial'
 COLS, ROWS = 48, 96
 
 

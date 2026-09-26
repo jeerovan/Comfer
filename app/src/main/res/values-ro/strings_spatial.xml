@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">Efect 3D</string>
+    <string name="local_spatial_description">Efect de profunzime pe fundal</string>
+    <string name="local_spatial_preparing">Se pregătește fundalul cu profunzime</string>
+    <string name="local_spatial_retry">Nu s-a putut pregăti efectul de profunzime. Atinge pentru a reîncerca.</string>
+    <string name="local_spatial_download_description">Activează pentru a descărca modelul 3D (aproximativ 28 MB, plus un model de detectare a subiectului). Fotografiile rămân pe dispozitiv.</string>
+    <string name="local_spatial_downloading">Se descarcă modelul 3D…</string>
+    <string name="local_spatial_model_failed">Descărcarea modelului a eșuat. Dezactivează și reactivează opțiunea pentru a reîncerca.</string>
+</resources>

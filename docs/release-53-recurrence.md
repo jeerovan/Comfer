@@ -176,3 +176,21 @@ awaiting rollout evidence. Existing other-version triage, event evidence,
 snapshots and import runs were compared with the pre-analysis backup and
 preserved. Integrity and foreign-key checks passed. Backup:
 `play_reporting.db.backup-v53-recurrence-20260926T100614Z`.
+
+### Version 54 release follow-up: cold WorkManager service entry
+
+Release validation found that 53-07's asynchronous initialization alone could race
+an OS-started `SystemJobService` after process death. This was reproduced in the
+signed v54 candidate and is tracked as **54-01** in
+[version 54 readiness](release-54-readiness.md). `Configuration.Provider` supplies
+the supported on-demand fallback while ordinary startup remains on IO. Cold service
+startup can still initialize on Main; monitor its latency separately. Do not treat
+the earlier Activity-startup tests as coverage of this path or claim production
+resolution based only on the local fix.
+
+Version 54 also reproduced time-sensitive Tasks alarms waiting indefinitely in
+Samsung's background broadcast queue, even after reboot. **54-02** moves alarm and
+notification-action delivery to foreground-priority broadcasts while retaining the
+six-second receiver deadline. The 28-test Samsung acceptance run, including real
+alarm delivery and Complete-action persistence, passes. See the v54 readiness
+record for before/after evidence, legacy-token replacement and remaining limits.

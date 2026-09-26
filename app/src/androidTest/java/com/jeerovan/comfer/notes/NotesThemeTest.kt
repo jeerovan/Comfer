@@ -50,7 +50,7 @@ class NotesThemeTest {
             model.start()
         }
         compose.setContent {
-            val activity = androidx.compose.ui.platform.LocalContext.current as android.app.Activity
+            val activity = requireNotNull(androidx.activity.compose.LocalActivity.current)
             DisposableEffect(activity) {
                 activity.window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
                 onDispose { }

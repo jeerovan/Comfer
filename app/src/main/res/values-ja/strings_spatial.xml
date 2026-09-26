@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D効果</string>
+    <string name="local_spatial_description">壁紙に奥行きを追加</string>
+    <string name="local_spatial_preparing">立体壁紙を準備中</string>
+    <string name="local_spatial_retry">立体効果を準備できませんでした。タップして再試行してください。</string>
+    <string name="local_spatial_download_description">有効にすると3Dモデル（約28 MBと、別途被写体検出モデル）をダウンロードします。写真は端末内に保存されます。</string>
+    <string name="local_spatial_downloading">3Dモデルをダウンロード中…</string>
+    <string name="local_spatial_model_failed">モデルのダウンロードに失敗しました。オフにしてから再度オンにして、もう一度お試しください。</string>
+</resources>

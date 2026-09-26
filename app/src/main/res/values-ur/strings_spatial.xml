@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D اثر</string>
+    <string name="local_spatial_description">وال پیپر پر گہرائی کا اثر</string>
+    <string name="local_spatial_preparing">گہرائی والا وال پیپر تیار ہو رہا ہے</string>
+    <string name="local_spatial_retry">گہرائی کا اثر تیار نہیں ہو سکا۔ دوبارہ کوشش کرنے کے لیے ٹیپ کریں۔</string>
+    <string name="local_spatial_download_description">3D ماڈل ڈاؤن لوڈ کرنے کے لیے فعال کریں (تقریباً 28 MB، اس کے علاوہ مرکزی موضوع کی شناخت کا ایک ماڈل)۔ تصاویر آپ کے آلے پر ہی رہتی ہیں۔</string>
+    <string name="local_spatial_downloading">3D ماڈل ڈاؤن لوڈ ہو رہا ہے…</string>
+    <string name="local_spatial_model_failed">ماڈل ڈاؤن لوڈ نہیں ہو سکا۔ دوبارہ کوشش کرنے کے لیے بند کر کے پھر فعال کریں۔</string>
+</resources>

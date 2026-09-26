@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D effekt</string>
+    <string name="local_spatial_description">Fon rasmida chuqurlik effekti</string>
+    <string name="local_spatial_preparing">Chuqurlik effektli fon rasmi tayyorlanmoqda</string>
+    <string name="local_spatial_retry">Chuqurlik effektini tayyorlab bo‘lmadi. Qayta urinish uchun bosing.</string>
+    <string name="local_spatial_download_description">3D modelni yuklab olish uchun yoqing (taxminan 28 MB va asosiy obyektni aniqlash uchun qo‘shimcha model). Suratlar qurilmangizda qoladi.</string>
+    <string name="local_spatial_downloading">3D model yuklab olinmoqda…</string>
+    <string name="local_spatial_model_failed">Modelni yuklab bo‘lmadi. Qayta urinish uchun o‘chirib, yana yoqing.</string>
+</resources>

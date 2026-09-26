@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">Effetto 3D</string>
+    <string name="local_spatial_description">Effetto di profondità sullo sfondo</string>
+    <string name="local_spatial_preparing">Preparazione dello sfondo con profondità</string>
+    <string name="local_spatial_retry">Impossibile preparare l’effetto di profondità. Tocca per riprovare.</string>
+    <string name="local_spatial_download_description">Attiva per scaricare il modello 3D (circa 28 MB, più un modello di rilevamento del soggetto). Le foto rimangono sul dispositivo.</string>
+    <string name="local_spatial_downloading">Download del modello 3D…</string>
+    <string name="local_spatial_model_failed">Download del modello non riuscito. Disattiva e riattiva l’opzione per riprovare.</string>
+</resources>

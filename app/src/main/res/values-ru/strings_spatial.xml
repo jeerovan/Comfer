@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D-эффект</string>
+    <string name="local_spatial_description">Эффект глубины на обоях</string>
+    <string name="local_spatial_preparing">Подготовка объёмных обоев</string>
+    <string name="local_spatial_retry">Не удалось подготовить эффект глубины. Нажмите, чтобы повторить попытку.</string>
+    <string name="local_spatial_download_description">Включите, чтобы скачать 3D-модель (около 28 МБ, а также модель выделения объекта). Фотографии остаются на вашем устройстве.</string>
+    <string name="local_spatial_downloading">Скачивание 3D-модели…</string>
+    <string name="local_spatial_model_failed">Не удалось скачать модель. Выключите и снова включите функцию, чтобы повторить попытку.</string>
+</resources>

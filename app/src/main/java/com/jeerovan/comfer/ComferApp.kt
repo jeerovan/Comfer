@@ -19,7 +19,18 @@ import kotlinx.coroutines.launch
 
 const val saveCrashes = false
 const val saveLogs = false
-class ComferApp : Application(), ImageLoaderFactory {
+class ComferApp : Application(), ImageLoaderFactory, Configuration.Provider {
+
+    // A persisted JobScheduler job can create SystemJobService before our IO
+    // startup coroutine runs. WorkManager's synchronized on-demand initialization
+    // lets that entry point and normal background setup share one instance.
+    override val workManagerConfiguration: Configuration
+        get() {
+            check(workManagerRuntimeAvailable()) {
+                "WorkManager disabled: framework has no JobScheduler.forNamespace"
+            }
+            return Configuration.Builder().build()
+        }
 
     // App-wide background scope for one-time startup work (prefs migration + the
     // DataStore->snapshot load). Running this on the main thread was the #1
@@ -96,7 +107,8 @@ class ComferApp : Application(), ImageLoaderFactory {
     }
 
     // WorkManager builds Room and acquires system services synchronously. Keep
-    // the whole optional setup off Main, independently of the startup data gate.
+    // normal optional setup off Main, independently of the startup data gate.
+    // A cold OS job may initialize on demand through Configuration.Provider first.
     internal fun scheduleImageWorker(setup: () -> Unit = ::setupImageWorker): Job =
         appScope.launch {
             try {
@@ -112,13 +124,17 @@ class ComferApp : Application(), ImageLoaderFactory {
             }
         }
 
-    private fun setupImageWorker() {
+    private fun workManagerRuntimeAvailable(): Boolean {
         val hasNamespaceMethod = Build.VERSION.SDK_INT <
             Build.VERSION_CODES.UPSIDE_DOWN_CAKE ||
             runCatching {
                 JobScheduler::class.java.getMethod("forNamespace", String::class.java)
             }.isSuccess
-        if (!isWorkManagerRuntimeSupported(Build.VERSION.SDK_INT, hasNamespaceMethod)) {
+        return isWorkManagerRuntimeSupported(Build.VERSION.SDK_INT, hasNamespaceMethod)
+    }
+
+    private fun setupImageWorker() {
+        if (!workManagerRuntimeAvailable()) {
             Log.e(
                 "ComferApp",
                 "Periodic wallpaper work disabled: API 34 framework has no " +
@@ -136,15 +152,7 @@ class ComferApp : Application(), ImageLoaderFactory {
             .build()
 
         val workManager = try {
-            try {
-                WorkManager.getInstance(applicationContext)
-            } catch (uninitialized: IllegalStateException) {
-                WorkManager.initialize(
-                    applicationContext,
-                    Configuration.Builder().build(),
-                )
-                WorkManager.getInstance(applicationContext)
-            }
+            WorkManager.getInstance(applicationContext)
         } catch (linkageError: LinkageError) {
             // A platform API may still be missing on partially updated OEM
             // firmware even after the reflective preflight.

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">Εφέ 3D</string>
+    <string name="local_spatial_description">Εφέ βάθους στην ταπετσαρία</string>
+    <string name="local_spatial_preparing">Προετοιμασία ταπετσαρίας με βάθος</string>
+    <string name="local_spatial_retry">Δεν ήταν δυνατή η προετοιμασία του εφέ βάθους. Πατήστε για νέα προσπάθεια.</string>
+    <string name="local_spatial_download_description">Ενεργοποιήστε για λήψη του μοντέλου 3D (περίπου 28 MB, συν ένα μοντέλο εντοπισμού θέματος). Οι φωτογραφίες παραμένουν στη συσκευή σας.</string>
+    <string name="local_spatial_downloading">Λήψη μοντέλου 3D…</string>
+    <string name="local_spatial_model_failed">Η λήψη του μοντέλου απέτυχε. Απενεργοποιήστε και ενεργοποιήστε ξανά για νέα προσπάθεια.</string>
+</resources>

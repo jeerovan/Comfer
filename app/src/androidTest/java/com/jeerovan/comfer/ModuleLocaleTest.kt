@@ -63,7 +63,9 @@ class ModuleLocaleTest {
         for (tag in tags) {
             val local = resources(tag)
             for (id in listOf(R.string.module_new_note, R.string.tasks_empty_starred,
-                R.string.journal_empty, R.string.protection_timeout)) {
+                R.string.journal_empty, R.string.protection_timeout,
+                R.string.local_spatial_title, R.string.local_spatial_download_description,
+                R.string.local_spatial_retry, R.string.local_spatial_model_failed)) {
                 assertNotEquals("English fallback: $tag / ${local.getResourceEntryName(id)}", english.getString(id), local.getString(id))
             }
             for ((id, args) in formatted) {

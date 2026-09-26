@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">Hiệu ứng 3D</string>
+    <string name="local_spatial_description">Hiệu ứng chiều sâu trên hình nền</string>
+    <string name="local_spatial_preparing">Đang chuẩn bị hình nền có chiều sâu</string>
+    <string name="local_spatial_retry">Không thể chuẩn bị hiệu ứng chiều sâu. Nhấn để thử lại.</string>
+    <string name="local_spatial_download_description">Bật để tải mô hình 3D (khoảng 28 MB, cùng một mô hình nhận diện chủ thể). Ảnh vẫn nằm trên thiết bị của bạn.</string>
+    <string name="local_spatial_downloading">Đang tải mô hình 3D…</string>
+    <string name="local_spatial_model_failed">Tải mô hình không thành công. Tắt rồi bật lại để thử lại.</string>
+</resources>

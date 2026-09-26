@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">Efek 3D</string>
+    <string name="local_spatial_description">Efek kedalaman pada wallpaper</string>
+    <string name="local_spatial_preparing">Menyiapkan wallpaper dengan kedalaman</string>
+    <string name="local_spatial_retry">Tidak dapat menyiapkan efek kedalaman. Ketuk untuk mencoba lagi.</string>
+    <string name="local_spatial_download_description">Aktifkan untuk mengunduh model 3D (sekitar 28 MB, ditambah model pendeteksi subjek). Foto tetap tersimpan di perangkat Anda.</string>
+    <string name="local_spatial_downloading">Mengunduh model 3D…</string>
+    <string name="local_spatial_model_failed">Gagal mengunduh model. Nonaktifkan lalu aktifkan kembali untuk mencoba lagi.</string>
+</resources>

@@ -261,9 +261,15 @@ class TaskPersistenceTest {
     }
     @Test fun futureAlarmActuallyDeliversWithoutForegroundActivity() = runBlocking {
         org.junit.Assume.assumeTrue(TaskReminders.exactAllowed(context) && TaskReminders.notificationsAllowed(context))
+        // Simulate an alarm token created by a pre-v54 installation. Extras-only
+        // updates must not leave its background-priority Intent in use.
+        val legacy = android.app.PendingIntent.getBroadcast(context, 4211,
+            android.content.Intent(context, TaskReminderReceiver::class.java).setAction("comfer.tasks.ALARM"),
+            android.app.PendingIntent.FLAG_CANCEL_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE)
         val task = TaskItem(id = "alarm-probe", listId = "tasks", title = "Synthetic alarm probe", day = LocalDate.now().toEpochDay(), snoozedUntil = System.currentTimeMillis() + 5000)
         TaskStore.change(context) { it.copy(tasks = listOf(task)) }
         TaskReminders.reconcile(context)
+        assertThrows(android.app.PendingIntent.CanceledException::class.java) { legacy.send() }
         withTimeout(45000) { while(TaskStore.snapshot(context).tasks.single().notifiedAt == null) delay(250) }
         assertTrue(context.getSystemService(android.app.NotificationManager::class.java).activeNotifications.any { it.tag?.startsWith("task:alarm-probe:") == true })
     }

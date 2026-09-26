@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D 효과</string>
+    <string name="local_spatial_description">배경화면에 입체 효과 적용</string>
+    <string name="local_spatial_preparing">입체 배경화면 준비 중</string>
+    <string name="local_spatial_retry">입체 효과를 준비할 수 없습니다. 탭하여 다시 시도하세요.</string>
+    <string name="local_spatial_download_description">켜면 3D 모델(약 28 MB 및 별도의 피사체 감지 모델)을 다운로드합니다. 사진은 기기에 보관됩니다.</string>
+    <string name="local_spatial_downloading">3D 모델 다운로드 중…</string>
+    <string name="local_spatial_model_failed">모델 다운로드에 실패했습니다. 껐다가 다시 켜서 재시도하세요.</string>
+</resources>

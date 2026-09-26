@@ -19,8 +19,6 @@ import kotlinx.coroutines.sync.withLock
 import java.io.File
 import java.io.IOException
 
-internal const val LOCAL_SCENE = 3
-internal const val LOCAL_PATH = "local_path"
 internal const val LOCAL_SPATIAL = "local_spatial"
 internal const val PIPELINE_VERSION = "depth-v1-layers-v4"
 

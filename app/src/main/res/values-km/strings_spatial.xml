@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">បែបផែន 3D</string>
+    <string name="local_spatial_description">បែបផែនជម្រៅលើផ្ទាំងរូបភាព</string>
+    <string name="local_spatial_preparing">កំពុងរៀបចំផ្ទាំងរូបភាពមានជម្រៅ</string>
+    <string name="local_spatial_retry">មិនអាចរៀបចំបែបផែនជម្រៅបានទេ។ ប៉ះដើម្បីព្យាយាមម្តងទៀត។</string>
+    <string name="local_spatial_download_description">បើកដើម្បីទាញយកម៉ូដែល 3D (ប្រហែល 28 MB រួមជាមួយម៉ូដែលសម្គាល់វត្ថុសំខាន់ក្នុងរូបភាព)។ រូបថតនៅតែរក្សាទុកនៅលើឧបករណ៍របស់អ្នក។</string>
+    <string name="local_spatial_downloading">កំពុងទាញយកម៉ូដែល 3D…</string>
+    <string name="local_spatial_model_failed">ការទាញយកម៉ូដែលបានបរាជ័យ។ បិទ រួចបើកវិញដើម្បីព្យាយាមម្តងទៀត។</string>
+</resources>

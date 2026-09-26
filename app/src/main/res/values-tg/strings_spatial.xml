@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">Эффекти 3D</string>
+    <string name="local_spatial_description">Эффекти умқ дар обои</string>
+    <string name="local_spatial_preparing">Обои ҳаҷмдор омода шуда истодааст</string>
+    <string name="local_spatial_retry">Эффекти умқ омода нашуд. Барои кӯшиши дубора ламс кунед.</string>
+    <string name="local_spatial_download_description">Барои зеркашии модели 3D фаъол кунед (тақрибан 28 МБ ва модели иловагии шинохти объекти асосӣ). Аксҳо дар дастгоҳи шумо мемонанд.</string>
+    <string name="local_spatial_downloading">Модели 3D зеркашӣ шуда истодааст…</string>
+    <string name="local_spatial_model_failed">Зеркашии модел ноком шуд. Барои кӯшиши дубора хомӯш карда, боз фаъол кунед.</string>
+</resources>

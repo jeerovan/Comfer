@@ -45,7 +45,7 @@ visible until all layers are ready.
 
 - Photos are copied into private storage, bounded to 25 MiB on folder import, EXIF-oriented by Coil,
   and decoded with a maximum 2048 × 2048 bounding box.
-- Only opted-in local photos run ML. Bundled/server assets do not enter this path.
+- Only opted-in local photos run ML. Server assets do not enter this path.
 - Depth Anything V2 Small's fixed-shape INT8-weight LiteRT conversion is downloaded
   on demand (~27.7 MB), pinned to a revision and SHA-256. Model URL, shape, RGB
   normalization, and checksum are in `LocalDepthEstimator.kt`. The bundled NOTICE
@@ -122,8 +122,9 @@ Run JVM tests with `:app:testDebugUnitTest`. Build isolated device tests using
 
 `LocalSpatialWallpaperTest` checks opt-out, cloud fallback, cached application, accessible progress/retry, and
 orbit pause/resume. `SpatialDepthTest` checks normalization, flat/invalid depth,
-extreme-tilt foldovers, background fill and inactive motion gates. Existing spatial
-tests verify edge coverage and bundled-wallpaper compatibility. `SpatialLayersTest`
+extreme-tilt foldovers, background fill and inactive motion gates.
+`DepthMeshRenderTest` verifies edge coverage using test-only image/depth fixtures.
+`SpatialLayersTest`
 checks grouping, ordering, tiny fragments, layer limits and manifest validation.
 `SpatialSceneTest` compares locally generated four-layer scenes with the same assets
 loaded through the cloud pipeline at neutral/extreme tilt, and rejects partial downloads.
@@ -136,7 +137,8 @@ Compose screenshot tests need API 26+; other local tests also run on API 24.
 
 Physical-device thermal/battery profiling, broader photo-quality evaluation, and
 non-Google Android distribution validation remain release checks. The switch uses the existing automatic wallpaper-directory rotation.
-New strings currently use English fallback pending the localization pass.
+The active 3D Effect strings are translated across all 34 supported locales; see
+[localization and cleanup](spatial-localization.md).
 
 
 ### Validation of the integrated flow (2026-09-24)

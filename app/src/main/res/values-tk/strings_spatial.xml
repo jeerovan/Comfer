@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D täsiri</string>
+    <string name="local_spatial_description">Diwar kagyzynda çuňluk täsiri</string>
+    <string name="local_spatial_preparing">Çuňluk täsirli diwar kagyzy taýýarlanýar</string>
+    <string name="local_spatial_retry">Çuňluk täsirini taýýarlap bolmady. Gaýtadan synanyşmak üçin basyň.</string>
+    <string name="local_spatial_download_description">3D modelini göçürip almak üçin işlediň (takmynan 28 MB we esasy obýekti kesgitlemek üçin goşmaça model). Suratlar enjamyňyzda galýar.</string>
+    <string name="local_spatial_downloading">3D modeli göçürilip alynýar…</string>
+    <string name="local_spatial_model_failed">Modeli göçürip alyp bolmady. Gaýtadan synanyşmak üçin öçürip, täzeden işlediň.</string>
+</resources>

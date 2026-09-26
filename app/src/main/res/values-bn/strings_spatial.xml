@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D ইফেক্ট</string>
+    <string name="local_spatial_description">ওয়ালপেপারে গভীরতার ইফেক্ট</string>
+    <string name="local_spatial_preparing">গভীরতাযুক্ত ওয়ালপেপার প্রস্তুত হচ্ছে</string>
+    <string name="local_spatial_retry">গভীরতার ইফেক্ট প্রস্তুত করা যায়নি। আবার চেষ্টা করতে ট্যাপ করুন।</string>
+    <string name="local_spatial_download_description">3D মডেল ডাউনলোড করতে চালু করুন (প্রায় 28 MB, সঙ্গে ছবির মূল বিষয় শনাক্ত করার একটি মডেল)। ছবিগুলো আপনার ডিভাইসেই থাকে।</string>
+    <string name="local_spatial_downloading">3D মডেল ডাউনলোড হচ্ছে…</string>
+    <string name="local_spatial_model_failed">মডেল ডাউনলোড হয়নি। আবার চেষ্টা করতে বন্ধ করে চালু করুন।</string>
+</resources>

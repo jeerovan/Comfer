@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D விளைவு</string>
+    <string name="local_spatial_description">பின்னணிப் படத்தில் ஆழத் தோற்றம்</string>
+    <string name="local_spatial_preparing">ஆழத் தோற்றமுள்ள பின்னணிப் படம் தயாராகிறது</string>
+    <string name="local_spatial_retry">ஆழத் தோற்றத்தைத் தயாரிக்க முடியவில்லை. மீண்டும் முயலத் தட்டவும்.</string>
+    <string name="local_spatial_download_description">3D மாதிரியைப் பதிவிறக்க இயக்கவும் (சுமார் 28 MB மற்றும் படத்தின் முக்கியப் பொருளைக் கண்டறியும் கூடுதல் மாதிரி). புகைப்படங்கள் உங்கள் சாதனத்திலேயே இருக்கும்.</string>
+    <string name="local_spatial_downloading">3D மாதிரி பதிவிறக்கப்படுகிறது…</string>
+    <string name="local_spatial_model_failed">மாதிரியைப் பதிவிறக்க முடியவில்லை. மீண்டும் முயல, முடக்கி மீண்டும் இயக்கவும்.</string>
+</resources>

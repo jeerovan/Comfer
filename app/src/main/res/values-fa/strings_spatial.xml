@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">جلوهٔ سه‌بعدی</string>
+    <string name="local_spatial_description">جلوهٔ عمق روی پس‌زمینه</string>
+    <string name="local_spatial_preparing">در حال آماده‌سازی پس‌زمینهٔ سه‌بعدی</string>
+    <string name="local_spatial_retry">آماده‌سازی جلوهٔ عمق ممکن نشد. برای تلاش دوباره ضربه بزنید.</string>
+    <string name="local_spatial_download_description">برای دانلود مدل سه‌بعدی فعال کنید (حدود 28 مگابایت، به‌علاوهٔ یک مدل تشخیص سوژه). عکس‌ها روی دستگاه شما باقی می‌مانند.</string>
+    <string name="local_spatial_downloading">در حال دانلود مدل سه‌بعدی…</string>
+    <string name="local_spatial_model_failed">دانلود مدل ناموفق بود. برای تلاش دوباره، خاموش و سپس روشن کنید.</string>
+</resources>

@@ -29,7 +29,12 @@ internal object TaskReminders {
         return NotificationManagerCompat.from(context).areNotificationsEnabled() && (Build.VERSION.SDK_INT < 26 || manager.getNotificationChannel(CHANNEL)?.importance != NotificationManager.IMPORTANCE_NONE)
     }
     fun exactAllowed(context: Context) = Build.VERSION.SDK_INT < 31 || context.getSystemService(AlarmManager::class.java).canScheduleExactAlarms()
-    private fun alarm(context: Context) = PendingIntent.getBroadcast(context, 4211, Intent(context, TaskReminderReceiver::class.java).setAction("comfer.tasks.ALARM"), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    // User-visible deadlines must not wait behind the OEM background broadcast queue.
+    // Replace old tokens because UPDATE_CURRENT only updates extras, not Intent flags.
+    private fun alarm(context: Context) = PendingIntent.getBroadcast(context, 4211,
+        Intent(context, TaskReminderReceiver::class.java).setAction("comfer.tasks.ALARM")
+            .addFlags(Intent.FLAG_RECEIVER_FOREGROUND),
+        PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
     suspend fun reconcile(context: Context) = TaskReminderDelivery.reconcile(context) { reconcileState(context) }
 
@@ -89,15 +94,16 @@ internal object TaskReminders {
             }
             if(due.isEmpty() && notificationsAllowed(context)) postSummary()
             val alarms = context.getSystemService(AlarmManager::class.java)
-            alarms.cancel(alarm(context))
+            val alarmIntent = alarm(context)
+            alarms.cancel(alarmIntent)
             val midnight = LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             val next = if(notificationsAllowed(context)) state.tasks.mapNotNull { reminderAt(it, state.preferences) }.filter { it > now }.minOrNull() else null
             // Midnight also generates the next calendar occurrence and refreshes date-only state.
             val needsRollover = state.series.any { !it.stopped }
             if(needsRollover || next != null) {
                 val at = if(needsRollover) minOf(next ?: midnight, midnight) else next!!
-                try { if(exactAllowed(context)) alarms.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, alarm(context)) else alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, alarm(context)) }
-                catch (_: SecurityException) { alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, alarm(context)) }
+                try { if(exactAllowed(context)) alarms.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, alarmIntent) else alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, alarmIntent) }
+                catch (_: SecurityException) { alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, alarmIntent) }
             }
         }
     }
@@ -109,7 +115,8 @@ internal object TaskReminders {
         Intent(context, TasksActivity::class.java).putExtra("task", id).putExtra("complete", complete).setData(Uri.parse("comfer://tasks/${Uri.encode(id ?: "all")}/$complete")), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     private fun actionIntent(context: Context, item: TaskItem, action: String, minutes: Int = 0) = PendingIntent.getBroadcast(context, 0,
         Intent(context, TaskReminderReceiver::class.java).setAction("comfer.tasks.$action").setData(Uri.parse("comfer://tasks/${Uri.encode(item.id)}/${item.version}/$action"))
-            .putExtra("task", item.id).putExtra("version", item.version).putExtra("minutes", minutes), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            .addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
+            .putExtra("task", item.id).putExtra("version", item.version).putExtra("minutes", minutes), PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     suspend fun act(context: Context, id: String, version: Long, action: String, minutes: Int = 10) {
         TaskStore.change(context) { state -> applyReminderAction(state, id, version, action, minutes, System.currentTimeMillis()) }
         reconcile(context)

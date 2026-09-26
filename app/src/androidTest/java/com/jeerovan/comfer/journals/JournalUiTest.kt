@@ -29,7 +29,7 @@ class JournalUiTest {
         }
         compose.runOnUiThread { model = JournalViewModel(context.applicationContext as Application) }
         compose.setContent {
-            val activity = androidx.compose.ui.platform.LocalContext.current as android.app.Activity
+            val activity = requireNotNull(androidx.activity.compose.LocalActivity.current)
             androidx.compose.runtime.DisposableEffect(activity) {
                 activity.window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
                 onDispose { }
@@ -265,7 +265,12 @@ class JournalUiTest {
         val newest = compose.onNodeWithText("Return entry 39").fetchSemanticsNode().boundsInRoot
         assertTrue("Older entries remain above newer entries", older.bottom < newest.top)
         val bottom = compose.onNodeWithTag("journal-feed").fetchSemanticsNode().boundsInRoot.bottom
-        assertTrue("Newest entry stays near the bottom", newest.bottom > bottom - 150f)
+        // The timestamp is the entry's last content; text sits above that footer.
+        // Compare density-independent spacing, including the card/feed padding.
+        val footer = compose.onNodeWithTag("journal-time-archive-return-39").fetchSemanticsNode().boundsInRoot
+        val gap = bottom - footer.bottom
+        assertTrue("Newest entry footer stays within 48 dp of the bottom (gap=$gap px)",
+            gap >= 0f && gap <= 48f * compose.density.density)
     }
 
     @Test fun rootTextAndIconsFollowThemeAndDatePickerIsThemed() {

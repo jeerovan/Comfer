@@ -16,7 +16,7 @@ class LocalDepthModelTest {
         org.junit.Assume.assumeTrue("Seed model to run the optional real-ML integration test", model.isFile)
         assertEquals(DEPTH_MODEL_SHA256, sha256(model))
         val source = File(context.cacheDir, "spatial-model-panda.jpg")
-        context.assets.open("spatial/wallpaper-2.jpg").use { input -> source.outputStream().use { input.copyTo(it) } }
+        InstrumentationRegistry.getInstrumentation().context.assets.open("spatial/wallpaper-2.jpg").use { input -> source.outputStream().use { input.copyTo(it) } }
         try {
             val image = BitmapFactory.decodeFile(source.path)
             val started = android.os.SystemClock.elapsedRealtime()

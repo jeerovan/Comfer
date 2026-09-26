@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D-effect</string>
+    <string name="local_spatial_description">Diepte-effect op de achtergrond</string>
+    <string name="local_spatial_preparing">Achtergrond met diepte voorbereiden</string>
+    <string name="local_spatial_retry">Kan het diepte-effect niet voorbereiden. Tik om het opnieuw te proberen.</string>
+    <string name="local_spatial_download_description">Schakel in om het 3D-model te downloaden (ongeveer 28 MB, plus een model voor onderwerpherkenning). Foto’s blijven op je apparaat.</string>
+    <string name="local_spatial_downloading">3D-model downloaden…</string>
+    <string name="local_spatial_model_failed">Downloaden van het model is mislukt. Schakel uit en weer in om het opnieuw te proberen.</string>
+</resources>

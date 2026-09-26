@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D effekti</string>
+    <string name="local_spatial_description">Divar kağızında dərinlik effekti</string>
+    <string name="local_spatial_preparing">Dərinlik effektli divar kağızı hazırlanır</string>
+    <string name="local_spatial_retry">Dərinlik effektini hazırlamaq mümkün olmadı. Yenidən cəhd etmək üçün toxunun.</string>
+    <string name="local_spatial_download_description">3D modelini endirmək üçün aktiv edin (təxminən 28 MB və əsas obyekti aşkarlayan əlavə model). Fotolar cihazınızda qalır.</string>
+    <string name="local_spatial_downloading">3D modeli endirilir…</string>
+    <string name="local_spatial_model_failed">Model endirilə bilmədi. Yenidən cəhd etmək üçün söndürüb yandırın.</string>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D प्रभाव</string>
+    <string name="local_spatial_description">वॉलपेपरवर त्रिमितीय प्रभाव</string>
+    <string name="local_spatial_preparing">त्रिमितीय वॉलपेपर तयार होत आहे</string>
+    <string name="local_spatial_retry">त्रिमितीय प्रभाव तयार करता आला नाही. पुन्हा प्रयत्न करण्यासाठी टॅप करा.</string>
+    <string name="local_spatial_download_description">3D मॉडेल डाउनलोड करण्यासाठी सुरू करा (सुमारे 28 MB आणि मुख्य विषय ओळखण्यासाठी आणखी एक मॉडेल). फोटो तुमच्या डिव्हाइसवरच राहतात.</string>
+    <string name="local_spatial_downloading">3D मॉडेल डाउनलोड होत आहे…</string>
+    <string name="local_spatial_model_failed">मॉडेल डाउनलोड करता आले नाही. पुन्हा प्रयत्न करण्यासाठी बंद करून सुरू करा.</string>
+</resources>

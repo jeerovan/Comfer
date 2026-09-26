@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D-Effekt</string>
+    <string name="local_spatial_description">Räumlicher Effekt auf dem Hintergrundbild</string>
+    <string name="local_spatial_preparing">Räumliches Hintergrundbild wird vorbereitet</string>
+    <string name="local_spatial_retry">Der räumliche Effekt konnte nicht vorbereitet werden. Tippe, um es erneut zu versuchen.</string>
+    <string name="local_spatial_download_description">Aktiviere diese Option, um das 3D-Modell herunterzuladen (etwa 28 MB, zuzüglich eines Modells zur Motiverkennung). Die Fotos bleiben auf deinem Gerät.</string>
+    <string name="local_spatial_downloading">3D-Modell wird heruntergeladen…</string>
+    <string name="local_spatial_model_failed">Modell konnte nicht heruntergeladen werden. Schalte die Funktion aus und wieder ein, um es erneut zu versuchen.</string>
+</resources>

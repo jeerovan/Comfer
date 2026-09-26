@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">אפקט תלת־ממד</string>
+    <string name="local_spatial_description">אפקט עומק בטפט</string>
+    <string name="local_spatial_preparing">הטפט עם אפקט העומק בהכנה</string>
+    <string name="local_spatial_retry">לא ניתן להכין את אפקט העומק. יש להקיש כדי לנסות שוב.</string>
+    <string name="local_spatial_download_description">יש להפעיל כדי להוריד את מודל התלת־ממד (כ־28 MB, בנוסף למודל לזיהוי הנושא בתמונה). התמונות נשארות במכשיר.</string>
+    <string name="local_spatial_downloading">מודל התלת־ממד בהורדה…</string>
+    <string name="local_spatial_model_failed">הורדת המודל נכשלה. יש לכבות ולהפעיל שוב כדי לנסות מחדש.</string>
+</resources>

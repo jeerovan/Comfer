@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D-ефект</string>
+    <string name="local_spatial_description">Ефект глибини на шпалерах</string>
+    <string name="local_spatial_preparing">Підготовка об’ємних шпалер</string>
+    <string name="local_spatial_retry">Не вдалося підготувати ефект глибини. Торкніться, щоб повторити спробу.</string>
+    <string name="local_spatial_download_description">Увімкніть, щоб завантажити 3D-модель (приблизно 28 МБ і додаткову модель визначення об’єкта). Фотографії залишаються на вашому пристрої.</string>
+    <string name="local_spatial_downloading">Завантаження 3D-моделі…</string>
+    <string name="local_spatial_model_failed">Не вдалося завантажити модель. Вимкніть і знову ввімкніть функцію, щоб повторити спробу.</string>
+</resources>

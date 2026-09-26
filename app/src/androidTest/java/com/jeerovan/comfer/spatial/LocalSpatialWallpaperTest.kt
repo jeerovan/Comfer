@@ -67,16 +67,26 @@ class LocalSpatialWallpaperTest {
         compose.runOnIdle { assertTrue(retried) }
     }
 
-    @Test fun settingsShow3DEffectWithoutSeparatePhotoPicker() {
+    @Test fun settingsShowLocalized3DEffectSwitch() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val prefs = spatialPreferences(context)
         val oldEnabled = prefs.getBoolean(LOCAL_SPATIAL, false)
         prefs.edit().putBoolean(LOCAL_SPATIAL, false).commit()
         try {
-            compose.setContent { MaterialTheme { LocalWallpaperSetting() } }
-            compose.onNodeWithText("3D Effect").assertIsDisplayed()
-            compose.onAllNodesWithText("Choose my wallpaper").assertCountEquals(0)
-            compose.onAllNodesWithText("Spatial wallpapers").assertCountEquals(0)
+            var locale by mutableStateOf("en")
+            compose.setContent { SpatialTestLocale(locale) { MaterialTheme { LocalWallpaperSetting() } } }
+            for (tag in listOf("en", "ar")) {
+                compose.runOnIdle { locale = tag }
+                val resources = spatialTestContext(context, tag).resources
+                compose.onNodeWithText(resources.getString(com.jeerovan.comfer.R.string.local_spatial_title)).assertIsDisplayed()
+                compose.onNode(isToggleable()).assertIsOff()
+                if (android.os.Build.VERSION.SDK_INT >= 26) {
+                    val image = compose.onRoot().captureToImage().asAndroidBitmap()
+                    File(context.getExternalFilesDir(null), "spatial-setting-$tag.png").outputStream().use {
+                        image.compress(Bitmap.CompressFormat.PNG, 100, it)
+                    }
+                }
+            }
         } finally { prefs.edit().putBoolean(LOCAL_SPATIAL, oldEnabled).commit() }
     }
 
@@ -101,7 +111,6 @@ class LocalSpatialWallpaperTest {
     fun archivedEffectAppliesOnHomeAndOptOutRestoresOriginalWithoutPreview() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val prefs = spatialPreferences(context)
-        val oldPath = prefs.getString(LOCAL_PATH, null)
         val oldEnabled = prefs.getBoolean(LOCAL_SPATIAL, false)
         val source = File(context.cacheDir, "cached-local-spatial-test.png")
         fun writeSolid(file: File, color: Int) {
@@ -128,7 +137,7 @@ class LocalSpatialWallpaperTest {
         fixtureCache.archiveFile(directory.name).copyTo(archive, overwrite = true)
         fixture.deleteRecursively()
         try {
-            prefs.edit().putString(LOCAL_PATH, source.path).putBoolean(LOCAL_SPATIAL, true).commit()
+            prefs.edit().putBoolean(LOCAL_SPATIAL, true).commit()
             compose.setContent {
                 Box(Modifier.fillMaxSize()) { renderLocalSpatialWallpaper(false, 380f, 822f, path = source.path) }
             }
@@ -142,7 +151,7 @@ class LocalSpatialWallpaperTest {
             compose.waitUntil(10_000) { center() == android.graphics.Color.BLUE }
         } finally {
             LocalSpatialRepository.prepare(context, null, false)
-            prefs.edit().putString(LOCAL_PATH, oldPath).putBoolean(LOCAL_SPATIAL, oldEnabled).commit()
+            prefs.edit().putBoolean(LOCAL_SPATIAL, oldEnabled).commit()
             source.delete()
             directory.deleteRecursively()
             archive.delete()

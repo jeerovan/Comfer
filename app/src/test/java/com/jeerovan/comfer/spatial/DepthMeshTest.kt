@@ -64,9 +64,9 @@ class DepthMeshTest {
         }
     }
 
-    @Test fun bundledMeshesAreValidAndHaveExpectedSceneDepth() {
+    @Test fun fixtureMeshesAreValidAndHaveExpectedSceneDepth() {
         for (id in 1..2) {
-            val mesh = DepthMesh.parse(File("src/main/assets/spatial/wallpaper-$id.depth").readText())
+            val mesh = DepthMesh.parse(File("src/androidTest/assets/spatial/wallpaper-$id.depth").readText())
             assertEquals(48, mesh.columns)
             assertEquals(96, mesh.rows)
             fun at(x: Float, y: Float) = mesh.depths[(y*mesh.rows).toInt()*(mesh.columns+1)+(x*mesh.columns).toInt()]

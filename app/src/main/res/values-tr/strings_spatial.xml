@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D Efekti</string>
+    <string name="local_spatial_description">Duvar kâğıdında derinlik efekti</string>
+    <string name="local_spatial_preparing">Derinlikli duvar kâğıdı hazırlanıyor</string>
+    <string name="local_spatial_retry">Derinlik efekti hazırlanamadı. Yeniden denemek için dokunun.</string>
+    <string name="local_spatial_download_description">3D modelini indirmek için etkinleştirin (yaklaşık 28 MB ve ek bir konu algılama modeli). Fotoğraflar cihazınızda kalır.</string>
+    <string name="local_spatial_downloading">3D modeli indiriliyor…</string>
+    <string name="local_spatial_model_failed">Model indirilemedi. Yeniden denemek için kapatıp açın.</string>
+</resources>

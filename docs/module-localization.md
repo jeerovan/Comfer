@@ -2,6 +2,11 @@
 
 Prepared for the next release, 20 September 2026.
 
+26 September follow-up: [spatial wallpaper localization](spatial-localization.md)
+adds all 7 active 3D Effect strings to the 34 translated locales (238 entries).
+Current resource coverage is 1,032 required entries per locale with zero errors.
+The separate record documents drafting provenance and locale validation.
+
 ## Scope
 
 The app declares English and 34 translated locales in `locales_config.xml`:

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D 效果</string>
+    <string name="local_spatial_description">为壁纸添加立体效果</string>
+    <string name="local_spatial_preparing">正在准备立体壁纸</string>
+    <string name="local_spatial_retry">无法生成立体效果。点按重试。</string>
+    <string name="local_spatial_download_description">启用后将下载 3D 模型（约 28 MB，另需下载主体识别模型）。照片会保留在您的设备上。</string>
+    <string name="local_spatial_downloading">正在下载 3D 模型…</string>
+    <string name="local_spatial_model_failed">模型下载失败。请关闭后重新开启以重试。</string>
+</resources>

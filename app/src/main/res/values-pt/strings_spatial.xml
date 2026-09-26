@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">Efeito 3D</string>
+    <string name="local_spatial_description">Efeito de profundidade no papel de parede</string>
+    <string name="local_spatial_preparing">Preparando papel de parede com profundidade</string>
+    <string name="local_spatial_retry">Não foi possível preparar o efeito de profundidade. Toque para tentar novamente.</string>
+    <string name="local_spatial_download_description">Ative para baixar o modelo 3D (cerca de 28 MB, além de um modelo de detecção do objeto principal). As fotos permanecem no seu dispositivo.</string>
+    <string name="local_spatial_downloading">Baixando modelo 3D…</string>
+    <string name="local_spatial_model_failed">Falha ao baixar o modelo. Desative e ative novamente para tentar outra vez.</string>
+</resources>

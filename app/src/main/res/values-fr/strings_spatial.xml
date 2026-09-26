@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">Effet 3D</string>
+    <string name="local_spatial_description">Effet de relief sur le fond d’écran</string>
+    <string name="local_spatial_preparing">Préparation du fond en relief</string>
+    <string name="local_spatial_retry">Impossible de préparer l’effet de relief. Appuyez pour réessayer.</string>
+    <string name="local_spatial_download_description">Activez cette option pour télécharger le modèle 3D (environ 28 Mo, plus un modèle de détection du sujet). Les photos restent sur votre appareil.</string>
+    <string name="local_spatial_downloading">Téléchargement du modèle 3D…</string>
+    <string name="local_spatial_model_failed">Le téléchargement du modèle a échoué. Désactivez puis réactivez l’option pour réessayer.</string>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D ప్రభావం</string>
+    <string name="local_spatial_description">వాల్‌పేపర్‌పై లోతు ప్రభావం</string>
+    <string name="local_spatial_preparing">లోతు ప్రభావం ఉన్న వాల్‌పేపర్ సిద్ధమవుతోంది</string>
+    <string name="local_spatial_retry">లోతు ప్రభావాన్ని సిద్ధం చేయలేకపోయాము. మళ్లీ ప్రయత్నించడానికి నొక్కండి.</string>
+    <string name="local_spatial_download_description">3D మోడల్‌ను డౌన్‌లోడ్ చేయడానికి ఆన్ చేయండి (సుమారు 28 MB, అలాగే ప్రధాన వస్తువును గుర్తించే అదనపు మోడల్). ఫోటోలు మీ పరికరంలోనే ఉంటాయి.</string>
+    <string name="local_spatial_downloading">3D మోడల్ డౌన్‌లోడ్ అవుతోంది…</string>
+    <string name="local_spatial_model_failed">మోడల్ డౌన్‌లోడ్ విఫలమైంది. మళ్లీ ప్రయత్నించడానికి ఆఫ్ చేసి ఆన్ చేయండి.</string>
+</resources>

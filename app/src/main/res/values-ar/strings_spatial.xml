@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">تأثير ثلاثي الأبعاد</string>
+    <string name="local_spatial_description">تأثير ثلاثي الأبعاد على الخلفية</string>
+    <string name="local_spatial_preparing">جارٍ تحضير الخلفية ثلاثية الأبعاد</string>
+    <string name="local_spatial_retry">تعذّر تحضير التأثير ثلاثي الأبعاد. انقر لإعادة المحاولة.</string>
+    <string name="local_spatial_download_description">فعّل لتنزيل نموذج التأثير ثلاثي الأبعاد (حوالي 28 ميغابايت، بالإضافة إلى نموذج لتحديد العنصر الرئيسي في الصورة). تبقى الصور على جهازك.</string>
+    <string name="local_spatial_downloading">جارٍ تنزيل نموذج التأثير ثلاثي الأبعاد…</string>
+    <string name="local_spatial_model_failed">فشل تنزيل النموذج. أوقف الميزة ثم فعّلها لإعادة المحاولة.</string>
+</resources>

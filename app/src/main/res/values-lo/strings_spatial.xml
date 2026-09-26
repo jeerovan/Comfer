@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">ເອັບເຟັກ 3D</string>
+    <string name="local_spatial_description">ເອັບເຟັກຄວາມເລິກໃນພາບພື້ນຫຼັງ</string>
+    <string name="local_spatial_preparing">ກຳລັງກະກຽມພາບພື້ນຫຼັງແບບມີຄວາມເລິກ</string>
+    <string name="local_spatial_retry">ບໍ່ສາມາດກະກຽມເອັບເຟັກຄວາມເລິກໄດ້. ແຕະເພື່ອລອງອີກຄັ້ງ.</string>
+    <string name="local_spatial_download_description">ເປີດເພື່ອດາວໂຫຼດໂມເດວ 3D (ປະມານ 28 MB ແລະໂມເດວກວດຈັບວັດຖຸຫຼັກໃນຮູບ). ຮູບຈະຍັງຢູ່ໃນອຸປະກອນຂອງທ່ານ.</string>
+    <string name="local_spatial_downloading">ກຳລັງດາວໂຫຼດໂມເດວ 3D…</string>
+    <string name="local_spatial_model_failed">ດາວໂຫຼດໂມເດວບໍ່ສຳເລັດ. ປິດແລ້ວເປີດໃໝ່ເພື່ອລອງອີກຄັ້ງ.</string>
+</resources>

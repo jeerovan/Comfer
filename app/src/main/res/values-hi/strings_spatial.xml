@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D प्रभाव</string>
+    <string name="local_spatial_description">वॉलपेपर पर गहराई का प्रभाव</string>
+    <string name="local_spatial_preparing">गहराई वाला वॉलपेपर तैयार हो रहा है</string>
+    <string name="local_spatial_retry">गहराई का प्रभाव तैयार नहीं हो सका। फिर से कोशिश करने के लिए टैप करें।</string>
+    <string name="local_spatial_download_description">3D मॉडल डाउनलोड करने के लिए चालू करें (लगभग 28 MB और मुख्य विषय पहचानने के लिए एक अतिरिक्त मॉडल)। फ़ोटो आपके डिवाइस पर ही रहती हैं।</string>
+    <string name="local_spatial_downloading">3D मॉडल डाउनलोड हो रहा है…</string>
+    <string name="local_spatial_model_failed">मॉडल डाउनलोड नहीं हो सका। फिर से कोशिश करने के लिए बंद करके चालू करें।</string>
+</resources>

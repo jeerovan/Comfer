@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D эффект</string>
+    <string name="local_spatial_description">Дэлгэцийн зурагт гүний эффект оруулах</string>
+    <string name="local_spatial_preparing">Гүнтэй дэлгэцийн зургийг бэлтгэж байна</string>
+    <string name="local_spatial_retry">Гүний эффектийг бэлтгэж чадсангүй. Дахин оролдохын тулд товшино уу.</string>
+    <string name="local_spatial_download_description">3D загварыг татахын тулд асаана уу (ойролцоогоор 28 MB, мөн гол объектыг таних нэмэлт загвар). Зургууд таны төхөөрөмж дээр үлдэнэ.</string>
+    <string name="local_spatial_downloading">3D загварыг татаж байна…</string>
+    <string name="local_spatial_model_failed">Загварыг татаж чадсангүй. Дахин оролдохын тулд унтраагаад асаана уу.</string>
+</resources>

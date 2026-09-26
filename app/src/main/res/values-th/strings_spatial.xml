@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">เอฟเฟกต์ 3D</string>
+    <string name="local_spatial_description">เอฟเฟกต์ความลึกบนวอลเปเปอร์</string>
+    <string name="local_spatial_preparing">กำลังเตรียมวอลเปเปอร์แบบมีมิติ</string>
+    <string name="local_spatial_retry">เตรียมเอฟเฟกต์ความลึกไม่สำเร็จ แตะเพื่อลองอีกครั้ง</string>
+    <string name="local_spatial_download_description">เปิดเพื่อดาวน์โหลดโมเดล 3D (ประมาณ 28 MB และโมเดลตรวจจับวัตถุหลักเพิ่มเติม) รูปจะยังอยู่ในอุปกรณ์ของคุณ</string>
+    <string name="local_spatial_downloading">กำลังดาวน์โหลดโมเดล 3D…</string>
+    <string name="local_spatial_model_failed">ดาวน์โหลดโมเดลไม่สำเร็จ ปิดแล้วเปิดอีกครั้งเพื่อลองใหม่</string>
+</resources>

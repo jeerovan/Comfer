@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="local_spatial_title">3D အထူးပြုလုပ်ချက်</string>
+    <string name="local_spatial_description">နောက်ခံပုံတွင် အနက်ရှိုင်းမှု ထည့်ရန်</string>
+    <string name="local_spatial_preparing">အနက်ရှိုင်းမှုပါသော နောက်ခံပုံကို ပြင်ဆင်နေသည်</string>
+    <string name="local_spatial_retry">အနက်ရှိုင်းမှုအထူးပြုလုပ်ချက်ကို မပြင်ဆင်နိုင်ပါ။ ထပ်စမ်းရန် တို့ပါ။</string>
+    <string name="local_spatial_download_description">3D မော်ဒယ်ကို ဒေါင်းလုဒ်လုပ်ရန် ဖွင့်ပါ (28 MB ခန့်နှင့် ပုံ၏အဓိကအရာဝတ္ထုကို ခွဲခြားသည့် နောက်ထပ်မော်ဒယ်တစ်ခု)။ ဓာတ်ပုံများသည် သင့်စက်ပေါ်တွင်သာ ရှိနေမည်။</string>
+    <string name="local_spatial_downloading">3D မော်ဒယ်ကို ဒေါင်းလုဒ်လုပ်နေသည်…</string>
+    <string name="local_spatial_model_failed">မော်ဒယ်ဒေါင်းလုဒ် မအောင်မြင်ပါ။ ထပ်စမ်းရန် ပိတ်ပြီး ပြန်ဖွင့်ပါ။</string>
+</resources>
