@@ -6,6 +6,7 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.get
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.parameter
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.SerialName
@@ -46,15 +47,20 @@ object WeatherRepository {
 
     suspend fun getCurrentWeather(latitude: Double, longitude: Double): CurrentWeather =
         client.get(FORECAST_ENDPOINT) {
-            parameter("latitude", latitude)
-            parameter("longitude", longitude)
-            parameter(
-                "current",
-                "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day",
-            )
-            parameter("timezone", R.string.weather_condition_auto)
-            parameter("forecast_days", 1)
+            configureCurrentWeatherRequest(latitude, longitude)
         }.body<ForecastResponse>().current
+}
+
+internal fun HttpRequestBuilder.configureCurrentWeatherRequest(latitude: Double, longitude: Double) {
+    parameter("latitude", latitude)
+    parameter("longitude", longitude)
+    parameter(
+        "current",
+        "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day",
+    )
+    // Open-Meteo protocol value; never translate it or pass an Android resource ID.
+    parameter("timezone", "auto")
+    parameter("forecast_days", 1)
 }
 
 data class WeatherPresentation(
