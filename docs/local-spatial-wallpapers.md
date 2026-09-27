@@ -10,6 +10,8 @@ Home shows a small 3D icon in a circular progress indicator until ready; failure
 leave the original image usable and expose a retry action.
 
 Cloud wallpapers follow Wallpaper motion automatically and never invoke ML.
+Cloud asset generation and serving live in the `comferweb` backend; see
+[backend ownership and setup](cloud-spatial-assets.md).
 The wallpaper API may supply an optional `depthUrl` HTTPS URL alongside `id` and
 `imageUrl`. This static UTF-8 asset contains `columns rows` followed by exactly
 `(columns + 1) * (rows + 1)` normalized float depths (0 far, 1 near), matching the

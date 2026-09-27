@@ -62,7 +62,3 @@ __pycache__/
 *.dex
 
 *.codex
-
-# Offline cloud spatial asset pipeline (sources, model weights, SQLite, output).
-/spatial-output/
-/.venv-spatial/
