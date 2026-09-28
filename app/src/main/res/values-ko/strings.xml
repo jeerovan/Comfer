@@ -81,7 +81,7 @@
 
     <string name="title_widgets">위젯</string>
     <string name="title_time">시간</string>
-    <string name="rest_widget_positions">위치 초기화</string>
+    <string name="rest_widget_positions">위젯 초기화</string>
 
     <string name="title_analog_clock">아날로그 시계</string>
     <string name="title_clock_size">시계 크기</string>

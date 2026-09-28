@@ -80,7 +80,7 @@
 
     <string name="title_widgets">Widgets</string>
     <string name="title_time">Time</string>
-    <string name="rest_widget_positions">Reset positions</string>
+    <string name="rest_widget_positions">Reset widgets</string>
 
     <string name="title_analog_clock">Analog clock</string>
     <string name="title_clock_size">Clock size</string>
@@ -359,4 +359,6 @@
     <string name="workspace_tasks">Tasks</string>
     <string name="workspace_notes_coming_soon">Notes is coming soon</string>
     <string name="title_glass_effect">Glass effect</string>
+    <string name="widget_resize_height">Resize %1$s height</string>
+    <string name="widget_reset_height">Reset height</string>
 </resources>

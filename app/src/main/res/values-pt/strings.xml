@@ -81,7 +81,7 @@
 
     <string name="title_widgets">Widgets</string>
     <string name="title_time">Hora</string>
-    <string name="rest_widget_positions">Redefinir posições</string>
+    <string name="rest_widget_positions">Redefinir widgets</string>
 
     <string name="title_analog_clock">Relógio analógico</string>
     <string name="title_clock_size">Tamanho do relógio</string>

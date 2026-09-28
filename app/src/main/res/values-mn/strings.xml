@@ -81,7 +81,7 @@
 
     <string name="title_widgets">Widgets</string>
     <string name="title_time">Цаг</string>
-    <string name="rest_widget_positions">Байршлуудыг дахин тохируулах</string>
+    <string name="rest_widget_positions">Виджетүүдийг дахин тохируулах</string>
 
     <string name="title_analog_clock">Analog цаг</string>
     <string name="title_clock_size">Цагийн хэмжээ</string>

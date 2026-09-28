@@ -81,7 +81,7 @@
 
     <string name="title_widgets">Widgets</string>
     <string name="title_time">Uhrzeit</string>
-    <string name="rest_widget_positions">Positionen zurücksetzen</string>
+    <string name="rest_widget_positions">Widgets zurücksetzen</string>
 
     <string name="title_analog_clock">Analoguhr</string>
     <string name="title_clock_size">Uhrgröße</string>

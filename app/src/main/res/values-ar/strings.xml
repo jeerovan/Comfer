@@ -81,7 +81,7 @@
 
     <string name="title_widgets">الأدوات</string>
     <string name="title_time">الوقت</string>
-    <string name="rest_widget_positions">إعادة تعيين المواضع</string>
+    <string name="rest_widget_positions">إعادة ضبط الأدوات</string>
 
     <string name="title_analog_clock">ساعة تماثلية</string>
     <string name="title_clock_size">حجم الساعة</string>
@@ -318,4 +318,6 @@
     <string name="fife_subtitle">تخزين سحابي مشفر</string>
     <string name="scroll_speed">سرعة التمرير</string>
     <string name="title_glass_effect">تأثير زجاجي</string>
+    <string name="widget_resize_height">تغيير ارتفاع %1$s</string>
+    <string name="widget_reset_height">إعادة ضبط الارتفاع</string>
 </resources>

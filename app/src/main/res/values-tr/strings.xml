@@ -81,7 +81,7 @@
 
     <string name="title_widgets">Widget\'lar</string>
     <string name="title_time">Saat</string>
-    <string name="rest_widget_positions">Konumları sıfırla</string>
+    <string name="rest_widget_positions">Widgetları sıfırla</string>
 
     <string name="title_analog_clock">Analog saat</string>
     <string name="title_clock_size">Saat boyutu</string>

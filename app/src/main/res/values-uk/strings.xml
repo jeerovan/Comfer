@@ -81,7 +81,7 @@
 
     <string name="title_widgets">Віджети</string>
     <string name="title_time">Час</string>
-    <string name="rest_widget_positions">Скинути позиції</string>
+    <string name="rest_widget_positions">Скинути віджети</string>
 
     <string name="title_analog_clock">Аналоговий годинник</string>
     <string name="title_clock_size">Розмір годинника</string>

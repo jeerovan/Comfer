@@ -81,7 +81,7 @@
 
     <string name="title_widgets">Γραφικά στοιχεία</string>
     <string name="title_time">Ώρα</string>
-    <string name="rest_widget_positions">Επαναφορά θέσεων</string>
+    <string name="rest_widget_positions">Επαναφορά γραφικών στοιχείων</string>
 
     <string name="title_analog_clock">Αναλογικό ρολόι</string>
     <string name="title_clock_size">Μέγεθος ρολογιού</string>

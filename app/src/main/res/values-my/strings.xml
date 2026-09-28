@@ -81,7 +81,7 @@
 
     <string name="title_widgets">Widget များ</string>
     <string name="title_time">အချိန်</string>
-    <string name="rest_widget_positions">တည်နေရာများ Reset လုပ်ရန်</string>
+    <string name="rest_widget_positions">ဝစ်ဂျက်များကို ပြန်လည်သတ်မှတ်ရန်</string>
 
     <string name="title_analog_clock">Analog နာရီ</string>
     <string name="title_clock_size">နာရီ အရွယ်အစား</string>

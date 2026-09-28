@@ -81,7 +81,7 @@
 
     <string name="title_widgets">Виджеты</string>
     <string name="title_time">Время</string>
-    <string name="rest_widget_positions">Сбросить позиции</string>
+    <string name="rest_widget_positions">Сбросить виджеты</string>
 
     <string name="title_analog_clock">Аналоговые часы</string>
     <string name="title_clock_size">Размер часов</string>

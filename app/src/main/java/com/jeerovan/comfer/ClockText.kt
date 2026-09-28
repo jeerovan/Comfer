@@ -37,7 +37,11 @@ import kotlin.math.max
 import kotlin.math.cos
 import kotlin.math.sin
 
-internal data class ClockLinePlan(val paint: Paint, val geometry: ClockLineGeometry)
+internal data class ClockLinePlan(
+    val paint: Paint, val geometry: ClockLineGeometry, val inkTop: Float, val inkBottom: Float,
+) {
+    val stretchHeight get() = (inkBottom - inkTop).coerceAtLeast(0f)
+}
 
 /** Numerals use stable slots sized from actual ink, not a font's kerning or space glyph. */
 internal fun measureClockLine(text: String, paint: Paint, density: Float, radius: Float, angle: Float): ClockLinePlan {
@@ -64,7 +68,13 @@ internal fun measureClockLine(text: String, paint: Paint, density: Float, radius
     val descent = bounds.values.maxOfOrNull { it.bottom.toFloat() } ?: paint.fontMetrics.descent
     // Reserve room for the glass rim as well as at least one dp of visible separation.
     val gap = max(density, paint.textSize * .04f) + density
-    return ClockLinePlan(paint, clockLineGeometry(cells, ascent, descent, gap, radius, angle))
+    val geometry = clockLineGeometry(cells, ascent, descent, gap, radius, angle)
+    val visible = geometry.glyphs.map { glyph ->
+        val b = bounds.getValue(glyph.cell.text)
+        clockGlyphBounds(glyph.copy(cell = glyph.cell.copy(width = b.width().toFloat())), b.top.toFloat(), b.bottom.toFloat())
+    }
+    return ClockLinePlan(paint, geometry, visible.minOfOrNull { it.top } ?: 0f,
+        visible.maxOfOrNull { it.bottom } ?: geometry.height)
 }
 
 @Composable
@@ -74,6 +84,7 @@ internal fun ClockText(
     angle: Float = 0f, radius: Float = 0f, shadowColor: Color = Color.Transparent,
     glass: Boolean = false,
     semanticText: String = time,
+    heightScale: Float = 1f,
 ) {
     val density = LocalDensity.current
     val resolver = LocalFontFamilyResolver.current
@@ -81,6 +92,15 @@ internal fun ClockText(
         resolver.resolveAsTypeface(fontFamily, fontWeight, FontStyle.Normal)
     }.value
     val fontPx = with(density) { fontSize.toPx() }.coerceAtLeast(1f)
+    val stretch = widgetHeightScale(heightScale)
+    val reportStretchHeight = LocalWidgetStretchHeight.current
+    val colonGap = remember(fontPx, typeface, fontWeight) {
+        measureColonGap(Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            this.typeface = typeface
+            textSize = fontPx
+            isFakeBoldText = fontWeight.weight >= FontWeight.Bold.weight && !typeface.isBold
+        })
+    }
     val lines = remember(time, layoutId, fontPx, typeface, fontWeight, density, angle, radius) {
         val parts = time.split(':', limit = 2)
         val texts = when (layoutId) {
@@ -100,8 +120,30 @@ internal fun ClockText(
     val padding = with(density) { 3.dp.toPx() }
     val lineGap = max(with(density) { 2.dp.toPx() }, fontPx * .08f)
     val width = (lines.maxOf { it.geometry.width } + padding * 2).coerceAtLeast(1f)
-    val height = lines.sumOf { it.geometry.height.toDouble() }.toFloat() +
+    val textHeight = lines.sumOf { it.stretchHeight.toDouble() }.toFloat().coerceAtLeast(1f)
+    val baseFixedHeight = lines.sumOf { (it.geometry.height - it.stretchHeight).toDouble() }.toFloat() +
         lineGap * (lines.size - 1) + padding * 2
+    // A squeezed colon can be taller than the digits because its gap stays unchanged.
+    // Reserve its overhang rather than clipping either dot at large font sizes.
+    val colonInsets = remember(lines, colonGap, stretch, glass, density) {
+        lines.map { line ->
+            val glyph = line.geometry.glyphs.firstOrNull { it.cell.text == ":" }
+            if (stretch >= 1f || colonGap == null || glyph == null) 0f to 0f
+            else {
+                val ink = Rect().also { line.paint.getTextBounds(":", 0, 1, it) }
+                val bounds = clockGlyphBounds(glyph.copy(cell = glyph.cell.copy(width = ink.width().toFloat())),
+                    ink.top.toFloat(), ink.bottom.toFloat())
+                val rimWidth = if (glass) with(density) { .65.dp.toPx() } else 0f
+                val shift = (1f - stretch) * (colonGap.size - rimWidth).coerceAtLeast(0f) / 2f *
+                    kotlin.math.abs(cos(Math.toRadians(glyph.angle.toDouble())).toFloat())
+                val top = line.inkTop + (bounds.top - line.inkTop) * stretch - shift
+                val bottom = line.inkTop + (bounds.bottom - line.inkTop) * stretch + shift
+                val height = line.geometry.height + line.stretchHeight * (stretch - 1f)
+                max(0f, -top) to max(0f, bottom - height)
+            }
+        }
+    }
+    val fixedHeight = baseFixedHeight + colonInsets.sumOf { (it.first + it.second).toDouble() }.toFloat()
     val shadow = widgetShadowColor(color, shadowColor).let { it.copy(alpha = it.alpha * color.alpha) }
     val straightGlass = glass && angle == 0f && radius == 0f
     val textMeasurer = rememberTextMeasurer()
@@ -127,14 +169,19 @@ internal fun ClockText(
         // Keep a single readable time for accessibility in every visual variation.
         .semantics { this.text = AnnotatedString(semanticText) }
         .layout { measurable, constraints ->
-            val fit = minOf(1f, constraints.maxWidth / width, constraints.maxHeight / height)
+            // Keep horizontal size and line gaps fixed while changing only glyph height.
+            val fit = minOf(1f, constraints.maxWidth / width, constraints.maxHeight / (textHeight + baseFixedHeight)).coerceAtLeast(.0001f)
+            val applied = minOf(stretch, ((constraints.maxHeight / fit - fixedHeight) / textHeight).coerceAtLeast(.01f))
             val w = constraints.constrainWidth(ceil(width * fit).toInt())
-            val h = constraints.constrainHeight(ceil(height * fit).toInt())
+            val h = constraints.constrainHeight(ceil((textHeight * applied + fixedHeight) * fit).toInt())
+            reportStretchHeight?.invoke(textHeight * fit)
             val placeable = measurable.measure(Constraints.fixed(w, h))
             layout(w, h) { placeable.place(0, 0) }
         }) {
-        if (color.alpha == 0f) return@Canvas
-        val fit = minOf(1f, size.width / width, size.height / height)
+        if (color.alpha == 0f || size.width <= 0f || size.height <= 0f) return@Canvas
+        val fit = minOf(1f, size.width / width).coerceAtLeast(.0001f)
+        val applied = minOf(stretch, ((size.height / fit - fixedHeight) / textHeight).coerceAtLeast(.01f))
+        val height = textHeight * applied + fixedHeight
         val canvas = drawContext.canvas.nativeCanvas
         canvas.save()
         canvas.translate((size.width - width * fit) / 2, (size.height - height * fit) / 2)
@@ -143,6 +190,11 @@ internal fun ClockText(
         for ((lineIndex, line) in lines.withIndex()) {
             val (paint, geometry) = line
             val left = (width - geometry.width) / 2
+            top += colonInsets[lineIndex].first
+            canvas.save()
+            canvas.translate(left, top + line.inkTop)
+            canvas.scale(1f, applied)
+            canvas.translate(0f, -line.inkTop)
             if (straightGlass) {
                 val textShadow = if (shadow.alpha > 0f)
                     Shadow(shadow, Offset(0f, .75.dp.toPx()), 1.5.dp.toPx()) else Shadow.None
@@ -151,13 +203,18 @@ internal fun ClockText(
                     // Compose includes paragraph leading/tracking; align its baseline and
                     // center the glyph in the existing stable numeral slot.
                     val leading = (paragraph.size.width - paint.measureText(glyph.cell.text)) / 2f
-                    drawText(paragraph, brush = if (outline) rim else fill,
-                        topLeft = Offset(left + glyph.x - glyph.cell.inkCenter - leading,
-                            top + glyph.y - paragraph.firstBaseline),
-                        shadow = if (outline) Shadow.None else textShadow,
-                        drawStyle = if (outline) Stroke(.65.dp.toPx()) else androidx.compose.ui.graphics.drawscope.Fill)
+                    canvas.save()
+                    canvas.translate(glyph.x, glyph.y)
+                    drawWithFixedColonGap(canvas, colonGap.takeIf { glyph.cell.text == ":" }, applied, 0f, .65.dp.toPx()) {
+                        drawText(paragraph, brush = if (outline) rim else fill,
+                            topLeft = Offset(-glyph.cell.inkCenter - leading, -paragraph.firstBaseline),
+                            shadow = if (outline) Shadow.None else textShadow,
+                            drawStyle = if (outline) Stroke(.65.dp.toPx()) else androidx.compose.ui.graphics.drawscope.Fill)
+                    }
+                    canvas.restore()
                 }
-                top += geometry.height + lineGap
+                canvas.restore()
+                top += geometry.height + line.stretchHeight * (applied - 1f) + lineGap + colonInsets[lineIndex].second
                 continue
             }
             fun shader(rim: Boolean): android.graphics.Shader {
@@ -179,8 +236,6 @@ internal fun ClockText(
             if (shadow.alpha > 0f) paint.setShadowLayer(1.5.dp.toPx(), 0f, .75.dp.toPx(), shadow.toArgb())
             else paint.clearShadowLayer()
             // Keep one font-based shader across the line while placing each glyph separately.
-            canvas.save()
-            canvas.translate(left, top)
             fun drawGlyphs() {
                 for (glyph in geometry.glyphs) {
                     canvas.save()
@@ -191,7 +246,10 @@ internal fun ClockText(
                         setRotate(-glyph.angle)
                         preTranslate(-glyph.x, -glyph.y)
                     })
-                    canvas.drawText(glyph.cell.text, -glyph.cell.inkCenter, 0f, paint)
+                    drawWithFixedColonGap(canvas, colonGap.takeIf { glyph.cell.text == ":" }, applied,
+                        glyph.angle, if (glass) .65.dp.toPx() else 0f) {
+                        canvas.drawText(glyph.cell.text, -glyph.cell.inkCenter, 0f, paint)
+                    }
                     canvas.restore()
                 }
             }
@@ -208,7 +266,7 @@ internal fun ClockText(
             paint.style = Paint.Style.FILL
             paint.shader = null
             canvas.restore()
-            top += geometry.height + lineGap
+            top += geometry.height + line.stretchHeight * (applied - 1f) + lineGap + colonInsets[lineIndex].second
         }
         canvas.restore()
     }

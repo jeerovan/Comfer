@@ -81,7 +81,7 @@
 
     <string name="title_widgets">小部件</string>
     <string name="title_time">时间</string>
-    <string name="rest_widget_positions">重置位置</string>
+    <string name="rest_widget_positions">重置小组件</string>
 
     <string name="title_analog_clock">指针时钟</string>
     <string name="title_clock_size">时钟大小</string>

@@ -54,6 +54,9 @@ internal fun widgetPositionPreferenceKey(
     return "widget_${orientationPrefix}${id}_$axis"
 }
 
+internal const val DEFAULT_TIME_FONT_SIZE = 100
+internal const val DEFAULT_DATE_FONT_SIZE = 30
+
 data class SettingsUiState(
     val protectionTimeoutSeconds: Int = ProtectionSession.DEFAULT_SECONDS,
     val autoWallpapers: Boolean = false,
@@ -85,6 +88,7 @@ data class SettingsUiState(
     val widgetIds: List<String> = emptyList(),
     val widgetPositions: Map<String,Offset?> = emptyMap(),
     val landscapeWidgetPositions: Map<String,Offset?> = emptyMap(),
+    val widgetResetGeneration: Int = 0,
     val patternApps: Map<String,AppInfo?> = emptyMap(),
     val showAnalog:Boolean = false,
     val clockSize: Int = 150,
@@ -95,7 +99,8 @@ data class SettingsUiState(
     val clockMinuteColor: Color = Color.White,
     val clockMinuteAlpha: Int = 100,
     val timeFormat: String = "H12",
-    val timeFontSize: Int = 100,
+    val timeFontSize: Int = DEFAULT_TIME_FONT_SIZE,
+    val timeHeightScale: Float = 1f,
     val timeFontName: String = "Roboto",
     val timeFontColor: Color = Color.White,
     val timeFontFamily: FontFamily = FontFamily.Default,
@@ -107,7 +112,8 @@ data class SettingsUiState(
     val timeHasShadow: Boolean = false,
     val timeShadowColor: Color = Color.White,
     val dateFormat: String? = "EEE,MMM d",
-    val dateFontSize: Int = 30,
+    val dateFontSize: Int = DEFAULT_DATE_FONT_SIZE,
+    val dateHeightScale: Float = 1f,
     val dateFontName: String = "Roboto",
     val dateFontColor: Color = Color.White,
     val dateFontFamily: FontFamily = FontFamily.Default,
@@ -354,7 +360,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val clockHourColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_HOUR_COLOR,Color.White.toArgb()))
             val clockMinuteColor = Color(PreferenceManager.getInt(getApplication(),CLOCK_MINUTE_COLOR,Color.White.toArgb()))
             val timeFormat = PreferenceManager.getString(getApplication(),TIME_FORMAT, "H12") ?: "H12"
-            val timeFontSize = PreferenceManager.getInt(getApplication(),TIME_FONT_SIZE,100)
+            val timeFontSize = PreferenceManager.getInt(getApplication(),TIME_FONT_SIZE,DEFAULT_TIME_FONT_SIZE)
             val timeFontColor = Color(PreferenceManager.getInt(getApplication(),TIME_FONT_COLOR,Color.White.toArgb()))
             val timeFontAlpha = PreferenceManager.getInt(getApplication(),TIME_FONT_ALPHA,100)
             val timeFontName =
@@ -376,7 +382,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val timeRadius = PreferenceManager.getInt(getApplication(),TIME_RADIUS,0)
             val timeHasShadow = PreferenceManager.getBoolean(getApplication(),TIME_HAS_SHADOW,false)
             val timeShadowColor = Color(PreferenceManager.getInt(getApplication(),TIME_SHADOW_COLOR,Color.White.toArgb()))
-            val dateFontSize = PreferenceManager.getInt(getApplication(),DATE_FONT_SIZE,30)
+            val dateFontSize = PreferenceManager.getInt(getApplication(),DATE_FONT_SIZE,DEFAULT_DATE_FONT_SIZE)
             val dateFontColor = Color(PreferenceManager.getInt(getApplication(),DATE_FONT_COLOR,Color.White.toArgb()))
             val dateFontAlpha = PreferenceManager.getInt(getApplication(),DATE_FONT_ALPHA,100)
             val dateFontName =
@@ -515,6 +521,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         clockMinuteColor = clockMinuteColor,
                         timeFormat = timeFormat,
                         timeFontSize = timeFontSize,
+                        timeHeightScale = widgetHeightScale(PreferenceManager.getFloat(getApplication(), widgetHeightPreferenceKey("time"), 1f)),
                         timeFontColor = timeFontColor,
                         timeFontAlpha = timeFontAlpha,
                         timeFontName = timeFontName,
@@ -526,6 +533,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         timeHasShadow = timeHasShadow,
                         timeShadowColor = timeShadowColor,
                         dateFontSize = dateFontSize,
+                        dateHeightScale = widgetHeightScale(PreferenceManager.getFloat(getApplication(), widgetHeightPreferenceKey("date"), 1f)),
                         dateFontColor = dateFontColor,
                         dateFontAlpha = dateFontAlpha,
                         dateFontName = dateFontName,
@@ -786,7 +794,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             mapPackageNameToAppInfo(getApplication(),packageName)
         }
     }
-    fun clearAllWidgetPositions(
+    fun resetWidgets(
         orientation: WidgetLayoutOrientation = WidgetLayoutOrientation.PORTRAIT,
     ) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -800,13 +808,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     widgetPositionPreferenceKey(id, "y", orientation),
                 )
             }
+            PreferenceManager.setInt(getApplication(), TIME_FONT_SIZE, DEFAULT_TIME_FONT_SIZE)
+            PreferenceManager.setInt(getApplication(), DATE_FONT_SIZE, DEFAULT_DATE_FONT_SIZE)
+            PreferenceManager.setFloat(getApplication(), widgetHeightPreferenceKey("time"), 1f)
+            PreferenceManager.setFloat(getApplication(), widgetHeightPreferenceKey("date"), 1f)
             withContext(Dispatchers.Main) {
                 _uiState.update {
-                    if (orientation == WidgetLayoutOrientation.LANDSCAPE) {
-                        it.copy(landscapeWidgetPositions = emptyMap())
-                    } else {
-                        it.copy(widgetPositions = emptyMap())
-                    }
+                    it.copy(
+                        timeFontSize = DEFAULT_TIME_FONT_SIZE,
+                        dateFontSize = DEFAULT_DATE_FONT_SIZE,
+                        timeHeightScale = 1f,
+                        dateHeightScale = 1f,
+                        widgetPositions = if (orientation == WidgetLayoutOrientation.PORTRAIT) emptyMap() else it.widgetPositions,
+                        landscapeWidgetPositions = if (orientation == WidgetLayoutOrientation.LANDSCAPE) emptyMap() else it.landscapeWidgetPositions,
+                        widgetResetGeneration = it.widgetResetGeneration + 1,
+                    )
                 }
             }
         }
@@ -1069,6 +1085,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 _uiState.update { it.copy(timeFontSize = size) }
             }
         }
+    }
+
+    fun setWidgetHeightScale(id: String, scale: Float) {
+        val key = widgetHeightPreferenceKey(id)
+        val value = widgetHeightScale(scale)
+        _uiState.update { if (id == "time") it.copy(timeHeightScale = value) else it.copy(dateHeightScale = value) }
+        // One persisted update on release; live resizing stays local to the widget.
+        PreferenceManager.setFloat(getApplication(), key, value)
     }
 
     fun setTimeFontName(fontName: String) {

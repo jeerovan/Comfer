@@ -215,10 +215,11 @@ fun BasicSettings(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp)
+                            .heightIn(min = 48.dp)
                             .clickable {
-                                settingsViewModel.clearAllWidgetPositions(widgetOrientation)
+                                settingsViewModel.resetWidgets(widgetOrientation)
                             }
+                            .padding(vertical = 8.dp)
                     ) {
                         Text(
                             stringResource(R.string.rest_widget_positions),

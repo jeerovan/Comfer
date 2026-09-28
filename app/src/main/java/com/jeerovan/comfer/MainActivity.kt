@@ -2421,12 +2421,20 @@ fun QuickListOverlay(apps: List<AppInfo>,
                         onLongPressGuideCompleted = completeWidgetLongPressGuide,
                     )
                 } else {
-                    key(widgetOrientation) {
+                    key(widgetOrientation, settings.widgetResetGeneration) {
                         DraggableQuickWidgetsContainer (
                             modifier = Modifier.fillMaxSize(),
                             editMode = showWidgetSettings,
                             widgetIds = settings.widgetIds,
                             widgetPositions = activeWidgetPositions,
+                            heightScales = buildMap {
+                                put("date", settings.dateHeightScale)
+                                if (!settings.showAnalog) put("time", settings.timeHeightScale)
+                            },
+                            resizeBorderColors = if (!settings.autoWallpapers && !settings.monochrome)
+                                mapOf("time" to settings.timeFontColor, "date" to settings.dateFontColor)
+                            else mapOf("time" to foregroundColor, "date" to foregroundColor),
+                            onHeightScaleChanged = settingsModel::setWidgetHeightScale,
                             onPositionChanged = { id, offset ->
                                 settingsModel.saveWidgetPosition(
                                     id,
@@ -2436,15 +2444,16 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 )
                             },
                             onEditModeChanged = { editMode ->  showWidgetSettings = editMode},
-                            composableContent = { id, editMode ->
+                            composableContent = { id, editMode, heightScale ->
                                 when (id) {
                             "time" -> Box {
                                 WidgetClock(
-                                    settings,
+                                    settings.copy(timeHeightScale = heightScale ?: settings.timeHeightScale),
                                     foregroundColor,
                                     editMode = editMode,
                                     backgroundColor,
                                     glassBackground = glassBackground,
+                                    drawEditBorder = settings.showAnalog,
                                     onTap = {
                                         if(!editMode && activeGuide == HomeGuideStep.CLOCK_TAP) {
                                             settingsModel.setStepGuideShown(context, widgetClockTapKey)
@@ -2479,9 +2488,9 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 }
                             }
                             "date" -> WidgetDate(
-                                settings,
+                                settings.copy(dateHeightScale = heightScale ?: settings.dateHeightScale),
                                 foregroundColor,
-                                showBorder = editMode,
+                                showBorder = false,
                                 backgroundColor,
                                 glassBackground = glassBackground)
                             "weather" -> WeatherWidget(
@@ -5619,7 +5628,7 @@ fun WidgetDate(
     backgroundColor: Color = Color.Black,
     glassBackground: Color? = null
 ){
-    var date by remember { mutableStateOf("") }
+    var date by remember { mutableStateOf(SimpleDateFormat("EEE MMM d", Locale.getDefault()).format(System.currentTimeMillis())) }
     LaunchedEffect(Unit) {
         while (true) {
             // Create new SimpleDateFormat instance in coroutine scope
@@ -5643,37 +5652,39 @@ fun WidgetDate(
     Box(modifier = Modifier
         .border(width = 2.dp, color = borderColor, shape = RoundedCornerShape(8.dp))
         .padding(4.dp)){
-        when (settings.dateLayoutId) {
-            1 ->
-                EffectTextBlock(
-                    text = date,
-                    color = textColor,
-                    fontSize = settings.dateFontSize.sp,
-                    fontWeight = getFontWeightFromString(settings.dateFontWeight),
-                    fontFamily = settings.dateFontFamily,
-                    angle = settings.dateAngle.toFloat(),
-                    radius = settings.dateRadius.toFloat(),
-                    shadowColor = shadowColor,
-                    glass = settings.widgetGlassEffect
-                )
-            2 ->
-                if(dateParts.size == 3) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        dateParts.forEach { part ->
-                            EffectTextBlock(
-                                text = part,
-                                color = textColor,
-                                fontSize = settings.dateFontSize.sp,
-                                fontWeight = getFontWeightFromString(settings.dateFontWeight),
-                                fontFamily = settings.dateFontFamily,
-                                angle = settings.dateAngle.toFloat(),
-                                radius = settings.dateRadius.toFloat(),
-                                shadowColor = shadowColor,
-                                glass = settings.widgetGlassEffect
-                            )
+        VerticalTextScale(settings.dateHeightScale) {
+            when (settings.dateLayoutId) {
+                1 ->
+                    EffectTextBlock(
+                        text = date,
+                        color = textColor,
+                        fontSize = settings.dateFontSize.sp,
+                        fontWeight = getFontWeightFromString(settings.dateFontWeight),
+                        fontFamily = settings.dateFontFamily,
+                        angle = settings.dateAngle.toFloat(),
+                        radius = settings.dateRadius.toFloat(),
+                        shadowColor = shadowColor,
+                        glass = settings.widgetGlassEffect
+                    )
+                2 ->
+                    if(dateParts.size == 3) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            dateParts.forEach { part ->
+                                EffectTextBlock(
+                                    text = part,
+                                    color = textColor,
+                                    fontSize = settings.dateFontSize.sp,
+                                    fontWeight = getFontWeightFromString(settings.dateFontWeight),
+                                    fontFamily = settings.dateFontFamily,
+                                    angle = settings.dateAngle.toFloat(),
+                                    radius = settings.dateRadius.toFloat(),
+                                    shadowColor = shadowColor,
+                                    glass = settings.widgetGlassEffect
+                                )
+                            }
                         }
                     }
-                }
+            }
         }
     }
 }
@@ -5685,14 +5696,15 @@ fun WidgetClock(
     backgroundColor: Color = Color.Black,
     onTap: () -> Unit = {},
     onLongPress: () -> Unit = {},
-    glassBackground: Color? = null
+    glassBackground: Color? = null,
+    drawEditBorder: Boolean = true,
 ){
     val context = LocalContext.current
     val view = LocalView.current
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     val customColor = !settings.autoWallpapers && !settings.monochrome
-    val borderColor = if (editMode) {
+    val borderColor = if (editMode && drawEditBorder) {
         if (customColor) {
             if (settings.showAnalog) settings.clockHourColor else settings.timeFontColor
         } else foregroundColor
@@ -5818,6 +5830,7 @@ fun TextClock(
             radius = settings.timeRadius.toFloat(),
             shadowColor = Color(shadowColor),
             glass = settings.widgetGlassEffect,
+            heightScale = settings.timeHeightScale,
         )
     }
 }
@@ -6082,8 +6095,11 @@ fun DraggableQuickWidgetsContainer(
     widgetPositions: Map<String, Offset?>,
     onPositionChanged: (String, Offset) -> Unit,
     onEditModeChanged: (Boolean) -> Unit,
-    composableContent: @Composable (String, Boolean) -> Unit,
-    onWidgetLongPressShown: () -> Unit
+    composableContent: @Composable (String, Boolean, Float?) -> Unit,
+    onWidgetLongPressShown: () -> Unit,
+    heightScales: Map<String, Float> = emptyMap(),
+    resizeBorderColors: Map<String, Color> = emptyMap(),
+    onHeightScaleChanged: (String, Float) -> Unit = { _, _ -> },
 ) {
     val hapticService = LocalHapticFeedback.current
     // Track measured sizes for initial column layout calculation
@@ -6119,18 +6135,19 @@ fun DraggableQuickWidgetsContainer(
         // This is now inside the scope so it has access to containerWidthPx/HeightPx directly
         fun calculateInitialPositions() {
             if (containerWidthPx > 0 && containerHeightPx > 0) {
+                if (widgetIds.any { measuredSizes[it] == null }) return
                 val totalHeight = measuredSizes.filterKeys { it in widgetIds }.values.sumOf { it.height }
                 var currentY = (containerHeightPx - totalHeight) / 2f
 
                 widgetIds.forEach { id ->
-                    if (widgetPositions[id] == null) {
+                    if (widgetPositions[id] == null && initialPositions[id] == null) {
                         val size = measuredSizes[id] ?: IntSize.Zero
                         val centerX = containerWidthPx / 2f
                         val centerY = currentY + size.height / 2f
 
                         initialPositions[id] = Offset(centerX, centerY)
-                        currentY += size.height
                     }
+                    currentY += (measuredSizes[id] ?: IntSize.Zero).height
                 }
             }
         }
@@ -6148,90 +6165,19 @@ fun DraggableQuickWidgetsContainer(
                     savedPosition = widgetPositions[id],
                     initialPosition = initialPositions[id],
                     onPositionChanged = onPositionChanged,
+                    heightScale = heightScales[id],
+                    borderColor = resizeBorderColors[id] ?: Color.White,
+                    containerHeight = containerHeightPx,
+                    onHeightScaleChanged = onHeightScaleChanged,
                     onSizeMeasured = { size ->
                         measuredSizes[id] = size
                         // Re-trigger calculation when a child reports its size
                         calculateInitialPositions()
                     },
-                    content = { composableContent(id, editMode) }
+                    content = { scale -> composableContent(id, editMode, scale) }
                 )
             }
         }
-    }
-}
-
-
-@Composable
-fun DraggableQuickWidgets(
-    id: String,
-    editMode: Boolean,
-    savedPosition: Offset?,
-    initialPosition: Offset?,
-    onPositionChanged: (String, Offset) -> Unit,
-    onSizeMeasured: (IntSize) -> Unit,
-    content: @Composable () -> Unit
-) {
-    var currentOffset by remember {
-        mutableStateOf(savedPosition ?: initialPosition ?: Offset.Zero)
-    }
-
-    // Update offset when saved position changes
-    LaunchedEffect(savedPosition) {
-        if (savedPosition != null) {
-            currentOffset = savedPosition
-        }
-    }
-
-    // Update offset when initial position is calculated
-    LaunchedEffect(initialPosition) {
-        if (savedPosition == null && initialPosition != null) {
-            currentOffset = initialPosition
-        }
-    }
-
-    // Track child composable size dynamically
-    var composableSize by remember { mutableStateOf(IntSize.Zero) }
-
-    Box(
-        modifier = Modifier
-            .offset {
-                IntOffset(
-                    (currentOffset.x - composableSize.width / 2f).roundToInt(),
-                    (currentOffset.y - composableSize.height / 2f).roundToInt()
-                )
-            }
-            .onGloballyPositioned { coordinates ->
-                val newSize = coordinates.size
-                if (composableSize != newSize) {
-                    composableSize = newSize
-                    onSizeMeasured(newSize)
-                }
-            }
-            .pointerInput(editMode) {
-                if (editMode) {
-                    detectDragGestures(
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-
-                            currentOffset = Offset(
-                                x = currentOffset.x + dragAmount.x,
-                                y = currentOffset.y + dragAmount.y
-                            )
-
-                            /*currentOffset = constrainToBoundary(
-                                offset = newOffset,
-                                composableSize = composableSize,
-                                containerSize = containerSize
-                            )*/
-                        },
-                        onDragEnd = {
-                            onPositionChanged(id, currentOffset)
-                        }
-                    )
-                }
-            }
-    ) {
-        content()
     }
 }
 

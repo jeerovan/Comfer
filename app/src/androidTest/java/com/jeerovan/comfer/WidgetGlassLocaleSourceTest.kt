@@ -9,6 +9,13 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
@@ -187,6 +194,43 @@ class WidgetGlassLocaleSourceTest {
             } finally {
                 scenario.onActivity { model.setTimeLayoutId(originalLayout) }
                 compose.waitUntil(5000) { model.uiState.value.timeLayoutId == originalLayout }
+            }
+
+            scenario.onActivity { activity ->
+                activity.setContent {
+                    MaterialTheme {
+                        BoxWithConstraints(Modifier.fillMaxSize().testTag("height-editor")) {
+                            val density = LocalDensity.current
+                            var scales by remember { mutableStateOf(mapOf("time" to 1f, "date" to 1f)) }
+                            var positions by remember { mutableStateOf<Map<String, Offset?>>(mapOf(
+                                "time" to Offset(with(density) { maxWidth.toPx() } / 2, with(density) { 60.dp.toPx() }),
+                                "date" to Offset(with(density) { maxWidth.toPx() } / 2, with(density) { 180.dp.toPx() }))) }
+                            DraggableQuickWidgetsContainer(editMode = true, widgetIds = listOf("time", "date"),
+                                widgetPositions = positions, onPositionChanged = { id, p -> positions = positions + (id to p) },
+                                heightScales = scales, onHeightScaleChanged = { id, value -> scales = scales + (id to value) },
+                                onEditModeChanged = {}, onWidgetLongPressShown = {},
+                                composableContent = { id, _, height ->
+                                    if (id == "time") ClockText(preview, 1, 40.sp, Color.White, heightScale = height ?: 1f)
+                                    else WidgetDate(SettingsUiState(monochrome = true, dateFontSize = 18,
+                                        dateHeightScale = height ?: 1f), Color.White, false)
+                                })
+                        }
+                    }
+                }
+            }
+            val editor = compose.onNodeWithTag("height-editor").fetchSemanticsNode().boundsInRoot
+            for (id in listOf("time", "date")) {
+                val before = compose.onNodeWithTag("quick-widget-$id").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+                assertEquals("Physical centering in $name", editor.center.x, before.center.x, 1f)
+                val handle = compose.onNodeWithTag("widget-height-handle-$id").assertIsDisplayed()
+                handle.performSemanticsAction(SemanticsActions.SetProgress) { it(1.5f) }
+                val after = compose.onNodeWithTag("quick-widget-$id").fetchSemanticsNode().boundsInRoot
+                val grip = handle.fetchSemanticsNode().boundsInRoot
+                assertEquals("Height keeps the top edge in $name", before.top, after.top, 1f)
+                assertEquals("Circle centered on physical right corner in $name", after.right, grip.center.x, 1f)
+                assertEquals(after.bottom, grip.center.y, 1f)
+                assertTrue("Resized widget visible in $name", editor.contains(after.topLeft) && editor.contains(after.bottomRight))
+                result = result + listOf(listOf(after.left, after.top, after.width, after.height))
             }
 
         }

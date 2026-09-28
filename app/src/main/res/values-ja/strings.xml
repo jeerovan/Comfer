@@ -81,7 +81,7 @@
 
     <string name="title_widgets">ウィジェット</string>
     <string name="title_time">時刻</string>
-    <string name="rest_widget_positions">位置をリセット</string>
+    <string name="rest_widget_positions">ウィジェットをリセット</string>
 
     <string name="title_analog_clock">アナログ時計</string>
     <string name="title_clock_size">時計のサイズ</string>
