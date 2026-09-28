@@ -171,6 +171,24 @@ class WidgetGlassLocaleSourceTest {
                 scenario.onActivity { model.setWidgetGlassEffect(original) }
             }
 
+            val originalLayout = model.uiState.value.timeLayoutId
+            scenario.onActivity { activity ->
+                activity.setContent { MaterialTheme { TimeAdvancedSettings(model, {}) } }
+            }
+            val preview = String.format(Locale.forLanguageTag(tag), "%02d:%02d", 12, 34)
+            try {
+                for ((id, text) in listOf(1 to preview, 2 to preview.replace(":", ""), 3 to preview.replace(':', '\n'))) {
+                    val option = compose.onNodeWithText(text).performScrollTo().assertIsDisplayed()
+                    option.performClick()
+                    compose.waitUntil(5000) { model.uiState.value.timeLayoutId == id }
+                    val bounds = option.fetchSemanticsNode().boundsInRoot
+                    assertTrue("Usable layout target: $name/$id", bounds.width >= 48f && bounds.height >= 48f)
+                }
+            } finally {
+                scenario.onActivity { model.setTimeLayoutId(originalLayout) }
+                compose.waitUntil(5000) { model.uiState.value.timeLayoutId == originalLayout }
+            }
+
         }
         return result
     }

@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
@@ -32,6 +33,75 @@ class HomeGlassWidgetsTest(private val direction: LayoutDirection) {
     }
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
     private val tags = listOf("weather", "battery", "notifications")
+
+    @Test fun wallpaperColorsSwitchPreservesVibrantTintAcrossAllGlassWidgets() {
+        var wallpaperColors by mutableStateOf(false)
+        var vibrant by mutableStateOf(Color(0xffcc44aa))
+        val widgetTags = listOf("clock", "date") + tags
+        compose.setContent {
+            CompositionLocalProvider(LocalLayoutDirection provides direction) {
+                MaterialTheme {
+                    val palette = WallpaperThemeColors(0, 0, 0, 0, vibrant.toArgb(),
+                        Color.Black.toArgb(), Color.Black.toArgb())
+                    val settings = SettingsUiState(autoWallpapers = true, widgetGlassEffect = true,
+                        showThemedText = wallpaperColors, themedColors = palette,
+                        timeFontSize = 40, dateFontSize = 18,
+                        weatherTemperatureC = 27.0, weatherFontSize = 18,
+                        batteryFontSize = 20, showBatteryIcon = true, showBatteryPercentage = true,
+                        notificationSize = 16, hasNotificationAccess = true)
+                    val foreground = if (wallpaperColors) Color(palette.textFg) else Color.White
+                    Column(Modifier.fillMaxSize().background(Color(0xff142032)).testTag("host"),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center) {
+                        Box(Modifier.testTag("clock")) { TextClock(settings, foreground, false) }
+                        Box(Modifier.testTag("date")) { WidgetDate(settings, foreground, false) }
+                        Box(Modifier.testTag("weather")) {
+                            WeatherWidget(settings, foreground, false, onLocationChanged = {}, onTemperatureChanged = {})
+                        }
+                        Box(Modifier.testTag("battery")) {
+                            BatteryStatusContent(settings, foreground, false, BatteryState(65, false))
+                        }
+                        Box(Modifier.testTag("notifications")) {
+                            NotificationIconRow(settings = settings, foregroundColor = foreground, showBorder = false)
+                        }
+                        Box(Modifier.widthIn(max = 300.dp)) {
+                            SettingSwitch(context.getString(R.string.title_wallpaper_colors), wallpaperColors) {
+                                wallpaperColors = it
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        awaitHostVisible()
+        fun huePixels(tag: String, pink: Boolean): Int {
+            val bitmap = capture(tag)
+            val pixels = IntArray(bitmap.width * bitmap.height)
+            bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+            bitmap.recycle()
+            return pixels.count {
+                val red = android.graphics.Color.red(it)
+                val green = android.graphics.Color.green(it)
+                val blue = android.graphics.Color.blue(it)
+                if (pink) red > green + 50 && blue > green + 30
+                else blue > red + 50 && blue > green + 30
+            }
+        }
+        val bounds = widgetTags.associateWith { compose.onNodeWithTag(it).fetchSemanticsNode().boundsInRoot }
+        widgetTags.forEach { assertEquals("Neutral background starts untinted: $it", 0, huePixels(it, true)) }
+        compose.onNode(isToggleable()).performClick().assertIsOn()
+        widgetTags.forEach {
+            assertTrue("Wallpaper colors adds the vibrant pink to $it", huePixels(it, true) > 3)
+            assertEquals("Color does not move $it", bounds.getValue(it), compose.onNodeWithTag(it).fetchSemanticsNode().boundsInRoot)
+        }
+        save("wallpaper-colors-pink")
+        // The dominant background stays black while the wallpaper's vibrant swatch changes.
+        compose.runOnIdle { vibrant = Color(0xff306dea) }
+        widgetTags.forEach { assertTrue("New wallpaper changes $it to blue", huePixels(it, false) > 3) }
+        save("wallpaper-colors-blue")
+        compose.onNode(isToggleable()).performClick().assertIsOff()
+        widgetTags.forEach { assertEquals("Disabling wallpaper colors restores adaptive glass: $it", 0, huePixels(it, false)) }
+    }
 
     @Test fun sharedSwitchTintOpacityAndGeometryAcrossLayouts() {
         var glass by mutableStateOf(false)

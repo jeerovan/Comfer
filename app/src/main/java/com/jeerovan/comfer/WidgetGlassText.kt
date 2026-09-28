@@ -19,6 +19,10 @@ import androidx.compose.ui.unit.dp
 /** A tinted clear/smoked glass base; preserve the user's opacity and solid-text mode. */
 internal fun widgetGlassColor(settings: SettingsUiState, base: Color, systemBackground: Color? = null): Color {
     if (!settings.widgetGlassEffect) return base
+    // Wallpaper colors already selects the palette's vibrant text color upstream.
+    // Preserve it instead of replacing it with the often-neutral dominant background.
+    if (settings.showThemedText && settings.themedColors != null &&
+        (settings.autoWallpapers || settings.monochrome)) return base
     val background = if (settings.autoWallpapers || settings.monochrome)
         settings.themedColors?.glassTint?.let { Color(it) } else systemBackground
     if (background == null || background.alpha == 0f) return base

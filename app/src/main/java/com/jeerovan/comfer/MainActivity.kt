@@ -5768,11 +5768,11 @@ fun TextClock(
     } else backgroundColor.toArgb()
     val fontWeight = getFontWeightFromString(settings.timeFontWeight)
     val fontFamily = settings.timeFontFamily
-    var time by remember { mutableStateOf("") }
     val timeFormat = remember(settings.timeFormat) {
         val pattern = if (settings.timeFormat == "H12") "hh:mm" else "HH:mm"
         SimpleDateFormat(pattern, Locale.getDefault())
     }
+    var time by remember(timeFormat) { mutableStateOf(timeFormat.format(System.currentTimeMillis())) }
     DisposableEffect(timeFormat, context) {
         // Set the initial time immediately
         time = timeFormat.format(System.currentTimeMillis())
@@ -5802,63 +5802,23 @@ fun TextClock(
             }
         }
     }
-    val timeParts = remember(time) { time.split(":") }
     Box(
         modifier = Modifier
             .padding(4.dp),
         contentAlignment = Alignment.Center
     ) {
-        when (settings.timeLayoutId){
-            1 ->
-                EffectTextBlock(
-                    text = time,
-                    color = color,
-                    fontSize = settings.timeFontSize.sp,
-                    fontWeight = fontWeight,
-                    fontFamily = fontFamily,
-                    angle = settings.timeAngle.toFloat(),
-                    radius = settings.timeRadius.toFloat(),
-                    shadowColor = shadowColor,
-                    glass = settings.widgetGlassEffect
-                )
-            2 ->
-                EffectTextBlock(
-                    text = time.replace(":"," "),
-                    color = color,
-                    fontSize = settings.timeFontSize.sp,
-                    fontWeight = fontWeight,
-                    fontFamily = fontFamily,
-                    angle = settings.timeAngle.toFloat(),
-                    radius = settings.timeRadius.toFloat(),
-                    shadowColor = shadowColor,
-                    glass = settings.widgetGlassEffect
-                )
-            3 ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    EffectTextBlock(
-                        text = timeParts.first(),
-                        color = color,
-                        fontSize = settings.timeFontSize.sp,
-                        fontWeight = fontWeight,
-                        fontFamily = fontFamily,
-                        angle = settings.timeAngle.toFloat(),
-                        radius = settings.timeRadius.toFloat(),
-                        shadowColor = shadowColor,
-                        glass = settings.widgetGlassEffect
-                    )
-                    EffectTextBlock(
-                        text = timeParts.last(),
-                        color = color,
-                        fontSize = (settings.timeFontSize-10).sp,
-                        fontWeight = fontWeight,
-                        fontFamily = fontFamily,
-                        angle = settings.timeAngle.toFloat(),
-                        radius = settings.timeRadius.toFloat(),
-                        shadowColor = shadowColor,
-                        glass = settings.widgetGlassEffect
-                    )
-                }
-        }
+        ClockText(
+            time = time,
+            layoutId = settings.timeLayoutId,
+            color = color,
+            fontSize = settings.timeFontSize.sp,
+            fontWeight = fontWeight,
+            fontFamily = fontFamily,
+            angle = settings.timeAngle.toFloat(),
+            radius = settings.timeRadius.toFloat(),
+            shadowColor = Color(shadowColor),
+            glass = settings.widgetGlassEffect,
+        )
     }
 }
 @Composable

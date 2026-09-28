@@ -7,6 +7,22 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class WidgetGlassColorTest {
+    @Test fun wallpaperColorsKeepTheVibrantTextTintInsteadOfTheDominantBackground() {
+        val palette = WallpaperThemeColors(0, 0, 0, 0, 0xffb83dbd.toInt(),
+            Color.Black.toArgb(), Color.Black.toArgb())
+        val settings = SettingsUiState(autoWallpapers = true, widgetGlassEffect = true,
+            showThemedText = true, themedColors = palette)
+        for (alpha in listOf(1f, .4f, 0f)) {
+            val foreground = Color(palette.textFg).copy(alpha = alpha)
+            assertEquals("Wallpaper colors must remain visible through glass", foreground,
+                widgetGlassColor(settings, foreground))
+        }
+        val bluePalette = palette.copy(textFg = 0xff406de0.toInt())
+        assertEquals(Color(bluePalette.textFg), widgetGlassColor(settings.copy(themedColors = bluePalette),
+            Color(bluePalette.textFg)))
+        assertNotEquals(Color(palette.textFg), widgetGlassColor(settings.copy(showThemedText = false), Color.White))
+    }
+
     private fun settings(background: Color?, enabled: Boolean = true) = SettingsUiState(
         autoWallpapers = true, widgetGlassEffect = enabled, showThemedText = false,
         themedColors = WallpaperThemeColors(0, 0, 0, 0, 0, 0, background?.toArgb()))

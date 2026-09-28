@@ -821,6 +821,8 @@ fun TimeAdvancedSettings(
     settingsViewModel: SettingsViewModel,
     onBack: () -> Unit){
     val settingsState by settingsViewModel.uiState.collectAsState()
+    val locale = LocalContext.current.resources.configuration.locales[0]
+    val previewTime = remember(locale) { String.format(locale, "%02d:%02d", 12, 34) }
     Surface(
         modifier = Modifier.fillMaxSize(),
         shape = RoundedCornerShape(16.dp),
@@ -873,45 +875,14 @@ fun TimeAdvancedSettings(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    // Box 1
-                    SelectableSquareBox(
-                        id = 1,
-                        selectedId = selectedId,
-                        onSelect = { onSelectLayoutId(it) }
-                    ) {
-                        Text("12:34",
-                            fontSize = fontSize.sp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-
-                    // Box 2
-                    SelectableSquareBox(
-                        id = 2,
-                        selectedId = selectedId,
-                        onSelect = { onSelectLayoutId(it) }
-                    ) {
-                        Text("1234",
-                            fontSize = fontSize.sp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer)
-                    }
-
-                    // Box 3 with Column
-                    SelectableSquareBox(
-                        id = 3,
-                        selectedId = selectedId,
-                        onSelect = { onSelectLayoutId(it) }
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text("12",
-                                fontSize = fontSize.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer)
-                            Text("34",
-                                fontSize = (fontSize - 10).sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    for (id in 1..3) {
+                        SelectableSquareBox(id = id, selectedId = selectedId,
+                            onSelect = { onSelectLayoutId(it) }) {
+                            ClockText(time = previewTime, layoutId = id, fontSize = fontSize.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontFamily = settingsState.timeFontFamily,
+                                fontWeight = getFontWeightFromString(settingsState.timeFontWeight),
+                                semanticText = when (id) { 2 -> previewTime.replace(":", ""); 3 -> previewTime.replace(':', '\n'); else -> previewTime })
                         }
                     }
                 }
