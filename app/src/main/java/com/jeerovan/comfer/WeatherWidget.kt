@@ -54,6 +54,7 @@ fun WeatherWidget(
     backgroundColor: Color = Color.Black,
     onLocationChanged: (WeatherCoordinates) -> Unit,
     onTemperatureChanged: (Double) -> Unit,
+    glassBackground: Color? = null,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -90,11 +91,12 @@ fun WeatherWidget(
     }
 
     val customColor = !settings.autoWallpapers && !settings.monochrome
-    val weatherColor = if (customColor) {
+    val baseColor = if (customColor) {
         settings.weatherColor.copy(alpha = settings.weatherAlpha / 100f)
     } else {
         foregroundColor
     }
+    val weatherColor = widgetGlassColor(settings, baseColor, glassBackground)
     val shadowColor = widgetShadowColor(weatherColor).toArgb()
     val borderColor = if (editMode) weatherColor else Color.Transparent
 
@@ -112,6 +114,7 @@ fun WeatherWidget(
             fontSize = settings.weatherFontSize.sp,
             fontWeight = FontWeight.Light,
             shadowColor = shadowColor,
+            glass = settings.widgetGlassEffect,
         )
     }
 

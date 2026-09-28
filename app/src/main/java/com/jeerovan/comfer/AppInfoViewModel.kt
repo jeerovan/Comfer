@@ -104,6 +104,7 @@ data class WallpaperThemeColors(
     val darkFg: Int,
     val textFg: Int,
     val textBg: Int,
+    val glassTint: Int? = null,
 )
 data class AppInfo(
     val background: Drawable?,

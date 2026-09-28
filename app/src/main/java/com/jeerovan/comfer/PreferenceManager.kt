@@ -63,6 +63,7 @@ object PreferenceManager {
     const val WALLPAPER_DARK_FG = "wallpaper_dark_fg"
     const val WALLPAPER_TEXT_FG = "wallpaper_text_fg"
     const val WALLPAPER_TEXT_BG = "wallpaper_text_bg"
+    const val WALLPAPER_GLASS_TINT = "wallpaper_glass_tint"
     const val AUTO_WALLPAPER = "auto_wallpaper"
     const val MONOCHROME = "monochrome"
     const val APP_UPDATE_PROMPT_TIME = "app_update_prompt_time"
@@ -273,13 +274,15 @@ object PreferenceManager {
                         darkBg:Int,
                         darkFg:Int,
                         textFg:Int,
-                        textBg:Int){
+                        textBg:Int,
+                        glassTint: Int? = null){
         setInt(context,WALLPAPER_LIGHT_FG,lightFg)
         setInt(context,WALLPAPER_LIGHT_BG,lightBg)
         setInt(context,WALLPAPER_DARK_FG,darkFg)
         setInt(context,WALLPAPER_DARK_BG,darkBg)
         setInt(context,WALLPAPER_TEXT_FG,textFg)
         setInt(context,WALLPAPER_TEXT_BG,textBg)
+        setString(context, WALLPAPER_GLASS_TINT, glassTint?.toString())
     }
     fun getThemedColors(context: Context): WallpaperThemeColors {
         if(getMonochrome(context)){
@@ -291,7 +294,8 @@ object PreferenceManager {
             getInt(context,WALLPAPER_DARK_BG,Color.Black.copy(alpha = 0.7f).toArgb()),
             getInt(context,WALLPAPER_DARK_FG,Color.White.toArgb()),
             getInt(context,WALLPAPER_TEXT_FG,Color.White.toArgb()),
-            getInt(context,WALLPAPER_TEXT_BG,Color.Black.toArgb())
+            getInt(context,WALLPAPER_TEXT_BG,Color.Black.toArgb()),
+            getString(context, WALLPAPER_GLASS_TINT, null)?.toIntOrNull()
         )
     }
     fun getMonoThemedColors(context: Context) : WallpaperThemeColors {
@@ -299,7 +303,8 @@ object PreferenceManager {
         val textFg = if (isLightHour) Color.Black.toArgb() else Color.White.toArgb()
         val textBg = Color.Transparent.toArgb()
         return WallpaperThemeColors(
-            -1275068417,-16777216 ,  -1291845632 , -1,textFg,textBg
+            -1275068417,-16777216 ,  -1291845632 , -1,textFg,textBg,
+            (if (isLightHour) Color.White else Color.Black).toArgb()
         )
     }
     fun getAppUpdatePromptUserCounter(context: Context): Int {

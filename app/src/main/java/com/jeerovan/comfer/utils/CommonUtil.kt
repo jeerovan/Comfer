@@ -570,6 +570,8 @@ object CommonUtil {
                     ?: Color.White.toArgb(),
                 textColors.textColor.toArgb(),
                 textColors.shadowColor.toArgb(),
+                // Reuse the palette already computed for this wallpaper.
+                palette.dominantSwatch?.rgb ?: bitmap.getPixel(bitmap.width / 2, bitmap.height / 2),
             )
         }
         PreferenceManager.setThemedColors(
@@ -580,6 +582,7 @@ object CommonUtil {
             colors[3],
             colors[4],
             colors[5],
+            colors[6],
         )
         context.dataStore.edit { preferences ->
             preferences[PreferenceKeys.WALLPAPER_UPDATE] = System.currentTimeMillis()

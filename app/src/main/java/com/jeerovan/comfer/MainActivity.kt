@@ -151,6 +151,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.SolidColor
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.Dispatchers
@@ -2011,10 +2012,24 @@ fun BatteryStatus(
     settings: SettingsUiState,
     foregroundColor: Color,
     showBorder: Boolean,
-    backgroundColor: Color = Color.Black
+    backgroundColor: Color = Color.Black,
+    glassBackground: Color? = null
+) {
+    val batteryState by rememberBatteryState()
+    BatteryStatusContent(settings, foregroundColor, showBorder, batteryState, glassBackground)
+}
+
+@Composable
+internal fun BatteryStatusContent(
+    settings: SettingsUiState,
+    foregroundColor: Color,
+    showBorder: Boolean,
+    batteryState: BatteryState,
+    glassBackground: Color? = null
 ) {
     val customColor = !settings.autoWallpapers && !settings.monochrome
-    val themeColor = if(customColor) settings.batteryColor.copy(alpha = settings.batteryAlpha/100f) else foregroundColor
+    val baseColor = if(customColor) settings.batteryColor.copy(alpha = settings.batteryAlpha/100f) else foregroundColor
+    val themeColor = widgetGlassColor(settings, baseColor, glassBackground)
     val shadowColor = widgetShadowColor(themeColor).toArgb()
     val borderColor = if(showBorder) themeColor else Color.Transparent
     val showBatteryIcon = settings.showBatteryIcon
@@ -2022,11 +2037,21 @@ fun BatteryStatus(
     val fontFamily = settings.batteryFontFamily
     val fontWeight = getFontWeightFromString(settings.batteryFontWeight)
     val fontSize = settings.batteryFontSize.sp
-    val batteryState by rememberBatteryState()
     val batteryLevel = batteryState.level
     val isCharging = batteryState.isCharging
-    val isLow = batteryLevel < 10
-    val batteryLevelColor = if (isLow) Color.Red else themeColor
+    val isLow = batteryLevel in 0..9
+    val warningColor = Color.Red.copy(alpha = themeColor.alpha)
+    val batteryLevelColor = if (isLow) warningColor else themeColor
+    val glass = settings.widgetGlassEffect
+    val bodyBrush = remember(themeColor, glass) {
+        if (glass) Brush.verticalGradient(*widgetGlassStops(themeColor)) else SolidColor(themeColor)
+    }
+    val levelBrush = remember(batteryLevelColor, glass) {
+        if (glass) Brush.verticalGradient(*widgetGlassStops(batteryLevelColor)) else SolidColor(batteryLevelColor)
+    }
+    val warningBrush = remember(warningColor, glass) {
+        if (glass) Brush.verticalGradient(*widgetGlassStops(warningColor)) else SolidColor(warningColor)
+    }
 
     // Calculate icon size based on font size
     val iconHeight = with(LocalDensity.current) { fontSize.toDp() * 0.6f}
@@ -2042,6 +2067,7 @@ fun BatteryStatus(
                 .padding(end = 4.dp)
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
+                if (themeColor.alpha == 0f) return@Canvas
                 val strokeWidth = 2.dp.toPx()
                 widgetHalo(themeColor) { halo, spread ->
                     drawRoundRect(color = halo, size = Size(size.width - strokeWidth, size.height),
@@ -2051,14 +2077,14 @@ fun BatteryStatus(
                 }
                 // Battery body
                 drawRoundRect(
-                    color = themeColor,
+                    brush = bodyBrush,
                     size = Size(size.width - strokeWidth, size.height),
                     style = Stroke(width = strokeWidth),
                     cornerRadius = CornerRadius(2.dp.toPx())
                 )
                 // Battery terminal
                 drawRoundRect(
-                    color = themeColor,
+                    brush = bodyBrush,
                     topLeft = Offset(size.width - strokeWidth, size.height / 4),
                     size = Size(strokeWidth, size.height / 2),
                     style = Fill
@@ -2068,7 +2094,7 @@ fun BatteryStatus(
                     // Battery level
                     val levelWidth = (size.width - strokeWidth * 3) * (batteryLevel / 100f)
                     drawRoundRect(
-                        color = batteryLevelColor,
+                        brush = levelBrush,
                         topLeft = Offset(strokeWidth * 1.5f, strokeWidth * 1.5f),
                         size = Size(levelWidth, size.height - strokeWidth * 3),
                         cornerRadius = CornerRadius(1.dp.toPx())
@@ -2087,19 +2113,20 @@ fun BatteryStatus(
                         lineTo(w * 0.45f, h * 0.4f)
                         close()
                     }
-                    widgetHalo(Color.Red) { halo, spread -> drawPath(path, color = halo, style = Stroke(width = spread * 2)) }
-                    drawPath(path, color = Color.Red)
+                    widgetHalo(warningColor) { halo, spread -> drawPath(path, color = halo, style = Stroke(width = spread * 2)) }
+                    drawPath(path, brush = warningBrush)
                 }
             }
         }
-        if (batteryLevel > 0 && showBatteryPercentage) {
+        if (batteryLevel >= 0 && showBatteryPercentage) {
             EffectTextBlock(
                 text = "$batteryLevel%",
                 color = themeColor,
                 fontSize = fontSize,
                 fontFamily = fontFamily,
                 fontWeight = fontWeight,
-                shadowColor = shadowColor
+                shadowColor = shadowColor,
+                glass = glass
             )
         }
     }
@@ -2307,6 +2334,9 @@ fun QuickListOverlay(apps: List<AppInfo>,
         settings.widgetPositions
     }
 
+    val glassBackground = rememberSystemGlassBackground(
+        enabled = settings.widgetGlassEffect && !settings.autoWallpapers && !settings.monochrome
+    )
     val isLightHour = PreferenceManager.isLightHour(context)
     val hourFgColor = if (isLightHour) {
         if(settings.monochrome) Color.Black else Color.White
@@ -2414,6 +2444,7 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     foregroundColor,
                                     editMode = editMode,
                                     backgroundColor,
+                                    glassBackground = glassBackground,
                                     onTap = {
                                         if(!editMode && activeGuide == HomeGuideStep.CLOCK_TAP) {
                                             settingsModel.setStepGuideShown(context, widgetClockTapKey)
@@ -2451,7 +2482,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 settings,
                                 foregroundColor,
                                 showBorder = editMode,
-                                backgroundColor)
+                                backgroundColor,
+                                glassBackground = glassBackground)
                             "weather" -> WeatherWidget(
                                 settings = settings,
                                 foregroundColor = foregroundColor,
@@ -2464,17 +2496,20 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                     )
                                 },
                                 onTemperatureChanged = settingsModel::setWeatherTemperature,
+                                glassBackground = glassBackground,
                             )
                             "battery" -> BatteryStatus(
                                 settings,
                                 foregroundColor,
                                 showBorder = editMode,
-                                backgroundColor)
+                                backgroundColor,
+                                glassBackground = glassBackground)
                             "notifications" -> NotificationIconRow(
                                 settings = settings,
                                 foregroundColor =  foregroundColor,
                                 showBorder = editMode,
-                                backgroundColor = backgroundColor)
+                                backgroundColor = backgroundColor,
+                                glassBackground = glassBackground)
                                 }
                             },
                             onWidgetLongPressShown = completeWidgetLongPressGuide,
@@ -5480,15 +5515,18 @@ fun NotificationIconRow(
     settings: SettingsUiState,
     foregroundColor: Color,
     showBorder: Boolean,
-    backgroundColor: Color = Color.Black
+    backgroundColor: Color = Color.Black,
+    glassBackground: Color? = null
 ) {
+    val baseColor = if (!settings.autoWallpapers && !settings.monochrome)
+        settings.notificationColor.copy(alpha = settings.notificationAlpha / 100f) else foregroundColor
     com.jeerovan.comfer.notifications.NotificationHomeEntry(
         iconSize = settings.notificationSize.dp,
         hasAccess = settings.hasNotificationAccess,
         modifier = modifier,
         horizontal = settings.notificationLayoutId == 1,
-        color = if (!settings.autoWallpapers && !settings.monochrome)
-            settings.notificationColor.copy(alpha = settings.notificationAlpha / 100f) else foregroundColor,
+        color = widgetGlassColor(settings, baseColor, glassBackground),
+        glass = settings.widgetGlassEffect,
         showBorder = showBorder,
         maxVisibleIcons = maxVisibleIcons,
     )
@@ -5578,7 +5616,8 @@ fun WidgetDate(
     settings: SettingsUiState,
     foregroundColor: Color,
     showBorder: Boolean,
-    backgroundColor: Color = Color.Black
+    backgroundColor: Color = Color.Black,
+    glassBackground: Color? = null
 ){
     var date by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
@@ -5594,7 +5633,8 @@ fun WidgetDate(
     val borderColor = if(showBorder) {
         if(customColor) settings.dateFontColor else foregroundColor
     } else Color.Transparent
-    val textColor = if(customColor) settings.dateFontColor.copy(alpha = settings.dateFontAlpha/100f) else foregroundColor
+    val baseColor = if(customColor) settings.dateFontColor.copy(alpha = settings.dateFontAlpha/100f) else foregroundColor
+    val textColor = widgetGlassColor(settings, baseColor, glassBackground)
     val shadowColor = if(customColor){
         if(settings.dateHasShadow)settings.dateShadowColor.toArgb()
         else Color.Transparent.toArgb()
@@ -5613,7 +5653,8 @@ fun WidgetDate(
                     fontFamily = settings.dateFontFamily,
                     angle = settings.dateAngle.toFloat(),
                     radius = settings.dateRadius.toFloat(),
-                    shadowColor = shadowColor
+                    shadowColor = shadowColor,
+                    glass = settings.widgetGlassEffect
                 )
             2 ->
                 if(dateParts.size == 3) {
@@ -5627,7 +5668,8 @@ fun WidgetDate(
                                 fontFamily = settings.dateFontFamily,
                                 angle = settings.dateAngle.toFloat(),
                                 radius = settings.dateRadius.toFloat(),
-                                shadowColor = shadowColor
+                                shadowColor = shadowColor,
+                                glass = settings.widgetGlassEffect
                             )
                         }
                     }
@@ -5642,7 +5684,8 @@ fun WidgetClock(
     editMode: Boolean,
     backgroundColor: Color = Color.Black,
     onTap: () -> Unit = {},
-    onLongPress: () -> Unit = {}
+    onLongPress: () -> Unit = {},
+    glassBackground: Color? = null
 ){
     val context = LocalContext.current
     val view = LocalView.current
@@ -5702,7 +5745,8 @@ fun WidgetClock(
                 settings,
                 foregroundColor,
                 customColor,
-                backgroundColor
+                backgroundColor,
+                glassBackground
             )
         }
     }
@@ -5712,10 +5756,12 @@ fun TextClock(
     settings: SettingsUiState,
     foregroundColor: Color,
     customColor: Boolean,
-    backgroundColor: Color = Color.Black
+    backgroundColor: Color = Color.Black,
+    glassBackground: Color? = null
 ) {
     val context = LocalContext.current
-    val color = if (customColor) settings.timeFontColor.copy(alpha=settings.timeFontAlpha/100f) else foregroundColor
+    val baseColor = if (customColor) settings.timeFontColor.copy(alpha=settings.timeFontAlpha/100f) else foregroundColor
+    val color = widgetGlassColor(settings, baseColor, glassBackground)
     val shadowColor = if(customColor) {
         if(settings.timeHasShadow) settings.timeShadowColor.toArgb()
         else Color.Transparent.toArgb()
@@ -5772,7 +5818,8 @@ fun TextClock(
                     fontFamily = fontFamily,
                     angle = settings.timeAngle.toFloat(),
                     radius = settings.timeRadius.toFloat(),
-                    shadowColor = shadowColor
+                    shadowColor = shadowColor,
+                    glass = settings.widgetGlassEffect
                 )
             2 ->
                 EffectTextBlock(
@@ -5783,7 +5830,8 @@ fun TextClock(
                     fontFamily = fontFamily,
                     angle = settings.timeAngle.toFloat(),
                     radius = settings.timeRadius.toFloat(),
-                    shadowColor = shadowColor
+                    shadowColor = shadowColor,
+                    glass = settings.widgetGlassEffect
                 )
             3 ->
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -5795,7 +5843,8 @@ fun TextClock(
                         fontFamily = fontFamily,
                         angle = settings.timeAngle.toFloat(),
                         radius = settings.timeRadius.toFloat(),
-                        shadowColor = shadowColor
+                        shadowColor = shadowColor,
+                        glass = settings.widgetGlassEffect
                     )
                     EffectTextBlock(
                         text = timeParts.last(),
@@ -5805,7 +5854,8 @@ fun TextClock(
                         fontFamily = fontFamily,
                         angle = settings.timeAngle.toFloat(),
                         radius = settings.timeRadius.toFloat(),
-                        shadowColor = shadowColor
+                        shadowColor = shadowColor,
+                        glass = settings.widgetGlassEffect
                     )
                 }
         }
@@ -6275,28 +6325,24 @@ fun EffectTextBlock(
     fontFamily: FontFamily = FontFamily.Default,
     angle: Float = 0f,
     radius: Float = 0f,
-    shadowColor: Int = Color.Black.toArgb()
+    shadowColor: Int = Color.Black.toArgb(),
+    glass: Boolean = false
 ) {
     val density = LocalDensity.current
     val resolvedShadow = widgetShadowColor(color, Color(shadowColor)).let { it.copy(alpha = it.alpha * color.alpha) }
     val shadowBlur = with(density) { 1.5.dp.toPx() }
     val shadowOffset = with(density) { .75.dp.toPx() }
     if (angle == 0f && radius == 0f) {
-        Text(
-            text = text,
-            color = color,
+        val style = TextStyle(
             fontSize = fontSize,
             fontWeight = fontWeight,
             fontStyle = fontStyle,
             fontFamily = fontFamily,
-            style = TextStyle(
-                shadow = Shadow(
-                    color = resolvedShadow,
-                    offset = Offset(0f, shadowOffset),
-                    blurRadius = shadowBlur,
-                ),
-            ),
+            shadow = if (resolvedShadow.alpha > 0f)
+                Shadow(resolvedShadow, Offset(0f, shadowOffset), shadowBlur) else null,
         )
+        if (glass) WidgetGlassText(text, color, style)
+        else Text(text = text, color = color, style = style)
         return
     }
 
@@ -6353,6 +6399,7 @@ fun EffectTextBlock(
         // Optional: wrapContentSize if you want it to center in a larger parent
         // .wrapContentSize()
     ) {
+        if (color.alpha == 0f) return@Canvas
         val paint = textPaint.apply {
             this.color = color.toArgb()
             this.textAlign = android.graphics.Paint.Align.CENTER
@@ -6362,6 +6409,7 @@ fun EffectTextBlock(
                 shadowOffset,
                 resolvedShadow.toArgb()
             )
+            if (resolvedShadow.alpha == 0f) clearShadowLayer()
         }
 
         // Center the arc in the new dynamic size
@@ -6399,13 +6447,28 @@ fun EffectTextBlock(
             // Rotate around the calculated center
             nativeCanvas.rotate(angle, cx, cy)
 
-            // Draw text centered on the path (0 offset)
-            // Note: Since we use Align.CENTER, hOffset should be 0 to center on the path's top point
-            nativeCanvas.drawTextOnPath(text,
-                path,
-                0f,
-                vOffsetCorrection,
-                paint)
+            fun glassShader(rim: Boolean): android.graphics.Shader {
+                val stops = widgetGlassStops(color, rim)
+                return android.graphics.LinearGradient(
+                    0f, cy - textHeight / 2, 0f, cy + textHeight / 2,
+                    stops.map { it.second.toArgb() }.toIntArray(),
+                    stops.map { it.first }.toFloatArray(),
+                    android.graphics.Shader.TileMode.CLAMP,
+                )
+            }
+            // The shader already carries the user's opacity; do not multiply it twice.
+            if (glass) paint.alpha = 255
+            paint.shader = if (glass) glassShader(false) else null
+            nativeCanvas.drawTextOnPath(text, path, 0f, vOffsetCorrection, paint)
+            if (glass) {
+                paint.clearShadowLayer()
+                paint.style = android.graphics.Paint.Style.STROKE
+                paint.strokeWidth = .65.dp.toPx()
+                paint.shader = glassShader(true)
+                nativeCanvas.drawTextOnPath(text, path, 0f, vOffsetCorrection, paint)
+                paint.style = android.graphics.Paint.Style.FILL
+                paint.shader = null
+            }
 
             nativeCanvas.restore()
         }

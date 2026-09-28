@@ -153,6 +153,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         }
                     }
                 } else {
+                    // Backfill older installations once, using the existing bounded decoder.
+                    if (PreferenceManager.getString(applicationContext, PreferenceManager.WALLPAPER_GLASS_TINT, null) == null) {
+                        WallpaperWorkCoordinator.runExclusive {
+                            val currentPath = PreferenceManager.getBackgroundImagePath(applicationContext)
+                            if (currentPath != null && PreferenceManager.getString(applicationContext,
+                                    PreferenceManager.WALLPAPER_GLASS_TINT, null) == null) {
+                                setWallpaperThemedColors(applicationContext, File(currentPath))
+                            }
+                        }
+                    }
                     if (_uiState.value.imagePath != backgroundImagePath) {
                         _uiState.update {
                             it.copy(

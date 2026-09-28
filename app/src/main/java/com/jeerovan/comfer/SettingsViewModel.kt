@@ -68,6 +68,7 @@ data class SettingsUiState(
     val iconPackPackage: String? = null,
     val showThemedIcons: Boolean = false,
     val showThemedText: Boolean = false,
+    val widgetGlassEffect: Boolean = true,
     val isLightHour: Boolean = true,
     val appListsVersion: Int = 0,
     val quickAppsLayout: String = "circular",
@@ -246,6 +247,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     private val DRAWER_OFFSET = "drawer_offset"
     private val SHOW_APP_TITLES = "show_app_titles"
     private val SHOW_THEMED_TEXT = "show_themed_text"
+    private val WIDGET_GLASS_EFFECT = "widget_glass_effect"
     private val FIXED_WIDGET_POSITIONS = "fixed_widget_positions"
     private val CIRCULAR_DRAWER_SCROLL_SPEED = "circular_drawer_scroll_speed"
     val predefinedColors = listOf(
@@ -486,6 +488,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                         iconPackPackage = iconPackPackage,
                         showThemedIcons = showThemedIcons,
                         showThemedText = showThemedText,
+                        widgetGlassEffect = PreferenceManager.getBoolean(getApplication(), WIDGET_GLASS_EFFECT, true),
                         isLightHour = isLightHour,
                         appListsVersion = appListUpdateCounter,
                         quickAppsLayout = quickAppsLayout,
@@ -629,6 +632,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
+    fun setWidgetGlassEffect(enabled: Boolean) {
+        PreferenceManager.setBoolean(getApplication(), WIDGET_GLASS_EFFECT, enabled)
+        _uiState.update { it.copy(widgetGlassEffect = enabled) }
+    }
+
     fun setThemedText(enabled: Boolean){
         viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setBoolean(getApplication(),SHOW_THEMED_TEXT,enabled)

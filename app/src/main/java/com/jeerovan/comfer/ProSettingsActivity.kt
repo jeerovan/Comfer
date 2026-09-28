@@ -232,16 +232,23 @@ fun BasicSettings(
                     thickness = DividerDefaults.Thickness,
                     color = DividerDefaults.color
                 )
-                if(settingsState.autoWallpapers)SettingSection(stringResource(R.string.title_color)) {
+                SettingSection(stringResource(R.string.title_color)) {
+                    if (settingsState.autoWallpapers) {
+                        SettingSwitch(
+                            label = stringResource(R.string.title_wallpaper_colors),
+                            checked = settingsState.showThemedText,
+                            onCheckedChange = {
+                                settingsViewModel.setThemedText(it)
+                            }
+                        )
+                    }
                     SettingSwitch(
-                        label = stringResource(R.string.title_wallpaper_colors),
-                        checked = settingsState.showThemedText,
-                        onCheckedChange = {
-                            settingsViewModel.setThemedText(it)
-                        }
+                        label = stringResource(R.string.title_glass_effect),
+                        checked = settingsState.widgetGlassEffect,
+                        onCheckedChange = settingsViewModel::setWidgetGlassEffect
                     )
                 }
-                if(settingsState.autoWallpapers)HorizontalDivider(
+                HorizontalDivider(
                     modifier = Modifier.padding(vertical = 16.dp),
                     thickness = DividerDefaults.Thickness,
                     color = DividerDefaults.color

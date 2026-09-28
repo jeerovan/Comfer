@@ -21,18 +21,19 @@ internal fun notificationIconShadowColor(color: Color) =
 
 /** Bake a silhouette shadow once per icon/color/size, including on pre-Android-12 devices. */
 @Composable
-internal fun NotificationContrastIcon(painter: Painter, iconSize: Dp, color: Color) {
+internal fun NotificationContrastIcon(painter: Painter, iconSize: Dp, color: Color, glass: Boolean = false) {
     val density = LocalDensity.current
     val direction = LocalLayoutDirection.current
-    val bitmap = remember(painter, iconSize, color, density, direction) {
-        renderNotificationContrastIcon(painter, iconSize, color, density, direction).asImageBitmap()
+    val bitmap = remember(painter, iconSize, color, density, direction, glass) {
+        renderNotificationContrastIcon(painter, iconSize, color, density, direction, glass).asImageBitmap()
     }
 
     Image(bitmap, contentDescription = null, modifier = Modifier.size(iconSize + 8.dp))
 }
 
 internal fun renderNotificationContrastIcon(painter: Painter, iconSize: Dp, color: Color,
-    density: androidx.compose.ui.unit.Density, direction: androidx.compose.ui.unit.LayoutDirection): Bitmap {
+    density: androidx.compose.ui.unit.Density, direction: androidx.compose.ui.unit.LayoutDirection,
+    glass: Boolean = false): Bitmap {
         val size = with(density) { iconSize.roundToPx() }.coerceAtLeast(1)
         val padding = with(density) { 4.dp.roundToPx() }.coerceAtLeast(1)
         val silhouette = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
@@ -47,6 +48,17 @@ internal fun renderNotificationContrastIcon(painter: Painter, iconSize: Dp, colo
         val canvas = android.graphics.Canvas(result)
         canvas.drawBitmap(shadow, padding + offset[0].toFloat(), padding + offset[1] + .75f * density.density,
             Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = notificationIconShadowColor(color).toArgb() })
+        if (glass) {
+            // Shade only the cached icon silhouette; its alpha already includes user opacity.
+            val stops = com.jeerovan.comfer.widgetGlassStops(color.copy(alpha = 1f))
+            android.graphics.Canvas(silhouette).drawRect(0f, 0f, size.toFloat(), size.toFloat(),
+                Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    shader = android.graphics.LinearGradient(0f, 0f, 0f, size.toFloat(),
+                        stops.map { it.second.toArgb() }.toIntArray(), stops.map { it.first }.toFloatArray(),
+                        android.graphics.Shader.TileMode.CLAMP)
+                    xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC_IN)
+                })
+        }
         canvas.drawBitmap(silhouette, padding.toFloat(), padding.toFloat(), Paint(Paint.ANTI_ALIAS_FLAG))
         shadow.recycle()
         silhouette.recycle()

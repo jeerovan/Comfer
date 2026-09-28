@@ -105,6 +105,7 @@ fun NotificationHomeEntry(
     color: androidx.compose.ui.graphics.Color = LocalContentColor.current,
     showBorder: Boolean = false,
     maxVisibleIcons: Int = 5,
+    glass: Boolean = false,
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -125,7 +126,7 @@ fun NotificationHomeEntry(
     val listContent: LazyListScope.() -> Unit = {
         if (apps.isEmpty()) item {
             Box(Modifier.size(targetSize), contentAlignment = Alignment.Center) {
-                NotificationContrastIcon(androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Outlined.Inbox), iconSize, color)
+                NotificationContrastIcon(androidx.compose.ui.graphics.vector.rememberVectorPainter(Icons.Outlined.Inbox), iconSize, color, glass)
             }
         } else items(visible, key = { it.appId }) { item ->
             val notification = activeNotifications.firstOrNull { it.key == item.key }?.notification
@@ -133,12 +134,15 @@ fun NotificationHomeEntry(
                 loadNotificationSmallIcon(context, notification)
             }
             Box(Modifier.size(targetSize), contentAlignment = Alignment.Center) {
-                NotificationContrastIcon(rememberDrawableBitmapPainter(smallIcon), iconSize, color)
+                NotificationContrastIcon(rememberDrawableBitmapPainter(smallIcon), iconSize, color, glass)
             }
         }
         if (apps.size > visible.size) item {
             Box(Modifier.size(targetSize), contentAlignment = Alignment.Center) {
-                Text("+${apps.size - visible.size}", color = color, style = LocalTextStyle.current.copy(shadow = androidx.compose.ui.graphics.Shadow(notificationIconShadowColor(color), androidx.compose.ui.geometry.Offset(0f, 1f), 4f)))
+                val text = "+${apps.size - visible.size}"
+                val style = LocalTextStyle.current.copy(shadow = androidx.compose.ui.graphics.Shadow(notificationIconShadowColor(color), androidx.compose.ui.geometry.Offset(0f, 1f), 4f))
+                if (glass) com.jeerovan.comfer.WidgetGlassText(text, color, style)
+                else Text(text, color = color, style = style)
             }
         }
     }
