@@ -320,4 +320,6 @@
     <string name="fife_subtitle">ఎన్‌క్రిప్ట్ చేయబడిన క్లౌడ్ నిల్వ</string>
     <string name="scroll_speed">స్క్రోల్ వేగం</string>
     <string name="title_glass_effect">గాజు ప్రభావం</string>
+    <string name="widget_resize_height">%1$s ఎత్తును మార్చండి</string>
+    <string name="widget_reset_height">ఎత్తును రీసెట్ చేయండి</string>
 </resources>

@@ -320,4 +320,6 @@
     <string name="fife_subtitle">Versleutelde cloudopslag</string>
     <string name="scroll_speed">Scrollsnelheid</string>
     <string name="title_glass_effect">Glaseffect</string>
+    <string name="widget_resize_height">Hoogte van %1$s wijzigen</string>
+    <string name="widget_reset_height">Hoogte herstellen</string>
 </resources>

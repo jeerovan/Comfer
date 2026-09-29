@@ -318,4 +318,6 @@
     <string name="fife_subtitle">암호화된 클라우드 스토리지</string>
     <string name="scroll_speed">스크롤 속도</string>
     <string name="title_glass_effect">유리 효과</string>
+    <string name="widget_resize_height">%1$s 높이 변경</string>
+    <string name="widget_reset_height">높이 초기화</string>
 </resources>

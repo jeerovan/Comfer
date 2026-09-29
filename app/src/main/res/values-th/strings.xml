@@ -318,4 +318,6 @@
     <string name="fife_subtitle">พื้นที่เก็บข้อมูลบนคลาวด์แบบเข้ารหัส</string>
     <string name="scroll_speed">ความเร็วในการเลื่อน</string>
     <string name="title_glass_effect">เอฟเฟกต์กระจก</string>
+    <string name="widget_resize_height">ปรับความสูงของ %1$s</string>
+    <string name="widget_reset_height">รีเซ็ตความสูง</string>
 </resources>

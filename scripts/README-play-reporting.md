@@ -6,13 +6,15 @@ The current triage/fix ledger is maintained in
 
 ## Google Play import
 
-Latest Firebase recurrence review: [version 53](../docs/release-53-recurrence.md),
-with the complete inventory, previous-fix outcomes and next-release attempt IDs.
+Latest Firebase snapshot: [version 54](../docs/release-54-issues.md), with a
+[complete inventory](../docs/release-54-issues-inventory.md) and
+[recurrence/fix review](../docs/release-54-recurrence.md). Previous fix attempts
+and outcomes remain in the [version-53 review](../docs/release-53-recurrence.md).
 For a repeatable read-only comparison after a future import:
 
 ```sh
 venv/bin/python scripts/analyze_crashlytics_recurrence.py --version 54 \
-  --output validation-artifacts/firebase-v54-recurrence.json
+  --output validation-artifacts/firebase-v54-20260929/recurrence.json
 ```
 
 Substitute the actual version. This compares exact IDs within the Firebase app,
@@ -22,10 +24,11 @@ different release windows as comparable rates or overwrites existing triage.
 From the repository root, using the existing virtual environment:
 
 ```sh
-venv/bin/python scripts/sync_play_issues.py
+venv/bin/python scripts/sync_play_issues.py --version-code 54 --version-name 54.0
 ```
 
-Defaults: package `com.jeerovan.comfer`, version code `46`, root
+The script's legacy default version is `46`; explicitly pass the current version
+as above. Other defaults: package `com.jeerovan.comfer`, root
 `service-account.json`, root `play_reporting.db`, and the 30 days ending at
 the current complete UTC hour. The database must already contain the reporting
 schema. The environment needs `google-api-python-client` and `google-auth`.
@@ -35,14 +38,14 @@ Reporting API enabled. Credentials are used only for Google API authentication.
 To preview a fetch without writing the database:
 
 ```sh
-venv/bin/python scripts/sync_play_issues.py --dry-run
+venv/bin/python scripts/sync_play_issues.py --version-code 54 --version-name 54.0 --dry-run
 ```
 
 To select a release and an explicit interval:
 
 ```sh
-venv/bin/python scripts/sync_play_issues.py --version-code 46 --version-name 46.0 \
-  --start 2026-09-03T00:00:00Z --end 2026-09-07T05:00:00Z
+venv/bin/python scripts/sync_play_issues.py --version-code 54 --version-name 54.0 \
+  --start 2026-09-26T00:00:00Z --end 2026-09-29T13:00:00Z
 ```
 
 Dates without a timezone are interpreted as UTC. Start is inclusive, end is
@@ -90,9 +93,9 @@ transactionally:
 
 ```sh
 venv/bin/python scripts/import_firebase_crashlytics.py \
-  --input crashlytics-export.json --dry-run
+  --input crashlytics-export-v54-20260929.json --dry-run
 venv/bin/python scripts/import_firebase_crashlytics.py \
-  --input crashlytics-export.json
+  --input crashlytics-export-v54-20260929.json
 ```
 
 The importer rejects incomplete exports, duplicate issue/sample IDs, mismatched
@@ -104,67 +107,45 @@ deleting history, and writes snapshots in one transaction.
 Crashlytics and Play counts must stay separate: their issue grouping, sampling,
 reporting windows, and user-count semantics differ.
 
-### Crashlytics verification on 2026-09-11
+### Latest Crashlytics verification: 29 September 2026
 
-Import run 1 stored a complete version-48 interval from 2026-08-13 00:00 UTC
-through 2026-09-11 23:59:59 UTC:
+Import **7** stores `54.0 (54)` for **1 September 00:00:00–29 September
+13:34:10 UTC**: **127 groups / 368 events**, comprising 10 fatal groups / 25
+crashes and 117 ANR groups / 343 ANRs. The independent top-versions total
+reconciles exactly. The top-issues report returned 127 rows for page size 1,000
+with no continuation token; a separate non-fatal query returned no groups.
+All earlier Firebase and Play rows, snapshots and triage fields are preserved.
 
-| Version | Crash issues | ANR issues | Crash events | ANR events |
-|---|---:|---:|---:|---:|
-| 48 | 30 | 176 | 296 | 886 |
+Obtain the exact version display name from Firebase before filtering. Default
+`sampleEvent` references are not reliably version-filtered: 16 samples in this
+refresh belonged to older releases. Replace mismatches with
+`crashlytics_list_events` using the same interval, version display name and issue
+ID. Validate every selected event's app, package, version, issue, error type and
+timestamp. API errors are failed requests, never evidence of an empty result.
 
-All 206 groups / 1,182 events reconciled with the Firebase version report.
-Crashlytics returned no version-46 data.
+The [version-54 ledger](../docs/release-54-issues.md) records sample/build limits
+and follow-up work. One selected event has no stack and some traces omit frames;
+selected samples also include emulator candidate telemetry. Do not infer a
+production regression or a root cause from a retained issue title alone.
 
-### Latest Crashlytics verification on 2026-09-22
+### Evidence retention and cleanup
 
-Import **4** stores `52.0 (52)`, 2026-09-01 00:00:00 through
-2026-09-22 08:21:01 UTC: **46 groups / 127 events**, comprising **8 crash groups /
-44 events** and **38 ANR groups / 83 events**. All events reconcile with the
-top-versions report; a separate non-fatal query returned no groups. The top-issues
-response returned 46 rows for page size 1,000 with no continuation token.
+Keep the current normalized export, raw reconciliation reports, import and
+verification results, recurrence output, historical issue ledgers and meaningful
+fix/test evidence. The ignored `crashlytics_*` tables retain raw selected events,
+issue payloads, snapshots and local triage. After verifying these and comparing
+historical rows, redundant fetch intermediates and superseded exports/backups
+can be removed. Retain one verified SQLite recovery backup. Record exact removed
+paths and bytes in the refresh's `cleanup-manifest.json`.
 
-Default `sampleEvent` references are not reliably version-filtered: eight samples
-were version 51. Replace mismatches with `crashlytics_list_events` using the same
-interval, version display name and issue ID. All 46 imported samples were checked
-for package, version, issue, error type and timestamp. Each carries revision
-`7f7cdb042507893fb2a9bac3eafd5b69dd1e2c56`.
+Older per-run totals belong in the historical ledgers/database, rather than
+being repeated as current instructions here. The current refresh evidence is in
+`validation-artifacts/firebase-v54-20260929/`. Google Play was not queried during
+this Firebase-only refresh.
 
-The top-versions endpoint rejected combining a version filter with the error-type
-filter in this refresh; retrying without the version filter returned all versions,
-including the matching version-52 total. Do not treat that rejected request as an
-empty result. See [the version-52 ledger](../docs/release-52-issues.md) for the full
-inventory and interpretation. Earlier releases and Play records were preserved;
-SQLite checks and six importer tests passed.
-
-## Earlier Play verification on 2026-09-07
-
-The database initially contained 1,436 issues and five import runs:
-
-| Version | Crash issues | ANR issues | Crash reports | ANR reports | Stored interval (UTC) |
-| --- | ---: | ---: | ---: | ---: | --- |
-| 42 | 162 | 1,252 | 3,971 | 4,910 | July 25 14:00–August 24 14:00 |
-| 44 | 0 | 11 | 0 | 14 | August 26 00:00–August 31 04:00 |
-| 45 | 2 | 9 | 16 | 22 | August 31 00:00–September 3 02:00 |
-
-All existing issues had local `pending` status. Different time windows and
-unknown active-user totals prevent a direct release-quality comparison.
-Version 45's largest stored crash cluster was `ClassNotFoundException`
-(15 reports, 2 affected users); its largest ANR cluster was an input-dispatch
-timeout with no focused window (12 reports, 12 affected users).
-
-Version 46 had no stored issues before the refresh. The live API returned **zero
-crash/ANR issues** for August 8 05:00 through September 7 05:00 UTC. Import run
-**6** records this successful empty result. An independent query with only
-`versionCode = 46` also returned zero issues. The release-filter endpoint listed
-`46 (46.0)` in both production and internal testing. This establishes what the
-API returned for the queried window; it does not establish that no errors have
-occurred outside the available reporting data.
-
-The older versions were preserved. SQLite integrity and foreign-key checks
-passed. Tests cover pagination, version matching, repeat imports, triage
-preservation, empty imports, and transaction rollback:
+Reporting regressions (six importer and four recurrence tests):
 
 ```sh
-venv/bin/python -m unittest discover -s scripts/tests -v
+venv/bin/python -m unittest discover -s scripts/tests -p 'test_import_firebase_crashlytics.py' -v
+venv/bin/python -m unittest discover -s scripts/tests -p 'test_analyze_crashlytics_recurrence.py' -v
 ```

@@ -318,4 +318,6 @@
     <string name="fife_subtitle">ការផ្ទុកទិន្នន័យលើពពកដែលបានអ៊ិនគ្រីប</string>
     <string name="scroll_speed">ល្បឿនរមូរ</string>
     <string name="title_glass_effect">បែបផែនកញ្ចក់</string>
+    <string name="widget_resize_height">ប្តូរកម្ពស់ %1$s</string>
+    <string name="widget_reset_height">កំណត់កម្ពស់ឡើងវិញ</string>
 </resources>

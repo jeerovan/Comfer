@@ -1,9 +1,19 @@
 # Development progress
 
-Current feature and release status, updated 2026-09-26. Maintain this document as
+Current feature and release status, updated 2026-09-29. Maintain this document as
 a concise reference: what is available, restrictions, attempted alternatives and
 remaining work. Keep implementation discussions and detailed test output out of
 this file.
+
+## Version 55 preparation (29 September 2026)
+
+Candidate version 55 / 55.0 includes cloud spatial motion, gesture guidance and
+haptic improvements, Notes onboarding, glass disabled by default, and the two
+wallpaper ANR mitigations from the v54 review. Release lint blockers in clock
+locale observation and widget-height translations are corrected. Signed artifacts,
+checksums, validation and remaining release gates are recorded in
+[version 55 readiness](docs/release-55-readiness.md). Version 54 remains the
+observed production release; no Play upload or rollout has been performed.
 
 ## Module localization (20 September 2026)
 
@@ -359,9 +369,11 @@ These are source fixes or mitigations, not production-verified resolutions.
 Native/system ANRs, text-layout stalls and activity-launch Binder waits remain
 monitoring items where no deterministic first-party cause has been established.
 
-Historical version-49 device checks and signed-package preparation predate the
-latest Tasks changes. The current build still requires its final acceptance gate
-and refreshed signed artifacts; Play inspection and staged telemetry remain pending.
+The [26 September version-54 readiness record](docs/release-54-readiness.md)
+describes the validated signed candidate. Version 54 is now the current release;
+the [29 September telemetry ledger](docs/release-54-issues.md) records its observed
+issues and evidence limits. Later workspace/debug changes require their own
+release acceptance and artifact identity; earlier checks do not certify them.
 
 Release requirements:
 
@@ -375,6 +387,31 @@ Release requirements:
 5. Require meaningful affected-device exposure before marking fixes production verified.
 
 ## Production reporting and issue ledger
+
+29 September follow-up: [version-54 recurrence review](docs/release-54-recurrence.md)
+compares all 127 groups with historical attempts. **54-03** gates sensor acquisition
+and moves tilt setup/cleanup to IO; **54-04** moves wallpaper receiver/observer
+setup, environment reads and ordered cleanup to IO. Two pre-fix Samsung regressions
+failed as expected; 246 unit and 32 distinct Samsung instrumentation tests pass,
+including reduced-motion/pause behavior in English/LTR and Arabic/RTL. Duplicate
+keys, guarded Honor Gallery crashes, widget-start Binder waits, missing Play-split
+provider evidence and unmapped ANRs remain open. Database review notes preserve
+historical triage and telemetry; no production resolution or rollout is claimed.
+
+29 September: [current version-54 Firebase ledger](docs/release-54-issues.md)
+records **127 groups / 368 events**: 10 fatal groups / 25 crashes and 117 ANR
+groups / 343 ANRs, for 1 September 00:00 through 29 September 13:34:10 UTC.
+Import 7 preserves all earlier Firebase and Play history. All 127 samples were
+version-checked; 16 older default samples were replaced. There are 45 recurring
+exact IDs and 82 newly observed IDs; the [complete inventory](docs/release-54-issues-inventory.md)
+retains each group's counts and evidence limits. Follow-up includes duplicate
+Compose keys, Honor Gallery widget attachment, ML Kit provider packaging and
+widget-start Binder waits. The sampled WorkManager crash is from an emulator
+during candidate validation; the retained Honor launcher title now has a selected
+ML Kit failure. Neither alone proves a final-release regression. Superseded issue
+backups and redundant fetch files were pruned after database verification; one
+fresh recovery backup and historical fix evidence remain. This refresh changes
+local reporting/triage only, with no app-code or Firebase issue-state changes.
 
 26 September: [version-53 recurrence review](docs/release-53-recurrence.md)
 analyzes all 195 Firebase groups / 605 events: 72 previously seen IDs and 123

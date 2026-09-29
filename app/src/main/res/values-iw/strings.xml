@@ -318,4 +318,6 @@
     <string name="fife_subtitle">אחסון ענן מוצפן</string>
     <string name="scroll_speed">מהירות גليלה</string>
     <string name="title_glass_effect">אפקט זכוכית</string>
+    <string name="widget_resize_height">שינוי הגובה של %1$s</string>
+    <string name="widget_reset_height">איפוס הגובה</string>
 </resources>

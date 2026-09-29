@@ -1,0 +1,1 @@
+Added motion effects for supported cloud wallpapers. Improved hold and drag guides with consistent visuals and haptic feedback. Notes and notification tips now respond to your gestures. Added widget height controls and improved clock settings. Glass effects are off by default for new settings. Improved wallpaper responsiveness and stability.

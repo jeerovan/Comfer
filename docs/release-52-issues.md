@@ -98,7 +98,9 @@ both for investigation; sampled idle/native frames alone do not establish a fix.
 ### Import validation
 
 - Existing importer dry-run passed; import 4 wrote 46 issues and 46 snapshots.
-- Backup: `play_reporting.db.backup-20260922T082404824178Z`.
+- Historical backup: `play_reporting.db.backup-20260922T082404824178Z`
+  (pruned during the [29 September cleanup](release-54-issues.md#stored-evidence-validation-and-cleanup);
+  issue history remains in the current database and retained recovery copy).
 - Six importer tests passed, including triage preservation and rollback.
 - SQLite integrity/foreign-key checks and comparison of prior records against
   the backup passed after import. Version-48, -49 and -51 records and Play tables

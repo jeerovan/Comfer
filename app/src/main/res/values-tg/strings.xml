@@ -320,4 +320,6 @@
     <string name="fife_subtitle">Анбори абрии рамзгузоришуда</string>
     <string name="scroll_speed">Суръати паймоиш</string>
     <string name="title_glass_effect">Таъсири шишагӣ</string>
+    <string name="widget_resize_height">Тағйир додани баландии %1$s</string>
+    <string name="widget_reset_height">Барқарор кардани баландӣ</string>
 </resources>

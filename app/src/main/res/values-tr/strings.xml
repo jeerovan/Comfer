@@ -318,4 +318,6 @@
     <string name="fife_subtitle">Şifrelenmiş Bulut Depolama</string>
     <string name="scroll_speed">Kaydırma hızı</string>
     <string name="title_glass_effect">Cam efekti</string>
+    <string name="widget_resize_height">%1$s yüksekliğini değiştir</string>
+    <string name="widget_reset_height">Yüksekliği sıfırla</string>
 </resources>

@@ -318,4 +318,6 @@
     <string name="fife_subtitle">Şifrlenen bulut ammary</string>
     <string name="scroll_speed">Süýşürme tizligi</string>
     <string name="title_glass_effect">Aýna effekti</string>
+    <string name="widget_resize_height">%1$s beýikligini üýtget</string>
+    <string name="widget_reset_height">Beýikligi dikelt</string>
 </resources>

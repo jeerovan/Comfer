@@ -822,7 +822,7 @@ fun TimeAdvancedSettings(
     settingsViewModel: SettingsViewModel,
     onBack: () -> Unit){
     val settingsState by settingsViewModel.uiState.collectAsState()
-    val locale = LocalContext.current.resources.configuration.locales[0]
+    val locale = LocalConfiguration.current.locales[0]
     val previewTime = remember(locale) { String.format(locale, "%02d:%02d", 12, 34) }
     Surface(
         modifier = Modifier.fillMaxSize(),

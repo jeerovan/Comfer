@@ -318,4 +318,6 @@
     <string name="fife_subtitle">暗号化クラウドストレージ</string>
     <string name="scroll_speed">スクロール速度</string>
     <string name="title_glass_effect">ガラス効果</string>
+    <string name="widget_resize_height">%1$sの高さを変更</string>
+    <string name="widget_reset_height">高さをリセット</string>
 </resources>

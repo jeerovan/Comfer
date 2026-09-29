@@ -320,4 +320,6 @@
     <string name="fife_subtitle">एन्क्रिप्टेड क्लाउड स्टोरेज</string>
     <string name="scroll_speed">स्क्रोल गती</string>
     <string name="title_glass_effect">काचेचा प्रभाव</string>
+    <string name="widget_resize_height">%1$s ची उंची बदला</string>
+    <string name="widget_reset_height">उंची रीसेट करा</string>
 </resources>

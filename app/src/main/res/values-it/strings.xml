@@ -318,4 +318,6 @@
     <string name="fife_subtitle">Archiviazione cloud crittografata</string>
     <string name="scroll_speed">Velocità di scorrimento</string>
     <string name="title_glass_effect">Effetto vetro</string>
+    <string name="widget_resize_height">Modifica altezza di %1$s</string>
+    <string name="widget_reset_height">Ripristina altezza</string>
 </resources>

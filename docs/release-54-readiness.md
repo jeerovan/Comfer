@@ -1,8 +1,12 @@
 # Version 54 release readiness
 
-26 September 2026. Candidate: versionCode 54 / versionName 54.0.
-**Decision: ready for a staged version 54 rollout using the final artifacts below.**
-No Play upload, rollout, push or Crashlytics mapping upload has been performed.
+Historical build-validation record, 26 September 2026. Candidate: versionCode 54 / versionName 54.0.
+**Decision at that time: ready for a staged version 54 rollout using the final artifacts below.**
+No Play upload, rollout, push or Crashlytics mapping upload was performed during that validation session.
+
+Version 54 is now the current release. See the [29 September Firebase issue ledger](release-54-issues.md)
+for observed reports and follow-up work. The decision below records candidate
+validation; it does not establish that current crash/ANR reports are resolved.
 
 ## Included changes
 

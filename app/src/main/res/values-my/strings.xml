@@ -318,4 +318,6 @@
     <string name="fife_subtitle">ကုဒ်ဝှက်ထားသော Cloud Storage</string>
     <string name="scroll_speed">လှိမ့်နှုန်း</string>
     <string name="title_glass_effect">ဖန်သားအကျိုးသက်ရောက်မှု</string>
+    <string name="widget_resize_height">%1$s ၏ အမြင့်ကို ပြောင်းရန်</string>
+    <string name="widget_reset_height">အမြင့်ကို မူလအတိုင်း ပြန်ထားရန်</string>
 </resources>

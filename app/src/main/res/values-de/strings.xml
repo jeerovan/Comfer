@@ -318,4 +318,6 @@
     <string name="fife_subtitle">Verschlüsselter Cloud-Speicher</string>
     <string name="scroll_speed">Scrollgeschwindigkeit</string>
     <string name="title_glass_effect">Glaseffekt</string>
+    <string name="widget_resize_height">Höhe von %1$s ändern</string>
+    <string name="widget_reset_height">Höhe zurücksetzen</string>
 </resources>

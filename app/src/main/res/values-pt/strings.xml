@@ -318,4 +318,6 @@
     <string name="fife_subtitle">Armazenamento em nuvem criptografado</string>
     <string name="scroll_speed">Velocidade de rolagem</string>
     <string name="title_glass_effect">Efeito de vidro</string>
+    <string name="widget_resize_height">Alterar altura de %1$s</string>
+    <string name="widget_reset_height">Redefinir altura</string>
 </resources>

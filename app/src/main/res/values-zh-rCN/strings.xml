@@ -318,4 +318,6 @@
     <string name="fife_subtitle">加密云存储</string>
     <string name="scroll_speed">滚动速度</string>
     <string name="title_glass_effect">玻璃效果</string>
+    <string name="widget_resize_height">调整%1$s的高度</string>
+    <string name="widget_reset_height">重置高度</string>
 </resources>

@@ -318,4 +318,6 @@
     <string name="fife_subtitle">ພື້ນທີ່ເກັບຂໍ້ມູນຄລາວທີ່ເຂົ້າລະຫັດ</string>
     <string name="scroll_speed">ຄວາມໄວໃນການເລື່ອນ</string>
     <string name="title_glass_effect">ເອັບເຟັກແກ້ວ</string>
+    <string name="widget_resize_height">ປ່ຽນຄວາມສູງຂອງ %1$s</string>
+    <string name="widget_reset_height">ຣີເຊັດຄວາມສູງ</string>
 </resources>

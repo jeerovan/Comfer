@@ -318,4 +318,6 @@
     <string name="fife_subtitle">Almacenamiento en la nube cifrado</string>
     <string name="scroll_speed">Velocidad de desplazamiento</string>
     <string name="title_glass_effect">Efecto de cristal</string>
+    <string name="widget_resize_height">Cambiar la altura de %1$s</string>
+    <string name="widget_reset_height">Restablecer altura</string>
 </resources>

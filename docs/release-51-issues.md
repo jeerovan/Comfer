@@ -214,7 +214,9 @@ contains the component/profile key that attempt introduced.
   one transaction. Prior notes, event counts, imports, snapshots and resolution
   timestamps were checked against the backup and preserved. Only pending rows
   associated with a candidate attempt were promoted to investigating.
-- Database backup: `play_reporting.db.backup-20260920T045918576756Z`.
+- Historical database backup: `play_reporting.db.backup-20260920T045918576756Z`
+  (pruned during the [29 September cleanup](release-54-issues.md#stored-evidence-validation-and-cleanup);
+  issue history remains in the current database and retained recovery copy).
 - Isolated notificationTest builds and minified release build passed. An initial
   lint-worker internal AsyncExecutionService crash was resolved by rebuilding in
   a fresh Gradle process; the successful release build included lint vital checks.

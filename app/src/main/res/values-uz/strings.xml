@@ -318,4 +318,6 @@
     <string name="fife_subtitle">Shifrlangan bulutli saqlash</string>
     <string name="scroll_speed">Aylantirish tezligi</string>
     <string name="title_glass_effect">Shisha effekti</string>
+    <string name="widget_resize_height">%1$s balandligini o‘zgartirish</string>
+    <string name="widget_reset_height">Balandlikni tiklash</string>
 </resources>

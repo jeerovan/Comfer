@@ -318,4 +318,6 @@
     <string name="fife_subtitle">Κρυπτογραφημένος Χώρος Αποθήκευσης στο Cloud</string>
     <string name="scroll_speed">Ταχύτητα κύλισης</string>
     <string name="title_glass_effect">Εφέ γυαλιού</string>
+    <string name="widget_resize_height">Αλλαγή ύψους του %1$s</string>
+    <string name="widget_reset_height">Επαναφορά ύψους</string>
 </resources>

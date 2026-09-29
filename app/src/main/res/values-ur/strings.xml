@@ -320,4 +320,6 @@
     <string name="fife_subtitle">انکرپٹڈ کلاؤڈ اسٹوریج</string>
     <string name="scroll_speed">اسکرول کی رفتار</string>
     <string name="title_glass_effect">شیشے کا اثر</string>
+    <string name="widget_resize_height">%1$s کی اونچائی تبدیل کریں</string>
+    <string name="widget_reset_height">اونچائی ری سیٹ کریں</string>
 </resources>

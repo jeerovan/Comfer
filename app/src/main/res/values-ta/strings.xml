@@ -320,4 +320,6 @@
     <string name="fife_subtitle">குறியாக்கப்பட்ட கிளவுட் சேமிப்பு</string>
     <string name="scroll_speed">உருள் வேகம்</string>
     <string name="title_glass_effect">கண்ணாடி விளைவு</string>
+    <string name="widget_resize_height">%1$s உயரத்தை மாற்று</string>
+    <string name="widget_reset_height">உயரத்தை மீட்டமை</string>
 </resources>

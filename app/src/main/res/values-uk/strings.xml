@@ -318,4 +318,6 @@
     <string name="fife_subtitle">Зашифроване хмарне сховище</string>
     <string name="scroll_speed">Швидкість прокручування</string>
     <string name="title_glass_effect">Ефект скла</string>
+    <string name="widget_resize_height">Змінити висоту %1$s</string>
+    <string name="widget_reset_height">Скинути висоту</string>
 </resources>

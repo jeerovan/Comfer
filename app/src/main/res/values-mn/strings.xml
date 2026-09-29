@@ -318,4 +318,6 @@
     <string name="fife_subtitle">Шифрлэгдсэн үүлэн хадгалалт</string>
     <string name="scroll_speed">Гүйлгэх хурд</string>
     <string name="title_glass_effect">Шилэн эффект</string>
+    <string name="widget_resize_height">%1$s-ийн өндрийг өөрчлөх</string>
+    <string name="widget_reset_height">Өндрийг анхны байдалд оруулах</string>
 </resources>

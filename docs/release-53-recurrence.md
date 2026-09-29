@@ -175,7 +175,9 @@ issues; pending entries moved to investigating, including locally fixed paths
 awaiting rollout evidence. Existing other-version triage, event evidence,
 snapshots and import runs were compared with the pre-analysis backup and
 preserved. Integrity and foreign-key checks passed. Backup:
-`play_reporting.db.backup-v53-recurrence-20260926T100614Z`.
+`play_reporting.db.backup-v53-recurrence-20260926T100614Z` (historical copy,
+pruned during the [29 September cleanup](release-54-issues.md#stored-evidence-validation-and-cleanup);
+issue history remains in the current database and retained recovery copy).
 
 ### Version 54 release follow-up: cold WorkManager service entry
 

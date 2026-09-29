@@ -318,4 +318,6 @@
     <string name="fife_subtitle">فضای ذخیره‌سازی ابری رمزگذاری‌شده</string>
     <string name="scroll_speed">سرعت پیمایش</string>
     <string name="title_glass_effect">جلوه شیشه‌ای</string>
+    <string name="widget_resize_height">تغییر ارتفاع %1$s</string>
+    <string name="widget_reset_height">بازنشانی ارتفاع</string>
 </resources>

@@ -318,4 +318,6 @@
     <string name="fife_subtitle">Stockage cloud chiffré</string>
     <string name="scroll_speed">Vitesse de défilement</string>
     <string name="title_glass_effect">Effet de verre</string>
+    <string name="widget_resize_height">Modifier la hauteur de %1$s</string>
+    <string name="widget_reset_height">Réinitialiser la hauteur</string>
 </resources>

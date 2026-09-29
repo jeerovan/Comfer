@@ -318,4 +318,6 @@
     <string name="fife_subtitle">Lưu trữ đám mây được mã hóa</string>
     <string name="scroll_speed">Tốc độ cuộn</string>
     <string name="title_glass_effect">Hiệu ứng kính</string>
+    <string name="widget_resize_height">Thay đổi chiều cao của %1$s</string>
+    <string name="widget_reset_height">Đặt lại chiều cao</string>
 </resources>

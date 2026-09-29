@@ -318,4 +318,6 @@
     <string name="fife_subtitle">Stocare cloud criptată</string>
     <string name="scroll_speed">Viteză de derulare</string>
     <string name="title_glass_effect">Efect de sticlă</string>
+    <string name="widget_resize_height">Modifică înălțimea pentru %1$s</string>
+    <string name="widget_reset_height">Resetează înălțimea</string>
 </resources>

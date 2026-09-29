@@ -320,4 +320,6 @@
     <string name="fife_subtitle">Penyimpanan Cloud Terenkripsi</string>
     <string name="scroll_speed">Kecepatan gulir</string>
     <string name="title_glass_effect">Efek kaca</string>
+    <string name="widget_resize_height">Ubah tinggi %1$s</string>
+    <string name="widget_reset_height">Atur ulang tinggi</string>
 </resources>

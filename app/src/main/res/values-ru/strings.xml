@@ -318,4 +318,6 @@
     <string name="fife_subtitle">Зашифрованное облачное хранилище</string>
     <string name="scroll_speed">Скорость прокрутки</string>
     <string name="title_glass_effect">Эффект стекла</string>
+    <string name="widget_resize_height">Изменить высоту %1$s</string>
+    <string name="widget_reset_height">Сбросить высоту</string>
 </resources>
