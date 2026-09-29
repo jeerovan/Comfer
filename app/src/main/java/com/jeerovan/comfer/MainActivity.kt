@@ -116,7 +116,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.text.TextUtils
 import android.view.SoundEffectConstants
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -184,7 +183,6 @@ import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import android.view.ContextThemeWrapper
 import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -259,7 +257,6 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.outlined.Workspaces
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import com.jeerovan.comfer.utils.CommonUtil
@@ -372,57 +369,6 @@ fun SwipeHelper(
     }
 }
 
-
-@Composable
-fun LongPressHint(modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition()
-
-    // Scale animation for the 'Press' feel
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 0.8f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        )
-    )
-
-    // Progress animation for the 'Long Press' duration
-    val progress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        )
-    )
-
-    Box(contentAlignment = Alignment.Center,
-        modifier = modifier
-            .background(Color.Black.copy(alpha = 0.7f), CircleShape)
-            .padding(4.dp)
-    ) {
-        // Circular Progress Ring
-        CircularProgressIndicator(
-        progress = { progress },
-        modifier = Modifier.size(50.dp),
-        color = Color.White,
-        strokeWidth = 2.dp,
-        trackColor = ProgressIndicatorDefaults.circularIndeterminateTrackColor,
-        strokeCap = ProgressIndicatorDefaults.CircularDeterminateStrokeCap,
-        )
-
-        // Hand/Touch Icon
-        Icon(
-            imageVector = Icons.Default.TouchApp,
-            contentDescription = null,
-            modifier = Modifier
-                .size(40.dp)
-                .scale(scale),
-            tint = Color.White
-        )
-    }
-}
 
 @Composable
 fun DoubleTapHint(modifier: Modifier = Modifier) {

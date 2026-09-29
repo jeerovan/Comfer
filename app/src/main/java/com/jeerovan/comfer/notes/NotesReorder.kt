@@ -159,7 +159,10 @@ private fun LazyGridItemInfo.viewportOffset(layout:LazyGridLayoutInfo)=
                     if(active!=null) {
                         Spacer(Modifier.fillMaxWidth().height(with(density){active.size.height.toDp()}).testTag("note-slot-$id"))
                     } else Box(Modifier.testTag("note-$id").semantics(mergeDescendants=true){
-                        onClick{open(note);true};onLongClick("Select note"){select(note);true}
+                        onClick{open(note);true};onLongClick("Select note"){
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            select(note);true
+                        }
                         if(canDrag)customActions=listOf(
                             CustomAccessibilityAction("Move up"){val i=preview.indexOfFirst{it.id==id};if(i>0&&move(id,preview[i-1].id)){commit();true}else false},
                             CustomAccessibilityAction("Move down"){val i=preview.indexOfFirst{it.id==id};if(i>=0&&i<preview.lastIndex&&move(id,preview[i+1].id)){commit();true}else false})

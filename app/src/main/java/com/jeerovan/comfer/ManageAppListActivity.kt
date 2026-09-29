@@ -530,7 +530,7 @@ fun FolderAppListRow(
     RevealAddedApps(folderName, apps, listState)
     val reorderableLazyListState = rememberReorderableLazyListState(listState) { from, to ->
         viewModel.moveAppsInFolder(folderName, from.key as String, to.key as String)
-        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+        hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
     }
     LazyRow(
         state = listState,
@@ -568,7 +568,9 @@ fun FolderAppListRow(
                             scaleX = scale
                             scaleY = scale
                         }
-                        .longPressDraggableHandle()
+                        .longPressDraggableHandle(onDragStarted = {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                        })
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
@@ -609,7 +611,7 @@ fun AppListColumn(
     val hapticFeedback = LocalHapticFeedback.current
     val reorderableLazyListState = rememberReorderableLazyListState(listState) { from, to ->
         viewModel.moveAppInList(listName, from.key as String, to.key as String)
-        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+        hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
     }
 
     Column(
@@ -659,7 +661,9 @@ fun AppListColumn(
                                     scaleX = scale
                                     scaleY = scale
                                 }
-                                .longPressDraggableHandle()
+                                .longPressDraggableHandle(onDragStarted = {
+                                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                })
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = null

@@ -1603,6 +1603,7 @@ fun AppDrawer(
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onLongPress = {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                             enterEditMode()
                         },
                         onTap = {
@@ -1749,6 +1750,7 @@ private fun AppIconWrapper(
     showAppTitles: Boolean,
     onTappingFolder: ((String) -> Unit)? = null
 ) {
+    val hapticFeedback = LocalHapticFeedback.current
     val scale by animateFloatAsState(if (isDragging) 1.2f else 1f, label = "scale")
     val cellWidth = maxOf(88.dp, iconSize + 24.dp)
     val cellHeight = iconSize + if (showAppTitles) 34.dp else 8.dp
@@ -1765,7 +1767,9 @@ private fun AppIconWrapper(
                 .then(
                     if(isEditMode) {
                         Modifier
-                            .longPressDraggableHandle()
+                            .longPressDraggableHandle(onDragStarted = {
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                            })
                     } else { Modifier }
                 )
         },

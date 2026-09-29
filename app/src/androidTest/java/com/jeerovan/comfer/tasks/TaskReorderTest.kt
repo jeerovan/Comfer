@@ -7,6 +7,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.hapticfeedback.HapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
@@ -14,24 +21,44 @@ import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 
-class TaskReorderTest {
+@RunWith(Parameterized::class)
+class TaskReorderTest(private val direction: LayoutDirection) {
     @get:Rule val compose = createComposeRule()
     private val drops = mutableListOf<Pair<String, String>>()
+    private val pulses = mutableListOf<HapticFeedbackType>()
+    private val haptic = object : HapticFeedback {
+        override fun performHapticFeedback(hapticFeedbackType: HapticFeedbackType) { pulses += hapticFeedbackType }
+    }
     private val first = TaskItem(id = "first", listId = "tasks", title = "First")
     private val second = first.copy(id = "second", title = "Second")
     private fun show(rows: List<TaskItem>, enabled: Boolean = true) {
         compose.setContent {
-            MaterialTheme {
+            CompositionLocalProvider(LocalHapticFeedback provides haptic, LocalLayoutDirection provides direction) { MaterialTheme {
                 TasksReorderList(rows, enabled, rememberLazyListState(), Modifier.width(320.dp).heightIn(max = 500.dp), "slot", onDrop = { id, target -> drops += id to target }) { item ->
                     Text(item.title, Modifier.fillMaxWidth().height(if(item.id == "second") 120.dp else 64.dp))
                 }
-            }
+            } }
         }
     }
     private fun dragToSecond() {
         val distance = compose.onNodeWithTag("task-second").fetchSemanticsNode().boundsInRoot.center.y - compose.onNodeWithTag("task-first").fetchSemanticsNode().boundsInRoot.center.y
         compose.onNodeWithTag("task-first").performTouchInput { down(Offset(center.x, 10f)); advanceEventTime(700); moveBy(Offset(0f, distance), 300) }
         compose.mainClock.advanceTimeBy(400)
+        if (pulses.isNotEmpty()) assertEquals(listOf(HapticFeedbackType.LongPress), pulses)
+    }
+    @Test fun holdSignalsReadyBeforeMovementAndDoesNotCommitOnRelease() {
+        show(listOf(first, second))
+        compose.onNodeWithTag("task-first").performTouchInput { down(center); advanceEventTime(700); moveBy(Offset.Zero) }
+        compose.runOnIdle { assertEquals(listOf(HapticFeedbackType.LongPress), pulses) }
+        compose.onNodeWithTag("slot").assertDoesNotExist()
+        compose.onNodeWithTag("task-first").performTouchInput { up() }
+        compose.runOnIdle { assertTrue(drops.isEmpty()); assertEquals(1, pulses.size) }
+    }
+    @Test fun shortOrCancelledPressDoesNotSignalReady() {
+        show(listOf(first, second))
+        compose.onNodeWithTag("task-first").performTouchInput { down(center); advanceEventTime(100); up() }
+        compose.onNodeWithTag("task-first").performTouchInput { down(center); advanceEventTime(100); cancel() }
+        compose.runOnIdle { assertTrue(pulses.isEmpty()); assertTrue(drops.isEmpty()) }
     }
     @Test fun cancellationRestoresUnequalRowsWithoutCommitting() {
         show(listOf(first, second))
@@ -60,6 +87,7 @@ class TaskReorderTest {
         compose.onNodeWithTag("task-first").performTouchInput { up() }
         compose.onNodeWithTag("slot").assertDoesNotExist()
         assertTrue(drops.isEmpty())
+        assertTrue(pulses.isEmpty())
     }
     @Test fun expandedChildrenStayWithTheirParentDuringPreview() {
         show(listOf(first, first.copy(id = "child", parentId = "first", title = "Child"), second))
@@ -71,5 +99,9 @@ class TaskReorderTest {
         compose.onNodeWithTag("task-first").performTouchInput { up() }
         compose.waitForIdle()
         assertEquals(listOf("first" to "second"), drops)
+    }
+    companion object {
+        @JvmStatic @Parameterized.Parameters(name = "{0}")
+        fun directions() = listOf(arrayOf(LayoutDirection.Ltr), arrayOf(LayoutDirection.Rtl))
     }
 }

@@ -22,6 +22,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import com.jeerovan.comfer.R
+import com.jeerovan.comfer.LongPressHint
 import kotlinx.coroutines.delay
 
 internal enum class TaskGuide { SWIPE, REORDER, LIST }
@@ -45,12 +46,21 @@ internal fun TaskGestureGuide(kind: TaskGuide, targetDistance: Float, modifier: 
             shown()
         }
     }
+    if (kind == TaskGuide.REORDER) {
+        LongPressHint(
+            modifier = modifier.testTag("tasks-guide-reorder"),
+            dragDistance = targetDistance,
+            contentDescription = stringResource(R.string.tasks_reorder_hint),
+            size = 48.dp,
+        )
+        return
+    }
     val transition = rememberInfiniteTransition(label = "taskGestureGuide")
     val progress by transition.animateFloat(0f, 1f, infiniteRepeatable(keyframes {
         durationMillis = 2000
         0f at 0
-        0f at (if(kind == TaskGuide.REORDER) 700 else 150)
-        1f at (if(kind == TaskGuide.REORDER) 1400 else 850) using FastOutSlowInEasing
+        0f at 150
+        1f at 850 using FastOutSlowInEasing
         1f at 1650
         0f at 2000
     }), label = "handTravel")
@@ -65,7 +75,7 @@ internal fun TaskGestureGuide(kind: TaskGuide, targetDistance: Float, modifier: 
     Box(modifier.size(48.dp).offset {
         androidx.compose.ui.unit.IntOffset(
             if(kind == TaskGuide.SWIPE) (swipeDistance * progress).toInt() else 0,
-            if(kind == TaskGuide.REORDER) (targetDistance * progress).toInt() else 0,
+            0,
         )
     }.graphicsLayer {
         scaleX = press; scaleY = press

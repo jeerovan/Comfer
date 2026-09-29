@@ -444,7 +444,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                                 IconButton(enabled = index > 0 && !busy, onClick = { move(-1) }) { Icon(Icons.Outlined.KeyboardArrowUp, stringResource(R.string.tasks_up)) }
                                 IconButton(enabled = index < listOrder.lastIndex && !busy, onClick = { move(1) }) { Icon(Icons.Outlined.KeyboardArrowDown, stringResource(R.string.tasks_down)) }
                                 val density = LocalDensity.current
-                                Icon(Icons.Outlined.DragHandle, stringResource(R.string.tasks_reorder), Modifier.size(48.dp).pointerInput(listOrder) { detectDragGesturesAfterLongPress(onDragEnd = { move(with(density) { (drag / 48.dp.toPx()).toInt() }); drag = 0f }, onDragCancel = { drag = 0f }) { change, amount -> change.consume(); drag += amount.y } })
+                                Icon(Icons.Outlined.DragHandle, stringResource(R.string.tasks_reorder), Modifier.size(48.dp).pointerInput(listOrder) { detectDragGesturesAfterLongPress(onDragStart = { haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress) }, onDragEnd = { move(with(density) { (drag / 48.dp.toPx()).toInt() }); drag = 0f }, onDragCancel = { drag = 0f }) { change, amount -> change.consume(); drag += amount.y } })
                             }
                           }
                           Button(enabled = !busy, onClick = { mutate("browse", success = { sheet = "sort" }) { s -> require(s.lists.map { it.id }.toSet() == listOrder.toSet()) { "Lists changed; reopen ordering" }; s.copy(lists = listOrder.mapIndexed { i, id -> s.lists.first { it.id == id }.copy(position = i) }) } }) { Text(stringResource(R.string.tasks_save)) }

@@ -9,6 +9,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.hapticfeedback.HapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -41,6 +45,10 @@ class AppReorderTest {
     private var originalFolders: Map<String, FolderData> = emptyMap()
     private lateinit var listState: LazyListState
     private lateinit var scrollScope: CoroutineScope
+    private val pulses = mutableListOf<HapticFeedbackType>()
+    private val haptic = object : HapticFeedback {
+        override fun performHapticFeedback(hapticFeedbackType: HapticFeedbackType) { pulses += hapticFeedbackType }
+    }
 
     @Before
     fun setUp() {
@@ -64,7 +72,7 @@ class AppReorderTest {
             val state by viewModel.uiState.collectAsState()
             listState = rememberLazyListState()
             scrollScope = rememberCoroutineScope()
-            MaterialTheme {
+            CompositionLocalProvider(LocalHapticFeedback provides haptic) { MaterialTheme {
                 AppListColumn(
                     title = "Test apps", apps = state.primaryApps, canReOrder = true,
                     // Keep the list scrollable on tall device displays.
@@ -73,7 +81,7 @@ class AppReorderTest {
                     selectedPackageNames = emptySet(), iconSize = 48.dp, iconShape = CircleShape,
                     onItemSelect = { _, _ -> }, onAddFolderClick = {}, folders = 10,
                 )
-            }
+            } }
         }
     }
 
@@ -101,6 +109,19 @@ class AppReorderTest {
             assertEquals(expected, viewModel.uiState.value.primaryApps.map { it.packageName })
         }
         awaitSaved(expected)
+    }
+
+    @Test
+    fun stationaryHoldSignalsReadyWithoutReordering() {
+        val original = viewModel.uiState.value.primaryApps.map { it.packageName }
+        val source = composeRule.onNodeWithTag("manage-app:$LIST:${original.first()}")
+        source.performTouchInput { down(center); advanceEventTime(700); moveTo(center) }
+        composeRule.runOnIdle {
+            assertEquals(listOf(HapticFeedbackType.LongPress), pulses)
+            assertEquals(original, viewModel.uiState.value.primaryApps.map { it.packageName })
+        }
+        source.performTouchInput { up() }
+        composeRule.runOnIdle { assertEquals(listOf(HapticFeedbackType.LongPress), pulses) }
     }
 
     @Test

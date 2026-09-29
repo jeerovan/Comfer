@@ -107,6 +107,7 @@ private data class HeldTask(val item: TaskItem, val height: Int)
             val source = state.layoutInfo.visibleItemsInfo.firstOrNull { down.position.y >= it.offset && down.position.y <= it.offset + it.size } ?: return@awaitEachGesture
             val item = latest.find { it.id == source.key } ?: return@awaitEachGesture
             val press = awaitLongPressOrCancellation(down.id) ?: return@awaitEachGesture
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             var ended = false
             try {
                 while(true) {
@@ -116,7 +117,6 @@ private data class HeldTask(val item: TaskItem, val height: Int)
                     val distance = change.position.y - down.position.y
                     if(held == null && kotlin.math.abs(distance) > viewConfiguration.touchSlop) {
                         held = HeldTask(item, source.size)
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         dragging(true)
                     }
                     if(held != null) { position = source.offset + distance; updateTarget() }
