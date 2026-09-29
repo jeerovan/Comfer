@@ -52,6 +52,7 @@ class WidgetGlassColorTest {
         assertEquals(original, widgetGlassColor(settings(null), original))
         assertEquals(original, widgetGlassColor(SettingsUiState(), original))
         assertEquals(original, widgetGlassColor(SettingsUiState(), original, Color.Transparent))
-        assertNotEquals(original, widgetGlassColor(SettingsUiState(), original, Color(0xff002040)))
+        assertEquals(original, widgetGlassColor(SettingsUiState(), original, Color(0xff002040)))
+        assertNotEquals(original, widgetGlassColor(SettingsUiState(widgetGlassEffect = true), original, Color(0xff002040)))
     }
 }

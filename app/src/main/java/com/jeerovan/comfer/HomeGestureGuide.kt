@@ -38,13 +38,13 @@ internal fun nextHomeGuideStep(
     }
 }
 
-/** Stop teaching after 15 seconds even when the user never performs the gesture. */
+/** Stop teaching after 5 seconds even when the user never performs the gesture. */
 @Composable
 internal fun InboxGuideTimeout(active: Boolean, onTimeout: () -> Unit) {
     val dismiss by rememberUpdatedState(onTimeout)
     LaunchedEffect(active) {
         if (active) {
-            delay(15_000)
+            delay(5_000)
             dismiss()
         }
     }

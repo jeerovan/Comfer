@@ -20,7 +20,7 @@ import org.junit.Test
 class InboxGestureGuideTest {
     @get:Rule val compose = createComposeRule()
 
-    @Test fun guideExpiresAfterFifteenSecondsWithoutAnyGestureAndAdvancesSequence() {
+    @Test fun guideExpiresAfterFiveSecondsWithoutAnyGestureAndAdvancesSequence() {
         var completed by mutableStateOf(HomeGuideStep.entries.toSet() - HomeGuideStep.INBOX - HomeGuideStep.CLOCK_TAP)
         var dismissals = 0
         compose.mainClock.autoAdvance = false
@@ -30,7 +30,7 @@ class InboxGestureGuideTest {
             if (active) InboxGestureHint()
         }
         compose.mainClock.advanceTimeByFrame()
-        compose.mainClock.advanceTimeBy(14_900)
+        compose.mainClock.advanceTimeBy(4_900)
         compose.onNodeWithTag("home-inbox-guide").assertExists()
         compose.runOnIdle { assertEquals(0, dismissals) }
         compose.mainClock.advanceTimeBy(200)
@@ -51,7 +51,7 @@ class InboxGestureGuideTest {
         compose.mainClock.advanceTimeBy(20_000)
         compose.runOnIdle { assertEquals(0, dismissals); active = true }
         compose.mainClock.advanceTimeByFrame()
-        compose.mainClock.advanceTimeBy(10_000)
+        compose.mainClock.advanceTimeBy(2_000)
         compose.runOnIdle { active = false }
         compose.mainClock.advanceTimeByFrame()
         compose.mainClock.advanceTimeBy(20_000)
@@ -141,7 +141,7 @@ class InboxGestureGuideTest {
         }
         compose.onNodeWithTag("home-inbox-guide").assertIsDisplayed()
         compose.runOnIdle { assertEquals(0, opened) }
-        compose.mainClock.advanceTimeBy(10_000)
+        compose.mainClock.advanceTimeBy(2_000)
         compose.onNodeWithTag("home-inbox-guide").assertIsDisplayed()
         compose.onNodeWithTag("guide-home").performTouchInput {
             down(Offset(hint.center.x, hint.top + 20f * density))
