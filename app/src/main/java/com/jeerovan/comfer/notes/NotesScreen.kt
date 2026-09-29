@@ -42,6 +42,7 @@ import kotlinx.coroutines.*
 @Composable internal fun NotesScreen(model:NotesViewModel,close:()->Unit,unlock:((()->Unit)->Unit),locked:Boolean=false,pickImage:()->Unit={}) {
     val resources=LocalResources.current
     val context=LocalContext.current
+    val guides=remember(context){NotesGuideProgress(context)}
     val keyboard=LocalSoftwareKeyboardController.current
     val view=LocalView.current
     val focusManager=LocalFocusManager.current
@@ -97,7 +98,9 @@ import kotlinx.coroutines.*
                         onSelect={note->model.selected=model.selected.toggle(note.id)},
                         modifier=Modifier.nestedScroll(reach).fillMaxSize(),topPadding=padding,
                         onDragStart={model.selected=emptySet()},onPosition=model::persistBrowse,
-                        initialIndex=model.prefs.scrollIndex,initialOffset=model.prefs.scrollOffset) {note->
+                        initialIndex=model.prefs.scrollIndex,initialOffset=model.prefs.scrollOffset,
+                        guide=if(model.view=="Notes"&&!searching&&model.query.isBlank()&&model.selected.isEmpty()&&!options&&!colors&&labelTargets==null&&!recovery&&preview==null&&purge==null)guides.next(visible.size) else null,
+                        onHold=guides::performedHold,onGuideFinished=guides::finishedDragGuide) {note->
                         NoteCard(note,debounced,model.labels,note.id in model.selected)
                     }
                     if(visible.isEmpty())Text(if(model.view=="Bin")resources.getString(R.string.module_bin_is_empty) else resources.getString(R.string.module_no_notes),Modifier.align(Alignment.Center),color=MaterialTheme.colorScheme.onSurfaceVariant)

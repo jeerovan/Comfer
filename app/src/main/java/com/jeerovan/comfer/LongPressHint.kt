@@ -33,6 +33,7 @@ fun LongPressHint(
     dragDistance: Float = 0f,
     contentDescription: String? = null,
     size: Dp = 58.dp,
+    dragDistanceX: Float = 0f,
 ) {
     val resolver = LocalContext.current.contentResolver
     var animated by remember(resolver) {
@@ -79,7 +80,7 @@ fun LongPressHint(
         opacity = alpha
     }
     Box(
-        modifier = Modifier.offset { IntOffset(0, (dragDistance * travel).roundToInt()) }.then(modifier)
+        modifier = Modifier.absoluteOffset { IntOffset((dragDistanceX * travel).roundToInt(), (dragDistance * travel).roundToInt()) }.then(modifier)
             .graphicsLayer { alpha = opacity }
             .background(Color.Black.copy(alpha = .7f), CircleShape).padding(size * (4f / 58f)),
         contentAlignment = Alignment.Center,

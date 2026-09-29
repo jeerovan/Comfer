@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -33,12 +34,14 @@ private fun LazyGridItemInfo.viewportOffset(layout:LazyGridLayoutInfo)=
     values:List<Note>,grid:Boolean,canDrag:Boolean,onDrop:(List<Note>)->Unit,
     onOpen:(Note)->Unit,onSelect:(Note)->Unit,modifier:Modifier=Modifier,topPadding:Dp=0.dp,
     onDragStart:()->Unit={},onPosition:(Int,Int)->Unit={_,_->},initialIndex:Int=0,initialOffset:Int=0,
+    guide:NotesGuide?=null,onHold:()->Unit={},onGuideFinished:()->Unit={},
     content:@Composable (Note)->Unit,
 ) {
     var preview by remember { mutableStateOf(values) }
     var held by remember { mutableStateOf<HeldNote?>(null) }
     var position by remember { mutableStateOf(Offset.Zero) }
     var settling by remember { mutableStateOf(false) }
+    var holding by remember { mutableStateOf(false) }
     val settle=remember { Animatable(Offset.Zero,Offset.VectorConverter) }
     val scope=rememberCoroutineScope()
     val state=rememberLazyGridState(initialIndex,initialOffset)
@@ -47,6 +50,7 @@ private fun LazyGridItemInfo.viewportOffset(layout:LazyGridLayoutInfo)=
     val open by rememberUpdatedState(onOpen)
     val select by rememberUpdatedState(onSelect)
     val start by rememberUpdatedState(onDragStart)
+    val heldAction by rememberUpdatedState(onHold)
     val dragEnabled by rememberUpdatedState(canDrag)
     val haptic=LocalHapticFeedback.current
     val density=LocalDensity.current
@@ -122,7 +126,9 @@ private fun LazyGridItemInfo.viewportOffset(layout:LazyGridLayoutInfo)=
             }
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             var moved=false
+            holding=true
             try {
+                heldAction()
                 var ended=false
                 while(true) {
                     // Claim held movement before the lazy grid/nested thumb-reach scroll consumes it.
@@ -146,6 +152,7 @@ private fun LazyGridItemInfo.viewportOffset(layout:LazyGridLayoutInfo)=
                 if(held!=null)finish(!ended)
                 else if(ended&&!moved)latest.firstOrNull{it.id==id}?.let(select)
             } finally {
+                holding=false
                 if(held!=null&&!settling)finish(true)
             }
         }
@@ -161,6 +168,7 @@ private fun LazyGridItemInfo.viewportOffset(layout:LazyGridLayoutInfo)=
                     } else Box(Modifier.testTag("note-$id").semantics(mergeDescendants=true){
                         onClick{open(note);true};onLongClick("Select note"){
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            heldAction()
                             select(note);true
                         }
                         if(canDrag)customActions=listOf(
@@ -176,6 +184,33 @@ private fun LazyGridItemInfo.viewportOffset(layout:LazyGridLayoutInfo)=
                 IntOffset(point.x.roundToInt(),point.y.roundToInt())
             }.width(with(density){active.size.width.toDp()}).testTag("note-${active.note.id}").semantics(mergeDescendants=true){}) {
                 content(active.note)
+            }
+        }
+        if(guide!=null&&!holding&&held==null&&!settling&&!state.isScrollInProgress) {
+            val info=state.layoutInfo
+            val viewportHeight=info.viewportEndOffset-info.viewportStartOffset
+            val handSize=with(density){48.dp.toPx()}
+            val visible=info.visibleItemsInfo.filter {
+                val origin=it.viewportOffset(info)
+                origin.y>=0 && origin.y+it.size.height<=viewportHeight &&
+                    it.size.height>=handSize && latest.any { note->note.id==it.key }
+            }
+            // Reordering cannot cross the pinned/unpinned boundary.
+            val pair=visible.firstNotNullOfOrNull { source->
+                val note=latest.first { it.id==source.key }
+                visible.firstOrNull { target->target.key!=source.key&&latest.any { it.id==target.key&&it.pinned==note.pinned } }
+                    ?.let { source to it }
+            }
+            val source=if(guide==NotesGuide.HOLD)visible.firstOrNull() else pair?.first?.takeIf { canDrag }
+            if(source!=null) {
+                val origin=source.viewportOffset(info)+Offset(source.size.width/2f,source.size.height/2f)
+                val destination=pair?.second?.let { it.viewportOffset(info)+Offset(it.size.width/2f,it.size.height/2f) }?:origin
+                key(guide,source.key,pair?.second?.key) {
+                    NotesGestureGuide(guide,destination-origin,
+                        Modifier.align(AbsoluteAlignment.TopLeft).absoluteOffset {
+                            IntOffset((origin.x-handSize/2).roundToInt(),(origin.y-handSize/2).roundToInt())
+                        },onGuideFinished)
+                }
             }
         }
     }
