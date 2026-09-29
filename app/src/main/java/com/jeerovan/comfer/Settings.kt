@@ -87,6 +87,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SmartButton
 import androidx.compose.material.icons.filled.Support
 import androidx.compose.material.icons.filled.TextFields
@@ -2120,7 +2121,7 @@ internal fun ProtectionTimeoutSetting(seconds: Int, onSelected: (Int) -> Unit) {
     SelectOptionsWithListItemSettingItem(
         headline = stringResource(R.string.protection_timeout),
         supportingLine = stringResource(R.string.protection_timeout_subtitle),
-        icon = null,
+        icon = { Icon(Icons.Filled.Shield, contentDescription = null) },
         selectedOption = choices.first { it.key == ProtectionSession.validTimeout(seconds).toString() }.text,
         onSelectionClick = { onSelected(it.toInt()) },
         options = choices,

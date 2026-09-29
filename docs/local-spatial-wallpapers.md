@@ -10,6 +10,12 @@ Home shows a small 3D icon in a circular progress indicator until ready; failure
 leave the original image usable and expose a retry action.
 
 Cloud wallpapers follow Wallpaper motion automatically and never invoke ML.
+Home observes cloud metadata updates even when the selected image file is unchanged.
+For a wallpaper saved before spatial assets were published, enabling motion checks
+the wallpaper detail API for its spatial URLs without rotating or downloading the
+original image again. Missing metadata or a failed lookup keeps ordinary motion;
+toggling motion off and on retries the lookup. A late response cannot replace a
+newer wallpaper selection. Disabling motion restores the original image.
 Cloud asset generation and serving live in the `comferweb` backend; see
 [backend ownership and setup](cloud-spatial-assets.md).
 The wallpaper API may supply an optional `depthUrl` HTTPS URL alongside `id` and
@@ -18,8 +24,8 @@ The wallpaper API may supply an optional `depthUrl` HTTPS URL alongside `id` and
 full image orientation and aspect ratio. Grids are bounded to 128 × 128 and downloads
 to 1 MiB. A 48 × 96 grid is recommended. Use versioned URLs for changed depth assets.
 Missing metadata preserves ordinary wallpaper motion. Invalid/unreachable assets
-preserve the original image and show retry. Server publishing is separate: existing
-cloud API responses without spatial asset metadata cannot display a depth effect yet.
+preserve the original image and show retry. Only wallpapers with published spatial
+metadata can display a depth effect.
 
 For multiple layers, supply `spatialSceneUrl` (HTTPS) instead. It takes precedence
 over `depthUrl` and points to a versioned JSON manifest (maximum 64 KiB):

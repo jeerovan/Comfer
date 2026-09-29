@@ -4229,8 +4229,9 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         // onStop temporarily clears imagePath; retain the applied image while Home is inactive.
         var spatialPath by remember { mutableStateOf<String?>(null) }
         if (backgroundImage != null) spatialPath = backgroundImage
-        val cloudData = remember(spatialPath) { PreferenceManager.getImageData(context) }
-        val currentCloud = cloudData?.takeIf { spatialPath?.endsWith("comfer_${it.id}.jpg") == true }
+        val currentCloud = com.jeerovan.comfer.spatial.rememberCloudWallpaper(
+            spatialPath, wallpaperMotionEnabled,
+        )
         if (settingInfoUiState.autoWallpapers) {
             spatialHint = com.jeerovan.comfer.spatial.renderLocalSpatialWallpaper(
                 motionEnabled = wallpaperMotionEnabled,

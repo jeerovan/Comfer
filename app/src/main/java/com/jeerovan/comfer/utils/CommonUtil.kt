@@ -376,6 +376,9 @@ object CommonUtil {
         )
     }
 
+    internal suspend fun fetchWallpaperDetails(context: Context, id: Int): ImageData =
+        getHttpClient(context).get("https://comfer.jeerovan.com/api/wallpapers/$id").body()
+
     private suspend fun fetchImageData(applicationContext: Context): Boolean {
         val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(applicationContext)
         if (wallpaperDirectory != null) {
