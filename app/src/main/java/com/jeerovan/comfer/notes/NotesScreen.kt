@@ -97,7 +97,10 @@ import kotlinx.coroutines.*
                         onOpen={note->if(model.selected.isNotEmpty())model.selected=model.selected.toggle(note.id) else if(note.deletedAt!=null)preview=note else model.open(note,debounced)},
                         onSelect={note->model.selected=model.selected.toggle(note.id)},
                         modifier=Modifier.nestedScroll(reach).fillMaxSize(),topPadding=padding,
-                        onDragStart={model.selected=emptySet()},onPosition=model::persistBrowse,
+                        onDragStart={
+                            model.selected=emptySet()
+                            if(guides.next(visible.size)==NotesGuide.DRAG)guides.finishedDragGuide()
+                        },onPosition=model::persistBrowse,
                         initialIndex=model.prefs.scrollIndex,initialOffset=model.prefs.scrollOffset,
                         guide=if(model.view=="Notes"&&!searching&&model.query.isBlank()&&model.selected.isEmpty()&&!options&&!colors&&labelTargets==null&&!recovery&&preview==null&&purge==null)guides.next(visible.size) else null,
                         onHold=guides::performedHold,onGuideFinished=guides::finishedDragGuide) {note->

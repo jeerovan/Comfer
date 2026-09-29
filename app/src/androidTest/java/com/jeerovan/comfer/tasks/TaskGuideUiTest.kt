@@ -88,6 +88,57 @@ class TaskGuideUiTest {
         compose.onNodeWithTag("tasks-guide-list").assertDoesNotExist()
         assertEquals("Tasks", TaskStore.state.value.lists.single().name)
     }
+    @Test fun swipeCompletesGuideBeforeTimeoutEvenWhenDeletionIsCancelled() {
+        val parent = TaskItem(id = "parent", listId = "tasks", title = "Parent")
+        val child = parent.copy(id = "child", parentId = "parent", title = "Child")
+        show(listOf(parent, child))
+        compose.onNodeWithTag("tasks-guide-swipe").assertIsDisplayed()
+        compose.mainClock.autoAdvance = false
+        compose.onNodeWithTag("task-parent").performTouchInput {
+            swipe(center, center.copy(x = center.x - 100f), durationMillis = 300)
+        }
+        compose.mainClock.advanceTimeBy(100)
+        assertFalse(TaskStore.state.value.preferences.swipeGuideShown)
+        compose.onNodeWithTag("tasks-guide-swipe").assertIsDisplayed()
+        compose.onNodeWithTag("task-parent").performTouchInput { swipeLeft() }
+        compose.mainClock.advanceTimeBy(100)
+        compose.waitUntil(3000) { TaskStore.state.value.preferences.swipeGuideShown }
+        compose.onNodeWithText("Cancel").performClick()
+        compose.mainClock.advanceTimeBy(100)
+        // Cancelling the review returns to the task menu; close that too.
+        compose.onNodeWithText("Cancel").performClick()
+        compose.mainClock.advanceTimeBy(300)
+        compose.onNodeWithTag("tasks-guide-swipe").assertDoesNotExist()
+        assertEquals(listOf(parent, child), TaskStore.state.value.tasks)
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        runBlocking { assertTrue(TaskDatabase.get(context).dao().preferences()!!.swipeGuideShown) }
+    }
+    @Test fun holdAndDragCompletesGuideBeforeDropAndDoesNotReturnAfterCancellation() {
+        val first = TaskItem(id = "first", listId = "tasks", title = "First")
+        val second = first.copy(id = "second", title = "Second", position = 1)
+        show(listOf(first, second))
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        runBlocking { TaskStore.change(context) { it.copy(preferences = it.preferences.copy(swipeGuideShown = true)) } }
+        compose.onNodeWithTag("tasks-guide-reorder").assertIsDisplayed()
+        compose.mainClock.autoAdvance = false
+        compose.onNodeWithTag("task-first").performTouchInput { longClick() }
+        compose.mainClock.advanceTimeBy(100)
+        assertFalse(TaskStore.state.value.preferences.reorderGuideShown)
+        compose.onNodeWithTag("tasks-guide-reorder").assertIsDisplayed()
+        val from = compose.onNodeWithTag("task-first").fetchSemanticsNode().boundsInRoot.center
+        val to = compose.onNodeWithTag("task-second").fetchSemanticsNode().boundsInRoot.center
+        compose.onNodeWithTag("task-first").performTouchInput {
+            down(center); advanceEventTime(700); moveBy(to - from, 200)
+        }
+        compose.mainClock.advanceTimeBy(100)
+        compose.waitUntil(3000) { TaskStore.state.value.preferences.reorderGuideShown }
+        compose.onNodeWithTag("tasks-guide-reorder").assertDoesNotExist()
+        compose.onNodeWithTag("task-first").performTouchInput { cancel() }
+        compose.mainClock.advanceTimeBy(1000)
+        compose.onNodeWithTag("tasks-guide-reorder").assertDoesNotExist()
+        assertEquals(listOf(first, second), TaskStore.state.value.tasks)
+        runBlocking { assertTrue(TaskDatabase.get(context).dao().preferences()!!.reorderGuideShown) }
+    }
     @Test fun tapHandPulsesOnTheListName() = verifyMotion(TaskGuide.LIST)
     @Test fun swipeHandTravelsSideways() = verifyMotion(TaskGuide.SWIPE)
     @Test fun reorderHandHoldsThenTravelsVertically() = verifyMotion(TaskGuide.REORDER)

@@ -160,6 +160,31 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
     LaunchedEffect(undo) { val token = undo; if(token != null) { delay(5000); if(undo === token) undo = null } }
     var undoHeight by remember { mutableIntStateOf(0) }
     val snackbar = remember { SnackbarHostState() }
+    var finishedGuides by remember { mutableStateOf(emptySet<TaskGuide>()) }
+    val guidePreferences = state.preferences.copy(
+        listGuideShown = state.preferences.listGuideShown || TaskGuide.LIST in finishedGuides,
+        swipeGuideShown = state.preferences.swipeGuideShown || TaskGuide.SWIPE in finishedGuides,
+        reorderGuideShown = state.preferences.reorderGuideShown || TaskGuide.REORDER in finishedGuides,
+    )
+    fun finishGuide(guide: TaskGuide) {
+        val finished = when(guide) {
+            TaskGuide.LIST -> guidePreferences.listGuideShown
+            TaskGuide.SWIPE -> guidePreferences.swipeGuideShown
+            TaskGuide.REORDER -> guidePreferences.reorderGuideShown
+        }
+        if(finished) return
+        // Hide immediately; persist independently of an in-flight task edit or deletion.
+        finishedGuides = finishedGuides + guide
+        scope.launch {
+            runCatching { TaskStore.change(context) { snapshot ->
+                snapshot.copy(preferences = when(guide) {
+                    TaskGuide.LIST -> snapshot.preferences.copy(listGuideShown = true)
+                    TaskGuide.SWIPE -> snapshot.preferences.copy(swipeGuideShown = true)
+                    TaskGuide.REORDER -> snapshot.preferences.copy(reorderGuideShown = true)
+                })
+            } }.onFailure { snackbar.showSnackbar(com.jeerovan.comfer.localizedModuleMessage(context.resources,it.localizedMessage)) }
+        }
+    }
     val selected = state.lists.find { it.id == state.preferences.selectedList } ?: state.lists.first()
     fun edit(item: TaskItem) { editingId = item.id; pendingFocusId = item.id; draft = taskJson.encodeToString(item); route = "edit" }
     fun add() = edit(TaskItem(listId = selected.id, title = "", starred = view == "starred", position = state.tasks.maxOfOrNull { it.position }?.plus(1) ?: 0))
@@ -267,11 +292,11 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                         "overdue" -> stringResource(R.string.tasks_overdue); else -> selected.name
                     }, Modifier.widthIn(min = 48.dp).testTag("tasks-heading").then(if(!searching && view == "selected") Modifier.clickable {
                         listId = selected.id; listName = selected.name; sheet = "listActions"
-                        if(!state.preferences.listGuideShown) mutate { it.copy(preferences = it.preferences.copy(listGuideShown = true)) }
+                        finishGuide(TaskGuide.LIST)
                     } else Modifier), style = MaterialTheme.typography.headlineSmall)
-                    if(!searching && view == "selected" && sheet == null && !state.preferences.listGuideShown) {
+                    if(!searching && view == "selected" && sheet == null && !guidePreferences.listGuideShown) {
                         TaskGestureGuide(TaskGuide.LIST, 0f, Modifier.align(Alignment.Center)) {
-                            scope.launch { runCatching { TaskStore.change(context) { it.copy(preferences = it.preferences.copy(listGuideShown = true)) } }.onFailure { snackbar.showSnackbar(com.jeerovan.comfer.localizedModuleMessage(context.resources,it.localizedMessage)) } }
+                            finishGuide(TaskGuide.LIST)
                         }
                     }
                     }
@@ -301,11 +326,11 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                                     val density = LocalDensity.current
                                     TasksReorderList(displayed, state.preferences.sort == "manual", cardScroll,
                                         Modifier.fillMaxWidth().heightIn(max = cardMaxHeight).testTag("tasks-incomplete-list"),
-                                        "tasks-drop-target", onDrop = { id, target -> mutate { reorderTaskTo(it, id, target) } }, onDragging = { dragging = it }) { item ->
+                                        "tasks-drop-target", onDrop = { id, target -> mutate { reorderTaskTo(it, id, target) } }, onDragging = { dragging = it; if(it) finishGuide(TaskGuide.REORDER) }) { item ->
                                         if(state.preferences.sort == "date" && item.day == null && displayed.firstOrNull { it.day == null }?.id == item.id) Text(stringResource(R.string.tasks_no_date), Modifier.padding(vertical = 8.dp), style = MaterialTheme.typography.titleSmall)
-                                        TaskRow(item, state, modifier = Modifier, rowShape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp), completing = item.id in completingIds, onCompletedAnimation = { completingIds = completingIds - item.id }, reveal = if(revealedId == item.id) revealDirection else 0, onReveal = { revealedId = item.id; revealDirection = it }, expanded = item.id in expanded, onExpand = { expanded = if(item.id in expanded) expanded - item.id else expanded + item.id }, onOpen = { edit(item) }, onComplete = { revealedId = null; complete(item) }, onStar = { mutate { s -> s.copy(tasks = s.tasks.map { if (it.id == item.id) it.copy(starred = !it.starred, version = it.version + 1) else it }) } }, onMenu = { menuId = item.id }, onMove = { moveTaskId = item.id; sheet = "move" }, onDelete = { delete(item) }, restoreFocus = pendingFocusId == item.id, onFocusRestored = { pendingFocusId = null })
+                                        TaskRow(item, state, modifier = Modifier, rowShape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp), completing = item.id in completingIds, onCompletedAnimation = { completingIds = completingIds - item.id }, reveal = if(revealedId == item.id) revealDirection else 0, onReveal = { revealedId = item.id; revealDirection = it }, expanded = item.id in expanded, onExpand = { expanded = if(item.id in expanded) expanded - item.id else expanded + item.id }, onOpen = { edit(item) }, onComplete = { revealedId = null; complete(item) }, onStar = { mutate { s -> s.copy(tasks = s.tasks.map { if (it.id == item.id) it.copy(starred = !it.starred, version = it.version + 1) else it }) } }, onMenu = { menuId = item.id }, onMove = { moveTaskId = item.id; sheet = "move" }, onDelete = { finishGuide(TaskGuide.SWIPE); delete(item) }, restoreFocus = pendingFocusId == item.id, onFocusRestored = { pendingFocusId = null })
                                     }
-                                    val guide = if(cardVisible && state.preferences.listGuideShown && sheet == null && !searching && view == "selected" && !dragging) nextTaskGuide(displayed, state.preferences) else null
+                                    val guide = if(cardVisible && guidePreferences.listGuideShown && sheet == null && menuId == null && confirmation == null && !searching && view == "selected" && !dragging) nextTaskGuide(displayed, guidePreferences) else null
                                     val rows = cardScroll.layoutInfo.visibleItemsInfo.filter { info -> displayed.any { it.id == info.key && it.completedAt == null } && info.offset >= 0 && info.offset + info.size <= cardScroll.layoutInfo.viewportEndOffset }
                                     val source = rows.firstOrNull()
                                     val sourceTask = displayed.find { it.id == source?.key }
@@ -314,10 +339,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                                         key(guide, source.key) {
                                             TaskGestureGuide(guide, target?.let { it.offset + it.size / 2f - (source.offset + source.size / 2f) } ?: 0f,
                                                 Modifier.align(Alignment.TopCenter).offset { androidx.compose.ui.unit.IntOffset(0, source.offset + source.size / 2 - with(density) { 24.dp.roundToPx() }) }) {
-                                                scope.launch {
-                                                    runCatching { TaskStore.change(context) { snapshot -> snapshot.copy(preferences = if(guide == TaskGuide.SWIPE) snapshot.preferences.copy(swipeGuideShown = true) else snapshot.preferences.copy(reorderGuideShown = true)) } }
-                                                        .onFailure { snackbar.showSnackbar(com.jeerovan.comfer.localizedModuleMessage(context.resources,it.localizedMessage)) }
-                                                }
+                                                finishGuide(guide)
                                             }
                                         }
                                     }
@@ -336,7 +358,7 @@ internal fun TasksScreen(onFinish: () -> Unit, shared: String? = null, initialTa
                                         Modifier.fillMaxWidth().heightIn(max = 480.dp).testTag("tasks-completed-list"),
                                         "tasks-completed-drop-target", onDrop = { id, target -> mutate { reorderTaskTo(it, id, target) } },
                                         footer = { if(done.isNotEmpty()) TextButton(onClick = { confirmation = "clear" }) { Text(stringResource(R.string.tasks_clear_completed)) } }) { item ->
-                                        TaskRow(item, state, Modifier, 0, {}, item.id in expanded, { expanded = if(item.id in expanded) expanded - item.id else expanded + item.id }, { edit(item) }, { complete(item) }, {}, { menuId = item.id }, onMove = { moveTaskId = item.id; sheet = "move" }, onDelete = { delete(item) }, rowShape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp))
+                                        TaskRow(item, state, Modifier, 0, {}, item.id in expanded, { expanded = if(item.id in expanded) expanded - item.id else expanded + item.id }, { edit(item) }, { complete(item) }, {}, { menuId = item.id }, onMove = { moveTaskId = item.id; sheet = "move" }, onDelete = { finishGuide(TaskGuide.SWIPE); delete(item) }, rowShape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp))
                                     }
                                 }
                             } }
