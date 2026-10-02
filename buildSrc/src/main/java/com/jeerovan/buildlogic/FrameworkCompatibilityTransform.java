@@ -4,7 +4,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-/** Guards two API-34 calls missing on the runtimes reported by Crashlytics.
+/** Guards exact API-34 calls missing on the runtimes reported by Crashlytics.
  * Dependency and app bytecode are covered because Kotlin/R8 can inline callers.
  */
 public final class FrameworkCompatibilityTransform {
@@ -28,11 +28,12 @@ public final class FrameworkCompatibilityTransform {
                                 && method.equals("systemOverlays") && desc.equals("()I")) {
                             super.visitMethodInsn(Opcodes.INVOKESTATIC, BRIDGE, method, desc, false);
                         } else if (opcode == Opcodes.INVOKEVIRTUAL && !isInterface
-                                && owner.equals("android/view/accessibility/AccessibilityEvent")
+                                && (owner.equals("android/view/accessibility/AccessibilityEvent")
+                                    || owner.equals("android/view/accessibility/AccessibilityNodeInfo"))
                                 && method.equals("setAccessibilityDataSensitive") && desc.equals("(Z)V")) {
                             // Same operand stack: the former receiver becomes argument zero.
                             super.visitMethodInsn(Opcodes.INVOKESTATIC, BRIDGE, method,
-                                    "(Landroid/view/accessibility/AccessibilityEvent;Z)V", false);
+                                    "(L" + owner + ";Z)V", false);
                         } else {
                             super.visitMethodInsn(opcode, owner, method, desc, isInterface);
                         }

@@ -94,6 +94,39 @@ class NotificationBackupRestoreTest {
         assertEquals(before, NotificationPreferences.state.value)
     }
 
+    @Test fun folderDeletionSurvivesArchiveRoundTripAndOlderBackupCanRestoreIt() = runBlocking {
+        val deleted = FolderData("folder_backup_deleted", "Deleted folder", listOf("example.first"))
+        val retained = FolderData("folder_backup_retained", "Retained مجلد", listOf("example.second", "example.third"))
+        val list = AppInfoManager.PRIMARY_APPS_LIST_NAME
+        val olderArchive = File(context.cacheDir, "folders-before-delete.zip")
+        try {
+            AppInfoManager.saveFolders(context, mapOf(deleted.id to deleted, retained.id to retained))
+            AppInfoManager.saveAppPackageNames(context, list, listOf(deleted.id, retained.id))
+            BackupRestoreManager.createBackup(context, Uri.fromFile(olderArchive), "en")
+
+            // Same persistent operations used by the v56 folder-delete action.
+            AppInfoManager.saveAppPackageNames(context, list, listOf(retained.id))
+            AppInfoManager.deleteFolder(context, deleted.id)
+            BackupRestoreManager.createBackup(context, Uri.fromFile(archive), "en")
+
+            val exported = BackupRestoreManager.readAndValidateArchive(context.packageName, archive, false)
+            assertFalse(exported.payload.room.folders.any { it.id == deleted.id })
+            assertTrue(exported.payload.room.folders.any { it.id == retained.id })
+
+            BackupRestoreManager.restoreBackup(context, Uri.fromFile(olderArchive))
+            assertEquals(deleted, AppInfoManager.getFolders(context)[deleted.id])
+            assertEquals(retained, AppInfoManager.getFolders(context)[retained.id])
+            assertEquals(listOf(deleted.id, retained.id), AppInfoManager.getAppPackageNames(context, list))
+
+            repeat(2) {
+                BackupRestoreManager.restoreBackup(context, Uri.fromFile(archive))
+                assertFalse(AppInfoManager.getFolders(context).containsKey(deleted.id))
+                assertEquals(retained, AppInfoManager.getFolders(context)[retained.id])
+                assertEquals(listOf(retained.id), AppInfoManager.getAppPackageNames(context, list))
+            }
+        } finally { olderArchive.delete() }
+    }
+
     @Test fun malformedSettingsDoNotMutateAnyStore() = runBlocking {
         exportConfigured()
         rewritePayload { it["notifications"] = JsonObject(mapOf("version" to JsonPrimitive(99))) }
@@ -189,9 +222,14 @@ class NotificationBackupRestoreTest {
     }
 
     private fun rewritePayload(change: (MutableMap<String, JsonElement>) -> Unit) {
-        val (manifest, payload) = ZipFile(archive).use {
-            json.decodeFromString<BackupManifest>(it.getInputStream(it.getEntry("manifest.json")).reader().readText()) to
-                json.parseToJsonElement(it.getInputStream(it.getEntry("payload.json")).reader().readText()).jsonObject.toMutableMap()
+        val (manifest, payload, attachments) = ZipFile(archive).use { zip ->
+            Triple(
+                json.decodeFromString<BackupManifest>(zip.getInputStream(zip.getEntry("manifest.json")).reader().readText()),
+                json.parseToJsonElement(zip.getInputStream(zip.getEntry("payload.json")).reader().readText()).jsonObject.toMutableMap(),
+                zip.entries().asSequence()
+                    .filter { !it.isDirectory && it.name !in setOf("manifest.json", "payload.json") }
+                    .associate { it.name to zip.getInputStream(it).use { stream -> stream.readBytes() } },
+            )
         }
         change(payload)
         val bytes = JsonObject(payload).toString().toByteArray()
@@ -201,6 +239,10 @@ class NotificationBackupRestoreTest {
             zip.write(json.encodeToString(manifest.copy(formatVersion = 1, payloadSha256 = hash)).toByteArray())
             zip.closeEntry()
             zip.putNextEntry(ZipEntry("payload.json")); zip.write(bytes); zip.closeEntry()
+            // Changing notification settings must not corrupt other modules' attachments.
+            attachments.forEach { (name, bytes) ->
+                zip.putNextEntry(ZipEntry(name)); zip.write(bytes); zip.closeEntry()
+            }
         }
     }
 }

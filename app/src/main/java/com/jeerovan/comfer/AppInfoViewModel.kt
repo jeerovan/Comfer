@@ -1191,8 +1191,8 @@ class AppInfoViewModel(application: Application) : AndroidViewModel(application)
                 newList.map { it.packageName }
             )
 
-            // 4. Persist folder deletions to disk using our already modified map
-            AppInfoManager.saveFolders(context, currentFolders)
+            // Saving the remaining map only upserts rows; explicitly remove this folder.
+            AppInfoManager.deleteFolder(context, folderPackageName)
         }
     }
 

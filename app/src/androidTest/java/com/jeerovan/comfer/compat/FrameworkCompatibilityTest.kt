@@ -3,6 +3,8 @@ package com.jeerovan.comfer.compat
 import android.annotation.SuppressLint
 import android.view.WindowInsets
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
+import android.graphics.Rect
 import androidx.test.filters.SdkSuppress
 import org.junit.Assert.*
 import org.junit.Test
@@ -26,6 +28,32 @@ class FrameworkCompatibilityTest {
         val event = AccessibilityEvent.obtain()
         try { method.invoke(null, event, true); method.invoke(null, event, false) }
         finally { event.recycle() }
+    }
+
+    @Test fun androidXApi34NodeImplementationIsActuallyGuardedAndPreservesMetadata() {
+        val method = Class.forName("androidx.core.view.accessibility.AccessibilityNodeInfoCompat\$Api34Impl")
+            .getDeclaredMethod("setAccessibilityDataSensitive", AccessibilityNodeInfo::class.java,
+                Boolean::class.javaPrimitiveType).apply { isAccessible = true }
+        for (text in listOf("Example", "مثال")) {
+            val node = AccessibilityNodeInfo.obtain()
+            try {
+                node.text = text
+                node.isPassword = true
+                node.setBoundsInScreen(Rect(10, 20, 110, 70))
+                node.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK)
+                for (sensitive in listOf(true, false, true)) {
+                    method.invoke(null, node, sensitive)
+                    try { assertEquals(sensitive, node.isAccessibilityDataSensitive) }
+                    catch (_: NoSuchMethodError) { /* Actual pre-34 or incomplete framework. */ }
+                    assertEquals(text, node.text.toString())
+                    assertTrue(node.isPassword)
+                    val bounds = Rect()
+                    node.getBoundsInScreen(bounds)
+                    assertEquals(Rect(10, 20, 110, 70), bounds)
+                    assertTrue(node.actionList.contains(AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK))
+                }
+            } finally { node.recycle() }
+        }
     }
 
     @SdkSuppress(minSdkVersion = 30)
@@ -53,7 +81,7 @@ class FrameworkCompatibilityTest {
 
     @Test fun unrelatedErrorsAreNotSwallowed() {
         try {
-            FrameworkCompatibility.setAccessibilityDataSensitive(null, true)
+            FrameworkCompatibility.setAccessibilityDataSensitive(null as AccessibilityEvent?, true)
             // On a framework missing the method, linkage can fail before the null check.
             try { AccessibilityEvent::class.java.getMethod("setAccessibilityDataSensitive", Boolean::class.javaPrimitiveType) }
             catch (_: NoSuchMethodException) { return }

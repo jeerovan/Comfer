@@ -10,6 +10,29 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class WidgetInflationGuardTest {
     @Test
+    fun separateHuaweiWeatherWidgetPackageIsRejected() {
+        // Both component formats are used by saved widgets and provider discovery.
+        listOf(
+            "com.huawei.android.totemweatherwidget/.WeatherWidgetProvider",
+            "com.huawei.android.totemweatherwidget/com.huawei.android.totemweatherwidget.WeatherWidgetProvider",
+        ).forEach { provider ->
+            assertTrue(provider, WidgetInflationGuard.isKnownUnsafe(provider))
+        }
+    }
+
+    @Test
+    fun huaweiWeatherWidgetGuardPreservesPackageBoundaries() {
+        listOf(
+            "com.huawei.android.totemweatherwidget.safe/.WeatherWidgetProvider",
+            "com.huawei.android.totemweatherwidgetbackup/.WeatherWidgetProvider",
+            "com.example.weather/com.huawei.android.totemweatherwidget.WeatherWidgetProvider",
+            "com.example.weather/.WeatherWidgetProvider",
+        ).forEach { provider ->
+            assertFalse(provider, WidgetInflationGuard.isKnownUnsafe(provider))
+        }
+    }
+
+    @Test
     fun knownCrashingHonorCalendarProviderIsRejected() {
         assertTrue(
             WidgetInflationGuard.isKnownUnsafe(

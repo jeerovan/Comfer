@@ -54,7 +54,11 @@ object AppInfoManager {
         return map
     }
 
-    /** Persist folders directly; the caller provides the coroutine context. */
+    suspend fun deleteFolder(context: Context, id: String) {
+        ComferRepository.deleteFolder(context, id)
+    }
+
+    /** Insert/update supplied folders; omitted folders are not deleted. */
     suspend fun saveFolders(context: Context, folders: Map<String, FolderData>) {
         val entities = folders.values.map { f ->
             AppFolderEntity(
@@ -66,4 +70,3 @@ object AppInfoManager {
         ComferRepository.saveFolders(context, entities)
     }
 }
-

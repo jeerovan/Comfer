@@ -62,7 +62,10 @@ class NotesBackupTest {
             assertEquals("standalone",NotesDocuments.read(context,Uri.fromFile(file),"1234").notes.single().content.text)
             assertEquals("Completed",NotesDocuments.lastExport(context)!!.result)
             java.util.zip.ZipOutputStream(file.outputStream()).use{it.putNextEntry(java.util.zip.ZipEntry("../outside"));it.write(byteArrayOf(1));it.closeEntry()}
-            try{NotesDocuments.read(context,Uri.fromFile(file),null);fail()}catch(_:IllegalArgumentException){}
+            try{NotesDocuments.read(context,Uri.fromFile(file),null);fail()}
+            catch(_:IllegalArgumentException){}
+            // Newer Android rejects the unsafe ZIP path before app validation runs.
+            catch(_:java.util.zip.ZipException){}
             assertEquals("standalone",NotesBackup.snapshot(context).notes.single().content.text)
         }finally{file.delete()}
     }

@@ -31,20 +31,28 @@ public class FrameworkCompatibilityRuntimeTest {
     }
 
     private URLClassLoader runtime(String overlayBody, String eventBody) throws Exception {
+        return runtime(overlayBody, eventBody, "");
+    }
+
+    private URLClassLoader runtime(String overlayBody, String eventBody, String nodeBody) throws Exception {
         Path root = temp.newFolder().toPath();
         Path type = source(root, "android/view/WindowInsets.java",
                 "package android.view; public class WindowInsets { public static class Type { public static int systemOverlays() { return 256; } } }");
         Path event = source(root, "android/view/accessibility/AccessibilityEvent.java",
                 "package android.view.accessibility; public class AccessibilityEvent { public boolean sensitive; public void setAccessibilityDataSensitive(boolean value) { sensitive=value; } }");
+        Path node = source(root, "android/view/accessibility/AccessibilityNodeInfo.java",
+                "package android.view.accessibility; public class AccessibilityNodeInfo { public boolean sensitive; public boolean password=true; public String text=\"Example\"; public void setAccessibilityDataSensitive(boolean value) { sensitive=value; } }");
         Path keep = source(root, "androidx/annotation/Keep.java", "package androidx.annotation; public @interface Keep {}");
         Path lint = source(root, "android/annotation/SuppressLint.java", "package android.annotation; public @interface SuppressLint { String[] value(); }");
-        compile(root, type, event, keep, lint,
+        compile(root, type, event, node, keep, lint,
                 Path.of("../app/src/main/java/com/jeerovan/comfer/compat/FrameworkCompatibility.java"));
         source(root, "android/view/WindowInsets.java",
                 "package android.view; public class WindowInsets { public static class Type { " + overlayBody + " } }");
         source(root, "android/view/accessibility/AccessibilityEvent.java",
                 "package android.view.accessibility; public class AccessibilityEvent { public boolean sensitive; " + eventBody + " }");
-        compile(root, type, event);
+        source(root, "android/view/accessibility/AccessibilityNodeInfo.java",
+                "package android.view.accessibility; public class AccessibilityNodeInfo { public boolean sensitive; public boolean password=true; public String text=\"Example\"; " + nodeBody + " }");
+        compile(root, type, event, node);
         return new URLClassLoader(new java.net.URL[]{root.toUri().toURL()}, null);
     }
 
@@ -84,6 +92,49 @@ public class FrameworkCompatibilityRuntimeTest {
             try { bridge.getMethod("setAccessibilityDataSensitive", event, boolean.class)
                     .invoke(null, event.getConstructor().newInstance(), true); fail(); }
             catch (InvocationTargetException error) { assertTrue(error.getCause() instanceof IllegalStateException); }
+        }
+    }
+
+    @Test public void missingNodeMethodPreservesMetadataAcrossRepeatedCalls() throws Exception {
+        try (URLClassLoader loader = runtime("", "", "")) {
+            Class<?> bridge = loader.loadClass("com.jeerovan.comfer.compat.FrameworkCompatibility");
+            Class<?> node = loader.loadClass("android.view.accessibility.AccessibilityNodeInfo");
+            Object instance = node.getConstructor().newInstance();
+            for (boolean sensitive : new boolean[]{true, false, true}) {
+                bridge.getMethod("setAccessibilityDataSensitive", node, boolean.class).invoke(null, instance, sensitive);
+                assertEquals("Example", node.getField("text").get(instance));
+                assertEquals(true, node.getField("password").get(instance));
+            }
+        }
+    }
+
+    @Test public void availableNodeMethodRetainsBothSensitivityStates() throws Exception {
+        try (URLClassLoader loader = runtime("", "",
+                "public void setAccessibilityDataSensitive(boolean value) { sensitive=value; }")) {
+            Class<?> bridge = loader.loadClass("com.jeerovan.comfer.compat.FrameworkCompatibility");
+            Class<?> node = loader.loadClass("android.view.accessibility.AccessibilityNodeInfo");
+            Object instance = node.getConstructor().newInstance();
+            for (boolean sensitive : new boolean[]{true, false, true}) {
+                bridge.getMethod("setAccessibilityDataSensitive", node, boolean.class).invoke(null, instance, sensitive);
+                assertEquals(sensitive, node.getField("sensitive").get(instance));
+                assertEquals("Example", node.getField("text").get(instance));
+                assertEquals(true, node.getField("password").get(instance));
+            }
+        }
+    }
+
+    @Test public void unrelatedNodeFailurePropagates() throws Exception {
+        try (URLClassLoader loader = runtime("", "",
+                "public void setAccessibilityDataSensitive(boolean value) { throw new IllegalStateException(\"sealed\"); }")) {
+            Class<?> bridge = loader.loadClass("com.jeerovan.comfer.compat.FrameworkCompatibility");
+            Class<?> node = loader.loadClass("android.view.accessibility.AccessibilityNodeInfo");
+            try {
+                bridge.getMethod("setAccessibilityDataSensitive", node, boolean.class)
+                        .invoke(null, node.getConstructor().newInstance(), true);
+                fail("Unrelated platform errors must remain visible");
+            } catch (InvocationTargetException error) {
+                assertTrue(error.getCause() instanceof IllegalStateException);
+            }
         }
     }
 }

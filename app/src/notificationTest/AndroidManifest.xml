@@ -3,6 +3,14 @@
     <application android:label="Comfer Notification Test" tools:replace="android:label">
         <provider android:name="com.google.firebase.provider.FirebaseInitProvider"
             tools:node="remove" />
+        <receiver android:name="com.jeerovan.comfer.AnrFixtureWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/anr_fixture_widget" />
+        </receiver>
         <activity android:name="com.jeerovan.comfer.MainActivity" android:exported="true">
             <intent-filter tools:node="removeAll" />
         </activity>

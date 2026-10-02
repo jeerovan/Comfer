@@ -23,6 +23,9 @@ internal object WidgetInflationGuard {
         "com.hihonor.gallery/",
         "com.android.gallery3d/",
         "com.huawei.android.totemweather/",
+        // Cover the widget namespace in the v55 crash as well as its weather service.
+        // Keep the slash boundary to avoid matching similarly named packages.
+        "com.huawei.android.totemweatherwidget/",
         "com.hihonor.android.totemweather/",
         "com.android.calendar/",
         "com.vivo.doubletimezoneclock/",

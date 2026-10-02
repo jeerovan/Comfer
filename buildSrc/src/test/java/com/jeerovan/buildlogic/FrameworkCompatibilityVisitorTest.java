@@ -37,6 +37,12 @@ public class FrameworkCompatibilityVisitorTest {
                 visit(Opcodes.INVOKEVIRTUAL, "android/view/accessibility/AccessibilityEvent", "setAccessibilityDataSensitive", "(Z)V"));
     }
 
+    @Test public void nodeSensitivityReceiverAndBooleanBecomeStaticArguments() {
+        assertEquals(List.of(Opcodes.INVOKESTATIC + " " + FrameworkCompatibilityTransform.BRIDGE
+                        + ".setAccessibilityDataSensitive(Landroid/view/accessibility/AccessibilityNodeInfo;Z)V"),
+                visit(Opcodes.INVOKEVIRTUAL, "android/view/accessibility/AccessibilityNodeInfo", "setAccessibilityDataSensitive", "(Z)V"));
+    }
+
     @Test public void unrelatedApisAndOverloadsRemainUnchanged() {
         String[][] calls = {
                 {"android/view/WindowInsets$Type", "statusBars", "()I"},
@@ -44,6 +50,8 @@ public class FrameworkCompatibilityVisitorTest {
                 {"android/view/WindowInsets$Type", "systemOverlays", "(I)I"},
                 {"android/view/accessibility/AccessibilityEvent", "setPassword", "(Z)V"},
                 {"android/view/accessibility/AccessibilityEvent", "setAccessibilityDataSensitive", "(I)V"},
+                {"android/view/accessibility/AccessibilityNodeInfo", "setPassword", "(Z)V"},
+                {"android/view/accessibility/AccessibilityNodeInfo", "setAccessibilityDataSensitive", "(I)V"},
         };
         for (String[] call : calls) {
             assertEquals(List.of(Opcodes.INVOKEVIRTUAL + " " + call[0] + "." + call[1] + call[2]),

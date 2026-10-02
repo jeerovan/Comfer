@@ -185,8 +185,8 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
         folderSelected = null
     }
 
-    val clearFolderSelection = {
-        selectedPackageNames = setOf(folderSelected!!)
+    val clearFolderSelection = { folder: String ->
+        selectedPackageNames = setOf(folder)
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -428,8 +428,9 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                             contentPadding = PaddingValues(0.dp),
                             enabled = selectedPackageNames.isNotEmpty(),
                             onClick = {
-                                viewModel.moveAppsToFolder(selectedList, folderSelected!!, selectedPackageNames)
-                                clearFolderSelection()
+                                val folder = folderSelected ?: return@OutlinedButton
+                                viewModel.moveAppsToFolder(selectedList, folder, selectedPackageNames)
+                                clearFolderSelection(folder)
                             }
                         ) {
                             Icon(imageVector = Icons.Rounded.ArrowDownward, contentDescription = stringResource(R.string.ui_move_to_folder))
@@ -441,8 +442,9 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                             contentPadding = PaddingValues(0.dp),
                             enabled = selectedPackageNames.isNotEmpty(),
                             onClick = {
-                                viewModel.moveAppsFromFolder(selectedList, folderSelected!!, selectedPackageNames)
-                                clearFolderSelection()
+                                val folder = folderSelected ?: return@OutlinedButton
+                                viewModel.moveAppsFromFolder(selectedList, folder, selectedPackageNames)
+                                clearFolderSelection(folder)
                             }
                         ) {
                             Icon(imageVector = Icons.Rounded.ArrowUpward, contentDescription = stringResource(R.string.ui_move_to_primary))
@@ -478,7 +480,9 @@ fun ManageLayersScreen(viewModel: AppInfoViewModel) {
                                 modifier = Modifier.size(40.dp),
                                 contentPadding = PaddingValues(0.dp),
                                 onClick = {
-                                    viewModel.deleteFolder(selectedList, folderSelected!!)
+                                    // A previous tap may clear selection before this button is recomposed.
+                                    val folder = folderSelected ?: return@OutlinedButton
+                                    viewModel.deleteFolder(selectedList, folder)
                                     clearSelection()
                                 }
                             ) {

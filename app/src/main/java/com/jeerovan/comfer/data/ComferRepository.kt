@@ -45,6 +45,10 @@ object ComferRepository {
     suspend fun getFolder(context: Context, id: String): AppFolderEntity? =
         db(context).appFolderDao().get(id)
 
+    suspend fun deleteFolder(context: Context, id: String) {
+        db(context).appFolderDao().delete(id)
+    }
+
     // ---------- Widget placements ----------
 
     suspend fun getWidgetPlacement(context: Context, slot: String): WidgetPlacementEntity? =

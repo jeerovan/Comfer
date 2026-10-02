@@ -1,0 +1,3 @@
+Fixes a repeated crash on some devices when accessibility services read screen content.
+Fixes crashes when managing folders and ensures deleted folders are removed from saved data.
+Improves stability with incompatible weather widgets.

@@ -33,7 +33,7 @@ abstract class FrameworkCompatibilityVisitor : AsmClassVisitorFactory<Instrument
 androidComponents {
     onVariants(selector().all()) { variant ->
         // Includes AndroidX and Kotlin-inlined app calls. The visitor only redirects
-        // two exact API signatures; operand types/stack frames remain unchanged.
+        // exact API signatures; operand types/stack frames remain unchanged.
         variant.instrumentation.transformClassesWith(
             FrameworkCompatibilityVisitor::class.java, InstrumentationScope.ALL
         ) {}
@@ -119,8 +119,8 @@ android {
         applicationId = "com.jeerovan.comfer"
         minSdk = 24
         targetSdk = 37
-        versionCode = 55
-        versionName = "55.0"
+        versionCode = 56
+        versionName = "56.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
