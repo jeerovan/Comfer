@@ -99,14 +99,130 @@ class UShapeScrollGestureTest {
             compose.mainClock.advanceTimeByFrame()
         }
         var dragged = 0f
-        compose.runOnIdle { dragged = scroll.offset; assertTrue("Slow movement must register", dragged > 10f) }
-        assertTrue("Precision drag should retain the chosen 0.05 × 8 gain", dragged in 39f..41f)
+        compose.runOnIdle { dragged = scroll.offset; assertTrue("Slow movement must register", dragged > 1f) }
         drawer.performTouchInput { advanceEventTime(400); up() }
         compose.mainClock.advanceTimeBy(6000)
         compose.runOnIdle {
             assertFalse(scroll.isSettling)
             assertEquals(0f, scroll.offset % U_SHAPE_ICON_STEP, .01f)
             assertTrue("A slow adjustment must stay near the chosen icon", kotlin.math.abs(scroll.offset - dragged) <= U_SHAPE_ICON_STEP)
+        }
+    }
+
+    @Test fun slowDragFiltersTinyReversalsAndTracksAboutOneIconPerFingerWidth() {
+        show()
+        val drawer = compose.onNodeWithTag("drawer")
+        drawer.performTouchInput {
+            down(center)
+            moveBy(Offset(touchSlop + 2f * density, 0f), delayMillis = 200)
+        }
+        compose.mainClock.advanceTimeBy(32)
+        var previous = 0f
+        compose.runOnIdle { previous = scroll.offset }
+        // A slow rightward stroke with sub-dp hand tremor must not shake the icons
+        // backward on every small correction from the touch sensor.
+        repeat(16) {
+            for (delta in listOf(.4f, -.2f)) {
+                drawer.performTouchInput { moveBy(Offset(delta * density, 0f), delayMillis = 16) }
+                compose.mainClock.advanceTimeByFrame()
+                compose.runOnIdle {
+                    assertTrue("Tiny touch reversals must not vibrate the list", scroll.offset >= previous - .001f)
+                    previous = scroll.offset
+                }
+            }
+        }
+        val start = previous
+        repeat(8) {
+            drawer.performTouchInput { moveBy(Offset(8f * density, 0f), delayMillis = 16) }
+            compose.mainClock.advanceTimeByFrame()
+        }
+        compose.runOnIdle {
+            val moved = scroll.offset - start
+            assertTrue("A 64 dp drag should move about one icon, not race through the list (moved=$moved)",
+                moved in U_SHAPE_ICON_STEP * .8f..U_SHAPE_ICON_STEP * 1.2f)
+        }
+        drawer.performTouchInput { cancel() }
+    }
+
+    @Test fun shortFastAdjustmentsOnlySnapInsteadOfStartingAFling() {
+        show()
+        val drawer = compose.onNodeWithTag("drawer")
+        for (setting in listOf(3f, .1f, 1f)) {
+            compose.runOnIdle { speed = setting }
+            compose.mainClock.advanceTimeByFrame()
+            drawer.performTouchInput {
+                down(center)
+                moveBy(Offset(touchSlop + 4f * density, 0f), delayMillis = 16)
+            }
+            compose.mainClock.advanceTimeByFrame()
+            drawer.performTouchInput { moveBy(Offset(3f * density, 0f), delayMillis = 16) }
+            compose.mainClock.advanceTimeByFrame()
+            var target = 0f
+            compose.runOnIdle {
+                val nearest = kotlin.math.round(scroll.offset / U_SHAPE_ICON_STEP) * U_SHAPE_ICON_STEP
+                target = ((nearest % 1000f) + 1000f) % 1000f
+            }
+            drawer.performTouchInput { up() }
+            compose.mainClock.advanceTimeBy(1000)
+            compose.runOnIdle {
+                assertFalse("A short adjustment must not start a long fling (speed=$setting)", scroll.isSettling)
+                assertEquals("A short adjustment must select the nearest icon", target, scroll.offset, .01f)
+            }
+        }
+    }
+
+    @Test fun flingTargetNeverRoundsBackAgainstTheReleasedDirection() {
+        show()
+        for (direction in listOf(-1f, 1f)) {
+            compose.runOnIdle { scroll.dragBy(direction * 3f) }
+            compose.mainClock.advanceTimeBy(32)
+            var released = 0f
+            compose.runOnIdle {
+                released = scroll.offset
+                scroll.settle(50, direction * .05f, .1f)
+            }
+            compose.mainClock.advanceTimeBy(160)
+            compose.runOnIdle {
+                assertTrue("Fling centering must preserve its direction", (scroll.offset - released) * direction > 0f)
+            }
+            compose.mainClock.advanceTimeBy(3000)
+        }
+    }
+
+    @Test fun clearFlingsFollowTheFinalStrokeDespiteLiftTremor() {
+        show()
+        val drawer = compose.onNodeWithTag("drawer")
+        for (direction in listOf(-1f, 1f)) {
+            for (reverse in listOf(false, true)) {
+                drawer.performTouchInput {
+                    down(center - Offset(direction * 80f * density, 0f))
+                    moveBy(Offset(direction * (touchSlop + 4f * density), 0f), delayMillis = 80)
+                }
+                compose.mainClock.advanceTimeBy(32)
+                repeat(6) {
+                    drawer.performTouchInput { moveBy(Offset(direction * 30f * density, 0f), delayMillis = 16) }
+                    compose.mainClock.advanceTimeByFrame()
+                }
+                if (reverse) repeat(6) {
+                    drawer.performTouchInput { moveBy(Offset(-direction * 30f * density, 0f), delayMillis = 16) }
+                    compose.mainClock.advanceTimeByFrame()
+                }
+                val finalDirection = if (reverse) -direction else direction
+                // A tiny opposite movement while lifting cannot reverse the fling.
+                drawer.performTouchInput {
+                    moveBy(Offset(-finalDirection * .4f * density, 0f), delayMillis = 4)
+                    up()
+                }
+                var released = 0f
+                compose.runOnIdle { released = scroll.offset }
+                compose.mainClock.advanceTimeBy(80)
+                compose.runOnIdle {
+                    assertTrue("The clear final stroke must own fling direction (direction=$direction, reverse=$reverse)",
+                        (scroll.offset - released) * finalDirection > 0f)
+                }
+                drawer.performTouchInput { down(center); up() }
+                compose.runOnIdle { assertFalse("Touch must still brake the fling", scroll.isSettling) }
+            }
         }
     }
 
@@ -121,7 +237,7 @@ class UShapeScrollGestureTest {
         compose.mainClock.advanceTimeBy(200)
         compose.runOnIdle { assertEquals(stopped, scroll.offset, .001f) }
         repeat(10) {
-            drawer.performTouchInput { moveBy(Offset(-10f, 0f), delayMillis = 16) }
+            drawer.performTouchInput { moveBy(Offset(-10f * density, 0f), delayMillis = 16) }
             compose.mainClock.advanceTimeByFrame()
         }
         drawer.performTouchInput { up() }
@@ -131,26 +247,86 @@ class UShapeScrollGestureTest {
         compose.runOnIdle { assertTrue("An old stop job must not kill the new fling", scroll.offset < released) }
     }
 
-    @Test fun updatedSpeedAppliesWithoutRecreatingGestureHandler() {
+    @Test fun dragDistanceAndReversalAreIndependentOfScrollSpeed() {
         show()
         val drawer = compose.onNodeWithTag("drawer")
-        fun drag(): Float {
-            var before = 0f
-            compose.runOnIdle { before = scroll.offset }
-            drawer.performTouchInput { down(center); moveBy(Offset(100f, 0f), delayMillis = 100) }
+        fun drag(setting: Float): List<Float> {
+            compose.runOnIdle { speed = setting }
+            compose.mainClock.advanceTimeByFrame()
+            drawer.performTouchInput {
+                down(center)
+                moveBy(Offset(touchSlop + 1f, 0f), delayMillis = 100)
+            }
             compose.mainClock.advanceTimeBy(32)
-            var moved = 0f
-            compose.runOnIdle { moved = scroll.offset - before }
+            val movements = mutableListOf<Float>()
+            // Check fine positioning, a faster drag that reaches the speed cap,
+            // and immediate reversal while the finger remains on the screen.
+            for (delta in listOf(3f, 24f, -3f, -24f)) repeat(4) {
+                var before = 0f
+                compose.runOnIdle { before = scroll.offset }
+                drawer.performTouchInput { moveBy(Offset(delta * density, 0f), delayMillis = 16) }
+                compose.mainClock.advanceTimeByFrame()
+                compose.runOnIdle {
+                    val moved = scroll.offset - before
+                    assertTrue("The list must follow the drag direction", moved * delta > 0f)
+                    movements += moved
+                }
+            }
+            var held = 0f
+            compose.runOnIdle { held = scroll.offset }
+            compose.mainClock.advanceTimeBy(200)
+            compose.runOnIdle { assertEquals("A held finger must not queue catch-up motion", held, scroll.offset, .001f) }
             drawer.performTouchInput { cancel() }
             compose.runOnIdle { scroll.stop() }
-            return moved
+            return movements
         }
-        val normal = drag()
-        compose.runOnIdle { speed = 2f }
-        compose.mainClock.advanceTimeByFrame()
-        val faster = drag()
-        assertTrue(faster > normal)
-        assertTrue("Sensitivity cannot bypass the visual speed cap", faster <= U_SHAPE_MAX_SPEED * .032f + .01f)
+        val normal = drag(1f)
+        for (setting in listOf(.1f, 3f)) {
+            val actual = drag(setting)
+            normal.zip(actual).forEachIndexed { index, (expected, moved) ->
+                assertEquals("Drag step $index must be independent of Scroll Speed ($setting)", expected, moved, .01f)
+            }
+        }
+    }
+
+    @Test fun updatedSpeedDuringDragOnlyChangesTheReleasedFling() {
+        show()
+        val drawer = compose.onNodeWithTag("drawer")
+        fun gesture(releaseSpeed: Float): Pair<Float, Long> {
+            compose.runOnIdle { speed = 1f }
+            compose.mainClock.advanceTimeByFrame()
+            var start = 0f
+            compose.runOnIdle { start = scroll.offset }
+            drawer.performTouchInput {
+                down(center - Offset(80f * density, 0f))
+                moveBy(Offset(touchSlop + 1f, 0f), delayMillis = 100)
+            }
+            compose.mainClock.advanceTimeBy(32)
+            // Updating the preference must not restart or accelerate an active drag.
+            compose.runOnIdle { speed = releaseSpeed }
+            compose.mainClock.advanceTimeByFrame()
+            repeat(6) {
+                drawer.performTouchInput { moveBy(Offset(30f * density, 0f), delayMillis = 16) }
+                compose.mainClock.advanceTimeByFrame()
+            }
+            var dragged = 0f
+            compose.runOnIdle { dragged = scroll.offset - start }
+            drawer.performTouchInput { up() }
+            val releasedAt = compose.mainClock.currentTime
+            var active = true
+            while (active && compose.mainClock.currentTime - releasedAt < 6000) {
+                compose.mainClock.advanceTimeBy(64)
+                compose.runOnIdle { active = scroll.isSettling }
+            }
+            assertFalse("The released fling must eventually settle", active)
+            return dragged to (compose.mainClock.currentTime - releasedAt)
+        }
+        val low = gesture(.1f)
+        val high = gesture(3f)
+        assertTrue("A manual drag must move the list", low.first > 0f)
+        assertEquals("Scroll Speed must not change an active drag", low.first, high.first, .01f)
+        assertTrue("The updated setting must still control the released fling duration (low=${low.second} ms, high=${high.second} ms)",
+            high.second > low.second)
     }
 
     @Test fun childTapBrakesAndTapLongPressAndVerticalGesturesStillWork() {
@@ -284,7 +460,7 @@ class UShapeScrollGestureTest {
             for (direction in listOf(-1f, 1f)) {
                 repeat(20) {
                     var before = 0f
-                    compose.runOnIdle { before = scroll.offset; scroll.dragBy(10000f * direction, setting) }
+                    compose.runOnIdle { before = scroll.offset; scroll.dragBy(10000f * direction) }
                     checkFrame(before)
                 }
                 // Drain the last input frame, then confirm no excess remains queued.

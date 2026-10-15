@@ -6,18 +6,22 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.*
-import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.round
+import kotlin.math.sign
 
 /** An icon takes 20 logical units to move to the next position on the U-shaped path. */
 internal const val U_SHAPE_ICON_STEP = 20f
 private const val U_SHAPE_SPEED_MULTIPLIER = 8f
-private const val U_SHAPE_DRAG_GAIN = .05f
+private const val U_SHAPE_DRAG_DP_PER_ICON = 64f
+private const val U_SHAPE_FLING_DISTANCE_DP = 24f
 internal const val U_SHAPE_MAX_SPEED = 3f * U_SHAPE_ICON_STEP * U_SHAPE_SPEED_MULTIPLIER
 
 private fun sensitivityValue(value: Float) = value.takeIf { it.isFinite() }?.coerceIn(.1f, 3f) ?: 1f
@@ -31,7 +35,7 @@ internal class UShapeScrollState(private val scope: CoroutineScope) {
     private var motion: Job? = null
     private var dragging = false
     private var pendingDrag = 0f
-    private var dragLimit = speedLimit(1f)
+    private val dragLimit = speedLimit(1f)
     val isSettling: Boolean get() = !dragging && motion?.isActive == true
 
     fun stop() {
@@ -41,9 +45,8 @@ internal class UShapeScrollState(private val scope: CoroutineScope) {
         pendingDrag = 0f
     }
 
-    fun dragBy(delta: Float, sensitivity: Float = 1f) {
+    fun dragBy(delta: Float) {
         if (!delta.isFinite()) return
-        dragLimit = speedLimit(sensitivity)
         if (!dragging) {
             stop()
             dragging = true
@@ -62,7 +65,7 @@ internal class UShapeScrollState(private val scope: CoroutineScope) {
                 }
             }
         }
-        pendingDrag += delta * U_SHAPE_SPEED_MULTIPLIER
+        pendingDrag += delta
     }
 
     fun settle(itemCount: Int, velocity: Float = 0f, sensitivity: Float = 1f) {
@@ -79,7 +82,12 @@ internal class UShapeScrollState(private val scope: CoroutineScope) {
         var duration = if (coasting) 1.4f + 1.0f * setting else .22f
         var target = round((start + if (coasting) releasedVelocity * duration / 2f else 0f) / U_SHAPE_ICON_STEP) * U_SHAPE_ICON_STEP
         if (coasting && abs(target - start) > limit * duration / 2f) {
-            target -= kotlin.math.sign(target - start) * U_SHAPE_ICON_STEP
+            target -= sign(target - start) * U_SHAPE_ICON_STEP
+        }
+        if (coasting && (target - start) * inputVelocity <= 0f) {
+            // Rounding a short glide must never select a center behind the fling.
+            target = if (inputVelocity > 0f) (floor(start / U_SHAPE_ICON_STEP) + 1f) * U_SHAPE_ICON_STEP
+                else (ceil(start / U_SHAPE_ICON_STEP) - 1f) * U_SHAPE_ICON_STEP
         }
         val distance = target - start
         if (abs(distance) < .001f) return
@@ -106,6 +114,50 @@ internal class UShapeScrollState(private val scope: CoroutineScope) {
     }
 }
 
+/** Small spatial hysteresis absorbs touch tremor without animating or delaying a drag. */
+private class UShapeDragTracker(startTime: Long, private val jitterSlop: Float, private val flingDistance: Float) {
+    private data class Sample(val time: Long, val position: Float)
+    private val samples = ArrayDeque<Sample>().apply { add(Sample(startTime, 0f)) }
+    private var rawPosition = 0f
+    private var position = 0f
+    private var direction = 0f
+
+    fun dragBy(delta: Float, time: Long): Float {
+        rawPosition += delta
+        val previous = position
+        val difference = rawPosition - position
+        if (abs(difference) > jitterSlop) position += difference - sign(difference) * jitterSlop
+        val moved = position - previous
+        if (moved != 0f) {
+            if (moved * direction < 0f) {
+                // A deliberate reversal starts a new stroke; old momentum cannot win.
+                val previousTime = samples.last().time
+                samples.clear()
+                samples.add(Sample(previousTime, previous))
+            }
+            direction = sign(moved)
+        }
+        sample(time)
+        return moved
+    }
+
+    fun releaseVelocity(time: Long): Float {
+        // Use the last accepted position. A shifted UP coordinate is not a drag.
+        sample(time)
+        val first = samples.first()
+        val distance = position - first.position
+        val elapsed = time - first.time
+        return if (elapsed > 0 && abs(distance) >= flingDistance) distance * 1000f / elapsed else 0f
+    }
+
+    private fun sample(time: Long) {
+        samples.add(Sample(time, position))
+        // A recent stroke needs meaningful travel. Tiny fast corrections and a
+        // stationary hold cannot revive momentum from earlier in the gesture.
+        while (samples.size > 1 && samples.first().time < time - 100L) samples.removeFirst()
+    }
+}
+
 @Composable
 internal fun rememberUShapeScrollState(): UShapeScrollState {
     val scope = rememberCoroutineScope()
@@ -125,6 +177,8 @@ internal fun Modifier.uShapeScrollGestures(
     onSwipeDown: () -> Unit,
 ): Modifier {
     val context = LocalContext.current
+    val density = LocalDensity.current.density
+    val dragGain = U_SHAPE_ICON_STEP / (U_SHAPE_DRAG_DP_PER_ICON * density)
     val minimumFlingVelocity = remember(context) {
         ViewConfiguration.get(context).scaledMinimumFlingVelocity.toFloat()
     }
@@ -143,18 +197,18 @@ internal fun Modifier.uShapeScrollGestures(
                 val event = awaitPointerEvent(PointerEventPass.Initial)
             } while (event.changes.any { it.pressed })
         }
-    }.pointerInput(state, enabled, itemCount, minimumFlingVelocity) {
+    }.pointerInput(state, enabled, itemCount, minimumFlingVelocity, density) {
         if (enabled) awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false)
-            val tracker = VelocityTracker()
-            tracker.addPosition(down.uptimeMillis, down.position)
+            val tracker = UShapeDragTracker(down.uptimeMillis, density, U_SHAPE_FLING_DISTANCE_DP * density)
             var horizontal = false
             var verticalDistance = 0f
             var closed = false
             fun update(change: PointerInputChange, delta: Offset) {
-                tracker.addPosition(change.uptimeMillis, change.position)
                 if (horizontal && itemCount > 0) {
-                    state.dragBy(delta.x * U_SHAPE_DRAG_GAIN * sensitivityValue(currentSpeed), currentSpeed)
+                    // Keep direct manipulation predictable at every Scroll Speed.
+                    // The setting applies only after the finger is released.
+                    state.dragBy(tracker.dragBy(delta.x, change.uptimeMillis) * dragGain)
                     horizontalDrag()
                 } else if (!horizontal && !closed) {
                     verticalDistance += delta.y
@@ -169,17 +223,13 @@ internal fun Modifier.uShapeScrollGestures(
             }
             if (start != null) {
                 val released = drag(start.id) { change -> update(change, change.positionChange()) }
-                // Include the release time so holding still before lifting kills the fling.
-                currentEvent.changes.firstOrNull { it.id == start.id }?.let {
-                    tracker.addPosition(it.uptimeMillis, it.position)
-                }
                 if (horizontal) {
-                    val fingerVelocity = if (released) tracker.calculateVelocity().x else 0f
-                    // Fine positioning must snap, independent of sensitivity. Android's
-                    // threshold accounts for device density; release uses the same units
-                    // and gain as dragging, so lifting cannot multiply the motion sixfold.
+                    val release = currentEvent.changes.firstOrNull { it.id == start.id }
+                    val fingerVelocity = if (released && release != null) tracker.releaseVelocity(release.uptimeMillis) else 0f
+                    // Start momentum at the drag's physical speed. The animation
+                    // multiplier and user setting apply only to the released fling.
                     val velocity = if (abs(fingerVelocity) >= minimumFlingVelocity) {
-                        fingerVelocity * U_SHAPE_DRAG_GAIN * sensitivityValue(currentSpeed)
+                        fingerVelocity * dragGain / U_SHAPE_SPEED_MULTIPLIER * sensitivityValue(currentSpeed)
                     } else 0f
                     state.settle(itemCount, velocity, currentSpeed)
                 }
