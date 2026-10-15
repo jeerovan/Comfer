@@ -28,6 +28,7 @@ import androidx.palette.graphics.Palette
 import com.jeerovan.comfer.KeyTextObject
 import com.jeerovan.comfer.ImageWorkOutcome
 import com.jeerovan.comfer.runScheduledImageWork
+import com.jeerovan.comfer.wallpaperSchedule
 import com.jeerovan.comfer.ImageData
 import com.jeerovan.comfer.PreferenceKeys
 import com.jeerovan.comfer.PreferenceManager
@@ -351,6 +352,8 @@ object CommonUtil {
         manualChange: Boolean = false,
     ): ImageWorkOutcome {
         val enabled = PreferenceManager.getAutoWallpapers(context)
+        val now = System.currentTimeMillis()
+        val schedule = wallpaperSchedule(context, now)
         // Monochrome/battery-saver rendering is independent of photo rotation.
         if (PreferenceManager.getMonochrome(context) &&
             PreferenceManager.getAppliedWallpaperImage(context) !=
@@ -362,34 +365,47 @@ object CommonUtil {
             manualChange = manualChange,
             frequency = PreferenceManager.getWallpaperFrequency(context),
             lastSuccess = PreferenceManager.getLong(context, PreferenceManager.WALLPAPER_LAST_SUCCESS, 0L),
-            now = System.currentTimeMillis(),
+            now = now,
             hasPendingImage = PreferenceManager.newImageAvailable(context) ||
-                (!PreferenceManager.getWallpaperApplied(context) &&
-                    PreferenceManager.getBackgroundImagePath(context) != null),
-            fetch = { fetchImageData(context) },
-            download = { downloadImage(context) },
+                (!PreferenceManager.getWallpaperApplied(context) && PreferenceManager.getBackgroundImagePath(context) != null),
+            fetch = {
+                fetchImageData(context, schedule.cloudRequestHour).also { fetched ->
+                    if (fetched) PreferenceManager.setString(context, PreferenceManager.WALLPAPER_PENDING_PERIOD, schedule.periodKey)
+                }
+            },
+            download = { downloadImage(context) { wallpaperSchedule(context, System.currentTimeMillis()).periodKey == schedule.periodKey } },
             recordSuccess = {
                 PreferenceManager.setLong(
-                    context, PreferenceManager.WALLPAPER_LAST_SUCCESS, System.currentTimeMillis(),
+                    context, PreferenceManager.WALLPAPER_LAST_SUCCESS, now,
                 )
+                PreferenceManager.setString(context, PreferenceManager.WALLPAPER_LAST_PERIOD, schedule.periodKey)
             },
+            schedule = schedule,
+            lastPeriod = PreferenceManager.getString(context, PreferenceManager.WALLPAPER_LAST_PERIOD, null),
+            pendingPeriod = PreferenceManager.getString(context, PreferenceManager.WALLPAPER_PENDING_PERIOD, null),
         )
     }
 
     internal suspend fun fetchWallpaperDetails(context: Context, id: Int): ImageData =
         getHttpClient(context).get("https://comfer.jeerovan.com/api/wallpapers/$id").body()
 
-    private suspend fun fetchImageData(applicationContext: Context): Boolean {
+    private suspend fun fetchImageData(applicationContext: Context, cloudHour: Int): Boolean {
         val wallpaperDirectory = PreferenceManager.getWallpaperDirectory(applicationContext)
         if (wallpaperDirectory != null) {
+            PreferenceManager.setBoolean(applicationContext, PreferenceManager.IMAGE_AVAILABLE, false)
+            PreferenceManager.clear(applicationContext, PreferenceManager.KEY_TEMP_IMAGE_DATA)
             return setBackgroundImageFromImageUri(applicationContext, wallpaperDirectory.toUri())
         }
         return try {
             val response: ImageData = getHttpClient(applicationContext)
                 .get("https://comfer.jeerovan.com/api") {
                     parameter("name", PreferenceManager.getUsername(applicationContext))
-                    parameter("hour", java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY))
+                    parameter("hour", cloudHour)
                 }.body()
+            // A previous day's failed download must not replace this phase's
+            // image, including when the server returns the already-current ID.
+            PreferenceManager.setBoolean(applicationContext, PreferenceManager.IMAGE_AVAILABLE, false)
+            PreferenceManager.clear(applicationContext, PreferenceManager.KEY_TEMP_IMAGE_DATA)
             PreferenceManager.saveImageData(applicationContext, response)
             true
         } catch (e: CancellationException) {
@@ -420,7 +436,8 @@ object CommonUtil {
             }
         }
     }
-    suspend fun downloadImage(applicationContext: Context): Boolean {
+    suspend fun downloadImage(applicationContext: Context, stillCurrent: () -> Boolean = { true }): Boolean {
+        if (!stillCurrent()) return false
         if (PreferenceManager.newImageAvailable(applicationContext)) {
             Log.i("DownloadImage", "Downloading New Image")
             val tempImageData: ImageData? =
@@ -440,6 +457,7 @@ object CommonUtil {
                     val bitmap = decodeWallpaperBitmap(sourceFile, targetWidth, targetHeight)
                         ?: return false
                     try {
+                        if (!stillCurrent()) return false
                         val filename = "comfer_${tempImageData.id}.jpg"
                         val file = File(applicationContext.filesDir, filename)
                         FileOutputStream(file).use { stream ->

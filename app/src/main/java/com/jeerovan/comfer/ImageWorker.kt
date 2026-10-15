@@ -39,17 +39,20 @@ internal suspend fun runScheduledImageWork(
     fetch: suspend () -> Boolean,
     download: suspend () -> Boolean,
     recordSuccess: suspend () -> Unit,
+    schedule: WallpaperSchedule = wallpaperSchedule(now),
+    lastPeriod: String? = null,
+    pendingPeriod: String? = null,
 ): ImageWorkOutcome {
     if (!enabled) return ImageWorkOutcome.SUCCESS
-    val interval = java.util.concurrent.TimeUnit.HOURS.toMillis(
-        if (frequency == "Daily") 24 else 1,
-    )
-    // A timestamp survives midnight, missed worker windows and process restarts.
-    // A backwards clock adjustment must not suspend rotation indefinitely.
-    val due = lastSuccess <= 0 || now < lastSuccess || now - lastSuccess >= interval
+    // Daily follows solar boundaries, including delayed work, DST and restarts.
+    // A stable period key also handles travel without rotating on tiny location updates.
+    val due = lastSuccess <= 0 || now < lastSuccess || if (frequency == "Daily") {
+        if (lastPeriod != null) lastPeriod != schedule.periodKey else lastSuccess < schedule.periodStart
+    } else now - lastSuccess >= java.util.concurrent.TimeUnit.HOURS.toMillis(1)
     if (!manualChange && !hasPendingImage && !due) return ImageWorkOutcome.SUCCESS
+    val reusePending = hasPendingImage && pendingPeriod == schedule.periodKey && !manualChange
     val outcome = runImageWorkPipeline(
-        fetch = { if (hasPendingImage && !manualChange) true else fetch() },
+        fetch = { if (reusePending) true else fetch() },
         download = download,
     )
     if (outcome == ImageWorkOutcome.SUCCESS) recordSuccess()
@@ -75,6 +78,8 @@ class ImageWorker(appContext: Context, workerParams: WorkerParameters) :
             throw e
         } catch (_: Exception) {
             Result.retry()
+        } finally {
+            WallpaperScheduler.schedule(applicationContext)
         }
     }
 }

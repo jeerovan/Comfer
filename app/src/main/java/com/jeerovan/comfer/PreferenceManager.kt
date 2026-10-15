@@ -52,6 +52,8 @@ object PreferenceManager {
     const val WALLPAPER_DIRECTORY = "wallpaper_directory"
     const val WALLPAPER_FREQUENCY = "wallpaper_frequency"
     const val WALLPAPER_LAST_SUCCESS = "wallpaper_last_success"
+    const val WALLPAPER_LAST_PERIOD = "wallpaper_last_period"
+    const val WALLPAPER_PENDING_PERIOD = "wallpaper_pending_period"
     const val WALLPAPER_URI = "wallpaper_uri"
     const val APPLIED_WALLPAPER_IMAGE = "applied_wallpaper_image"
     const val ALPHABETICAL_ORDER = "alphabetical_order"
@@ -94,6 +96,7 @@ object PreferenceManager {
         val context: Context,
         val value: String?,
         val generation: Long,
+        val updateAfterStartup: Boolean,
     )
 
     init {
@@ -123,8 +126,15 @@ object PreferenceManager {
                                     }
                                 }
                             }
-                            validBatch.forEach { (key, write) ->
-                                updateSnapshot(key, write.value)
+                            synchronized(pendingWriteLock) {
+                                validBatch.forEach { (key, write) ->
+                                    // Normal writes already updated the snapshot. Replaying
+                                    // an older completed batch would overwrite newer choices.
+                                    // Only pre-startup writes still need to fill the snapshot.
+                                    if (write.updateAfterStartup && !pendingWrites.containsKey(key)) {
+                                        updateSnapshot(key, write.value)
+                                    }
+                                }
                             }
                         }
                     }
@@ -157,15 +167,14 @@ object PreferenceManager {
 
     private fun write(context: Context, key: String, value: String?) {
         val updateAfterStartup = !StartupCoordinator.isReady
-        if (!updateAfterStartup) {
-            updateSnapshot(key, value)
-        }
         synchronized(pendingWriteLock) {
             pendingWrites[key] = PendingWrite(
                 context = context.applicationContext,
                 value = value,
                 generation = writeGeneration,
+                updateAfterStartup = updateAfterStartup,
             )
+            if (!updateAfterStartup) updateSnapshot(key, value)
         }
         writeSignal.trySend(Unit)
     }

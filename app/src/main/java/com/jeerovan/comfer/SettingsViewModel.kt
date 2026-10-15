@@ -705,6 +705,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setString(getApplication(), WEATHER_LATITUDE, latitude.toString())
             PreferenceManager.setString(getApplication(), WEATHER_LONGITUDE, longitude.toString())
+            WallpaperScheduler.request(getApplication(), refresh = true)
             withContext(Dispatchers.Main) {
                 _uiState.update {
                     it.copy(
@@ -988,6 +989,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun setWallpaperFrequency(frequency: String){
         viewModelScope.launch(Dispatchers.IO) {
             PreferenceManager.setWallpaperFrequency(getApplication(),frequency)
+            WallpaperScheduler.request(getApplication(), refresh = true)
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(wallpaperFrequency = frequency) }
             }
@@ -997,12 +999,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch(Dispatchers.IO) {
             val context: Context = getApplication()
             PreferenceManager.setWallpaperDirectory(context,directoryUri)
+            WallpaperScheduler.request(context)
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(wallpaperDirectory = directoryUri) }
             }
-            if(directoryUri != null) {
-                signalToChangeWallpaper()
-            }
+            signalToChangeWallpaper()
         }
     }
     fun showAnalog(show: Boolean){
@@ -1410,6 +1411,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             if (enabled && PreferenceManager.isBatterySaver(getApplication())) return@launch
             if (enabled) PreferenceManager.setMonochrome(getApplication(), false)
             PreferenceManager.setAutoWallpapers(getApplication(),enabled)
+            WallpaperScheduler.request(getApplication())
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(autoWallpapers = enabled,
                     monochrome = if (enabled) false else it.monochrome) }

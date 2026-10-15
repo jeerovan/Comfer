@@ -122,6 +122,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _uiState.update { it.copy(imagePath = null) }
         }
     }
+
+    internal suspend fun refreshScheduledWallpaper() {
+        StartupCoordinator.awaitReady()
+        val context: Context = getApplication()
+        if (!PreferenceManager.getAutoWallpapers(context) || PreferenceManager.getWallpaperFrequency(context) != "Daily") return
+        try {
+            WallpaperWorkCoordinator.runExclusive { refreshWallpaper(context) }
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            Log.e("MainViewModel", "Scheduled wallpaper refresh failed", error)
+        }
+    }
     fun loadBackgroundData(){
         if(backgroundLoadJob?.isActive == true) return
         backgroundLoadJob = viewModelScope.launch {

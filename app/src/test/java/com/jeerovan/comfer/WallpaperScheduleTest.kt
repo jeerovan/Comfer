@@ -16,19 +16,28 @@ class WallpaperScheduleTest {
         var fetchSucceeds = true
         var applySucceeds = true
         var pending = false
+        var lastPeriod: String? = null
+        var pendingPeriod: String? = null
+        var ownWallpapers = false
 
         suspend fun run(now: Long, frequency: String = "Hourly", manual: Boolean = false,
-                        enabled: Boolean = true): ImageWorkOutcome = runScheduledImageWork(
+                        enabled: Boolean = true): ImageWorkOutcome {
+            val schedule = wallpaperSchedule(now, ownWallpapers = ownWallpapers)
+            return runScheduledImageWork(
             enabled = enabled,
             manualChange = manual,
             frequency = frequency,
             lastSuccess = lastSuccess,
             now = now,
             hasPendingImage = pending,
-            fetch = { fetched++; if (fetchSucceeds) pending = true; fetchSucceeds },
+            fetch = { fetched++; if (fetchSucceeds) { pending = true; pendingPeriod = schedule.periodKey }; fetchSucceeds },
             download = { applied++; if (applySucceeds) pending = false; applySucceeds },
-            recordSuccess = { lastSuccess = now },
+            recordSuccess = { lastSuccess = now; lastPeriod = schedule.periodKey },
+            schedule = schedule,
+            lastPeriod = lastPeriod,
+            pendingPeriod = pendingPeriod,
         )
+        }
     }
 
     @Test
@@ -51,13 +60,19 @@ class WallpaperScheduleTest {
     }
 
     @Test
-    fun dailyRotationSurvivesSameClockHourOnFollowingDaysAndDelayedWork() = runBlocking {
+    fun dailyCloudRotationChangesAtBothSolarBoundariesInsteadOfWaiting24Hours() = runBlocking {
         val fixture = Fixture()
-        fixture.run(3 * hour, "Daily")
-        fixture.run(26 * hour, "Daily")
-        assertEquals(1, fixture.fetched)
-        fixture.run(27 * hour, "Daily")
-        fixture.run(80 * hour, "Daily") // Slept through the old 3 AM window.
+        // UTC fixtures use the 06:00/18:00 fallback until a location is available.
+        val originalZone = java.util.TimeZone.getDefault()
+        try {
+            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"))
+            val midnight = java.time.Instant.parse("2026-06-21T00:00:00Z").toEpochMilli()
+            fixture.run(midnight + 5 * hour, "Daily")
+            fixture.run(midnight + 6 * hour, "Daily")
+            fixture.run(midnight + 18 * hour, "Daily")
+        } finally {
+            java.util.TimeZone.setDefault(originalZone)
+        }
         assertEquals(3, fixture.fetched)
     }
 
@@ -70,6 +85,32 @@ class WallpaperScheduleTest {
         assertEquals(0, nextProcess.fetched)
         nextProcess.run(11 * hour)
         assertEquals(1, nextProcess.fetched)
+    }
+
+    @Test fun dailyLocalRotationIgnoresSunsetAndCatchesTheNextSunrise() = runBlocking {
+        val originalZone = java.util.TimeZone.getDefault()
+        try {
+            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"))
+            val midnight = java.time.Instant.parse("2026-06-21T00:00:00Z").toEpochMilli()
+            val fixture = Fixture().apply { ownWallpapers = true }
+            fixture.run(midnight + 6 * hour, "Daily")
+            fixture.run(midnight + 18 * hour, "Daily")
+            fixture.run(midnight + 29 * hour, "Daily")
+            assertEquals(1, fixture.fetched)
+            fixture.run(midnight + 30 * hour, "Daily")
+            fixture.run(midnight + 30 * hour + 1, "Daily")
+            assertEquals(2, fixture.fetched)
+        } finally { java.util.TimeZone.setDefault(originalZone) }
+    }
+
+    @Test fun missedDailyBoundariesFetchOnlyTheCurrentPeriodAndSurviveRestart() = runBlocking {
+        val first = Fixture()
+        first.run(100 * hour, "Daily")
+        val restarted = Fixture().apply { lastSuccess = first.lastSuccess; lastPeriod = first.lastPeriod }
+        restarted.run(180 * hour, "Daily")
+        restarted.run(180 * hour + 1, "Daily")
+        assertEquals(1, restarted.fetched)
+        assertEquals(1, restarted.applied)
     }
 
     @Test
@@ -97,11 +138,34 @@ class WallpaperScheduleTest {
     }
 
     @Test
-    fun pendingImageFromOldVersionIsRecoveredBeforeNextInterval() = runBlocking {
+    fun pendingImageFromOldVersionIsRevalidatedBeforeApplying() = runBlocking {
         val fixture = Fixture().apply { lastSuccess = 10 * hour; pending = true }
         fixture.run(10 * hour + 1)
-        assertEquals(0, fixture.fetched)
+        assertEquals(1, fixture.fetched)
         assertEquals(1, fixture.applied)
+    }
+
+    @Test fun failedDaytimeDownloadCannotBeReusedAtNight() = runBlocking {
+        val originalZone = java.util.TimeZone.getDefault()
+        try {
+            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"))
+            val midnight = java.time.Instant.parse("2026-06-21T00:00:00Z").toEpochMilli()
+            val fixture = Fixture().apply { applySucceeds = false }
+            assertEquals(ImageWorkOutcome.RETRY, fixture.run(midnight + 17 * hour, "Daily"))
+            fixture.applySucceeds = true
+            fixture.run(midnight + 18 * hour, "Daily")
+            assertEquals(2, fixture.fetched)
+            assertEquals(2, fixture.applied)
+        } finally { java.util.TimeZone.setDefault(originalZone) }
+    }
+
+    @Test fun failedDownloadInSameSolarPeriodReusesThePendingImage() = runBlocking {
+        val fixture = Fixture().apply { applySucceeds = false }
+        fixture.run(100 * hour, "Daily")
+        fixture.applySucceeds = true
+        fixture.run(100 * hour + 1, "Daily")
+        assertEquals(1, fixture.fetched)
+        assertEquals(2, fixture.applied)
     }
 
     @Test

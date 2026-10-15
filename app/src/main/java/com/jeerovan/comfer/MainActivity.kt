@@ -564,6 +564,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Catch up on returning Home and switch at the solar boundary
+                // while visible, independently of deferred background jobs.
+                while (true) {
+                    mainViewModel.refreshScheduledWallpaper()
+                    val now = System.currentTimeMillis()
+                    val untilBoundary = withContext(Dispatchers.IO) { wallpaperSchedule(applicationContext, now).nextChange - now }
+                    delay(untilBoundary.coerceIn(1_000L, 60_000L))
+                }
+            }
+        }
+
         setContent {
             ComferTheme {
                 LauncherScreen(
