@@ -4769,8 +4769,6 @@ fun SearchIcon(
     isFolderActive: Boolean = false,
     workspaceCenter: Boolean = false,
 ) {
-    val view = LocalView.current
-
     // Cache colors to avoid recalculation
     val backgroundColor = remember(showThemedIcon, themedColors, isLightMode) {
         if (showThemedIcon && themedColors != null) {
@@ -4800,12 +4798,8 @@ fun SearchIcon(
             .background(color = backgroundColor)
             .size(iconSize)
             .scale(0.8f)
-            .combinedClickable(
-                onClick = {
-                    view.playSoundEffect(SoundEffectConstants.CLICK)
-                    onShowSearch()
-                },
-            ),
+            // combinedClickable already supplies the platform click sound.
+            .combinedClickable(onClick = onShowSearch),
         contentAlignment = Alignment.Center
     ) {
         if (workspaceCenter && !isFolderActive) Icon(
