@@ -89,7 +89,7 @@ class CloudWallpaperIntegrationTest {
                     scenario.onActivity { activity ->
                         assertEquals(expected, activity.resources.configuration.locales[0].language)
                         activity.setContent {
-                            val cloud = rememberCloudWallpaper(source.path, motion)
+                            val cloud = rememberCloudWallpaper(source.path, rememberLocalWallpaperChoice().spatial)
                             val actualDirection = LocalLayoutDirection.current
                             SideEffect { observed = cloud; direction = actualDirection }
                             Box(Modifier.fillMaxSize().testTag("cloud-wallpaper")) {
@@ -117,12 +117,26 @@ class CloudWallpaperIntegrationTest {
                     waitFor { observed == published }
                     assertEquals(LocalSpatialStatus.Idle, LocalSpatialRepository.status.value)
                     repeat(2) {
-                        compose.runOnIdle { motion = true }
+                        // 3D must work with cubic motion disabled, including for cloud scenes.
+                        compose.runOnIdle { prefs.edit().putBoolean(LOCAL_SPATIAL, true).apply() }
                         waitFor { pixels() == List(6) { Color.RED } + List(6) { Color.GREEN } }
                         assertTrue(LocalSpatialRepository.status.value is LocalSpatialStatus.Ready)
-                        compose.runOnIdle { motion = false }
+                        for (enabled in listOf(true, false)) {
+                            compose.runOnIdle { motion = enabled }
+                            compose.mainClock.advanceTimeBy(64)
+                            compose.waitForIdle()
+                            assertTrue("Cubic motion must not toggle cloud 3D", LocalSpatialRepository.status.value is LocalSpatialStatus.Ready)
+                            waitFor { pixels() == List(6) { Color.RED } + List(6) { Color.GREEN } }
+                        }
+                        compose.runOnIdle { prefs.edit().putBoolean(LOCAL_SPATIAL, false).apply() }
                         waitFor { pixels().all { it == Color.BLUE } }
                         assertEquals(LocalSpatialStatus.Idle, LocalSpatialRepository.status.value)
+                        compose.runOnIdle { motion = true }
+                        compose.mainClock.advanceTimeBy(64)
+                        compose.waitForIdle()
+                        assertEquals("Cubic motion alone must not prepare a 3D scene", LocalSpatialStatus.Idle, LocalSpatialRepository.status.value)
+                        waitFor { pixels().all { it == Color.BLUE } }
+                        compose.runOnIdle { motion = false }
                     }
                 }
             }

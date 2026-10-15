@@ -313,7 +313,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             // Run any migrations to fix things
             resetWidgetPositions()
             
-            val autoWallpapers = PreferenceManager.getAutoWallpapers(getApplication(),true)
+            val autoWallpapers = PreferenceManager.getAutoWallpapers(getApplication())
             val monochrome = PreferenceManager.getMonochrome(getApplication(), default = false)
             val wallpaperMotion = PreferenceManager.getWallpaperMotion(getApplication())
             val wallpaperOnLockScreen = PreferenceManager.getWallpaperOnLockScreen(getApplication())
@@ -1407,9 +1407,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     fun setAutoWallpapers(enabled: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
+            if (enabled && PreferenceManager.isBatterySaver(getApplication())) return@launch
+            if (enabled) PreferenceManager.setMonochrome(getApplication(), false)
             PreferenceManager.setAutoWallpapers(getApplication(),enabled)
             withContext(Dispatchers.Main) {
-                _uiState.update { it.copy(autoWallpapers = enabled) }
+                _uiState.update { it.copy(autoWallpapers = enabled,
+                    monochrome = if (enabled) false else it.monochrome) }
             }
         }
     }

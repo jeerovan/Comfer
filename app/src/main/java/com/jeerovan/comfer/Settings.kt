@@ -546,7 +546,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                 )
             }
             item { SectionHeader(stringResource(R.string.title_wallpapers)) }
-            if(!settingsState.monochrome)item {
+            item(key = "wallpaper-auto") {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_auto_wallpapers)) },
                     supportingContent = { Text(stringResource(R.string.auto_wallpaper_text)) },
@@ -559,14 +559,18 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     trailingContent = {
                         Switch(
                             checked = settingsState.autoWallpapers,
+                            enabled = !settingsState.isBatterySaver,
                             onCheckedChange = { settingsViewModel.setAutoWallpapers(it) }
                         )
                     },
-                    modifier = Modifier.clickable { settingsViewModel.setAutoWallpapers(!settingsState.autoWallpapers) },
+                    modifier = Modifier.clickable {
+                        if (!settingsState.isBatterySaver) settingsViewModel.setAutoWallpapers(!settingsState.autoWallpapers)
+                        else Toast.makeText(context, textSavingBattery, Toast.LENGTH_SHORT).show()
+                    },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            if(!settingsState.autoWallpapers)item {
+            if(!settingsState.autoWallpapers)item(key = "wallpaper-monochrome") {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_monochrome)) },
                     supportingContent = { Text(stringResource(R.string.title_color_less_world)) },
@@ -598,7 +602,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            item {
+            if (settingsState.autoWallpapers) item(key = "wallpaper-motion") {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_wallpaper_motion)) },
                     supportingContent = { Text(stringResource(R.string.wallpaper_motion_text)) },
@@ -618,22 +622,11 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
             }
-            if(settingsState.autoWallpapers )item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_change_wallpaper)) },
-                    supportingContent = { Text(stringResource(R.string.change_wallpaper_text)) },
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.Wallpaper,
-                            contentDescription = stringResource(R.string.icon_wallpaper_change)
-                        )
-                    },
-                    modifier = Modifier.clickable { settingsViewModel.signalToChangeWallpaper() },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
+            if (settingsState.autoWallpapers) item(key = "wallpaper-3d") {
+                com.jeerovan.comfer.spatial.LocalWallpaperSetting(ownWallpapers = settingsState.wallpaperDirectory != null)
             }
             if(settingsState.autoWallpapers){
-                item {
+                item(key = "wallpaper-frequency") {
                     SelectOptionsWithListItemSettingItem(
                         stringResource(R.string.title_wallpaper_frequency),
                         stringResource(R.string.wallpaper_frequency_text),
@@ -644,14 +637,22 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     )
                 }
             }
-            if(settingsState.autoWallpapers)item{
+            if(settingsState.autoWallpapers)item(key = "wallpaper-own") {
                 SelectSetOwnWallpapersDirectory(
                     isDefaultLauncher = isDefaultLauncherState,
                     onSelectDirectory = { directoryUri -> settingsViewModel.setWallpaperDirectory(directoryUri)},
                     selectedDirectory = settingsState.wallpaperDirectory)
             }
-            if (settingsState.autoWallpapers && settingsState.wallpaperDirectory != null) item {
-                com.jeerovan.comfer.spatial.LocalWallpaperSetting()
+            if (settingsState.autoWallpapers) item(key = "wallpaper-change") {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.title_change_wallpaper)) },
+                    supportingContent = { Text(stringResource(R.string.change_wallpaper_text)) },
+                    leadingContent = {
+                        Icon(Icons.Filled.Wallpaper, contentDescription = stringResource(R.string.icon_wallpaper_change))
+                    },
+                    modifier = Modifier.clickable { settingsViewModel.signalToChangeWallpaper() },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
             }
             if(isDefaultLauncherState){
                 item {

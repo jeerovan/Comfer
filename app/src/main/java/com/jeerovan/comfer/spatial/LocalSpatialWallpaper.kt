@@ -45,22 +45,22 @@ internal fun rememberLocalWallpaperChoice(): LocalWallpaperChoice {
 }
 
 @Composable
-fun LocalWallpaperSetting() {
+fun LocalWallpaperSetting(ownWallpapers: Boolean = true) {
     val context = LocalContext.current
     val choice = rememberLocalWallpaperChoice()
     val modelState by DepthModelDownload.state.collectAsState()
-    LaunchedEffect(Unit) { DepthModelDownload.check(context.applicationContext) }
-    LaunchedEffect(choice.spatial) {
-        if (choice.spatial) DepthModelDownload.start(context.applicationContext)
+    LaunchedEffect(ownWallpapers) { if (ownWallpapers) DepthModelDownload.check(context.applicationContext) }
+    LaunchedEffect(choice.spatial, ownWallpapers) {
+        if (choice.spatial && ownWallpapers) DepthModelDownload.start(context.applicationContext)
     }
     fun setEnabled(enabled: Boolean) {
         spatialPreferences(context).edit().putBoolean(LOCAL_SPATIAL, enabled).apply()
-        if (enabled) DepthModelDownload.start(context.applicationContext)
-        else LocalSpatialRepository.prepare(context, null, false)
+        if (enabled && ownWallpapers) DepthModelDownload.start(context.applicationContext)
+        if (!enabled) LocalSpatialRepository.prepare(context, null, false)
     }
     ListItem(
         headlineContent = { Text(stringResource(R.string.local_spatial_title)) },
-        supportingContent = { Text(stringResource(when (modelState) {
+        supportingContent = { Text(stringResource(if (!ownWallpapers) R.string.local_spatial_description else when (modelState) {
             DepthModelState.READY -> R.string.local_spatial_description
             DepthModelState.DOWNLOADING -> R.string.local_spatial_downloading
             DepthModelState.FAILED -> R.string.local_spatial_model_failed
@@ -79,7 +79,8 @@ internal fun renderLocalSpatialWallpaper(motionEnabled: Boolean, width: Float, h
     path: String? = null, ownWallpapers: Boolean = true, cloudDepthUrl: String? = null, cloudSceneUrl: String? = null): LocalSpatialHint {
     val context = LocalContext.current.applicationContext
     val preference = rememberLocalWallpaperChoice()
-    val choice = LocalWallpaperChoice(path, if (ownWallpapers) preference.spatial else motionEnabled && (cloudDepthUrl != null || cloudSceneUrl != null))
+    val choice = LocalWallpaperChoice(path, preference.spatial &&
+        (ownWallpapers || !cloudDepthUrl.isNullOrBlank() || !cloudSceneUrl.isNullOrBlank()))
     val status by LocalSpatialRepository.status.collectAsState()
     val active = rememberWallpaperActive()
     LaunchedEffect(choice, cloudDepthUrl, cloudSceneUrl) {

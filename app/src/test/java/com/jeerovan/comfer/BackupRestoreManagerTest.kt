@@ -88,8 +88,8 @@ class BackupRestoreManagerTest {
     }
 
     @Test
-    fun automaticWallpaperDefaultsToEnabled() {
-        assertTrue(BackupRestoreManager.isAutomaticWallpaperEnabled(emptyMap()))
+    fun automaticWallpaperDefaultsToDisabledAndPreservesExplicitChoices() {
+        assertFalse(BackupRestoreManager.isAutomaticWallpaperEnabled(emptyMap()))
         assertTrue(
             BackupRestoreManager.isAutomaticWallpaperEnabled(
                 mapOf(PreferenceManager.AUTO_WALLPAPER to "true"),

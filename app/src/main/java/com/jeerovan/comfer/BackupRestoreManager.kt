@@ -590,7 +590,7 @@ object BackupRestoreManager {
 
     internal fun isAutomaticWallpaperEnabled(settings: Map<String, String>): Boolean =
         settings[PreferenceManager.BATTERY_SAVER_MODE]?.toBooleanStrictOrNull() != true &&
-            (settings[PreferenceManager.AUTO_WALLPAPER]?.toBooleanStrictOrNull() ?: true)
+            (settings[PreferenceManager.AUTO_WALLPAPER]?.toBooleanStrictOrNull() ?: false)
 
     private fun validatePackageList(json: String, label: String) {
         val packages = try {

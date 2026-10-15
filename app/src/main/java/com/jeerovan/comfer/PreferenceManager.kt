@@ -386,7 +386,7 @@ object PreferenceManager {
     fun setWallpaperMotion(context: Context, enabled: Boolean) {
         setBoolean(context,KEY_WALLPAPER_MOTION,enabled)
     }
-    fun getAutoWallpapers(context: Context, default: Boolean = true): Boolean {
+    fun getAutoWallpapers(context: Context, default: Boolean = false): Boolean {
         return if(isBatterySaver(context)){ false } else { getBoolean(context,AUTO_WALLPAPER,default) }
     }
     fun setAutoWallpapers(context: Context, enabled: Boolean) {

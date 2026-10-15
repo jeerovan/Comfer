@@ -4042,6 +4042,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
     }
 
     val wallpaperMotionEnabled = settingInfoUiState.autoWallpapers && settingInfoUiState.wallpaperMotionEnabled
+    val spatialEnabled = com.jeerovan.comfer.spatial.rememberLocalWallpaperChoice().spatial && settingInfoUiState.autoWallpapers
     val hasNotificationAccess = settingInfoUiState.hasNotificationAccess
 
     LaunchedEffect(mainUiState.iconVersion, // after changing background, update app icons.
@@ -4176,7 +4177,7 @@ fun LauncherScreen(appInfoViewModel: AppInfoViewModel,
         var spatialPath by remember { mutableStateOf<String?>(null) }
         if (backgroundImage != null) spatialPath = backgroundImage
         val currentCloud = com.jeerovan.comfer.spatial.rememberCloudWallpaper(
-            spatialPath, wallpaperMotionEnabled,
+            spatialPath, spatialEnabled,
         )
         if (settingInfoUiState.autoWallpapers) {
             spatialHint = com.jeerovan.comfer.spatial.renderLocalSpatialWallpaper(

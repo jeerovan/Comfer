@@ -34,15 +34,15 @@ internal suspend fun resolveCloudSpatialMetadata(
 }
 
 @Composable
-internal fun rememberCloudWallpaper(path: String?, motionEnabled: Boolean): ImageData? {
+internal fun rememberCloudWallpaper(path: String?, spatialEnabled: Boolean): ImageData? {
     val context = LocalContext.current.applicationContext
     val metadata by remember(context) {
         context.settingsDataStore.data.map { it[stringPreferencesKey(PreferenceManager.KEY_IMAGE_DATA)] }
             .distinctUntilChanged()
     }.collectAsState(initial = PreferenceManager.getImageDataString(context, null))
     val current = remember(path, metadata) { cloudWallpaperForPath(path, metadata) }
-    LaunchedEffect(path, motionEnabled, current) {
-        if (!motionEnabled || current == null) return@LaunchedEffect
+    LaunchedEffect(path, spatialEnabled, current) {
+        if (!spatialEnabled || current == null) return@LaunchedEffect
         try {
             val resolved = resolveCloudSpatialMetadata(current) { id ->
                 CommonUtil.fetchWallpaperDetails(context, id)
