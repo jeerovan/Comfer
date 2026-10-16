@@ -1408,13 +1408,25 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
     fun setAutoWallpapers(enabled: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
+            StartupCoordinator.awaitReady()
             if (enabled && PreferenceManager.isBatterySaver(getApplication())) return@launch
             if (enabled) PreferenceManager.setMonochrome(getApplication(), false)
             PreferenceManager.setAutoWallpapers(getApplication(),enabled)
-            WallpaperScheduler.request(getApplication())
+            if (enabled) PreferenceManager.setWallpaperApplied(getApplication(), false)
+            WallpaperScheduler.request(getApplication(), refresh = enabled)
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(autoWallpapers = enabled,
                     monochrome = if (enabled) false else it.monochrome) }
+            }
+            if (enabled) {
+                // A user's opt-in should not wait for JobScheduler or battery constraints.
+                // The queued worker can finish/retry if this screen closes meanwhile.
+                try {
+                    WallpaperWorkCoordinator.runExclusive {
+                        com.jeerovan.comfer.utils.CommonUtil.refreshWallpaper(getApplication())
+                    }
+                } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+                catch (error: Exception) { Log.w("SettingsViewModel", "Wallpaper refresh will retry", error) }
             }
         }
     }

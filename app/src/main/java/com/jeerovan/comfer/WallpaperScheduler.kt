@@ -37,7 +37,7 @@ internal object WallpaperScheduler {
         scope.launch {
             StartupCoordinator.awaitReady()
             schedule(app)
-            if (refresh && PreferenceManager.getAutoWallpapers(app)) enqueue(app)
+            if (refresh) enqueue(app)
         }
     }
 

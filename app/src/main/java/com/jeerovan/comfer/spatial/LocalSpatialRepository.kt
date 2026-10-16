@@ -77,11 +77,8 @@ internal object LocalSpatialRepository {
                         File(next).inputStream().use { input -> source.outputStream().use { output ->
                             check(copyStreamWithLimit(input, output, 50L * 1024 * 1024))
                         } }
-                        val cloudAsset = cloudSceneUrl ?: cloudDepthUrl
-                        val suffix = if (cloudAsset == null) PIPELINE_VERSION else "cloud-v2-" +
-                            java.security.MessageDigest.getInstance("SHA-256").digest(((if (cloudSceneUrl != null) "scene:" else "depth:") + cloudAsset).toByteArray()).joinToString("") { "%02x".format(it) }
-                        val key = sha256(source) + "-" + suffix
-                        val cloud = cloudAsset != null
+                        val key = sceneKey(source, cloudDepthUrl, cloudSceneUrl)
+                        val cloud = cloudSceneUrl != null || cloudDepthUrl != null
                         val destination = cache.directory(key, cloud)
                         if (invalidateCache) cache.invalidate(key, cloud)
                         if (cache.find(key, cloud) == null) {
@@ -117,6 +114,50 @@ internal object LocalSpatialRepository {
             } catch (_: LinkageError) {
                 if (next != null) publish(ticket, LocalSpatialStatus.Failed(next))
             }
+        }
+    }
+
+    private fun sceneKey(source: File, depthUrl: String?, sceneUrl: String?): String {
+        val asset = sceneUrl ?: depthUrl
+        val suffix = if (asset == null) PIPELINE_VERSION else "cloud-v2-" +
+            java.security.MessageDigest.getInstance("SHA-256")
+                .digest(((if (sceneUrl != null) "scene:" else "depth:") + asset).toByteArray())
+                .joinToString("") { "%02x".format(it) }
+        return sha256(source) + "-" + suffix
+    }
+
+    internal suspend fun generateCloudAssets(context: Context, source: File,
+        image: com.jeerovan.comfer.ImageData, output: File) {
+        when {
+            !image.spatialSceneUrl.isNullOrBlank() -> generateCloudScene(context, image.spatialSceneUrl, output)
+            !image.depthUrl.isNullOrBlank() -> generateCloud(context, source, image.depthUrl, output)
+            else -> error("Cloud wallpaper has no spatial assets")
+        }
+    }
+
+    /** Prepares the current cloud scene without enabling 3D or publishing renderer state. */
+    internal suspend fun cacheCloudScene(context: Context, source: File,
+        image: com.jeerovan.comfer.ImageData, prepared: File? = null) = withContext(Dispatchers.IO) {
+        mutex.withLock {
+            val cache = sceneCache(context)
+            cache.select(source.path)
+            val key = sceneKey(source, image.depthUrl, image.spatialSceneUrl)
+            val destination = cache.directory(key, true)
+            if (cache.find(key, true) == null) {
+                val staging = File(destination.parentFile, "$key.partial")
+                staging.deleteRecursively()
+                check(staging.mkdirs())
+                try {
+                    if (prepared != null && validScene(prepared)) prepared.copyRecursively(staging, overwrite = true)
+                    else generateCloudAssets(context, source, image, staging)
+                    currentCoroutineContext().ensureActive()
+                    check(validScene(staging))
+                    destination.deleteRecursively()
+                    check(staging.renameTo(destination))
+                } finally { staging.deleteRecursively() }
+            }
+            cache.activate(key, true, source.path)
+            cache.maintain()
         }
     }
 
@@ -290,7 +331,7 @@ internal object LocalSpatialRepository {
         }
     }
 
-    private fun validScene(directory: File): Boolean = try {
+    internal fun validScene(directory: File): Boolean = try {
         val count = File(directory, "ready").readText().toInt()
         var width = 0; var height = 0
         spatialLayerNames(count).all {

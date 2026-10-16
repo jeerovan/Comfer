@@ -68,7 +68,7 @@ class ComferApp : Application(), ImageLoaderFactory, Configuration.Provider {
                 BackupRestoreManager.recoverInterruptedRestore(applicationContext)
                 PreferenceManager.reload(applicationContext)
                 StartupCoordinator.markReady()
-                WallpaperScheduler.request(applicationContext)
+                WallpaperScheduler.request(applicationContext, refresh = true)
                 com.jeerovan.comfer.tasks.TaskReminders.request(applicationContext)
                 Log.i("ComferApp", "Application data initialization complete")
                 com.jeerovan.comfer.spatial.LocalSpatialRepository.maintainCache(applicationContext)

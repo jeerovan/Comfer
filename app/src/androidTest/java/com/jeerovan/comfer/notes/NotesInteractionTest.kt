@@ -207,31 +207,57 @@ class NotesInteractionTest {
         compose.waitUntil(5000){compose.onAllNodesWithTag("note-slot-a").fetchSemanticsNodes().isEmpty()}
         assertEquals("Released card must settle in its visible slot",slot.top,compose.onNodeWithTag("note-a").fetchSemanticsNode().boundsInRoot.top,2f)
     }
-    @Test fun draggingOverAnotherCardKeepsBackgroundOpaque() {
+    @Test fun draggingOverAnotherCardPreservesHalfTransparentBackground() {
         runBlocking {NotesStore(NotesDatabase.get(context)).replace(fixture().copy(notes=fixture().notes.map{when(it.id){
             "a"->it.copy(content=NoteContent("Alpha","One\nTwo\nThree\nFour"))
             "b"->it.copy(color="blue")
             else->it
         }}))}
         launch()
+        // Keep screenshot references uniform without changing the device wallpaper.
+        activity?.onActivity { it.window.decorView.setBackgroundColor(android.graphics.Color.BLACK) }
         val original=compose.onNodeWithTag("note-a").fetchSemanticsNode().boundsInRoot
+        val neighbor=compose.onNodeWithTag("note-b").fetchSemanticsNode().boundsInRoot
+        val sample=androidx.compose.ui.geometry.Offset(original.center.x,original.bottom-12f)
+        val movement=androidx.compose.ui.geometry.Offset(0f,70f)
+        assertTrue("Sample must overlap the blue card",neighbor.contains(sample+movement))
         var captures=0
-        fun background(bounds:androidx.compose.ui.geometry.Rect):Int {
+        fun capture():android.graphics.Bitmap {
             val bitmap=InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+            java.io.File(context.cacheDir,"notes-opacity-${captures++}.png").outputStream().use{bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}
+            return bitmap
+        }
+        fun pixel(bitmap:android.graphics.Bitmap,point:androidx.compose.ui.geometry.Offset):Int {
             // Bounds are root-relative; account for the activity's system-bar offset.
             val root=compose.onRoot().fetchSemanticsNode().boundsInWindow
-            java.io.File(context.cacheDir,"notes-opacity-${captures++}.png").outputStream().use{bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}
-            return bitmap.getPixel((root.left+bounds.center.x).toInt(),(root.top+bounds.bottom-12).toInt()).also{bitmap.recycle()}
+            return bitmap.getPixel((root.left+point.x).toInt(),(root.top+point.y).toInt())
         }
         // Native activity/window transitions are outside Compose's test clock.
         InstrumentationRegistry.getInstrumentation().uiAutomation.waitForIdle(500,5000)
-        val before=background(original)
-        compose.onRoot().performTouchInput{down(original.center);advanceEventTime(750);moveTo(original.center+androidx.compose.ui.geometry.Offset(0f,70f))}
+        val before=capture()
+        val card=pixel(before,sample)
+        val backdrop=pixel(before,androidx.compose.ui.geometry.Offset(original.left/2f,sample.y))
+        val underneath=pixel(before,sample+movement)
+        before.recycle()
+        val channels=listOf<(Int)->Int>(android.graphics.Color::red,android.graphics.Color::green,android.graphics.Color::blue)
+        assertTrue("Blue card must provide a distinct background",channels.any{kotlin.math.abs(it(underneath)-it(backdrop))>16})
+        compose.onRoot().performTouchInput{down(original.center);advanceEventTime(750);moveTo(original.center+movement)}
         compose.mainClock.advanceTimeBy(200);compose.waitForIdle()
         val during=compose.onNodeWithTag("note-a").fetchSemanticsNode().boundsInRoot
-        assertEquals(original.top+70f,during.top,2f)
-        assertEquals("Underlying blue card must not show through",before,background(during))
-        compose.onRoot().performTouchInput{cancel()}
+        try {
+            assertEquals(original.top+movement.y,during.top,2f)
+            val after=capture()
+            val actual=pixel(after,androidx.compose.ui.geometry.Offset(during.center.x,during.bottom-12f))
+            after.recycle()
+            // At 50% opacity, a backdrop change contributes half its RGB delta.
+            // Reference pixels avoid coupling the expectation to the active theme.
+            channels.forEach { channel->
+                val expected=channel(card)+.5*(channel(underneath)-channel(backdrop))
+                assertEquals("Dragged card must retain 50% background opacity",expected,channel(actual).toDouble(),2.0)
+            }
+        } finally {
+            compose.onRoot().performTouchInput{cancel()}
+        }
     }
     private fun drag(grid:Boolean) {
         launch(grid)

@@ -30,6 +30,10 @@ import com.jeerovan.comfer.ImageWorkOutcome
 import com.jeerovan.comfer.runScheduledImageWork
 import com.jeerovan.comfer.wallpaperSchedule
 import com.jeerovan.comfer.ImageData
+import com.jeerovan.comfer.CloudWallpaperPreload
+import com.jeerovan.comfer.spatial.LocalSpatialRepository
+import com.jeerovan.comfer.spatial.cloudWallpaperForPath
+import com.jeerovan.comfer.spatial.resolveCloudSpatialMetadata
 import com.jeerovan.comfer.PreferenceKeys
 import com.jeerovan.comfer.PreferenceManager
 import com.jeerovan.comfer.R
@@ -360,7 +364,31 @@ object CommonUtil {
             PreferenceManager.getBackgroundImagePath(context)) {
             if (!setWallpaper(context)) return ImageWorkOutcome.RETRY
         }
-        return runScheduledImageWork(
+        val preload = CloudWallpaperPreload(context)
+        if (!enabled) {
+            if (PreferenceManager.getBackgroundImagePath(context) != null ||
+                PreferenceManager.getWallpaperDirectory(context) != null || PreferenceManager.isBatterySaver(context)) {
+                return ImageWorkOutcome.SUCCESS
+            }
+            val prepared = try { preload.prepare(schedule) }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (error: Exception) {
+                Log.w("WallpaperPreload", "First wallpaper preparation will retry", error)
+                false
+            }
+            // Enabling while this worker is preparing must not lose the refresh
+            // to WorkManager's KEEP policy for the already-running request.
+            if (PreferenceManager.getAutoWallpapers(context)) return refreshWallpaper(context)
+            return if (prepared) ImageWorkOutcome.SUCCESS else ImageWorkOutcome.RETRY
+        }
+        val directory = PreferenceManager.getWallpaperDirectory(context)
+        if (!manualChange && directory == null && PreferenceManager.getBackgroundImagePath(context) == null) {
+            preload.imageFor(schedule)?.let { image ->
+                PreferenceManager.setTempImageData(context, Json.encodeToString(image))
+                PreferenceManager.setString(context, PreferenceManager.WALLPAPER_PENDING_PERIOD, schedule.periodKey)
+            }
+        }
+        val outcome = runScheduledImageWork(
             enabled = enabled,
             manualChange = manualChange,
             frequency = PreferenceManager.getWallpaperFrequency(context),
@@ -373,7 +401,11 @@ object CommonUtil {
                     if (fetched) PreferenceManager.setString(context, PreferenceManager.WALLPAPER_PENDING_PERIOD, schedule.periodKey)
                 }
             },
-            download = { downloadImage(context) { wallpaperSchedule(context, System.currentTimeMillis()).periodKey == schedule.periodKey } },
+            download = { downloadImage(context) {
+                PreferenceManager.getAutoWallpapers(context) &&
+                    PreferenceManager.getWallpaperDirectory(context) == directory &&
+                    wallpaperSchedule(context, System.currentTimeMillis()).periodKey == schedule.periodKey
+            } },
             recordSuccess = {
                 PreferenceManager.setLong(
                     context, PreferenceManager.WALLPAPER_LAST_SUCCESS, now,
@@ -384,7 +416,35 @@ object CommonUtil {
             lastPeriod = PreferenceManager.getString(context, PreferenceManager.WALLPAPER_LAST_PERIOD, null),
             pendingPeriod = PreferenceManager.getString(context, PreferenceManager.WALLPAPER_PENDING_PERIOD, null),
         )
+        if (outcome != ImageWorkOutcome.SUCCESS) return outcome
+        return if (prefetchCloudSpatial(context)) ImageWorkOutcome.SUCCESS else ImageWorkOutcome.RETRY
     }
+
+    private suspend fun prefetchCloudSpatial(context: Context): Boolean {
+        if (!PreferenceManager.getAutoWallpapers(context) || PreferenceManager.getWallpaperDirectory(context) != null) return true
+        val path = PreferenceManager.getBackgroundImagePath(context) ?: return true
+        val image = cloudWallpaperForPath(path, PreferenceManager.getImageDataString(context, null)) ?: return true
+        return try {
+            val resolved = resolveCloudSpatialMetadata(image) { fetchWallpaperDetails(context, it) }
+            if (PreferenceManager.getBackgroundImagePath(context) != path ||
+                PreferenceManager.getImageData(context) != image) return true
+            if (resolved != image) PreferenceManager.setImageDataString(context, Json.encodeToString(resolved))
+            if (!resolved.spatialSceneUrl.isNullOrBlank() || !resolved.depthUrl.isNullOrBlank()) {
+                LocalSpatialRepository.cacheCloudScene(context, File(path), resolved)
+            }
+            true
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (error: Exception) {
+            Log.w("WallpaperPreload", "Cloud spatial preparation will retry", error)
+            false
+        }
+    }
+
+    internal suspend fun fetchCloudWallpaper(context: Context, hour: Int): ImageData =
+        getHttpClient(context).get("https://comfer.jeerovan.com/api") {
+            parameter("name", PreferenceManager.getUsername(context))
+            parameter("hour", hour)
+        }.body()
 
     internal suspend fun fetchWallpaperDetails(context: Context, id: Int): ImageData =
         getHttpClient(context).get("https://comfer.jeerovan.com/api/wallpapers/$id").body()
@@ -397,11 +457,7 @@ object CommonUtil {
             return setBackgroundImageFromImageUri(applicationContext, wallpaperDirectory.toUri())
         }
         return try {
-            val response: ImageData = getHttpClient(applicationContext)
-                .get("https://comfer.jeerovan.com/api") {
-                    parameter("name", PreferenceManager.getUsername(applicationContext))
-                    parameter("hour", cloudHour)
-                }.body()
+            val response = fetchCloudWallpaper(applicationContext, cloudHour)
             // A previous day's failed download must not replace this phase's
             // image, including when the server returns the already-current ID.
             PreferenceManager.setBoolean(applicationContext, PreferenceManager.IMAGE_AVAILABLE, false)
@@ -451,11 +507,14 @@ object CommonUtil {
                     applicationContext.cacheDir,
                 )
                 try {
-                    if (!downloadFileWithinLimit(applicationContext, imageUrl, sourceFile)) {
+                    val preload = CloudWallpaperPreload(applicationContext)
+                    val preparedSource = preload.sourceFor(tempImageData)
+                    if (preparedSource != null) preparedSource.copyTo(sourceFile, overwrite = true)
+                    else if (!downloadFileWithinLimit(applicationContext, imageUrl, sourceFile)) {
                         return false
                     }
                     val bitmap = decodeWallpaperBitmap(sourceFile, targetWidth, targetHeight)
-                        ?: return false
+                        ?: run { if (preparedSource != null) preload.clear(); return false }
                     try {
                         if (!stillCurrent()) return false
                         val filename = "comfer_${tempImageData.id}.jpg"
@@ -467,6 +526,11 @@ object CommonUtil {
                             }
                         }
                         Log.i("DownloadImage","Downloaded: $filename")
+                        if (!stillCurrent()) return false
+                        try { preload.adoptScene(tempImageData, file) }
+                        catch (cancelled: CancellationException) { throw cancelled }
+                        catch (error: Exception) { Log.w("WallpaperPreload", "Prepared scene import deferred", error) }
+                        if (!stillCurrent()) return false
                         val oldFilePath:String? = PreferenceManager.getBackgroundImagePath(applicationContext)
                         PreferenceManager.setBackgroundImagePath(
                             applicationContext,
@@ -484,6 +548,7 @@ object CommonUtil {
                         if (!applyWallpaperBitmap(applicationContext, bitmap, file.absolutePath)) {
                             return false
                         }
+                        preload.clear()
                     } finally {
                         bitmap.recycle()
                     }
@@ -516,7 +581,7 @@ object CommonUtil {
         }
     }
 
-    private suspend fun downloadFileWithinLimit(
+    internal suspend fun downloadFileWithinLimit(
         context: Context,
         imageUrl: String,
         destination: File,
