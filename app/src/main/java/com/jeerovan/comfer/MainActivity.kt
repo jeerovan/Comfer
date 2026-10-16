@@ -2169,7 +2169,6 @@ fun QuickListOverlay(apps: List<AppInfo>,
                      onShowSearch:() -> Unit,
                      onDoubleTap:() -> Unit) {
     val context = LocalContext.current
-    val view = LocalView.current
     val configuration = LocalConfiguration.current
     var iconSize by remember { mutableStateOf(48.dp) }
     var iconShape: Shape by remember { mutableStateOf(CircleShape)}
@@ -2333,8 +2332,8 @@ fun QuickListOverlay(apps: List<AppInfo>,
     }
     val showThemedIcon = settings.showThemedIcons && settings.autoWallpapers
     fun exitWidgetSettings() {
+        // The Material back button already plays its click sound.
         showWidgetSettings = false
-        view.playSoundEffect(SoundEffectConstants.CLICK)
     }
 
     val launchSwipeIntentsCache = remember {

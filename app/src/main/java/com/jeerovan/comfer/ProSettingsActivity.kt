@@ -4,7 +4,6 @@ package com.jeerovan.comfer
 
 import android.os.Bundle
 import android.content.res.Configuration
-import android.view.SoundEffectConstants
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedContent
@@ -55,7 +54,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.FontFamily
@@ -97,7 +95,6 @@ enum class SettingsScreen {
 @Composable
 fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
                       exitWidgetSettings: () -> Unit) {
-    val view = LocalView.current
     // State variable tracks the current screen
     var currentScreen by remember { mutableStateOf(SettingsScreen.Basic) }
     AnimatedContent(
@@ -132,7 +129,6 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
                 TimeAdvancedSettings(
                     settingsViewModel,
                     onBack = {
-                        view.playSoundEffect(SoundEffectConstants.CLICK)
                         currentScreen = SettingsScreen.Basic
                     }
                 )
@@ -141,7 +137,6 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
                 DateAdvancedSettings(
                     settingsViewModel,
                     onBack = {
-                        view.playSoundEffect(SoundEffectConstants.CLICK)
                         currentScreen = SettingsScreen.Basic
                     }
                 )
