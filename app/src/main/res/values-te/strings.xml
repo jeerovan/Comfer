@@ -309,6 +309,7 @@
     <string name="title_select_icon_app">ఐకాన్ ప్యాక్‌ను ఎంచుకోండి</string>
     <string name="title_not_available">అందుబాటులో లేదు</string>
     <string name="title_action_clear">తొలగించండి</string>
+    <string name="title_performance">పనితీరు</string>
     <string name="title_battery_saver">బ్యాటరీ సేవర్</string>
     <string name="battery_saver_text">బ్యాటరీని ఆదా చేయడానికి ప్రారంభించండి</string>
     <string name="text_saving_battery">బ్యాటరీ సేవ్ అవుతోంది</string>

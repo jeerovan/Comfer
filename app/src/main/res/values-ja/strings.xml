@@ -307,6 +307,7 @@
     <string name="title_select_icon_app">アイコンパックを選択</string>
     <string name="title_not_available">利用できません</string>
     <string name="title_action_clear">クリア</string>
+    <string name="title_performance">パフォーマンス</string>
     <string name="title_battery_saver">バッテリー節約</string>
     <string name="battery_saver_text">節電のためオンにしてください</string>
     <string name="text_saving_battery">バッテリー節約中…</string>

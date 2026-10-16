@@ -307,6 +307,7 @@
     <string name="title_select_icon_app">İkon paketini seçin</string>
     <string name="title_not_available">Mövcud deyil</string>
     <string name="title_action_clear">Təmizlə</string>
+    <string name="title_performance">Performans</string>
     <string name="title_battery_saver">Batareya qənaəti</string>
     <string name="battery_saver_text">Batareyaya qənaət üçün aktiv edin</string>
     <string name="text_saving_battery">Batareyaya qənaət edilir…</string>

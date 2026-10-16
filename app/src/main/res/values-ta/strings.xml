@@ -309,6 +309,7 @@
     <string name="title_select_icon_app">ஐகான் பேக்கை தேர்வு செய்யவும்</string>
     <string name="title_not_available">கிடைக்கவில்லை</string>
     <string name="title_action_clear">அழி</string>
+    <string name="title_performance">செயல்திறன்</string>
     <string name="title_battery_saver">பேட்டரி சேமிப்பு</string>
     <string name="battery_saver_text">பேட்டரியை சேமிக்க இயக்கவும்</string>
     <string name="text_saving_battery">பேட்டரி சேமிக்கப்படுகிறது</string>

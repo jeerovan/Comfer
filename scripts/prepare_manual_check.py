@@ -56,9 +56,28 @@ def verify_ui(xml, description=None):
 
 
 def verify_foreground(dump):
-    if not any(("mResumedActivity" in line or "topResumedActivity" in line)
-               and PACKAGE + "/" in line for line in dump.splitlines()):
+    lines = dump.splitlines()
+    home = re.compile(re.escape(PACKAGE) + r"/(?:\.|" + re.escape(PACKAGE) + r"\.)MainActivity\b")
+    resumed = next((line for line in lines
+                    if ("mResumedActivity" in line or "topResumedActivity" in line)
+                    and home.search(line)), None)
+    if resumed is None:
         raise RuntimeError("The regular Comfer app is not foregrounded; check for a crash or launcher overlay")
+
+    # Samsung can report Home as resumed while its task exposes a stale Recents
+    # or Settings window. Check the resumed activity's record, not other tasks.
+    record = re.search(r"ActivityRecord\{(\S+)", resumed)
+    if record:
+        for index, line in enumerate(lines):
+            if "* Hist #" not in line or "ActivityRecord{" + record[1] + " " not in line:
+                continue
+            indent = len(line) - len(line.lstrip())
+            for detail in lines[index + 1:]:
+                if detail.strip() and len(detail) - len(detail.lstrip()) <= indent:
+                    break
+                if re.search(r"\b(?:occludesParent|mOccludesParent)=false\b", detail):
+                    raise RuntimeError("Comfer Home exposes other apps through a corrupted task; recreate its Home task")
+            break
 
 
 def prepare(adb, apk, description):
@@ -74,8 +93,10 @@ def prepare(adb, apk, description):
     for package in TEST_PACKAGES:
         if package in installed:
             read(adb, "shell", "am", "force-stop", package)
-    read(adb, "shell", "am", "force-stop", PACKAGE)
-    launch = read(adb, "shell", "am", "start", "-W", "-a", "android.intent.action.MAIN",
+    # Stopping the default launcher can immediately relaunch it. Recreate the
+    # Home task as well, so a successful start cannot reuse that broken task.
+    launch = read(adb, "shell", "am", "start", "-S", "-W", "-f", "0x10008000",
+                  "-a", "android.intent.action.MAIN",
                   "-c", "android.intent.category.HOME", "-n", PACKAGE + "/.MainActivity")
     if "Status: ok" not in launch:
         raise RuntimeError("Comfer did not launch successfully: " + launch)

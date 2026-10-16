@@ -307,6 +307,7 @@
     <string name="title_select_icon_app">Ikonalar to‘plamini tanlang</string>
     <string name="title_not_available">Mavjud emas</string>
     <string name="title_action_clear">Tozalash</string>
+    <string name="title_performance">Unumdorlik</string>
     <string name="title_battery_saver">Batareya tejash</string>
     <string name="battery_saver_text">Batareyani tejash uchun yoqing</string>
     <string name="text_saving_battery">Batareya tejalyapti…</string>

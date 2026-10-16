@@ -307,6 +307,7 @@
     <string name="title_select_icon_app">Дүрс багц сонгох</string>
     <string name="title_not_available">Боломжгүй</string>
     <string name="title_action_clear">Цэвэрлэх</string>
+    <string name="title_performance">Гүйцэтгэл</string>
     <string name="title_battery_saver">Зай хэмнэгч</string>
     <string name="battery_saver_text">Зай хэмнэхийн тулд асаана уу</string>
     <string name="text_saving_battery">Зай хэмнэж байна…</string>

@@ -309,6 +309,7 @@
     <string name="title_select_icon_app">Pilih Paket Ikon</string>
     <string name="title_not_available">Tidak tersedia</string>
     <string name="title_action_clear">Hapus</string>
+    <string name="title_performance">Performa</string>
     <string name="title_battery_saver">Penghemat baterai</string>
     <string name="battery_saver_text">Aktifkan untuk menghemat baterai</string>
     <string name="text_saving_battery">Menghemat baterai</string>

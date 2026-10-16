@@ -309,6 +309,7 @@
     <string name="title_select_icon_app">আইকন প্যাক নির্বাচন করুন</string>
     <string name="title_not_available">উপলব্ধ নয়</string>
     <string name="title_action_clear">মুছুন</string>
+    <string name="title_performance">কর্মক্ষমতা</string>
     <string name="title_battery_saver">ব্যাটারি সেভার</string>
     <string name="battery_saver_text">ব্যাটারি সাশ্রয়ের জন্য সক্রিয় করুন</string>
     <string name="text_saving_battery">ব্যাটারি সাশ্রয় হচ্ছে</string>

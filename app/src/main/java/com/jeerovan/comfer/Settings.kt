@@ -506,45 +506,6 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     }
                 )
             }
-            item { SectionHeader(stringResource(R.string.title_support))}
-            item { SocialLinksRow() }
-            item {
-                ListItem(
-                    modifier = howtoGuideModifier,
-                    headlineContent = { Text(stringResource(R.string.title_how_to)) },
-                    supportingContent = { Text(stringResource(R.string.app_guide_title)) },
-                    leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
-                        contentDescription = stringResource(R.string.icon_how_to_guide)) },
-                    trailingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.icon_arrow_right)
-                        )
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            item {
-                val context = LocalContext.current
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_report_issue)) },
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.Support,
-                            contentDescription = stringResource(R.string.icon_support))
-                    },
-                    trailingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.icon_arrow_right)
-                        )
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    modifier = Modifier.clickable {
-                        openUrl("https://github.com/jeerovan/Comfer/issues",context)
-                    }
-                )
-            }
             item { SectionHeader(stringResource(R.string.title_wallpapers)) }
             item(key = "wallpaper-auto") {
                 ListItem(
@@ -1094,13 +1055,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                 )
             }
-            item {
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp),
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
-                )
-            }
+            item { SectionHeader(stringResource(R.string.title_performance)) }
             item {
                 ListItem(
                     headlineContent = { Text(stringResource(R.string.title_battery_saver)) },
@@ -1119,6 +1074,52 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
                     },
                     modifier = Modifier.clickable { settingsViewModel.setBatterySaver(!settingsState.isBatterySaver) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
+            item { SectionHeader(stringResource(R.string.title_support))}
+            item { SocialLinksRow() }
+            item {
+                ListItem(
+                    modifier = howtoGuideModifier,
+                    headlineContent = { Text(stringResource(R.string.title_how_to)) },
+                    supportingContent = { Text(stringResource(R.string.app_guide_title)) },
+                    leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
+                        contentDescription = stringResource(R.string.icon_how_to_guide)) },
+                    trailingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = stringResource(R.string.icon_arrow_right)
+                        )
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                )
+            }
+            item {
+                val context = LocalContext.current
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.title_report_issue)) },
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.Support,
+                            contentDescription = stringResource(R.string.icon_support))
+                    },
+                    trailingContent = {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = stringResource(R.string.icon_arrow_right)
+                        )
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    modifier = Modifier.clickable {
+                        openUrl("https://github.com/jeerovan/Comfer/issues",context)
+                    }
+                )
+            }
+            item {
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp),
+                    thickness = DividerDefaults.Thickness,
+                    color = DividerDefaults.color
                 )
             }
             item {

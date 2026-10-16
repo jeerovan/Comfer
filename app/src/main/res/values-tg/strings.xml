@@ -309,6 +309,7 @@
     <string name="title_select_icon_app">Интихоби бастаи нишонаҳо</string>
     <string name="title_not_available">Дастрас нест</string>
     <string name="title_action_clear">Пок кардан</string>
+    <string name="title_performance">Самаранокӣ</string>
     <string name="title_battery_saver">Ҳифзи батарея</string>
     <string name="battery_saver_text">Барои сарфа кардани батарея фаъол кунед</string>
     <string name="text_saving_battery">Дар ҳоли сарфа кардани батарея…</string>

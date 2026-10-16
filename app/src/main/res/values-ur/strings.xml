@@ -309,6 +309,7 @@
     <string name="title_select_icon_app">آئیکن پیک منتخب کریں</string>
     <string name="title_not_available">دستیاب نہیں</string>
     <string name="title_action_clear">صاف کریں</string>
+    <string name="title_performance">کارکردگی</string>
     <string name="title_battery_saver">بیٹری سیور</string>
     <string name="battery_saver_text">بیٹری بچانے کے لیے فعال کریں</string>
     <string name="text_saving_battery">بیٹری محفوظ کی جا رہی ہے</string>

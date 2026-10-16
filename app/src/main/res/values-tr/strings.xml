@@ -307,6 +307,7 @@
     <string name="title_select_icon_app">Simge paketi seçin</string>
     <string name="title_not_available">Kullanılamıyor</string>
     <string name="title_action_clear">Temizle</string>
+    <string name="title_performance">Performans</string>
     <string name="title_battery_saver">Pil tasarrufu</string>
     <string name="battery_saver_text">Pil tasarrufu için açın</string>
     <string name="text_saving_battery">Pil tasarrufu yapılıyor…</string>

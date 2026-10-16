@@ -307,6 +307,7 @@
     <string name="title_select_icon_app">Icon-Paket auswählen</string>
     <string name="title_not_available">Nicht verfügbar</string>
     <string name="title_action_clear">Löschen</string>
+    <string name="title_performance">Leistung</string>
     <string name="title_battery_saver">Energiesparmodus</string>
     <string name="battery_saver_text">Zum Batteriesparen aktivieren</string>
     <string name="text_saving_battery">Batterie wird gespart…</string>

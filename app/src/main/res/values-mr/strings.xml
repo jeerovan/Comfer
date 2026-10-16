@@ -309,6 +309,7 @@
     <string name="title_select_icon_app">आयकॉन पॅक निवडा</string>
     <string name="title_not_available">उपलब्ध नाही</string>
     <string name="title_action_clear">साफ करा</string>
+    <string name="title_performance">कार्यप्रदर्शन</string>
     <string name="title_battery_saver">बॅटरी सेव्हर</string>
     <string name="battery_saver_text">बॅटरी वाचवण्यासाठी सक्षम करा</string>
     <string name="text_saving_battery">बॅटरी वाचवत आहे</string>

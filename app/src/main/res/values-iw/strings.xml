@@ -307,6 +307,7 @@
     <string name="title_select_icon_app">בחרו חבילת אייקונים</string>
     <string name="title_not_available">לא זמין</string>
     <string name="title_action_clear">ניקוי</string>
+    <string name="title_performance">ביצועים</string>
     <string name="title_battery_saver">חיסכון בסוללה</string>
     <string name="battery_saver_text">הפעילו לחיסכון בסוללה</string>
     <string name="text_saving_battery">חוסך בסוללה…</string>

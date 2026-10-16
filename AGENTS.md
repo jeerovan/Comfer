@@ -6,6 +6,17 @@
   Run the layout/localization checks below only when that impact warrants them.
   Changes confined to click or sound feedback with no layout impact require
   focused behavior regressions; skip unrelated layout tests.
+- As part of that assessment, check whether the change simply reuses an
+  established shared component without changing its layout rules, styling, or
+  interactions. Additions such as a `SectionHeader` with localized text normally
+  need only placement/resource review, translation validation, and compilation;
+  do not add tests or run device visual, LTR/RTL, locale, or orientation matrices
+  by default. Run additional checks only for a concrete risk introduced by that
+  usage, such as constrained text, custom sizing/positioning, or changed touch
+  targets, and prefer relevant existing tests. State that risk before expanding
+  verification. Once the focused checks pass, stop; do not create a new test
+  harness or investigate unrelated failures for this kind of change. Report
+  unrelated failures separately. Full release-preparation checks remain mandatory.
 - During release preparation, run the full layout/localization checks below
   **before building any release candidate**, even when individual changes did
   not require layout testing. Include portrait and landscape where supported.
@@ -40,6 +51,18 @@
   This inventories installed Comfer variants, verifies the installed APK's
   content, stops test apps without clearing their data, and cold-starts the
   regular app as Home. Preserve production data with in-place updates.
+- After every regular-build update on Samsung, recover the launcher before
+  handoff: stale Home/Recents tasks have repeatedly left Recents or Settings
+  windows visible through Comfer even when APK verification and activity start
+  succeeded. Use the helper above to recreate the Home task with
+  `am start -S -W -f 0x10008000` (`NEW_TASK | CLEAR_TASK`) and reject a Home
+  activity that exposes other apps (`occludesParent=false`). If stale windows
+  remain, restart Samsung's Recents process with
+  `adb -s DEVICE shell am force-stop com.sec.android.app.launcher`, then rerun
+  the helper. Preserve all app data and settings. Confirm normal display and a
+  working Home/Recents return before handing the device back. Treat this as
+  completing the device update, including when regression tests are skipped;
+  keep it focused and do not expand it into layout/locale/orientation matrices.
 - Before handing a build back for manual checking, verify the visible app and
   exercise the requested interaction. Check returning from Home/Recents when a
   launcher freeze is reported. A successful build, install, or activity-start

@@ -307,6 +307,7 @@
     <string name="title_select_icon_app">Choisir un pack d’icônes</string>
     <string name="title_not_available">Indisponible</string>
     <string name="title_action_clear">Effacer</string>
+    <string name="title_performance">Performances</string>
     <string name="title_battery_saver">Économie de batterie</string>
     <string name="battery_saver_text">Activez pour économiser la batterie</string>
     <string name="text_saving_battery">Économie de batterie…</string>

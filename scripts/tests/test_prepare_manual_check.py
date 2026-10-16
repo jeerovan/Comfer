@@ -56,6 +56,34 @@ class ManualCheckTests(unittest.TestCase):
                 checker.verify_foreground("mResumedActivity: " + activity)
         checker.verify_foreground("mResumedActivity: com.jeerovan.comfer/.MainActivity")
 
+    def test_foreground_home_that_exposes_other_apps_is_rejected(self):
+        dump = """    mResumedActivity: ActivityRecord{abc u0 com.jeerovan.comfer/.MainActivity t1}
+      * Hist #0: ActivityRecord{abc u0 com.jeerovan.comfer/.MainActivity t1}
+          state=RESUMED stopped=false
+          occludesParent=false noDisplay=false
+          mOccludesParent=false mOrientation=-1
+          mVisibleRequested=true mVisible=true
+  Stack #2: type=recents
+"""
+        with self.assertRaisesRegex(RuntimeError, "exposes other apps"):
+            checker.verify_foreground(dump)
+
+    def test_healthy_home_is_not_confused_with_another_transparent_activity(self):
+        dump = """    mResumedActivity: ActivityRecord{abc u0 com.jeerovan.comfer/.MainActivity t1}
+      * Hist #0: ActivityRecord{abc u0 com.jeerovan.comfer/.MainActivity t1}
+          occludesParent=true noDisplay=false
+          mOccludesParent=true mOrientation=-1
+  Stack #2: type=standard
+      * Hist #0: ActivityRecord{def u0 com.android.settings/.Settings t2}
+          occludesParent=false noDisplay=false
+          mOccludesParent=false mOrientation=-1
+"""
+        checker.verify_foreground(dump)
+
+    def test_settings_activity_does_not_count_as_home(self):
+        with self.assertRaisesRegex(RuntimeError, "not foregrounded"):
+            checker.verify_foreground("mResumedActivity: com.jeerovan.comfer/.SettingsActivity")
+
 
 if __name__ == "__main__":
     unittest.main()

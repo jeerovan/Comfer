@@ -309,6 +309,7 @@
     <string name="title_select_icon_app">Pictogrampakket selecteren</string>
     <string name="title_not_available">Niet beschikbaar</string>
     <string name="title_action_clear">Wissen</string>
+    <string name="title_performance">Prestaties</string>
     <string name="title_battery_saver">Batterijbesparing</string>
     <string name="battery_saver_text">Inschakelen om batterij te besparen</string>
     <string name="text_saving_battery">Batterij besparen</string>
