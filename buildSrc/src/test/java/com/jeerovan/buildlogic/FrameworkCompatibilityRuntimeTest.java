@@ -35,6 +35,11 @@ public class FrameworkCompatibilityRuntimeTest {
     }
 
     private URLClassLoader runtime(String overlayBody, String eventBody, String nodeBody) throws Exception {
+        return runtime(overlayBody, eventBody, nodeBody, "");
+    }
+
+    private URLClassLoader runtime(String overlayBody, String eventBody, String nodeBody,
+            String managerBody) throws Exception {
         Path root = temp.newFolder().toPath();
         Path type = source(root, "android/view/WindowInsets.java",
                 "package android.view; public class WindowInsets { public static class Type { public static int systemOverlays() { return 256; } } }");
@@ -42,9 +47,11 @@ public class FrameworkCompatibilityRuntimeTest {
                 "package android.view.accessibility; public class AccessibilityEvent { public boolean sensitive; public void setAccessibilityDataSensitive(boolean value) { sensitive=value; } }");
         Path node = source(root, "android/view/accessibility/AccessibilityNodeInfo.java",
                 "package android.view.accessibility; public class AccessibilityNodeInfo { public boolean sensitive; public boolean password=true; public String text=\"Example\"; public void setAccessibilityDataSensitive(boolean value) { sensitive=value; } }");
+        Path manager = source(root, "android/view/accessibility/AccessibilityManager.java",
+                "package android.view.accessibility; public class AccessibilityManager { public boolean isRequestFromAccessibilityTool() { return false; } }");
         Path keep = source(root, "androidx/annotation/Keep.java", "package androidx.annotation; public @interface Keep {}");
         Path lint = source(root, "android/annotation/SuppressLint.java", "package android.annotation; public @interface SuppressLint { String[] value(); }");
-        compile(root, type, event, node, keep, lint,
+        compile(root, type, event, node, manager, keep, lint,
                 Path.of("../app/src/main/java/com/jeerovan/comfer/compat/FrameworkCompatibility.java"));
         source(root, "android/view/WindowInsets.java",
                 "package android.view; public class WindowInsets { public static class Type { " + overlayBody + " } }");
@@ -52,8 +59,49 @@ public class FrameworkCompatibilityRuntimeTest {
                 "package android.view.accessibility; public class AccessibilityEvent { public boolean sensitive; " + eventBody + " }");
         source(root, "android/view/accessibility/AccessibilityNodeInfo.java",
                 "package android.view.accessibility; public class AccessibilityNodeInfo { public boolean sensitive; public boolean password=true; public String text=\"Example\"; " + nodeBody + " }");
-        compile(root, type, event, node);
+        source(root, "android/view/accessibility/AccessibilityManager.java",
+                "package android.view.accessibility; public class AccessibilityManager { " + managerBody + " }");
+        compile(root, type, event, node, manager);
         return new URLClassLoader(new java.net.URL[]{root.toUri().toURL()}, null);
+    }
+
+    @Test public void missingAccessibilityToolMethodUsesLegacyAndroidXBehavior() throws Exception {
+        try (URLClassLoader loader = runtime("", "", "", "")) {
+            Class<?> bridge = loader.loadClass("com.jeerovan.comfer.compat.FrameworkCompatibility");
+            Class<?> manager = loader.loadClass("android.view.accessibility.AccessibilityManager");
+            Object instance = manager.getConstructor().newInstance();
+            for (int i = 0; i < 3; i++) {
+                assertEquals(true, bridge.getMethod("isRequestFromAccessibilityTool", manager).invoke(null, instance));
+            }
+        }
+    }
+
+    @Test public void availableAccessibilityToolMethodIsReadForEveryRequest() throws Exception {
+        try (URLClassLoader loader = runtime("", "", "",
+                "public boolean tool; public boolean isRequestFromAccessibilityTool() { return tool; }")) {
+            Class<?> bridge = loader.loadClass("com.jeerovan.comfer.compat.FrameworkCompatibility");
+            Class<?> manager = loader.loadClass("android.view.accessibility.AccessibilityManager");
+            Object instance = manager.getConstructor().newInstance();
+            for (boolean tool : new boolean[]{false, true, false}) {
+                manager.getField("tool").set(instance, tool);
+                assertEquals(tool, bridge.getMethod("isRequestFromAccessibilityTool", manager).invoke(null, instance));
+            }
+        }
+    }
+
+    @Test public void unrelatedAccessibilityToolFailuresPropagate() throws Exception {
+        try (URLClassLoader loader = runtime("", "", "",
+                "public boolean isRequestFromAccessibilityTool() { throw new SecurityException(\"denied\"); }")) {
+            Class<?> bridge = loader.loadClass("com.jeerovan.comfer.compat.FrameworkCompatibility");
+            Class<?> manager = loader.loadClass("android.view.accessibility.AccessibilityManager");
+            try {
+                bridge.getMethod("isRequestFromAccessibilityTool", manager)
+                        .invoke(null, manager.getConstructor().newInstance());
+                fail("Only the missing-method failure may be contained");
+            } catch (InvocationTargetException error) {
+                assertTrue(error.getCause() instanceof SecurityException);
+            }
+        }
     }
 
     @Test public void missingMethodsFallBackWithoutLinkageCrash() throws Exception {

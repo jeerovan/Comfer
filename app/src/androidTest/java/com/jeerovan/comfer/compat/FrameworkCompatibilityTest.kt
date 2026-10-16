@@ -4,6 +4,9 @@ import android.annotation.SuppressLint
 import android.view.WindowInsets
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityManager
+import android.content.Context
+import androidx.test.platform.app.InstrumentationRegistry
 import android.graphics.Rect
 import androidx.test.filters.SdkSuppress
 import org.junit.Assert.*
@@ -11,6 +14,20 @@ import org.junit.Test
 
 @SuppressLint("NewApi")
 class FrameworkCompatibilityTest {
+    @Test fun androidXAccessibilityToolRequestIsGuardedWhenFrameworkMethodIsMissing() {
+        val manager = InstrumentationRegistry.getInstrumentation().targetContext
+            .getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+        val method = Class.forName("androidx.core.view.accessibility.AccessibilityManagerCompat\$Api34Impl")
+            .getDeclaredMethod("isRequestFromAccessibilityTool", AccessibilityManager::class.java)
+            .apply { isAccessible = true }
+        val platform = try {
+            AccessibilityManager::class.java.getMethod("isRequestFromAccessibilityTool")
+        } catch (_: NoSuchMethodException) { null }
+        repeat(3) {
+            assertEquals(platform?.invoke(manager) ?: true, method.invoke(null, manager))
+        }
+    }
+
     @SdkSuppress(minSdkVersion = 30) // WindowInsets.Type does not exist before API 30.
     @Test fun androidXApi34OverlayImplementationIsActuallyGuarded() {
         val method = Class.forName("androidx.core.view.WindowInsetsCompat\$TypeImpl34")

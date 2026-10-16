@@ -56,6 +56,7 @@ class NotesUiTest {
         androidx.test.espresso.Espresso.pressBack()
         compose.onNodeWithTag("notes-search").assertDoesNotExist()
         compose.onNodeWithContentDescription("New note").performClick()
+        compose.waitUntil(10000){compose.onAllNodesWithTag("notes-editor").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("notes-editor").assertExists()
     }
     @Test fun autosaveCollectionSearchAndEditorRoundTrip() {

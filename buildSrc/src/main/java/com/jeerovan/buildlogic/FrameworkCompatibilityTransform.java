@@ -34,6 +34,11 @@ public final class FrameworkCompatibilityTransform {
                             // Same operand stack: the former receiver becomes argument zero.
                             super.visitMethodInsn(Opcodes.INVOKESTATIC, BRIDGE, method,
                                     "(L" + owner + ";Z)V", false);
+                        } else if (opcode == Opcodes.INVOKEVIRTUAL && !isInterface
+                                && owner.equals("android/view/accessibility/AccessibilityManager")
+                                && method.equals("isRequestFromAccessibilityTool") && desc.equals("()Z")) {
+                            super.visitMethodInsn(Opcodes.INVOKESTATIC, BRIDGE, method,
+                                    "(L" + owner + ";)Z", false);
                         } else {
                             super.visitMethodInsn(opcode, owner, method, desc, isInterface);
                         }

@@ -37,12 +37,25 @@ class NotesActivityThemeTest {
     }
     @Test fun realActivityNativeTextAndComposeContentFollowNightMode() {
         scenario=ActivityScenario.launch(NotesActivity::class.java)
+        compose.waitUntil(10000) { compose.onAllNodesWithContentDescription("New note").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithContentDescription("New note").performClick()
+        compose.waitUntil(5000) { compose.onAllNodesWithTag("notes-editor").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("notes-editor").performTextReplacement("Theme switch\nPreserved text")
         for (dark in listOf(true,false)) {
             scenario!!.onActivity { it.delegate.localNightMode=if(dark)AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO }
-            compose.waitUntil(10000) {
-                var matched=false
-                scenario!!.onActivity { matched=(it.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK)==if(dark)Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO }
-                matched && compose.onAllNodesWithContentDescription("New note").fetchSemanticsNodes().isNotEmpty()
+            try {
+                compose.waitUntil(10000) {
+                    var matched=false
+                    scenario!!.onActivity { matched=(it.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK)==if(dark)Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO }
+                    matched && compose.onAllNodesWithTag("notes-editor").fetchSemanticsNodes().isNotEmpty()
+                }
+            } catch (failure: androidx.compose.ui.test.ComposeTimeoutException) {
+                var state=""
+                scenario!!.onActivity { activity ->
+                    val model=androidx.lifecycle.ViewModelProvider(activity)[NotesViewModel::class.java]
+                    state="configuration=${activity.resources.configuration}, mode=${activity.delegate.localNightMode}, ready=${model.ready}, collection=${model.collection}, error=${model.error}"
+                }
+                throw AssertionError("Notes theme did not settle for dark=$dark: $state",failure)
             }
             scenario!!.onActivity {
                 val attributes=it.obtainStyledAttributes(intArrayOf(android.R.attr.textColorPrimary))
@@ -56,17 +69,13 @@ class NotesActivityThemeTest {
                 compose.onNodeWithText("Notes").performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
                 assertEquals(if(dark)md_theme_dark_onSurface else md_theme_light_onSurface,layouts.last().layoutInput.style.color)
             }
-            compose.onNodeWithContentDescription("New note").performClick()
-            compose.waitUntil(5000) { compose.onAllNodesWithTag("notes-editor").fetchSemanticsNodes().isNotEmpty() }
-            compose.onNodeWithTag("notes-editor").performTextReplacement("Theme switch\nPreserved text")
+            compose.onNodeWithTag("notes-editor").assertTextContains("Theme switch\nPreserved text")
             compose.onNodeWithTag("notes-editor").performSemanticsAction(SemanticsActions.SetSelection) { it(0,5,false) }
             androidx.test.espresso.Espresso.closeSoftKeyboard()
             android.os.SystemClock.sleep(350)
             val bitmap=requireNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
             java.io.File(context.cacheDir,"notes-theme-native-$dark.png").outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) }
             bitmap.recycle()
-            androidx.test.espresso.Espresso.closeSoftKeyboard()
-            androidx.test.espresso.Espresso.pressBack()
         }
     }
 }

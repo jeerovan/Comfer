@@ -2,10 +2,12 @@ package com.jeerovan.comfer
 
 import android.app.Application
 import android.database.ContentObserver
+import android.database.sqlite.SQLiteException
 import android.os.CancellationSignal
 import android.os.Handler
 import android.os.Looper
 import android.provider.ContactsContract
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,8 +24,11 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-class ContactsViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = ContactsRepository(application)
+class ContactsViewModel internal constructor(
+    application: Application,
+    private val repository: ContactSource,
+) : AndroidViewModel(application) {
+    constructor(application: Application) : this(application, ContactsRepository(application))
     private val _contacts = MutableStateFlow<List<Contact>>(emptyList())
     val contacts = _contacts.asStateFlow()
     private var refreshJob: Job? = null
@@ -44,6 +49,11 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
                 throw e
             } catch (_: SecurityException) {
                 _contacts.value = emptyList()
+            } catch (e: SQLiteException) {
+                // The external contacts provider can be locked or unavailable.
+                // Publish only complete successful loads, keep the last good list,
+                // and leave the repository dirty so the next refresh can recover.
+                Log.w("ContactsViewModel", "Contacts provider unavailable", e)
             }
         }
     }
@@ -54,10 +64,17 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
     }
 }
 
-private class ContactsRepository(private val application: Application) {
+internal interface ContactSource {
+    val isDirty: Boolean
+    fun updatePermission(hasPermission: Boolean)
+    suspend fun loadContacts(): List<Contact>
+    fun close()
+}
+
+private class ContactsRepository(private val application: Application) : ContactSource {
     private val loadMutex = Mutex()
     private var observerRegistered = false
-    @Volatile var isDirty = true
+    @Volatile override var isDirty = true
         private set
 
     private val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
@@ -67,7 +84,7 @@ private class ContactsRepository(private val application: Application) {
     }
 
     @Synchronized
-    fun updatePermission(hasPermission: Boolean) {
+    override fun updatePermission(hasPermission: Boolean) {
         if (hasPermission && !observerRegistered) {
             try {
                 application.contentResolver.registerContentObserver(
@@ -85,7 +102,7 @@ private class ContactsRepository(private val application: Application) {
         }
     }
 
-    suspend fun loadContacts(): List<Contact> = loadMutex.withLock {
+    override suspend fun loadContacts(): List<Contact> = loadMutex.withLock {
         withContext(Dispatchers.IO) {
             val traceCookie = PerformanceTrace.contactQueryStarted()
             PerformanceTrace.beginAsync("contactsQuery", traceCookie)
@@ -173,7 +190,7 @@ private class ContactsRepository(private val application: Application) {
     }
 
     @Synchronized
-    fun close() {
+    override fun close() {
         if (observerRegistered) {
             application.contentResolver.unregisterContentObserver(observer)
             observerRegistered = false

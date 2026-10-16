@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
@@ -39,6 +40,21 @@ class NotesEditorTest {
         File(context.cacheDir,"notes-editor-$name.png").outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)};bitmap.recycle()
     }
     private fun format()=compose.onNodeWithContentDescription("Text formatting").performScrollTo().performClick()
+    private fun returnToCollection() {
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        repeat(3) {
+            androidx.test.espresso.Espresso.pressBack()
+            try {
+                compose.waitUntil(3000) {
+                    compose.onAllNodesWithTag("note-editor").fetchSemanticsNodes(atLeastOneRootRequired=false).isNotEmpty()
+                }
+                return
+            } catch (_: androidx.compose.ui.test.ComposeTimeoutException) {
+                // Samsung can consume Back for selection controls before closing the editor.
+            }
+        }
+        compose.onNodeWithTag("note-editor").assertIsDisplayed()
+    }
     @Test fun toolbarScrollHasNoBackButtonOrOptionsMenu() {
         launch()
         compose.onNodeWithContentDescription("Notes options").assertDoesNotExist()
@@ -52,7 +68,7 @@ class NotesEditorTest {
     }
     @Test fun selectedFormattingSurvivesSaveReopenAndUndo() {
         launch();select(6,11);format()
-        listOf("Bold","Italic","Underline","Strikethrough","Text color blue").forEach{compose.onNodeWithContentDescription(it).performClick()}
+        listOf("Bold","Italic","Underline","Strikethrough",context.getString(com.jeerovan.comfer.R.string.module_text_color_1_s,context.getString(com.jeerovan.comfer.R.string.module_blue))).forEach{compose.onNodeWithContentDescription(it).performClick()}
         compose.onNodeWithText("Heading",substring=false).performClick()
         capture("formatting")
         androidx.test.espresso.Espresso.pressBack()
@@ -60,8 +76,11 @@ class NotesEditorTest {
         val content=saved()
         val layouts=mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
         compose.onNodeWithTag("notes-editor").performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
+        var dark=false
+        activity!!.onActivity { dark=(it.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK)==android.content.res.Configuration.UI_MODE_NIGHT_YES }
+        val blue=noteTextColor("blue",if(dark)Color.Black else Color.White)
         assertTrue("Bold must render immediately, not only persist",layouts.last().layoutInput.text.spanStyles.any{it.start==6&&it.end==11&&it.item.fontWeight==androidx.compose.ui.text.font.FontWeight.Bold})
-        assertTrue("Text color must render immediately",layouts.last().layoutInput.text.spanStyles.any{it.start==6&&it.end==11&&it.item.color==noteTextColor("blue")})
+        assertTrue("Text color must render immediately in the active palette",layouts.last().layoutInput.text.spanStyles.any{it.start==6&&it.end==11&&it.item.color==blue})
         capture("formatted-text")
         assertTrue(content.marks.any{it.kind=="bold"&&it.start==6&&it.end==11})
         assertTrue(content.marks.any{it.kind=="paragraph"&&it.value=="heading"&&it.end==16})
@@ -69,9 +88,7 @@ class NotesEditorTest {
         compose.waitUntil(10000){saved().marks.none{it.kind=="paragraph"}}
         compose.onNodeWithContentDescription("Redo edit").performClick()
         compose.waitUntil(10000){saved().marks==content.marks}
-        androidx.test.espresso.Espresso.closeSoftKeyboard()
-        androidx.test.espresso.Espresso.pressBack()
-        compose.waitUntil(10000){compose.onAllNodesWithTag("note-editor").fetchSemanticsNodes().isNotEmpty()}
+        returnToCollection()
         compose.onNodeWithTag("note-editor").performClick()
         compose.waitUntil(10000){compose.onAllNodesWithTag("notes-editor").fetchSemanticsNodes().isNotEmpty()}
         assertEquals(content,saved())
@@ -136,9 +153,9 @@ class NotesEditorTest {
             compose.onNodeWithTag("notes-editor-after-image-1").performSemanticsAction(SemanticsActions.SetSelection){it(0,5,false)}
             format();compose.onNodeWithContentDescription("Italic").performClick();androidx.test.espresso.Espresso.pressBack()
             compose.waitUntil(10000){saved().marks.any{it.kind=="italic"&&it.start==saved().images.single().offset}}
-            androidx.test.espresso.Espresso.closeSoftKeyboard()
-            androidx.test.espresso.Espresso.pressBack()
+            returnToCollection()
             compose.onNodeWithTag("note-editor").performClick()
+            compose.waitUntil(10000){compose.onAllNodesWithTag("notes-editor-after-image-1").fetchSemanticsNodes().isNotEmpty()}
             compose.onNodeWithTag("notes-editor-after-image-1").performScrollTo().assertTextContains("Below the image")
             val rich=saved();assertNotNull(NotesImages.decode(rich.images.single()))
             androidx.test.espresso.Espresso.closeSoftKeyboard()

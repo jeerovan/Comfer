@@ -5726,7 +5726,6 @@ fun TextClock(
     backgroundColor: Color = Color.Black,
     glassBackground: Color? = null
 ) {
-    val context = LocalContext.current
     val baseColor = if (customColor) settings.timeFontColor.copy(alpha=settings.timeFontAlpha/100f) else foregroundColor
     val color = widgetGlassColor(settings, baseColor, glassBackground)
     val shadowColor = if(customColor) {
@@ -5739,36 +5738,8 @@ fun TextClock(
         val pattern = if (settings.timeFormat == "H12") "hh:mm" else "HH:mm"
         SimpleDateFormat(pattern, Locale.getDefault())
     }
-    var time by remember(timeFormat) { mutableStateOf(timeFormat.format(System.currentTimeMillis())) }
-    DisposableEffect(timeFormat, context) {
-        // Set the initial time immediately
-        time = timeFormat.format(System.currentTimeMillis())
-
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                time = timeFormat.format(System.currentTimeMillis())
-            }
-        }
-
-        val filter = IntentFilter().apply {
-            addAction(Intent.ACTION_TIME_TICK)        // System fires this exactly on the minute mark
-            addAction(Intent.ACTION_TIME_CHANGED)     // Triggers if user manually adjusts device time
-            addAction(Intent.ACTION_TIMEZONE_CHANGED) // Triggers if timezone changes (e.g., traveling)
-        }
-
-        val job = CoroutineScope(Dispatchers.IO).launch {
-            context.registerReceiver(receiver, filter)
-        }
-
-        onDispose {
-            job.cancel() // Cancel the registration coroutine if it hasn’t finished
-            try {
-                context.unregisterReceiver(receiver) // Always unregister on dispose
-            } catch (e: IllegalArgumentException) {
-                // Receiver might not be registered if the coroutine was cancelled early
-            }
-        }
-    }
+    val currentTime by rememberClockTime()
+    val time = remember(timeFormat, currentTime) { timeFormat.format(currentTime) }
     Box(
         modifier = Modifier
             .padding(4.dp),
@@ -5796,38 +5767,7 @@ fun AnalogClock(
     minuteHandColor: Color,
     hourHandColor: Color
 ) {
-    val context = LocalContext.current
-    var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
-
-    DisposableEffect(context) {
-        // Set the initial time immediately
-        currentTime = System.currentTimeMillis()
-
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                currentTime = System.currentTimeMillis()
-            }
-        }
-
-        val filter = IntentFilter().apply {
-            addAction(Intent.ACTION_TIME_TICK)
-            addAction(Intent.ACTION_TIME_CHANGED)
-            addAction(Intent.ACTION_TIMEZONE_CHANGED)
-        }
-
-        val job = CoroutineScope(Dispatchers.IO).launch {
-            context.registerReceiver(receiver, filter)
-        }
-
-        onDispose {
-            job.cancel() // Cancel the registration coroutine if it hasn’t finished
-            try {
-                context.unregisterReceiver(receiver) // Always unregister on dispose
-            } catch (e: IllegalArgumentException) {
-                // Receiver might not be registered if the coroutine was cancelled early
-            }
-        }
-    }
+    val currentTime by rememberClockTime()
 
     val calendar = remember { Calendar.getInstance() }
     calendar.timeInMillis = currentTime

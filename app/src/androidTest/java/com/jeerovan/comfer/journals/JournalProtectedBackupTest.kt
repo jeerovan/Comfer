@@ -6,6 +6,7 @@ import androidx.room.withTransaction
 import androidx.test.platform.app.InstrumentationRegistry
 import com.jeerovan.comfer.BackupRestoreManager
 import com.jeerovan.comfer.StartupCoordinator
+import com.jeerovan.comfer.ProtectionSession
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -20,6 +21,7 @@ class JournalProtectedBackupTest {
     private lateinit var db: JournalDatabase
     private lateinit var original: JournalLocalSnapshot
     private lateinit var originalCipher: JournalCipher
+    private val sessionOwner = Any()
     @Before fun setup() = runBlocking {
         check(context.packageName.endsWith(".notificationtest")); StartupCoordinator.awaitReady()
         db = JournalDatabase.get(context)
@@ -31,12 +33,19 @@ class JournalProtectedBackupTest {
             db.rawDao().state(JournalState(storageVersion = 1))
         }
         JournalProtection.restoreState(context, false); JournalProtection.lock()
+        // Backup operations run from an open module; time-away expiry must not
+        // expire this foreground fixture during slow password derivation.
+        ProtectionSession.enter(sessionOwner)
     }
     @After fun cleanup() = runBlocking {
         if (!::originalCipher.isInitialized) return@runBlocking
-        db.cipher = originalCipher
-        JournalArchiveMedia.replaceLocal(context, original)
-        JournalProtection.lock()
+        try {
+            db.cipher = originalCipher
+            JournalArchiveMedia.replaceLocal(context, original)
+        } finally {
+            ProtectionSession.leave(sessionOwner)
+            JournalProtection.lock()
+        }
     }
     private fun jpeg(): ByteArray {
         val bitmap = Bitmap.createBitmap(8, 8, Bitmap.Config.ARGB_8888)

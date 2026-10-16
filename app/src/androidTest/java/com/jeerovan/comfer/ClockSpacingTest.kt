@@ -273,7 +273,10 @@ class ClockSpacingTest(private val direction: LayoutDirection) {
     private fun capture(tag: String = "clock"): Bitmap {
         compose.waitForIdle()
         SystemClock.sleep(250)
-        val bounds = compose.onNodeWithTag(tag).fetchSemanticsNode().boundsInWindow
+        val node = compose.onNodeWithTag(tag).fetchSemanticsNode()
+        // UiAutomation captures the screen. Samsung's landscape window can be
+        // inset from its origin; cropping with window coordinates clips the glyph.
+        val bounds = node.boundsInWindow.translate(node.positionOnScreen - node.positionInWindow)
         val screen = requireNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
         return Bitmap.createBitmap(screen, bounds.left.toInt(), bounds.top.toInt(), bounds.width.toInt(), bounds.height.toInt())
             .also { if (it !== screen) screen.recycle() }

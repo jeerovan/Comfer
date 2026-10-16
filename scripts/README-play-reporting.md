@@ -6,15 +6,19 @@ The current triage/fix ledger is maintained in
 
 ## Google Play import
 
-Latest Firebase snapshot: [version 54](../docs/release-54-issues.md), with a
-[complete inventory](../docs/release-54-issues-inventory.md) and
-[recurrence/fix review](../docs/release-54-recurrence.md). Previous fix attempts
-and outcomes remain in the [version-53 review](../docs/release-53-recurrence.md).
+Latest Firebase snapshot: [version 56](../docs/release-56-issues.md), with the
+complete inventory and recurrence evidence in
+`validation-artifacts/firebase-v56-20261015/`. Historical fix attempts and
+outcomes and new prepared attempts **56-R01–56-R05** are recorded in the
+[version-56 review](../docs/release-56-review-2026-10-15.md); earlier evidence remains
+in the [version-55 review](../docs/release-55-review-2026-10-02.md),
+[version-54 review](../docs/release-54-recurrence.md) and
+[version-53 review](../docs/release-53-recurrence.md).
 For a repeatable read-only comparison after a future import:
 
 ```sh
-venv/bin/python scripts/analyze_crashlytics_recurrence.py --version 54 \
-  --output validation-artifacts/firebase-v54-20260929/recurrence.json
+venv/bin/python scripts/analyze_crashlytics_recurrence.py --version 56 \
+  --output validation-artifacts/firebase-v56-20261015/recurrence.json
 ```
 
 Substitute the actual version. This compares exact IDs within the Firebase app,
@@ -24,7 +28,7 @@ different release windows as comparable rates or overwrites existing triage.
 From the repository root, using the existing virtual environment:
 
 ```sh
-venv/bin/python scripts/sync_play_issues.py --version-code 54 --version-name 54.0
+venv/bin/python scripts/sync_play_issues.py --version-code 56 --version-name 56.0
 ```
 
 The script's legacy default version is `46`; explicitly pass the current version
@@ -38,14 +42,14 @@ Reporting API enabled. Credentials are used only for Google API authentication.
 To preview a fetch without writing the database:
 
 ```sh
-venv/bin/python scripts/sync_play_issues.py --version-code 54 --version-name 54.0 --dry-run
+venv/bin/python scripts/sync_play_issues.py --version-code 56 --version-name 56.0 --dry-run
 ```
 
 To select a release and an explicit interval:
 
 ```sh
-venv/bin/python scripts/sync_play_issues.py --version-code 54 --version-name 54.0 \
-  --start 2026-09-26T00:00:00Z --end 2026-09-29T13:00:00Z
+venv/bin/python scripts/sync_play_issues.py --version-code 56 --version-name 56.0 \
+  --start 2026-10-01T00:00:00Z --end 2026-10-15T13:00:00Z
 ```
 
 Dates without a timezone are interpreted as UTC. Start is inclusive, end is
@@ -87,15 +91,15 @@ excluded by the root `.gitignore`.
 
 ## Firebase Crashlytics import
 
-The Firebase MCP server is the data source. Save its complete, version-filtered
-result in the JSON envelope accepted by the importer, then validate and store it
-transactionally:
+Use Firebase MCP for version discovery and reports. Save a complete,
+version-filtered result in the JSON envelope accepted by the importer, then
+validate and store it transactionally:
 
 ```sh
 venv/bin/python scripts/import_firebase_crashlytics.py \
-  --input crashlytics-export-v54-20260929.json --dry-run
+  --input crashlytics-export-v56-20261015.json --dry-run
 venv/bin/python scripts/import_firebase_crashlytics.py \
-  --input crashlytics-export-v54-20260929.json
+  --input crashlytics-export-v56-20261015.json
 ```
 
 The importer rejects incomplete exports, duplicate issue/sample IDs, mismatched
@@ -107,26 +111,39 @@ deleting history, and writes snapshots in one transaction.
 Crashlytics and Play counts must stay separate: their issue grouping, sampling,
 reporting windows, and user-count semantics differ.
 
-### Latest Crashlytics verification: 29 September 2026
+### Latest Crashlytics verification: 15 October 2026
 
-Import **7** stores `54.0 (54)` for **1 September 00:00:00–29 September
-13:34:10 UTC**: **127 groups / 368 events**, comprising 10 fatal groups / 25
-crashes and 117 ANR groups / 343 ANRs. The independent top-versions total
-reconciles exactly. The top-issues report returned 127 rows for page size 1,000
-with no continuation token; a separate non-fatal query returned no groups.
+Import **10** stores `56.0 (56)` for **15 September 13:44:30–15 October
+13:44:30 UTC**: **965 groups / 4,793 events**, comprising 30 fatal groups / 193
+crashes and 935 ANR groups / 4,600 ANRs. Independent error-type top-version totals
+reconcile exactly; non-fatal queries returned no version-56 events.
+
+The complete top-issues report spans **10 pages**. The installed MCP interface
+does not expose continuation requests and the service capped pages at 100 groups
+despite a requested size of 1,000. Use the existing authenticated Firebase CLI API
+client with `page_token` for continuation. Inspect every returned token; a first
+page is not a complete export. Fetch scripts and raw pages are retained with
+this refresh's evidence.
+
 All earlier Firebase and Play rows, snapshots and triage fields are preserved.
+The subsequent v56 review appends decisions to all 965 current rows and leaves
+their status `investigating`, including locally prepared fixes. Keep the stable
+attempt ID, actual next release/artifact identity, validation and limitations in
+notes so a later import can compare attempts without erasing history. Local
+validation does not justify `resolved` or changing Firebase's remote state.
 
 Obtain the exact version display name from Firebase before filtering. Default
 `sampleEvent` references are not reliably version-filtered: 16 samples in this
-refresh belonged to older releases. Replace mismatches with
+refresh were unsuitable for the requested release/window. Replace mismatches with
 `crashlytics_list_events` using the same interval, version display name and issue
 ID. Validate every selected event's app, package, version, issue, error type and
 timestamp. API errors are failed requests, never evidence of an empty result.
 
-The [version-54 ledger](../docs/release-54-issues.md) records sample/build limits
-and follow-up work. One selected event has no stack and some traces omit frames;
-selected samples also include emulator candidate telemetry. Do not infer a
-production regression or a root cause from a retained issue title alone.
+The [version-56 ledger](../docs/release-56-issues.md) records sample/build limits.
+One selected event has no supplied stack frames; full raw event payloads are
+retained rather than relying on the MCP's shortened displayed traces. A version
+code can include candidate/manual builds too. Do not infer a production regression
+or a root cause from a retained issue title alone.
 
 ### Evidence retention and cleanup
 
@@ -135,12 +152,13 @@ verification results, recurrence output, historical issue ledgers and meaningful
 fix/test evidence. The ignored `crashlytics_*` tables retain raw selected events,
 issue payloads, snapshots and local triage. After verifying these and comparing
 historical rows, redundant fetch intermediates and superseded exports/backups
-can be removed. Retain one verified SQLite recovery backup. Record exact removed
-paths and bytes in the refresh's `cleanup-manifest.json`.
+can be removed. Retain one verified SQLite recovery backup. Preserve unique older
+row variants in a verified archive before removing superseded backups. Record
+exact removed paths and bytes in the refresh's `cleanup-manifest.json`.
 
 Older per-run totals belong in the historical ledgers/database, rather than
 being repeated as current instructions here. The current refresh evidence is in
-`validation-artifacts/firebase-v54-20260929/`. Google Play was not queried during
+`validation-artifacts/firebase-v56-20261015/`. Google Play was not queried during
 this Firebase-only refresh.
 
 Reporting regressions (six importer and four recurrence tests):

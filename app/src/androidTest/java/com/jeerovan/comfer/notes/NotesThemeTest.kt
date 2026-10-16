@@ -214,7 +214,8 @@ class NotesThemeTest {
             compose.runOnIdle { locked.value=false }
         }
         compose.onNodeWithContentDescription("New note").performClick()
-        rendered(compose.onNodeWithText("Title"),scheme.onSurfaceVariant)
+        compose.waitUntil(10000) { compose.onAllNodesWithTag("notes-editor").fetchSemanticsNodes().isNotEmpty() }
+        rendered(compose.onNodeWithText("Title",useUnmergedTree=true),scheme.onSurfaceVariant)
     }
 
     @Test fun namedTextColorsStayReadableAndRecomposeWithoutRewritingMarks() {

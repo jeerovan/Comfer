@@ -27,6 +27,9 @@ class JournalRestoreCheckpointTest {
         val output = atomic.startWrite()
         output.write(Json.encodeToString(record).toByteArray()); atomic.finishWrite(output)
         expected.entries.mapNotNull { it.image }.forEach { JournalMedia(context).file(it).setLastModified(System.currentTimeMillis() - 2L * 24 * 60 * 60 * 1000) }
+        // A real replacement starts in an authenticated session. Only the later
+        // cold recovery must replay the ciphertext checkpoint while locked.
+        JournalProtection.authorize()
         JournalArchiveMedia.replaceLocal(context, JournalLocalSnapshot(listOf(JournalEntry(text = "Partial replacement")), emptyList()))
         assertEquals("Partial replacement", JournalDatabase.get(context).dao().exportEntries().single().text)
     }
@@ -36,9 +39,11 @@ class JournalRestoreCheckpointTest {
         check(file.isFile) { "Run checkpoint seed and force-stop first" }
         val expected = Json.decodeFromString<JournalLocalSnapshot>(file.readText())
         assertEquals(expected, JournalArchiveMedia.localSnapshot(context))
+        assertFalse("Cold recovery must finish while the session is locked", JournalProtection.authorized())
+        assertFalse(File(context.filesDir, "backup_restore_journal.json").exists())
+        JournalProtection.authorize()
         JournalMedia(context).collect(JournalDatabase.get(context))
         expected.entries.mapNotNull { it.image }.forEach { assertTrue(JournalMedia(context).file(it).isFile) }
-        assertFalse(File(context.filesDir, "backup_restore_journal.json").exists())
         file.delete(); Unit
     }
 }

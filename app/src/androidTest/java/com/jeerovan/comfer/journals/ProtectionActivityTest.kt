@@ -7,6 +7,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import com.jeerovan.comfer.ProtectionSession
 import com.jeerovan.comfer.StartupCoordinator
+import com.jeerovan.comfer.cancelDeviceCredentialPrompt
 import com.jeerovan.comfer.notes.*
 import kotlinx.coroutines.runBlocking
 import org.junit.*
@@ -37,12 +38,19 @@ class ProtectionActivityTest {
         JournalDatabase.get(context).dao().changeProtection(true)
         JournalDatabase.get(context).dao().insert(JournalEntry(text = "Protected journal fixture"))
     }
-    @After fun cleanup() = runBlocking {
-        notes?.close(); journal?.close()
-        JournalDatabase.get(context).cipher = cipherBefore
-        JournalArchiveMedia.replaceLocal(context, journalsBefore)
-        NotesBackup.restoreLocal(context, notesBefore)
-        ProtectionSession.lock()
+    @After fun cleanup(): Unit = runBlocking {
+        try {
+            notes?.close(); journal?.close()
+        } finally {
+            try {
+                if (::cipherBefore.isInitialized) JournalDatabase.get(context).cipher = cipherBefore
+                if (::journalsBefore.isInitialized) JournalArchiveMedia.replaceLocal(context, journalsBefore)
+            } finally {
+                try {
+                    if (::notesBefore.isInitialized) NotesBackup.restoreLocal(context, notesBefore)
+                } finally { ProtectionSession.lock() }
+            }
+        }
     }
     private fun assertNotesVisible() {
         try {
@@ -100,33 +108,18 @@ class ProtectionActivityTest {
             compose.waitUntil(40_000) { android.os.SystemClock.elapsedRealtime() - left >= 31_000 }
             assertFalse(ProtectionSession.authorized())
             journal = ActivityScenario.launch(JournalActivity::class.java)
-            cancelPrompt("Unlock Journal") { journal!!.state == Lifecycle.State.DESTROYED }
+            cancelDeviceCredentialPrompt(compose) { journal!!.state == Lifecycle.State.DESTROYED }
+            journal = null // The cancellation already destroyed this scenario.
         } finally { com.jeerovan.comfer.PreferenceManager.setString(context, key, previous) }
     }
     @Test fun expiredSharedVerificationPromptsAgainInBothModules() {
         ProtectionSession.lock() // Exact elapsed-time boundaries are covered by ProtectionWindowTest.
         notes = ActivityScenario.launch(NotesActivity::class.java)
-        cancelPrompt("Unlock Notes") { notes!!.state == Lifecycle.State.DESTROYED }
+        cancelDeviceCredentialPrompt(compose) { notes!!.state == Lifecycle.State.DESTROYED }
+        notes = null
         journal = ActivityScenario.launch(JournalActivity::class.java)
-        cancelPrompt("Unlock Journal") { journal!!.state == Lifecycle.State.DESTROYED }
+        cancelDeviceCredentialPrompt(compose) { journal!!.state == Lifecycle.State.DESTROYED }
+        journal = null
         assertFalse(ProtectionSession.authorized())
-    }
-    private fun cancelPrompt(title: String, finished: () -> Boolean) {
-        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
-        compose.waitUntil(10000) { automation.rootInActiveWindow?.findAccessibilityNodeInfosByText(title)?.isNotEmpty() == true }
-        android.os.ParcelFileDescriptor.AutoCloseInputStream(automation.executeShellCommand("input keyevent 4")).use { it.readBytes() }
-        var lastBack = android.os.SystemClock.elapsedRealtime()
-        var retries = 0
-        compose.waitUntil(10000) {
-            if (finished()) true else {
-                // Android may consume the first Back to dismiss the PIN keyboard.
-                val now = android.os.SystemClock.elapsedRealtime()
-                if (retries < 2 && now - lastBack >= 1000 && automation.rootInActiveWindow?.findAccessibilityNodeInfosByText(title)?.isNotEmpty() == true) {
-                    android.os.ParcelFileDescriptor.AutoCloseInputStream(automation.executeShellCommand("input keyevent 4")).use { it.readBytes() }
-                    lastBack = now; retries++
-                }
-                false
-            }
-        }
     }
 }

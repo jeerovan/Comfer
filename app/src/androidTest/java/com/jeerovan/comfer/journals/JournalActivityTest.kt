@@ -4,6 +4,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
+import com.jeerovan.comfer.cancelDeviceCredentialPrompt
 import kotlinx.coroutines.runBlocking
 import org.junit.*
 import org.junit.Assert.*
@@ -28,8 +29,8 @@ class JournalActivityTest {
         compose.waitUntil(10000) { compose.onAllNodes(hasTestTag("journal-composer") and isEnabled()).fetchSemanticsNodes().isNotEmpty() }
     }
     @After fun cleanup() {
-        scenario?.close()
-        runBlocking { JournalArchiveMedia.replaceLocal(context, previous) }
+        try { scenario?.close() }
+        finally { runBlocking { JournalArchiveMedia.replaceLocal(context, previous) } }
     }
     @Test fun reopeningShowsNewPromptAndLatestEntryAtBottom() {
         val dao = JournalDatabase.get(context).dao()
@@ -127,11 +128,9 @@ class JournalActivityTest {
         JournalProtection.restoreState(context, false)
     }
     private fun awaitCredentialPromptAndCancel() {
-        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
-        compose.waitUntil(10000) {
-            automation.rootInActiveWindow?.findAccessibilityNodeInfosByText("Unlock Journal")?.isNotEmpty() == true
+        cancelDeviceCredentialPrompt(compose) {
+            scenario!!.state == androidx.lifecycle.Lifecycle.State.DESTROYED
         }
-        android.os.ParcelFileDescriptor.AutoCloseInputStream(automation.executeShellCommand("input keyevent 4")).use { it.readBytes() }
-        compose.waitUntil(10000) { scenario!!.state == androidx.lifecycle.Lifecycle.State.DESTROYED }
+        scenario = null
     }
 }

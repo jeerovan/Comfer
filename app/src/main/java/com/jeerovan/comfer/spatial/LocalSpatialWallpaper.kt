@@ -1,7 +1,9 @@
 package com.jeerovan.comfer.spatial
 
 import android.content.SharedPreferences
+import android.content.Context
 import android.graphics.Paint
+import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -24,22 +26,67 @@ import androidx.compose.ui.unit.dp
 import com.jeerovan.comfer.AnimatedBackground
 import com.jeerovan.comfer.R
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flowOn
 import java.io.File
 
 internal data class LocalWallpaperChoice(val path: String?, val spatial: Boolean)
 internal data class LocalSpatialHint(val pending: Boolean, val failed: Boolean, val progress: Float?, val retry: () -> Unit)
 
+/** Preference acquisition can wait for disk loading, including on first composition. */
+internal fun localWallpaperChoices(context: Context) = callbackFlow {
+    val refresh = Channel<Unit>(Channel.CONFLATED)
+    val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == null || key == LOCAL_SPATIAL) refresh.trySend(Unit)
+    }
+    var preferences: SharedPreferences? = null
+    var registered = false
+    try {
+        val prefs = spatialPreferences(context)
+        preferences = prefs
+        ensureActive()
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        registered = true
+        ensureActive()
+        refresh.trySend(Unit)
+        for (ignored in refresh) {
+            val spatial = try { prefs.getBoolean(LOCAL_SPATIAL, false) }
+            catch (cancelled: CancellationException) { throw cancelled }
+            catch (error: RuntimeException) {
+                // Stay still until a later preference change can be read successfully.
+                Log.w("LocalWallpaperChoice", "Spatial preference unavailable", error)
+                false
+            }
+            ensureActive()
+            send(LocalWallpaperChoice(null, spatial))
+        }
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (error: RuntimeException) {
+        trySend(LocalWallpaperChoice(null, false))
+        Log.w("LocalWallpaperChoice", "Spatial preferences unavailable", error)
+    } finally {
+        refresh.close()
+        channel.close()
+        if (registered) {
+            try { preferences?.unregisterOnSharedPreferenceChangeListener(listener) }
+            catch (error: RuntimeException) {
+                Log.w("LocalWallpaperChoice", "Preference listener cleanup failed", error)
+            }
+        }
+    }
+}.conflate().flowOn(Dispatchers.IO)
+
 @Composable
 internal fun rememberLocalWallpaperChoice(): LocalWallpaperChoice {
     val context = LocalContext.current.applicationContext
-    val prefs = remember(context) { spatialPreferences(context) }
-    fun read() = LocalWallpaperChoice(null, prefs.getBoolean(LOCAL_SPATIAL, false))
-    var choice by remember(prefs) { mutableStateOf(read()) }
-    DisposableEffect(prefs) {
-        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> choice = read() }
-        prefs.registerOnSharedPreferenceChangeListener(listener)
-        choice = read()
-        onDispose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    var choice by remember(context) { mutableStateOf(LocalWallpaperChoice(null, false)) }
+    LaunchedEffect(context) {
+        localWallpaperChoices(context).collect { choice = it }
     }
     return choice
 }

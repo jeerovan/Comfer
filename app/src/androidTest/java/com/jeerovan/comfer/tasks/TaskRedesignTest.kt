@@ -14,7 +14,16 @@ class TaskRedesignTest {
     private fun show(tasks: List<TaskItem> = emptyList()) {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         runBlocking { check(context.packageName.endsWith(".notificationtest")); StartupCoordinator.awaitReady(); TaskStore.exclusive(context) { TaskStore.write(context, TaskSnapshot(lists = listOf(TaskList("tasks", "Tasks"), TaskList("work", "Work", 1)), tasks = tasks, preferences = TaskPreferences(guidanceDismissed = true))) } }
-        compose.setContent { MaterialTheme { TasksScreen({}) } }
+        compose.setContent {
+            val activity = requireNotNull(androidx.activity.compose.LocalActivity.current)
+            androidx.compose.runtime.DisposableEffect(activity) {
+                // Match TasksActivity's manifest; the generic test host otherwise pans
+                // the entire window above the keyboard, hiding the cards under test.
+                activity.window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+                onDispose { }
+            }
+            MaterialTheme { TasksScreen({}) }
+        }
         compose.waitUntil(10000) { compose.onAllNodesWithTag("tasks-list-picker").fetchSemanticsNodes().isNotEmpty() }
     }
     @Test fun emptyCompletedCardIsAbsentAcrossTaskStarredAndSearchViews() {
@@ -51,6 +60,7 @@ class TaskRedesignTest {
         compose.onNodeWithContentDescription("Close search").assertIsDisplayed()
         compose.onNodeWithTag("tasks-search-input").performTextInput("Else")
         compose.onNodeWithContentDescription("Close search").assertIsDisplayed()
+        compose.onNodeWithTag("tasks-list").performScrollToNode(hasTestTag("tasks-incomplete-card"))
         compose.onNodeWithTag("tasks-incomplete-list").performScrollToNode(hasText("Elsewhere"))
         compose.onNodeWithText("Elsewhere").assertIsDisplayed()
         compose.onNodeWithContentDescription("Close search").performClick()
@@ -116,7 +126,7 @@ class TaskRedesignTest {
     @Test fun swipeDeleteCanBeUndoneAndParentCompletionNeedsConsent() {
         show(listOf(TaskItem(id = "solo", listId = "tasks", title = "Solo"), TaskItem(id = "parent", listId = "tasks", title = "Parent"), TaskItem(id = "child", listId = "tasks", parentId = "parent", title = "Child")))
         compose.onNodeWithTag("tasks-incomplete-list").performScrollToNode(hasText("Solo"))
-        compose.onNodeWithText("Solo").performTouchInput { swipe(center, center + androidx.compose.ui.geometry.Offset(340f, 0f), 300) }
+        compose.onNodeWithTag("task-solo").performTouchInput { swipeRight(durationMillis = 300) }
         compose.waitUntil(10000) { TaskStore.state.value.tasks.none { it.id == "solo" } }
         compose.onNodeWithText("Undo").performClick()
         compose.waitUntil(10000) { TaskStore.state.value.tasks.any { it.id == "solo" } }
@@ -148,10 +158,14 @@ class TaskRedesignTest {
         compose.waitUntil(10000) { TaskStore.state.value.tasks.size == 1 }
         compose.onNodeWithText("Undo").assertDoesNotExist()
         compose.onNodeWithTag("tasks-incomplete-list").performScrollToNode(hasText("No saved banner"))
-        compose.onNodeWithText("No saved banner").performTouchInput { swipe(center, center + androidx.compose.ui.geometry.Offset(340f, 0f), 300) }
+        compose.onNodeWithTag("task-${TaskStore.state.value.tasks.single().id}")
+            .performTouchInput { swipeRight(durationMillis = 300) }
         compose.waitUntil(10000) { TaskStore.state.value.tasks.isEmpty() }
         compose.onNodeWithText("Deleted").assertIsDisplayed()
         compose.onNodeWithText("Undo").assertIsDisplayed()
+        // The banner's delay uses the Compose clock; slow device frame delivery
+        // must not turn a seven-second host wait into less than five UI seconds.
+        compose.mainClock.advanceTimeBy(5000)
         compose.waitUntil(7000) { compose.onAllNodesWithText("Deleted").fetchSemanticsNodes().isEmpty() }
         compose.onNodeWithText("Undo").assertDoesNotExist()
     }
@@ -169,10 +183,11 @@ class TaskRedesignTest {
         compose.onNodeWithContentDescription("Schedule").performClick()
         compose.onNodeWithText("Time").performClick()
         androidx.test.espresso.Espresso.onView(androidx.test.espresso.matcher.ViewMatchers.withText(android.R.string.ok)).perform(androidx.test.espresso.action.ViewActions.click())
+        compose.waitUntil(10000) { compose.onAllNodesWithText(timeLabel(540)).fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithContentDescription("Done").performClick()
         compose.onNodeWithTag("task-save").performClick()
         compose.waitUntil(10000) { TaskStore.state.value.tasks.size == 1 }
-        assertNotNull(TaskStore.state.value.tasks.single().day)
+        assertNotNull(TaskStore.state.value.tasks.single().toString(), TaskStore.state.value.tasks.single().day)
         assertEquals(540, TaskStore.state.value.tasks.single().minute)
     }
 
@@ -259,7 +274,10 @@ class TaskRedesignTest {
         compose.onNodeWithText("Notification settings").performScrollTo().performClick()
         val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
         fun activity(): String = android.os.ParcelFileDescriptor.AutoCloseInputStream(automation.executeShellCommand("dumpsys activity activities")).bufferedReader().use { it.readText() }
-        compose.waitUntil(10000) { activity().lineSequence().any { it.contains("mResumedActivity") && it.contains("com.android.settings") && it.contains("AppNotificationSettings") } }
+        compose.waitUntil(10000) { activity().lineSequence().any {
+            (it.contains("mResumedActivity") || it.contains("topResumedActivity")) &&
+                it.contains("com.android.settings") && it.contains("AppNotificationSettings")
+        } }
         android.os.ParcelFileDescriptor.AutoCloseInputStream(automation.executeShellCommand("input keyevent KEYCODE_BACK")).use { it.readBytes() }
         assertTrue(TaskStore.state.value.tasks.isEmpty())
     }

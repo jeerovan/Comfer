@@ -132,10 +132,12 @@ class WidgetResetTest(private val direction: LayoutDirection) {
                     positionKeys.getValue(orientation).none { it in values }
             } }
             PreferenceManager.reload(context)
+            assertTrue("Reset must preserve the persisted Glass preference",
+                PreferenceManager.getBoolean(context, "widget_glass_effect", false))
             val restored = newModel()
             withTimeout(10000) { restored.uiState.first { s ->
                 s.timeFontSize == 100 && s.dateFontSize == 30 && s.timeHeightScale == 1f &&
-                    (if (other == WidgetLayoutOrientation.LANDSCAPE) s.landscapeWidgetPositions else s.widgetPositions).values.all { it != null }
+                    (if (other == WidgetLayoutOrientation.LANDSCAPE) s.landscapeWidgetPositions else s.widgetPositions).keys.containsAll(ids)
             } }
             for (id in ids) {
                 assertFalse("Current orientation cleared", restored.hasWidgetPosition(id, orientation))

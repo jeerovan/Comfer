@@ -58,7 +58,8 @@ class WorkspaceHomeRoutingTest {
         open()
         compose.onNodeWithContentDescription("Notes").performClick()
         resumed("NotesActivity")
-        compose.waitUntil(10000) { compose.onAllNodesWithTag("notes-search").fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty() }
+        compose.waitUntil(10000) { compose.onAllNodesWithTag("notes-search-row").fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty() }
+        compose.onNodeWithTag("notes-search-row").assertIsDisplayed()
         Espresso.closeSoftKeyboard()
         shell("input keyevent 4")
         home()

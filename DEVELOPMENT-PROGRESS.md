@@ -1,9 +1,44 @@
 # Development progress
 
-Current feature and release status, updated 2026-09-29. Maintain this document as
+Current feature and release status, updated 2026-10-15. Maintain this document as
 a concise reference: what is available, restrictions, attempted alternatives and
 remaining work. Keep implementation discussions and detailed test output out of
 this file.
+
+## Current version 56 reporting (15 October 2026)
+
+Comfer 56.0 (56) is the current version. The [Firebase ledger](docs/release-56-issues.md)
+records import 10: **965 groups / 4,793 events** for 15 September 13:44:30 through
+15 October 13:44:30 UTC. All 10 issue pages and 965 release-matching samples are
+verified; 16 unsuitable default samples were replaced. Thirty fatal groups account
+for 193 crashes and 935 ANR groups for 4,600 ANRs. Earlier Firebase/Play history and
+triage are unchanged. This telemetry refresh does not establish production fixes.
+
+The [v56 recurrence review](docs/release-56-review-2026-10-15.md) compares prior
+attempts and prepares **56-R01–56-R05** for the next release: an exact missing
+accessibility API guard, contacts-provider recovery, package-keyed management-list
+deduplication, off-main wallpaper preference loading, and ordered off-main clock
+receiver cleanup. These relate to nine groups / 76 events; prevention of those
+events is not proven. All 965 current rows have appended decisions/evidence;
+historical triage and provider data are preserved. Validation: 259 app unit and
+17 build-logic tests, plus 54 distinct Samsung/API-30 checks across documented
+phases, pass. One optional live-cloud test was skipped. No version bump, signed
+candidate, production resolution or remote issue-state change is included.
+
+Full pre-commit validation (15 October): **259 app unit, 17 build-logic and 38
+script tests passed**; all 34 translations passed resource validation. Across
+Samsung/API-24/API-37 runs, **573 of 574 functional device cases passed**. The
+user chose to retain 50% Notes card transparency and report the older opaque-card
+drag assertion as a known stale failure. Samsung's English/Arabic,
+LTR/RTL and portrait/landscape matrix finished with **128/128** final results
+passing after test-fixture repairs; the visible language picker was additionally
+exercised in all four configurations. All six isolated minified emulator
+benchmarks passed. Lint has zero errors (393 release / 390 isolated warnings).
+Production code was unchanged during validation, devices were restored and
+production data preserved. No commit, push or release candidate was made. The
+[full validation record](docs/release-56-review-2026-10-15.md#full-pre-commit-validation--15-october-2026)
+includes retries, remaining release gates and the picker's missing system-default
+row; system-default reset was checked through its shared handler.
 
 ## Version 55 preparation (29 September 2026)
 
@@ -12,8 +47,8 @@ haptic improvements, Notes onboarding, glass disabled by default, and the two
 wallpaper ANR mitigations from the v54 review. Release lint blockers in clock
 locale observation and widget-height translations are corrected. Signed artifacts,
 checksums, validation and remaining release gates are recorded in
-[version 55 readiness](docs/release-55-readiness.md). Version 54 remains the
-observed production release; no Play upload or rollout has been performed.
+[version 55 readiness](docs/release-55-readiness.md). At that time version 54 was
+the observed production release; that preparation did not upload or roll out a release.
 
 ## Module localization (20 September 2026)
 
@@ -387,6 +422,15 @@ Release requirements:
 5. Require meaningful affected-device exposure before marking fixes production verified.
 
 ## Production reporting and issue ledger
+
+15 October: the [current version-56 Firebase ledger](docs/release-56-issues.md)
+stores **965 groups / 4,793 events**, independently reconciled by error type.
+All selected events are checked against version 56; full raw event payloads are
+retained. One sample has no supplied stack frames. There are 183 exact-ID matches
+to earlier releases and 782 newly observed IDs; this is not a comparison of rates
+or proof of the same root causes. Ten reporting regressions and database integrity
+checks pass. Superseded backups and fetch intermediates are consolidated with one
+verified recovery backup and a lossless archive of unique historical row variants.
 
 29 September follow-up: [version-54 recurrence review](docs/release-54-recurrence.md)
 compares all 127 groups with historical attempts. **54-03** gates sensor acquisition

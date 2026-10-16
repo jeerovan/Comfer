@@ -529,9 +529,12 @@ fun FolderAppListRow(
     iconShape: Shape,
     onItemSelect: (String, String) -> Unit,
 ) {
+    // Management actions and reorder keys identify packages, unlike search's
+    // component/profile entries. Capture one matching snapshot for this list.
+    val listedApps = apps.distinctBy { it.packageName }
     val hapticFeedback = LocalHapticFeedback.current
     val listState = rememberLazyListState()
-    RevealAddedApps(folderName, apps, listState)
+    RevealAddedApps(folderName, listedApps, listState)
     val reorderableLazyListState = rememberReorderableLazyListState(listState) { from, to ->
         viewModel.moveAppsInFolder(folderName, from.key as String, to.key as String)
         hapticFeedback.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
@@ -550,7 +553,7 @@ fun FolderAppListRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(
-            items = apps,
+            items = listedApps,
             key = { it.packageName }
         ) { app ->
             ReorderableItem(
@@ -611,7 +614,8 @@ fun AppListColumn(
     onAddFolderClick: () -> Unit,
     folders: Int
 ) {
-    RevealAddedApps(listName, apps, listState)
+    val listedApps = apps.distinctBy { it.packageName }
+    RevealAddedApps(listName, listedApps, listState)
     val hapticFeedback = LocalHapticFeedback.current
     val reorderableLazyListState = rememberReorderableLazyListState(listState) { from, to ->
         viewModel.moveAppInList(listName, from.key as String, to.key as String)
@@ -641,7 +645,7 @@ fun AppListColumn(
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
             items(
-                items = apps,
+                items = listedApps,
                 key = { it.packageName }
             ) { app ->
                 if (canReOrder) {

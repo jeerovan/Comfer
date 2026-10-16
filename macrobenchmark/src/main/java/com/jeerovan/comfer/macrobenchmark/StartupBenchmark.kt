@@ -81,6 +81,9 @@ class LauncherInteractionBenchmark {
             },
             measureBlock = {
                 val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
+                val workspace = device.findObject(UiSelector().description("Workspace"))
+                check(workspace.waitForExists(UI_WAIT_TIMEOUT_MS)) { "Workspace action is not visible" }
+                workspace.bounds.let { device.click(it.centerX(), it.centerY()) }
                 val search = device.findObject(UiSelector().description("Search"))
                 check(search.waitForExists(UI_WAIT_TIMEOUT_MS)) { "Search action is not visible" }
                 search.bounds.let { device.click(it.centerX(), it.centerY()) }
@@ -176,8 +179,8 @@ class LauncherInteractionBenchmark {
                 device.waitForIdle()
 
                 swipeQuickListRight(device)
-                val search = device.findObject(UiSelector().description("Search"))
-                check(search.waitForExists(UI_WAIT_TIMEOUT_MS)) {
+                val workspace = device.findObject(UiSelector().description("Workspace"))
+                check(workspace.waitForExists(UI_WAIT_TIMEOUT_MS)) {
                     "Launcher QuickListOverlay did not return"
                 }
                 device.waitForIdle()

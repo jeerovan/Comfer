@@ -45,50 +45,54 @@ class JournalGuideUiTest {
         compose.waitForIdle()
         compose.runOnIdle { visible.value = true }
         compose.waitForIdle()
+        // Reopening starts a fresh Room flow; Compose idleness does not await its result.
+        compose.waitUntil(10000) {
+            compose.onAllNodesWithText("Guide entry").fetchSemanticsNodes().isNotEmpty()
+        }
     }
 
     @Test fun guidesPersistAndAdvanceOnlyThroughRealActionsInOrder() {
-        compose.onNodeWithTag("journal-guide-edit").assertDoesNotExist()
+        compose.onNodeWithTag("journal-guide-edit", useUnmergedTree = true).assertDoesNotExist()
         compose.onNodeWithTag("journal-composer").performTextInput("Guide entry")
         compose.onNodeWithTag("journal-submit").performClick()
         compose.waitUntil(10000) { runBlocking { model.store.dao.exportEntries().size == 1 } }
-        compose.onNodeWithTag("journal-guide-edit").assertIsDisplayed()
+        compose.onNodeWithTag("journal-guide-edit", useUnmergedTree = true).assertIsDisplayed()
         compose.mainClock.advanceTimeBy(10000)
-        compose.onNodeWithTag("journal-guide-edit").assertIsDisplayed()
+        compose.onNodeWithTag("journal-guide-edit", useUnmergedTree = true).assertIsDisplayed()
         reopen()
         // Touch the actual decorative overlay: it must not intercept the entry tap.
-        compose.onNodeWithTag("journal-guide-edit").performTouchInput { click() }
+        compose.onNodeWithTag("journal-guide-edit", useUnmergedTree = true).performTouchInput { click() }
         compose.waitUntil(10000) { model.editing.value != null }
         compose.onNodeWithContentDescription("Cancel").performClick()
-        compose.onNodeWithTag("journal-guide-delete").assertIsDisplayed()
+        compose.onNodeWithTag("journal-guide-delete", useUnmergedTree = true).assertIsDisplayed()
         val smallDrag = 32f * context.resources.displayMetrics.density
         compose.onNodeWithText("Guide entry").performTouchInput {
             down(center)
             moveBy(androidx.compose.ui.geometry.Offset(-smallDrag, 0f), 300)
         }
-        compose.onNodeWithTag("journal-guide-delete").assertDoesNotExist()
+        compose.onNodeWithTag("journal-guide-delete", useUnmergedTree = true).assertDoesNotExist()
         assertNull(runBlocking { model.store.dao.exportEntries().single().deletedAt })
         compose.onNodeWithText("Guide entry").performTouchInput { up() }
         assertNull(runBlocking { model.store.dao.exportEntries().single().deletedAt })
         compose.mainClock.advanceTimeBy(10000)
         reopen()
-        compose.onNodeWithTag("journal-guide-delete").assertDoesNotExist()
-        compose.onNodeWithTag("journal-guide-date").assertIsDisplayed()
+        compose.onNodeWithTag("journal-guide-delete", useUnmergedTree = true).assertDoesNotExist()
+        compose.onNodeWithTag("journal-guide-date", useUnmergedTree = true).assertIsDisplayed()
         compose.onNodeWithText("Guide entry").performTouchInput { swipeLeft() }
         compose.waitUntil(10000) { runBlocking { model.store.dao.exportEntries().single().deletedAt != null } }
-        compose.onNodeWithTag("journal-guide-date").assertIsDisplayed()
-        compose.onNodeWithTag("journal-guide-delete").assertDoesNotExist()
+        compose.onNodeWithTag("journal-guide-date", useUnmergedTree = true).assertIsDisplayed()
+        compose.onNodeWithTag("journal-guide-delete", useUnmergedTree = true).assertDoesNotExist()
         compose.onNodeWithText("Undo").performClick()
-        compose.onNodeWithTag("journal-guide-date").assertIsDisplayed()
+        compose.onNodeWithTag("journal-guide-date", useUnmergedTree = true).assertIsDisplayed()
         compose.mainClock.advanceTimeBy(10000)
         reopen()
-        compose.onNodeWithTag("journal-guide-date").assertIsDisplayed()
+        compose.onNodeWithTag("journal-guide-date", useUnmergedTree = true).assertIsDisplayed()
         compose.onNodeWithTag("journal-date-row").performTouchInput { swipeRight() }
-        compose.onNodeWithTag("journal-guide-date").assertDoesNotExist()
+        compose.onNodeWithTag("journal-guide-date", useUnmergedTree = true).assertDoesNotExist()
         reopen()
-        compose.onNodeWithTag("journal-guide-edit").assertDoesNotExist()
-        compose.onNodeWithTag("journal-guide-delete").assertDoesNotExist()
-        compose.onNodeWithTag("journal-guide-date").assertDoesNotExist()
+        compose.onNodeWithTag("journal-guide-edit", useUnmergedTree = true).assertDoesNotExist()
+        compose.onNodeWithTag("journal-guide-delete", useUnmergedTree = true).assertDoesNotExist()
+        compose.onNodeWithTag("journal-guide-date", useUnmergedTree = true).assertDoesNotExist()
         assertNull(JournalGuideProgress(context).current)
     }
 

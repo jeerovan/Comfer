@@ -149,8 +149,15 @@ class JournalUiTest {
         compose.onNodeWithText("A synthetic journal").performClick()
         compose.waitUntil(10000) { model.editDraft.value != null }
         compose.onNodeWithTag("journal-edit").performTextReplacement("Changed")
+        compose.waitUntil(10000) { model.editDraft.value?.text == "Changed" }
         compose.onNodeWithContentDescription("Cancel").performClick()
-        compose.waitUntil(10000) { model.editing.value == null }
+        try {
+            compose.waitUntil(10000) { model.editing.value == null }
+        } catch (failure: Throwable) {
+            println("Cancel state: editing=${model.editing.value}, draft=${model.editDraft.value}, error=${model.error.value}")
+            println(compose.onRoot().printToString())
+            throw failure
+        }
         compose.onNodeWithText("A synthetic journal").assertExists()
         compose.onNodeWithText("Delete").assertDoesNotExist()
         compose.onNodeWithText("A synthetic journal").performTouchInput { swipeLeft() }

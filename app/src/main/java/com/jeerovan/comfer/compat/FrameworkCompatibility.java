@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.view.WindowInsets;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.accessibility.AccessibilityManager;
 import androidx.annotation.Keep;
 
 /** Exact linkage fallbacks for incomplete API-34 frameworks (release attempt 53-02).
@@ -40,6 +41,17 @@ public final class FrameworkCompatibility {
         } catch (NoSuchMethodError missing) {
             // Some runtimes report API 34 but omit the node API as well as the event API.
             // Preserve text, password flags, actions and bounds, as on pre-34 AndroidX.
+        }
+    }
+
+    @SuppressLint("NewApi")
+    public static boolean isRequestFromAccessibilityTool(AccessibilityManager manager) {
+        try {
+            return manager.isRequestFromAccessibilityTool();
+        } catch (NoSuchMethodError missing) {
+            // Match AndroidX's pre-34 behavior. Do not cache: working frameworks
+            // can return a different value for each accessibility request.
+            return true;
         }
     }
 }

@@ -64,7 +64,7 @@ class ManageFolderSelectionTest {
                 oldOrder?.let { AppInfoManager.saveAppPackageNames(application, LIST, it) }
             }
             PreferenceManager.setAlphabeticalOrder(application, oldSort)
-            changeLanguage(oldLocale)
+            changeLanguage(oldLocale, throughPicker = false)
         }
     }
 
@@ -98,6 +98,7 @@ class ManageFolderSelectionTest {
                 }
                 compose.waitUntil(60_000) {
                     model.uiState.value.primaryApps.any { it.packageName == target } &&
+                        model.uiState.value.folders.keys.containsAll(setOf(target, retained)) &&
                         PerformanceTrace.appRefreshStats().active == 0
                 }
                 val folder = compose.onNodeWithTag("manage-app:$LIST:$target")
@@ -113,6 +114,8 @@ class ManageFolderSelectionTest {
                     .fetchSemanticsNode().config[SemanticsActions.OnClick].action!!
                 val deselect = folder.fetchSemanticsNode().config[SemanticsActions.OnClick].action!!
                 compose.runOnIdle {
+                    assertTrue("Fixture folder must be loaded before replaying stale actions",
+                        model.uiState.value.folders.containsKey(target))
                     deselect() // Remove selection while old button callbacks still exist.
                     moveIn()
                     moveOut()
@@ -149,10 +152,34 @@ class ManageFolderSelectionTest {
         return bounds
     }
 
-    private fun changeLanguage(tag: String) {
-        application.startActivity(Intent(application, LanguageUpdateActivity::class.java)
-            .putExtra(LanguageUpdateActivity.EXTRA_LOCALE_TAG, tag)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    private fun changeLanguage(tag: String, throughPicker: Boolean = true) {
+        // The visible picker offers language tags (en/ar), rather than regional tags.
+        val selectedTag = if (throughPicker && tag.isNotEmpty()) java.util.Locale.forLanguageTag(tag).language else tag
+        if (throughPicker && selectedTag.isNotEmpty()) {
+            ActivityScenario.launch(SettingsActivity::class.java).use { scenario ->
+                var label = ""
+                scenario.onActivity { label = it.getString(R.string.title_app_language) }
+                compose.waitUntil(10000) { compose.onAllNodesWithTag("settings-list").fetchSemanticsNodes().isNotEmpty() }
+                compose.onNodeWithTag("settings-list").performScrollToNode(hasText(label))
+                compose.onNodeWithText(label).performClick()
+                val locale = java.util.Locale.forLanguageTag(selectedTag)
+                val option = locale.getDisplayName(locale)
+                compose.onNode(hasScrollToIndexAction() and hasAnyAncestor(isDialog()))
+                    .performScrollToNode(hasText(option))
+                compose.onNodeWithText(option).performClick()
+                compose.waitUntil(10000) {
+                    var ready = false
+                    scenario.onActivity { ready = it.resources.configuration.locales[0].language == selectedTag && it.hasWindowFocus() }
+                    ready
+                }
+            }
+        } else {
+            // The current picker has no "system default" row. Exercise its shared
+            // update handler for reset, and preserve the exact original tag in cleanup.
+            application.startActivity(Intent(application, LanguageUpdateActivity::class.java)
+                .putExtra(LanguageUpdateActivity.EXTRA_LOCALE_TAG, selectedTag)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
         val deadline = SystemClock.uptimeMillis() + 10_000
         do {
             var current = ""
@@ -162,10 +189,10 @@ class ManageFolderSelectionTest {
                         .applicationLocales.toLanguageTags()
                 } else AppCompatDelegate.getApplicationLocales().toLanguageTags()
             }
-            if (current == tag) return
+            if (current == selectedTag) return
             SystemClock.sleep(50)
         } while (SystemClock.uptimeMillis() < deadline)
-        fail("Language did not switch to '$tag'")
+        fail("Language did not switch to '$selectedTag'")
     }
 
     private companion object { const val LIST = AppInfoManager.PRIMARY_APPS_LIST_NAME }
