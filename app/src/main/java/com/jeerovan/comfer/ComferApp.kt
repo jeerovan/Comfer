@@ -32,8 +32,8 @@ class ComferApp : Application(), ImageLoaderFactory, Configuration.Provider {
             return Configuration.Builder().build()
         }
 
-    // App-wide background scope for one-time startup work (prefs migration + the
-    // DataStore->snapshot load). Running this on the main thread was the #1
+    // App-wide scope for startup and requested wallpaper work. Wallpaper opt-ins
+    // must survive closing their Activity. Running startup on Main was the #1
     // cold-start ANR source: the first-ever Room build + full migration could
     // exceed the input-dispatch timeout.
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -124,6 +124,19 @@ class ComferApp : Application(), ImageLoaderFactory, Configuration.Provider {
                 Log.e("ComferApp", "Periodic wallpaper scheduling failed", error)
             }
         }
+
+    internal fun applyCurrentWallpaperToLockScreen(): Job = appScope.launch {
+        try {
+            StartupCoordinator.awaitReady()
+            WallpaperWorkCoordinator.runExclusive {
+                com.jeerovan.comfer.utils.CommonUtil.setLockScreenWallpaper(applicationContext)
+            }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            Log.w("ComferApp", "Could not copy the current wallpaper to the lock screen", error)
+        }
+    }
 
     private fun workManagerRuntimeAvailable(): Boolean {
         val hasNamespaceMethod = Build.VERSION.SDK_INT <

@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.jeerovan.comfer.utils.CommonUtil.getShapeFromString
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -1438,20 +1439,19 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
         }
     }
-    fun setWallpaperOnLockScreen(enabled: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
+    fun setWallpaperOnLockScreen(enabled: Boolean): Job =
+        viewModelScope.launch(Dispatchers.IO, start = CoroutineStart.UNDISPATCHED) {
+            StartupCoordinator.awaitReady()
             val context: Context = getApplication()
             PreferenceManager.setWallpaperOnLockScreen(context, enabled)
+            // Queue outside the ViewModel before publishing the switch state:
+            // navigating back immediately must not cancel the requested copy.
+            val copy = if (enabled) getApplication<ComferApp>().applyCurrentWallpaperToLockScreen() else null
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(wallpaperOnLockScreen = enabled) }
             }
-            if(enabled){
-                context.dataStore.edit { preferences ->
-                    preferences[PreferenceKeys.WALLPAPER_RESET] = System.currentTimeMillis()
-                }
-            }
+            copy?.join()
         }
-    }
 
     fun setMonochrome(enabled: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {

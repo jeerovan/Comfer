@@ -17,10 +17,7 @@
         <activity-alias android:name="com.jeerovan.comfer.NotificationTestInbox"
             android:targetActivity="com.jeerovan.comfer.notifications.NotificationInboxActivity"
             android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            <!-- Device tests open activities explicitly; keep this app out of launchers. -->
         </activity-alias>
     </application>
 </manifest>

@@ -581,6 +581,30 @@ object CommonUtil {
         }
     }
 
+    // Call under WallpaperWorkCoordinator to keep the current source alive while
+    // decoding. Opting in must also work when Home already has this image.
+    internal suspend fun setLockScreenWallpaper(context: Context): Boolean = withContext(Dispatchers.IO) {
+        if (!PreferenceManager.getWallpaperOnLockScreen(context)) return@withContext false
+        val filePath = PreferenceManager.getBackgroundImagePath(context) ?: return@withContext false
+        val (targetWidth, targetHeight) = getWallpaperTargetSize(context)
+        val bitmap = decodeWallpaperBitmap(File(filePath), targetWidth, targetHeight)
+            ?: return@withContext false
+        try {
+            // The setting may have been turned off while waiting or decoding.
+            if (!PreferenceManager.getWallpaperOnLockScreen(context)) return@withContext false
+            WallpaperManager.getInstance(context).setBitmap(bitmap, null, true, WallpaperManager.FLAG_LOCK)
+            true
+        } catch (error: IOException) {
+            Log.e("CommonUtil", "Could not apply lock wallpaper", error)
+            false
+        } catch (error: RuntimeException) {
+            Log.e("CommonUtil", "Wallpaper service rejected lock bitmap", error)
+            false
+        } finally {
+            bitmap.recycle()
+        }
+    }
+
     internal suspend fun downloadFileWithinLimit(
         context: Context,
         imageUrl: String,

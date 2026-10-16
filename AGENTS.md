@@ -42,6 +42,9 @@
 - Use the isolated `notificationTest` application for device tests; preserve
   production app data. Inspect actual instrumentation results: a successful
   Gradle build does not prove tests ran or passed.
+- Keep test builds out of user-facing launchers: the `notificationTest` manifest
+  must not expose HOME or LAUNCHER intent filters. Before manual handoff, verify
+  that no "Comfer Notification Test" entry is launchable; retain test app data.
 - Report the devices, tests run, outcomes, and any untested cases or blockers
   before declaring the change complete. Include locales/layout directions when
   those checks were performed.
