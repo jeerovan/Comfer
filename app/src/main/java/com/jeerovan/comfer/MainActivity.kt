@@ -2125,7 +2125,7 @@ internal fun calculateLauncherPaneSizes(
 }
 
 @Composable
-private fun LauncherTwoPaneLayout(
+internal fun LauncherTwoPaneLayout(
     isLandscape: Boolean,
     portraitSecondPaneHeight: Dp,
     modifier: Modifier = Modifier,
@@ -5997,7 +5997,7 @@ fun DraggableQuickWidgetsContainer(
     onHeightScaleChanged: (String, Float) -> Unit = { _, _ -> },
 ) {
     val hapticService = LocalHapticFeedback.current
-    // Track measured sizes for initial column layout calculation
+    // Default centers use measured widget frames within this pane.
     val measuredSizes = remember { mutableStateMapOf<String, IntSize>() }
 
     // Calculate initial positions when all sizes are measured
@@ -6025,30 +6025,39 @@ fun DraggableQuickWidgetsContainer(
         val density = LocalDensity.current
         val containerWidthPx = with(density) { maxWidth.toPx() }
         val containerHeightPx = with(density) { maxHeight.toPx() }
+        val edgeMarginPx = with(density) { 16.dp.toPx() }
 
-        // Function to calculate centered column positions
-        // This is now inside the scope so it has access to containerWidthPx/HeightPx directly
         fun calculateInitialPositions() {
             if (containerWidthPx > 0 && containerHeightPx > 0) {
                 if (widgetIds.any { measuredSizes[it] == null }) return
-                val totalHeight = measuredSizes.filterKeys { it in widgetIds }.values.sumOf { it.height }
+                val columnIds = widgetIds.filterNot { it == "weather" || it == "battery" }
+                val totalHeight = columnIds.sumOf { measuredSizes.getValue(it).height }
                 var currentY = (containerHeightPx - totalHeight) / 2f
 
                 widgetIds.forEach { id ->
-                    if (widgetPositions[id] == null && initialPositions[id] == null) {
-                        val size = measuredSizes[id] ?: IntSize.Zero
-                        val centerX = containerWidthPx / 2f
-                        val centerY = currentY + size.height / 2f
-
-                        initialPositions[id] = Offset(centerX, centerY)
+                    val size = measuredSizes.getValue(id)
+                    val isCornerWidget = id == "weather" || id == "battery"
+                    if (widgetPositions[id] == null) {
+                        if (isCornerWidget) {
+                            // Physical left/right also apply in RTL. Remeasure these
+                            // defaults so changing the content keeps the edge margins.
+                            val availableX = (containerWidthPx - size.width).coerceAtLeast(0f)
+                            val availableY = (containerHeightPx - size.height).coerceAtLeast(0f)
+                            val insetX = edgeMarginPx.coerceAtMost(availableX / 2f)
+                            val insetY = edgeMarginPx.coerceAtMost(availableY / 2f)
+                            val left = if (id == "battery") availableX - insetX else insetX
+                            initialPositions[id] = Offset(left + size.width / 2f, insetY + size.height / 2f)
+                        } else if (initialPositions[id] == null) {
+                            initialPositions[id] = Offset(containerWidthPx / 2f, currentY + size.height / 2f)
+                        }
                     }
-                    currentY += (measuredSizes[id] ?: IntSize.Zero).height
+                    if (!isCornerWidget) currentY += size.height
                 }
             }
         }
 
         // Trigger calculation when relevant sizes or constraints change
-        LaunchedEffect(widgetPositions.size, containerWidthPx, containerHeightPx, measuredSizes.size) {
+        LaunchedEffect(widgetIds, widgetPositions, containerWidthPx, containerHeightPx, measuredSizes.size) {
             calculateInitialPositions()
         }
 
