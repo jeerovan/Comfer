@@ -214,11 +214,20 @@ class CloudWallpaperPreloadTest {
         assertEquals(ImageWorkOutcome.SUCCESS, CommonUtil.refreshWallpaper(context))
         assertNull(preload.imageFor(wallpaperSchedule(context, System.currentTimeMillis())))
         PreferenceManager.setWallpaperDirectory(context, null)
-        PreferenceManager.setBatterySaver(context, true)
-        assertEquals(ImageWorkOutcome.SUCCESS, CommonUtil.refreshWallpaper(context))
-        assertNull(preload.sourceFor(image))
-        // Battery Saver exposes a generated black background, not a selected cloud photo.
-        assertNull(PreferenceManager.getString(context, PreferenceManager.PREF_BACKGROUND_IMAGE, null))
+        // Settings generates these before rendering Battery Saver's monochrome
+        // background. Direct preference writes bypass that setup in this fixture.
+        val generated = listOf("comfer_black.jpg" to Color.BLACK, "comfer_white.jpg" to Color.WHITE)
+            .map { (name, color) -> File(context.filesDir, name) to color }
+            .filterNot { (file, _) -> file.exists() }
+        try {
+            generated.forEach { (file, color) -> writeImage(file, color) }
+            PreferenceManager.setBatterySaver(context, true)
+            assertEquals(ImageWorkOutcome.SUCCESS, CommonUtil.refreshWallpaper(context))
+            assertNull(preload.sourceFor(image))
+            assertNull(PreferenceManager.getString(context, PreferenceManager.PREF_BACKGROUND_IMAGE, null))
+        } finally {
+            generated.forEach { (file, _) -> file.delete() }
+        }
     }
 
     @Test fun publishedWallpaperPreloadsBeforeOptIn() = fixture { preload ->

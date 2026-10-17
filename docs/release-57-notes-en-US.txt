@@ -1,8 +1,8 @@
-Smoother app drawer scrolling and more reliable fling direction.
-Fixed repeated click sounds on the Workspace button.
+Smoother drawer scrolling and more reliable flings.
+Fixed duplicate Workspace and Pro Settings click sounds.
 Independent wallpaper motion and 3D effects.
-Automatic wallpapers start disabled on fresh installs.
-Daily wallpaper changes follow local sunrise and sunset.
-Refined Settings sections and updated translations.
-Reliability improvements for contacts, widgets, and wallpaper loading.
-Wallpapers and 3D assets preload on first launch, ready when Auto wallpapers is enabled.
+Auto wallpapers default off; photos and 3D assets preload for quick setup.
+Daily changes follow sunrise/sunset. Enabling Lock screen applies the current wallpaper.
+Improved default weather and battery positions.
+Refined Settings and translations.
+Improved reliability and wallpaper downloads on older Android.

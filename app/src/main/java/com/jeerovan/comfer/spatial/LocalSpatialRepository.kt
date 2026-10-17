@@ -10,6 +10,8 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import coil.size.Scale
 import coil.size.Precision
+import com.jeerovan.comfer.R
+import com.jeerovan.comfer.utils.SSLHelper
 import com.jeerovan.comfer.utils.copyStreamWithLimit
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -256,7 +258,7 @@ internal object LocalSpatialRepository {
 
     /** Static assets only: neither cloud path downloads or invokes an ML model. */
     private suspend fun generateCloud(context: Context, source: File, url: String, output: File) {
-        val mesh = DepthMesh.parse(downloadAsset(url, 1024L * 1024).toString(Charsets.UTF_8))
+        val mesh = DepthMesh.parse(downloadAsset(context, url, 1024L * 1024).toString(Charsets.UTF_8))
         val bitmap = decodeLocalWallpaper(context, source)
         try { writeBitmap(bitmap, File(output, "background.png")) }
         finally { bitmap.recycle() }
@@ -265,7 +267,7 @@ internal object LocalSpatialRepository {
     }
 
     internal suspend fun generateCloudScene(context: Context, url: String, output: File,
-        fetch: suspend (String, Long) -> ByteArray = ::downloadAsset) {
+        fetch: suspend (String, Long) -> ByteArray = { assetUrl, limit -> downloadAsset(context, assetUrl, limit) }) {
         requireHttpsAsset(url)
         val manifest = SpatialSceneManifest.parse(fetch(url, 64L * 1024).toString(Charsets.UTF_8))
         val names = spatialLayerNames(manifest.layers.size)
@@ -296,9 +298,12 @@ internal object LocalSpatialRepository {
         File(output, "ready").writeText(names.size.toString())
     }
 
-    private suspend fun downloadAsset(url: String, limit: Long): ByteArray {
+    private suspend fun downloadAsset(context: Context, url: String, limit: Long): ByteArray {
         requireHttpsAsset(url)
-        val connection = java.net.URL(url).openConnection().apply {
+        val connection = (java.net.URL(url).openConnection() as javax.net.ssl.HttpsURLConnection).apply {
+            // Match photo downloads: older Android trust stores lack current CAs.
+            // Keep the platform's hostname verification and certificate validation.
+            sslSocketFactory = SSLHelper.createSslSocketFactory(context, R.raw.cacert).first
             connectTimeout = 15_000
             readTimeout = 20_000
         }
