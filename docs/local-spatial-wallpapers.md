@@ -1,21 +1,17 @@
 # Spatial wallpapers
 
-Settings → Wallpapers → Own wallpapers uses the existing folder picker and rotation.
-Only while Own wallpapers is enabled, a “3D Effect” switch appears. It defaults off.
-Its subtitle explains the first model download, reports downloading/failure, and
-reads “Spatial effect on wallpaper” once the checksum-verified model is available.
-Opting in starts the download without leaving Settings. Every selected local image
-uses its cached depth or is prepared automatically, without a preview or extra picker.
-Home shows a small 3D icon in a circular progress indicator until ready; failures
-leave the original image usable and expose a retry action.
+Auto wallpapers and 3D Effect both default off. With Auto wallpapers enabled,
+3D Effect supports both local photos and cloud wallpapers. Wallpaper motion
+controls cubic motion independently; enabling it does not enable spatial processing.
+Only local 3D preparation downloads ML models and runs inference on the device.
+Cloud wallpapers use published image layers and depth meshes without local ML.
 
-Cloud wallpapers follow Wallpaper motion automatically and never invoke ML.
-Home observes cloud metadata updates even when the selected image file is unchanged.
-For a wallpaper saved before spatial assets were published, enabling motion checks
-the wallpaper detail API for its spatial URLs without rotating or downloading the
-original image again. Missing metadata or a failed lookup keeps ordinary motion;
-toggling motion off and on retries the lookup. A late response cannot replace a
-newer wallpaper selection. Disabling motion restores the original image.
+Cloud metadata updates are observed even when the selected image file is unchanged.
+For a saved cloud wallpaper without spatial URLs, enabling 3D Effect checks the
+wallpaper detail API without rotating or downloading the original image again.
+Toggling 3D Effect off and on retries a failed lookup. A late response cannot replace
+a newer wallpaper selection. Missing metadata or failed preparation preserves the
+original image; cubic motion continues if Wallpaper motion remains enabled.
 Cloud asset generation and serving live in the `comferweb` backend; see
 [backend ownership and setup](cloud-spatial-assets.md).
 The wallpaper API may supply an optional `depthUrl` HTTPS URL alongside `id` and
@@ -87,7 +83,15 @@ visible until all layers are ready.
 
 - Cloud: `noBackupFilesDir/cloud-spatial` retains only the current prepared cloud
   scene. Changing to another wallpaper removes the previous cloud scene, including
-  changes while motion is disabled. Cloud scenes are never added to local archives.
+  changes while 3D Effect is disabled. Cloud scenes are never added to local archives.
+- Preload: `noBackupFilesDir/wallpaper-preload` separately stores one cloud photo,
+  its day/night metadata and any published spatial assets before Auto wallpapers
+  is enabled. Background preparation skips selected wallpapers, local folders,
+  Monochrome background and Battery Saver. It prepares assets without applying
+  the photo, enabling 3D Effect or running local ML. The saved preview
+  survives restarts and stays unchanged until opt-in. At opt-in, a matching
+  day/night preview is reused; a phase mismatch fetches a suitable replacement.
+  Its prepared scene can be imported into the active cloud cache when selected.
 - Local: `noBackupFilesDir/local-spatial` keeps the active scene expanded for loading.
   Other prepared scenes are stored as `archives/<image-hash>-<pipeline-version>.zip`.
   A matching valid expanded scene or archive is reused before any ML runs. Identical
@@ -113,8 +117,9 @@ visible until all layers are ready.
 
 ## Motion and lifecycle
 
-The existing 60-second orbit and 8% travel remain. Orbit is enabled by the user's
-existing setting; spatial opt-in does not disable it. Rendering uses display frame
+Wallpaper motion controls the 60-second orbit and 8% travel. 3D Effect separately
+controls sensor-driven spatial motion for both wallpaper sources. Either effect
+can remain active when the other is disabled. Rendering uses display frame
 callbacks without an artificial 30 fps cap. A shared resumed/focused/interactive
 gate pauses orbit and progress animation; the Android animation preference is
 respected. Sensor listeners also observe lifecycle and window focus directly, so

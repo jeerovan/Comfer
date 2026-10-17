@@ -1,5 +1,9 @@
 # Comfer 57 release readiness
 
+Issue/fix history is maintained in `play_reporting.db`; this file retains the
+release artifact and acceptance summary. The [history guide](../scripts/README-play-reporting.md#issue-and-fix-history)
+explains queries and recovery. Archived source key: `docs/release-57-readiness.md`.
+
 Prepared on 16 October 2026 for **57.0 (57)**. The current signed bundle is
 `app/release/57/Comfer-57.aab`. The matching APK, R8 mapping, native symbols,
 source snapshot, validation results and checksums are beside it. The older
@@ -39,21 +43,9 @@ that require API 26 were run on Samsung in all four language/orientation cells.
 Some API 24 drawer screenshots contained stale native Settings frames; clear
 Samsung drawer screenshots and passing geometry/touch checks supplement them.
 
-The initial API 24 live 3D download failed certificate-chain validation. Spatial
-asset downloads now use the app's existing bundled CA trust store, matching photo
-downloads while preserving certificate and hostname validation. Live downloads
-passed after the fix. Scene bounds/failure checks, all ten preload tests and host
-checks passed on the updated source. Unchanged layout results were retained.
-The live Samsung preload prepared a night photo and its published 3D assets while
-Auto wallpapers remained disabled and no wallpaper was applied.
-
-The first Samsung run passed 263/265 cases. The 10,000-entry Journal test exceeded
-the runner's 240-second deadline; the same case passed in 276.64 seconds with a
-600-second deadline. The Battery Saver preload fixture wrote preferences directly
-without creating the monochrome images normally prepared by Settings. It now
-creates missing fixture images and removes only those files afterward. All ten
-preload cases passed in the final-source rerun; application behavior for this case
-is unchanged. The 20 final-source cases include these reruns.
+Detailed wallpaper TLS findings, test-fixture corrections, initial failures and
+targeted reruns are in `play_reporting.db` under this report's archived source.
+See the [history guide](../scripts/README-play-reporting.md#issue-and-fix-history).
 
 Original device languages and rotation settings were restored. Temporary mail
 and chat fixtures and the temporary notification-listener grant were removed.

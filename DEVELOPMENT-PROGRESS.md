@@ -5,40 +5,12 @@ a concise reference: what is available, restrictions, attempted alternatives and
 remaining work. Keep implementation discussions and detailed test output out of
 this file.
 
-## Current version 56 reporting (15 October 2026)
+## Reporting history
 
-Comfer 56.0 (56) is the current version. The [Firebase ledger](docs/release-56-issues.md)
-records import 10: **965 groups / 4,793 events** for 15 September 13:44:30 through
-15 October 13:44:30 UTC. All 10 issue pages and 965 release-matching samples are
-verified; 16 unsuitable default samples were replaced. Thirty fatal groups account
-for 193 crashes and 935 ANR groups for 4,600 ANRs. Earlier Firebase/Play history and
-triage are unchanged. This telemetry refresh does not establish production fixes.
-
-The [v56 recurrence review](docs/release-56-review-2026-10-15.md) compares prior
-attempts and prepares **56-R01–56-R05** for the next release: an exact missing
-accessibility API guard, contacts-provider recovery, package-keyed management-list
-deduplication, off-main wallpaper preference loading, and ordered off-main clock
-receiver cleanup. These relate to nine groups / 76 events; prevention of those
-events is not proven. All 965 current rows have appended decisions/evidence;
-historical triage and provider data are preserved. Validation: 259 app unit and
-17 build-logic tests, plus 54 distinct Samsung/API-30 checks across documented
-phases, pass. One optional live-cloud test was skipped. No version bump, signed
-candidate, production resolution or remote issue-state change is included.
-
-Full pre-commit validation (15 October): **259 app unit, 17 build-logic and 38
-script tests passed**; all 34 translations passed resource validation. Across
-Samsung/API-24/API-37 runs, **573 of 574 functional device cases passed**. The
-user chose to retain 50% Notes card transparency and report the older opaque-card
-drag assertion as a known stale failure. Samsung's English/Arabic,
-LTR/RTL and portrait/landscape matrix finished with **128/128** final results
-passing after test-fixture repairs; the visible language picker was additionally
-exercised in all four configurations. All six isolated minified emulator
-benchmarks passed. Lint has zero errors (393 release / 390 isolated warnings).
-Production code was unchanged during validation, devices were restored and
-production data preserved. No commit, push or release candidate was made. The
-[full validation record](docs/release-56-review-2026-10-15.md#full-pre-commit-validation--15-october-2026)
-includes retries, remaining release gates and the picker's missing system-default
-row; system-default reset was checked through its shared handler.
+Issue inventories, attempted fixes, recurrence analysis and detailed historical
+validation are maintained in `play_reporting.db`. Use the [reporting guide](scripts/README-play-reporting.md#issue-and-fix-history)
+to query a release, provider issue ID or attempt ID. The original version-specific
+reports and this document's earlier reporting entries are archived in the database.
 
 ## Version 55 preparation (29 September 2026)
 
@@ -397,18 +369,9 @@ and JobScheduler state under `validation-artifacts/device-checkpoint/`.
 
 ## Crash remediation and release requirements
 
-Implemented safeguards cover Honor power-save activity compatibility, missing
-WorkManager APIs, widget ownership, oversized icon allocations, unavailable
-pickers, off-main package callback registration and unsafe OEM widget providers.
-These are source fixes or mitigations, not production-verified resolutions.
-Native/system ANRs, text-layout stalls and activity-launch Binder waits remain
-monitoring items where no deterministic first-party cause has been established.
-
-The [26 September version-54 readiness record](docs/release-54-readiness.md)
-describes the validated signed candidate. Version 54 is now the current release;
-the [29 September telemetry ledger](docs/release-54-issues.md) records its observed
-issues and evidence limits. Later workspace/debug changes require their own
-release acceptance and artifact identity; earlier checks do not certify them.
+Historical issue evidence, safeguards and their reported outcomes are in
+`play_reporting.db`. Verify current implementation against source code; local
+validation and an absent issue group do not establish production resolution.
 
 Release requirements:
 
@@ -423,137 +386,12 @@ Release requirements:
 
 ## Production reporting and issue ledger
 
-15 October: the [current version-56 Firebase ledger](docs/release-56-issues.md)
-stores **965 groups / 4,793 events**, independently reconciled by error type.
-All selected events are checked against version 56; full raw event payloads are
-retained. One sample has no supplied stack frames. There are 183 exact-ID matches
-to earlier releases and 782 newly observed IDs; this is not a comparison of rates
-or proof of the same root causes. Ten reporting regressions and database integrity
-checks pass. Superseded backups and fetch intermediates are consolidated with one
-verified recovery backup and a lossless archive of unique historical row variants.
+The canonical local ledger is `play_reporting.db`. Keep provider telemetry,
+per-version triage notes, documented attempts, failed approaches, validation and
+later production outcomes there. Append follow-ups rather than replacing history.
+Use [the reporting guide](scripts/README-play-reporting.md#issue-and-fix-history)
+for queries, new records, backups and reconstruction of migrated documents.
 
-29 September follow-up: [version-54 recurrence review](docs/release-54-recurrence.md)
-compares all 127 groups with historical attempts. **54-03** gates sensor acquisition
-and moves tilt setup/cleanup to IO; **54-04** moves wallpaper receiver/observer
-setup, environment reads and ordered cleanup to IO. Two pre-fix Samsung regressions
-failed as expected; 246 unit and 32 distinct Samsung instrumentation tests pass,
-including reduced-motion/pause behavior in English/LTR and Arabic/RTL. Duplicate
-keys, guarded Honor Gallery crashes, widget-start Binder waits, missing Play-split
-provider evidence and unmapped ANRs remain open. Database review notes preserve
-historical triage and telemetry; no production resolution or rollout is claimed.
-
-29 September: [current version-54 Firebase ledger](docs/release-54-issues.md)
-records **127 groups / 368 events**: 10 fatal groups / 25 crashes and 117 ANR
-groups / 343 ANRs, for 1 September 00:00 through 29 September 13:34:10 UTC.
-Import 7 preserves all earlier Firebase and Play history. All 127 samples were
-version-checked; 16 older default samples were replaced. There are 45 recurring
-exact IDs and 82 newly observed IDs; the [complete inventory](docs/release-54-issues-inventory.md)
-retains each group's counts and evidence limits. Follow-up includes duplicate
-Compose keys, Honor Gallery widget attachment, ML Kit provider packaging and
-widget-start Binder waits. The sampled WorkManager crash is from an emulator
-during candidate validation; the retained Honor launcher title now has a selected
-ML Kit failure. Neither alone proves a final-release regression. Superseded issue
-backups and redundant fetch files were pruned after database verification; one
-fresh recovery backup and historical fix evidence remain. This refresh changes
-local reporting/triage only, with no app-code or Firebase issue-state changes.
-
-26 September: [version-53 recurrence review](docs/release-53-recurrence.md)
-analyzes all 195 Firebase groups / 605 events: 72 previously seen IDs and 123
-newly observed IDs. Five next-release fixes address background scheduler startup,
-ordered widget stops, vibration permission, deferred launcher service lookup and
-drawer sound service waits. They target nine groups / 17 events and pass local
-regressions (228 unit, 36 Samsung, 34 applicable emulator and 10 reporting tests).
-Remaining reports stay under investigation; rollout verification and seven
-pre-existing lint errors remain open. Database notes and a repeatable recurrence
-analyzer preserve the plan and outcomes for future comparisons.
-
-22 September 2026: [53-05](docs/release-53-issues.md#53-05--bounded-reminder-broadcasts-and-durable-action-recovery)
-bounds reminder broadcasts to six seconds and durably retains actions for retry.
-Final focused suites pass **36 tests on API 24, 41 on API 37 and 41 on Samsung**;
-all include actual alarm delivery. Real process-restart replay passes on Samsung
-and API 37. **200 JVM, 9 build-logic and 26 Python tests pass**; release lint has
-0 errors / 380 warnings. Signed APK/AAB rebuilt; Samsung updated with data retained.
-The [release audit](docs/release-53-readiness.md) now recommends a staged rollout;
-production ANRs remain unverified. Nothing committed, pushed or published.
-
-22 September 2026: the [v53 readiness audit](docs/release-53-readiness.md) covers
-the fixes-only baseline diff, all 50 current Firebase and 30 Play issue groups,
-full release lint, signed artifacts and Samsung regression testing. Firebase
-import 5 and Play import 9 preserve previous triage/history in `play_reporting.db`.
-See the audit's decision and validation gates for current publication readiness;
-older build hashes and acceptance limitations below are historical.
-
-Emulator follow-up: API 24 passed 31 focused regression tests; API 37 (16 KB pages)
-passed 36, with no failures/skips. Both actual reminder-delivery tests passed twice
-per emulator. The signed v53 candidate starts and shows icons on both. This does
-not clear Samsung's blocked broadcast queue or the separate unbounded receiver
-startup-wait risk; the readiness audit records those remaining limitations.
-
-22 September 2026: [53-03](docs/release-53-issues.md) corrects a local release
-regression introduced by the first 53-02 build. Missing compiled Room
-implementations prevented Samsung's launcher app lists/icons from loading.
-AGP build logic is now isolated from buildSrc's parent classpath; all four Room
-implementations compile/package again. A mandatory pre-packaging class check and
-two negative/positive guard tests prevent silent recurrence. Initial 53-02
-artifacts are rejected; use the replacement hashes in the v53 ledger.
-
-22 September 2026 follow-up: attempt [53-02](docs/release-53-issues.md) guards two
-missing API-34 framework calls behind eight version-52 crashes across five groups.
-Seven host tests and five Samsung tests pass, including the transformed AndroidX
-implementations. Normal API behavior and unrelated failures are preserved. Widget
-Binder latency remains open because off-main `startListening` would also apply
-pending view/adapter updates off Main. Production resolution is pending.
-
-22 September 2026: version **53.0 (53)** prepares the Journal recovery fix
-[53-01](docs/release-53-issues.md): registered schema migrations 1–4→5 plus
-transactional conversion of legacy plaintext and image references. Seven new
-Samsung migration tests pass, including encryption failure/retry; the 196-test
-unit suite passes on retry after one unrelated HTTP timeout. Other version-52
-platform crashes and ANRs remain investigations. Signed APK/AAB builds pass;
-Samsung is updated to 53.0 (53). All 27 focused device tests pass. Broader UI/backup
-and 10,000-entry stress checks remain outstanding; see the v53 ledger. Production
-outcome is pending.
-
-22 September 2026: Firebase MCP import **4** stored **46 version-52 groups /
-127 events** (8 crash groups / 44 events; 38 ANR groups / 83 events), for
-1 September 00:00–22 September 08:21:01 UTC. All 46 samples match version 52 and
-carry revision `7f7cdb042507893fb2a9bac3eafd5b69dd1e2c56`; eight default samples
-from version 51 were replaced before import. The [version-52 ledger](docs/release-52-issues.md)
-contains the full inventory, verification limits and priorities: missing Room
-migration 4→5 (34 events / 21 users), Android API compatibility crashes (8 events
-across five groups), and widget startListening Binder latency (3 ANRs / 2 users).
-Counts reconcile with the version report; no non-fatal groups were returned.
-Previous database records and triage history were preserved. Firebase states and
-Play data were not changed. No application-code fixes are part of this refresh.
-
-20 September 2026: user confirmed manual device testing is complete. The
-[version-52 baseline](docs/release-52-issues.md) links the seven existing fix
-attempts to source commit `97f1cbef6c5ca0c0eeb1e5630c2743a2376bd3d2` and records
-the recurrence-review procedure. Version-52 telemetry is now recorded above;
-exact shipped artifact identity remains unverified, and manual acceptance does
-not establish production resolution.
-
-Version-51 recurrence analysis and next-release candidates are recorded in the
-[version-51 ledger](docs/release-51-issues.md), including all 236 Firebase groups
-from import 3. New attempts cover Honor factory bypass, widget update threading,
-Honor weather providers, wallpaper response streaming, widget picker allocations,
-drawer key snapshots and Journal locale loading. Duplicate-key and sampled
-system/native ANRs remain investigations; local checks do not establish production
-resolution. Preserve the earlier version-50 attempts and append release outcomes.
-
-Historical version 49 shipped without notification-settings
-backup/restore; the local implementation is intended for version 50. Keep Play and Crashlytics counts separate. Prioritize Honor
-startup, WorkManager startup, widget hierarchy failures, icon memory pressure,
-document pickers and package-registration ANRs during release monitoring.
-
-The consolidated database is the ignored `play_reporting.db`; preserve it and
-all ignored SDK, Firebase, signing and reporting credentials. Reporting/import
-commands are in [the reporting guide](scripts/README-play-reporting.md).
-
-Version 50 remediation is tracked in the [issue-fix ledger](docs/release-50-issues.md).
-Record every attempt with its full issue ID, evidence, changed files/commit, test results,
-shipped artifact and later production outcome. Preserve earlier attempts so recurring
-issues can be evaluated against what was actually tried. Local tests do not establish
-production resolution. The ledger includes all 48 version-49 Crashlytics groups and
-the five current first-party mitigations; remaining investigations and release gates
-stay unchecked until verified.
+Preserve the ignored database, its verified recovery backups and reporting
+credentials. Release docs retain concise artifact/acceptance summaries and point
+to this ledger for issue details.

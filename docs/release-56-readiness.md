@@ -1,5 +1,9 @@
 # Version 56 manual release handoff
 
+Issue/fix history is maintained in `play_reporting.db`; this file retains the
+release artifact and acceptance summary. The [history guide](../scripts/README-play-reporting.md#issue-and-fix-history)
+explains queries and recovery. Archived source key: `docs/release-56-readiness.md`.
+
 Prepared **2 October 2026**: versionCode **56**, versionName **56.0**, package
 `com.jeerovan.comfer`. Signed APK/AAB artifacts were rebuilt from `11db594` plus
 the retained working-tree changes, including the October 1 and October 2 fixes.
@@ -13,22 +17,9 @@ not the older September 30 mapping.
 
 ## Included fixes
 
-- Guard the missing `AccessibilityNodeInfo.setAccessibilityDataSensitive` method
-  implicated in v55 issue `c41e409d257c7384774b3aac74a8da94`. The bridge catches
-  only `NoSuchMethodError`; working accessibility APIs preserve their behavior.
-- Block the exact Huawei weather-widget namespace implicated in
-  `0a427c5692949811fcbb46d8e5e16a3f`, using the existing unsafe-provider guard.
-  This is a mitigation; the real vendor provider was not available for testing.
-- Stop stale folder move/delete actions safely when selection has cleared,
-  addressing `46899b52662ccfe38b2ed305819cf25c`.
-- Delete the selected folder's saved Room row explicitly, preserving other
-  folders. Saving the remaining folder map previously only upserted rows.
-
-No database schema or dependency changes were introduced for these fixes.
-The [complete v55 review](release-55-review-2026-10-02.md) covers all 76 groups
-in import 9: 7 fatal groups / 37 events and 69 ANR groups / 161 events. Four
-fatal groups and all 69 ANR groups remain under investigation. No production
-issue is marked resolved and no ANR resolution is claimed.
+The candidate includes accessibility compatibility, vendor-widget and folder-action
+repairs. Detailed issue evidence, attempted fixes and remaining investigations
+are in `play_reporting.db`; see the [history guide](../scripts/README-play-reporting.md#issue-and-fix-history).
 
 ## Files for manual release
 

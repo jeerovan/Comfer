@@ -1,29 +1,97 @@
 # Play issue reporting
 
-The current triage/fix ledger is maintained in
-[the production reporting section](../DEVELOPMENT-PROGRESS.md#production-reporting-and-issue-ledger); the phased engineering plan is in
-[the remediation section](../DEVELOPMENT-PROGRESS.md#crash-remediation-and-release-requirements).
+`play_reporting.db` is the canonical local store for telemetry, historical issue
+reviews, attempted fixes, validation and production follow-up. Release documents
+retain artifact/acceptance summaries and link here for issue details. Answers
+about current app implementation must still be checked against current code.
+
+## Issue and fix history
+
+Run these read-only commands from the repository root:
+
+```sh
+python3 scripts/issue_history.py summary
+python3 scripts/issue_history.py show --issue 159e25351be7042db517f3af684684db --provider firebase
+python3 scripts/issue_history.py show --attempt 56-R03
+python3 scripts/issue_history.py show --version 57 --search certificate
+```
+
+`show` returns archived entries, explicit attempt definitions/mentions and issue
+references. An issue-ID query also returns existing per-version telemetry notes,
+including decisions absent from the documents. Provider and app/package scope
+remain separate; use `--scope` when needed. A reference means that a report mentions
+an ID, not proof that its events share a cause or were fixed.
+
+`--version` filters historical document/record context. It need not be the affected
+or shipped version: 56-R01 was prepared for the next release after 56. The issue
+query's `telemetry_history` retains all observed versions. `--entry`, `--source`,
+`--section` and `--search` narrow results. The default limit is 20; `total` and
+`shown` expose truncation. Increase `--limit` explicitly.
+`summary` separates retained historical groups from groups/events present in the
+latest import for each provider scope and version.
+
+The additive schema leaves provider tables, notes and status fields unchanged:
+
+| Table/view | Purpose |
+| --- | --- |
+| `issue_history_documents` | Immutable source revisions, complete original text, SHA-256 and Git revision |
+| `issue_history_entries` | Individual sections/table rows, original line ranges and verbatim labeled fields |
+| `issue_history_issue_links` | Provider/app-scoped issue references with their matching basis |
+| `issue_history_attempt_links` | Stable attempt IDs, distinguishing definitions from mentions |
+| `issue_history_schema` | History schema version, independent of legacy `PRAGMA user_version` |
+| `issue_history` / `issue_fix_history` / `issue_review_history` | SQL views for entry, attempt and provider-issue queries |
+
+For example:
+
+```sql
+SELECT attempt_id, role, release_version, source_path, section, body
+FROM issue_fix_history WHERE attempt_id = '56-R03'
+ORDER BY release_version, source_path, start_line;
+```
+
+Line ranges refer to the **archived original**, not the shortened document now
+in Git. Retrieve a full original, including its old headings, with:
+
+```sh
+python3 scripts/issue_history.py source --path docs/release-56-review-2026-10-15.md \
+  --output /tmp/release-56-review-original.md
+```
+
+The [source manifest](issue_history_sources.json) records originals migrated from
+releases 50–57, the development ledger and this guide. After restoring telemetry,
+this idempotent command reconstructs the history from recorded Git revisions when
+the working documents have been shortened:
+
+```sh
+python3 scripts/issue_history.py import-docs --manifest scripts/issue_history_sources.json
+```
+
+Hashes are verified before import. A changed document becomes another immutable
+revision; identical imports add nothing. The importer takes a verified SQLite
+backup before changing writes and commits schema/data together. It never edits
+telemetry, old triage or remote issue states. Ambiguous references are retained
+as unresolved rather than assigned a guessed provider.
+
+Append findings with `record --input /tmp/issue-update.json`. JSON requires a stable
+`record_id`, positive `version_code` (review context), and `title`. Include
+`attempt_id`, `prior_attempts`, `issues` (objects containing `provider`, `scope_id`
+and `issue_id`), evidence, hypothesis, change, validation, target version, exact
+commit/artifact identities, production outcome and limitations when available.
+All fields are preserved. Identical content is a no-op; changed content appends a
+revision, preserving earlier decisions and failures. Record production confirmation
+only when supported. Documented claims are imported verbatim, never promoted to
+verified fixes by the migration.
+
+The database and backups remain ignored by Git. Preserve verified recovery copies:
+Git reconstruction restores migrated reports, not subsequently appended records
+or raw telemetry. Future issue details belong in the database instead of another
+duplicated release ledger. The [release requirements](../DEVELOPMENT-PROGRESS.md#crash-remediation-and-release-requirements)
+remain applicable.
 
 ## Google Play import
 
-Latest Firebase snapshot: [version 56](../docs/release-56-issues.md), with the
-complete inventory and recurrence evidence in
-`validation-artifacts/firebase-v56-20261015/`. Historical fix attempts and
-outcomes and new prepared attempts **56-R01–56-R05** are recorded in the
-[version-56 review](../docs/release-56-review-2026-10-15.md); earlier evidence remains
-in the [version-55 review](../docs/release-55-review-2026-10-02.md),
-[version-54 review](../docs/release-54-recurrence.md) and
-[version-53 review](../docs/release-53-recurrence.md).
-For a repeatable read-only comparison after a future import:
-
-```sh
-venv/bin/python scripts/analyze_crashlytics_recurrence.py --version 56 \
-  --output validation-artifacts/firebase-v56-20261015/recurrence.json
-```
-
-Substitute the actual version. This compares exact IDs within the Firebase app,
-retains current/prior sample signatures and build stamps, and never treats
-different release windows as comparable rates or overwrites existing triage.
+Examples below use historical version 56. Select the actual provider version and
+interval instead of treating example numbers as current release state.
 
 From the repository root, using the existing virtual environment:
 
@@ -111,44 +179,41 @@ deleting history, and writes snapshots in one transaction.
 Crashlytics and Play counts must stay separate: their issue grouping, sampling,
 reporting windows, and user-count semantics differ.
 
-### Latest Crashlytics verification: 15 October 2026
+### Recurrence comparison
 
-Import **10** stores `56.0 (56)` for **15 September 13:44:30–15 October
-13:44:30 UTC**: **965 groups / 4,793 events**, comprising 30 fatal groups / 193
-crashes and 935 ANR groups / 4,600 ANRs. Independent error-type top-version totals
-reconcile exactly; non-fatal queries returned no version-56 events.
+For a read-only exact-ID comparison after a Firebase import:
 
-The complete top-issues report spans **10 pages**. The installed MCP interface
-does not expose continuation requests and the service capped pages at 100 groups
-despite a requested size of 1,000. Use the existing authenticated Firebase CLI API
-client with `page_token` for continuation. Inspect every returned token; a first
-page is not a complete export. Fetch scripts and raw pages are retained with
-this refresh's evidence.
+```sh
+venv/bin/python scripts/analyze_crashlytics_recurrence.py --version 56 \
+  --output /tmp/comfer-recurrence-v56.json
+```
 
-All earlier Firebase and Play rows, snapshots and triage fields are preserved.
-The subsequent v56 review appends decisions to all 965 current rows and leaves
-their status `investigating`, including locally prepared fixes. Keep the stable
-attempt ID, actual next release/artifact identity, validation and limitations in
-notes so a later import can compare attempts without erasing history. Local
-validation does not justify `resolved` or changing Firebase's remote state.
+This retains current/prior sample signatures and build stamps. Use `issue_history.py`
+alongside it for documented attempts, outcomes and limitations.
 
-Obtain the exact version display name from Firebase before filtering. Default
-`sampleEvent` references are not reliably version-filtered: 16 samples in this
-refresh were unsuitable for the requested release/window. Replace mismatches with
-`crashlytics_list_events` using the same interval, version display name and issue
-ID. Validate every selected event's app, package, version, issue, error type and
-timestamp. API errors are failed requests, never evidence of an empty result.
+### Verification rules
 
-The [version-56 ledger](../docs/release-56-issues.md) records sample/build limits.
-One selected event has no supplied stack frames; full raw event payloads are
-retained rather than relying on the MCP's shortened displayed traces. A version
-code can include candidate/manual builds too. Do not infer a production regression
-or a root cause from a retained issue title alone.
+Follow every continuation token using the currently available API/tool schema.
+A first page is not a complete export when more pages remain. Reconcile totals
+independently by error type and retain the reporting interval. Historical fetches,
+interface limitations, sample replacements and build checks are preserved in the
+database's archived reports instead of repeated as current instructions here.
+
+Obtain the exact version display name from Firebase before filtering. Validate
+every selected event's app, package, version, issue, error type and timestamp;
+replace unsuitable defaults with version-filtered events. API errors are failed
+requests, never evidence of an empty result. Retain full raw event payloads and
+missing-stack limitations. A version can include candidate/manual builds; match
+the mapping and signed artifact before attributing samples to shipped code.
+
+Keep stable attempt IDs, actual target/shipped versions, commit/artifact identities,
+validation and limitations in appended history. Local validation, absent groups
+and repeated IDs do not justify production resolution or remote state changes.
 
 ### Evidence retention and cleanup
 
 Keep the current normalized export, raw reconciliation reports, import and
-verification results, recurrence output, historical issue ledgers and meaningful
+verification results, recurrence output, archived issue history and meaningful
 fix/test evidence. The ignored `crashlytics_*` tables retain raw selected events,
 issue payloads, snapshots and local triage. After verifying these and comparing
 historical rows, redundant fetch intermediates and superseded exports/backups
@@ -156,14 +221,14 @@ can be removed. Retain one verified SQLite recovery backup. Preserve unique olde
 row variants in a verified archive before removing superseded backups. Record
 exact removed paths and bytes in the refresh's `cleanup-manifest.json`.
 
-Older per-run totals belong in the historical ledgers/database, rather than
-being repeated as current instructions here. The current refresh evidence is in
-`validation-artifacts/firebase-v56-20261015/`. Google Play was not queried during
-this Firebase-only refresh.
+Per-run totals, cleanup manifests and evidence paths belong in the database's
+historical records. Preserve both providers' histories without adding their
+counts or per-issue user totals together.
 
-Reporting regressions (six importer and four recurrence tests):
+Reporting regressions:
 
 ```sh
 venv/bin/python -m unittest discover -s scripts/tests -p 'test_import_firebase_crashlytics.py' -v
 venv/bin/python -m unittest discover -s scripts/tests -p 'test_analyze_crashlytics_recurrence.py' -v
+python3 -m unittest discover -s scripts/tests -p 'test_issue_history.py' -v
 ```

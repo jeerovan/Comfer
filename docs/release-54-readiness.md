@@ -1,5 +1,9 @@
 # Version 54 release readiness
 
+Issue/fix history is maintained in `play_reporting.db`; this file retains the
+release artifact and acceptance summary. The [history guide](../scripts/README-play-reporting.md#issue-and-fix-history)
+explains queries and recovery. Archived source key: `docs/release-54-readiness.md`.
+
 Historical build-validation record, 26 September 2026. Candidate: versionCode 54 / versionName 54.0.
 **Decision at that time: ready for a staged version 54 rollout using the final artifacts below.**
 No Play upload, rollout, push or Crashlytics mapping upload was performed during that validation session.
@@ -50,72 +54,21 @@ version after rollout; this release does not claim every v53 report is resolved.
 
 ## 54-01: cold scheduled-job startup race
 
-The initial signed v54 candidate reproduced a new fatal crash on API 24: after
-SIGKILL of the launcher process, forcing its existing JobScheduler wallpaper job
-started `SystemJobService` before the asynchronous initialization coroutine finished.
-The service threw `WorkManager needs to be initialized` and killed the process.
-The earlier successful Activity startup check did not cover this entry point.
-
-`ComferApp` now implements `Configuration.Provider`; both normal background setup
-and OS-started services obtain the synchronized singleton through
-`WorkManager.getInstance(context)`. The previous check-then-manual-initialize race
-is removed. The missing-JobScheduler-API guard applies to both configuration and
-normal setup. This follows Android's [on-demand initialization contract](https://developer.android.com/develop/background-work/background-tasks/persistent/configuration/custom-configuration).
-
-Normal Activity startup still schedules initialization on IO. If a cold system
-service arrives first, initialization can occur on that service's main thread;
-this is a deliberate correctness fallback, not a claim that every WorkManager
-entry point is now off Main. The prior 53-07 ANR mitigation remains subject to
-production monitoring, including this cold-service path.
-
-The new `scripts/test_workmanager_cold_start.py` uses a rooted API-24 emulator,
-retains job/data state through process death, forces the persisted job, verifies a
-new surviving process and rejects fatal logs. It failed against the initial
-signed candidate with the exact reproduced crash. The first harness attempt timed
-out on a prior crash dialog; setup now force-stops that stale process before the
-measured SIGKILL rounds. No app data is cleared.
+Historical detail is stored in `play_reporting.db` under this report's
+archived source, section **54-01: cold scheduled-job startup race**. Use the [history guide](../scripts/README-play-reporting.md#issue-and-fix-history)
+to query it or export the complete original report.
 
 ## 54-02: time-sensitive reminder broadcasts
 
-Both real reminder-delivery tests timed out on Samsung before and after an approved
-reboot. AlarmManager enqueued the explicit `comfer.tasks.ALARM` broadcasts, but
-Android's background broadcast queue never dispatched them. The queue had more
-than 24,000 entries before reboot and stalled again afterward; the same tests
-passed on API 24. This establishes the local delivery boundary, not the underlying
-cause of Samsung's queue behavior.
-
-Alarm and notification-action intents now use `FLAG_RECEIVER_FOREGROUND`. Their
-receiver already finishes through a six-second watchdog and preserves durable
-replay. Android's [foreground broadcast timeout](https://developer.android.com/topic/performance/anrs/diagnose-and-fix-anrs)
-is shorter, so that bounded completion remains essential. Alarm tokens are
-replaced and then reused for cancel/schedule within each reconciliation; action
-tokens are also replaced, because updating extras alone cannot upgrade old Intent
-flags. Existing actual-delivery checks cover the alarm, persisted completion,
-notification removal and duplicate action safety. The alarm test additionally
-seeds a legacy background token and verifies its cancellation before waiting for
-real scheduled delivery.
+Historical detail is stored in `play_reporting.db` under this report's
+archived source, section **54-02: time-sensitive reminder broadcasts**. Use the [history guide](../scripts/README-play-reporting.md#issue-and-fix-history)
+to query it or export the complete original report.
 
 ## UI test correction
 
-The broad Samsung run also exposed an archive-return assertion that compared the
-entry text to a raw 150-pixel bottom threshold. Text sits above the timestamp footer,
-and pixel spacing varies by screen density. The test now checks the actual latest
-footer within 48 dp of the feed bottom, while retaining chronological order,
-visibility and exclusion of the oldest entry. The focused post-reboot run passed
-that assertion without changing Journal production UI.
-
-The foreground-priority fix passed **28 Samsung tests**: all 16 Tasks persistence
-checks (including both real alarm-delivery cases and the notification Complete
-button), five receiver failure/replay checks and seven startup/recurrence checks.
-No timeout allowance was increased and delivery was not manually triggered by the
-tests. The separate legacy-token upgrade assertion is recorded with final checks.
-
-The initial broad Samsung run reported 115 tests with three failures (the two
-undispatched reminders and the density-dependent Journal assertion). Its optional
-real-model test had no seeded model and is not counted as verified inference.
-After the first fix/reboot, 17 focused tests left only the two reminder failures;
-the corrected Journal positioning and spatial/locale checks passed. Preserve these
-failed runs as history rather than presenting a single clean broad run.
+Historical detail is stored in `play_reporting.db` under this report's
+archived source, section **UI test correction**. Use the [history guide](../scripts/README-play-reporting.md#issue-and-fix-history)
+to query it or export the complete original report.
 
 ## Final validation and artifacts
 

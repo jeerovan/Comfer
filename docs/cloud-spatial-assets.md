@@ -26,6 +26,10 @@ Android test fixtures; it does not run the backend ML pipeline.
 
 ## Live client validation (2026-09-29)
 
+This historical validation predates the separation of Wallpaper motion and
+3D Effect. See [Spatial wallpapers](local-spatial-wallpapers.md) for current
+activation, motion and preload behavior.
+
 - Queried the production feed, `/api/wallpapers/77`, and its `/spatial`
   manifest before changing the client. Both wallpaper responses advertise the
   spatial URL. The version-1 manifest serves two 1152 × 2048 PNG layers and

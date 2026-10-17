@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "source_path": "docs/release-50-issues.md",
+      "source_kind": "markdown",
+      "content_sha256": "2ece8b28284a6e80b496514a1ef1d3c77873668a6b37874b7921ba68c492b2ce",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 50
+    },
+    {
+      "source_path": "docs/release-51-issues.md",
+      "source_kind": "markdown",
+      "content_sha256": "6263c6f90038e94b5066d1466c06d46c402f302291028ba2f025f47cac32460a",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 51
+    },
+    {
+      "source_path": "docs/release-52-issues.md",
+      "source_kind": "markdown",
+      "content_sha256": "b72998816e822e7eef99ebd679e44501021cb5bb3a691fe525f5bd94541b1df7",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 52
+    },
+    {
+      "source_path": "docs/release-53-issues.md",
+      "source_kind": "markdown",
+      "content_sha256": "ab25032acb3f2a38b0de4ea86a82ae9138b01a1a6451dce2df8e6832d932082e",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 53
+    },
+    {
+      "source_path": "docs/release-53-readiness.md",
+      "source_kind": "markdown",
+      "content_sha256": "13d2d3140cac077052f8b116eed4ff1459e685ed92c8999662f55bb9eed0d733",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 53
+    },
+    {
+      "source_path": "docs/release-53-recurrence-inventory.md",
+      "source_kind": "markdown",
+      "content_sha256": "fde81896e1b648e2a125f1fabb25d1b4e359abb627fed63652753a6687016bde",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 53
+    },
+    {
+      "source_path": "docs/release-53-recurrence.md",
+      "source_kind": "markdown",
+      "content_sha256": "36d6f95b22c4684aac7f9566df3ff6ff74c8d9c55743eca40a6b49f7fb8197ee",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 53
+    },
+    {
+      "source_path": "docs/release-54-issues-inventory.md",
+      "source_kind": "markdown",
+      "content_sha256": "2e1ddd85c05fb35c06e8fde65a9d1f0a73970ee79ca9592e6cba4f691564f374",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 54
+    },
+    {
+      "source_path": "docs/release-54-issues.md",
+      "source_kind": "markdown",
+      "content_sha256": "4d7b142e0101af244667997e1a338f3ce68e3dfe4a71f23c392cbfbf2ebc5e5f",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 54
+    },
+    {
+      "source_path": "docs/release-54-readiness.md",
+      "source_kind": "markdown",
+      "content_sha256": "922cf5ff08b779b412835b808a34261af133583996833fd540a44c2bb2d99a77",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 54
+    },
+    {
+      "source_path": "docs/release-54-recurrence.md",
+      "source_kind": "markdown",
+      "content_sha256": "afbf98ca503bc7a6026b99de0fe5015524657a4daa87fc8cd6b28f88baa5a03f",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 54
+    },
+    {
+      "source_path": "docs/release-55-readiness.md",
+      "source_kind": "markdown",
+      "content_sha256": "c3844d52bb2eab67970ddb27f4eb0c88d633dbd4a3189e41f9a3d9e46e7cc12a",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 55
+    },
+    {
+      "source_path": "docs/release-55-review-2026-10-02.md",
+      "source_kind": "markdown",
+      "content_sha256": "84f3bee0fe7df15a61f00800773733357e2ed6bb82960a3631b2d98c7ae4ead1",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 55
+    },
+    {
+      "source_path": "docs/release-56-issues.md",
+      "source_kind": "markdown",
+      "content_sha256": "f57cc577db159f468a67912dd8dd7fb676ec40ec1338025355d9e46a4db0f138",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 56
+    },
+    {
+      "source_path": "docs/release-56-readiness.md",
+      "source_kind": "markdown",
+      "content_sha256": "7f9c66ed10c001111f5199a000632e0344d2a54980d96d8b951a7b37ad69f92d",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 56
+    },
+    {
+      "source_path": "docs/release-56-review-2026-10-15.md",
+      "source_kind": "markdown",
+      "content_sha256": "0410186971d0a12f405a97c41a58196fff0aedf2b9b4c94fbc971e6ba8ee1346",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 56
+    },
+    {
+      "source_path": "docs/release-57-readiness.md",
+      "source_kind": "markdown",
+      "content_sha256": "362e5f0f23728f7883012bd8f5f6a72f2a2737a61307c4445d17c73a58f60cba",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": 57
+    },
+    {
+      "source_path": "DEVELOPMENT-PROGRESS.md",
+      "source_kind": "markdown",
+      "content_sha256": "f3f34e41bce43a58fdbe3afb2f87d6afad421c337bef0128694f6e9e29ffffa4",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": null
+    },
+    {
+      "source_path": "scripts/README-play-reporting.md",
+      "source_kind": "markdown",
+      "content_sha256": "d3c5875e6806b9ac8b3825707b6fb110c841029995a357da9b4d67eab7ed86fc",
+      "git_revision": "a55a7226312ef1559c13aebe39906f78453a150f",
+      "release_version": null
+    }
+  ]
+}

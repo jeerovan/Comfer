@@ -14,8 +14,9 @@ There are **7 strings per translated locale / 238 translations** in
 The discarded standalone spatial wallpaper picker has been removed, including
 its selection listener, unused bundled-scene renderer, old scene/path constants,
 and ten obsolete picker/photo-import strings in English and all translated locales.
-The active Settings → Wallpapers → Own wallpapers → 3D Effect flow remains.
-Local/cloud rendering, preparation, caching, retry and motion behavior are unchanged.
+That cleanup retained the folder-based 3D Effect flow and left local/cloud
+rendering, preparation, caching, retry and motion behavior unchanged. Current
+activation and preload rules are documented in [Spatial wallpapers](local-spatial-wallpapers.md).
 Shared sensor code now lives in `SpatialTilt.kt`.
 
 Picker persistence and bundled-scene switching tests were removed. Mesh edge

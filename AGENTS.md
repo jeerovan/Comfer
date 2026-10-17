@@ -1,3 +1,19 @@
+# Implementation answers
+
+- Before answering questions about app behavior or implementation, inspect the
+  current code, including relevant callers and state transitions as needed. Use
+  docs for context and navigation, never as sole evidence of current behavior;
+  explicitly state any verification limits.
+
+# Issue and release history
+
+- Keep issue evidence, fix attempts, recurrence reviews, validation and production
+  follow-ups in `play_reporting.db`; use `scripts/issue_history.py` and the reporting
+  guide in `scripts/README-play-reporting.md`. Append history rather than replacing
+  earlier decisions. Release docs should link to the database and retain concise
+  artifact/acceptance summaries. Historical records require current-code checks
+  before making implementation claims; local tests do not prove production fixes.
+
 # Project regression testing
 
 - Before choosing tests for an individual change, assess whether it can affect

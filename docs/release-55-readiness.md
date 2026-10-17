@@ -1,5 +1,9 @@
 # Version 55 release preparation
 
+Issue/fix history is maintained in `play_reporting.db`; this file retains the
+release artifact and acceptance summary. The [history guide](../scripts/README-play-reporting.md#issue-and-fix-history)
+explains queries and recovery. Archived source key: `docs/release-55-readiness.md`.
+
 Prepared 29 September 2026: versionCode **55**, versionName **55.0**,
 application ID `com.jeerovan.comfer`. Source baseline `3cd860a7c3bbeff13f313ec6a5a8221348b74c27`
 plus the retained working-tree changes. No Play upload, rollout, commit or push
