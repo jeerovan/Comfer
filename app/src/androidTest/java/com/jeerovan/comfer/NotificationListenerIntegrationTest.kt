@@ -2,6 +2,16 @@ package com.jeerovan.comfer
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.background
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
+import androidx.test.filters.SdkSuppress
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import com.jeerovan.comfer.notifications.*
@@ -65,6 +75,61 @@ class NotificationListenerIntegrationTest {
             shell("cmd notification $operation ${context.packageName}/com.jeerovan.comfer.MyNotificationListenerService")
         } else if (originalAccess.isEmpty()) shell("settings delete secure enabled_notification_listeners")
         else shell("settings put secure enabled_notification_listeners $originalAccess")
+    }
+
+    @Test @SdkSuppress(minSdkVersion = 26)
+    fun homeRowPreservesPostedArtworkAcrossGlassOpacityAndNotificationUpdates() {
+        val manager = context.getSystemService(android.app.NotificationManager::class.java)
+        val channel = "icon-artwork-${System.nanoTime()}"
+        val title = "Artwork${System.nanoTime()}"
+        val id = 70418
+        val blue = android.graphics.Color.rgb(33, 97, 185)
+        val green = android.graphics.Color.rgb(20, 146, 71)
+        manager.createNotificationChannel(android.app.NotificationChannel(channel, title,
+            android.app.NotificationManager.IMPORTANCE_LOW))
+        fun postArtwork(background: Int) {
+            val bitmap = android.graphics.Bitmap.createBitmap(48, 48, android.graphics.Bitmap.Config.ARGB_8888)
+            bitmap.eraseColor(background)
+            android.graphics.Canvas(bitmap).drawRect(16f, 16f, 32f, 32f,
+                android.graphics.Paint().apply { color = android.graphics.Color.WHITE })
+            manager.notify(id, android.app.Notification.Builder(context, channel)
+                .setSmallIcon(android.graphics.drawable.Icon.createWithBitmap(bitmap)).setContentTitle(title).build())
+        }
+        fun colorCount(color: Int): Int {
+            val pixels = compose.onNodeWithTag("artwork-row").captureToImage().toPixelMap()
+            return (0 until pixels.height).sumOf { y ->
+                (0 until pixels.width).count { x -> pixels[x, y].toArgb() == color }
+            }
+        }
+        var glass by mutableStateOf(false)
+        var opacity by mutableStateOf(1f)
+        try {
+            postArtwork(blue)
+            await { MyNotificationListenerService.snapshot.value.items.any { it.title == title } }
+            val item = MyNotificationListenerService.snapshot.value.items.first { it.title == title }
+            runBlocking { NotificationPreferences.update { it.copy(pinned = setOf(item.appId)) } }
+            compose.setContent { MaterialTheme {
+                androidx.compose.foundation.layout.Box(
+                    androidx.compose.ui.Modifier.background(Color.Black).testTag("artwork-row")) {
+                    NotificationHomeEntry(48.dp, true, color = Color.White.copy(alpha = opacity),
+                        glass = glass, maxVisibleIcons = 1)
+                }
+            } }
+            compose.waitUntil(5000) { colorCount(blue) > 100 }
+            assertTrue("Posted icon logo is visible", colorCount(android.graphics.Color.WHITE) > 20)
+            compose.runOnIdle { glass = true }
+            assertTrue("Glass preserves posted artwork", colorCount(blue) > 100)
+            compose.runOnIdle { opacity = 0f }
+            assertEquals("User opacity still hides artwork", 0, colorCount(blue))
+            compose.runOnIdle { opacity = 1f }
+            assertTrue("Restoring opacity restores artwork", colorCount(blue) > 100)
+            postArtwork(green)
+            await { MyNotificationListenerService.snapshot.value.items.any { it.key == item.key && it.revision != item.revision } }
+            compose.waitUntil(5000) { colorCount(green) > 100 && colorCount(blue) == 0 }
+        } finally {
+            manager.cancel(id)
+            manager.deleteNotificationChannel(channel)
+        }
     }
     @Test fun groupsAcrossAppsUpdatesAndDismissal() = runBlocking {
         post("mail", 1, "--es group mail --es title First")

@@ -134,6 +134,8 @@ fun NotificationHomeEntry(
                 loadNotificationSmallIcon(context, notification)
             }
             Box(Modifier.size(targetSize), contentAlignment = Alignment.Center) {
+                // Pass original artwork: the renderer decides whether tint/glass is safe.
+                // Pre-tinting here destroys opaque/adaptive logos before it can inspect them.
                 NotificationContrastIcon(rememberDrawableBitmapPainter(smallIcon), iconSize, color, glass)
             }
         }

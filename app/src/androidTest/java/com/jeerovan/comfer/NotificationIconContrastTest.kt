@@ -8,6 +8,35 @@ import org.junit.Test
 import org.junit.Assert.*
 
 class NotificationIconContrastTest {
+    @Test fun transparentMulticolorArtworkKeepsDetailAndRespectsOpacity() {
+        val painter = object : androidx.compose.ui.graphics.painter.Painter() {
+            override val intrinsicSize = androidx.compose.ui.geometry.Size(48f, 48f)
+            override fun androidx.compose.ui.graphics.drawscope.DrawScope.onDraw() {
+                drawCircle(Color.Blue, radius = size.minDimension / 3)
+                drawCircle(Color.White, radius = size.minDimension / 8)
+            }
+        }
+        for (glass in listOf(false, true)) {
+            val solid = renderNotificationContrastIcon(painter, 24.dp, Color.White, Density(2f), LayoutDirection.Ltr, glass)
+            val faded = renderNotificationContrastIcon(painter, 24.dp, Color.White.copy(alpha = .5f), Density(2f), LayoutDirection.Ltr, glass)
+            val hidden = renderNotificationContrastIcon(painter, 24.dp, Color.Transparent, Density(2f), LayoutDirection.Ltr, glass)
+            try {
+                assertEquals("Blue artwork survives", android.graphics.Color.BLUE, solid.getPixel(22, 32))
+                assertEquals("White logo survives", android.graphics.Color.WHITE, solid.getPixel(32, 32))
+                assertTrue("Opacity still fades artwork", android.graphics.Color.alpha(faded.getPixel(32, 32)) in 1..254)
+                val pixels = IntArray(hidden.width * hidden.height)
+                hidden.getPixels(pixels, 0, hidden.width, 0, 0, hidden.width, hidden.height)
+                assertTrue("Opacity zero hides artwork and shadow", pixels.all { android.graphics.Color.alpha(it) == 0 })
+            } finally { solid.recycle(); faded.recycle(); hidden.recycle() }
+        }
+    }
+
+    @Test fun monochromeGlyphStillUsesConfiguredTint() {
+        val bitmap = renderNotificationContrastIcon(ColorPainter(Color.White), 24.dp, Color.Red, Density(2f), LayoutDirection.Ltr)
+        try { assertEquals(android.graphics.Color.RED, bitmap.getPixel(32, 32)) }
+        finally { bitmap.recycle() }
+    }
+
     @Test fun glassShadesTheSilhouetteAndRespectsOpacityInBothDirections() {
         val painter = object : androidx.compose.ui.graphics.painter.Painter() {
             override val intrinsicSize = androidx.compose.ui.geometry.Size(48f, 48f)
