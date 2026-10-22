@@ -15,6 +15,19 @@ public final class FrameworkCompatibility {
     private FrameworkCompatibility() {}
 
     @SuppressLint("NewApi")
+    public static AccessibilityNodeInfo.AccessibilityAction getActionScrollInDirection() {
+        try {
+            return AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_IN_DIRECTION;
+        } catch (NoSuchFieldError missing) {
+            // 58-R01: some API-34 runtimes omit this field. Construct the same
+            // action AndroidX uses before API 34, preserving its ID and null label.
+            // Catch only the absent field; keep healthy platform identity/errors.
+            return new AccessibilityNodeInfo.AccessibilityAction(
+                    android.R.id.accessibilityActionScrollInDirection, null);
+        }
+    }
+
+    @SuppressLint("NewApi")
     public static int systemOverlays() {
         try {
             return WindowInsets.Type.systemOverlays();

@@ -55,7 +55,13 @@ class WallpaperServiceRegressionTest {
             return text.substringBefore("Previous Registrations:")
                 .split("Connection Number:").drop(1).any { connection ->
                     connection.contains("| uid $uid |") &&
-                        connection.lineSequence().any { it.contains(sensor!!.name) && it.contains("status: active") }
+                        connection.lineSequence().any { line ->
+                            line.contains(sensor!!.name) && (line.contains("status: active") ||
+                                // Android 37 lists the current sensor lease with
+                                // session durations instead of a status field.
+                                (connection.contains("| has sensor access: true") &&
+                                    connection.contains("Session Start:")))
+                        }
                 }
         }
         var enabled by mutableStateOf(true)

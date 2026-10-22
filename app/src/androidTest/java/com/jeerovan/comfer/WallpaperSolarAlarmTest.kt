@@ -117,7 +117,10 @@ class WallpaperSolarAlarmTest {
     private fun registeredTriggers(): List<Long> {
         val dump = ParcelFileDescriptor.AutoCloseInputStream(
             instrumentation.uiAutomation.executeShellCommand("dumpsys alarm")).bufferedReader().use { it.readText() }
-        val pattern = Regex("(?m)^\\s*RTC_WAKEUP #\\d+: Alarm\\{[^\\n]*when (\\d+) " +
+        // Android 37 calls the requested wall-clock trigger "origWhen" and
+        // prints whenElapsed after it. Keep checking the active alarm and tag,
+        // rather than cancellation history or an app-only return value.
+        val pattern = Regex("(?m)^\\s*RTC_WAKEUP #\\d+: Alarm\\{[^\\n]*(?:when|origWhen) (\\d+) [^\\n]*" +
             Regex.escape(context.packageName) + "[^\\n]*\\}\\n\\s+tag=\\*walarm\\*:" + Regex.escape(WallpaperScheduler.ACTION))
         return pattern.findAll(dump).map { it.groupValues[1].toLong() }.toList()
     }

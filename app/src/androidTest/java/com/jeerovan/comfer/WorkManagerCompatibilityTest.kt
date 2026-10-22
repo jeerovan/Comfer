@@ -3,7 +3,9 @@ package com.jeerovan.comfer
 import android.app.job.JobScheduler
 import android.os.Build
 import android.os.SystemClock
-import androidx.test.core.app.ActivityScenario
+import android.content.Intent
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.work.WorkManager
 import org.junit.Assert.*
@@ -58,16 +60,36 @@ class WorkManagerCompatibilityTest {
         // Application.onCreate has already executed before instrumentation reaches this method.
         await("Application data initialization must complete") { StartupCoordinator.isReady }
         assertScheduling()
-        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            fun awaitFocus() = await("MainActivity must acquire window focus") {
-                var focused = false
-                scenario.onActivity { focused = it.hasWindowFocus() && !it.isFinishing }
-                focused
+        // Launcher guidance can animate continuously. ActivityScenario's global
+        // idle wait can hang even while the window is responsive; observe the
+        // actual resumed window with a bounded wait, as ModuleLocaleTest does.
+        fun focusedActivity(): MainActivity? {
+            var result: MainActivity? = null
+            instrumentation.runOnMainSync {
+                result = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                    .filterIsInstance<MainActivity>().firstOrNull {
+                        it.hasWindowFocus() && !it.isFinishing && it.window.decorView.width > 0
+                    }
             }
-            awaitFocus()
-            scenario.recreate()
-            awaitFocus()
+            return result
+        }
+        try {
+            instrumentation.runOnMainSync {
+                context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
+            await("MainActivity must acquire window focus") { focusedActivity() != null }
+            val original = requireNotNull(focusedActivity())
+            instrumentation.runOnMainSync { original.recreate() }
+            await("The replacement MainActivity must acquire window focus") {
+                focusedActivity()?.let { it !== original } == true
+            }
             assertScheduling()
+        } finally {
+            instrumentation.runOnMainSync {
+                listOf(Stage.CREATED, Stage.STARTED, Stage.RESUMED, Stage.PAUSED, Stage.STOPPED)
+                    .flatMap { ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(it) }
+                    .filterIsInstance<MainActivity>().distinct().forEach { it.finish() }
+            }
         }
     }
 }

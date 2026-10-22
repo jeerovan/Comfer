@@ -14,6 +14,28 @@ import org.junit.Test
 
 @SuppressLint("NewApi")
 class FrameworkCompatibilityTest {
+    @Test fun androidXScrollDirectionActionSurvivesAnActuallyMissingFrameworkField() {
+        val method = Class.forName("androidx.core.view.accessibility.AccessibilityNodeInfoCompat\$Api34Impl")
+            .getDeclaredMethod("getActionScrollInDirection").apply { isAccessible = true }
+        // Reflection reads the independent platform value, bypassing our bytecode transform.
+        val platform = try {
+            AccessibilityNodeInfo.AccessibilityAction::class.java
+                .getField("ACTION_SCROLL_IN_DIRECTION").get(null)
+        } catch (_: NoSuchFieldException) { null }
+        repeat(3) {
+            val action = method.invoke(null) as AccessibilityNodeInfo.AccessibilityAction
+            assertEquals(android.R.id.accessibilityActionScrollInDirection, action.id)
+            if (platform != null) assertSame(platform, action) else assertNull(action.label)
+            val node = AccessibilityNodeInfo.obtain()
+            try {
+                node.text = "Example مثال"
+                node.addAction(action)
+                assertEquals("Example مثال", node.text.toString())
+                assertTrue(node.actionList.any { it.id == android.R.id.accessibilityActionScrollInDirection })
+            } finally { node.recycle() }
+        }
+    }
+
     @Test fun androidXAccessibilityToolRequestIsGuardedWhenFrameworkMethodIsMissing() {
         val manager = InstrumentationRegistry.getInstrumentation().targetContext
             .getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager

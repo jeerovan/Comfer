@@ -10,6 +10,8 @@ import java.nio.file.Path;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
 import static org.junit.Assert.*;
 
 /** Execute the actual app bridge against complete and incomplete framework fixtures.
@@ -40,29 +42,84 @@ public class FrameworkCompatibilityRuntimeTest {
 
     private URLClassLoader runtime(String overlayBody, String eventBody, String nodeBody,
             String managerBody) throws Exception {
+        return runtime(overlayBody, eventBody, nodeBody, managerBody,
+                "public static final AccessibilityAction ACTION_SCROLL_IN_DIRECTION = new AccessibilityAction(16908382, null);");
+    }
+
+    private String actionClass(String fields) {
+        return "public static class AccessibilityAction { public final int id; public final CharSequence label; "
+                + "public AccessibilityAction(int id, CharSequence label) { this.id=id; this.label=label; } "
+                + fields + " }";
+    }
+
+    private URLClassLoader runtime(String overlayBody, String eventBody, String nodeBody,
+            String managerBody, String actionFields) throws Exception {
         Path root = temp.newFolder().toPath();
         Path type = source(root, "android/view/WindowInsets.java",
                 "package android.view; public class WindowInsets { public static class Type { public static int systemOverlays() { return 256; } } }");
         Path event = source(root, "android/view/accessibility/AccessibilityEvent.java",
                 "package android.view.accessibility; public class AccessibilityEvent { public boolean sensitive; public void setAccessibilityDataSensitive(boolean value) { sensitive=value; } }");
         Path node = source(root, "android/view/accessibility/AccessibilityNodeInfo.java",
-                "package android.view.accessibility; public class AccessibilityNodeInfo { public boolean sensitive; public boolean password=true; public String text=\"Example\"; public void setAccessibilityDataSensitive(boolean value) { sensitive=value; } }");
+                "package android.view.accessibility; public class AccessibilityNodeInfo { public boolean sensitive; public boolean password=true; public String text=\"Example\"; public void setAccessibilityDataSensitive(boolean value) { sensitive=value; } "
+                        + actionClass("public static final AccessibilityAction ACTION_SCROLL_IN_DIRECTION = new AccessibilityAction(16908382, null);") + " }");
         Path manager = source(root, "android/view/accessibility/AccessibilityManager.java",
                 "package android.view.accessibility; public class AccessibilityManager { public boolean isRequestFromAccessibilityTool() { return false; } }");
         Path keep = source(root, "androidx/annotation/Keep.java", "package androidx.annotation; public @interface Keep {}");
         Path lint = source(root, "android/annotation/SuppressLint.java", "package android.annotation; public @interface SuppressLint { String[] value(); }");
-        compile(root, type, event, node, manager, keep, lint,
+        Path resources = source(root, "android/R.java", "package android; public class R { public static class id { public static final int accessibilityActionScrollInDirection=16908382; } }");
+        Path caller = source(root, "example/ScrollActionCaller.java",
+                "package example; import android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction; public class ScrollActionCaller { public static AccessibilityAction get() { return AccessibilityAction.ACTION_SCROLL_IN_DIRECTION; } }");
+        compile(root, type, event, node, manager, keep, lint, resources, caller,
                 Path.of("../app/src/main/java/com/jeerovan/comfer/compat/FrameworkCompatibility.java"));
+        Path callerClass = root.resolve("example/ScrollActionCaller.class");
+        ClassWriter transformed = new ClassWriter(0);
+        new ClassReader(Files.readAllBytes(callerClass)).accept(FrameworkCompatibilityTransform.visitor(transformed), 0);
+        Files.write(callerClass, transformed.toByteArray());
         source(root, "android/view/WindowInsets.java",
                 "package android.view; public class WindowInsets { public static class Type { " + overlayBody + " } }");
         source(root, "android/view/accessibility/AccessibilityEvent.java",
                 "package android.view.accessibility; public class AccessibilityEvent { public boolean sensitive; " + eventBody + " }");
         source(root, "android/view/accessibility/AccessibilityNodeInfo.java",
-                "package android.view.accessibility; public class AccessibilityNodeInfo { public boolean sensitive; public boolean password=true; public String text=\"Example\"; " + nodeBody + " }");
+                "package android.view.accessibility; public class AccessibilityNodeInfo { public boolean sensitive; public boolean password=true; public String text=\"Example\"; " + nodeBody + actionClass(actionFields) + " }");
         source(root, "android/view/accessibility/AccessibilityManager.java",
                 "package android.view.accessibility; public class AccessibilityManager { " + managerBody + " }");
         compile(root, type, event, node, manager);
         return new URLClassLoader(new java.net.URL[]{root.toUri().toURL()}, null);
+    }
+
+    @Test public void missingScrollActionFieldPreservesActionIdAcrossRepeatedRequests() throws Exception {
+        try (URLClassLoader loader = runtime("", "", "", "", "")) {
+            Class<?> caller = loader.loadClass("example.ScrollActionCaller");
+            for (int i = 0; i < 3; i++) {
+                Object action = caller.getMethod("get").invoke(null);
+                assertEquals(16908382, action.getClass().getField("id").get(action));
+                assertNull(action.getClass().getField("label").get(action));
+            }
+        }
+    }
+
+    @Test public void healthyScrollActionRetainsPlatformIdentityAndLabel() throws Exception {
+        try (URLClassLoader loader = runtime("", "", "", "",
+                "public static final AccessibilityAction ACTION_SCROLL_IN_DIRECTION = new AccessibilityAction(16908382, \"Platform label\");")) {
+            Class<?> platform = loader.loadClass("android.view.accessibility.AccessibilityNodeInfo$AccessibilityAction");
+            Object expected = platform.getField("ACTION_SCROLL_IN_DIRECTION").get(null);
+            Object actual = loader.loadClass("example.ScrollActionCaller").getMethod("get").invoke(null);
+            assertSame(expected, actual);
+            assertEquals("Platform label", platform.getField("label").get(actual));
+        }
+    }
+
+    @Test public void unrelatedScrollActionInitializationFailurePropagates() throws Exception {
+        try (URLClassLoader loader = runtime("", "", "", "",
+                "public static final AccessibilityAction ACTION_SCROLL_IN_DIRECTION; static { if (true) throw new SecurityException(\"denied\"); }")) {
+            try {
+                loader.loadClass("example.ScrollActionCaller").getMethod("get").invoke(null);
+                fail("Only the missing field may be contained");
+            } catch (InvocationTargetException error) {
+                assertTrue(error.getCause() instanceof ExceptionInInitializerError);
+                assertTrue(error.getCause().getCause() instanceof SecurityException);
+            }
+        }
     }
 
     @Test public void missingAccessibilityToolMethodUsesLegacyAndroidXBehavior() throws Exception {

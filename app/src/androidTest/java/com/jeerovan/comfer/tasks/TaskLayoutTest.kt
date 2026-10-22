@@ -90,7 +90,7 @@ class TaskLayoutTest {
         compose.onNodeWithContentDescription("Sort").assertDoesNotExist()
         compose.onNodeWithContentDescription("Task options").performClick()
         compose.onNodeWithText("My Order").assertExists()
-        compose.waitUntil(5000){compose.onNodeWithText("Default reminder time").isDisplayed()}
+        compose.waitUntil(5000){compose.onAllNodesWithText("Default reminder time").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithText("Default reminder time").performScrollTo().assertIsDisplayed()
         val before=TaskStore.state.value.preferences.privateNotifications
         compose.onNodeWithContentDescription("Hide task text on lock screen").performScrollTo().performClick()
@@ -112,11 +112,14 @@ class TaskLayoutTest {
         val start = compose.onNodeWithTag("tasks-heading").fetchSemanticsNode().boundsInRoot.top
         val options = compose.onNodeWithContentDescription("Task options").fetchSemanticsNode().boundsInRoot.top
         val card = compose.onNodeWithTag("tasks-incomplete-card").fetchSemanticsNode().boundsInRoot.top
+        val landscape = context.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
         compose.onNodeWithTag("tasks-list").performTouchInput { swipeDown(startY = height * .1f, endY = height * .9f, durationMillis = 600) }
         val pulled = compose.onNodeWithTag("tasks-heading").fetchSemanticsNode().boundsInRoot.top
         assertEquals(start,pulled,1f)
         assertEquals(options,compose.onNodeWithContentDescription("Task options").fetchSemanticsNode().boundsInRoot.top,1f)
-        assertTrue(compose.onNodeWithTag("tasks-incomplete-card").fetchSemanticsNode().boundsInRoot.top > card + 50f)
+        val pulledCard = compose.onNodeWithTag("tasks-incomplete-card").fetchSemanticsNode().boundsInRoot.top
+        if (landscape) assertEquals("Landscape adds no thumb-reach gap", card, pulledCard, 1f)
+        else assertTrue(pulledCard > card + 50f)
         compose.onNodeWithTag("tasks-list").performTouchInput { swipeUp() }
         assertEquals(start,compose.onNodeWithTag("tasks-heading").fetchSemanticsNode().boundsInRoot.top,1f)
         compose.onNodeWithContentDescription("Task options").performClick()

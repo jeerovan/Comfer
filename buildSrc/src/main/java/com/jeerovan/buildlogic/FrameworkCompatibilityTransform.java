@@ -21,6 +21,20 @@ public final class FrameworkCompatibilityTransform {
                     String signature, String[] exceptions) {
                 return new MethodVisitor(Opcodes.ASM9,
                         super.visitMethod(access, name, descriptor, signature, exceptions)) {
+                    @Override public void visitFieldInsn(int opcode, String owner, String field, String desc) {
+                        if (opcode == Opcodes.GETSTATIC
+                                && owner.equals("android/view/accessibility/AccessibilityNodeInfo$AccessibilityAction")
+                                && field.equals("ACTION_SCROLL_IN_DIRECTION")
+                                && desc.equals("Landroid/view/accessibility/AccessibilityNodeInfo$AccessibilityAction;")) {
+                            // Keep the same stack result, including dependency calls
+                            // that R8 can later inline into Compose/app classes.
+                            super.visitMethodInsn(Opcodes.INVOKESTATIC, BRIDGE,
+                                    "getActionScrollInDirection", "()" + desc, false);
+                        } else {
+                            super.visitFieldInsn(opcode, owner, field, desc);
+                        }
+                    }
+
                     @Override public void visitMethodInsn(int opcode, String owner, String method,
                             String desc, boolean isInterface) {
                         if (opcode == Opcodes.INVOKESTATIC && !isInterface

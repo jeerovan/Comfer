@@ -175,6 +175,7 @@ class NotesThemeTest {
             assertEquals(scheme.tertiaryContainer,span.background)
             assertEquals(scheme.onTertiaryContainer,span.color)
             compose.onNodeWithContentDescription("Close search").performClick()
+            androidx.test.espresso.Espresso.closeSoftKeyboard()
             compose.runOnIdle { model.switchView("Bin") }
             compose.waitUntil(5000) { compose.onAllNodesWithText("Bin is empty").fetchSemanticsNodes().isNotEmpty() }
             rendered(compose.onNodeWithText("Bin"),scheme.onSurface)
@@ -253,6 +254,7 @@ class NotesThemeTest {
             names.forEachIndexed { index, name -> rendered(compose.onNodeWithContentDescription(context.getString(R.string.module_text_color_1_s, name.replaceFirstChar { it.uppercaseChar() })),colors[index]) }
             compose.onNodeWithContentDescription("URL").performClick()
             compose.onNode(hasSetTextAction() and hasText("URL")).performTextReplacement("javascript:alert(1)")
+            androidx.test.espresso.Espresso.closeSoftKeyboard()
             compose.onNodeWithContentDescription("Save link").performClick()
             rendered(compose.onNodeWithText("Enter a valid http or https URL"),scheme.error)
             capture("invalid-link-$night")

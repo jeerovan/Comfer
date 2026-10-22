@@ -122,17 +122,20 @@ class NotificationInboxLayoutTest {
         val content = compose.onNodeWithText("Chronological").getUnclippedBoundsInRoot()
         val listBounds = compose.onNodeWithTag("notification-inbox-list").getUnclippedBoundsInRoot()
         val boundary = listBounds.bottom.value - reachableHeightDp((listBounds.bottom - listBounds.top).value)
+        val canPullIntoReach = root.bottom - root.top >= root.right - root.left && boundary > listBounds.top.value + 1f
         assertTrue("Header starts at top", heading.top.value < boundary)
         compose.onNodeWithTag("notification-inbox-list").performTouchInput { swipeDown(startY = height * .1f, endY = height * .9f, durationMillis = 600) }
         assertEquals("Module title stays pinned during thumb reach", heading, compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot())
         val lowered = compose.onNodeWithText("Chronological").getUnclippedBoundsInRoot()
-        assertTrue("Body controls move into thumb reach", lowered.top > content.top)
+        if (canPullIntoReach) assertTrue("Body controls move into thumb reach", lowered.top > content.top)
+        else assertEquals("A landscape or already reachable viewport adds no pull-down gap", content.top, lowered.top)
         val back = compose.onNodeWithContentDescription("All apps").getUnclippedBoundsInRoot()
         compose.onNodeWithTag("notification-inbox-list").performTouchInput {
             swipeUp(startY = height * .8f, endY = height * .65f, durationMillis = 500)
         }
         val moved = compose.onNodeWithText("Chronological").getUnclippedBoundsInRoot()
-        assertTrue("Content moves back upward", moved.top < lowered.top)
+        if (canPullIntoReach) assertTrue("Content moves back upward", moved.top < lowered.top)
+        else assertTrue("The list can scroll without adding a reach gap", moved.top <= lowered.top)
         assertEquals(heading, compose.onNodeWithText("Notification inbox").getUnclippedBoundsInRoot())
         assertEquals(back, compose.onNodeWithContentDescription("All apps").getUnclippedBoundsInRoot())
         compose.onNodeWithContentDescription("All apps").performClick()

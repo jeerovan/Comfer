@@ -125,6 +125,8 @@ class NotificationQuietScenariosTest {
         await { manager.currentInterruptionFilter == baseline }
     }
     @Test fun realOneMinuteTimerExpiresViaAndroidAlarm() = runBlocking {
+        org.junit.Assume.assumeTrue("A strict one-minute deadline requires precise timing access",
+            NotificationQuietHours.hasPreciseTimingAccess(context))
         val started = SystemClock.elapsedRealtime()
         assertTrue(NotificationQuietHours.focus(context, 1))
         await { manager.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_ALL }
@@ -206,6 +208,8 @@ class NotificationQuietScenariosTest {
     @Test fun focusExpiresDuringForcedDoze() = runBlocking {
         val started = SystemClock.elapsedRealtime()
         org.junit.Assume.assumeTrue(android.os.Build.VERSION.SDK_INT >= 29)
+        org.junit.Assume.assumeTrue("A strict idle deadline requires precise timing access",
+            NotificationQuietHours.hasPreciseTimingAccess(context))
         assertTrue(NotificationQuietHours.focus(context, 1))
         await { manager.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_ALL }
         try {
@@ -224,6 +228,10 @@ class NotificationQuietScenariosTest {
     }
 
     @Test fun observeExtendedDozeTimerDelivery() = runBlocking {
+        // A diagnostic observation, not a timing guarantee for the inexact
+        // fallback. Android can defer it beyond this probe's three-minute window.
+        org.junit.Assume.assumeTrue("Opt in to the extended real-time Doze observation",
+            InstrumentationRegistry.getArguments().getString("observeExtendedDoze") == "true")
         org.junit.Assume.assumeTrue(android.os.Build.VERSION.SDK_INT >= 29)
         val started = SystemClock.elapsedRealtime()
         assertTrue(NotificationQuietHours.focus(context, 1))
