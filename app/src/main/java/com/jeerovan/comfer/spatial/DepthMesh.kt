@@ -3,6 +3,8 @@ package com.jeerovan.comfer.spatial
 import kotlin.math.max
 import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.math.abs
+import kotlin.math.exp
 
 /** Same 60-second orbit and 8% travel as AnimatedBackground. */
 internal fun wallpaperOrbit(seconds: Double): Pair<Float, Float> {
@@ -51,7 +53,7 @@ internal class DepthMesh(val columns: Int, val rows: Int, val depths: FloatArray
     }
 }
 
-/** Relative screen tilt, calibrated to the pose when the launcher resumes. */
+/** Successive device-relative tilts, independent of the starting posture or heading. */
 internal class SpatialPose {
     private var baseline: FloatArray? = null
     private var rotation = -1
@@ -63,10 +65,19 @@ internal class SpatialPose {
         if (baseline == null || rotation != screenRotation) {
             baseline = matrix.copyOf()
             rotation = screenRotation
+            return 0f to 0f
         }
         val b = baseline!!
+        // Accumulate slow tilts but reject tiny sensor noise. Include all matrix
+        // axes so turning around screen Z also refreshes the device reference.
+        var difference = 0f
+        for (i in matrix.indices) difference += (matrix[i] - b[i]) * (matrix[i] - b[i])
+        if (difference < 0.000008f) return 0f to 0f // About 0.1 degree.
         val x = (b[0]*matrix[2] + b[3]*matrix[5] + b[6]*matrix[8]) / 0.31f
         val y = (b[1]*matrix[2] + b[4]*matrix[5] + b[7]*matrix[8]) / 0.31f
+        // Never retain the resume pose: it can pin one axis at its clamp after
+        // changing how the phone is held, hiding subsequent tilts on that axis.
+        baseline = matrix.copyOf()
         val (sx, sy) = when (screenRotation) {
             1 -> -y to -x
             2 -> -x to y
@@ -74,5 +85,50 @@ internal class SpatialPose {
             else -> x to -y
         }
         return sx.coerceIn(-1f, 1f) to sy.coerceIn(-1f, 1f)
+    }
+}
+
+/** A tilt nudges the picture; holding any pose smoothly returns it to center. */
+internal class SpatialTiltAnimation {
+    private val pose = SpatialPose()
+    private var rotation = -1
+    private var lastSample = Long.MIN_VALUE
+    private var targetX = 0f
+    private var targetY = 0f
+    private var x = 0f
+    private var y = 0f
+
+    val isAtRest get() = targetX == 0f && targetY == 0f && x == 0f && y == 0f
+
+    fun tilt(matrix: FloatArray, screenRotation: Int, now: Long) {
+        require(matrix.size == 9)
+        if (matrix.any { !it.isFinite() } || now <= lastSample) return
+        if (rotation != screenRotation || lastSample != Long.MIN_VALUE && now - lastSample > 500_000_000L) {
+            pose.reset()
+            targetX = 0f; targetY = 0f; x = 0f; y = 0f
+            rotation = screenRotation
+        }
+        lastSample = now
+        val (dx, dy) = pose.update(matrix, screenRotation)
+        targetX = (targetX + dx * 1.5f).coerceIn(-1f, 1f)
+        targetY = (targetY + dy * 1.5f).coerceIn(-1f, 1f)
+    }
+
+    fun advanceBy(seconds: Double): Pair<Float, Float> {
+        require(seconds.isFinite() && seconds >= 0.0)
+        // Exact integration of a 100 ms follow and 600 ms return avoids frame-
+        // rate dependence. Frames continue after sensor events stop, then sleep.
+        val returning = exp(-seconds / 0.6).toFloat()
+        val following = exp(-seconds / 0.1).toFloat()
+        val blend = (0.6f / (0.6f - 0.1f)) * (returning - following)
+        x = (x * following + targetX * blend).coerceIn(-1f, 1f)
+        y = (y * following + targetY * blend).coerceIn(-1f, 1f)
+        targetX *= returning
+        targetY *= returning
+        if (abs(x) < 0.0005f && abs(y) < 0.0005f &&
+            abs(targetX) < 0.0005f && abs(targetY) < 0.0005f) {
+            targetX = 0f; targetY = 0f; x = 0f; y = 0f
+        }
+        return x to y
     }
 }

@@ -103,7 +103,16 @@ def prepare(adb, apk, description):
 
     remote = f"/sdcard/comfer-manual-check-{time.monotonic_ns()}.xml"
     try:
-        read(adb, "shell", "uiautomator", "dump", remote)
+        for attempt in range(3):
+            result = read(adb, "shell", "uiautomator", "dump", remote)
+            if "ERROR:" not in result:
+                break
+            # Samsung can briefly have no accessibility root after a cold start.
+            # No XML is written in this case; retry before reading the file.
+            if "null root node" not in result or attempt == 2:
+                raise RuntimeError("Android UI capture failed: " + result)
+            print("Waiting for Android's UI tree after cold launch", flush=True)
+            time.sleep(1)
         verify_ui(read(adb, "exec-out", "cat", remote), description)
         verify_foreground(read(adb, "shell", "dumpsys", "activity", "activities"))
         if not read(adb, "shell", "pidof", PACKAGE):

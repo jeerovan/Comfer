@@ -147,7 +147,8 @@ internal fun renderLocalSpatialWallpaper(motionEnabled: Boolean, width: Float, h
     }
     val scene = loaded?.takeIf { it.first == ready }?.second
     // Rendered bitmaps follow Compose/RenderThread lifetime; do not recycle them during a draw.
-    val pose = rememberSpatialTilt(choice.spatial && scene != null && active, choice.path)
+    // Cloud choices share a null path; a new prepared scene must still reset tilt.
+    val pose = rememberSpatialTilt(choice.spatial && scene != null && active, ready)
     val orbit = rememberWallpaperOrbit(motionEnabled, active)
     val reveal = remember(choice.path) { Animatable(0f) }
     LaunchedEffect(scene, active) {

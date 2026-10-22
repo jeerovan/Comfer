@@ -33,6 +33,62 @@ class ManualCheckTests(unittest.TestCase):
             ]):
                 self.assertEqual(digest, checker.verify_apk(["adb"], apk))
 
+    def test_cold_launch_root_is_retried_before_reading_ui(self):
+        self.check_cold_launch_root(recovers=True)
+
+    def test_unavailable_root_fails_after_bounded_retries(self):
+        self.check_cold_launch_root(recovers=False)
+
+    def check_cold_launch_root(self, recovers):
+        with tempfile.TemporaryDirectory() as directory:
+            apk = Path(directory) / "build.apk"
+            apk.write_bytes(b"actual build")
+            digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+            dumps = 0
+            ui_reads = 0
+
+            def device_read(adb, *args):
+                nonlocal dumps, ui_reads
+                if args == ("shell", "pm", "list", "packages"):
+                    return "package:com.jeerovan.comfer"
+                if args[:3] == ("shell", "dumpsys", "package"):
+                    return "versionName=57.0"
+                if args[:3] == ("shell", "pm", "path"):
+                    return "package:/data/app/comfer/base.apk"
+                if args[:2] == ("shell", "sha256sum"):
+                    return digest + " base.apk"
+                if args[:3] == ("shell", "am", "start"):
+                    return "Status: ok"
+                if args[:3] == ("shell", "uiautomator", "dump"):
+                    dumps += 1
+                    return ("UI hierchary dumped to: " + args[3] if recovers and dumps > 1
+                            else "ERROR: null root node returned by UiTestAutomationBridge.")
+                if args[:2] == ("exec-out", "cat"):
+                    ui_reads += 1
+                    self.assertTrue(recovers and dumps > 1, "No XML exists after a null-root response")
+                    return '''<hierarchy><node package="com.jeerovan.comfer"
+                        content-desc="Workspace" clickable="true" enabled="true"
+                        bounds="[0,0][100,100]" /></hierarchy>'''
+                if args[:3] == ("shell", "dumpsys", "activity"):
+                    return "mResumedActivity: com.jeerovan.comfer/.MainActivity"
+                if args[:2] == ("shell", "pidof"):
+                    return "1234"
+                if args[:3] == ("shell", "rm", "-f"):
+                    return ""
+                self.fail(f"Unexpected device call: {args}")
+
+            with patch.object(checker, "read", side_effect=device_read) as read, \
+                    patch.object(checker.time, "sleep"):
+                if recovers:
+                    checker.prepare(["adb"], apk, "Workspace")
+                    self.assertEqual((dumps, ui_reads), (2, 1))
+                else:
+                    with self.assertRaisesRegex(RuntimeError, "null root node"):
+                        checker.prepare(["adb"], apk, "Workspace")
+                    self.assertEqual((dumps, ui_reads), (3, 0))
+                self.assertTrue(any(call.args[1:4] == ("shell", "rm", "-f")
+                                    for call in read.call_args_list))
+
     def test_icon_description_can_belong_to_clickable_parent(self):
         checker.verify_ui('''<hierarchy><node package="com.jeerovan.comfer"
             clickable="true" enabled="true" bounds="[0,0][100,100]">

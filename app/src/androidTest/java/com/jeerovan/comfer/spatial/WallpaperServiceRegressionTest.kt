@@ -33,6 +33,44 @@ import java.util.concurrent.atomic.AtomicInteger
 class WallpaperServiceRegressionTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun availableRotationVectorIsRegisteredAndReleasedWhenDisabled() {
+        // Real sensor events can request frames continuously. Verify the OS
+        // lease with a controlled clock instead of waiting for physical stillness.
+        compose.mainClock.autoAdvance = false
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val manager = instrumentation.targetContext.getSystemService(android.hardware.SensorManager::class.java)
+        val sensor = listOf(android.hardware.Sensor.TYPE_GAME_ROTATION_VECTOR,
+            android.hardware.Sensor.TYPE_ROTATION_VECTOR,
+            android.hardware.Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR)
+            .firstNotNullOfOrNull { manager.getDefaultSensor(it) }
+        org.junit.Assume.assumeNotNull(sensor)
+        val uid = android.os.Process.myUid()
+        fun hasActiveLease(): Boolean {
+            // Inspect the running app's OS registration, not merely sensor availability
+            // or a direct test registration. This fails on geomagnetic-only phones if
+            // rememberSpatialTilt silently stops after looking for gyroscope sensors.
+            val text = instrumentation.uiAutomation.executeShellCommand("dumpsys sensorservice").use {
+                android.os.ParcelFileDescriptor.AutoCloseInputStream(it).bufferedReader().readText()
+            }
+            return text.substringBefore("Previous Registrations:")
+                .split("Connection Number:").drop(1).any { connection ->
+                    connection.contains("| uid $uid |") &&
+                        connection.lineSequence().any { it.contains(sensor!!.name) && it.contains("status: active") }
+                }
+        }
+        var enabled by mutableStateOf(true)
+        try {
+            compose.setContent { rememberSpatialTilt(enabled, "physical-sensor-regression") }
+            compose.waitUntil("Spatial tilt must register an available rotation-vector sensor", 10_000) { hasActiveLease() }
+            compose.runOnIdle { enabled = false }
+            compose.mainClock.advanceTimeBy(32)
+            compose.waitUntil("Disabling 3D must release its physical sensor", 5_000) { !hasActiveLease() }
+        } finally {
+            compose.runOnIdle { enabled = false }
+            compose.mainClock.advanceTimeBy(32)
+        }
+    }
+
     @Test fun disabledTiltNeverAcquiresSensorService() {
         val queries = AtomicInteger()
         val context = object : ContextWrapper(InstrumentationRegistry.getInstrumentation().targetContext) {

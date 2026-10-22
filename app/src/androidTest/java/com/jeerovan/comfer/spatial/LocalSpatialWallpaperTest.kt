@@ -109,6 +109,9 @@ class LocalSpatialWallpaperTest {
     @Test
     @androidx.test.filters.SdkSuppress(minSdkVersion = 26)
     fun archivedEffectAppliesOnHomeAndOptOutRestoresOriginalWithoutPreview() {
+        // Keep live tilt input from blocking Espresso's idle check; advance the
+        // actual reveal/render frames explicitly while retaining pixel assertions.
+        compose.mainClock.autoAdvance = false
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val prefs = spatialPreferences(context)
         val oldEnabled = prefs.getBoolean(LOCAL_SPATIAL, false)
@@ -142,6 +145,7 @@ class LocalSpatialWallpaperTest {
                 Box(Modifier.fillMaxSize()) { renderLocalSpatialWallpaper(false, 380f, 822f, path = source.path) }
             }
             fun center(): Int {
+                compose.mainClock.advanceTimeBy(64)
                 val image = compose.onRoot().captureToImage().asAndroidBitmap()
                 return image.getPixel(image.width / 2, image.height / 2)
             }
