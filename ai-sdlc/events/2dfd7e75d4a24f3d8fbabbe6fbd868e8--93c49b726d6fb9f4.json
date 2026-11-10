@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "dd001b3447684f82aabbae0ba9b2ccb6"
+  },
+  "id": "2dfd7e75d4a24f3d8fbabbe6fbd868e8",
+  "reason": "Run expected baseline failure now that owner installed runner",
+  "seq": 197,
+  "time": "2026-11-10T12:13:26.903469+00:00"
+}

@@ -1,0 +1,52 @@
+{
+  "adaptations": [
+    "isolated notificationTest application ID",
+    "Original in-memory inventory restored; activity recreated using normal default construction"
+  ],
+  "bypasses": [
+    "After default Home startup, replace one in-memory quick icon with controlled failure; does not reproduce production heap exhaustion or real package icon decoder failure"
+  ],
+  "criteria": [
+    "R58-ICON-MEM-REQ#home-recovery"
+  ],
+  "entrypoint": "DrawableMemoryHomeTest plus AppIconLoadingTest real installed inventory controls",
+  "environment": "Redmi7 API29 verified app8026d778 runner99d3e9c0",
+  "finished_at": "2026-11-10T12:32:12.756393+00:00",
+  "id": "b93ede93ce63418290222e8d9b76ff49",
+  "level": "integration",
+  "observation": "2/2 Redmi tests passed. Default MainActivity startup loaded real quick inventory before fault injection. Failed drawable rendered through actual AppIcon once; Workspace opened/closed. Healthy replacement rendered red center pixel with unchanged bounds. Restoring in-memory inventory then recreation removed fixture icon and Workspace remained usable. Separate installed-icon control completed3cold cache rounds retaining labels/components/profiles/drawables. Does not reproduce exhausted physical heap or identify global heap cause.",
+  "order": 21,
+  "proof": {
+    "validation-artifacts/release58-drawable-memory-20261110/candidate-home.txt": "267af1ff1ff09ccda5fe7395b560e4018a58a8d597e1977c02895fe08df4752b"
+  },
+  "proof_path": "validation-artifacts/release58-drawable-memory-20261110/candidate-home.txt",
+  "result": "passed",
+  "snapshot": {
+    "files": {
+      "app/build.gradle.kts": "35faf209457acc372355e445c39f03c3264a57bc809aa24cdb050f8900591e90",
+      "app/src/androidTest/java/com/jeerovan/comfer/AppIconLoadingTest.kt": "acb0a443128342cf50df36a499df8ea44d1d503e35f4e045a5e99dfa26b61333",
+      "app/src/androidTest/java/com/jeerovan/comfer/DrawableMemoryHomeTest.kt": "3d3bc5dcba837bac7dfb276a0648032348012a1142e290e0e81726aa313d79cf",
+      "app/src/androidTest/java/com/jeerovan/comfer/DrawableMemoryTest.kt": "d94a66feb7ef23193f74f9f9317ade96d66eebb8e82b4210c6fe49d9cc56286d",
+      "app/src/androidTest/java/com/jeerovan/comfer/Release50RegressionTest.kt": "6b3d7dc74922a4faf6b44b335010e732c11a6814d53a9810ca9d51c4e8263619",
+      "app/src/androidTest/java/com/jeerovan/comfer/Release51RegressionTest.kt": "cda6b7610efe7de7a54d079d547dedce2f10a2e3d8cb86556da7efcc6c140cb4",
+      "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1",
+      "app/src/main/java/com/jeerovan/comfer/AppInfoViewModel.kt": "e0c01be87ce0bcf0c51bcb4cd7c2d4ba357f5e3fafb2e346885ddf57ac0912ce",
+      "app/src/main/java/com/jeerovan/comfer/AppSelectionActivity.kt": "0aee86f56dc3018f7b4661901d51285cf8b3fa03d220f2bf79c0c2d2cdca21c7",
+      "app/src/main/java/com/jeerovan/comfer/DrawableExt.kt": "4b011e6d10b40b2b23e7946124fb6ce8cddeb6c6b756e8b048c9d2f930885b4d",
+      "app/src/main/java/com/jeerovan/comfer/DrawerTitleContrast.kt": "4926db8c1e864afbbd3968e06d3f1d26f3ac6f9af3f8b91650d347d746cd2f86",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "b76793a2ca2e0838571f54582837ce6ba12ba8f7cd13682a6227d26361a06212",
+      "app/src/main/java/com/jeerovan/comfer/Settings.kt": "42109f70a8573f3069bb7c4ecf562bf4991a6eccdea0cb9dedde88bdcbb7f6a0",
+      "app/src/main/java/com/jeerovan/comfer/WidgetImages.kt": "d4f76e6b3d51d27e47902a31fd43381342c925e2499c9790a76c0b61fe0666ce",
+      "app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt": "ab5d9f89e403136d2a9faecec907c4672be01343424308906ffd7c9248377845",
+      "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216"
+    },
+    "graph": "b10610e3fb82de0b7cd9bc123cc1878a8890e7e3546372f8d42b8cb609f4d805",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-10T12:31:21.496365+00:00",
+  "step": "R58-FIX-04",
+  "test": "R58-ICON-MEM-TEST"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "7d4ae8dc990d489eb83de99a2bea7b55"
+  },
+  "id": "42128885b35140bd866243bded85e37f",
+  "reason": "Record owner-authorized single-database consolidation and actual integrity readback",
+  "seq": 246,
+  "time": "2026-11-10T12:55:13.147703+00:00"
+}

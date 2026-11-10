@@ -1,0 +1,115 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "History documents/entries retain stable linked revisions. Firebase/Play import snapshots already retain import counts. Add issue state audit tables with composite FKs and triggers for status/notes/resolved/presence changes; remove backup paths in all writers of play_reporting.db.",
+      "id": "OPS-BACKUP-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/issue_history.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/import_firebase_crashlytics.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/sync_play_issues.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/README-play-reporting.md",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "AGENTS.md",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/issue_state_history.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 3,
+      "status": "pending",
+      "tags": [],
+      "title": "Single-database issue history and transactional state revisions"
+    },
+    "before": {
+      "criteria": [],
+      "description": "History documents/entries retain stable linked revisions. Firebase/Play import snapshots already retain import counts. Add issue state audit tables with composite FKs and triggers for status/notes/resolved/presence changes; remove backup paths in all writers of play_reporting.db.",
+      "id": "OPS-BACKUP-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/issue_history.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/import_firebase_crashlytics.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/sync_play_issues.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/README-play-reporting.md",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "AGENTS.md",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Single-database issue history and transactional state revisions"
+    },
+    "node": "OPS-BACKUP-IMPL",
+    "reopened": []
+  },
+  "id": "3735c52231a14dedb553d9ae82082aca",
+  "reason": "Bind shared in-database state history and backup audit coverage",
+  "seq": 239,
+  "time": "2026-11-10T12:50:27.360925+00:00"
+}

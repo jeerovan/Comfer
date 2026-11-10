@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "612941cae4e546e5b5efb6cd5674c17e"
+  },
+  "id": "c2a0e4e56f634523b225a6e3ebcddb60",
+  "reason": "Import regression and retained-export validation completed with current source; append-only operational history recorded.",
+  "seq": 262,
+  "time": "2026-11-10T13:37:43.106206+00:00"
+}

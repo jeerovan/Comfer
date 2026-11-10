@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "b93ede93ce63418290222e8d9b76ff49"
+  },
+  "id": "1ca3d94d6f384d4e8d60fa32285b794f",
+  "reason": "Verify shared painter failure/recovery through default Home and independent installed-icon loading",
+  "seq": 221,
+  "time": "2026-11-10T12:31:21.496758+00:00"
+}

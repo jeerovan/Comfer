@@ -2542,14 +2542,13 @@ fun QuickListOverlay(apps: List<AppInfo>,
                                 detectTapGestures (
                                     onLongPress = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        if(activeGuide == HomeGuideStep.SETTINGS) {
+                                        if(SettingsActivity.open(context) && activeGuide == HomeGuideStep.SETTINGS) {
                                             settingsModel.setStepGuideShown(
                                                 context,
                                                 settingsLongPressKey
                                             )
                                             settingsLongPressShown = true
                                         }
-                                        SettingsActivity.open(context)
                                     },
                                     onDoubleTap = {
                                         if(activeGuide == HomeGuideStep.RECENTS){
@@ -2564,11 +2563,10 @@ fun QuickListOverlay(apps: List<AppInfo>,
                             .detectGestures(
                                 onInbox = {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    if (activeGuide == HomeGuideStep.INBOX) {
+                                    if (com.jeerovan.comfer.notifications.NotificationInboxActivity.open(context) && activeGuide == HomeGuideStep.INBOX) {
                                         settingsModel.setStepGuideShown(context, inboxGestureKey)
                                         inboxGestureShown = true
                                     }
-                                    com.jeerovan.comfer.notifications.NotificationInboxActivity.open(context)
                                 },
                                 onSwipeUp = {
                                     if(activeGuide == HomeGuideStep.SWIPE_UP) {

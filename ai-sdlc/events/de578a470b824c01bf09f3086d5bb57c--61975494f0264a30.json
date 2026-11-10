@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "2c6fda0493a54cfe825f78d58352d9f0"
+  },
+  "id": "de578a470b824c01bf09f3086d5bb57c",
+  "reason": "Record exact pre-fix defects",
+  "seq": 258,
+  "time": "2026-11-10T13:31:30.965503+00:00"
+}

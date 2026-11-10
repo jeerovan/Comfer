@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "16814da414f749e78ea4000bd52d2aa4"
+  },
+  "id": "253b236fe21542178e9a7c9fe63d1526",
+  "reason": "Reproduce uncovered snapshot failure before behavior edits",
+  "seq": 216,
+  "time": "2026-11-10T12:27:34.075436+00:00"
+}

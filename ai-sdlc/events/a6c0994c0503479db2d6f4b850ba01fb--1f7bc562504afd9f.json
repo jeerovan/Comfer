@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "fb0eb71aa8d54ffab399223a3507b482"
+  },
+  "id": "a6c0994c0503479db2d6f4b850ba01fb",
+  "reason": "Record single-database transaction and revision tests",
+  "seq": 243,
+  "time": "2026-11-10T12:52:18.502007+00:00"
+}

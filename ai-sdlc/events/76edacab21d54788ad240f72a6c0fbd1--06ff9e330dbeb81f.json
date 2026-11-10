@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "7d4ae8dc990d489eb83de99a2bea7b55"
+  },
+  "id": "76edacab21d54788ad240f72a6c0fbd1",
+  "reason": "Owner-authorized duplicate retirement after all20 snapshots passed read-only logical audit",
+  "seq": 244,
+  "time": "2026-11-10T12:52:19.122429+00:00"
+}

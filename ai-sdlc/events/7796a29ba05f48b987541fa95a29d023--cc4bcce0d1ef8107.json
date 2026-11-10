@@ -1,0 +1,185 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Inspect default Home gestures, Workspace completion, Task panel and inbox badge consumers; preserve manifest registrations and task/animation/extras contracts.",
+      "id": "R58-NAV-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/Settings.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/HomeGestureGuide.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/PreferenceManager.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/notes/NotesActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/tasks/TasksActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/tasks/TaskHomePanel.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/journals/JournalActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/InternalActivityLaunch.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 3,
+      "status": "pending",
+      "tags": [],
+      "title": "Internal activity launch boundary and Home consumers"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Inspect default Home gestures, Workspace completion, Task panel and inbox badge consumers; preserve manifest registrations and task/animation/extras contracts.",
+      "id": "R58-NAV-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/Settings.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/HomeGestureGuide.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/PreferenceManager.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/notes/NotesActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/tasks/TasksActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/tasks/TaskHomePanel.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/journals/JournalActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Internal activity launch boundary and Home consumers"
+    },
+    "node": "R58-NAV-IMPL",
+    "reopened": []
+  },
+  "id": "7796a29ba05f48b987541fa95a29d023",
+  "reason": "Include new shared launch guard in source evidence scope",
+  "seq": 199,
+  "time": "2026-11-10T12:14:31.930992+00:00"
+}

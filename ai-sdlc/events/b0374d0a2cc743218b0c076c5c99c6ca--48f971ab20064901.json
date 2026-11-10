@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "4e9d3a0752b24cfa82f83094a87948e7"
+  },
+  "id": "b0374d0a2cc743218b0c076c5c99c6ca",
+  "reason": "Reproduce full-copy growth before changing writer behavior",
+  "seq": 237,
+  "time": "2026-11-10T12:46:48.263740+00:00"
+}

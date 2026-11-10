@@ -1,0 +1,68 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Firebase MCP supplies complete version-filtered export; CLI validates and calls save_import. Related Play path shares presence update. History triggers record final state; recurrence reader consumes current/prior issue samples.",
+      "id": "OPS-IMPORT-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/import_firebase_crashlytics.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/sync_play_issues.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/issue_state_history.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/issue_history.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/analyze_crashlytics_recurrence.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/README-play-reporting.md",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Firebase and Play transactional refresh paths"
+    },
+    "before": null,
+    "node": "OPS-IMPORT-IMPL",
+    "reopened": []
+  },
+  "id": "fe7fe39bef6242bfa1443c0ee0258e63",
+  "reason": "Track concrete issues found in requested Firebase importer review",
+  "seq": 250,
+  "time": "2026-11-10T13:30:31.283918+00:00"
+}

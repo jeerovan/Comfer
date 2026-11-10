@@ -1,0 +1,48 @@
+{
+  "criteria": [],
+  "description": "Actual CLI fixtures, failure injection at transactional DB boundary, immutable/deduplicated evidence checks and real export dry-run. No live remote mutation.",
+  "id": "OPS-IMPORT-TEST",
+  "kind": "test",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/tests/test_import_firebase_crashlytics.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/tests/test_sync_play_issues.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/tests/test_issue_state_history.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/tests/test_issue_history.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/tests/test_analyze_crashlytics_recurrence.py",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Import entry point, historical evidence and state regressions"
+}

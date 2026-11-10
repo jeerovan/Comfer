@@ -1,0 +1,33 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Temporary fixture databases preserve telemetry/append-only history; actual subprocess CLI tests plus deterministic backup failure. Existing cleanup retains a per-archive decompressed hash proof.",
+      "id": "OPS-BACKUP-TEST",
+      "kind": "test",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/tests/test_issue_history.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "CLI restoration, bounded growth and failed-backup recovery"
+    },
+    "before": null,
+    "node": "OPS-BACKUP-TEST",
+    "reopened": []
+  },
+  "id": "99b74f8c684c4687b68bac3794dad499",
+  "reason": "Correct backup growth discovered by owner and preserve recovery evidence",
+  "seq": 227,
+  "time": "2026-11-10T12:40:35.891436+00:00"
+}

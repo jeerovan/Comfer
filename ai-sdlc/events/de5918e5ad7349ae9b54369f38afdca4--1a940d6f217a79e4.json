@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "in_progress",
+    "node": "OPS-IMPORT-01",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "de5918e5ad7349ae9b54369f38afdca4",
+  "reason": "Current acceptance gate allows completion; 44 regressions and retained real-export dry run pass. Live DB integrity/foreign keys clean and no copies. History appended successfully via issue_history CLI; new evidence schema installs on next Firebase import. No remote or device changes.",
+  "seq": 263,
+  "time": "2026-11-10T13:38:05.862078+00:00"
+}

@@ -1,0 +1,6 @@
+{
+  "rationale": "Storage recovery must retain restorable evidence and bound future automatic backup growth",
+  "relation": "implements",
+  "source": "OPS-BACKUP-01",
+  "target": "OPS-BACKUP-REQ"
+}

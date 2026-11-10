@@ -1,0 +1,40 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "CLI pending check precedes backup; import_sources runs only after verified backup. Use SQLite backup into system temporary storage, compressed staging file beside DB, verified decompression then atomic replacement. Existing archives retained.",
+      "id": "OPS-BACKUP-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/issue_history.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/README-play-reporting.md",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Verified compressed rolling issue-history backup"
+    },
+    "before": null,
+    "node": "OPS-BACKUP-IMPL",
+    "reopened": []
+  },
+  "id": "857cc59884a74a03b7ed31cf02e027ef",
+  "reason": "Correct backup growth discovered by owner and preserve recovery evidence",
+  "seq": 226,
+  "time": "2026-11-10T12:40:35.272149+00:00"
+}

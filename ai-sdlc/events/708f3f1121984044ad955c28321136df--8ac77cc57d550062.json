@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Fix issue_history backup policy; losslessly compress timestamped backups created during release58 work. Preserve original telemetry-import baseline for existing verification references.",
+      "id": "OPS-BACKUP-01",
+      "kind": "step",
+      "phase": "maintenance",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Recover project storage and prevent repeated full-copy growth"
+    },
+    "before": null,
+    "node": "OPS-BACKUP-01",
+    "reopened": []
+  },
+  "id": "708f3f1121984044ad955c28321136df",
+  "reason": "Correct backup growth discovered by owner and preserve recovery evidence",
+  "seq": 225,
+  "time": "2026-11-10T12:40:34.624794+00:00"
+}

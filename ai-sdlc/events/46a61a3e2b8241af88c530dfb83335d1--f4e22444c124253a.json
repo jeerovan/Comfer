@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Evidence-backed shared snapshot failure containment and default Home recovery",
+      "relation": "realizes",
+      "source": "R58-ICON-MEM-IMPL",
+      "target": "R58-FIX-04"
+    },
+    "reopened": []
+  },
+  "id": "46a61a3e2b8241af88c530dfb83335d1",
+  "reason": "Link owned bitmap behavior, implementation and tests",
+  "seq": 212,
+  "time": "2026-11-10T12:24:35.539362+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "540fb1f6571b4c77a2a90c8650b65dc8"
+  },
+  "id": "7b8d1c462ea346f797b7750a3cf87fd5",
+  "reason": "Record real-entry rejection/recovery and independent healthy navigation controls",
+  "seq": 205,
+  "time": "2026-11-10T12:18:13.625339+00:00"
+}

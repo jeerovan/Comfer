@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "in_progress",
+    "node": "R58-FIX-03",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "ba19daf7f70444b3b35de4d3e885a389",
+  "reason": "Both scoped acceptance criteria pass on verified isolated Redmi candidate; actual failure/retry and healthy navigation observed. Original OEM root cause, production resolution and regular-build delivery expressly excluded.",
+  "seq": 206,
+  "time": "2026-11-10T12:19:00.273010+00:00"
+}

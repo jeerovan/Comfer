@@ -1,0 +1,6 @@
+{
+  "rationale": "Evidence-backed shared snapshot failure containment and default Home recovery",
+  "relation": "verifies",
+  "source": "R58-ICON-MEM-TEST",
+  "target": "R58-FIX-04"
+}

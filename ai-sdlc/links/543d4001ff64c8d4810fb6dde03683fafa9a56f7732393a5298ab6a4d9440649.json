@@ -1,0 +1,6 @@
+{
+  "rationale": "Evidence-backed shared snapshot failure containment and default Home recovery",
+  "relation": "implements",
+  "source": "R58-FIX-04",
+  "target": "R58-ICON-MEM-REQ"
+}

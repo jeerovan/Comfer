@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "e951b9ed1bd24e80bfcc7e06861251d2"
+  },
+  "id": "28dadb3b50c9448896204d2b03f1820f",
+  "reason": "Record actual focused component result",
+  "seq": 203,
+  "time": "2026-11-10T12:17:05.246817+00:00"
+}

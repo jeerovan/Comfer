@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "OPS-BACKUP-01",
+    "reopened": [],
+    "to": "in_progress"
+  },
+  "id": "ef2951e0ac1d4a53bdc7d5f9beea03bb",
+  "reason": "Implement explicit single-database revision policy",
+  "seq": 236,
+  "time": "2026-11-10T12:46:47.645263+00:00"
+}

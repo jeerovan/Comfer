@@ -9,6 +9,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 SPEC = importlib.util.spec_from_file_location('issue_history', Path(__file__).resolve().parents[1]/'issue_history.py')
 history = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(history)
@@ -26,8 +28,10 @@ class HistoryTest(unittest.TestCase):
         self.conn = sqlite3.connect(':memory:')
         self.conn.execute('PRAGMA foreign_keys=ON')
         self.conn.executescript('''CREATE TABLE crashlytics_issues (
-            firebase_app_id TEXT, version_code INTEGER, issue_id TEXT, notes TEXT, status TEXT);
-            CREATE TABLE issues (package_name TEXT,version_code INTEGER,issue_id TEXT,notes TEXT,status TEXT);''')
+            firebase_app_id TEXT, version_code INTEGER, issue_id TEXT, notes TEXT, status TEXT,
+            PRIMARY KEY(firebase_app_id,version_code,issue_id));
+            CREATE TABLE issues (package_name TEXT,version_code INTEGER,issue_id TEXT,notes TEXT,status TEXT,
+            PRIMARY KEY(package_name,version_code,issue_id));''')
         self.conn.executemany('INSERT INTO crashlytics_issues VALUES (?,?,?,?,?)', [
             (history.APP, 51, ISSUE, 'original early attempt', 'investigating'),
             (history.APP, 56, ISSUE, 'append only; production unverified', 'investigating'),
@@ -188,7 +192,7 @@ Build revision: {'a'*40}; mapping resource ID: {'b'*32}.\n'''
                     path.write_text(json.dumps(data))
                     with self.assertRaises(ValueError): history.from_manifest(path)
 
-    def test_cli_backup_and_repeat_record_are_safe(self):
+    def test_cli_revisions_stay_in_one_database_and_repeat_is_idempotent(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory); database=root/'reporting.db'; input_file=root/'update.json'
             with closing(sqlite3.connect(database)) as conn: self.conn.backup(conn)
@@ -198,12 +202,18 @@ Build revision: {'a'*40}; mapping resource ID: {'b'*32}.\n'''
             first=subprocess.run(command,text=True,capture_output=True,check=True)
             report=json.loads(first.stdout)
             self.assertEqual(1,report['documents'])
-            with closing(sqlite3.connect(report['backup'])) as recovery:
-                self.assertFalse(history.has_history(recovery))
-                self.assertEqual(3,recovery.execute('SELECT count(*) FROM crashlytics_issues').fetchone()[0])
+            self.assertIsNone(report['backup'])
             repeated=json.loads(subprocess.run(command,text=True,capture_output=True,check=True).stdout)
             self.assertEqual(0,repeated['documents']);self.assertIsNone(repeated['backup'])
-            self.assertEqual(1,len(list(root.glob('reporting.db.backup-*'))))
+            update=json.loads(input_file.read_text());update['title']='Later validation; production still unknown'
+            input_file.write_text(json.dumps(update))
+            changed=json.loads(subprocess.run(command,text=True,capture_output=True,check=True).stdout)
+            self.assertEqual(1,changed['documents'])
+            self.assertIsNone(changed['backup'])
+            self.assertEqual([],list(root.glob('reporting.db.backup-*')))
+            with closing(sqlite3.connect(database)) as current:
+                self.assertEqual(2,current.execute('SELECT count(*) FROM issue_history_documents').fetchone()[0])
+                self.assertEqual(3,current.execute('SELECT count(*) FROM crashlytics_issues').fetchone()[0])
 
     def test_read_cli_rejects_missing_database_without_creating_it(self):
         with tempfile.TemporaryDirectory() as directory:

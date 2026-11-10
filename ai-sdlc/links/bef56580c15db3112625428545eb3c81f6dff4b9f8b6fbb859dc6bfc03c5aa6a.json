@@ -1,0 +1,6 @@
+{
+  "rationale": "Single DB refresh must preserve true state transitions and sample history",
+  "relation": "implements",
+  "source": "OPS-IMPORT-01",
+  "target": "OPS-IMPORT-REQ"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "16814da414f749e78ea4000bd52d2aa4"
+  },
+  "id": "65abcc5785db4bed97032b4f39ec2e4f",
+  "reason": "Retain exact pre-fix failures",
+  "seq": 217,
+  "time": "2026-11-10T12:28:23.032731+00:00"
+}

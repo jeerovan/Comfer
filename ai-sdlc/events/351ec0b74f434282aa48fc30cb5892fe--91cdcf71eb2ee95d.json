@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "in_progress",
+    "node": "OPS-BACKUP-01",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "351ec0b74f434282aa48fc30cb5892fe",
+  "reason": "Owner-directed single reporting DB implemented. Full-copy paths removed from reporting writers; linked state revisions and rollback tested31checks. All20duplicates audited and removed without losing user rows; live integrity/FK checks pass; project24GiB to3.9GiB.",
+  "seq": 247,
+  "time": "2026-11-10T12:55:22.458655+00:00"
+}

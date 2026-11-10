@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Focused release58 crash containment and normal-entry retry acceptance",
+      "relation": "realizes",
+      "source": "R58-NAV-IMPL",
+      "target": "R58-FIX-03"
+    },
+    "reopened": []
+  },
+  "id": "a9cde5d1cc5f4fb08573f68b39a9c688",
+  "reason": "Declare navigation implementation and verification dependencies",
+  "seq": 190,
+  "time": "2026-11-10T11:38:26.205307+00:00"
+}

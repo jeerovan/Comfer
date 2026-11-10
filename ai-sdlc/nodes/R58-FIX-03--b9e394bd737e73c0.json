@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Attempt58-R04. Shared narrow launch boundary for five internal activity wrappers; complete Settings/Inbox gesture guide only on accepted dispatch. Depends on preserved import16 evidence and existing navigation contracts. No layout changes, release bump or sync work.",
+  "id": "R58-FIX-03",
+  "kind": "step",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "completed",
+  "tags": [],
+  "title": "Guard internal launch rejection and preserve retry"
+}

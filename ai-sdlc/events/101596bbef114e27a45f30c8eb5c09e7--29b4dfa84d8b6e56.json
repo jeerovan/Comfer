@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "fb0eb71aa8d54ffab399223a3507b482"
+  },
+  "id": "101596bbef114e27a45f30c8eb5c09e7",
+  "reason": "Verify one database, revisions, no-op behavior, foreign keys and rollback",
+  "seq": 242,
+  "time": "2026-11-10T12:50:29.317253+00:00"
+}

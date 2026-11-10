@@ -162,8 +162,8 @@ class JournalActivity : AppCompatActivity() {
         } }
     }
     companion object {
-        fun open(context: Context) {
-            context.startActivity(Intent(context, JournalActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+        fun open(context: Context): Boolean {
+            return com.jeerovan.comfer.launchInternalActivity(context, Intent(context, JournalActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
                 ActivityOptions.makeCustomAnimation(context, R.anim.notification_inbox_enter, R.anim.notification_inbox_underlay).toBundle())
         }
     }

@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Storage recovery must retain restorable evidence and bound future automatic backup growth",
+      "relation": "realizes",
+      "source": "OPS-BACKUP-IMPL",
+      "target": "OPS-BACKUP-01"
+    },
+    "reopened": []
+  },
+  "id": "88634ee909aa4a0a85fb3bfc0debbfe0",
+  "reason": "Bind backup retention behavior and CLI regression coverage",
+  "seq": 229,
+  "time": "2026-11-10T12:40:37.677321+00:00"
+}

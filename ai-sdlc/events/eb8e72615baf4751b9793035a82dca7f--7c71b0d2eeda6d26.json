@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "4e9d3a0752b24cfa82f83094a87948e7"
+  },
+  "id": "eb8e72615baf4751b9793035a82dca7f",
+  "reason": "Retain confirmed regression for unwanted duplication",
+  "seq": 238,
+  "time": "2026-11-10T12:47:43.156506+00:00"
+}

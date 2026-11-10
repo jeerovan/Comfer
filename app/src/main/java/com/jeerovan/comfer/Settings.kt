@@ -175,9 +175,9 @@ private enum class BackupRestoreOperation { BACKUP, RESTORE }
 
 class SettingsActivity : AppCompatActivity() {
     companion object {
-        fun open(context: android.content.Context) {
+        fun open(context: android.content.Context): Boolean {
             // Internal navigation stays in the launcher's task, like the notification inbox.
-            context.startActivity(Intent(context, SettingsActivity::class.java))
+            return launchInternalActivity(context, Intent(context, SettingsActivity::class.java))
         }
     }
     private val settingsViewModel: SettingsViewModel by viewModels()

@@ -1,0 +1,6 @@
+{
+  "rationale": "Focused release58 crash containment and normal-entry retry acceptance",
+  "relation": "implements",
+  "source": "R58-FIX-03",
+  "target": "R58-NAV-REQ"
+}

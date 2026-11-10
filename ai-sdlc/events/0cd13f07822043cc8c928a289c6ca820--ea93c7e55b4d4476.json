@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Attempt58-R04. Shared narrow launch boundary for five internal activity wrappers; complete Settings/Inbox gesture guide only on accepted dispatch. Depends on preserved import16 evidence and existing navigation contracts. No layout changes, release bump or sync work.",
+      "id": "R58-FIX-03",
+      "kind": "step",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Guard internal launch rejection and preserve retry"
+    },
+    "before": null,
+    "node": "R58-FIX-03",
+    "reopened": []
+  },
+  "id": "0cd13f07822043cc8c928a289c6ca820",
+  "reason": "Track evidence-backed release58 internal navigation crash containment",
+  "seq": 186,
+  "time": "2026-11-10T11:38:24.055213+00:00"
+}

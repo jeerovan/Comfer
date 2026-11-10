@@ -1,0 +1,70 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "No duplicate database files; current issue state updated atomically; prior state revisions and linked historical evidence retained; no-op changes add no state revision; failed transaction rolls back changes and revisions",
+          "id": "single-database",
+          "initial_state": "Existing reporting database with telemetry and linked fix history",
+          "invariants": "Stable provider/scope/version/issue identities and foreign keys; no historical completion promoted to current verification; status history append-only",
+          "required_level": "integration",
+          "trigger": "Append/revise history records, import telemetry, update issue status/notes/presence, repeat writes and force transaction failure"
+        },
+        {
+          "expected": "One play_reporting.db remains with every unique historical record preserved; project size materially reduced; backup audit retained",
+          "id": "cleanup",
+          "initial_state": "Timestamped reporting database copies dominate disk space",
+          "invariants": "No unique source/test evidence or user data lost; never delete an unaudited copy",
+          "required_level": "component",
+          "trigger": "Compare every historical backup row against live database; reconcile any unique data before removing copies"
+        }
+      ],
+      "description": "Owner explicitly requires one canonical play_reporting.db. Reuse append-only document/attempt/issue links and import snapshots; add compact relational state revisions for status/notes/presence changes. Remove automatic full-copy backups; verify older backup rows are retained before removing redundant copies.",
+      "id": "OPS-BACKUP-REQ",
+      "kind": "requirement",
+      "phase": "maintenance",
+      "refs": [],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Keep reporting revisions in one database without automatic copies"
+    },
+    "before": {
+      "criteria": [
+        {
+          "expected": "New write creates compressed restorable pre-write snapshot; later writes replace only rolling backup; repeated records create none; failed backup preserves live DB and previous verified backup and leaves no partial archive",
+          "id": "bounded-recovery",
+          "initial_state": "Existing reporting database and optional previously verified rolling backup",
+          "invariants": "Retain historical documents and telemetry; verify SQLite snapshot and decompressed SHA256 before publish; restore into separate file; never prune historical archives automatically",
+          "required_level": "integration",
+          "trigger": "Run real issue_history CLI for new/repeated records; simulate backup failure"
+        },
+        {
+          "expected": "Every original backup has byte-identical verified archive; project size materially reduced; live DB and original telemetry-import baseline unchanged",
+          "id": "cleanup",
+          "initial_state": "Existing timestamped full issue-history backup copies dominate repository disk usage",
+          "invariants": "No source, test evidence, installed app or user data deletion; retain exact hashes and archive mapping",
+          "required_level": "component",
+          "trigger": "Compress existing issue-history backup files and verify restored bytes before removing each raw duplicate"
+        }
+      ],
+      "description": "Owner reports project24GiB. Measured19.543GiB in19issue-history backups; each small record copied1.137GiB DB. Preserve existing historical backups losslessly; future writes keep one verified compressed rolling pre-write backup, atomically replaced only after verification.",
+      "id": "OPS-BACKUP-REQ",
+      "kind": "requirement",
+      "phase": "maintenance",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Bound issue-history backup growth while preserving recovery"
+    },
+    "node": "OPS-BACKUP-REQ",
+    "reopened": []
+  },
+  "id": "0b54b6cd50fb412399c3b532feabc749",
+  "reason": "Owner rejects database copies and requests relational revisions inside one DB",
+  "seq": 231,
+  "time": "2026-11-10T12:46:44.202384+00:00"
+}

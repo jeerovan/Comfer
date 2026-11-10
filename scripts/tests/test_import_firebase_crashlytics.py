@@ -1,4 +1,6 @@
 import copy
+from contextlib import redirect_stdout
+import io
 import json
 from pathlib import Path
 import sqlite3
@@ -78,6 +80,22 @@ def payload(issues=None):
 
 
 class ValidationTests(unittest.TestCase):
+    def test_counts_require_integers_and_times_require_explicit_scope(self):
+        for value in (3.5, 3.0, True, '-1'):
+            data = payload();data['issues'][0]['events'] = value
+            with self.subTest(count=value), self.assertRaises(ValueError):
+                importer.validate_payload(data)
+        for field, value in [('periodStart','2026-08-13'), ('periodEnd','2026-09-11T23:59:59')]:
+            data=payload();data[field]=value
+            with self.subTest(field=field),self.assertRaisesRegex(ValueError,'timezone'):
+                importer.validate_payload(data)
+        data=payload();data['issues'][0]['event']['eventTime']='2026-08-01T00:00:00Z'
+        with self.assertRaisesRegex(ValueError,'outside'):
+            importer.validate_payload(data)
+        data=payload();data['firebaseAppId']='other-app'
+        with self.assertRaisesRegex(ValueError,'Firebase app'):
+            importer.validate_payload(data)
+
     def test_valid_payload_is_normalized(self):
         normalized = importer.validate_payload(payload())
         self.assertEqual(normalized["issue_count"], 1)
@@ -168,6 +186,89 @@ class ImportTests(unittest.TestCase):
             with self.assertRaises(sqlite3.IntegrityError):
                 importer.save_import(conn, normalized, "later")
             self.assertEqual(list(conn.iterdump()), before)
+
+    def test_unchanged_refresh_does_not_invent_presence_revisions(self):
+        self.save(payload())
+        self.save(payload())
+        with self.connect() as conn:
+            states = conn.execute('SELECT present_in_latest_import FROM crashlytics_issue_state_history ORDER BY revision_id').fetchall()
+        self.assertEqual([1], [row[0] for row in states])
+
+    def test_absence_and_reappearance_are_recorded_once_each(self):
+        self.save(payload())
+        self.save(payload([]))
+        self.save(payload([]))
+        self.save(payload())
+        with self.connect() as conn:
+            states = conn.execute('SELECT present_in_latest_import FROM crashlytics_issue_state_history ORDER BY revision_id').fetchall()
+        self.assertEqual([1, 0, 1], [row[0] for row in states])
+
+    def test_cli_refresh_creates_no_copies_and_keeps_linked_evidence(self):
+        path = Path(self.tempdir.name) / 'valid.json'
+        path.write_text(json.dumps(payload()))
+        with redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(0, importer.main(['--input', str(path), '--database', str(self.database)]))
+        self.assertIsNone(json.loads(output.getvalue())['backup'])
+        self.assertEqual([], list(Path(self.tempdir.name).glob('*.backup-*')))
+        with self.connect() as conn:
+            self.assertIsNotNone(conn.execute('SELECT evidence_id FROM crashlytics_issue_snapshots').fetchone()[0])
+
+    def test_existing_unarchived_sample_is_saved_before_replacement(self):
+        with self.connect() as conn:
+            # Existing issue table without the new evidence tables, as on an older installation.
+            for statement in importer.SCHEMA:
+                conn.execute(statement)
+            row = importer.validate_payload(payload())['rows'][0]
+            row.update(first_seen_at='before',last_synced_at='before',present_in_latest_import=1)
+            conn.execute(f"INSERT INTO crashlytics_issues ({','.join(row)}) VALUES ({','.join('?' for _ in row)})", list(row.values()))
+            conn.commit()
+        changed = issue()
+        changed['event']['rawEventText'] = 'new raw event'
+        self.save(payload([changed]))
+        with self.connect() as conn:
+            from crashlytics_evidence import read_evidence
+            rows = conn.execute('SELECT id,capture_kind FROM crashlytics_issue_evidence ORDER BY id').fetchall()
+            self.assertEqual(['pre-refresh','import'], [r[1] for r in rows])
+            self.assertEqual('raw event', read_evidence(conn,rows[0][0])['event']['raw_event_text'])
+            self.assertEqual('new raw event', read_evidence(conn,rows[1][0])['event']['raw_event_text'])
+
+    def test_aggregate_change_reuses_large_event_blob_and_evidence_is_immutable(self):
+        self.save(payload())
+        changed=issue(events=9);changed['rawGroup']='new aggregate raw group'
+        self.save(payload([changed]))
+        with self.connect() as conn:
+            rows=conn.execute('SELECT issue_blob_id,event_blob_id FROM crashlytics_issue_evidence ORDER BY id').fetchall()
+            self.assertNotEqual(rows[0][0],rows[1][0])
+            self.assertEqual(rows[0][1],rows[1][1])
+            for table in ('crashlytics_issue_evidence','crashlytics_evidence_blobs'):
+                with self.assertRaises(sqlite3.IntegrityError):
+                    conn.execute('DELETE FROM '+table)
+
+    def test_first_failed_import_leaves_no_partial_schema(self):
+        normalized = importer.validate_payload(payload())
+        normalized['rows'][0]['type'] = 'unsupported'
+        with self.connect() as conn:
+            with self.assertRaises(sqlite3.IntegrityError):
+                importer.save_import(conn, normalized, 'failed-first-import')
+            tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").fetchall()
+            self.assertEqual([], tables)
+
+    def test_changed_sample_is_retained_and_unchanged_samples_are_deduplicated(self):
+        self.save(payload())
+        changed = issue(events=7)
+        changed['event']['stackTrace'] = 'Changed stack'
+        changed['event']['rawEventText'] = 'Changed raw event'
+        self.save(payload([changed]))
+        self.save(payload([changed]))
+        with self.connect() as conn:
+            ids = [r[0] for r in conn.execute('SELECT evidence_id FROM crashlytics_issue_snapshots ORDER BY id')]
+            self.assertNotEqual(ids[0], ids[1])
+            self.assertEqual(ids[1], ids[2])
+            from crashlytics_evidence import read_evidence
+            self.assertEqual('raw event', read_evidence(conn, ids[0])['event']['raw_event_text'])
+            self.assertEqual('Changed stack', read_evidence(conn, ids[1])['event']['stack_trace'])
+            self.assertEqual(2, conn.execute('SELECT count(*) FROM crashlytics_issue_evidence').fetchone()[0])
+            self.assertEqual([], conn.execute('PRAGMA foreign_key_check').fetchall())
 
     def test_cli_validation_failure_does_not_modify_database(self):
         bad = payload()

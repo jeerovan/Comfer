@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "ef9713c08f964672be70be4b81aed874"
+  },
+  "id": "efe4d5b926f643dcbb43ee87c9ebf663",
+  "reason": "Record actual ownership/fallback regression results",
+  "seq": 220,
+  "time": "2026-11-10T12:31:20.907011+00:00"
+}

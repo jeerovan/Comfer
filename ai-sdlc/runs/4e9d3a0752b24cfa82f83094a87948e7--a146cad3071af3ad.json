@@ -1,0 +1,41 @@
+{
+  "adaptations": [
+    "Disposable fixture DB"
+  ],
+  "bypasses": [],
+  "criteria": [
+    "OPS-BACKUP-REQ#single-database"
+  ],
+  "entrypoint": "test_cli_revisions_stay_in_one_database_and_repeat_is_idempotent",
+  "environment": "Local temporary fixture SQLite; actual CLI subprocess",
+  "finished_at": "2026-11-10T12:47:43.156357+00:00",
+  "id": "4e9d3a0752b24cfa82f83094a87948e7",
+  "level": "integration",
+  "observation": "Actual history CLI created a whole reporting.db.backup-* for a tiny record; new single-database regression failed at backup-is-None assertion.",
+  "order": 22,
+  "proof": {
+    "validation-artifacts/storage-recovery-20261110/baseline-test.txt": "b4ebd4e7cadd933444f51fb7715e1995e626493795e59f3249e68bcc0eb4bc87"
+  },
+  "proof_path": "validation-artifacts/storage-recovery-20261110/baseline-test.txt",
+  "result": "failed",
+  "snapshot": {
+    "files": {
+      "AGENTS.md": "7a9df3be4e7362945a55e39e66ef1d1b52f6d0d6ebd81e1b52cb03267e416054",
+      "scripts/README-play-reporting.md": "25481af6be765eb8565e35589f960ee9e8f137eec3f1bbaadb4c5711beb12ebd",
+      "scripts/import_firebase_crashlytics.py": "24e1ab32b859a3571b967d5cf5c8a2894b2a50602932c9f46cd8e9651b3584d8",
+      "scripts/issue_history.py": "8ef8d653010e0725be3ef73988e709ef053ca63e23777d7f35da2e1a94f69fa2",
+      "scripts/sync_play_issues.py": "06bed46edd8910b8190704f30ebf4cc4f12c23caed72f915974838a5139235d2",
+      "scripts/tests/test_import_firebase_crashlytics.py": "6b18a387e562a2f2b4f40bd9b88b488e61b2b6d2ee1e02a280fa185ed5f598de",
+      "scripts/tests/test_issue_history.py": "3570692f396867c8a89169789a820422f489be2bc5952e6cf6e3eb0d91b02273",
+      "scripts/tests/test_sync_play_issues.py": "45e21a6e65484f65f892ff1ea14d4bb1dd1d0679a8f7ed6bc2920bb40f397b8b"
+    },
+    "graph": "6dab98e7146b144ee51840a3cae04fbddcec54706a89bdfb17d605da26066f25",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-10T12:46:48.263278+00:00",
+  "step": "OPS-BACKUP-01",
+  "test": "OPS-BACKUP-TEST"
+}

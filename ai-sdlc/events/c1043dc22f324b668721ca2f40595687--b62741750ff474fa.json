@@ -1,0 +1,213 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Inspect default Home gestures, Workspace completion, Task panel and inbox badge consumers; preserve manifest registrations and task/animation/extras contracts.",
+      "id": "R58-NAV-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/Settings.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/HomeGestureGuide.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/PreferenceManager.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/notes/NotesActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/tasks/TasksActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/tasks/TaskHomePanel.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/journals/JournalActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/InternalActivityLaunch.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/SettingsViewModel.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/notificationTest/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/build.gradle.kts",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 4,
+      "status": "pending",
+      "tags": [],
+      "title": "Internal activity launch boundary and Home consumers"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Inspect default Home gestures, Workspace completion, Task panel and inbox badge consumers; preserve manifest registrations and task/animation/extras contracts.",
+      "id": "R58-NAV-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/Settings.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/HomeGestureGuide.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/PreferenceManager.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/notes/NotesActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/tasks/TasksActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/tasks/TaskHomePanel.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/journals/JournalActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/InternalActivityLaunch.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 3,
+      "status": "pending",
+      "tags": [],
+      "title": "Internal activity launch boundary and Home consumers"
+    },
+    "node": "R58-NAV-IMPL",
+    "reopened": []
+  },
+  "id": "c1043dc22f324b668721ca2f40595687",
+  "reason": "Bind asynchronous guide persistence and isolated build configuration to verification",
+  "seq": 200,
+  "time": "2026-11-10T12:14:42.834785+00:00"
+}

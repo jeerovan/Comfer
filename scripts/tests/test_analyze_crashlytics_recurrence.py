@@ -1,9 +1,11 @@
 import importlib.util
 from pathlib import Path
 import sqlite3
+import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 def module(name):
     spec = importlib.util.spec_from_file_location(name, ROOT / (name + '.py'))
     result = importlib.util.module_from_spec(spec)

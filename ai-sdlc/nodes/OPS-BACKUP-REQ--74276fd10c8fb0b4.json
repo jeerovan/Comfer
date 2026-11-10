@@ -1,0 +1,29 @@
+{
+  "criteria": [
+    {
+      "expected": "No duplicate database files; current issue state updated atomically; prior state revisions and linked historical evidence retained; no-op changes add no state revision; failed transaction rolls back changes and revisions",
+      "id": "single-database",
+      "initial_state": "Existing reporting database with telemetry and linked fix history",
+      "invariants": "Stable provider/scope/version/issue identities and foreign keys; no historical completion promoted to current verification; status history append-only",
+      "required_level": "integration",
+      "trigger": "Append/revise history records, import telemetry, update issue status/notes/presence, repeat writes and force transaction failure"
+    },
+    {
+      "expected": "One play_reporting.db remains with every unique historical record preserved; project size materially reduced; backup audit retained",
+      "id": "cleanup",
+      "initial_state": "Timestamped reporting database copies dominate disk space",
+      "invariants": "No unique source/test evidence or user data lost; never delete an unaudited copy",
+      "required_level": "component",
+      "trigger": "Compare every historical backup row against live database; reconcile any unique data before removing copies"
+    }
+  ],
+  "description": "Owner explicitly requires one canonical play_reporting.db. Reuse append-only document/attempt/issue links and import snapshots; add compact relational state revisions for status/notes/presence changes. Remove automatic full-copy backups; verify older backup rows are retained before removing redundant copies.",
+  "id": "OPS-BACKUP-REQ",
+  "kind": "requirement",
+  "phase": "maintenance",
+  "refs": [],
+  "revision": 2,
+  "status": "pending",
+  "tags": [],
+  "title": "Keep reporting revisions in one database without automatic copies"
+}

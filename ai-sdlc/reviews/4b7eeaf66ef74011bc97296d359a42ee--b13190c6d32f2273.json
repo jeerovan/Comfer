@@ -1,0 +1,36 @@
+{
+  "at": "2026-11-10T13:30:34.461238+00:00",
+  "code_discovery": "Bounded source/config/test inspection of exact CLI paths. AI impact18 connected records, no unmapped paths or truncated page. Current bulk presence reset emits0then1 audit rows on unchanged refresh. Python connection context alone does not explicitly BEGIN before first DDL. Existing snapshots lack old raw stack reference. Validation checks completeness/IDs/version/counts but strict count/timestamp/scope checks need edge review.",
+  "entrypoints": "Firebase MCP export -> validate_payload -> main mode=rw DB -> save_import -> ensure_schema/state triggers -> issue upserts/snapshots. Related Play main normalizes API responses then save_import. Recurrence reader read-only current/prior version rows. All reporting backup calls removed; other stats/reviews/listing tools target separate canonical datasets.",
+  "id": "4b7eeaf66ef74011bc97296d359a42ee",
+  "order": 18,
+  "recovery_paths": "Explicit transaction before schema mutation; rollback includes trigger revisions and first-time schema. Upsert present rows then mark only missing snapshot IDs absent. Archive old current evidence before overwrite and new evidence after upsert; snapshots link only observed new evidence, legacy references remain NULL. Deduplicate compressed payloads inside same DB.",
+  "reviewed_ids": [
+    "OPS-IMPORT-01",
+    "OPS-IMPORT-IMPL",
+    "OPS-IMPORT-REQ",
+    "OPS-IMPORT-TEST"
+  ],
+  "snapshot": {
+    "files": {
+      "scripts/README-play-reporting.md": "96c786a5bbd3452f8212cf871cc5ef38ef1864ecb773003be7f14900a0debf4a",
+      "scripts/analyze_crashlytics_recurrence.py": "5623ebf2a1a2c27f267b33539fe82e2e92bde3820548a8d9aa7643b62506b6be",
+      "scripts/import_firebase_crashlytics.py": "6a69945a1ba9f6a9efc11971db8796f3bd9f6dd44b628c94d73f3dd5ddfb8e9b",
+      "scripts/issue_history.py": "93360f03fdad37114cf16aa6042e98d3d535dc13ccc3ab732d33844e24f8f2da",
+      "scripts/issue_state_history.py": "f5874c1eba581d980d15a1bdf6c930f14bc3ae2f1de5495f6a172aee22856e3b",
+      "scripts/sync_play_issues.py": "c21290c73afd6199f7bb4ce751098981bfe04fa24c477bc46d56c7bd0434c683",
+      "scripts/tests/test_analyze_crashlytics_recurrence.py": "3bc9c22e0db81d34335f710474da0cea7cc1acc90260026c0dcbbb4b0002a0c4",
+      "scripts/tests/test_import_firebase_crashlytics.py": "a66accca0c1bd9836a973d81228116f2de06fe237c29f1a818b82d80cda9e44a",
+      "scripts/tests/test_issue_history.py": "12e5a4e835c08fcb9798554990967c633af77234d63b6b88e7ccbc362f0d99c5",
+      "scripts/tests/test_issue_state_history.py": "766507e6418c536a7cab2590ad2d7221fe345786408c85c6a10e925f2a6dfd3f",
+      "scripts/tests/test_sync_play_issues.py": "bf3c297400ef098be11d3e8c61a7437c2c17bcef45c99cb1b0264ac4780f0de0"
+    },
+    "graph": "a74b52cf08bf7a243df68abf62bce78e5158683ec92e835c093c149f93595389",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "step": "OPS-IMPORT-01",
+  "unresolved": []
+}

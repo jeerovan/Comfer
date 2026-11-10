@@ -67,8 +67,8 @@ python3 scripts/issue_history.py import-docs --manifest scripts/issue_history_so
 ```
 
 Hashes are verified before import. A changed document becomes another immutable
-revision; identical imports add nothing. The importer takes a verified SQLite
-backup before changing writes and commits schema/data together. It never edits
+revision; identical imports add nothing. The importer commits schema/data together
+in one SQLite transaction, without creating database copies. It never edits
 telemetry, old triage or remote issue states. Ambiguous references are retained
 as unresolved rather than assigned a guessed provider.
 
@@ -82,11 +82,32 @@ revision, preserving earlier decisions and failures. Record production confirmat
 only when supported. Documented claims are imported verbatim, never promoted to
 verified fixes by the migration.
 
-The database and backups remain ignored by Git. Preserve verified recovery copies:
-Git reconstruction restores migrated reports, not subsequently appended records
-or raw telemetry. Future issue details belong in the database instead of another
-duplicated release ledger. The [release requirements](../DEVELOPMENT-PROGRESS.md#crash-remediation-and-release-requirements)
+Keep one canonical `play_reporting.db`, ignored by Git. Do not create a database
+copy for each update. Git reconstruction restores migrated reports, not later
+records or raw telemetry. Future issue details belong in the database instead of
+another duplicated release ledger. The [release requirements](../DEVELOPMENT-PROGRESS.md#crash-remediation-and-release-requirements)
 remain applicable.
+
+Current issue state lives in `issues` and `crashlytics_issues`. Their linked
+`play_issue_state_history` and `crashlytics_issue_state_history` tables retain
+append-only revisions of `status`, `notes`, `resolved_at` and
+`present_in_latest_import`. SQLite triggers capture changed values in the same
+transaction, including direct SQL updates; no-op updates create no revision.
+An initial `baseline` records state observed when tracking was installed, not
+the historical date that status was set. Composite foreign keys preserve the
+provider/scope/version/issue relationship. Existing import snapshots retain
+telemetry counts, and document/entry links retain fix evidence and revisions.
+
+Query both providers through the `issue_state_history` view:
+
+```sql
+SELECT revision_id, recorded_at, change_kind, status, notes,
+       resolved_at, present_in_latest_import
+FROM issue_state_history
+WHERE provider = 'firebase' AND scope_id = 'FIREBASE_APP_ID'
+  AND version_code = 58 AND issue_id = 'ISSUE_ID'
+ORDER BY revision_id;
+```
 
 ## Google Play import
 
@@ -134,9 +155,9 @@ Stack traces and device details come from
 Non-fatal issues are excluded because the existing database supports crash/ANR
 types only. Fetching does not change anything in Play Console.
 
-All API fetching and row conversion finish before database updates begin. A
-timestamped `play_reporting.db.backup-*` SQLite backup is created before each
-write. The import then runs in one transaction:
+All API fetching and row conversion finish before database updates begin.
+The import runs in one transaction in the existing database, with no full-copy
+backup. Issue state changes are retained in the linked revision tables:
 
 - Upsert issues using `(package_name, version_code, issue_id)` without duplicating them.
 - Preserve `status`, `notes`, `resolved_at`, and `first_seen_at` on existing issues.
@@ -175,6 +196,25 @@ package/version/error types, and count mismatches before changing SQLite. It
 uses provider-specific `crashlytics_*` tables, preserves local triage fields on
 refresh, marks groups absent from the newest same-version import without
 deleting history, and writes snapshots in one transaction.
+
+The transaction starts before schema migration. Only genuinely absent issues
+change their presence flag; an unchanged refresh does not create false
+absent/present state revisions. Fractional counts, timezone-less timestamps,
+samples outside the reporting interval `[periodStart, periodEnd)`, and samples
+from a different Firebase app are rejected before writing.
+
+`crashlytics_issue_snapshots.evidence_id` links new observations to immutable
+`crashlytics_issue_evidence` records. Issue metadata and event/stack payloads are
+stored separately as compressed, SHA-256-verified blobs so changed counts do not
+duplicate a large unchanged event. An existing unarchived sample is captured
+before replacement. Older snapshots retain a NULL evidence link when the exact
+historical payload association is unknown; current evidence is never backdated.
+
+Read a retained sample without changing the database:
+
+```sh
+venv/bin/python scripts/crashlytics_evidence.py --id EVIDENCE_ID
+```
 
 Crashlytics and Play counts must stay separate: their issue grouping, sampling,
 reporting windows, and user-count semantics differ.
@@ -217,8 +257,8 @@ verification results, recurrence output, archived issue history and meaningful
 fix/test evidence. The ignored `crashlytics_*` tables retain raw selected events,
 issue payloads, snapshots and local triage. After verifying these and comparing
 historical rows, redundant fetch intermediates and superseded exports/backups
-can be removed. Retain one verified SQLite recovery backup. Preserve unique older
-row variants in a verified archive before removing superseded backups. Record
+can be removed. Keep one reporting database; reconcile any unique older row
+variants into its linked history before removing duplicate database copies. Record
 exact removed paths and bytes in the refresh's `cleanup-manifest.json`.
 
 Per-run totals, cleanup manifests and evidence paths belong in the database's

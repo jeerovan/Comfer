@@ -1,0 +1,34 @@
+{
+  "criteria": [],
+  "description": "Component fault injection and actual Home gesture with temporary isolated component disable. Existing Settings smoke retained. No layout or locale changes; focused behavior only.",
+  "id": "R58-NAV-TEST",
+  "kind": "test",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/InternalActivityLaunchTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/InternalNavigationHomeTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/SettingsActivitySmokeTest.kt",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Internal navigation rejection and default Home retry on Redmi"
+}

@@ -1,0 +1,44 @@
+{
+  "action": "impact_review",
+  "actor": "codex",
+  "details": {
+    "review": {
+      "at": "2026-11-10T12:46:47.036082+00:00",
+      "code_discovery": "Bounded direct source/test inspection of known CLI entry points and backup literals, current SQLite schemas and primary keys. AI path impact lists43 connected documentation/import nodes, no pagination; script paths previously unmapped now registered. No app/runtime behavior edits, no device tests. Existing backup audit running read-only and leaves copies intact.",
+      "entrypoints": "issue_history main record/import-docs -> conn.backup then import_sources BEGIN IMMEDIATE/rollback; Firebase/Play main -> conn.backup then transactional save_import. Existing snapshots/immutable document identities already preserve evidence. Other play_stats/reviews/listing DBs are separate datasets, not copies of this DB.",
+      "id": "b2b2ef03d2cc4c22ae362ad3806f6f02",
+      "order": 16,
+      "recovery_paths": "Replace copy-per-write with atomic transactions and in-database append-only state revisions. Trigger state history rolls back with failed source update. Old copies retained until every logical historical row is proven retained; any difference requires reconciliation before deletion.",
+      "reviewed_ids": [
+        "OPS-BACKUP-01",
+        "OPS-BACKUP-IMPL",
+        "OPS-BACKUP-REQ",
+        "OPS-BACKUP-TEST"
+      ],
+      "snapshot": {
+        "files": {
+          "AGENTS.md": "7a9df3be4e7362945a55e39e66ef1d1b52f6d0d6ebd81e1b52cb03267e416054",
+          "scripts/README-play-reporting.md": "25481af6be765eb8565e35589f960ee9e8f137eec3f1bbaadb4c5711beb12ebd",
+          "scripts/import_firebase_crashlytics.py": "24e1ab32b859a3571b967d5cf5c8a2894b2a50602932c9f46cd8e9651b3584d8",
+          "scripts/issue_history.py": "8ef8d653010e0725be3ef73988e709ef053ca63e23777d7f35da2e1a94f69fa2",
+          "scripts/sync_play_issues.py": "06bed46edd8910b8190704f30ebf4cc4f12c23caed72f915974838a5139235d2",
+          "scripts/tests/test_import_firebase_crashlytics.py": "6b18a387e562a2f2b4f40bd9b88b488e61b2b6d2ee1e02a280fa185ed5f598de",
+          "scripts/tests/test_issue_history.py": "3570692f396867c8a89169789a820422f489be2bc5952e6cf6e3eb0d91b02273",
+          "scripts/tests/test_sync_play_issues.py": "45e21a6e65484f65f892ff1ea14d4bb1dd1d0679a8f7ed6bc2920bb40f397b8b"
+        },
+        "graph": "6dab98e7146b144ee51840a3cae04fbddcec54706a89bdfb17d605da26066f25",
+        "origin": {
+          "branch": "refs/heads/main",
+          "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+        }
+      },
+      "step": "OPS-BACKUP-01",
+      "unresolved": []
+    },
+    "step": "OPS-BACKUP-01"
+  },
+  "id": "6a5fb5ac39b94abf95363828f68f30da",
+  "reason": "Follow owner single-database requirement and inspect all play_reporting writers",
+  "seq": 235,
+  "time": "2026-11-10T12:46:47.036142+00:00"
+}

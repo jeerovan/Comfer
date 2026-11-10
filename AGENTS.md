@@ -46,6 +46,10 @@
   earlier decisions. Release docs should link to the database and retain concise
   artifact/acceptance summaries. Historical records require current-code checks
   before making implementation claims; local tests do not prove production fixes.
+- Keep one canonical `play_reporting.db`. Use its append-only linked document,
+  import-snapshot and issue-state revision tables; do not create full database
+  copies for routine updates. Preserve unique historical rows before removing
+  duplicate copies. Do not infer production resolution from local test passes.
 
 # Project regression testing
 

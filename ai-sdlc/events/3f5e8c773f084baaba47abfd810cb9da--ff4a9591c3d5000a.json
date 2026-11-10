@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R58-FIX-04",
+    "reopened": [],
+    "to": "in_progress"
+  },
+  "id": "3f5e8c773f084baaba47abfd810cb9da",
+  "reason": "Begin regression-first fix for explicit app-owned bitmap failure boundary",
+  "seq": 215,
+  "time": "2026-11-10T12:24:59.201169+00:00"
+}

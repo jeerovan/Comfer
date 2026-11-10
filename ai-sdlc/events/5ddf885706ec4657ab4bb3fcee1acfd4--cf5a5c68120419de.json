@@ -1,0 +1,66 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Actual subprocess history CLI plus Firebase/Play import/state tests verify no database copies, retained relations, no-op writes and atomic rollback. Audit historical backup rows before removal.",
+      "id": "OPS-BACKUP-TEST",
+      "kind": "test",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/tests/test_issue_history.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/tests/test_import_firebase_crashlytics.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/tests/test_sync_play_issues.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Single database CLI, status revisions and rollback"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Temporary fixture databases preserve telemetry/append-only history; actual subprocess CLI tests plus deterministic backup failure. Existing cleanup retains a per-archive decompressed hash proof.",
+      "id": "OPS-BACKUP-TEST",
+      "kind": "test",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/tests/test_issue_history.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "CLI restoration, bounded growth and failed-backup recovery"
+    },
+    "node": "OPS-BACKUP-TEST",
+    "reopened": []
+  },
+  "id": "5ddf885706ec4657ab4bb3fcee1acfd4",
+  "reason": "Align tracking with explicit single-database direction",
+  "seq": 234,
+  "time": "2026-11-10T12:46:46.402848+00:00"
+}

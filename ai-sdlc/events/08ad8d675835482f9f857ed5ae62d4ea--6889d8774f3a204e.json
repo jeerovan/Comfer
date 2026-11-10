@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Fix concrete refresh defects and validate connected issue-history/recurrence readers using local fixtures and read-only validation of retained real export. No new Firebase fetch authorized or needed.",
+      "id": "OPS-IMPORT-01",
+      "kind": "step",
+      "phase": "maintenance",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Review and correct Firebase reporting refresh pipeline"
+    },
+    "before": null,
+    "node": "OPS-IMPORT-01",
+    "reopened": []
+  },
+  "id": "08ad8d675835482f9f857ed5ae62d4ea",
+  "reason": "Track concrete issues found in requested Firebase importer review",
+  "seq": 249,
+  "time": "2026-11-10T13:30:30.645213+00:00"
+}

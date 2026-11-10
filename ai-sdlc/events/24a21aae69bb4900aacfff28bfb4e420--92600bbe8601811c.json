@@ -1,0 +1,34 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "No database copies; unchanged issue creates no presence revision; genuine transitions retained; old/new sample evidence linked to import snapshots with compressed deduplication; failed first/existing imports roll back schema and data",
+          "id": "refresh",
+          "initial_state": "Empty or populated reporting DB with local triage, state revisions and old issue sample",
+          "invariants": "Provider/app/version separation; retain status/notes/resolved/first-seen; no invented historical sample associations; no remote changes; reject malformed source before mutation",
+          "required_level": "integration",
+          "trigger": "Run validated Firebase CLI imports including identical refresh, changed sample, real disappearance/reappearance and induced write failure; run related Play refresh"
+        }
+      ],
+      "description": "Review of Firebase pipeline after single-DB consolidation found transient absence/presence audit noise, first-import schema rollback gap and sample replacement losing old stack/raw payload. Related Play importer shares flag reset behavior. Keep one DB and preserve local triage.",
+      "id": "OPS-IMPORT-REQ",
+      "kind": "requirement",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Refresh issue data without false revisions or lost sample evidence"
+    },
+    "before": null,
+    "node": "OPS-IMPORT-REQ",
+    "reopened": []
+  },
+  "id": "24a21aae69bb4900aacfff28bfb4e420",
+  "reason": "Track concrete issues found in requested Firebase importer review",
+  "seq": 248,
+  "time": "2026-11-10T13:30:29.992957+00:00"
+}

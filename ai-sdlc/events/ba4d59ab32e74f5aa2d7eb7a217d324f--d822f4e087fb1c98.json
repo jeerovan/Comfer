@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "b93ede93ce63418290222e8d9b76ff49"
+  },
+  "id": "ba4d59ab32e74f5aa2d7eb7a217d324f",
+  "reason": "Record actual default Home recovery and installed inventory observations",
+  "seq": 222,
+  "time": "2026-11-10T12:32:12.756470+00:00"
+}

@@ -1,0 +1,48 @@
+{
+  "criteria": [],
+  "description": "Deterministic draw/clone OOM avoids exhausting device heap. Default Home integration supplies faulting inventory drawable after real startup; successful replacement pixel and normal recreation verified. Reuse bounded drawable/widget loading regressions.",
+  "id": "R58-ICON-MEM-TEST",
+  "kind": "test",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/DrawableMemoryTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/DrawableMemoryHomeTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/Release50RegressionTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/Release51RegressionTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/AppIconLoadingTest.kt",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Drawable failure cleanup and default Home recovery on Redmi"
+}

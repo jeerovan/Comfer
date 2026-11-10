@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "e951b9ed1bd24e80bfcc7e06861251d2"
+  },
+  "id": "71e574b6bba84bfdbd8e53d8f1403678",
+  "reason": "Verify known rejection containment and intent-preserving retry",
+  "seq": 202,
+  "time": "2026-11-10T12:16:26.457686+00:00"
+}

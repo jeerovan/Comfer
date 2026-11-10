@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R58-FIX-03",
+    "reopened": [],
+    "to": "in_progress"
+  },
+  "id": "9a92732b0d9140b393c08757eb5f796f",
+  "reason": "Evidence and bounded source review support regression-first implementation",
+  "seq": 192,
+  "time": "2026-11-10T11:38:43.031066+00:00"
+}

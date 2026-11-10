@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "blocked",
+    "run": "0adbde135ad04918895fa232033b64ab"
+  },
+  "id": "a30f1482dbfe440793775ab79ca8f723",
+  "reason": "Retain explicit pending device boundary before handoff",
+  "seq": 196,
+  "time": "2026-11-10T11:43:48.233786+00:00"
+}

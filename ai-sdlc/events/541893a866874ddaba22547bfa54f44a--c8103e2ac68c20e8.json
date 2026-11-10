@@ -1,0 +1,47 @@
+{
+  "action": "impact_review",
+  "actor": "codex",
+  "details": {
+    "review": {
+      "at": "2026-11-10T12:50:28.712821+00:00",
+      "code_discovery": "Bounded direct source/test inspection of known CLI entry points and backup literals, current SQLite schemas and primary keys. AI path impact lists43 connected documentation/import nodes, no pagination; script paths previously unmapped now registered. No app/runtime behavior edits, no device tests. Existing backup audit running read-only and leaves copies intact. New helper uses per-provider state tables with composite foreign keys, baseline/install observations, automatic insert/update triggers, no-op filtering and immutable history rows. History CLI/Firebase/Play import entry points install triggers in source transactions. Existing snapshot counters and historical document links remain authoritative; schema fixtures now match production composite PKs. Backup audit found every original user row retained in current DB.",
+      "entrypoints": "issue_history main record/import-docs -> conn.backup then import_sources BEGIN IMMEDIATE/rollback; Firebase/Play main -> conn.backup then transactional save_import. Existing snapshots/immutable document identities already preserve evidence. Other play_stats/reviews/listing DBs are separate datasets, not copies of this DB.",
+      "id": "675df68c76ae4bad8c00fd9641197f97",
+      "order": 17,
+      "recovery_paths": "SQLite transaction rollback restores both current issue rows and trigger-generated state revisions; no database copies. Old copies are removed only after logical audit and unchanged live-DB identity check. No unique older rows found to migrate. Keep source/test evidence and raw imports.",
+      "reviewed_ids": [
+        "OPS-BACKUP-01",
+        "OPS-BACKUP-IMPL",
+        "OPS-BACKUP-REQ",
+        "OPS-BACKUP-TEST"
+      ],
+      "snapshot": {
+        "files": {
+          "AGENTS.md": "0f8aaa5a35b1280e64c35c52047b54fd8c3882cd5855950315ac8bd244ef888d",
+          "scripts/README-play-reporting.md": "96c786a5bbd3452f8212cf871cc5ef38ef1864ecb773003be7f14900a0debf4a",
+          "scripts/import_firebase_crashlytics.py": "6a69945a1ba9f6a9efc11971db8796f3bd9f6dd44b628c94d73f3dd5ddfb8e9b",
+          "scripts/issue_history.py": "93360f03fdad37114cf16aa6042e98d3d535dc13ccc3ab732d33844e24f8f2da",
+          "scripts/issue_state_history.py": "f5874c1eba581d980d15a1bdf6c930f14bc3ae2f1de5495f6a172aee22856e3b",
+          "scripts/sync_play_issues.py": "c21290c73afd6199f7bb4ce751098981bfe04fa24c477bc46d56c7bd0434c683",
+          "scripts/tests/test_import_firebase_crashlytics.py": "6b18a387e562a2f2b4f40bd9b88b488e61b2b6d2ee1e02a280fa185ed5f598de",
+          "scripts/tests/test_issue_history.py": "12e5a4e835c08fcb9798554990967c633af77234d63b6b88e7ccbc362f0d99c5",
+          "scripts/tests/test_issue_state_history.py": "766507e6418c536a7cab2590ad2d7221fe345786408c85c6a10e925f2a6dfd3f",
+          "scripts/tests/test_sync_play_issues.py": "45e21a6e65484f65f892ff1ea14d4bb1dd1d0679a8f7ed6bc2920bb40f397b8b",
+          "validation-artifacts/storage-recovery-20261110/audit_backups.py": "3b9bfbe8c5c95f6d1c65b51f04052076f2b86fc5afc21b38433d56c347f3c6fa"
+        },
+        "graph": "071eee6a4d9e2ed68dd297b9bc7dfd70ab60211777d5c88de78f7b77c767b696",
+        "origin": {
+          "branch": "refs/heads/main",
+          "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+        }
+      },
+      "step": "OPS-BACKUP-01",
+      "unresolved": []
+    },
+    "step": "OPS-BACKUP-01"
+  },
+  "id": "541893a866874ddaba22547bfa54f44a",
+  "reason": "Review single-database candidate and inspected migration/audit paths",
+  "seq": 241,
+  "time": "2026-11-10T12:50:28.712895+00:00"
+}

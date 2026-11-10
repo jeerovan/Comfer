@@ -1,0 +1,37 @@
+{
+  "at": "2026-11-10T13:33:36.185173+00:00",
+  "code_discovery": "Bounded source/config/test inspection of exact CLI paths. AI impact18 connected records, no unmapped paths or truncated page. Current bulk presence reset emits0then1 audit rows on unchanged refresh. Python connection context alone does not explicitly BEGIN before first DDL. Existing snapshots lack old raw stack reference. Validation checks completeness/IDs/version/counts but strict count/timestamp/scope checks need edge review. Candidate explicitly BEGINs before schema. Presence absence update uses current import snapshot IDs after upserts. Evidence group/event blobs separated, compressed and content-deduplicated; new snapshot FK links, legacy links NULL. Raw event reader verifies checksum. Counts reject fractional inputs; sample app/time scope validated. Recurrence test import path repaired for helper dependency.",
+  "entrypoints": "Firebase MCP export -> validate_payload -> main mode=rw DB -> save_import -> ensure_schema/state triggers -> issue upserts/snapshots. Related Play main normalizes API responses then save_import. Recurrence reader read-only current/prior version rows. All reporting backup calls removed; other stats/reviews/listing tools target separate canonical datasets.",
+  "id": "7f52fdb6de9e49a5955f98fb07503ae0",
+  "order": 19,
+  "recovery_paths": "Explicit transaction before schema mutation; rollback includes trigger revisions and first-time schema. Upsert present rows then mark only missing snapshot IDs absent. Archive old current evidence before overwrite and new evidence after upsert; snapshots link only observed new evidence, legacy references remain NULL. Deduplicate compressed payloads inside same DB.",
+  "reviewed_ids": [
+    "OPS-IMPORT-01",
+    "OPS-IMPORT-IMPL",
+    "OPS-IMPORT-REQ",
+    "OPS-IMPORT-TEST"
+  ],
+  "snapshot": {
+    "files": {
+      "scripts/README-play-reporting.md": "1f459c58ae9a04900133c51333fe4b7b79c0d101291a3591f7ccb5755ff19f5a",
+      "scripts/analyze_crashlytics_recurrence.py": "5623ebf2a1a2c27f267b33539fe82e2e92bde3820548a8d9aa7643b62506b6be",
+      "scripts/crashlytics_evidence.py": "c3ee8d45c2dd6b5ce4843656c819d90181857c43c8663ee624d5a17e273fcde5",
+      "scripts/import_firebase_crashlytics.py": "d18bf9fbf74efc7d0a9a57bfec1263996a899ecf2f6c11c0364ee31d30c2bf6a",
+      "scripts/issue_history.py": "93360f03fdad37114cf16aa6042e98d3d535dc13ccc3ab732d33844e24f8f2da",
+      "scripts/issue_state_history.py": "f5874c1eba581d980d15a1bdf6c930f14bc3ae2f1de5495f6a172aee22856e3b",
+      "scripts/sync_play_issues.py": "82b1b41c9a4c5e054d53d949684369d13c7bce3fddfac3f880271cf3115bdf06",
+      "scripts/tests/test_analyze_crashlytics_recurrence.py": "3a79281881028c767135caf8d9a172bb834fc1399a4e9f0332c56fe279884ad1",
+      "scripts/tests/test_import_firebase_crashlytics.py": "bfd0bb88e033b7561203219c4827369cb0c4c794ff164b330f3f683f61863a25",
+      "scripts/tests/test_issue_history.py": "12e5a4e835c08fcb9798554990967c633af77234d63b6b88e7ccbc362f0d99c5",
+      "scripts/tests/test_issue_state_history.py": "766507e6418c536a7cab2590ad2d7221fe345786408c85c6a10e925f2a6dfd3f",
+      "scripts/tests/test_sync_play_issues.py": "bf3c297400ef098be11d3e8c61a7437c2c17bcef45c99cb1b0264ac4780f0de0"
+    },
+    "graph": "e9e0bedb64444257f785cd5c114c4af374a5fd0dc31e3c9f85d4e80c5613d2a5",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "step": "OPS-IMPORT-01",
+  "unresolved": []
+}

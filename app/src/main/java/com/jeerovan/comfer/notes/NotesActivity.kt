@@ -72,8 +72,9 @@ class NotesActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState:Bundle){outState.putBoolean("shareConsumed",shareConsumed);super.onSaveInstanceState(outState)}
     override fun onNewIntent(intent:Intent){super.onNewIntent(intent);setIntent(intent);shareConsumed=false;resumeNotes()}
     companion object {
-        fun open(context:Context){context.startActivity(Intent(context,NotesActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-            ActivityOptions.makeCustomAnimation(context,R.anim.notification_inbox_enter,R.anim.notification_inbox_underlay).toBundle())}
+        fun open(context: Context): Boolean = com.jeerovan.comfer.launchInternalActivity(
+            context, Intent(context, NotesActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            ActivityOptions.makeCustomAnimation(context, R.anim.notification_inbox_enter, R.anim.notification_inbox_underlay).toBundle())
     }
 }
 

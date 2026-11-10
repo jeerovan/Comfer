@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "dd001b3447684f82aabbae0ba9b2ccb6"
+  },
+  "id": "c606a37a87aa419d9d234e658e65e431",
+  "reason": "Preserve expected pre-fix regression",
+  "seq": 198,
+  "time": "2026-11-10T12:14:13.559816+00:00"
+}

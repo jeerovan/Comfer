@@ -1,6 +1,6 @@
 {
   "criteria": [],
-  "description": "Fetch all issue/event pages and independently reconcile type totals; dry-run then import through existing transactional importer. Verify DB preservation against backup and append refresh history.",
+  "description": "Fetch all issue/event pages and independently reconcile type totals; dry-run then import through existing transactional importer. Verify DB preservation against backup and append refresh history. Storage consolidation on2026-11-10 retired the external pre-import backup only after auditing all user-table rows against the canonical database. Retained proof: validation-artifacts/storage-recovery-20261110/backup-audit.json and cleanup-manifest.json. Earlier verification receipts remain historical; future checks must not assume the retired backup pathname still exists.",
   "id": "R58-FETCH",
   "kind": "step",
   "phase": "maintenance",
@@ -13,7 +13,7 @@
       "tool": "source"
     }
   ],
-  "revision": 1,
+  "revision": 2,
   "status": "pending",
   "tags": [],
   "title": "Fetch and import complete release 58 Firebase snapshot"

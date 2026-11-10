@@ -1,0 +1,129 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Firebase MCP supplies complete version-filtered export; CLI validates and calls save_import. Related Play path shares presence update. History triggers record final state; recurrence reader consumes current/prior issue samples.",
+      "id": "OPS-IMPORT-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/import_firebase_crashlytics.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/sync_play_issues.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/issue_state_history.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/issue_history.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/analyze_crashlytics_recurrence.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/README-play-reporting.md",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/crashlytics_evidence.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Firebase and Play transactional refresh paths"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Firebase MCP supplies complete version-filtered export; CLI validates and calls save_import. Related Play path shares presence update. History triggers record final state; recurrence reader consumes current/prior issue samples.",
+      "id": "OPS-IMPORT-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/import_firebase_crashlytics.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/sync_play_issues.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/issue_state_history.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/issue_history.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/analyze_crashlytics_recurrence.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/README-play-reporting.md",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Firebase and Play transactional refresh paths"
+    },
+    "node": "OPS-IMPORT-IMPL",
+    "reopened": []
+  },
+  "id": "537c0184fcbf48bb90c1ef902ef9afff",
+  "reason": "Include immutable compressed sample storage and reader in import verification scope",
+  "seq": 259,
+  "time": "2026-11-10T13:33:35.542227+00:00"
+}

@@ -1,0 +1,42 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Return existing null fallback; restore source bounds; recycle any unreturned owned bitmap; later healthy sources render with bounded dimensions and correct pixels",
+          "id": "containment",
+          "initial_state": "Drawable clone/rasterization fails with OutOfMemoryError or existing RuntimeException",
+          "invariants": "Invalid maxEdge remains caller error; do not swallow unrelated Errors; no source-owned bitmap recycling; existing healthy rendering unchanged",
+          "required_level": "component",
+          "trigger": "Take bounded owned bitmap snapshot"
+        },
+        {
+          "expected": "Home remains usable, same-source allocation not retried on recomposition, replacement renders correctly without geometry change, recreation restores normal inventory and Workspace",
+          "id": "home-recovery",
+          "initial_state": "Default isolated Home has loaded its real inventory; one quick icon is replaced with a deterministic allocation-failing drawable",
+          "invariants": "Fault injects only drawable/in-memory inventory; default activity startup retained. No deliberate physical heap exhaustion, persistent user data changes, Samsung tests or production-resolution claim",
+          "required_level": "integration",
+          "trigger": "Render quick icon, open/close Workspace, replace with healthy drawable, recreate Home"
+        }
+      ],
+      "description": "Import16 issue4cf6f1e743d2f4e56a41a38d551b6287: one Samsung13 Bitmap.createBitmap OOM through toOwnedBitmap -> AppIcon -> UshapedAppList. Related50-01 bounded notification bitmap conversion and51-05 protects widget loads but ordinary painter remains uncovered. No claim about global heap root cause or other OOM groups.",
+      "id": "R58-ICON-MEM-REQ",
+      "kind": "requirement",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Keep Home usable when an owned icon snapshot cannot allocate"
+    },
+    "before": null,
+    "node": "R58-ICON-MEM-REQ",
+    "reopened": []
+  },
+  "id": "86311a58d4e6427badd398d79a4eb791",
+  "reason": "Track next evidence-backed release58 memory-boundary fix",
+  "seq": 207,
+  "time": "2026-11-10T12:24:32.689490+00:00"
+}

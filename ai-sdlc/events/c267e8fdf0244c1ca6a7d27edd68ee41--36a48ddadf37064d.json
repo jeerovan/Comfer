@@ -1,0 +1,103 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Default Home obtains AppInfoViewModel.launcherAppsState; QuickList/AppIcon use shared painter. Picker, notification and icon-pack consumers share helper; widget and drawer contrast already have outer OOM guards. Preserve existing transparent fallback and rendering rules.",
+      "id": "R58-ICON-MEM-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/DrawableExt.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/WidgetImages.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/DrawerTitleContrast.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/AppInfoViewModel.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/AppSelectionActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/Settings.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/notificationTest/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/build.gradle.kts",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Shared owned drawable snapshots and real Home consumers"
+    },
+    "before": null,
+    "node": "R58-ICON-MEM-IMPL",
+    "reopened": []
+  },
+  "id": "c267e8fdf0244c1ca6a7d27edd68ee41",
+  "reason": "Track next evidence-backed release58 memory-boundary fix",
+  "seq": 209,
+  "time": "2026-11-10T12:24:33.807689+00:00"
+}

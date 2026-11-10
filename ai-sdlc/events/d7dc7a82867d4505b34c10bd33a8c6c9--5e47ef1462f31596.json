@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "ef9713c08f964672be70be4b81aed874"
+  },
+  "id": "d7dc7a82867d4505b34c10bd33a8c6c9",
+  "reason": "Verify failure containment, cleanup, bounds and source ownership",
+  "seq": 219,
+  "time": "2026-11-10T12:30:26.258603+00:00"
+}

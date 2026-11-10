@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import sqlite3
 import sys
+from issue_state_history import ensure_state_history
 
 from google.oauth2 import service_account
 from google.auth.exceptions import GoogleAuthError
@@ -122,7 +123,11 @@ def save_import(conn, rows, package, version, version_name, start, end, now):
     """Apply one complete refresh atomically; never infer that absent issues resolved."""
     report_columns = {"stack_trace", "sample_report_id", "os_api_level", "device_brand",
                       "device_model", "vcs_information", "raw_report_json"}
+    if conn.in_transaction:
+        raise ValueError('Commit pending work before importing Play issues')
     with conn:
+        conn.execute('BEGIN IMMEDIATE')
+        ensure_state_history(conn)
         run_id = conn.execute(
             "INSERT INTO import_runs (package_name,version_code,version_name,period_start,"
             "period_end,imported_at,issue_count,crash_count,anr_count) VALUES (?,?,?,?,?,?,?,?,?)",
@@ -130,8 +135,6 @@ def save_import(conn, rows, package, version, version_name, start, end, now):
              len(rows), sum(r["type"] == "crash" for r in rows),
              sum(r["type"] == "anr" for r in rows)),
         ).lastrowid
-        conn.execute("UPDATE issues SET present_in_latest_import=0 "
-                     "WHERE package_name=? AND version_code=?", (package, version))
         for row in rows:
             columns = list(row)
             updates = []
@@ -155,6 +158,10 @@ def save_import(conn, rows, package, version, version_name, start, end, now):
                 (run_id, package, version, row["issue_id"], row["affected_users"],
                  row["events"], row["last_event_at"]),
             )
+        conn.execute('''UPDATE issues SET present_in_latest_import=0
+            WHERE package_name=? AND version_code=? AND present_in_latest_import<>0
+              AND issue_id NOT IN (SELECT issue_id FROM issue_snapshots WHERE import_run_id=?)''',
+            (package, version, run_id))
     return run_id
 
 
@@ -205,11 +212,7 @@ def main(argv=None):
                        "anr_issues": sum(r["type"] == "anr" for r in rows),
                        "events": sum(r["events"] for r in rows), "dry_run": args.dry_run}
             if not args.dry_run:
-                backup = args.database.with_name(args.database.name + ".backup-" +
-                                                datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ"))
-                with sqlite3.connect(backup) as destination:
-                    conn.backup(destination)
-                summary["backup"] = str(backup)
+                summary["backup"] = None
                 summary["import_run_id"] = save_import(
                     conn, rows, args.package, args.version_code, version_name, start, end, now)
             print(json.dumps(summary, indent=2))

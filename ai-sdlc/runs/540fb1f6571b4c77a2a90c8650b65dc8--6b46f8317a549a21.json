@@ -1,0 +1,52 @@
+{
+  "adaptations": [
+    "isolated notificationTest application ID",
+    "Temporarily disable only test Settings component, restore it before normal retry and in finally",
+    "Seed unrelated guide prerequisites/feedback; preserve and restore original preference values"
+  ],
+  "bypasses": [],
+  "criteria": [
+    "R58-NAV-REQ#home-retry"
+  ],
+  "entrypoint": "InternalNavigationHomeTest actual default MainActivity gestures and Workspace; SettingsActivitySmokeTest controls",
+  "environment": "Redmi7 API29 verified notificationTest appb4b95c56 runnerd35c68e5",
+  "finished_at": "2026-11-10T12:18:13.625269+00:00",
+  "id": "540fb1f6571b4c77a2a90c8650b65dc8",
+  "level": "journey",
+  "observation": "4/4 tests passed on verified Redmi7 candidate. Actual Home long-press with isolated Settings component disabled left Home resumed and guide false; normal retry after restoring availability opened Settings in same task, completed guide and Back revealed usable Workspace. Workspace opened Tasks/Journal/Notes in Home task and returned; down-return gesture opened Inbox and Back returned Home. Existing Settings launch5 repetitions and task/back smoke pass. Fixture restores original component and preferences; regular package unchanged. Original TECNO resolver cause and production resolution remain unverified.",
+  "order": 18,
+  "proof": {
+    "validation-artifacts/release58-navigation-20261110/candidate-journey.txt": "1c252c622ade16cfe8f39148080360d20466abac49f08b98c0879be59b3ad6af"
+  },
+  "proof_path": "validation-artifacts/release58-navigation-20261110/candidate-journey.txt",
+  "result": "passed",
+  "snapshot": {
+    "files": {
+      "app/build.gradle.kts": "35faf209457acc372355e445c39f03c3264a57bc809aa24cdb050f8900591e90",
+      "app/src/androidTest/java/com/jeerovan/comfer/InternalActivityLaunchTest.kt": "0393c2226419f63001b0281ce94db76517b8650926013ae4d51db801df22c53e",
+      "app/src/androidTest/java/com/jeerovan/comfer/InternalNavigationHomeTest.kt": "5568772b07373687f60e5b57adb5a7dc13b8716e12fc2d0d3aab6681aad362bf",
+      "app/src/androidTest/java/com/jeerovan/comfer/SettingsActivitySmokeTest.kt": "60128128a475296ba65a10c9df6f726c9a890b38186982f35ab91e71aa309040",
+      "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1",
+      "app/src/main/java/com/jeerovan/comfer/HomeGestureGuide.kt": "74c3785b8e5b71a8e38800d0b58f0fae8a74b1a2946d38c757af9a6c12579fcf",
+      "app/src/main/java/com/jeerovan/comfer/InternalActivityLaunch.kt": "123f5d493a64f46326f94ce455be9412c73df9bea0ce51ec28ff0d4509193448",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "b76793a2ca2e0838571f54582837ce6ba12ba8f7cd13682a6227d26361a06212",
+      "app/src/main/java/com/jeerovan/comfer/PreferenceManager.kt": "b6920ae8d49e1d142bc1b7e3918fa15d65a3ad25ae65093ac71b1d7d4d9c93e7",
+      "app/src/main/java/com/jeerovan/comfer/Settings.kt": "42109f70a8573f3069bb7c4ecf562bf4991a6eccdea0cb9dedde88bdcbb7f6a0",
+      "app/src/main/java/com/jeerovan/comfer/SettingsViewModel.kt": "ed9c924530e11db5c37122deb0f89f5f91f8a8b8560dabc16822cc2d61bf6c56",
+      "app/src/main/java/com/jeerovan/comfer/journals/JournalActivity.kt": "d26b93028c69063795d08ee8b9341c966d4a5b2dc384e52d527b8cb20c681c34",
+      "app/src/main/java/com/jeerovan/comfer/notes/NotesActivity.kt": "2e199a1bdceaaab0ec988f5d85a55f0a4efe4d3dabe7aac4e75d4c3c56b43372",
+      "app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt": "ab5d9f89e403136d2a9faecec907c4672be01343424308906ffd7c9248377845",
+      "app/src/main/java/com/jeerovan/comfer/tasks/TaskHomePanel.kt": "b706767cb8e5ec76558d803f76cf1ab98188d6a252613a06a111c99f2fdac5a5",
+      "app/src/main/java/com/jeerovan/comfer/tasks/TasksActivity.kt": "25244d046294919060a7fc601476e887e39d881f83597bbcd9399158124ad231",
+      "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216"
+    },
+    "graph": "59d06dc259449c4b8f4391c8be000eda3a21c6f8781fb27e89c277967b477c90",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-10T12:17:05.818228+00:00",
+  "step": "R58-FIX-03",
+  "test": "R58-NAV-TEST"
+}

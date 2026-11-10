@@ -1,0 +1,87 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "History documents/entries retain stable linked revisions. Firebase/Play import snapshots already retain import counts. Add issue state audit tables with composite FKs and triggers for status/notes/resolved/presence changes; remove backup paths in all writers of play_reporting.db.",
+      "id": "OPS-BACKUP-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/issue_history.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/import_firebase_crashlytics.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/sync_play_issues.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/README-play-reporting.md",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "AGENTS.md",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Single-database issue history and transactional state revisions"
+    },
+    "before": {
+      "criteria": [],
+      "description": "CLI pending check precedes backup; import_sources runs only after verified backup. Use SQLite backup into system temporary storage, compressed staging file beside DB, verified decompression then atomic replacement. Existing archives retained.",
+      "id": "OPS-BACKUP-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/issue_history.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/README-play-reporting.md",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Verified compressed rolling issue-history backup"
+    },
+    "node": "OPS-BACKUP-IMPL",
+    "reopened": []
+  },
+  "id": "2e3bf1bee6b74b2dbd4c7ec9af738be1",
+  "reason": "Align tracking with explicit single-database direction",
+  "seq": 233,
+  "time": "2026-11-10T12:46:45.658324+00:00"
+}

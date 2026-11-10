@@ -1,0 +1,46 @@
+{
+  "adaptations": [
+    "isolated notificationTest application ID"
+  ],
+  "bypasses": [
+    "ContextWrapper replaces Android activity dispatch with deterministic ActivityNotFound/Security exception; normal Home path not exercised in baseline"
+  ],
+  "criteria": [
+    "R58-NAV-REQ#rejection"
+  ],
+  "entrypoint": "InternalActivityLaunchTest.rejectedLaunchesRemainRetryableAndPreserveIntent",
+  "environment": "Redmi7 API29 serial71a3063, isolated notificationTest baseline app70ddfb9d and runnerfff4d2de; manual runner installation pending",
+  "finished_at": "2026-11-10T11:43:48.233707+00:00",
+  "id": "0adbde135ad04918895fa232033b64ab",
+  "level": "component",
+  "observation": "Regression runner compiled and copied to Redmi Downloads. Manual installation remains pending because USB installs are restricted. No test executed and no runtime result claimed; product code unchanged.",
+  "order": 15,
+  "proof": {},
+  "proof_path": "",
+  "result": "blocked",
+  "snapshot": {
+    "files": {
+      "app/src/androidTest/java/com/jeerovan/comfer/InternalActivityLaunchTest.kt": "0393c2226419f63001b0281ce94db76517b8650926013ae4d51db801df22c53e",
+      "app/src/androidTest/java/com/jeerovan/comfer/InternalNavigationHomeTest.kt": "9dde7ffcf4d4cbd7d74af1b8145804a343efd728c8d1cc37b5850d8225769203",
+      "app/src/androidTest/java/com/jeerovan/comfer/SettingsActivitySmokeTest.kt": "60128128a475296ba65a10c9df6f726c9a890b38186982f35ab91e71aa309040",
+      "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1",
+      "app/src/main/java/com/jeerovan/comfer/HomeGestureGuide.kt": "74c3785b8e5b71a8e38800d0b58f0fae8a74b1a2946d38c757af9a6c12579fcf",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "3fc84ba63d099e97baa025288b80026eb05c6b4579c4c02338e28cea0585df2a",
+      "app/src/main/java/com/jeerovan/comfer/PreferenceManager.kt": "b6920ae8d49e1d142bc1b7e3918fa15d65a3ad25ae65093ac71b1d7d4d9c93e7",
+      "app/src/main/java/com/jeerovan/comfer/Settings.kt": "4f3b7090808bc808bc013124b840d75592b523cd2019762c10d6cbf859964d4f",
+      "app/src/main/java/com/jeerovan/comfer/journals/JournalActivity.kt": "08728a2dfd7f00387574116f34dd9bebcf7e524974bad3b61db65c2268294b39",
+      "app/src/main/java/com/jeerovan/comfer/notes/NotesActivity.kt": "a30d5467638e17aca07287fd12c04a3b84b02413ea64b30ae334358ca793b754",
+      "app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt": "c8c7ab291064284bf895029f38a57ce331d4f44b46b9b5a5cd17a6345c45f6f8",
+      "app/src/main/java/com/jeerovan/comfer/tasks/TaskHomePanel.kt": "b706767cb8e5ec76558d803f76cf1ab98188d6a252613a06a111c99f2fdac5a5",
+      "app/src/main/java/com/jeerovan/comfer/tasks/TasksActivity.kt": "16184292a6782f70828da3f2ffdf9f2623839369c196742a44805064f9be67a4"
+    },
+    "graph": "d4b422fab79096cb794bdb97da0bdab82a7c7d188f5c8b26625d3222f3c246d2",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-10T11:42:04.277455+00:00",
+  "step": "R58-FIX-03",
+  "test": "R58-NAV-TEST"
+}

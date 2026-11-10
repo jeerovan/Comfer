@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Attempt58-R05. Extend existing bounded snapshot failure fallback across clone/allocation/draw; ensure failed owned allocation cleanup. Current Firebase sample and prior50-01/51-05 reviewed. Scope is allocation boundary only, not unrelated heap/SDK failures.",
+      "id": "R58-FIX-04",
+      "kind": "step",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Contain icon bitmap allocation failure and release failed snapshots"
+    },
+    "before": null,
+    "node": "R58-FIX-04",
+    "reopened": []
+  },
+  "id": "37bc740d05654f599e74b1978f7b1cf7",
+  "reason": "Track next evidence-backed release58 memory-boundary fix",
+  "seq": 208,
+  "time": "2026-11-10T12:24:33.245980+00:00"
+}

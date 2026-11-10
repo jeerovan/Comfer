@@ -81,7 +81,7 @@ class NotificationInboxActivity : AppCompatActivity() {
         lifecycleScope.launch { NotificationQuietHours.reconcile(this@NotificationInboxActivity) }
     }
     companion object {
-        fun open(context: Context, app: String? = null, controls: Boolean = false) {
+        fun open(context: Context, app: String? = null, controls: Boolean = false): Boolean {
             val intent = Intent(context, NotificationInboxActivity::class.java)
                 .putExtra("app", app)
                 .putExtra("controls", controls)
@@ -90,7 +90,7 @@ class NotificationInboxActivity : AppCompatActivity() {
                 R.anim.notification_inbox_enter,
                 R.anim.notification_inbox_underlay,
             )
-            context.startActivity(intent, transition.toBundle())
+            return com.jeerovan.comfer.launchInternalActivity(context, intent, transition.toBundle())
         }
     }
 }

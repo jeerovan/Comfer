@@ -1,0 +1,42 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Localized failure feedback, no escaped launch exception; a subsequent permitted retry dispatches the same destination",
+          "id": "rejection",
+          "initial_state": "Internal Settings, Inbox, Tasks, Notes or Journal launch rejected by Android with ActivityNotFoundException or SecurityException",
+          "invariants": "Preserve component, extras, flags and animation options; no NEW_TASK added; unrelated failures still propagate; no user data changes",
+          "required_level": "component",
+          "trigger": "Invoke existing activity entry helper"
+        },
+        {
+          "expected": "First attempt keeps Home alive and guide pending; retry opens Settings in same task and completes guide; Back returns usable Home; Workspace modules and Inbox still open",
+          "id": "home-retry",
+          "initial_state": "Default isolated Home on Redmi with Settings guide pending; test package Settings component temporarily unavailable",
+          "invariants": "Only isolated notificationTest component/state modified and restored; regular launcher data unchanged; OEM root cause and production resolution not claimed",
+          "required_level": "journey",
+          "trigger": "Long-press actual Home; restore component availability and repeat gesture; return with Back"
+        }
+      ],
+      "description": "Firebase import16 issue311761db51ffc96cb1253c00b9257a24 (2 events) reports SettingsActivity.open ActivityNotFoundException via Home long press. Manifest already declares activity. Contain supported launch rejection, preserve retry and successful navigation. Prior50-05 only covered external URLs; root OEM cause remains unknown.",
+      "id": "R58-NAV-REQ",
+      "kind": "requirement",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Keep Home usable after rejected internal navigation"
+    },
+    "before": null,
+    "node": "R58-NAV-REQ",
+    "reopened": []
+  },
+  "id": "846b89036e934dd09ce70eb813e66f42",
+  "reason": "Track evidence-backed release58 internal navigation crash containment",
+  "seq": 185,
+  "time": "2026-11-10T11:38:23.531606+00:00"
+}

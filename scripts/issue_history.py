@@ -15,6 +15,7 @@ import re
 import sqlite3
 import subprocess
 from urllib.parse import unquote
+from issue_state_history import ensure_state_history
 
 ROOT = Path(__file__).resolve().parents[1]
 APP = '1:141154670700:android:3463921d29d4a97bee2049'
@@ -86,6 +87,7 @@ def ensure_schema(conn):
     for statement in SCHEMA:
         conn.execute(statement)
     conn.execute('INSERT OR IGNORE INTO issue_history_schema VALUES (1,1)')
+    ensure_state_history(conn)
 
 
 def catalog(conn):
@@ -458,20 +460,11 @@ def main():
         # Require an existing database; typos must not create an empty reporting DB.
         with closing(sqlite3.connect(args.database.resolve().as_uri()+'?mode=rw', uri=True)) as conn:
             conn.execute('PRAGMA foreign_keys=ON')
-            pending = not has_history(conn) or any(not conn.execute('''SELECT 1 FROM issue_history_documents
-                WHERE source_path=? AND content_sha256=?''', (s['source_path'],s['content_sha256'])).fetchone() for s in sources)
-            backup = None
-            if pending:
-                stamp = dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
-                backup = args.database.with_name(args.database.name+'.backup-issue-history-'+stamp)
-                with closing(sqlite3.connect(backup)) as recovery:
-                    conn.backup(recovery)
-                    if recovery.execute('PRAGMA quick_check').fetchone()[0] != 'ok': raise ValueError('Backup failed verification')
             counts = import_sources(conn, sources)
         if args.command == 'import-docs' and args.write_manifest:
             manifest = {'schema_version': 1, 'sources': [{k:v for k,v in s.items() if k != 'content'} for s in sources]}
             args.write_manifest.write_text(json.dumps(manifest, indent=2)+'\n')
-        print(json.dumps(dict(counts, backup=str(backup) if backup else None), indent=2)); return
+        print(json.dumps(dict(counts, backup=None), indent=2)); return
     with closing(sqlite3.connect(args.database.resolve().as_uri()+'?mode=ro', uri=True)) as conn:
         if args.command == 'summary': print(json.dumps(summary(conn), indent=2)); return
         if not has_history(conn): parser.error('Issue history is not installed; see scripts/README-play-reporting.md')

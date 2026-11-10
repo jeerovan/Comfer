@@ -37,29 +37,43 @@ internal fun constrainedBitmapDimensions(
 }
 
 internal fun Drawable.toOwnedBitmap(maxEdge: Int = MAX_DRAWABLE_BITMAP_EDGE): Bitmap? {
-    val dimensions = constrainedBitmapDimensions(intrinsicWidth, intrinsicHeight, maxEdge)
-    val drawable = constantState?.newDrawable()?.mutate() ?: this
+    require(maxEdge > 0) { "maxEdge must be positive" }
     return try {
-        val bitmap = Bitmap.createBitmap(
+        val dimensions = constrainedBitmapDimensions(intrinsicWidth, intrinsicHeight, maxEdge)
+        val drawable = constantState?.newDrawable()?.mutate() ?: this
+        drawable.drawOwnedBitmap(Bitmap.createBitmap(
             dimensions.width,
             dimensions.height,
             Bitmap.Config.ARGB_8888,
-        )
-        val canvas = Canvas(bitmap)
-        synchronized(drawable) {
-            val originalBounds = Rect(drawable.bounds)
-            try {
-                drawable.setBounds(0, 0, canvas.width, canvas.height)
-                drawable.draw(canvas)
-            } finally {
-                drawable.bounds = originalBounds
-            }
-        }
-        bitmap.prepareToDraw()
-        bitmap
+        ))
+    } catch (_: OutOfMemoryError) {
+        // Use the existing placeholder; do not allocate a smaller retry under memory pressure.
+        null
     } catch (e: RuntimeException) {
         Log.w("DrawableBitmap", "Could not rasterize drawable", e)
         null
+    }
+}
+
+/** Takes ownership of [bitmap], returning it on success or releasing it on every failed exit. */
+internal fun Drawable.drawOwnedBitmap(bitmap: Bitmap): Bitmap {
+    var completed = false
+    try {
+        val canvas = Canvas(bitmap)
+        synchronized(this) {
+            val originalBounds = Rect(bounds)
+            try {
+                setBounds(0, 0, canvas.width, canvas.height)
+                draw(canvas)
+            } finally {
+                bounds = originalBounds
+            }
+        }
+        bitmap.prepareToDraw()
+        completed = true
+        return bitmap
+    } finally {
+        if (!completed) bitmap.recycle()
     }
 }
 

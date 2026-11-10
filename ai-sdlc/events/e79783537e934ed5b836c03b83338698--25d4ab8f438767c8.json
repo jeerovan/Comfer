@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "540fb1f6571b4c77a2a90c8650b65dc8"
+  },
+  "id": "e79783537e934ed5b836c03b83338698",
+  "reason": "Observe default production navigation with controlled Android component availability",
+  "seq": 204,
+  "time": "2026-11-10T12:17:05.818581+00:00"
+}

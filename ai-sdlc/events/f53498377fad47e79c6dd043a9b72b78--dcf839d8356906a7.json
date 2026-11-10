@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "2c6fda0493a54cfe825f78d58352d9f0"
+  },
+  "id": "f53498377fad47e79c6dd043a9b72b78",
+  "reason": "Preserve pre-fix failures for false state revisions, missing evidence and partial schema",
+  "seq": 257,
+  "time": "2026-11-10T13:30:36.164430+00:00"
+}

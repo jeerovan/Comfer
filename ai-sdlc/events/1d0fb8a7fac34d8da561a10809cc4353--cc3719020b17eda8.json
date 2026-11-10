@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "OPS-IMPORT-01",
+    "reopened": [],
+    "to": "in_progress"
+  },
+  "id": "1d0fb8a7fac34d8da561a10809cc4353",
+  "reason": "Reproduce identified defects before patching",
+  "seq": 256,
+  "time": "2026-11-10T13:30:35.386703+00:00"
+}

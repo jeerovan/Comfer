@@ -37,6 +37,12 @@ class ImportTests(unittest.TestCase):
     def save(self, rows, version=46):
         return sync.save_import(self.conn, rows, PACKAGE, version, f"{version}.0", START, END, "now")
 
+    def test_unchanged_refresh_does_not_invent_presence_revisions(self):
+        self.save([self.row()])
+        self.save([self.row()])
+        states = self.conn.execute('SELECT present_in_latest_import FROM play_issue_state_history ORDER BY revision_id').fetchall()
+        self.assertEqual([1], [r[0] for r in states])
+
     def test_refresh_preserves_triage_and_other_versions(self):
         self.save([self.row(version=45)], version=45)
         self.save([self.row(), self.row("absent")])

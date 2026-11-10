@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "0adbde135ad04918895fa232033b64ab"
+  },
+  "id": "c18c49c9eced46e880579bf70990ec01",
+  "reason": "Capture expected baseline failure before product edits",
+  "seq": 195,
+  "time": "2026-11-10T11:42:04.277805+00:00"
+}

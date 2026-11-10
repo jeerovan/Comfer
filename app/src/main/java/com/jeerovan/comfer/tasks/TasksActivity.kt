@@ -101,10 +101,10 @@ class TasksActivity : AppCompatActivity() {
         setContent { ComferTheme { TasksScreen(::finish, shared, intent.getStringExtra("task"), intent.getBooleanExtra("add", false), intent.getBooleanExtra("complete", false), intent.getBooleanExtra("star", false), if(intent.hasExtra("day")) intent.getLongExtra("day", 0) else null) } }
     }
     companion object {
-        fun open(context: Context, task: String? = null) {
+        fun open(context: Context, task: String? = null): Boolean {
             val intent = Intent(context, TasksActivity::class.java).putExtra("task", task).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
             val transition = ActivityOptions.makeCustomAnimation(context, R.anim.notification_inbox_enter, R.anim.notification_inbox_underlay)
-            context.startActivity(intent, transition.toBundle())
+            return com.jeerovan.comfer.launchInternalActivity(context, intent, transition.toBundle())
         }
     }
 }

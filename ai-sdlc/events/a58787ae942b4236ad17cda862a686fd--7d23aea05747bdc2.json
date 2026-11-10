@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "612941cae4e546e5b5efb6cd5674c17e"
+  },
+  "id": "a58787ae942b4236ad17cda862a686fd",
+  "reason": "Verify corrected refresh and connected consumers before handoff",
+  "seq": 261,
+  "time": "2026-11-10T13:33:36.833554+00:00"
+}

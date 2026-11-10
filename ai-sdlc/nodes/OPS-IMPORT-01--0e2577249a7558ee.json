@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Fix concrete refresh defects and validate connected issue-history/recurrence readers using local fixtures and read-only validation of retained real export. No new Firebase fetch authorized or needed.",
+  "id": "OPS-IMPORT-01",
+  "kind": "step",
+  "phase": "maintenance",
+  "refs": [],
+  "revision": 1,
+  "status": "completed",
+  "tags": [],
+  "title": "Review and correct Firebase reporting refresh pipeline"
+}

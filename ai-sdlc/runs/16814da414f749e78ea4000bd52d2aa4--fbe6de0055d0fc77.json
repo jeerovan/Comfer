@@ -1,0 +1,51 @@
+{
+  "adaptations": [
+    "isolated notificationTest application ID"
+  ],
+  "bypasses": [
+    "Synthetic drawable throws OutOfMemoryError during draw/clone; device heap not exhausted"
+  ],
+  "criteria": [
+    "R58-ICON-MEM-REQ#containment"
+  ],
+  "entrypoint": "DrawableMemoryTest",
+  "environment": "Redmi7 API29; verified appb4b95c56 and runnere820f1a5",
+  "finished_at": "2026-11-10T12:28:23.032661+00:00",
+  "id": "16814da414f749e78ea4000bd52d2aa4",
+  "level": "component",
+  "observation": "4 tests ran on verified Redmi baseline. Controlled draw OOM escapes toOwnedBitmap line53 and clone OOM escapes line41:2 expected failures. Healthy bounded red snapshot and invalid maxEdge controls pass. This reproduces uncovered OOM boundary without exhausting physical heap.",
+  "order": 19,
+  "proof": {
+    "validation-artifacts/release58-drawable-memory-20261110/baseline-component.txt": "d0ea4b5b139aa6404c9b973a33a7495a805b0ee240628873cb35d462b5c65074"
+  },
+  "proof_path": "validation-artifacts/release58-drawable-memory-20261110/baseline-component.txt",
+  "result": "failed",
+  "snapshot": {
+    "files": {
+      "app/build.gradle.kts": "35faf209457acc372355e445c39f03c3264a57bc809aa24cdb050f8900591e90",
+      "app/src/androidTest/java/com/jeerovan/comfer/AppIconLoadingTest.kt": "acb0a443128342cf50df36a499df8ea44d1d503e35f4e045a5e99dfa26b61333",
+      "app/src/androidTest/java/com/jeerovan/comfer/DrawableMemoryHomeTest.kt": "3d3bc5dcba837bac7dfb276a0648032348012a1142e290e0e81726aa313d79cf",
+      "app/src/androidTest/java/com/jeerovan/comfer/DrawableMemoryTest.kt": "1ad1ac73435f1867842a7b908f9eeffb10e98f1ae1e86d54baca1abe5d892a0d",
+      "app/src/androidTest/java/com/jeerovan/comfer/Release50RegressionTest.kt": "6b3d7dc74922a4faf6b44b335010e732c11a6814d53a9810ca9d51c4e8263619",
+      "app/src/androidTest/java/com/jeerovan/comfer/Release51RegressionTest.kt": "cda6b7610efe7de7a54d079d547dedce2f10a2e3d8cb86556da7efcc6c140cb4",
+      "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1",
+      "app/src/main/java/com/jeerovan/comfer/AppInfoViewModel.kt": "e0c01be87ce0bcf0c51bcb4cd7c2d4ba357f5e3fafb2e346885ddf57ac0912ce",
+      "app/src/main/java/com/jeerovan/comfer/AppSelectionActivity.kt": "0aee86f56dc3018f7b4661901d51285cf8b3fa03d220f2bf79c0c2d2cdca21c7",
+      "app/src/main/java/com/jeerovan/comfer/DrawableExt.kt": "2c90e9f428c1b4059e8525c74578fcb09730045b4a29b8aa49cd012bc2886002",
+      "app/src/main/java/com/jeerovan/comfer/DrawerTitleContrast.kt": "4926db8c1e864afbbd3968e06d3f1d26f3ac6f9af3f8b91650d347d746cd2f86",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "b76793a2ca2e0838571f54582837ce6ba12ba8f7cd13682a6227d26361a06212",
+      "app/src/main/java/com/jeerovan/comfer/Settings.kt": "42109f70a8573f3069bb7c4ecf562bf4991a6eccdea0cb9dedde88bdcbb7f6a0",
+      "app/src/main/java/com/jeerovan/comfer/WidgetImages.kt": "d4f76e6b3d51d27e47902a31fd43381342c925e2499c9790a76c0b61fe0666ce",
+      "app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt": "ab5d9f89e403136d2a9faecec907c4672be01343424308906ffd7c9248377845",
+      "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216"
+    },
+    "graph": "b10610e3fb82de0b7cd9bc123cc1878a8890e7e3546372f8d42b8cb609f4d805",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-10T12:27:34.075008+00:00",
+  "step": "R58-FIX-04",
+  "test": "R58-ICON-MEM-TEST"
+}

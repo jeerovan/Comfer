@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Single DB refresh must preserve true state transitions and sample history",
+      "relation": "verifies",
+      "source": "OPS-IMPORT-TEST",
+      "target": "OPS-IMPORT-01"
+    },
+    "reopened": []
+  },
+  "id": "541826275d2d4608ab11144eeb78052d",
+  "reason": "Bind importer review and acceptance coverage",
+  "seq": 254,
+  "time": "2026-11-10T13:30:33.802807+00:00"
+}

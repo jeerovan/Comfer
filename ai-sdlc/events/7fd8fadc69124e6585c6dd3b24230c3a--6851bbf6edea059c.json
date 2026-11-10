@@ -1,0 +1,36 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Owner-directed single database policy replaces proposed compressed backups. Remove duplicate creation, retain explicit state revisions and audit old copies before removal.",
+      "id": "OPS-BACKUP-01",
+      "kind": "step",
+      "phase": "maintenance",
+      "refs": [],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Consolidate reporting history into one database"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Fix issue_history backup policy; losslessly compress timestamped backups created during release58 work. Preserve original telemetry-import baseline for existing verification references.",
+      "id": "OPS-BACKUP-01",
+      "kind": "step",
+      "phase": "maintenance",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Recover project storage and prevent repeated full-copy growth"
+    },
+    "node": "OPS-BACKUP-01",
+    "reopened": []
+  },
+  "id": "7fd8fadc69124e6585c6dd3b24230c3a",
+  "reason": "Align tracking with explicit single-database direction",
+  "seq": 232,
+  "time": "2026-11-10T12:46:44.930933+00:00"
+}

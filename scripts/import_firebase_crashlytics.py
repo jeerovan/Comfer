@@ -12,6 +12,8 @@ from pathlib import Path
 import re
 import sqlite3
 import sys
+from issue_state_history import ensure_state_history
+from crashlytics_evidence import ensure_evidence_schema, archive_evidence
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -122,13 +124,9 @@ def _required_string(mapping, key, context):
 
 def _nonnegative_int(mapping, key, context):
     value = mapping.get(key)
-    if isinstance(value, bool):
-        raise ValueError(f"{context}.{key} must be a non-negative integer")
-    try:
+    if isinstance(value, str) and re.fullmatch(r'[0-9]+', value):
         value = int(value)
-    except (TypeError, ValueError) as exc:
-        raise ValueError(f"{context}.{key} must be a non-negative integer") from exc
-    if value < 0:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise ValueError(f"{context}.{key} must be a non-negative integer")
     return value
 
@@ -136,9 +134,12 @@ def _nonnegative_int(mapping, key, context):
 def _parse_timestamp(value, context):
     value = _required_string({"value": value}, "value", context)
     try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as exc:
         raise ValueError(f"{context} must be an ISO-8601 timestamp") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError(f"{context} must include a timezone")
+    return parsed
 
 
 def validate_payload(payload):
@@ -158,9 +159,9 @@ def validate_payload(payload):
     version_name = _required_string(payload, "versionName", "payload")
     period_start = _required_string(payload, "periodStart", "payload")
     period_end = _required_string(payload, "periodEnd", "payload")
-    if _parse_timestamp(period_start, "payload.periodStart") >= _parse_timestamp(
-        period_end, "payload.periodEnd"
-    ):
+    start = _parse_timestamp(period_start, "payload.periodStart")
+    end = _parse_timestamp(period_end, "payload.periodEnd")
+    if start >= end:
         raise ValueError("payload.periodStart must be before payload.periodEnd")
 
     issues = payload.get("issues")
@@ -200,6 +201,12 @@ def validate_payload(payload):
             raise ValueError(f"{context}.event must be an object")
         event_context = f"{context}.event"
         event_name = _required_string(event, "name", event_context)
+        if f'/apps/{app_id}/events/' not in event_name:
+            raise ValueError(f"{context} sample event does not match its Firebase app")
+        event_time = _parse_timestamp(event.get('eventTime'), f'{event_context}.eventTime')
+        _parse_timestamp(event.get('receivedTime'), f'{event_context}.receivedTime')
+        if not start <= event_time < end:
+            raise ValueError(f"{context} sample event is outside the reporting interval")
         event_issue_id = _required_string(event, "issueId", event_context)
         event_error_type = _required_string(event, "errorType", event_context)
         event_package = _required_string(event, "packageName", event_context)
@@ -289,11 +296,16 @@ def validate_payload(payload):
 def ensure_schema(conn):
     for statement in SCHEMA:
         conn.execute(statement)
+    ensure_state_history(conn)
+    ensure_evidence_schema(conn)
 
 
 def save_import(conn, report, now):
     """Save one validated, complete Crashlytics refresh in a single transaction."""
+    if conn.in_transaction:
+        raise ValueError('Commit pending work before importing Crashlytics')
     with conn:
+        conn.execute('BEGIN IMMEDIATE')
         ensure_schema(conn)
         run_id = conn.execute(
             """
@@ -319,16 +331,14 @@ def save_import(conn, report, now):
                 report["event_count"],
             ),
         ).lastrowid
-        conn.execute(
-            """
-            UPDATE crashlytics_issues
-            SET present_in_latest_import=0
-            WHERE firebase_app_id=? AND version_code=?
-            """,
-            (report["firebase_app_id"], report["version_code"]),
-        )
         for source_row in report["rows"]:
             row = dict(source_row)
+            previous = conn.execute('''SELECT * FROM crashlytics_issues
+                WHERE firebase_app_id=? AND version_code=? AND issue_id=?''',
+                (row['firebase_app_id'], row['version_code'], row['issue_id']))
+            old = previous.fetchone()
+            if old is not None:
+                archive_evidence(conn, dict(zip((c[0] for c in previous.description), old)), now, 'pre-refresh')
             row.update(
                 first_seen_at=now,
                 last_synced_at=now,
@@ -348,12 +358,13 @@ def save_import(conn, report, now):
                 + ",".join(updates),
                 list(row.values()),
             )
+            evidence_id = archive_evidence(conn, row, now, 'import')
             conn.execute(
                 """
                 INSERT INTO crashlytics_issue_snapshots (
                     import_run_id, firebase_app_id, version_code, issue_id,
-                    affected_users, events, sessions, sample_event_time
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    affected_users, events, sessions, sample_event_time, evidence_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     run_id,
@@ -364,8 +375,13 @@ def save_import(conn, report, now):
                     row["events"],
                     row["sessions"],
                     row["event_time"],
+                    evidence_id,
                 ),
             )
+        conn.execute('''UPDATE crashlytics_issues SET present_in_latest_import=0
+            WHERE firebase_app_id=? AND version_code=? AND present_in_latest_import<>0
+              AND issue_id NOT IN (SELECT issue_id FROM crashlytics_issue_snapshots WHERE import_run_id=?)''',
+            (report['firebase_app_id'], report['version_code'], run_id))
     return run_id
 
 
@@ -401,14 +417,7 @@ def main(argv=None):
             database = args.database.resolve()
             with sqlite3.connect(database.as_uri() + "?mode=rw", uri=True) as conn:
                 conn.execute("PRAGMA foreign_keys=ON")
-                backup = database.with_name(
-                    database.name
-                    + ".backup-"
-                    + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
-                )
-                with sqlite3.connect(backup) as destination:
-                    conn.backup(destination)
-                summary["backup"] = str(backup)
+                summary["backup"] = None
                 summary["import_run_id"] = save_import(
                     conn, report, datetime.now(timezone.utc).isoformat()
                 )

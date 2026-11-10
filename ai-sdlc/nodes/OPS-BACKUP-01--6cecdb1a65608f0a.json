@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Owner-directed single database policy replaces proposed compressed backups. Remove duplicate creation, retain explicit state revisions and audit old copies before removal.",
+  "id": "OPS-BACKUP-01",
+  "kind": "step",
+  "phase": "maintenance",
+  "refs": [],
+  "revision": 2,
+  "status": "completed",
+  "tags": [],
+  "title": "Consolidate reporting history into one database"
+}
