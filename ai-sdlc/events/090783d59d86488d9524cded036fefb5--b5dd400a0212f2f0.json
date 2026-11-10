@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "ef9259dfaeec466ea052883312294251"
+  },
+  "id": "090783d59d86488d9524cded036fefb5",
+  "reason": "Current candidate passed all17Redmi regressions and local declared-evidence gate; installed hashes verified.",
+  "seq": 285,
+  "time": "2026-11-10T14:05:05.508081+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Shared provider discovery must preserve persisted widgets and retry through lifecycle",
+      "relation": "realizes",
+      "source": "R58-WIDGET-REFRESH-IMPL",
+      "target": "R58-FIX-05"
+    },
+    "reopened": []
+  },
+  "id": "a134d1c8cb694d06b61f485f7dc4b385",
+  "reason": "Continue release58 on Redmi only; v58 label-allocation stack recurs after51-R05 image mitigation. Inspect connected provider refresh and saved-state recovery.",
+  "seq": 269,
+  "time": "2026-11-10T13:49:41.218204+00:00"
+}

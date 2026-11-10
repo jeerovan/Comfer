@@ -1,0 +1,6 @@
+{
+  "rationale": "Shared provider discovery must preserve persisted widgets and retry through lifecycle",
+  "relation": "verifies",
+  "source": "R58-WIDGET-REFRESH-TEST",
+  "target": "R58-FIX-05"
+}

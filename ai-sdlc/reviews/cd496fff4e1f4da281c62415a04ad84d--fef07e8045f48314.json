@@ -1,0 +1,31 @@
+{
+  "at": "2026-11-10T13:49:42.884743+00:00",
+  "code_discovery": "Codebase Memory generation2026-11-10T13:42:12Z exactroot; search/snippets coverloader/host/guard. Coverage clean best-effort MainActivity/DrawableExt/Guard. Inbound graph stops at file, source inspection findsWidgetHostScreen syncAndRefreshProviders and3consumers. Source shows labelOOM uncaught, service failure empty then destructive orphan cleanup; coldload onlyonce; nestedlaunch prevents cancelingactualrefresh. Prior51-05 removes eagericons but notlabelresourceOOM. Roomget/upsert inspected. No layout geometry edit planned; packagefallbacklongtext risk requiresfocusedLTR/RTL check.",
+  "entrypoints": "WidgetHostScreen lifecycleON_RESUME → provider query → groups/orphan cleanup → Room save; initialLaunchedEffect loadsplacements independently. DefaultHome sharesmain/left/rightwidget surfaces.",
+  "id": "cd496fff4e1f4da281c62415a04ad84d",
+  "order": 20,
+  "recovery_paths": "Proposed distinguish unavailablefromempty, deferfirstsavedrestoreuntilsuccessfulquery, retryeachON_RESUME, retain/cancelactualjob. Healthyrealproviderquery and controlledfault fixtures required. No Samsung, no productiondata changes.",
+  "reviewed_ids": [
+    "R58-FIX-05",
+    "R58-WIDGET-REFRESH-IMPL",
+    "R58-WIDGET-REFRESH-REQ",
+    "R58-WIDGET-REFRESH-TEST"
+  ],
+  "snapshot": {
+    "files": {
+      "app/src/androidTest/java/com/jeerovan/comfer/Release51RegressionTest.kt": "cda6b7610efe7de7a54d079d547dedce2f10a2e3d8cb86556da7efcc6c140cb4",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetInflationGuardTest.kt": "ec5e66d5a0169bdde270298b1c3f2611512261b37c3963f22dc8dbbefbc6866d",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "b76793a2ca2e0838571f54582837ce6ba12ba8f7cd13682a6227d26361a06212",
+      "app/src/main/java/com/jeerovan/comfer/WidgetImages.kt": "d4f76e6b3d51d27e47902a31fd43381342c925e2499c9790a76c0b61fe0666ce",
+      "app/src/main/java/com/jeerovan/comfer/WidgetInflationGuard.kt": "a8b9489c2e3f6b8f0191815997982ffdbb85e898658d1415d1c01421d3bd245f",
+      "app/src/main/java/com/jeerovan/comfer/data/ComferRepository.kt": "35e1640126eb9a5ef0263fe5474b94f4127fc897b39f4ff061b9f08f31b4c846"
+    },
+    "graph": "25124157c3109b943d94cf9236f55cec9f109d2791ca8007cd1709ffc4fbed8b",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "step": "R58-FIX-05",
+  "unresolved": []
+}

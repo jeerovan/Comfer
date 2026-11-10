@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "450bb62315284bc2b2a75ddaa6c35834"
+  },
+  "id": "afd653d462f0493ca20198e154cb8d1c",
+  "reason": "Pre-fix regression reproduced uncaught provider metadata allocation failure on Redmi.",
+  "seq": 277,
+  "time": "2026-11-10T13:53:15.544767+00:00"
+}

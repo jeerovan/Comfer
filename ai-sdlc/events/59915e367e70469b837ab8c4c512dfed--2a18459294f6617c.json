@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "in_progress",
+    "node": "R58-FIX-05",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "59915e367e70469b837ab8c4c512dfed",
+  "reason": "Currentcriteria anddeclared-evidencegatepass.17Redmitestsverifiedmetadatafailure,realRoom/widgetidentityretentionandresumerecovery,normalHomepicker,RTL/LTRfallbackselection. Attempt58-R06recordedinsinglereportingDB; productionandregular-deliveryremainunverified.",
+  "seq": 286,
+  "time": "2026-11-10T14:05:56.156810+00:00"
+}

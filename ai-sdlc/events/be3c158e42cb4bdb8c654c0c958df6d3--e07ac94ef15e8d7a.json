@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "ef9259dfaeec466ea052883312294251"
+  },
+  "id": "be3c158e42cb4bdb8c654c0c958df6d3",
+  "reason": "Run corrected candidate suite plus existing navigation/memory/widget regressions on Redmi.",
+  "seq": 284,
+  "time": "2026-11-10T14:02:12.393990+00:00"
+}

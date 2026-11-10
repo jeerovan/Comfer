@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R58-FIX-05",
+    "reopened": [],
+    "to": "in_progress"
+  },
+  "id": "1477d71d4ad54206b7177305da08bd24",
+  "reason": "Continue release58 on Redmi only; v58 label-allocation stack recurs after51-R05 image mitigation. Inspect connected provider refresh and saved-state recovery.",
+  "seq": 272,
+  "time": "2026-11-10T13:49:43.537301+00:00"
+}

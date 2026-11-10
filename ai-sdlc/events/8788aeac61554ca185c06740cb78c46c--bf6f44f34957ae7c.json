@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "d6d0219cbe504e569d82269881874e13"
+  },
+  "id": "8788aeac61554ca185c06740cb78c46c",
+  "reason": "Preserve first candidate result; preview fixture failed before reaching product loader.",
+  "seq": 282,
+  "time": "2026-11-10T13:59:11.557791+00:00"
+}

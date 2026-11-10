@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "90d805a9487a4be39dea594809f39f9c"
+  },
+  "id": "25dcafd11b4d4558b4a7ccd5b661cbf8",
+  "reason": "Run controlled label allocation failure on unchanged installed isolated app before fixing.",
+  "seq": 274,
+  "time": "2026-11-10T13:50:50.563228+00:00"
+}

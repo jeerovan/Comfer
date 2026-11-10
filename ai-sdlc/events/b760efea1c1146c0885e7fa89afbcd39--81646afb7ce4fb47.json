@@ -1,0 +1,54 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Review covers MainActivity WidgetHostScreen all three consumers, getGroupedWidgetProviders, loadWidgets/saveWidgets, Room placements and existing unsafe/image guards.",
+      "id": "R58-WIDGET-REFRESH-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/WidgetInflationGuard.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/WidgetImages.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/data/ComferRepository.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Provider lookup, lifecycle refresh and saved widget restoration"
+    },
+    "before": null,
+    "node": "R58-WIDGET-REFRESH-IMPL",
+    "reopened": []
+  },
+  "id": "b760efea1c1146c0885e7fa89afbcd39",
+  "reason": "Continue release58 on Redmi only; v58 label-allocation stack recurs after51-R05 image mitigation. Inspect connected provider refresh and saved-state recovery.",
+  "seq": 266,
+  "time": "2026-11-10T13:49:39.283127+00:00"
+}

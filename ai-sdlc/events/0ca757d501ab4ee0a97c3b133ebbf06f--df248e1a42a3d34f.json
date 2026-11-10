@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "stale",
+    "run": "90d805a9487a4be39dea594809f39f9c"
+  },
+  "id": "0ca757d501ab4ee0a97c3b133ebbf06f",
+  "reason": "Baseline harness compile failed before device execution; removed unavailable MockPackageManager dependency.",
+  "seq": 275,
+  "time": "2026-11-10T13:51:28.360443+00:00"
+}

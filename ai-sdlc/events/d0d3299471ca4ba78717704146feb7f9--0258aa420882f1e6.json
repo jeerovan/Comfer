@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "d6d0219cbe504e569d82269881874e13"
+  },
+  "id": "d0d3299471ca4ba78717704146feb7f9",
+  "reason": "Verify candidate provider metadata containment, lifecycle recovery and preserved widget state on Redmi only.",
+  "seq": 281,
+  "time": "2026-11-10T13:57:13.844824+00:00"
+}

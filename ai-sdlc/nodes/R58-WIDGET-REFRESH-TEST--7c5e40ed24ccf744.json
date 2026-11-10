@@ -1,0 +1,55 @@
+{
+  "criteria": [],
+  "description": "Controlled label failure with real provider enumeration, unavailable/empty distinction, actual widget screen lifecycle and retained Room state, default Home navigation. Layout risk: fallback package label longer; check picker row inLTR/RTL without changing device locale.",
+  "id": "R58-WIDGET-REFRESH-TEST",
+  "kind": "test",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/Release51RegressionTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/WidgetInflationGuardTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRefreshTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRecoveryTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/notificationTest/java/com/jeerovan/comfer/AnrFixtureWidgetProvider.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/notificationTest/res/xml/anr_fixture_widget.xml",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 3,
+  "status": "pending",
+  "tags": [],
+  "title": "Redmi provider failure and widget lifecycle recovery regressions"
+}

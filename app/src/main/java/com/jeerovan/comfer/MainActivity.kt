@@ -623,6 +623,7 @@ fun WidgetHostScreen(
     onSwipeLeft: () -> Unit,
     onSwipeRight: () -> Unit,
     onLongPressGuideCompleted: () -> Unit = {},
+    providerInventoryLoader: suspend (Context) -> WidgetProviderInventory? = ::getGroupedWidgetProviders,
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -665,46 +666,49 @@ fun WidgetHostScreen(
      * Fetches the latest widget providers and syncs the app's state. It cleans up
      * any bound widgets whose provider is no longer available (e.g., app uninstalled).
      */
-    fun syncAndRefreshProviders() {
-        coroutineScope.launch {
-            // Fetch the current list of all available widget providers from the system.
-            val newProviderGroups = withContext(Dispatchers.IO) {
-                getGroupedWidgetProviders(context)
+    fun syncAndRefreshProviders(): Job = coroutineScope.launch {
+        // A failed query is not an uninstall. Keep both saved and visible widgets,
+        // and let the next normal resume retry (including a failed cold start).
+        val inventory = providerInventoryLoader(context) ?: return@launch
+        val newProviderGroups = inventory.groups
+
+        if (isFirstOnResume.value) {
+            val loadedWidgets = withContext(Dispatchers.IO) {
+                loadWidgets(context, widgetPrefsTitle, inventory.providers)
+            }
+            boundWidgets.clear()
+            boundWidgets.addAll(loadedWidgets)
+        } else {
+            // Create a set of all currently available provider ComponentNames for fast lookups.
+            val availableProviderNames = inventory.providers.map { it.provider }.toSet()
+
+            // Identify bound widgets whose providers are no longer in the available list.
+            val widgetsToRemove = boundWidgets.filter { widget ->
+                widget.providerInfo.provider !in availableProviderNames
             }
 
-            // On subsequent onResume calls (not the first), sync state and clean up.
-            if (!isFirstOnResume.value && allWidgetProviderGroups.isNotEmpty()) {
-                // Create a set of all currently available provider ComponentNames for fast lookups.
-                val availableProviderNames = newProviderGroups.flatMap { it.providers }.map { it.provider }.toSet()
-
-                // Identify bound widgets whose providers are no longer in the available list.
-                val widgetsToRemove = boundWidgets.filter { widget ->
-                    widget.providerInfo.provider !in availableProviderNames
+            // If there are orphaned widgets, remove them.
+            if (widgetsToRemove.isNotEmpty()) {
+                widgetsToRemove.forEach { widget ->
+                    appWidgetHost.deleteAppWidgetId(widget.widgetId)
                 }
-
-                // If there are orphaned widgets, remove them.
-                if (widgetsToRemove.isNotEmpty()) {
-                    widgetsToRemove.forEach { widget ->
-                        appWidgetHost.deleteAppWidgetId(widget.widgetId)
-                    }
-                    boundWidgets.removeAll(widgetsToRemove)
-                    // Persist the cleaned list.
-                    saveWidgets(context, widgetPrefsTitle, boundWidgets)
-                }
+                boundWidgets.removeAll(widgetsToRemove)
+                // Persist the cleaned list.
+                saveWidgets(context, widgetPrefsTitle, boundWidgets)
             }
-
-            // Update the master list of all providers with the newly fetched data.
-            allWidgetProviderGroups.clear()
-            allWidgetProviderGroups.addAll(newProviderGroups)
-
-            // If this was the first onResume, flip the flag.
-            if (isFirstOnResume.value) {
-                isFirstOnResume.value = false
-            }
-
-            // Finally, refresh the UI-facing list.
-            updateWidgetGroups()
         }
+
+        // Update the master list of all providers with the newly fetched data.
+        allWidgetProviderGroups.clear()
+        allWidgetProviderGroups.addAll(newProviderGroups)
+
+        // If this was the first onResume, flip the flag.
+        if (isFirstOnResume.value) {
+            isFirstOnResume.value = false
+        }
+
+        // Finally, refresh the UI-facing list.
+        updateWidgetGroups()
     }
     // Hook into the onResume lifecycle event.
     DisposableEffect(lifecycleOwner) {
@@ -712,9 +716,7 @@ fun WidgetHostScreen(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 syncJob?.cancel()
-                syncJob = coroutineScope.launch(Dispatchers.IO) {
-                    syncAndRefreshProviders()
-                }
+                syncJob = syncAndRefreshProviders()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -903,17 +905,6 @@ fun WidgetHostScreen(
                     }
                 }
                 Toast.makeText(context, stringWidgetBindingCancelled, Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        // Load widgets from Room on startup
-        LaunchedEffect(Unit) {
-            withContext(Dispatchers.IO) {
-                val loadedWidgets = loadWidgets(context, widgetPrefsTitle, appWidgetManager)
-                withContext(Dispatchers.Main) {
-                    boundWidgets.clear()
-                    boundWidgets.addAll(loadedWidgets)
-                }
             }
         }
 
@@ -1748,6 +1739,10 @@ private fun WidgetPreviewItem(
         label = withContext(Dispatchers.IO) {
             try {
                 provider.loadLabel(context.packageManager).orEmpty()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: OutOfMemoryError) {
+                provider.provider.shortClassName
             } catch (_: RuntimeException) {
                 provider.provider.shortClassName
             }
@@ -1795,56 +1790,25 @@ private fun WidgetPreviewItem(
 }
 
 // --- Utility & Persistence Functions ---
-private suspend fun getGroupedWidgetProviders(context: Context): List<WidgetProviderGroup> = withContext(Dispatchers.IO) {
-    try {
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        val packageManager = context.packageManager
-
-        // SAFEGUARD: This IPC call is where the DeadSystemException happens
-        val installedProviders = try {
-            appWidgetManager.installedProviders
-        } catch (e: RuntimeException) {
-            return@withContext emptyList()
-        }
-
-        installedProviders.filterNot {
-            WidgetInflationGuard.isKnownUnsafe(it.provider.flattenToShortString())
-        }.groupBy { it.provider.packageName }
-            .map { (packageName, providers) ->
-                try {
-                    val appInfo = packageManager.getApplicationInfo(packageName, 0)
-                    WidgetProviderGroup(
-                        appName = appInfo.loadLabel(packageManager).toString(),
-                        packageName = packageName,
-                        providers = providers
-                    )
-                } catch (_: Exception) {
-                    null // App might have been uninstalled
-                }
-            }.filterNotNull()
-
-    } catch (e: Exception) {
-        // Catch-all for other unexpected errors during mapping
-        emptyList()
-    }
+private suspend fun getGroupedWidgetProviders(context: Context): WidgetProviderInventory? = withContext(Dispatchers.IO) {
+    readWidgetProviderInventory(
+        queryProviders = { AppWidgetManager.getInstance(context).installedProviders },
+        loadLabel = { packageName ->
+            val packageManager = context.packageManager
+            packageManager.getApplicationInfo(packageName, 0).loadLabel(packageManager).toString()
+        },
+    )
 }
 
 private suspend fun loadWidgets(
     context: Context,
     slot: String,
-    appWidgetManager: AppWidgetManager
+    installedProviders: List<AppWidgetProviderInfo>
 ): List<BoundWidget> {
     val entity = ComferRepository.getWidgetPlacement(context, slot)
         ?: return emptyList()
     try {
         val persistableList = Json.decodeFromString<List<PersistableBoundWidget>>(entity.widgetsJson)
-
-        // SAFEGUARD: Isolate the risky IPC call
-        val installedProviders = try {
-            appWidgetManager.installedProviders
-        } catch (e: RuntimeException) {
-            return emptyList()
-        }
 
         val result: List<BoundWidget> = persistableList.mapNotNull<PersistableBoundWidget, BoundWidget> { persist ->
             val provider = installedProviders.find {

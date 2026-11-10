@@ -1,0 +1,29 @@
+{
+  "criteria": [
+    {
+      "expected": "Label failure uses package-name fallback without retry; failed whole query returns unavailable distinct from successful empty; cancellation propagates; unsafe picker guards retained",
+      "id": "lookup",
+      "initial_state": "Real provider inventory with a package label that fails allocation, or unavailable provider service",
+      "invariants": "No provider deletion based on failed metadata; no global OOM/ANR resolution claim",
+      "required_level": "integration",
+      "trigger": "Production provider discovery/label loading"
+    },
+    {
+      "expected": "No widget ID deletion or saved-placement rewrite during failed query; next normal resume restores/synchronizes widgets; confirmed removed provider can be cleaned up; stale canceled query cannot publish",
+      "id": "recovery",
+      "initial_state": "Saved widget and cold/warm widget screen; inventory unavailable on first or later resume",
+      "invariants": "User data preserved; three widget surfaces share same path; healthy picker and Home navigation work",
+      "required_level": "integration",
+      "trigger": "Activity resume after query recovery, interrupted refresh and recreation"
+    }
+  ],
+  "description": "Issue7e7c39ec34af08a023be70280bceeb34 now fails loading application labels; historical51-05 bounded images remains intact. A failed inventory must not be interpreted as uninstall. Retain saved widgets and recover on next normal resume.",
+  "id": "R58-WIDGET-REFRESH-REQ",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Preserve widgets through unavailable provider inventory and label memory failure"
+}

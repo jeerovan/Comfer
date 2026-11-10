@@ -1,0 +1,115 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Review covers MainActivity WidgetHostScreen all three consumers, getGroupedWidgetProviders, loadWidgets/saveWidgets, Room placements and existing unsafe/image guards.",
+      "id": "R58-WIDGET-REFRESH-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/WidgetInflationGuard.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/WidgetImages.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/data/ComferRepository.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/WidgetProviderInventory.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/notificationTest/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Provider lookup, lifecycle refresh and saved widget restoration"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Review covers MainActivity WidgetHostScreen all three consumers, getGroupedWidgetProviders, loadWidgets/saveWidgets, Room placements and existing unsafe/image guards.",
+      "id": "R58-WIDGET-REFRESH-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/WidgetInflationGuard.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/WidgetImages.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/data/ComferRepository.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Provider lookup, lifecycle refresh and saved widget restoration"
+    },
+    "node": "R58-WIDGET-REFRESH-IMPL",
+    "reopened": []
+  },
+  "id": "9bbd961df11e4adda5451ca2c0f538db",
+  "reason": "Bind actual provider lookup and lifecycle test/fixture source to acceptance.",
+  "seq": 278,
+  "time": "2026-11-10T13:56:00.114052+00:00"
+}

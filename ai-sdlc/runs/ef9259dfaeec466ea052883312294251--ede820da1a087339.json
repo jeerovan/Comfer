@@ -1,0 +1,51 @@
+{
+  "adaptations": [
+    "Controlled background metadata/queryfaults; noexhaustedheap",
+    "Isolatedpackageandtestwidgets/slots",
+    "GuideActivityhostsrealWidgetHostScreenforfaultsequence; MainActivitydefaultloadercheckedseparately"
+  ],
+  "bypasses": [
+    "FaultsequenceinjectsproviderInventoryLoader; normalHomequerynotinjected"
+  ],
+  "criteria": [
+    "R58-WIDGET-REFRESH-REQ#lookup",
+    "R58-WIDGET-REFRESH-REQ#recovery"
+  ],
+  "entrypoint": "Real provider discovery, default Home widget picker, and WidgetHostScreen lifecycle/Room/realbinding fixture",
+  "environment": "Redmi7 Android10 serial71a3063 isolatednotificationtest",
+  "finished_at": "2026-11-10T14:05:05.507993+00:00",
+  "id": "ef9259dfaeec466ea052883312294251",
+  "level": "integration",
+  "observation": "17/17passed onRedmi7 Android10. DefaultquerymetadataOOMcontained; rawproviderretention andunavailable/emptydistinction verified; cold/warmfailedquerypreservesrealboundwidgetIDandRoomplacement; normalresume/recreationrecover; canceledoldquerydoesnotpublish; confirmedemptycleanupworks. DefaultMainActivity realpickeropensafterlaunch/recreate thenWorkspaceBackworks. PreviewfallbackselectablewithouttextoverflowLTR/RTL. Existingnavigation/memory/widgetthreading tests pass. ControlledfailureandGuideActivitylifecyclefixturelimitsretained; notglobalOOM/ANRorproductionresolution. Regularappnotupdated; testsstopped.",
+  "order": 30,
+  "proof": {
+    "validation-artifacts/release58-widget-refresh-20261110/final-proof.json": "18274e86e503508e81fd5b478e2f996b5bbb3a798478d6da1afad56836c9a3eb"
+  },
+  "proof_path": "validation-artifacts/release58-widget-refresh-20261110/final-proof.json",
+  "result": "passed",
+  "snapshot": {
+    "files": {
+      "app/src/androidTest/java/com/jeerovan/comfer/Release51RegressionTest.kt": "cda6b7610efe7de7a54d079d547dedce2f10a2e3d8cb86556da7efcc6c140cb4",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetInflationGuardTest.kt": "ec5e66d5a0169bdde270298b1c3f2611512261b37c3963f22dc8dbbefbc6866d",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRecoveryTest.kt": "04f0b435c5c7244bbf1149a174a281a26c81552db2d8060d27a2e5954995f86b",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRefreshTest.kt": "2ba172fdffa06bc02a035a5adec5fe87cf6df72cd5cd6682186f277bd53c730e",
+      "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "6ab63953f6ca1f36a6f25042c9dccba6abee6778edfb8476f13214605095c14b",
+      "app/src/main/java/com/jeerovan/comfer/WidgetImages.kt": "d4f76e6b3d51d27e47902a31fd43381342c925e2499c9790a76c0b61fe0666ce",
+      "app/src/main/java/com/jeerovan/comfer/WidgetInflationGuard.kt": "a8b9489c2e3f6b8f0191815997982ffdbb85e898658d1415d1c01421d3bd245f",
+      "app/src/main/java/com/jeerovan/comfer/WidgetProviderInventory.kt": "495727f92b066bf22d3b3bc8d43c042c72f250898cfe4bcc6d55d852d4131b71",
+      "app/src/main/java/com/jeerovan/comfer/data/ComferRepository.kt": "35e1640126eb9a5ef0263fe5474b94f4127fc897b39f4ff061b9f08f31b4c846",
+      "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216",
+      "app/src/notificationTest/java/com/jeerovan/comfer/AnrFixtureWidgetProvider.kt": "d6ffce6fe8e48e9a582264d4cd648d694219b4688e329ef71ddfb2de3de953a9",
+      "app/src/notificationTest/res/xml/anr_fixture_widget.xml": "685819f12d4673e3ba371a51b77cffb88ac83dccf056d23c72d3e0b94dbfa5e7"
+    },
+    "graph": "11dd0af6e5053dda3060ad7f3e6a7acb0d047f006098bf50b085465a68231e99",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-10T14:02:12.393469+00:00",
+  "step": "R58-FIX-05",
+  "test": "R58-WIDGET-REFRESH-TEST"
+}

@@ -1,0 +1,42 @@
+{
+  "adaptations": [
+    "ContextWrapper.getPackageManager allocation failure rather than OEM label resource loader"
+  ],
+  "bypasses": [
+    "Direct lookup does not exercise UI lifecycle"
+  ],
+  "criteria": [
+    "R58-WIDGET-REFRESH-REQ#lookup"
+  ],
+  "entrypoint": "Production private provider lookup via reflection and real inventory",
+  "environment": "Redmi7 Android10 serial71a3063 isolatednotificationtest",
+  "finished_at": "2026-11-10T13:53:15.544689+00:00",
+  "id": "450bb62315284bc2b2a75ddaa6c35834",
+  "level": "integration",
+  "observation": "1 test,1 failure: controlled OOM in ContextWrapper.getPackageManager escapes production getGroupedWidgetProviders MainActivity1801. Real installed-provider precondition passed. This is a controlled allocation failure, not actual exhausted heap or exact OEM label resource loader. Redmi USB runner update now succeeds without owner action.",
+  "order": 28,
+  "proof": {
+    "validation-artifacts/release58-widget-refresh-20261110/baseline-test.txt": "1ba670db13f93853fb999892d8317b3c62dd1ef5cda4200c02522f1344a45903"
+  },
+  "proof_path": "validation-artifacts/release58-widget-refresh-20261110/baseline-test.txt",
+  "result": "failed",
+  "snapshot": {
+    "files": {
+      "app/src/androidTest/java/com/jeerovan/comfer/Release51RegressionTest.kt": "cda6b7610efe7de7a54d079d547dedce2f10a2e3d8cb86556da7efcc6c140cb4",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetInflationGuardTest.kt": "ec5e66d5a0169bdde270298b1c3f2611512261b37c3963f22dc8dbbefbc6866d",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRefreshTest.kt": "f5fed1ffe63e88bf64cd6136816c58c07c62e171b008c11924aa28372b0ad2a9",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "b76793a2ca2e0838571f54582837ce6ba12ba8f7cd13682a6227d26361a06212",
+      "app/src/main/java/com/jeerovan/comfer/WidgetImages.kt": "d4f76e6b3d51d27e47902a31fd43381342c925e2499c9790a76c0b61fe0666ce",
+      "app/src/main/java/com/jeerovan/comfer/WidgetInflationGuard.kt": "a8b9489c2e3f6b8f0191815997982ffdbb85e898658d1415d1c01421d3bd245f",
+      "app/src/main/java/com/jeerovan/comfer/data/ComferRepository.kt": "35e1640126eb9a5ef0263fe5474b94f4127fc897b39f4ff061b9f08f31b4c846"
+    },
+    "graph": "931fa56029197ebed97a1d273034504f5f1837aec904289a0db82d5d9ae02f4b",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-10T13:51:40.568244+00:00",
+  "step": "R58-FIX-05",
+  "test": "R58-WIDGET-REFRESH-TEST"
+}
