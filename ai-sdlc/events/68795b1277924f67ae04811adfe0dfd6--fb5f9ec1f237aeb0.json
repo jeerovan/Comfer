@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R58-FIX-01",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "68795b1277924f67ae04811adfe0dfd6",
+  "reason": "Exact injected duplicate-key baseline reproduced; hash-verified Redmi candidate passes default picker/recreation/result and overlap controls. Completion scoped to picker mitigation, not all events in recurring issue group.",
+  "seq": 176,
+  "time": "2026-11-10T10:39:33.872289+00:00"
+}

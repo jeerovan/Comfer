@@ -1,0 +1,35 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Preserve observed en-US v001 copy, release-58 identity and all 26 original assets with bytes, timestamps, source identities and hashes; preserve report generations and raw rows.\nHistorical status: completed as documented; imported pending current acceptance verification. Preserve original plan evidence and limitations. Existing implementation must be reused.",
+      "id": "PL-01",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "PL-01",
+          "notes": "",
+          "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [
+        "historical-completed-unverified"
+      ],
+      "title": "Baseline: reconcile and verify existing work"
+    },
+    "before": null,
+    "node": "PL-01",
+    "reopened": []
+  },
+  "id": "19dfdf9eacb74da1b57fc01733404265",
+  "reason": "Migrate accepted active scope with preserved provenance; no historical verification promoted",
+  "seq": 6,
+  "time": "2026-11-10T06:29:36.509523+00:00"
+}

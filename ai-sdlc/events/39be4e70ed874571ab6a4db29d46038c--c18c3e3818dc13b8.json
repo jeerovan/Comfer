@@ -1,0 +1,70 @@
+{
+  "action": "impact_review",
+  "actor": "codex",
+  "details": {
+    "review": {
+      "at": "2026-11-10T10:39:06.687291+00:00",
+      "code_discovery": "Task source reviewed: importer validates version/page counts and transactional triage/history preservation; backup verifier compares old rows. Picker path Settings/GestureShortcutActivity -> manifest AppSelectionActivity -> default AppInfoViewModel/StartupCoordinator -> independently published inventory groups -> shared component/profile guard. MainActivity -> Bundle copy/removal before super -> AndroidX framework lifecycle injection; no application-owned framework fragments found. SettingsViewModel normal update-counter increment accounted for in test. Manifest factory qualified from incorrect test-suffix name to real class, regular package same resolution. Earlier graph coverage/source checks retained; no exhaustive repository claim.",
+      "entrypoints": "Redmi default application and activity constructors tested; picker recreation/selection result passes. Injected overlap reproduces pre-fix exact duplicate-key exception and passes candidate. Home saved-state callback injection reaches recreation, preserves settings and opens Workspace. Import16 provenance includes all report pages and independent counts; runtime tests do not prove production resolution.",
+      "id": "29c28a15e7df41d28e67f0624a20631e",
+      "order": 9,
+      "recovery_paths": "Existing data retained across test APK updates; no clear-data or Samsung use. Caller Bundle unmodified, AndroidX state retained. Current/empty/overlap inventory tested. Original test failure preserved, known mutable bookkeeping separated from durable settings. Legacy migration needs real minified artifact coverage before release readiness.",
+      "reviewed_ids": [
+        "R58-DEVICE-BLOCK",
+        "R58-FETCH",
+        "R58-FETCH-CHECK",
+        "R58-FETCH-IMPL",
+        "R58-FIX-01",
+        "R58-FIX-02",
+        "R58-FIX-IMPL",
+        "R58-FIX-REQ",
+        "R58-FIX-TEST",
+        "R58-REFRESH-01",
+        "R58-RESTORE-IMPL",
+        "R58-RESTORE-REQ",
+        "R58-RESTORE-TEST"
+      ],
+      "snapshot": {
+        "files": {
+          "app/build.gradle.kts": "35faf209457acc372355e445c39f03c3264a57bc809aa24cdb050f8900591e90",
+          "app/proguard-rules.pro": "54de8e2a116a27445420cff93312c993f7d7ac43779379c3b969e9775e1669e8",
+          "app/src/androidTest/java/com/jeerovan/comfer/AppSelectionIdentityTest.kt": "6a23be947c489c124e17832e920f69e8033cf853b9fe8d5b485b53ce696b7e20",
+          "app/src/androidTest/java/com/jeerovan/comfer/LauncherSavedStateTest.kt": "70a6d521f1ef35e13003c22e224796221ccacf31f9852abb5b15ba97b1c82707",
+          "app/src/androidTest/java/com/jeerovan/comfer/ManageAppListIdentityTest.kt": "fe07df8922d38c7fbf2bae4b311914aebea2185d7f2140bd944f06cff88106b2",
+          "app/src/androidTest/java/com/jeerovan/comfer/Release50RegressionTest.kt": "6b3d7dc74922a4faf6b44b335010e732c11a6814d53a9810ca9d51c4e8263619",
+          "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1",
+          "app/src/main/java/com/jeerovan/comfer/AppInfoViewModel.kt": "e0c01be87ce0bcf0c51bcb4cd7c2d4ba357f5e3fafb2e346885ddf57ac0912ce",
+          "app/src/main/java/com/jeerovan/comfer/AppSelectionActivity.kt": "0aee86f56dc3018f7b4661901d51285cf8b3fa03d220f2bf79c0c2d2cdca21c7",
+          "app/src/main/java/com/jeerovan/comfer/ComferApp.kt": "65e3412868e7cbe4ddd1a22b8a40fb7423e4bb7c09cbcaec913d3a071fd46ea4",
+          "app/src/main/java/com/jeerovan/comfer/GestureShortcutActivity.kt": "6391dff34f898181160fb06530234b579a72aa1f91115f334d1c83a1aaaf24ce",
+          "app/src/main/java/com/jeerovan/comfer/LauncherSavedState.kt": "2275d46df3e5c70c5f39b3eea4170a4909b2519c4c5c911453da2cae2dec3538",
+          "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "3fc84ba63d099e97baa025288b80026eb05c6b4579c4c02338e28cea0585df2a",
+          "app/src/main/java/com/jeerovan/comfer/PreferenceManager.kt": "b6920ae8d49e1d142bc1b7e3918fa15d65a3ad25ae65093ac71b1d7d4d9c93e7",
+          "app/src/main/java/com/jeerovan/comfer/SearchAppIdentity.kt": "bb9735f87eb833995138d402f889a90958c46f9ce2f82dc933b45a7ba01b168e",
+          "app/src/main/java/com/jeerovan/comfer/Settings.kt": "4f3b7090808bc808bc013124b840d75592b523cd2019762c10d6cbf859964d4f",
+          "app/src/main/java/com/jeerovan/comfer/SettingsViewModel.kt": "ed9c924530e11db5c37122deb0f89f5f91f8a8b8560dabc16822cc2d61bf6c56",
+          "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216",
+          "scripts/README-play-reporting.md": "25481af6be765eb8565e35589f960ee9e8f137eec3f1bbaadb4c5711beb12ebd",
+          "scripts/import_firebase_crashlytics.py": "24e1ab32b859a3571b967d5cf5c8a2894b2a50602932c9f46cd8e9651b3584d8",
+          "scripts/tests/test_import_firebase_crashlytics.py": "6b18a387e562a2f2b4f40bd9b88b488e61b2b6d2ee1e02a280fa185ed5f598de",
+          "validation-artifacts/firebase-v58-20261110T064551Z/config.json": "956c8c18ad2d3f90efb364ea75c2d0268596b141ffb852ca231850eb12ba6502",
+          "validation-artifacts/firebase-v58-20261110T064551Z/fetch.cjs": "284d7059bd58a616850c48910384ebf6088f546eec4cc6c2d9e1bb58432ff1ec",
+          "validation-artifacts/firebase-v58-20261110T064551Z/normalize.py": "27433710a4d2751e3b41eaa21f47ab8e3f540bbf3283e86bea44ac5e6d32ebad",
+          "validation-artifacts/firebase-v58-20261110T064551Z/verify-import.py": "f2b5f5cc75109f045a56b38c77f02fe3d0e4fac70400dffb06f15433a22946b0"
+        },
+        "graph": "451aeae976510d6a5d3f3b0d2195fa85910000b1fbc44c910a7a26bc351d3735",
+        "origin": {
+          "branch": "refs/heads/main",
+          "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+        }
+      },
+      "step": "R58-FETCH",
+      "unresolved": []
+    },
+    "step": "R58-FETCH"
+  },
+  "id": "39be4e70ed874571ab6a4db29d46038c",
+  "reason": "Reconcile bounded current source, historical evidence and completed Redmi observations.",
+  "seq": 170,
+  "time": "2026-11-10T10:39:06.687337+00:00"
+}

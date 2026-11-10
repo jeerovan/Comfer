@@ -41,7 +41,14 @@ __pycache__/
 /play_reporting.db*
 /play_stats.db*
 /play_reviews.db*
+/play_listing.db*
+/store-listing/private/
 /crashlytics-export*.json
+
+# Rebuildable listing delivery bundles and review contact sheets.
+# Keep versioned copy, editable sources, source captures, upload media and provenance.
+/store-listing/*.zip
+/store-listing/*/contact-*.jpg
 
 # Credentials and release-signing material
 /service-account.json

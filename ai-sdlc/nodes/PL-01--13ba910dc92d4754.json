@@ -1,0 +1,22 @@
+{
+  "criteria": [],
+  "description": "Preserve observed en-US v001 copy, release-58 identity and all 26 original assets with bytes, timestamps, source identities and hashes; preserve report generations and raw rows.\nHistorical status: completed as documented; imported pending current acceptance verification. Preserve original plan evidence and limitations. Existing implementation must be reused.",
+  "id": "PL-01",
+  "kind": "step",
+  "phase": "verification",
+  "refs": [
+    {
+      "locator": "PL-01",
+      "notes": "",
+      "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [
+    "historical-completed-unverified"
+  ],
+  "title": "Baseline: reconcile and verify existing work"
+}

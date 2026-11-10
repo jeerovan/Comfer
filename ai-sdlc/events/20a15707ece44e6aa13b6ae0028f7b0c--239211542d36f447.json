@@ -1,0 +1,49 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Record actual free keyword signals separately from hypotheses; retain acquisition/install/rating/review metric definitions, windows and breakdowns; select focused English iteration.",
+          "id": "acceptance",
+          "initial_state": "Archived baseline",
+          "invariants": "Clicks, acquisitions and installs remain distinct; no unsupported ranking, privacy, speed, battery or pricing claims.",
+          "required_level": "integration",
+          "trigger": "Research keywords and audience"
+        }
+      ],
+      "description": "Migrated accepted behavior from PRD-PLAY-LISTING.md and plan PL-02.",
+      "id": "PL-REQ-02",
+      "kind": "requirement",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "PRD-PLAY-LISTING.md",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "PL-02",
+          "notes": "",
+          "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Research"
+    },
+    "before": null,
+    "node": "PL-REQ-02",
+    "reopened": []
+  },
+  "id": "20a15707ece44e6aa13b6ae0028f7b0c",
+  "reason": "Migrate accepted active scope with preserved provenance; no historical verification promoted",
+  "seq": 7,
+  "time": "2026-11-10T06:29:36.830823+00:00"
+}

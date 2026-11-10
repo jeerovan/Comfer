@@ -1,0 +1,21 @@
+{
+  "criteria": [
+    {
+      "expected": "Home opens, Workspace remains usable, other saved state/settings preserved; future ReportFragment class name retained",
+      "id": "restore",
+      "initial_state": "Home saved state from older obfuscated lifecycle framework fragment",
+      "invariants": "No clearing app data, resetting all saved state, or swallowing unrelated exceptions; Redmi-only isolated runtime verification",
+      "required_level": "integration",
+      "trigger": "Create/recreate MainActivity with incompatible framework-fragment state"
+    }
+  ],
+  "description": "New v58 issue d5cebe3fe0a65ee46f00f0460cc7adeb: framework restore at MainActivity.super.onCreate tries vj4 as Fragment. Archived mapping56 maps lifecycle ReportFragment to vj4; mapping58 maps it to unrelated reorderable lambda (ReportFragment now ek4). MainActivity uses no application-owned framework fragments; AndroidX recreates lifecycle hook. Preserve rest of saved instance state and persistent user data.",
+  "id": "R58-RESTORE-REQ",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Recover Home from legacy lifecycle fragment state"
+}

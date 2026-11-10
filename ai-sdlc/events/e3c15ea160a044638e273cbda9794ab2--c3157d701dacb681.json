@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Verified only Redmi7 Xiaomi API29 serial71a3063. No Comfer packages installed at initial inventory. ADB install rejected twice INSTALL_FAILED_USER_RESTRICTED; user says Install via USB requires SIM absent. Normal FileManager installation alternative: pre-fix Comfer-Test.apk and Comfer-Test-Runner.apk copied to Downloads. Direct file URI installer unavailable. Await manual installation; no Samsung/emulator used and no runtime pass claimed.",
+      "id": "R58-DEVICE-BLOCK",
+      "kind": "risk",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Redmi test installation pending"
+    },
+    "before": null,
+    "node": "R58-DEVICE-BLOCK",
+    "reopened": []
+  },
+  "id": "e3c15ea160a044638e273cbda9794ab2",
+  "reason": "Record new evidence-backed issue and explicit Redmi verification blocker",
+  "seq": 148,
+  "time": "2026-11-10T08:08:30.389620+00:00"
+}

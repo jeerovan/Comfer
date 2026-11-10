@@ -1,0 +1,21 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Same-package debug update checks data/settings and regular launcher usability; cannot satisfy legacy-obfuscation criterion alone.",
+      "relation": "verifies",
+      "source": "R58-DEBUG-UPGRADE-TEST",
+      "target": "R58-FIX-02"
+    },
+    "reopened": [
+      "R58-DEVICE-BLOCK",
+      "R58-FETCH",
+      "R58-FIX-01"
+    ]
+  },
+  "id": "8ae75959f1234330ba852c1614014332",
+  "reason": "Record manual debug upgrade as additional verification, preserving separate legacy-minified gap.",
+  "seq": 181,
+  "time": "2026-11-10T11:00:25.575415+00:00"
+}

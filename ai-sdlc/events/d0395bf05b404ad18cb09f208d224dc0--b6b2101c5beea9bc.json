@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "c2de549c9f6347129d1edd48f9d8e243"
+  },
+  "id": "d0395bf05b404ad18cb09f208d224dc0",
+  "reason": "Preserve actual Home failure; isolate inappropriate test assertion before changing test.",
+  "seq": 162,
+  "time": "2026-11-10T10:32:55.676250+00:00"
+}

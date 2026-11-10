@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "bd39f5692ee9410fa118e6db901fa7c2"
+  },
+  "id": "8b5377187d7f4cc5bb5f34920f618995",
+  "reason": "Begin import/preservation verification before dry-run and database mutation; collector already started, not backdated",
+  "seq": 116,
+  "time": "2026-11-10T06:47:37.232420+00:00"
+}

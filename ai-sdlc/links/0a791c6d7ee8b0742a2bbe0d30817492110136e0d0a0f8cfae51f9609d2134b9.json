@@ -1,0 +1,6 @@
+{
+  "rationale": "Preserve original PL-06 scope while making review, publication and later evaluation separate.",
+  "relation": "contains",
+  "source": "PL-REQ-06",
+  "target": "PL-REQ-06-REVIEW"
+}

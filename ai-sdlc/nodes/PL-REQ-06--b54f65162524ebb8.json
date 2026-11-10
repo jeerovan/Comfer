@@ -1,0 +1,36 @@
+{
+  "criteria": [
+    {
+      "expected": "Reconcile actual SDK/runtime data practices with privacy policy and Console Data safety, prepare concrete publication scope, then record activation only after verified publication and evaluate complete 28-day windows.",
+      "id": "acceptance",
+      "initial_state": "Prepared v002 with unresolved disclosure conflict",
+      "invariants": "Do not publish or invent activation/exposure; preserve evidence and data; whole refresh cannot isolate one element.",
+      "required_level": "journey",
+      "trigger": "Review disclosures, separately authorize publication, observe exposure"
+    }
+  ],
+  "description": "Migrated accepted behavior from PRD-PLAY-LISTING.md and plan PL-06.",
+  "id": "PL-REQ-06",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "PRD-PLAY-LISTING.md",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "PL-06",
+      "notes": "",
+      "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Follow-up"
+}

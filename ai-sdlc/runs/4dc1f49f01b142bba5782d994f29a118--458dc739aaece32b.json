@@ -1,0 +1,39 @@
+{
+  "adaptations": [
+    "MCP lacks pagination argument; authenticated Firebase CLI GET pagination.",
+    "Collector uses global event pages to avoid redundant per-issue requests; every event validated against issue counts."
+  ],
+  "bypasses": [],
+  "criteria": [
+    "R58-REFRESH-01#import"
+  ],
+  "entrypoint": "normalize.py; importer --dry-run then import; verify-import.py",
+  "environment": "macOS Comfer checkout, real version-filtered Firebase telemetry and local existing DB",
+  "finished_at": "2026-11-10T06:58:51.963632+00:00",
+  "id": "4dc1f49f01b142bba5782d994f29a118",
+  "level": "integration",
+  "observation": "No import yet. Global event endpoint rejected request; returned to per-issue requests. Aggregate issue totals reconciled; some listed-event counts differ. Normalizer retains aggregate counts and validated sample per issue, not a false exhaustive-events assertion.",
+  "order": 4,
+  "proof": {},
+  "proof_path": "",
+  "result": "stale",
+  "snapshot": {
+    "files": {
+      "scripts/README-play-reporting.md": "25481af6be765eb8565e35589f960ee9e8f137eec3f1bbaadb4c5711beb12ebd",
+      "scripts/import_firebase_crashlytics.py": "24e1ab32b859a3571b967d5cf5c8a2894b2a50602932c9f46cd8e9651b3584d8",
+      "scripts/tests/test_import_firebase_crashlytics.py": "6b18a387e562a2f2b4f40bd9b88b488e61b2b6d2ee1e02a280fa185ed5f598de",
+      "validation-artifacts/firebase-v58-20261110T064551Z/config.json": "956c8c18ad2d3f90efb364ea75c2d0268596b141ffb852ca231850eb12ba6502",
+      "validation-artifacts/firebase-v58-20261110T064551Z/fetch.cjs": "793c9e2f666b81d5dd4f9a8afac99904e9b27c5833cd78ec720ec8adbf8796ef",
+      "validation-artifacts/firebase-v58-20261110T064551Z/normalize.py": "8a1749b68ba01aa2c0e346ebfb72d9dbec5b8516f818e2efa4dc57ae956faf7c",
+      "validation-artifacts/firebase-v58-20261110T064551Z/verify-import.py": "f2b5f5cc75109f045a56b38c77f02fe3d0e4fac70400dffb06f15433a22946b0"
+    },
+    "graph": "61fcb1439b1a62f413da2fac14dc8639862f9d647a86271dcbc8a098089818f1",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-10T06:50:14.268479+00:00",
+  "step": "R58-FETCH",
+  "test": "R58-FETCH-CHECK"
+}

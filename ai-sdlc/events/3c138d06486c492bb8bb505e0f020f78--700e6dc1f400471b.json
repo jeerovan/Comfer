@@ -1,0 +1,49 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Discoverable installed play-store-assets skill validates real manifest and covers research, media, evidence versioning and evaluation.",
+          "id": "acceptance",
+          "initial_state": "Existing skill and portable package",
+          "invariants": "Independent of Apple skill and Comfer secrets.",
+          "required_level": "component",
+          "trigger": "Validate installation and helpers"
+        }
+      ],
+      "description": "Migrated accepted behavior from PRD-PLAY-LISTING.md and plan PL-05.",
+      "id": "PL-REQ-05",
+      "kind": "requirement",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "PRD-PLAY-LISTING.md",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "PL-05",
+          "notes": "",
+          "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Skill"
+    },
+    "before": null,
+    "node": "PL-REQ-05",
+    "reopened": []
+  },
+  "id": "3c138d06486c492bb8bb505e0f020f78",
+  "reason": "Migrate accepted active scope with preserved provenance; no historical verification promoted",
+  "seq": 13,
+  "time": "2026-11-10T06:29:38.809513+00:00"
+}

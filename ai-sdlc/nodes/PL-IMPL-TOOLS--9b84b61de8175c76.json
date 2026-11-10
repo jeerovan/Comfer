@@ -1,0 +1,34 @@
+{
+  "criteria": [],
+  "description": "Source inspected: CLI main dispatches sync/compare/activate; sync creates/deletes temporary Publisher edit without commit, archives reports; compare requires activation, complete windows, rejects overlapping exposure. DB read-only inspection: versions 1/2, zero lifecycle events, 104 report objects, 42 asset blobs, integrity ok and no FK errors. These observations are not live publication verification.",
+  "id": "PL-IMPL-TOOLS",
+  "kind": "implementation",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/play_listing.py",
+      "symbol": "main",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/play_listing.py",
+      "symbol": "sync",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/play_listing.py",
+      "symbol": "compare",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Existing listing collection and evaluation"
+}

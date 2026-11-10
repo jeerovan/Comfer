@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "b1e73c03b0934be3b2030deafe478c8c"
+  },
+  "id": "6cf1612faeb14316bb085e382364b030",
+  "reason": "Build and then verify candidate on Redmi only; no passing receipt from baseline or prior compile.",
+  "seq": 159,
+  "time": "2026-11-10T10:28:22.040247+00:00"
+}

@@ -1,0 +1,48 @@
+{
+  "criteria": [],
+  "description": "2026-11-10 review: source declares Firebase BOM 34.18.0 and Analytics/Crashlytics; main manifest disables ad ID and ad personalization only. Existing generated release manifest has FirebaseInitProvider and Analytics/Crashlytics registrars (historical generated artifact, not rebuilt or bound to delivered binary). notificationTest removes the provider. Retrieved https://comfer.jeerovan.com/privacy (page dated 2025-07-21, browser index crawl two months old) denies analytics and limits networking to wallpapers: this is inconsistent with configured SDKs and candidate disclosure. Proposed correction scope: replace blanket no-analytics/offline claims with verified usage/diagnostic data and connected-feature practices; audit weather/location, server logs, SDK identifiers and retention/deletion before drafting final policy or Console answers. Firebase official https://firebase.google.com/docs/android/play-data-disclosure describes automatic crash stacks, app/device state, installation UUID plus installations/sessions dependencies; page explicitly covers latest SDKs, so exact resolved-version applicability remains open. https://firebase.google.com/docs/analytics/android/configure-data-collection distinguishes ad-ID settings from analytics collection. Do not infer actual payloads from SDK presence. Next: inspect actual Console declaration and resolved SDK/artifact identity, verify production runtime behavior in authorized isolated context, then prepare reviewed policy/form changes. No remote mutations, activation or readiness claim. Publication/evaluation gates remain pending.",
+  "id": "PL-DISCLOSURE-REVIEW",
+  "kind": "decision",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/build.gradle.kts",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "gradle/libs.versions.toml",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/AndroidManifest.xml",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/notificationTest/AndroidManifest.xml",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "store-listing/v002/manifest.json",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Disclosure reconciliation: source review and proposed next checks"
+}

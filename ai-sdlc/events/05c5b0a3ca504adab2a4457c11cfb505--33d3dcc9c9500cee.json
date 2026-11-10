@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "c49c1fbd397e4069abcb8ef9524c3c35"
+  },
+  "id": "05c5b0a3ca504adab2a4457c11cfb505",
+  "reason": "Fresh run after correcting proven test assertion; same app APK, updated runner.",
+  "seq": 166,
+  "time": "2026-11-10T10:34:33.509000+00:00"
+}

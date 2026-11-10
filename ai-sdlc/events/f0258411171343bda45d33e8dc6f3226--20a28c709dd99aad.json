@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "0ba38f17a0b147f4a6cb6c8e9ad7bedf"
+  },
+  "id": "f0258411171343bda45d33e8dc6f3226",
+  "reason": "Record actual fresh component check; no historical journey acceptance imported",
+  "seq": 92,
+  "time": "2026-11-10T06:32:55.458117+00:00"
+}

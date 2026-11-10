@@ -1,0 +1,11 @@
+{
+  "action": "register",
+  "actor": "codex",
+  "details": {
+    "root": "."
+  },
+  "id": "b34c6b70a3c44f77aab180a467ca2368",
+  "reason": "User-authorized migration of active Markdown scope; exact cwd verified; project list empty.",
+  "seq": 1,
+  "time": "2026-11-10T06:27:44.625598+00:00"
+}

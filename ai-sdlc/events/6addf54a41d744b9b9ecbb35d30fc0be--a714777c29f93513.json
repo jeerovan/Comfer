@@ -1,0 +1,17 @@
+{
+  "action": "unlink",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Replace with review prerequisite",
+      "relation": "gates",
+      "source": "PL-06",
+      "target": "PL-06-PUBLISH"
+    },
+    "reopened": []
+  },
+  "id": "6addf54a41d744b9b9ecbb35d30fc0be",
+  "reason": "Parent outcome includes publication; use separate review gate",
+  "seq": 84,
+  "time": "2026-11-10T06:32:24.000233+00:00"
+}

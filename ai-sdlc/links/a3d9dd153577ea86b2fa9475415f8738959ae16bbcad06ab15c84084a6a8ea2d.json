@@ -1,0 +1,6 @@
+{
+  "rationale": "Accepted Play listing scope; existing source and test fixture inspection, historical evidence not fresh verification.",
+  "relation": "verifies",
+  "source": "PL-TEST-TOOLS",
+  "target": "PL-REQ-04"
+}

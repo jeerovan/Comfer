@@ -1,0 +1,6 @@
+{
+  "rationale": "Evidence-backed scoped fixes require isolated Redmi checks; no production completion.",
+  "relation": "affects",
+  "source": "R58-DEVICE-BLOCK",
+  "target": "R58-FIX-02"
+}

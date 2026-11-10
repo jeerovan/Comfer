@@ -1,0 +1,75 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Settings and GestureShortcutActivity launch AppSelectionActivity with extras; default AppInfoViewModel awaits ComferApp startup and publishes quick, primary and rest groups separately; picker concatenates without dedup. Existing shared helper preserves component/user identities.",
+      "id": "R58-FIX-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/AppSelectionActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/AppInfoViewModel.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/SearchAppIdentity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/Settings.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/GestureShortcutActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ComferApp.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "App selection production path"
+    },
+    "before": null,
+    "node": "R58-FIX-IMPL",
+    "reopened": []
+  },
+  "id": "d92fe4fe57d546cfa63b723ac7fb0f22",
+  "reason": "User-authorized Redmi-only safe fixes; current source and history inspected",
+  "seq": 133,
+  "time": "2026-11-10T08:00:01.941076+00:00"
+}

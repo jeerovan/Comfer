@@ -1,0 +1,29 @@
+{
+  "criteria": [
+    {
+      "expected": "Record actual activation/exposure only after published en-US copy/assets are verified",
+      "id": "acceptance",
+      "initial_state": "Reviewed disclosures and validated candidate; publication separately authorized",
+      "invariants": "Retain icon/video; preparation date is never activation",
+      "required_level": "journey",
+      "trigger": "Publish approved scope and observe live listing"
+    }
+  ],
+  "description": "Explicit subdivision of original PL-06; no new authorization or scope.",
+  "id": "PL-REQ-06-PUBLISH",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "PL-06",
+      "notes": "",
+      "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Verify publication"
+}

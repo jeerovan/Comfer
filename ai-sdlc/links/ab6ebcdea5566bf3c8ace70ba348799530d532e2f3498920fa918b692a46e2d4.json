@@ -1,0 +1,6 @@
+{
+  "rationale": "Review precedes publication; evaluation follows observed publication.",
+  "relation": "contains",
+  "source": "PL-MODULE",
+  "target": "PL-06-REVIEW"
+}

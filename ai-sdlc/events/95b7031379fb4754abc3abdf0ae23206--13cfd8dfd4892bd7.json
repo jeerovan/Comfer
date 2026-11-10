@@ -1,0 +1,61 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Current MainActivity passes copied state with only platform lifecycle fragment entry removed. No app-owned android.app.Fragment/fragmentManager uses found by scoped rg in app/src/main. Regular AndroidX saved-state registry keys retained. Source mappings establish historical class-name collision; no broad state reset.",
+      "id": "R58-RESTORE-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/LauncherSavedState.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/proguard-rules.pro",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ComferApp.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Home saved-state boundary and future name retention"
+    },
+    "before": null,
+    "node": "R58-RESTORE-IMPL",
+    "reopened": []
+  },
+  "id": "95b7031379fb4754abc3abdf0ae23206",
+  "reason": "Record new evidence-backed issue and explicit Redmi verification blocker",
+  "seq": 146,
+  "time": "2026-11-10T08:08:29.445094+00:00"
+}

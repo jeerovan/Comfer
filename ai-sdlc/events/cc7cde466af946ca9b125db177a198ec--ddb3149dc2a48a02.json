@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Accepted Play listing scope; existing source and test fixture inspection, historical evidence not fresh verification.",
+      "relation": "uses",
+      "source": "PL-04",
+      "target": "PL-TECH"
+    },
+    "reopened": []
+  },
+  "id": "cc7cde466af946ca9b125db177a198ec",
+  "reason": "Record migrated production/test mapping and dependency direction",
+  "seq": 37,
+  "time": "2026-11-10T06:30:05.250201+00:00"
+}

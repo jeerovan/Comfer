@@ -1,0 +1,6 @@
+{
+  "rationale": "Preserve separate publication authorization and observed exposure before evaluation.",
+  "relation": "realizes",
+  "source": "PL-IMPL-SKILL",
+  "target": "PL-05"
+}

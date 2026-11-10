@@ -1,0 +1,6 @@
+{
+  "rationale": "Same-package debug update checks data/settings and regular launcher usability; cannot satisfy legacy-obfuscation criterion alone.",
+  "relation": "verifies",
+  "source": "R58-DEBUG-UPGRADE-TEST",
+  "target": "R58-FIX-02"
+}

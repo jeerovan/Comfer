@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "stale",
+    "run": "2ef11baa7bd94a14a388f4df337eaba7"
+  },
+  "id": "be635e2240af4ac4986823c24c4dcc88",
+  "reason": "Bind final sample-based normalization before import",
+  "seq": 124,
+  "time": "2026-11-10T07:02:51.069771+00:00"
+}

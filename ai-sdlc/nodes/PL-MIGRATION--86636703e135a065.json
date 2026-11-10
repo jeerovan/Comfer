@@ -1,0 +1,58 @@
+{
+  "criteria": [],
+  "description": "User confirmed Play listing scope on 2026-11-10. AI SDLC project comfer at /Volumes/JS/Repos/Comfer is authoritative for active intent/status. Migrated all PRD-PLAY-LISTING.md bullets and PL-01 through PL-06; stable step IDs preserved. Original documents retained byte-for-byte. PRD SHA256 0138911354abdb2944ef01e3e8bc31cc547aa8b26583478345e1c3acb556cade; plan SHA256 bef5050e9b2745b77bcb1cebcd7dbbe355489123b3393cd19705d9feb30db36c. Source HEAD ebd203d802639b77e1e8fb032e759a70d0c758ae with existing uncommitted listing work. PL-01..05 were historically completed, not currently acceptance-verified; PL-06 pending. No reimplementation prescribed. Release 58 PRD/plan (R58-01..04), PRD-SYNC.md and older release history remain unmigrated; no unresolved scope discarded. play_listing.db retains detailed listing evidence; play_reporting.db remains issue/release history authority, not a competing plan. No production/delivery completion imported.",
+  "id": "PL-MIGRATION",
+  "kind": "decision",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "PRD-PLAY-LISTING.md",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "PRD-SYNC.md",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "PRD-RELEASE-58.md",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "PLAN-RELEASE-58-IMPLEMENTATION.md",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/README-play-reporting.md",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [
+    "migration",
+    "historical-not-reverified"
+  ],
+  "title": "Active Play listing migration boundary"
+}

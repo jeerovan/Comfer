@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "label": "Comfort in everyday use",
+  "hypothesis": "Keep Comfer and Comfort recognition while making swipe navigation, app search and the everyday workspace understandable. Evaluate the whole refresh observationally, then use single-asset experiments for subsequent iterations.",
+  "palette": {"ink": "#143B35", "sage": "#C6E3D6", "cream": "#F3F1E8", "blue": "#DDE7F1", "rose": "#EDDFD3"},
+  "screenshots": [
+    {"name": "01-favorites", "capture": "01-home.png", "headline": ["Your favorites.", "A swipe away."], "label": "COMFER", "background": "sage", "crop": [210, 1130, 680, 650], "alt_text": "Comfer's circular home layout with favorite apps arranged around the workspace button"},
+    {"name": "02-app-drawer", "capture": "02-app-drawer.png", "headline": ["Your apps,", "within reach."], "label": "BROWSE", "background": "cream", "alt_text": "The circular app drawer places installed apps along the sides and around the top of the screen"},
+    {"name": "03-search", "capture": "04-search.png", "headline": ["Find it with", "a few taps."], "label": "SEARCH", "background": "blue", "crop": [40, 640, 1000, 1230], "alt_text": "App search with Comfer's circular letter keyboard and matching installed apps"},
+    {"name": "04-workspace", "capture": "03-workspace.png", "headline": ["Notes. Tasks.", "Room to think."], "label": "WORKSPACE", "background": "rose", "crop": [160, 1120, 760, 660], "alt_text": "The home workspace opens shortcuts for tasks, notes, journal and search"},
+    {"name": "05-tasks", "capture": "05-tasks.png", "headline": ["A little space", "for your day."], "label": "TASKS", "background": "sage", "alt_text": "A task list with a starred weekend walk, groceries, reading and a completed item"}
+  ],
+  "regenerate": "venv/bin/python scripts/render_play_listing.py --directory store-listing/v002",
+  "capture": "Build notificationTestAndroidTest, then use adb am instrument -w -e class com.jeerovan.comfer.PlayListingCaptureTest -e playListingCapture true com.jeerovan.comfer.notificationtest.test/androidx.test.runner.AndroidJUnitRunner on a verified emulator. Preserve its state and pull files/play-listing after each viewport.",
+  "tablet_policy": "Use full genuine captures with no promotional overlays. Preserve the native aspect ratio and original capture provenance; do not reuse phone images as tablet captures.",
+  "publication_note": "Prepared locally. Reconcile existing Data safety and privacy-policy claims with the enabled Firebase SDK setup before publishing. Keep the current video URL; no video has been generated."
+}

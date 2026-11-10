@@ -1,0 +1,36 @@
+{
+  "criteria": [
+    {
+      "expected": "Record actual free keyword signals separately from hypotheses; retain acquisition/install/rating/review metric definitions, windows and breakdowns; select focused English iteration.",
+      "id": "acceptance",
+      "initial_state": "Archived baseline",
+      "invariants": "Clicks, acquisitions and installs remain distinct; no unsupported ranking, privacy, speed, battery or pricing claims.",
+      "required_level": "integration",
+      "trigger": "Research keywords and audience"
+    }
+  ],
+  "description": "Migrated accepted behavior from PRD-PLAY-LISTING.md and plan PL-02.",
+  "id": "PL-REQ-02",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "PRD-PLAY-LISTING.md",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "PL-02",
+      "notes": "",
+      "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Research"
+}

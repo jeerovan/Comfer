@@ -1,0 +1,6 @@
+{
+  "rationale": "Preserve separate publication authorization and observed exposure before evaluation.",
+  "relation": "gates",
+  "source": "PL-04",
+  "target": "PL-06-EVALUATE"
+}

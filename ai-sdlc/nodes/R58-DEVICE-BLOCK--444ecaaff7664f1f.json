@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Redmi7 Xiaomi API29 serial71a3063 only. User manually installed both pre-fix APKs from Downloads without SIM. No Home/Launcher icon is intentional. Instrumentation begins but AppSelectionActivity fails to foreground; MIUIOP10021 rejectTime coincides with launch. Explicit shell MainActivity start succeeds. Two test attempts stopped without assertions; not a reproduced product failure. ADB settings taps rejected INJECT_EVENTS. App-info opened; user asked to allow Other permissions > Display pop-up windows while running in background. Retain red.txt/red-retry.txt. Current host green APKs compile but are not installed. No Samsung/emulator used; no runtime pass claimed.",
+  "id": "R58-DEVICE-BLOCK",
+  "kind": "risk",
+  "phase": "verification",
+  "refs": [],
+  "revision": 2,
+  "status": "pending",
+  "tags": [],
+  "title": "Redmi background test launch awaiting permission"
+}

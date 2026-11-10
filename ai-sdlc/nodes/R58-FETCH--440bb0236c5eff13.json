@@ -1,0 +1,20 @@
+{
+  "criteria": [],
+  "description": "Fetch all issue/event pages and independently reconcile type totals; dry-run then import through existing transactional importer. Verify DB preservation against backup and append refresh history.",
+  "id": "R58-FETCH",
+  "kind": "step",
+  "phase": "maintenance",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/import_firebase_crashlytics.py",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Fetch and import complete release 58 Firebase snapshot"
+}

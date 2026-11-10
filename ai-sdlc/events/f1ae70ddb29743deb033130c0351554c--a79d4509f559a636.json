@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "stale",
+    "run": "4f0b87553a2c4e7384287f5566b0640c"
+  },
+  "id": "f1ae70ddb29743deb033130c0351554c",
+  "reason": "Device rejected pre-fix installation; no regression execution",
+  "seq": 143,
+  "time": "2026-11-10T08:08:28.054288+00:00"
+}

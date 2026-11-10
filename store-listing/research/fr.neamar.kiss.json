@@ -1,0 +1,35 @@
+{
+  "url": "https://play.google.com/store/apps/details?id=fr.neamar.kiss&hl=en&gl=US",
+  "observed_at": "2026-10-22T06:33:39.376066+00:00",
+  "structured_data": [
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "KISS Launcher",
+      "url": "https://play.google.com/store/apps/details/KISS_Launcher?id=fr.neamar.kiss&hl=en",
+      "description": "Blazingly fast launcher focused on search",
+      "operatingSystem": "ANDROID",
+      "applicationCategory": "PERSONALIZATION",
+      "image": "https://play-lh.googleusercontent.com/3JDXLJYY1on_3RcC90suvMSCgEEKWUUNZGMtraTXg34cTtCoDKr1f3UgegQtcxj2DchQz2uzeg5GmCnIDWXmNA",
+      "contentRating": "Everyone",
+      "author": {
+        "@type": "Person",
+        "name": "Neamar",
+        "url": "https://kisslauncher.com"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.239999771118164",
+        "ratingCount": "4717"
+      },
+      "offers": [
+        {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        }
+      ]
+    }
+  ]
+}

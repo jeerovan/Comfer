@@ -1,0 +1,30 @@
+{
+  "url": "https://play.google.com/store/apps/details?id=com.indistractablelauncher.android&hl=en&gl=US",
+  "observed_at": "2026-10-22T06:33:40.916769+00:00",
+  "structured_data": [
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Indistract Minimalist Launcher",
+      "url": "https://play.google.com/store/apps/details/Indistract_Minimalist_Launcher?id=com.indistractablelauncher.android&hl=en",
+      "description": "The No NonSense Launcher - Be minimalist, Reduce your screen time. Live more.",
+      "operatingSystem": "ANDROID",
+      "applicationCategory": "PERSONALIZATION",
+      "image": "https://play-lh.googleusercontent.com/iTF2Ywovnxz0Aw5EGdRdZWYmwv7X_1TWeuS1Eo7hSemR-Gjxm8CeBXocw8TNP98lEu1iZnHLN5ph7ZdXp68KAg",
+      "contentRating": "Everyone",
+      "author": {
+        "@type": "Person",
+        "name": "Indistractable",
+        "url": "http://www.devanshgulhane.com"
+      },
+      "offers": [
+        {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        }
+      ]
+    }
+  ]
+}

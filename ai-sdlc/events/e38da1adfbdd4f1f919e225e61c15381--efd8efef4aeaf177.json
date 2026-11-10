@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Existing production importer and actual DB preservation check.",
+      "relation": "realizes",
+      "source": "R58-FETCH-IMPL",
+      "target": "R58-FETCH"
+    },
+    "reopened": []
+  },
+  "id": "e38da1adfbdd4f1f919e225e61c15381",
+  "reason": "Record import implementation and validation boundary",
+  "seq": 110,
+  "time": "2026-11-10T06:47:08.438793+00:00"
+}

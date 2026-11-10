@@ -1,3 +1,36 @@
+# Active tracking: AI SDLC
+
+- Use the configured AI SDLC MCP project `comfer`, canonical root
+  `/Volumes/JS/Repos/Comfer`, for active requirements and delivery state.
+  Current priority is release-58 issue investigation (`R58-REFRESH-01`,
+  `R58-FETCH`) and scoped remediation (`R58-FIX-01`, `R58-FIX-02`). The issue
+  history attempt IDs are `58-R02` and `58-R03`, respectively; these are
+  candidates, not verified production resolutions. Sync remains future work.
+  Play listing scope is preserved.
+  On resume, verify `list_projects`, `project_status`, then focused
+  `get_context` for the active step and `PL-MIGRATION`. Use current opaque versions for
+  writes; repository JSON managed by the MCP service is authoritative.
+- Migrated scope: all of `PRD-PLAY-LISTING.md` and
+  `PLAN-PLAY-LISTING-IMPLEMENTATION.md`, retaining step IDs `PL-01`–`PL-06`.
+  Requirements are `PL-REQ-01`–`PL-REQ-06`. Preserve these Markdown documents as
+  historical snapshots; do not maintain a competing editable Play listing plan.
+  Historical completed rows are not current verification: reuse working code,
+  retain the evidence, and verify only the boundary needed for the next action.
+- Unmigrated scope: `PRD-SYNC.md`, release-58 PRD/plan (`R58-01`–`R58-04`), and
+  earlier release history. Preserve them and their unresolved requirements;
+  reconcile the relevant scope into AI SDLC before resuming it. Migration does
+  not establish release readiness or production resolution.
+- Keep detailed listing observations/artifacts in `play_listing.db` and
+  `store-listing/`; keep issue/release history in `play_reporting.db` as below.
+  Link evidence from AI SDLC rather than replacing either historical store.
+  Record source/test references, dependency gates and fixture limitations.
+  Begin verification before checks, retain nonsecret proof, and finish with
+  actual observations. Publication, activation and evaluation are distinct;
+  prepared v002 does not establish exposure or authorize publication.
+- If MCP is unavailable, disclose the failure and keep task-scoped fallback
+  updates explicitly pending reconciliation under the existing Markdown rules.
+  Never silently restore the archived plan as a competing authority.
+
 # Implementation answers
 
 - Before answering questions about app behavior or implementation, inspect the
@@ -15,6 +48,11 @@
   before making implementation claims; local tests do not prove production fixes.
 
 # Project regression testing
+
+- Current owner direction (2026-11-10): use only the Xiaomi Redmi for device
+  testing while fixing release-58 issues; do not test on Samsung or emulators.
+  Reconfirm its ADB identity each session (observed Redmi 7, API 29, `71a3063`).
+  Preserve regular app data and use the isolated `notificationTest` variant.
 
 - Before choosing tests for an individual change, assess whether it can affect
   layout, geometry, visibility, text direction/alignment, touch targets, or

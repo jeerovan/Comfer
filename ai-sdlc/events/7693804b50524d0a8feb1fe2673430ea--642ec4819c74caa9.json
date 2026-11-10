@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Existing scripts, candidate artifacts, local SQLite evidence and Android capture harness. No product changes required by migration.",
+      "id": "PL-MODULE",
+      "kind": "module",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Play listing preparation and evidence"
+    },
+    "before": null,
+    "node": "PL-MODULE",
+    "reopened": []
+  },
+  "id": "7693804b50524d0a8feb1fe2673430ea",
+  "reason": "Migrate accepted active scope with preserved provenance; no historical verification promoted",
+  "seq": 4,
+  "time": "2026-11-10T06:29:35.851589+00:00"
+}

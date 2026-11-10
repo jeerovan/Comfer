@@ -1,0 +1,35 @@
+{
+  "url": "https://play.google.com/store/apps/details?id=app.olauncher&hl=en&gl=US",
+  "observed_at": "2026-10-22T06:33:40.204951+00:00",
+  "structured_data": [
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Olauncher. Minimal AF Launcher",
+      "url": "https://play.google.com/store/apps/details/Olauncher_Minimal_AF_Launcher?id=app.olauncher&hl=en",
+      "description": "Minimalist launcher to reduce your screen time. Daily wallpapers. Zero ads..",
+      "operatingSystem": "ANDROID",
+      "applicationCategory": "PERSONALIZATION",
+      "image": "https://play-lh.googleusercontent.com/dRDdvvzr7mfDSFol9TLGUyhlbGxymNR9W2kQosgL69bQtV2Mf7inCKaIihVSBPdn_1ArMEBdWSF6rjIndnPQjQ",
+      "contentRating": "Everyone",
+      "author": {
+        "@type": "Person",
+        "name": "Digital Minimalism",
+        "url": "https://twitter.com/tanujnotes/"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.827125072479248",
+        "ratingCount": "83648"
+      },
+      "offers": [
+        {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        }
+      ]
+    }
+  ]
+}

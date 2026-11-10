@@ -1,0 +1,35 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Repeatable collection and equal complete 28-day comparison preserve versions and report generations; missing activation, incomplete windows and overlapping exposure stay inconclusive.\nHistorical status: completed as documented; imported pending current acceptance verification. Preserve original plan evidence and limitations. Existing implementation must be reused.",
+      "id": "PL-04",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "PL-04",
+          "notes": "",
+          "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [
+        "historical-completed-unverified"
+      ],
+      "title": "Iteration: reconcile and verify existing work"
+    },
+    "before": null,
+    "node": "PL-04",
+    "reopened": []
+  },
+  "id": "11e92b6a1dc149d6936f336e6766afb7",
+  "reason": "Migrate accepted active scope with preserved provenance; no historical verification promoted",
+  "seq": 12,
+  "time": "2026-11-10T06:29:38.472242+00:00"
+}

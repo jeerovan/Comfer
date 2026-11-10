@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "da277f9403d14c24b31feca66fd65181"
+  },
+  "id": "f2fb9d532e864f8ba25b97e6a4ebb2ae",
+  "reason": "Preserve actual failed import boundary",
+  "seq": 127,
+  "time": "2026-11-10T07:05:22.884346+00:00"
+}

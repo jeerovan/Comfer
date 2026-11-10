@@ -89,7 +89,10 @@ fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, swipeDirection: Strin
         appListState.primaryApps,
         appListState.restApps,
     ) {
-        (appListState.quickApps + appListState.primaryApps + appListState.restApps)
+        // Inventory groups publish separately during refresh, so an app may
+        // temporarily exist in both its old and new group. Use the same identity
+        // for deduplication and lazy keys, retaining other activities/profiles.
+        uniqueSearchApps(appListState.quickApps + appListState.primaryApps + appListState.restApps)
             .sortedBy { it.label }
     }
     val iconSize = PreferenceManager.getIconSize(context)
@@ -114,7 +117,7 @@ fun AppSelectionScreen(appInfoViewModel: AppInfoViewModel, swipeDirection: Strin
             contentPadding = paddingValues
         ) {
             items(allApps, key = { app ->
-                "${app.componentName?.flattenToString() ?: app.packageName}:${app.user?.hashCode()}"
+                app.searchIdentity()
             }) { app ->
                 SelectAppIcon(app,iconSize,iconShape) {
                     (context as? Activity)?.let { activity ->

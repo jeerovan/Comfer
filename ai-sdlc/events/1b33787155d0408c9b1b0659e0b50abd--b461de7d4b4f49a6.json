@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "New subdivision of PL-06, not new scope: after disclosure reconciliation and candidate validation, present concrete publication changes and obtain publication authorization. Verify actual published en-US copy/assets and retained icon/video before recording activation. No publication performed.",
+      "id": "PL-06-PUBLISH",
+      "kind": "step",
+      "phase": "release",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Verify separately authorized listing publication"
+    },
+    "before": null,
+    "node": "PL-06-PUBLISH",
+    "reopened": []
+  },
+  "id": "1b33787155d0408c9b1b0659e0b50abd",
+  "reason": "Reconcile current follow-up and explicit future gates without promoting historical evidence",
+  "seq": 69,
+  "time": "2026-11-10T06:31:39.503293+00:00"
+}

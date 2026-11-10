@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "in_progress",
+    "node": "R58-FIX-02",
+    "reopened": [],
+    "to": "in_progress"
+  },
+  "id": "8bc4b342e25e4d589e09dd0e2b8e8f82",
+  "reason": "Owner requested pre-fix v58 debug baseline for Redmi upgrade testing. Built clean commit ebd203d; all716 archived release58 source fingerprints match. Regular com.jeerovan.comfer58.0(58), debuggable, MainActivity launcher, same existing debug signer. APK SHA25682d8b08d099a0ef54085df901d6023e642a3ea2788e405e93829dc7afc25cce1. Evidence validation-artifacts/release58-debug-baseline-20261110/verification.json; artifact Comfer-58-debug-before-fixes.apk copied to Redmi Downloads. Not installed by agent; debug data/settings upgrade baseline does not verify obfuscated legacy migration.",
+  "seq": 178,
+  "time": "2026-11-10T10:52:01.286352+00:00"
+}

@@ -1,0 +1,6 @@
+{
+  "rationale": "Preserve separate publication authorization and observed exposure before evaluation.",
+  "relation": "verifies",
+  "source": "PL-TEST-SKILL",
+  "target": "PL-05"
+}

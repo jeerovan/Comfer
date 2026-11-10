@@ -1,0 +1,36 @@
+{
+  "criteria": [
+    {
+      "expected": "Discoverable installed play-store-assets skill validates real manifest and covers research, media, evidence versioning and evaluation.",
+      "id": "acceptance",
+      "initial_state": "Existing skill and portable package",
+      "invariants": "Independent of Apple skill and Comfer secrets.",
+      "required_level": "component",
+      "trigger": "Validate installation and helpers"
+    }
+  ],
+  "description": "Migrated accepted behavior from PRD-PLAY-LISTING.md and plan PL-05.",
+  "id": "PL-REQ-05",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "PRD-PLAY-LISTING.md",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "PL-05",
+      "notes": "",
+      "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Skill"
+}

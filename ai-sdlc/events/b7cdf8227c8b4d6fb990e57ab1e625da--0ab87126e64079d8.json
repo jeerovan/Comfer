@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "in_progress",
+    "node": "R58-FIX-02",
+    "reopened": [],
+    "to": "in_progress"
+  },
+  "id": "b7cdf8227c8b4d6fb990e57ab1e625da",
+  "reason": "Owner installed exact pre-fix regular debug58 baseline on Redmi. prepare_manual_check verified APK and cold-launched MainActivity; UIAutomator failed idle-state capture, so no interaction readiness claim. Visible Comfer confirmed. Retained evidence validation-artifacts/release58-debug-baseline-20261110/installed-baseline-check.txt and installed-sha256.txt. Await owner confirmation of Home/Workspace and sample setting/note/task before in-place debug upgrade; no data cleared and no upgrade performed.",
+  "seq": 179,
+  "time": "2026-11-10T10:56:16.662055+00:00"
+}

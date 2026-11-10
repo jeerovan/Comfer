@@ -1,0 +1,41 @@
+{
+  "criteria": [],
+  "description": "Manifest and editable/upload assets exist. Capture test waits for StartupCoordinator, seeds fictional task/settings fixtures, drives screens, restores snapshots in finally. Existing historical English/LTR captures do not verify production Firebase, RTL or physical tablets.",
+  "id": "PL-IMPL-MEDIA",
+  "kind": "implementation",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "store-listing/v002/manifest.json",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/render_play_listing.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/review_play_listing.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/PlayListingCaptureTest.kt",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Existing v002 assets and capture"
+}

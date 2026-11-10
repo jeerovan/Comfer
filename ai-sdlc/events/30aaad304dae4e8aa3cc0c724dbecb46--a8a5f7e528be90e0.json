@@ -1,0 +1,40 @@
+{
+  "action": "impact_review",
+  "actor": "codex",
+  "details": {
+    "review": {
+      "at": "2026-11-10T06:47:36.286272+00:00",
+      "code_discovery": "Read current importer validate_payload/save_import/main, reporting guide, existing fixture tests and prior paginated collector. No app behavior edits. Source-only bounded operational review, no graph completeness claim.",
+      "entrypoints": "Firebase MCP discovers 58.0 (58), CLI pagination fallback -> normalized export -> importer main validates then SQLite backup and transaction.",
+      "id": "fff3b998f9944f609377f2cc0a1438ed",
+      "order": 3,
+      "recovery_paths": "Failures/duplicate/count/version mismatches abort before import; API retry bounded; cached event pages revalidated; backup retained. Import preserves triage/status/notes and first_seen_at, prior-version rows and snapshots.",
+      "reviewed_ids": [
+        "R58-FETCH",
+        "R58-FETCH-CHECK",
+        "R58-FETCH-IMPL",
+        "R58-REFRESH-01"
+      ],
+      "snapshot": {
+        "files": {
+          "scripts/README-play-reporting.md": "25481af6be765eb8565e35589f960ee9e8f137eec3f1bbaadb4c5711beb12ebd",
+          "scripts/import_firebase_crashlytics.py": "24e1ab32b859a3571b967d5cf5c8a2894b2a50602932c9f46cd8e9651b3584d8",
+          "scripts/tests/test_import_firebase_crashlytics.py": "6b18a387e562a2f2b4f40bd9b88b488e61b2b6d2ee1e02a280fa185ed5f598de",
+          "validation-artifacts/firebase-v58-20261110T064551Z/fetch.cjs": "01b88e33ccd2431c0cd87ab2df0ab5849db755562a09d5e684ff6389aff86b02"
+        },
+        "graph": "d28fb9b33a4017df798c961509a277e7c1ed3066bcbb3cd0fbb47a5c60b64d7e",
+        "origin": {
+          "branch": "refs/heads/main",
+          "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+        }
+      },
+      "step": "R58-FETCH",
+      "unresolved": []
+    },
+    "step": "R58-FETCH"
+  },
+  "id": "30aaad304dae4e8aa3cc0c724dbecb46",
+  "reason": "Existing importer inspection before authorized DB update",
+  "seq": 114,
+  "time": "2026-11-10T06:47:36.286328+00:00"
+}

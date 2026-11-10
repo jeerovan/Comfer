@@ -1,0 +1,42 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Record actual activation/exposure only after published en-US copy/assets are verified",
+          "id": "acceptance",
+          "initial_state": "Reviewed disclosures and validated candidate; publication separately authorized",
+          "invariants": "Retain icon/video; preparation date is never activation",
+          "required_level": "journey",
+          "trigger": "Publish approved scope and observe live listing"
+        }
+      ],
+      "description": "Explicit subdivision of original PL-06; no new authorization or scope.",
+      "id": "PL-REQ-06-PUBLISH",
+      "kind": "requirement",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "PL-06",
+          "notes": "",
+          "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Verify publication"
+    },
+    "before": null,
+    "node": "PL-REQ-06-PUBLISH",
+    "reopened": []
+  },
+  "id": "716896667cb84bf482727422ce821c90",
+  "reason": "Make PL-06 subdivisions independently reviewable without circular parent acceptance",
+  "seq": 96,
+  "time": "2026-11-10T06:33:20.022285+00:00"
+}

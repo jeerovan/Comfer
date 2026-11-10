@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Preserve original PL-06 scope while making review, publication and later evaluation separate.",
+      "relation": "implements",
+      "source": "PL-06-PUBLISH",
+      "target": "PL-REQ-06-PUBLISH"
+    },
+    "reopened": []
+  },
+  "id": "8a1068151e2d42f88fa6b721826f498a",
+  "reason": "Link original requirement to independently gated subdivisions",
+  "seq": 97,
+  "time": "2026-11-10T06:33:20.473091+00:00"
+}

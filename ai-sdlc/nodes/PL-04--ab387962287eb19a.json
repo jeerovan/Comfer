@@ -1,0 +1,22 @@
+{
+  "criteria": [],
+  "description": "Repeatable collection and equal complete 28-day comparison preserve versions and report generations; missing activation, incomplete windows and overlapping exposure stay inconclusive.\nHistorical status: completed as documented; imported pending current acceptance verification. Preserve original plan evidence and limitations. Existing implementation must be reused.",
+  "id": "PL-04",
+  "kind": "step",
+  "phase": "verification",
+  "refs": [
+    {
+      "locator": "PL-04",
+      "notes": "",
+      "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [
+    "historical-completed-unverified"
+  ],
+  "title": "Iteration: reconcile and verify existing work"
+}

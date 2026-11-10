@@ -1,0 +1,48 @@
+{
+  "criteria": [],
+  "description": "Historical public claims say no collection/no analytics. Current dependencies include Analytics/Crashlytics; main manifest disables ad-ID collection and ad personalization, not general Analytics/Crashlytics. notificationTest removes Firebase provider so media instrumentation cannot resolve production payload behavior. Exact SDK-resolved versions, actual transmitted fields, current Console declaration and deployment remain open. Do not assert compliant or publication-ready.",
+  "id": "PL-RISK-DISCLOSURES",
+  "kind": "risk",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/build.gradle.kts",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "gradle/libs.versions.toml",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/AndroidManifest.xml",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/notificationTest/AndroidManifest.xml",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "store-listing/v002/manifest.json",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Unresolved privacy and Data safety conflict"
+}

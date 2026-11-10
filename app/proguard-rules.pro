@@ -19,3 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+# Framework fragment saved state contains this class name across app upgrades.
+# Keep it stable for future releases; Home separately discards legacy obfuscated
+# lifecycle-only framework state from releases that already shipped.
+-keep class androidx.lifecycle.ReportFragment { public <init>(); }

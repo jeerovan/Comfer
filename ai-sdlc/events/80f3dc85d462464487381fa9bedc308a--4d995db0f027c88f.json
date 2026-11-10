@@ -1,0 +1,49 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Repeatable collection and equal complete 28-day comparison preserve versions and report generations; missing activation, incomplete windows and overlapping exposure stay inconclusive.",
+          "id": "acceptance",
+          "initial_state": "Prepared unpublished candidate and saved evidence",
+          "invariants": "Preparation never activates evaluation; preserve baseline identity and inherited icon; no causal attribution to one element.",
+          "required_level": "component",
+          "trigger": "Refresh reports or compare"
+        }
+      ],
+      "description": "Migrated accepted behavior from PRD-PLAY-LISTING.md and plan PL-04.",
+      "id": "PL-REQ-04",
+      "kind": "requirement",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "PRD-PLAY-LISTING.md",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "PL-04",
+          "notes": "",
+          "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Iteration"
+    },
+    "before": null,
+    "node": "PL-REQ-04",
+    "reopened": []
+  },
+  "id": "80f3dc85d462464487381fa9bedc308a",
+  "reason": "Migrate accepted active scope with preserved provenance; no historical verification promoted",
+  "seq": 11,
+  "time": "2026-11-10T06:29:38.144164+00:00"
+}

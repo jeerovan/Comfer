@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "2b8003d7a1314a299d01d891c96c10a2"
+  },
+  "id": "96b2afb36903444db590b720ff85313a",
+  "reason": "Complete independently scoped regular-debug upgrade journey with actual installed identity, owner acceptance and cold-start checks.",
+  "seq": 184,
+  "time": "2026-11-10T11:06:23.617434+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "4dc1f49f01b142bba5782d994f29a118"
+  },
+  "id": "82ea8a780c6b4d37916899c9a1c17f4c",
+  "reason": "Verify finalized collector output and actual import/preservation",
+  "seq": 120,
+  "time": "2026-11-10T06:50:14.268723+00:00"
+}

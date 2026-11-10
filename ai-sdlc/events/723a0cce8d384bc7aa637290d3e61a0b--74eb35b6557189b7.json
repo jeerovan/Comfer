@@ -1,0 +1,40 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Historical only; playListingCapture=true required. notificationTest package assertion, seeded settings/tasks, restore checks. Not rerun for tracking-only migration; Firebase provider removed in test variant.",
+      "id": "PL-TEST-CAPTURE",
+      "kind": "test",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/PlayListingCaptureTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/notificationTest/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Opt-in isolated capture journey"
+    },
+    "before": null,
+    "node": "PL-TEST-CAPTURE",
+    "reopened": []
+  },
+  "id": "723a0cce8d384bc7aa637290d3e61a0b",
+  "reason": "Migrate accepted active scope with preserved provenance; no historical verification promoted",
+  "seq": 20,
+  "time": "2026-11-10T06:29:41.403609+00:00"
+}

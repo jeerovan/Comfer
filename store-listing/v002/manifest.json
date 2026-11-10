@@ -1,0 +1,255 @@
+{
+  "version": 2,
+  "label": "Comfort in everyday use",
+  "hypothesis": "Keep Comfer and Comfort recognition while making swipe navigation, app search and the everyday workspace understandable. Evaluate the whole refresh observationally, then use single-asset experiments for subsequent iterations.",
+  "specifications_checked": "2026-10-22",
+  "listing": {
+    "locale": "en-US",
+    "title": "Comfer: Comfort Launcher",
+    "shortDescription": "A minimalist home screen with swipe shortcuts, app search, notes and tasks",
+    "fullDescription": "Put the apps and tools you use most within easy reach. Comfer is a customizable Android launcher built around swipe navigation, a clean home screen and a workspace for everyday tasks.\n\n<b>Your favorites, close at hand</b>\nChoose a circular or column home layout and arrange the apps you reach for most. Swipe up to browse the app drawer, or open your workspace for search, notes, tasks and your journal.\n\n<b>Find apps with a few taps</b>\nSearch your installed apps by name with Comfer's on-screen keyboard. Optional contact search helps you find people too, after you grant contacts access.\n\n<b>A place for everyday ideas</b>\nWrite notes, keep task lists and capture journal entries from your launcher workspace. Star important tasks and use reminders when you need them.\n\n<b>Make your home screen feel like yours</b>\nCustomize your icons, app layouts, clock and date. Add Android widgets, choose a monochrome look or use automatic wallpapers. Optional wallpaper motion and spatial effects add another way to personalize your home screen on supported devices.\n\n<b>Keep notifications together</b>\nThe optional Notification Inbox brings active notifications into one place. Save items for later and enable notification history if you want to keep a record. Notification access is required for these features and app badges.\n\n<b>Permissions and connected features</b>\nAccessibility access is optional and provides a shortcut to Android's Recent Apps screen. Contacts access enables contact search. Notification access enables the inbox and badges, with history capture available as a separate choice. Approximate location is used for the optional weather widget.\n\nOnline wallpapers and weather require an internet connection. The app includes Firebase Analytics and Crashlytics for usage and crash diagnostics.\n\nSet Comfer as your default Home app to use it as your everyday Android launcher.",
+    "video": "https://www.youtube.com/watch?v=nmQ77bXqoxI"
+  },
+  "recommendation_profile": true,
+  "publication_state": "prepared_locally",
+  "activation_at": null,
+  "assets": [
+    {
+      "kind": "featureGraphic",
+      "locale": "en-US",
+      "path": "upload/feature-graphic.png",
+      "sha256": "bf62e3e16c85d4effe225be8e609a61010860a32c6134e99bb954d6f4ea80007",
+      "capture_path": "captures/phone/01-home.png",
+      "capture_sha256": "8551a9c444a31bc7ce55ddaa9dbaa66e12bad7126b29a5b59300483028b223de",
+      "crop": [
+        210,
+        1130,
+        680,
+        650
+      ],
+      "alt_text": "Make yourself at home with Comfer, alongside its circular favorite-app layout",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "phoneScreenshots",
+      "locale": "en-US",
+      "path": "upload/phone/01-favorites.png",
+      "sha256": "2d7aa80cd8b62ee31057015b393d5b2f764f9e92f0180230083c42a37e780fea",
+      "capture_path": "captures/phone/01-home.png",
+      "capture_sha256": "8551a9c444a31bc7ce55ddaa9dbaa66e12bad7126b29a5b59300483028b223de",
+      "crop": [
+        210,
+        1130,
+        680,
+        650
+      ],
+      "alt_text": "Comfer's circular home layout with favorite apps arranged around the workspace button",
+      "caption_bounds": [
+        68,
+        85,
+        950,
+        248
+      ],
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "phoneScreenshots",
+      "locale": "en-US",
+      "path": "upload/phone/02-app-drawer.png",
+      "sha256": "c759d6f13aeaa2a2ae6e117dbd82cc23cdb9aed56629af8c7f8c703429bc0917",
+      "capture_path": "captures/phone/02-app-drawer.png",
+      "capture_sha256": "fccd7fffc46702eb4c7ca91650fceb887a4b4ffa50bc450b92154f73a1271041",
+      "crop": null,
+      "alt_text": "The circular app drawer places installed apps along the sides and around the top of the screen",
+      "caption_bounds": [
+        68,
+        85,
+        950,
+        248
+      ],
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "phoneScreenshots",
+      "locale": "en-US",
+      "path": "upload/phone/03-search.png",
+      "sha256": "21172328a406e9ee60f5bdf0bc87a8ccbbbfd942baa9f51bfbeb32119411e262",
+      "capture_path": "captures/phone/04-search.png",
+      "capture_sha256": "632ffa228db5c8a1efddd19df73d16463aefa98e77cbea328721baf85b2737a3",
+      "crop": [
+        40,
+        640,
+        1000,
+        1230
+      ],
+      "alt_text": "App search with Comfer's circular letter keyboard and matching installed apps",
+      "caption_bounds": [
+        68,
+        85,
+        950,
+        248
+      ],
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "phoneScreenshots",
+      "locale": "en-US",
+      "path": "upload/phone/04-workspace.png",
+      "sha256": "4c57094442f283c69912b5c2d0bb5390be3cef99209f151e046c1da13e7e717e",
+      "capture_path": "captures/phone/03-workspace.png",
+      "capture_sha256": "7c45ffda8aff4e2f5f5d10e02a1af42915d0322a605801bbe142ea380561d603",
+      "crop": [
+        160,
+        1120,
+        760,
+        660
+      ],
+      "alt_text": "The home workspace opens shortcuts for tasks, notes, journal and search",
+      "caption_bounds": [
+        68,
+        85,
+        950,
+        248
+      ],
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "phoneScreenshots",
+      "locale": "en-US",
+      "path": "upload/phone/05-tasks.png",
+      "sha256": "6bf8890a66499283c578c1e41108b47c9b985ff412c87fe15e0526112f2f69de",
+      "capture_path": "captures/phone/05-tasks.png",
+      "capture_sha256": "e2a1d9ae5077126fa4c6e47e1c6c7df243e7e0dc57d9c7ee38734f8e17c83e59",
+      "crop": null,
+      "alt_text": "A task list with a starred weekend walk, groceries, reading and a completed item",
+      "caption_bounds": [
+        68,
+        85,
+        950,
+        248
+      ],
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "sevenInchScreenshots",
+      "locale": "en-US",
+      "path": "upload/seven-inch/01-home.png",
+      "sha256": "241d58c589018cecfcd2684233a3de613110eeb9a284a91ed610e2137ea5e80b",
+      "capture_path": "captures/seven-inch/01-home.png",
+      "capture_sha256": "a3ddbd476d6083749ab9436d45a7e207ec3a769a6496741b95990b3150bcefda",
+      "alt_text": "Comfer's circular home layout with favorite apps arranged around the workspace button",
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "sevenInchScreenshots",
+      "locale": "en-US",
+      "path": "upload/seven-inch/02-app-drawer.png",
+      "sha256": "6b166f1765cfc87e2532986a8a6f218ecbaa0389b01570e3a4fb48a5e4be6731",
+      "capture_path": "captures/seven-inch/02-app-drawer.png",
+      "capture_sha256": "ccbb7b830ffccbd3076c0f6fac8b7f8f2cdc8b4425caf83353eb671a0e3a0837",
+      "alt_text": "The circular app drawer places installed apps along the sides and around the top of the screen",
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "sevenInchScreenshots",
+      "locale": "en-US",
+      "path": "upload/seven-inch/03-workspace.png",
+      "sha256": "eaf6f1ba78ddaf566382594205bc00152ed78932f9c341f3b03b26e38159a21a",
+      "capture_path": "captures/seven-inch/03-workspace.png",
+      "capture_sha256": "ed9fd3af9f63b8519e075a513c2bc07d209de7c6423e8dfd56516dfa2d39a26d",
+      "alt_text": "The home workspace opens shortcuts for tasks, notes, journal and search",
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "sevenInchScreenshots",
+      "locale": "en-US",
+      "path": "upload/seven-inch/04-search.png",
+      "sha256": "302e9ac800d0facd84518d6f90449dd8c6eb8afcb8c13a8df3e48d9e75407288",
+      "capture_path": "captures/seven-inch/04-search.png",
+      "capture_sha256": "6ef2790b83e4614c0c601d3352c434aecebb5e38ab433d74ebb1b0a9cbbf5bd0",
+      "alt_text": "App search with Comfer's circular letter keyboard and matching installed apps",
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "sevenInchScreenshots",
+      "locale": "en-US",
+      "path": "upload/seven-inch/05-tasks.png",
+      "sha256": "e6d6f204665015bf73fd703d190a35870e0ed932b16f17d4442cbba19d215965",
+      "capture_path": "captures/seven-inch/05-tasks.png",
+      "capture_sha256": "f9abf7c49cb9a2b656149fd04988424c48dff6065b2e468df337e29c22e5cbf6",
+      "alt_text": "A task list with a starred weekend walk, groceries, reading and a completed item",
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "tenInchScreenshots",
+      "locale": "en-US",
+      "path": "upload/ten-inch/01-home.png",
+      "sha256": "5cbca0c21301bfc24acbabc5a237e9b78e54eb903ca5d88ee6b0c2f2efc57edd",
+      "capture_path": "captures/ten-inch/01-home.png",
+      "capture_sha256": "202b4217053e7f8cb8f53128048473c6392af4784b0a6a7b8bb5eec0a3b3a96d",
+      "alt_text": "Comfer's circular home layout with favorite apps arranged around the workspace button",
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "tenInchScreenshots",
+      "locale": "en-US",
+      "path": "upload/ten-inch/02-app-drawer.png",
+      "sha256": "54fd96372914cba59cf730452669b0ba028588ee698b9493cddde5b05f84acf2",
+      "capture_path": "captures/ten-inch/02-app-drawer.png",
+      "capture_sha256": "eefca0c8b36bea559630cda80f26939b8e330e81128ca2740d816072ff0cf101",
+      "alt_text": "The circular app drawer places installed apps along the sides and around the top of the screen",
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "tenInchScreenshots",
+      "locale": "en-US",
+      "path": "upload/ten-inch/03-workspace.png",
+      "sha256": "1e852764cc60c0e04a368034a4bde92738c700f313ed83d870fd357125e3092c",
+      "capture_path": "captures/ten-inch/03-workspace.png",
+      "capture_sha256": "28a1555c148dc3a0942ccee522f297d168ee79f24996052f06d7e319a1ec1bbf",
+      "alt_text": "The home workspace opens shortcuts for tasks, notes, journal and search",
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "tenInchScreenshots",
+      "locale": "en-US",
+      "path": "upload/ten-inch/04-search.png",
+      "sha256": "11b9b29a0f8401020e899871c0122cd59b0a20b4aeb6ceba8a89528330cb38f9",
+      "capture_path": "captures/ten-inch/04-search.png",
+      "capture_sha256": "1cb68750c8112178cc2647ec1518aaa2220abc3a79d39ce51794261ba3fdb052",
+      "alt_text": "App search with Comfer's circular letter keyboard and matching installed apps",
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    },
+    {
+      "kind": "tenInchScreenshots",
+      "locale": "en-US",
+      "path": "upload/ten-inch/05-tasks.png",
+      "sha256": "72c30e3205c04a3e993ac1efdcc80fdafb95f4cb853e13b521c6bc3392cb7e02",
+      "capture_path": "captures/ten-inch/05-tasks.png",
+      "capture_sha256": "16044841b65b00ec20038a0256047d7ea429276691195b2bb7fa13ba0a16d7be",
+      "alt_text": "A task list with a starred weekend walk, groceries, reading and a completed item",
+      "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+      "source_artifact_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3"
+    }
+  ],
+  "retained_assets": [
+    "icon"
+  ],
+  "video_action": "retain_existing_url; no video generated",
+  "publication_note": "Prepared locally. Reconcile existing Data safety and privacy-policy claims with the enabled Firebase SDK setup before publishing. Keep the current video URL; no video has been generated.",
+  "regenerate": "venv/bin/python scripts/render_play_listing.py --directory store-listing/v002"
+}

@@ -1,0 +1,40 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "13 existing unittest cases; isolated temporary SQLite, seeded listing/report data and direct activation. Covers immutable versions, report generations, missing metrics, windows and inherited icon. Does not exercise live Google transport/publication or production Android SDK data.",
+      "id": "PL-TEST-TOOLS",
+      "kind": "test",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/tests/test_play_listing.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/play_listing.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Listing evidence component regressions"
+    },
+    "before": null,
+    "node": "PL-TEST-TOOLS",
+    "reopened": []
+  },
+  "id": "0e2509cbedb842d6a64e71cd85153530",
+  "reason": "Migrate accepted active scope with preserved provenance; no historical verification promoted",
+  "seq": 19,
+  "time": "2026-11-10T06:29:41.018895+00:00"
+}

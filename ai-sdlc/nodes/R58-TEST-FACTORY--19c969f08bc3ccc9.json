@@ -1,0 +1,41 @@
+{
+  "criteria": [],
+  "description": "Main manifest uses relative .ComferAppComponentFactory. notificationTest merged package has .notificationtest suffix while class remains com.jeerovan.comfer.ComferAppComponentFactory in CrashMitigationPolicy.kt. Redmi LoadedApk logs ClassNotFoundException then fallback. Use fully qualified factory name, identical resolution for regular app, correct default construction for test variant. Separate from production picker crash: baseline now reproduces exact duplicate-key exception after MIUI background permission allowed. No extra app permissions or factory behavior changes.",
+  "id": "R58-TEST-FACTORY",
+  "kind": "decision",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/AndroidManifest.xml",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/CrashMitigationPolicy.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/build.gradle.kts",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/notificationTest/AndroidManifest.xml",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Qualify component factory for isolated test package"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "43dead6bc91647faa6e51d912bb884d1"
+  },
+  "id": "092d6bac8d5b49c6adf69e06128cd72b",
+  "reason": "Retry import after preserving original DB and compressing redundant task evidence",
+  "seq": 128,
+  "time": "2026-11-10T07:07:04.809399+00:00"
+}

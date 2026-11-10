@@ -1,0 +1,21 @@
+{
+  "criteria": [
+    {
+      "expected": "One selectable card per component/profile; distinct activities/profiles retained; selected package and gesture/swipe extras returned; no duplicate-key crash",
+      "id": "picker",
+      "initial_state": "Default app picker receiving overlapping quick/primary/rest inventory",
+      "invariants": "Preserve app/user settings, other list guards and healthy inventory behavior; use only isolated notificationTest on Redmi",
+      "required_level": "integration",
+      "trigger": "Open gesture/swipe picker, update inventory, recreate and choose app"
+    }
+  ],
+  "description": "User authorizes evidence-based fixes, recurrence review against archived attempts, and device testing only on verified Redmi7 serial71a3063 API29. No Samsung/emulator tests, version bump, release upload or speculative SDK/global exception swallowing. First confirmed bounded case is picker duplicate identity: latest sample ends in AppSelectionActivity; prior 50-04/51-06/56-R03 guards did not cover this consumer. Other source groups reviewed and remain investigation absent clear safe cause.",
+  "id": "R58-FIX-REQ",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Safely remediate release58 issues, Redmi only"
+}

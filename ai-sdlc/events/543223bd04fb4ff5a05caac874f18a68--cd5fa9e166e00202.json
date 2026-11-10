@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "43dead6bc91647faa6e51d912bb884d1"
+  },
+  "id": "543223bd04fb4ff5a05caac874f18a68",
+  "reason": "Actual version58 import and preservation checks succeeded after disk-space recovery",
+  "seq": 129,
+  "time": "2026-11-10T07:08:07.498524+00:00"
+}

@@ -1,0 +1,43 @@
+{
+  "criteria": [
+    {
+      "expected": "Concrete evidence-backed correction set ready for separate authorized publication",
+      "id": "review",
+      "initial_state": "Candidate held for disclosure conflict",
+      "invariants": "No invented payload/retention claims, remote edits or activation",
+      "required_level": "journey",
+      "trigger": "Inspect production data practices and current disclosures"
+    }
+  ],
+  "description": "Subdivision of PL-06. Complete actual version-matched SDK/data-practice review, runtime boundary and current Console form inspection; prepare concrete policy/form corrections. No publication required to complete review. Open: runtime payloads, Console form, retention/deletion and connected-feature inventory.",
+  "id": "PL-06-REVIEW",
+  "kind": "step",
+  "phase": "verification",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/build.gradle.kts",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/AndroidManifest.xml",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "store-listing/v002/manifest.json",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "in_progress",
+  "tags": [],
+  "title": "Reconcile policy and Console disclosures"
+}

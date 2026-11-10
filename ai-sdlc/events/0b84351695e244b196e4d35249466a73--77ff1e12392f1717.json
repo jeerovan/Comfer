@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "f28337fd27a1433f9766a2598d82bba3"
+  },
+  "id": "0b84351695e244b196e4d35249466a73",
+  "reason": "Current persisted import and preserved historical rows rechecked after issue-history additions.",
+  "seq": 174,
+  "time": "2026-11-10T10:39:32.830153+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "2b8003d7a1314a299d01d891c96c10a2"
+  },
+  "id": "bbd0aa44d8e24309a5b1616767f8149c",
+  "reason": "Begin independently scoped populated-debug upgrade journey before installation.",
+  "seq": 183,
+  "time": "2026-11-10T11:01:11.713191+00:00"
+}

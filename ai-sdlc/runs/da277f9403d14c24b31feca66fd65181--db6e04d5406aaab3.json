@@ -1,0 +1,41 @@
+{
+  "adaptations": [
+    "Complete aggregate report with validated selected sample per issue; largest group sample-only. Supplemental event lists are not exhaustive and discrepancies retained.",
+    "MCP pagination unsupported; authenticated CLI used."
+  ],
+  "bypasses": [],
+  "criteria": [
+    "R58-REFRESH-01#import"
+  ],
+  "entrypoint": "normalize.py; importer CLI dry-run/import; verify-import.py",
+  "environment": "macOS exact checkout and actual local DB; retained Firebase reports",
+  "finished_at": "2026-11-10T07:05:22.884262+00:00",
+  "id": "da277f9403d14c24b31feca66fd65181",
+  "level": "integration",
+  "observation": "Dry-run validated 1225 groups/6587 events. Import failed database or disk is full while creating backup; original DB quick_check ok, latest import remains 15/version57. Removing only failed task-owned partial backup and hash-verifying compressed redundant task evidence before retry. No version58 data imported yet.",
+  "order": 6,
+  "proof": {
+    "validation-artifacts/firebase-v58-20261110T064551Z/dry-run.json": "7890dde051d37654e06929ebd6e4911a4538015c9e8603b840179480f1714027"
+  },
+  "proof_path": "validation-artifacts/firebase-v58-20261110T064551Z/dry-run.json",
+  "result": "failed",
+  "snapshot": {
+    "files": {
+      "scripts/README-play-reporting.md": "25481af6be765eb8565e35589f960ee9e8f137eec3f1bbaadb4c5711beb12ebd",
+      "scripts/import_firebase_crashlytics.py": "24e1ab32b859a3571b967d5cf5c8a2894b2a50602932c9f46cd8e9651b3584d8",
+      "scripts/tests/test_import_firebase_crashlytics.py": "6b18a387e562a2f2b4f40bd9b88b488e61b2b6d2ee1e02a280fa185ed5f598de",
+      "validation-artifacts/firebase-v58-20261110T064551Z/config.json": "956c8c18ad2d3f90efb364ea75c2d0268596b141ffb852ca231850eb12ba6502",
+      "validation-artifacts/firebase-v58-20261110T064551Z/fetch.cjs": "284d7059bd58a616850c48910384ebf6088f546eec4cc6c2d9e1bb58432ff1ec",
+      "validation-artifacts/firebase-v58-20261110T064551Z/normalize.py": "27433710a4d2751e3b41eaa21f47ab8e3f540bbf3283e86bea44ac5e6d32ebad",
+      "validation-artifacts/firebase-v58-20261110T064551Z/verify-import.py": "f2b5f5cc75109f045a56b38c77f02fe3d0e4fac70400dffb06f15433a22946b0"
+    },
+    "graph": "61fcb1439b1a62f413da2fac14dc8639862f9d647a86271dcbc8a098089818f1",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-10T07:02:51.969676+00:00",
+  "step": "R58-FETCH",
+  "test": "R58-FETCH-CHECK"
+}

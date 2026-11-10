@@ -1,0 +1,35 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Reconcile actual SDK/runtime data practices with privacy policy and Console Data safety, prepare concrete publication scope, then record activation only after verified publication and evaluate complete 28-day windows.\nHistorical status: pending. Preserve original plan evidence and limitations. Existing implementation must be reused. Current next work: inspect production Firebase startup/defaults and SDK data inventory, current policy and actual Console declaration; propose concrete corrections before any remote mutation. Publication and future evaluation remain separate transitions.",
+      "id": "PL-06",
+      "kind": "step",
+      "phase": "maintenance",
+      "refs": [
+        {
+          "locator": "PL-06",
+          "notes": "",
+          "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [
+        "active-follow-up"
+      ],
+      "title": "Follow-up: reconcile and verify existing work"
+    },
+    "before": null,
+    "node": "PL-06",
+    "reopened": []
+  },
+  "id": "ea482dd468984db3bf8bc5d23ce54114",
+  "reason": "Migrate accepted active scope with preserved provenance; no historical verification promoted",
+  "seq": 16,
+  "time": "2026-11-10T06:29:39.872198+00:00"
+}

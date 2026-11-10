@@ -1,0 +1,33 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Existing test_validate_listing.py in portable archive; historical only, no fresh execution claimed.",
+      "id": "PL-TEST-SKILL",
+      "kind": "test",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "play-store-assets/scripts/test_validate_listing.py",
+          "notes": "",
+          "path": "store-listing/play-store-assets.zip",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Portable media validator regressions"
+    },
+    "before": null,
+    "node": "PL-TEST-SKILL",
+    "reopened": []
+  },
+  "id": "6b0f2f0721db434bbd1310fa135dc3ea",
+  "reason": "Reconcile current follow-up and explicit future gates without promoting historical evidence",
+  "seq": 68,
+  "time": "2026-11-10T06:31:39.080645+00:00"
+}

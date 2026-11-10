@@ -525,7 +525,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var widgetHosts: WidgetHostManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        super.onCreate(launcherSavedState(savedInstanceState))
         // Consolidated Widget Host Management
         // App-scoped singleton: hosts created once per process, reused across
         // Activity recreations (avoids repeated Binder registration + leaks).

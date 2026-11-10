@@ -1,0 +1,107 @@
+{
+  "observed_at": "2026-10-22T06:49:58.417898+00:00",
+  "serial": "emulator-5554",
+  "avd": "Pixel_10",
+  "android_api": "37",
+  "locale": "",
+  "source_version": "58.0-notification-test",
+  "package": "com.jeerovan.comfer.notificationtest",
+  "apk_sha256": "4aef993ce833d7db66c9317665a89cf9386e1bbbdee26a753a631f030914a0c3",
+  "production_source": "same release-58 source; isolated application ID; Firebase provider removed by notificationTest manifest",
+  "fixture": "Temporary monochrome settings, completed onboarding and fictional tasks; shipped activities/composables. Settings/tasks restored by helper.",
+  "original_size": "1080x2424 without override",
+  "original_density": "Physical density: 420",
+  "viewports": [
+    {
+      "name": "phone",
+      "size": "1080x1920",
+      "density_dpi": 420,
+      "layout_direction": "LTR",
+      "effective_locale": "en-US",
+      "instrumentation": "OK (1 test)",
+      "captures": [
+        {
+          "path": "captures/phone/01-home.png",
+          "sha256": "8551a9c444a31bc7ce55ddaa9dbaa66e12bad7126b29a5b59300483028b223de"
+        },
+        {
+          "path": "captures/phone/02-app-drawer.png",
+          "sha256": "fccd7fffc46702eb4c7ca91650fceb887a4b4ffa50bc450b92154f73a1271041"
+        },
+        {
+          "path": "captures/phone/03-workspace.png",
+          "sha256": "7c45ffda8aff4e2f5f5d10e02a1af42915d0322a605801bbe142ea380561d603"
+        },
+        {
+          "path": "captures/phone/04-search.png",
+          "sha256": "632ffa228db5c8a1efddd19df73d16463aefa98e77cbea328721baf85b2737a3"
+        },
+        {
+          "path": "captures/phone/05-tasks.png",
+          "sha256": "e2a1d9ae5077126fa4c6e47e1c6c7df243e7e0dc57d9c7ee38734f8e17c83e59"
+        }
+      ]
+    },
+    {
+      "name": "seven-inch",
+      "size": "1080x1920",
+      "density_dpi": 280,
+      "layout_direction": "LTR",
+      "effective_locale": "en-US",
+      "instrumentation": "OK (1 test)",
+      "captures": [
+        {
+          "path": "captures/seven-inch/01-home.png",
+          "sha256": "a3ddbd476d6083749ab9436d45a7e207ec3a769a6496741b95990b3150bcefda"
+        },
+        {
+          "path": "captures/seven-inch/02-app-drawer.png",
+          "sha256": "ccbb7b830ffccbd3076c0f6fac8b7f8f2cdc8b4425caf83353eb671a0e3a0837"
+        },
+        {
+          "path": "captures/seven-inch/03-workspace.png",
+          "sha256": "ed9fd3af9f63b8519e075a513c2bc07d209de7c6423e8dfd56516dfa2d39a26d"
+        },
+        {
+          "path": "captures/seven-inch/04-search.png",
+          "sha256": "6ef2790b83e4614c0c601d3352c434aecebb5e38ab433d74ebb1b0a9cbbf5bd0"
+        },
+        {
+          "path": "captures/seven-inch/05-tasks.png",
+          "sha256": "f9abf7c49cb9a2b656149fd04988424c48dff6065b2e468df337e29c22e5cbf6"
+        }
+      ]
+    },
+    {
+      "name": "ten-inch",
+      "size": "1920x1080",
+      "density_dpi": 220,
+      "layout_direction": "LTR",
+      "effective_locale": "en-US",
+      "instrumentation": "OK (1 test)",
+      "captures": [
+        {
+          "path": "captures/ten-inch/01-home.png",
+          "sha256": "202b4217053e7f8cb8f53128048473c6392af4784b0a6a7b8bb5eec0a3b3a96d"
+        },
+        {
+          "path": "captures/ten-inch/02-app-drawer.png",
+          "sha256": "eefca0c8b36bea559630cda80f26939b8e330e81128ca2740d816072ff0cf101"
+        },
+        {
+          "path": "captures/ten-inch/03-workspace.png",
+          "sha256": "28a1555c148dc3a0942ccee522f297d168ee79f24996052f06d7e319a1ec1bbf"
+        },
+        {
+          "path": "captures/ten-inch/04-search.png",
+          "sha256": "1cb68750c8112178cc2647ec1518aaa2220abc3a79d39ce51794261ba3fdb052"
+        },
+        {
+          "path": "captures/ten-inch/05-tasks.png",
+          "sha256": "16044841b65b00ec20038a0256047d7ea429276691195b2bb7fa13ba0a16d7be"
+        }
+      ]
+    }
+  ],
+  "source_git_revision": "ebd203d802639b77e1e8fb032e759a70d0c758ae"
+}

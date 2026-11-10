@@ -1,0 +1,22 @@
+{
+  "criteria": [],
+  "description": "Record actual free keyword signals separately from hypotheses; retain acquisition/install/rating/review metric definitions, windows and breakdowns; select focused English iteration.\nHistorical status: completed as documented; imported pending current acceptance verification. Preserve original plan evidence and limitations. Existing implementation must be reused.",
+  "id": "PL-02",
+  "kind": "step",
+  "phase": "verification",
+  "refs": [
+    {
+      "locator": "PL-02",
+      "notes": "",
+      "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [
+    "historical-completed-unverified"
+  ],
+  "title": "Research: reconcile and verify existing work"
+}

@@ -1,0 +1,6 @@
+{
+  "rationale": "Complete release58 import precedes current-code remediation; tests preserve distinct identities and selection.",
+  "relation": "gates",
+  "source": "R58-FETCH",
+  "target": "R58-FIX-01"
+}

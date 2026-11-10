@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "New subdivision of PL-06: after observed publication, use actual activation timestamp and exposure evidence; collect equal complete 28-day windows excluding transition day. Keep inconclusive for missing or conflicting exposure; no causal single-element claim.",
+      "id": "PL-06-EVALUATE",
+      "kind": "step",
+      "phase": "maintenance",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Evaluate verified exposure after complete windows"
+    },
+    "before": null,
+    "node": "PL-06-EVALUATE",
+    "reopened": []
+  },
+  "id": "329cd268e19b41feaf4342c21ff176c0",
+  "reason": "Reconcile current follow-up and explicit future gates without promoting historical evidence",
+  "seq": 70,
+  "time": "2026-11-10T06:31:39.911832+00:00"
+}

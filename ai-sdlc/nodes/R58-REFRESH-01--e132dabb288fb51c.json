@@ -1,0 +1,36 @@
+{
+  "criteria": [
+    {
+      "expected": "Complete paginated issue set, error-type totals reconciled, validated version/package/event samples, transactional import and retained recovery backup",
+      "id": "import",
+      "initial_state": "Existing reporting DB and release 58 in production",
+      "invariants": "Preserve prior rows and local triage; distinguish provider counts; never infer fixes from absent groups",
+      "required_level": "integration",
+      "trigger": "Fetch Firebase reports for discovered 58.0 (58)"
+    }
+  ],
+  "description": "User priority 2026-11-10: sync remains future; current release 58 issues take priority. Fetch complete version-filtered Firebase FATAL/ANR evidence into play_reporting.db, preserve prior telemetry/triage/history, then use evidence for bounded current-code investigation. No remote issue state changes or release readiness implied. Historical R58-01..04 remain preserved, not newly verified.",
+  "id": "R58-REFRESH-01",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/import_firebase_crashlytics.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/README-play-reporting.md",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Refresh release 58 Firebase evidence before fixes"
+}

@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Preserve separate publication authorization and observed exposure before evaluation.",
+      "relation": "affects",
+      "source": "PL-DISCLOSURE-REVIEW",
+      "target": "PL-06"
+    },
+    "reopened": []
+  },
+  "id": "8afb530dbac64d719bb37dae8b950f50",
+  "reason": "Explicit disclosure/candidate and publication/evaluation gates",
+  "seq": 76,
+  "time": "2026-11-10T06:31:42.462625+00:00"
+}

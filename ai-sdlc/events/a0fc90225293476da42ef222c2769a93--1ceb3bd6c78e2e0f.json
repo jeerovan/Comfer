@@ -1,0 +1,68 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Start from installed pre-fix regular debug58 APK82d8b08, owner confirms Home/Workspace and customized setting/shortcut plus disposable note/task ready. Manually install same-package/same-debug-signer fixed APK in place via FileManager. Verify installed hash and preserved firstInstallTime; run prepare_manual_check with Workspace, inspect actual Home, then owner confirms existing setting/data and Home/Recents/Workspace functionality. Retain only nonsecret metadata; no data clearing. This is debug data/settings upgrade evidence, not obfuscated legacy/minified migration.",
+      "id": "R58-DEBUG-UPGRADE-TEST",
+      "kind": "test",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/prepare_manual_check.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/LauncherSavedState.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/PreferenceManager.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/build.gradle.kts",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Redmi regular debug upgrade and owner retention check"
+    },
+    "before": null,
+    "node": "R58-DEBUG-UPGRADE-TEST",
+    "reopened": []
+  },
+  "id": "a0fc90225293476da42ef222c2769a93",
+  "reason": "Owner confirms populated pre-fix debug baseline ready; record distinct manual upgrade evidence boundary.",
+  "seq": 180,
+  "time": "2026-11-10T11:00:25.050541+00:00"
+}

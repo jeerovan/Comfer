@@ -1,0 +1,20 @@
+{
+  "criteria": [],
+  "description": "Existing test_validate_listing.py in portable archive; historical only, no fresh execution claimed.",
+  "id": "PL-TEST-SKILL",
+  "kind": "test",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "play-store-assets/scripts/test_validate_listing.py",
+      "notes": "",
+      "path": "store-listing/play-store-assets.zip",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Portable media validator regressions"
+}

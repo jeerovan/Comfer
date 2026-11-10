@@ -1,0 +1,22 @@
+{
+  "criteria": [],
+  "description": "Reviewable en-US v002: title <=30, short <=80, full <=4000 characters; 1024x500 feature graphic; five phone, five portrait-tablet, five landscape-tablet genuine screenshots; editable sources and upload package.\nHistorical status: completed as documented; imported pending current acceptance verification. Preserve original plan evidence and limitations. Existing implementation must be reused.",
+  "id": "PL-03",
+  "kind": "step",
+  "phase": "verification",
+  "refs": [
+    {
+      "locator": "PL-03",
+      "notes": "",
+      "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [
+    "historical-completed-unverified"
+  ],
+  "title": "Candidate: reconcile and verify existing work"
+}

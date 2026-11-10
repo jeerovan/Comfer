@@ -1,0 +1,6 @@
+{
+  "rationale": "Existing production importer and actual DB preservation check.",
+  "relation": "realizes",
+  "source": "R58-FETCH-IMPL",
+  "target": "R58-FETCH"
+}

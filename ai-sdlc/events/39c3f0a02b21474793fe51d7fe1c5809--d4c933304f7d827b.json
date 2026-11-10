@@ -1,0 +1,47 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Existing Python tooling retains local append-only evidence and uses Google APIs; notificationTest captures Compose UI. Firebase BOM 34.18.0 is configured for production Analytics/Crashlytics; notificationTest removes FirebaseInitProvider.",
+      "id": "PL-TECH",
+      "kind": "technology",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/build.gradle.kts",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "gradle/libs.versions.toml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/notificationTest/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Python SQLite / Google Publisher and Storage / Android capture"
+    },
+    "before": null,
+    "node": "PL-TECH",
+    "reopened": []
+  },
+  "id": "39c3f0a02b21474793fe51d7fe1c5809",
+  "reason": "Migrate accepted active scope with preserved provenance; no historical verification promoted",
+  "seq": 3,
+  "time": "2026-11-10T06:29:35.526725+00:00"
+}

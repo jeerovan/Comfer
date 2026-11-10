@@ -1,0 +1,35 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Discoverable installed play-store-assets skill validates real manifest and covers research, media, evidence versioning and evaluation.\nHistorical status: completed as documented; imported pending current acceptance verification. Preserve original plan evidence and limitations. Existing implementation must be reused.",
+      "id": "PL-05",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "PL-05",
+          "notes": "",
+          "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [
+        "historical-completed-unverified"
+      ],
+      "title": "Skill: reconcile and verify existing work"
+    },
+    "before": null,
+    "node": "PL-05",
+    "reopened": []
+  },
+  "id": "bcb3037619c24bf7a5bd2010b5dd920b",
+  "reason": "Migrate accepted active scope with preserved provenance; no historical verification promoted",
+  "seq": 14,
+  "time": "2026-11-10T06:29:39.150324+00:00"
+}

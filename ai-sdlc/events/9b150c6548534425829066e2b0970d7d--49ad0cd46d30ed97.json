@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "4f0b87553a2c4e7384287f5566b0640c"
+  },
+  "id": "9b150c6548534425829066e2b0970d7d",
+  "reason": "Reproduce original picker failure on Redmi before product edit",
+  "seq": 142,
+  "time": "2026-11-10T08:01:06.027934+00:00"
+}

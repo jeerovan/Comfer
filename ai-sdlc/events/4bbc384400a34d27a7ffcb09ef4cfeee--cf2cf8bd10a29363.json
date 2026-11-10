@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "c2de549c9f6347129d1edd48f9d8e243"
+  },
+  "id": "4bbc384400a34d27a7ffcb09ef4cfeee",
+  "reason": "Prepare current Home restoration checks before Redmi execution.",
+  "seq": 160,
+  "time": "2026-11-10T10:28:49.455942+00:00"
+}

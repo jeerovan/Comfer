@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "PL-06",
+    "reopened": [],
+    "to": "in_progress"
+  },
+  "id": "ecbedaf3a8f1401996b741185fc93fef",
+  "reason": "Continue user-confirmed Play listing follow-up; review started, remaining runtime and Console gaps explicit",
+  "seq": 88,
+  "time": "2026-11-10T06:32:25.761625+00:00"
+}

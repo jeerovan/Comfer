@@ -1,0 +1,94 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Helper checks input/non-framework key preservation. Default Home recreation injects incompatible framework Parcelable then verifies durable settings and Workspace navigation. Normal update-prompt bookkeeping may increment; compare other settings unchanged and counter not reset. Initial Redmi full-map assertion failed only on normal prompt-counter increment (green-focused.txt, green-isolated.txt). Not an actual old-version/minified upgrade.",
+      "id": "R58-RESTORE-TEST",
+      "kind": "test",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/LauncherSavedStateTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/notificationTest/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/build.gradle.kts",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/PreferenceManager.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/SettingsViewModel.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Home recreation and saved-state preservation"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Helper checks null/input preservation and non-framework keys. Real MainActivity recreation injects incompatible framework parcel through onActivitySaveInstanceState, checks settings and Workspace navigation. Simulates obsolete framework state; not an actual old-version upgrade or minified artifact. Device execution pending Redmi installer access.",
+      "id": "R58-RESTORE-TEST",
+      "kind": "test",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/LauncherSavedStateTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/notificationTest/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/build.gradle.kts",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Home recreation and saved-state preservation"
+    },
+    "node": "R58-RESTORE-TEST",
+    "reopened": []
+  },
+  "id": "ed36f5c824134353bf5267803112de0c",
+  "reason": "Record proven test setup mismatch and production counter references; preserve original failure.",
+  "seq": 163,
+  "time": "2026-11-10T10:33:43.109956+00:00"
+}

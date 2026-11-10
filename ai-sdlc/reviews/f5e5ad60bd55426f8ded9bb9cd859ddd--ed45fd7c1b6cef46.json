@@ -1,0 +1,72 @@
+{
+  "at": "2026-11-10T06:33:47.794576+00:00",
+  "code_discovery": "Bounded source review of manifests, Gradle Firebase BOM/dependencies, capture fixture and listing CLI/tests/artifacts. Generated release manifest inspected only as historical artifact. Retrieved public policy and official Firebase Android disclosure/configuration guidance; exact delivered SDK versions/runtime payloads not verified. No graph coverage claim or product edits.",
+  "entrypoints": "Production manifest includes Firebase provider/registrars in retained generated manifest; notificationTest explicitly removes provider. Listing CLI separates sync, activate, compare.",
+  "id": "f5e5ad60bd55426f8ded9bb9cd859ddd",
+  "order": 2,
+  "recovery_paths": "Capture fixture restores task/settings snapshots but cannot verify production telemetry. Listing comparison stays inconclusive absent activation, complete dates or isolated exposure.",
+  "reviewed_ids": [
+    "PL-01",
+    "PL-02",
+    "PL-03",
+    "PL-04",
+    "PL-05",
+    "PL-06",
+    "PL-06-EVALUATE",
+    "PL-06-PUBLISH",
+    "PL-06-REVIEW",
+    "PL-DISCLOSURE-REVIEW",
+    "PL-IMPL-MEDIA",
+    "PL-IMPL-SKILL",
+    "PL-IMPL-TOOLS",
+    "PL-MIGRATION",
+    "PL-MODULE",
+    "PL-REQ-01",
+    "PL-REQ-02",
+    "PL-REQ-03",
+    "PL-REQ-04",
+    "PL-REQ-05",
+    "PL-REQ-06",
+    "PL-REQ-06-EVALUATE",
+    "PL-REQ-06-PUBLISH",
+    "PL-REQ-06-REVIEW",
+    "PL-RISK-DISCLOSURES",
+    "PL-TECH",
+    "PL-TEST-CAPTURE",
+    "PL-TEST-SKILL",
+    "PL-TEST-TOOLS"
+  ],
+  "snapshot": {
+    "files": {
+      "PLAN-PLAY-LISTING-IMPLEMENTATION.md": "bef5050e9b2745b77bcb1cebcd7dbbe355489123b3393cd19705d9feb30db36c",
+      "PLAN-RELEASE-58-IMPLEMENTATION.md": "86f75d2671ba5da0a6ce09b7ae96a9bc7a53fb5af6a9966734c83d24f9fd6201",
+      "PRD-PLAY-LISTING.md": "0138911354abdb2944ef01e3e8bc31cc547aa8b26583478345e1c3acb556cade",
+      "PRD-RELEASE-58.md": "011ee5efca17903abc046578f1e4736cca62307ccbe331f70c4f6bdd1041c1d2",
+      "PRD-SYNC.md": "2b97c85466ae4422a01e059aa49d5dcad7c56765242b426939914c1836d9ad3a",
+      "app/build.gradle.kts": "35faf209457acc372355e445c39f03c3264a57bc809aa24cdb050f8900591e90",
+      "app/src/androidTest/java/com/jeerovan/comfer/PlayListingCaptureTest.kt": "9e6ec5d9b3c27472b530c45847b86c29e13137605176e9a68085f7a5818ec9fd",
+      "app/src/main/AndroidManifest.xml": "c7e479b5ce8efe4ac6223b781847bf5542567fbcc1f071106768373a50b7a738",
+      "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216",
+      "gradle/libs.versions.toml": "061c1314572276a6358f4baa00bcd6847a2cbf1cefd3416a4683c253cfc4fa8d",
+      "scripts/README-play-reporting.md": "25481af6be765eb8565e35589f960ee9e8f137eec3f1bbaadb4c5711beb12ebd",
+      "scripts/play_listing.py": "4d21f1bbb7a1bf185a64bd2abf2cb54519e4de40f830c5394360b7225fa0c050",
+      "scripts/render_play_listing.py": "c877e8861a66b2edd81aa367f7fcec75360646260a6e2e0f026383cf18855295",
+      "scripts/review_play_listing.py": "d84c754cca15b7b679275b3fc8d8699d4cdbc552ab734992b9e7bf842b21c6d6",
+      "scripts/tests/test_play_listing.py": "a8cd8b7493d2de9d1323145eefc3ed58ec93d2c90ff1ad9f62662f6391c722d1",
+      "store-listing/play-store-assets.zip": "b1b646f0234c67595db5ba0e89f063578f51e6d5021bd57941854e791cd58e58",
+      "store-listing/v002/manifest.json": "61937dd601b53ed7ccbf9c3a7ce72e56ebd76bc76383685d60e868cd2ef8d7eb"
+    },
+    "graph": "156e3c406213ba8b2d16f34925784b8617f4ecb410b1ef7392cf8486398744c2",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "step": "PL-06-REVIEW",
+  "unresolved": [
+    "Current Console declaration not inspected.",
+    "Actual production SDK versions/payloads and connected-feature/retention/deletion inventory remain open.",
+    "Policy retrieval may be cached; live deployment and correction review required.",
+    "Historical media and skill validation not freshly repeated; no publication authorization or delivery evidence."
+  ]
+}

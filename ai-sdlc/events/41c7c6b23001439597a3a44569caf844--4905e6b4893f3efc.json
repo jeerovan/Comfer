@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Complete release58 import precedes current-code remediation; tests preserve distinct identities and selection.",
+      "relation": "implements",
+      "source": "R58-FIX-01",
+      "target": "R58-FIX-REQ"
+    },
+    "reopened": []
+  },
+  "id": "41c7c6b23001439597a3a44569caf844",
+  "reason": "Explicit production and test paths; refresh prerequisite",
+  "seq": 135,
+  "time": "2026-11-10T08:00:02.836172+00:00"
+}

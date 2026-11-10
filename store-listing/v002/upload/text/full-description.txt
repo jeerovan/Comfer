@@ -1,0 +1,23 @@
+Put the apps and tools you use most within easy reach. Comfer is a customizable Android launcher built around swipe navigation, a clean home screen and a workspace for everyday tasks.
+
+<b>Your favorites, close at hand</b>
+Choose a circular or column home layout and arrange the apps you reach for most. Swipe up to browse the app drawer, or open your workspace for search, notes, tasks and your journal.
+
+<b>Find apps with a few taps</b>
+Search your installed apps by name with Comfer's on-screen keyboard. Optional contact search helps you find people too, after you grant contacts access.
+
+<b>A place for everyday ideas</b>
+Write notes, keep task lists and capture journal entries from your launcher workspace. Star important tasks and use reminders when you need them.
+
+<b>Make your home screen feel like yours</b>
+Customize your icons, app layouts, clock and date. Add Android widgets, choose a monochrome look or use automatic wallpapers. Optional wallpaper motion and spatial effects add another way to personalize your home screen on supported devices.
+
+<b>Keep notifications together</b>
+The optional Notification Inbox brings active notifications into one place. Save items for later and enable notification history if you want to keep a record. Notification access is required for these features and app badges.
+
+<b>Permissions and connected features</b>
+Accessibility access is optional and provides a shortcut to Android's Recent Apps screen. Contacts access enables contact search. Notification access enables the inbox and badges, with history capture available as a separate choice. Approximate location is used for the optional weather widget.
+
+Online wallpapers and weather require an internet connection. The app includes Firebase Analytics and Crashlytics for usage and crash diagnostics.
+
+Set Comfer as your default Home app to use it as your everyday Android launcher.

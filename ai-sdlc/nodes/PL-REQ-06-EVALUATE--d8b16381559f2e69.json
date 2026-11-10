@@ -1,0 +1,29 @@
+{
+  "criteria": [
+    {
+      "expected": "Report observational results, or remain inconclusive for missing/conflicting evidence",
+      "id": "acceptance",
+      "initial_state": "Verified activation and saved reports",
+      "invariants": "Exclude transition day; no single-element causal claim",
+      "required_level": "journey",
+      "trigger": "Collect and compare complete equal 28-day windows"
+    }
+  ],
+  "description": "Explicit subdivision of original PL-06; no new authorization or scope.",
+  "id": "PL-REQ-06-EVALUATE",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "PL-06",
+      "notes": "",
+      "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Evaluate exposure"
+}

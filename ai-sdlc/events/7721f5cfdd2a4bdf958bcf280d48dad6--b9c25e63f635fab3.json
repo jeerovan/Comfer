@@ -1,0 +1,45 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Installed candidate hash matches; original firstInstallTime retained; owner-created settings/shortcut and disposable note/task retained; Home/Recents/Workspace usable",
+          "id": "debug-retention",
+          "initial_state": "Owner-confirmed populated regular debug58 baseline82d8b08 on Redmi7; default Home and Workspace usable",
+          "invariants": "No uninstall, clear-data, settings reset or production-account changes; only Redmi. Nonminified debug upgrade does not establish legacy obfuscation migration.",
+          "required_level": "journey",
+          "trigger": "Install fixed same-package same-debug-signer APK in place via FileManager; open Home, return through Recents and open Workspace"
+        }
+      ],
+      "description": "Attempt R58-F02: prepare narrow removal of lifecycle-only android:fragments entry before MainActivity superclass restoration; copy Bundle preserving all other keys. Keep future ReportFragment name/constructor stable. Instrumentation covers helper invariants and real Home recreation with incompatible parcel stand-in. Exact shipped-v56-to-candidate upgrade and minified candidate are not verified.",
+      "id": "R58-FIX-02",
+      "kind": "step",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 2,
+      "status": "in_progress",
+      "tags": [],
+      "title": "Preserve Home state across legacy ReportFragment rename"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Attempt R58-F02: prepare narrow removal of lifecycle-only android:fragments entry before MainActivity superclass restoration; copy Bundle preserving all other keys. Keep future ReportFragment name/constructor stable. Instrumentation covers helper invariants and real Home recreation with incompatible parcel stand-in. Exact shipped-v56-to-candidate upgrade and minified candidate are not verified.",
+      "id": "R58-FIX-02",
+      "kind": "step",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "in_progress",
+      "tags": [],
+      "title": "Preserve Home state across legacy ReportFragment rename"
+    },
+    "node": "R58-FIX-02",
+    "reopened": []
+  },
+  "id": "7721f5cfdd2a4bdf958bcf280d48dad6",
+  "reason": "Add owner-requested debug upgrade acceptance separately from existing legacy-state requirement; preserve original criterion.",
+  "seq": 182,
+  "time": "2026-11-10T11:01:11.174581+00:00"
+}

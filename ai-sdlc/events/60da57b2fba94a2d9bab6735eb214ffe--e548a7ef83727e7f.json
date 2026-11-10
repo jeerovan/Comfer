@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R58-FIX-02",
+    "reopened": [],
+    "to": "in_progress"
+  },
+  "id": "60da57b2fba94a2d9bab6735eb214ffe",
+  "reason": "Current source implemented and Redmi synthetic stale-state recreation tests pass; actual old-version/minified upgrade and keep-rule artifact remain open.",
+  "seq": 177,
+  "time": "2026-11-10T10:39:34.389322+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "0ba38f17a0b147f4a6cb6c8e9ad7bedf"
+  },
+  "id": "67809ddc75104003983907ff54c318a4",
+  "reason": "Fresh component evidence only for existing collection/evaluation invariants",
+  "seq": 91,
+  "time": "2026-11-10T06:32:27.233035+00:00"
+}

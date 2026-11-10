@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Preserve separate publication authorization and observed exposure before evaluation.",
+      "relation": "verifies",
+      "source": "PL-TEST-SKILL",
+      "target": "PL-REQ-05"
+    },
+    "reopened": []
+  },
+  "id": "f126070b7a4e4b80aaa19c364be52fcd",
+  "reason": "Explicit disclosure/candidate and publication/evaluation gates",
+  "seq": 74,
+  "time": "2026-11-10T06:31:41.575928+00:00"
+}

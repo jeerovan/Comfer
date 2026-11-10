@@ -1,0 +1,27 @@
+{
+  "criteria": [],
+  "description": "CLI importer validates envelope before transaction, backs up SQLite, preserves triage and earlier snapshots. Retained task collector adapted from prior release fetch; uses installed Firebase CLI auth in memory and follows continuation tokens.",
+  "id": "R58-FETCH-IMPL",
+  "kind": "implementation",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/import_firebase_crashlytics.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "validation-artifacts/firebase-v58-20261110T064551Z/fetch.cjs",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Existing Crashlytics importer and paginated collector"
+}

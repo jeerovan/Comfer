@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Attempt R58-F02: prepare narrow removal of lifecycle-only android:fragments entry before MainActivity superclass restoration; copy Bundle preserving all other keys. Keep future ReportFragment name/constructor stable. Instrumentation covers helper invariants and real Home recreation with incompatible parcel stand-in. Exact shipped-v56-to-candidate upgrade and minified candidate are not verified.",
+      "id": "R58-FIX-02",
+      "kind": "step",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Preserve Home state across legacy ReportFragment rename"
+    },
+    "before": null,
+    "node": "R58-FIX-02",
+    "reopened": []
+  },
+  "id": "e6b043f6651a4a7b844c2759a8d99761",
+  "reason": "Record new evidence-backed issue and explicit Redmi verification blocker",
+  "seq": 145,
+  "time": "2026-11-10T08:08:28.976513+00:00"
+}

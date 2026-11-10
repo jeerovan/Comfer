@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R58-FETCH",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "3404ff657260424f8aad26a6d4dae012",
+  "reason": "Retained complete issue-report snapshot and current DB preservation check pass; no production resolution inferred.",
+  "seq": 175,
+  "time": "2026-11-10T10:39:33.348886+00:00"
+}

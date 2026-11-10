@@ -1,0 +1,29 @@
+{
+  "criteria": [
+    {
+      "expected": "Concrete evidence-backed corrections ready for separate publication",
+      "id": "acceptance",
+      "initial_state": "Prepared candidate with disclosure conflict",
+      "invariants": "No invented payload, retention or deletion claims",
+      "required_level": "journey",
+      "trigger": "Review exact SDK/runtime data practices, current policy and Console form"
+    }
+  ],
+  "description": "Explicit subdivision of original PL-06; no new authorization or scope.",
+  "id": "PL-REQ-06-REVIEW",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "PL-06",
+      "notes": "",
+      "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Reconcile data disclosures"
+}

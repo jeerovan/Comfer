@@ -1,0 +1,224 @@
+{
+  "valid": true,
+  "errors": [],
+  "warnings": [
+    "Local technical checks do not establish Play approval, visual quality or promotion eligibility"
+  ],
+  "copy_characters": {
+    "locale": 5,
+    "title": 24,
+    "shortDescription": 74,
+    "fullDescription": 1889,
+    "video": 43
+  },
+  "assets": [
+    {
+      "path": "upload/feature-graphic.png",
+      "kind": "featureGraphic",
+      "locale": "en-US",
+      "dimensions": [
+        1024,
+        500
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 31419,
+      "sha256": "bf62e3e16c85d4effe225be8e609a61010860a32c6134e99bb954d6f4ea80007"
+    },
+    {
+      "path": "upload/phone/01-favorites.png",
+      "kind": "phoneScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 124279,
+      "sha256": "2d7aa80cd8b62ee31057015b393d5b2f764f9e92f0180230083c42a37e780fea"
+    },
+    {
+      "path": "upload/phone/02-app-drawer.png",
+      "kind": "phoneScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 138309,
+      "sha256": "c759d6f13aeaa2a2ae6e117dbd82cc23cdb9aed56629af8c7f8c703429bc0917"
+    },
+    {
+      "path": "upload/phone/03-search.png",
+      "kind": "phoneScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 252715,
+      "sha256": "21172328a406e9ee60f5bdf0bc87a8ccbbbfd942baa9f51bfbeb32119411e262"
+    },
+    {
+      "path": "upload/phone/04-workspace.png",
+      "kind": "phoneScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 57124,
+      "sha256": "4c57094442f283c69912b5c2d0bb5390be3cef99209f151e046c1da13e7e717e"
+    },
+    {
+      "path": "upload/phone/05-tasks.png",
+      "kind": "phoneScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 316275,
+      "sha256": "6bf8890a66499283c578c1e41108b47c9b985ff412c87fe15e0526112f2f69de"
+    },
+    {
+      "path": "upload/seven-inch/01-home.png",
+      "kind": "sevenInchScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 57591,
+      "sha256": "241d58c589018cecfcd2684233a3de613110eeb9a284a91ed610e2137ea5e80b"
+    },
+    {
+      "path": "upload/seven-inch/02-app-drawer.png",
+      "kind": "sevenInchScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 114137,
+      "sha256": "6b166f1765cfc87e2532986a8a6f218ecbaa0389b01570e3a4fb48a5e4be6731"
+    },
+    {
+      "path": "upload/seven-inch/03-workspace.png",
+      "kind": "sevenInchScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 38418,
+      "sha256": "eaf6f1ba78ddaf566382594205bc00152ed78932f9c341f3b03b26e38159a21a"
+    },
+    {
+      "path": "upload/seven-inch/04-search.png",
+      "kind": "sevenInchScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 134132,
+      "sha256": "302e9ac800d0facd84518d6f90449dd8c6eb8afcb8c13a8df3e48d9e75407288"
+    },
+    {
+      "path": "upload/seven-inch/05-tasks.png",
+      "kind": "sevenInchScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 251172,
+      "sha256": "e6d6f204665015bf73fd703d190a35870e0ed932b16f17d4442cbba19d215965"
+    },
+    {
+      "path": "upload/ten-inch/01-home.png",
+      "kind": "tenInchScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 48973,
+      "sha256": "5cbca0c21301bfc24acbabc5a237e9b78e54eb903ca5d88ee6b0c2f2efc57edd"
+    },
+    {
+      "path": "upload/ten-inch/02-app-drawer.png",
+      "kind": "tenInchScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 90773,
+      "sha256": "54fd96372914cba59cf730452669b0ba028588ee698b9493cddde5b05f84acf2"
+    },
+    {
+      "path": "upload/ten-inch/03-workspace.png",
+      "kind": "tenInchScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 34012,
+      "sha256": "1e852764cc60c0e04a368034a4bde92738c700f313ed83d870fd357125e3092c"
+    },
+    {
+      "path": "upload/ten-inch/04-search.png",
+      "kind": "tenInchScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 99197,
+      "sha256": "11b9b29a0f8401020e899871c0122cd59b0a20b4aeb6ceba8a89528330cb38f9"
+    },
+    {
+      "path": "upload/ten-inch/05-tasks.png",
+      "kind": "tenInchScreenshots",
+      "locale": "en-US",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "format": "PNG",
+      "bytes": 282402,
+      "sha256": "72c30e3205c04a3e993ac1efdcc80fdafb95f4cb853e13b521c6bc3392cb7e02"
+    }
+  ]
+}

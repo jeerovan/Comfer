@@ -1,0 +1,1 @@
+A minimalist home screen with swipe shortcuts, app search, notes and tasks

@@ -1,0 +1,36 @@
+{
+  "criteria": [
+    {
+      "expected": "Reviewable en-US v002: title <=30, short <=80, full <=4000 characters; 1024x500 feature graphic; five phone, five portrait-tablet, five landscape-tablet genuine screenshots; editable sources and upload package.",
+      "id": "acceptance",
+      "initial_state": "Baseline and research available",
+      "invariants": "Keep existing icon/video; generate no video; preserve app/user data; verify advertised capabilities against release 58; other locales require later review.",
+      "required_level": "journey",
+      "trigger": "Prepare and validate candidate"
+    }
+  ],
+  "description": "Migrated accepted behavior from PRD-PLAY-LISTING.md and plan PL-03.",
+  "id": "PL-REQ-03",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "PRD-PLAY-LISTING.md",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "PL-03",
+      "notes": "",
+      "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Candidate"
+}

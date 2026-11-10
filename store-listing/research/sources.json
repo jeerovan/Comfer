@@ -1,0 +1,53 @@
+{
+  "checked_at": "2026-10-22",
+  "sources": [
+    {
+      "title": "Google Play listing fields",
+      "url": "https://support.google.com/googleplay/android-developer/answer/9859152?hl=en"
+    },
+    {
+      "title": "Google Play preview assets",
+      "url": "https://support.google.com/googleplay/android-developer/answer/9866151?hl=en"
+    },
+    {
+      "title": "Google Play listing practices",
+      "url": "https://support.google.com/googleplay/android-developer/answer/13393723?hl=en"
+    },
+    {
+      "title": "Google Play performance definitions",
+      "url": "https://support.google.com/googleplay/android-developer/answer/9859173?hl=en"
+    },
+    {
+      "title": "Google Play experiments",
+      "url": "https://support.google.com/googleplay/android-developer/answer/12053285?hl=en"
+    },
+    {
+      "title": "Google Play bulk reports",
+      "url": "https://support.google.com/googleplay/android-developer/answer/6135870?hl=en"
+    },
+    {
+      "title": "Google Play statistics time zones",
+      "url": "https://support.google.com/googleplay/android-developer/answer/139628?hl=en"
+    },
+    {
+      "title": "AppDrift free suggestions",
+      "url": "https://appdrift.co/tools/keyword-suggestion"
+    },
+    {
+      "title": "Keyword Tool Play suggestions",
+      "url": "https://keywordtool.io/play-store"
+    },
+    {
+      "title": "Google Trends definitions",
+      "url": "https://support.google.com/trends/answer/4365533?hl=en"
+    },
+    {
+      "title": "Comfer current privacy policy",
+      "url": "https://comfer.jeerovan.com/privacy"
+    },
+    {
+      "title": "Inter font source and license",
+      "url": "https://github.com/rsms/inter"
+    }
+  ]
+}

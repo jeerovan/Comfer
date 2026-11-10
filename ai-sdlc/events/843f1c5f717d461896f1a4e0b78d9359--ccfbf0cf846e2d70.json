@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "2ef11baa7bd94a14a388f4df337eaba7"
+  },
+  "id": "843f1c5f717d461896f1a4e0b78d9359",
+  "reason": "Begin final normalization/import/preservation check against current scripts",
+  "seq": 123,
+  "time": "2026-11-10T06:58:54.467751+00:00"
+}

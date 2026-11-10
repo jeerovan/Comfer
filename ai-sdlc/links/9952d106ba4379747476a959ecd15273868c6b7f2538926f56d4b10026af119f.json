@@ -1,0 +1,6 @@
+{
+  "rationale": "Preserve separate publication authorization and observed exposure before evaluation.",
+  "relation": "affects",
+  "source": "PL-DISCLOSURE-REVIEW",
+  "target": "PL-06"
+}

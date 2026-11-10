@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Existing scripts, candidate artifacts, local SQLite evidence and Android capture harness. No product changes required by migration.",
+  "id": "PL-MODULE",
+  "kind": "module",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Play listing preparation and evidence"
+}

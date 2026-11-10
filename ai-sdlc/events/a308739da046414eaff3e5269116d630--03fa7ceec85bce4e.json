@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Preserve separate publication authorization and observed exposure before evaluation.",
+      "relation": "realizes",
+      "source": "PL-IMPL-SKILL",
+      "target": "PL-05"
+    },
+    "reopened": []
+  },
+  "id": "a308739da046414eaff3e5269116d630",
+  "reason": "Explicit disclosure/candidate and publication/evaluation gates",
+  "seq": 72,
+  "time": "2026-11-10T06:31:40.738521+00:00"
+}

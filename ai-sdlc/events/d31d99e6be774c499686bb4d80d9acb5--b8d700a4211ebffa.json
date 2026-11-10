@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "aa7cdcb0856040b3a5c82b429cf037fe"
+  },
+  "id": "d31d99e6be774c499686bb4d80d9acb5",
+  "reason": "Final graph-bound component evidence; keep wider acceptance open",
+  "seq": 104,
+  "time": "2026-11-10T06:33:49.061680+00:00"
+}

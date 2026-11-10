@@ -1,0 +1,6 @@
+{
+  "rationale": "Evidence-backed scoped fixes require isolated Redmi checks; no production completion.",
+  "relation": "implements",
+  "source": "R58-RESTORE-IMPL",
+  "target": "R58-RESTORE-REQ"
+}

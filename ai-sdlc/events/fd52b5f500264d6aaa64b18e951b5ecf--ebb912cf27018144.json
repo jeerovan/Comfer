@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Review precedes publication; evaluation follows observed publication.",
+      "relation": "affects",
+      "source": "PL-DISCLOSURE-REVIEW",
+      "target": "PL-06-REVIEW"
+    },
+    "reopened": []
+  },
+  "id": "fd52b5f500264d6aaa64b18e951b5ecf",
+  "reason": "Track actionable disclosure review",
+  "seq": 87,
+  "time": "2026-11-10T06:32:25.307427+00:00"
+}

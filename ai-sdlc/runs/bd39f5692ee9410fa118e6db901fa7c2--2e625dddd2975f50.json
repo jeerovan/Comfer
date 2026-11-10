@@ -1,0 +1,35 @@
+{
+  "adaptations": [
+    "Firebase MCP lacks pagination input; existing authenticated Firebase CLI read-only API fallback used. Initial sandbox-network fetch failed before any import."
+  ],
+  "bypasses": [],
+  "criteria": [
+    "R58-REFRESH-01#import"
+  ],
+  "entrypoint": "Existing importer CLI dry-run/import followed by actual DB vs backup comparison",
+  "environment": "macOS exact Comfer checkout; production telemetry read-only API; local play_reporting.db transaction",
+  "finished_at": "2026-11-10T06:50:12.688281+00:00",
+  "id": "bd39f5692ee9410fa118e6db901fa7c2",
+  "level": "integration",
+  "observation": "No import performed. Initial network failure recovered with authorized network execution; report totals reconciled. Per-issue event collector stopped in favor of global event pagination; rerun verification against updated collector.",
+  "order": 3,
+  "proof": {},
+  "proof_path": "",
+  "result": "stale",
+  "snapshot": {
+    "files": {
+      "scripts/README-play-reporting.md": "25481af6be765eb8565e35589f960ee9e8f137eec3f1bbaadb4c5711beb12ebd",
+      "scripts/import_firebase_crashlytics.py": "24e1ab32b859a3571b967d5cf5c8a2894b2a50602932c9f46cd8e9651b3584d8",
+      "scripts/tests/test_import_firebase_crashlytics.py": "6b18a387e562a2f2b4f40bd9b88b488e61b2b6d2ee1e02a280fa185ed5f598de",
+      "validation-artifacts/firebase-v58-20261110T064551Z/fetch.cjs": "01b88e33ccd2431c0cd87ab2df0ab5849db755562a09d5e684ff6389aff86b02"
+    },
+    "graph": "d28fb9b33a4017df798c961509a277e7c1ed3066bcbb3cd0fbb47a5c60b64d7e",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-10T06:47:37.232177+00:00",
+  "step": "R58-FETCH",
+  "test": "R58-FETCH-CHECK"
+}

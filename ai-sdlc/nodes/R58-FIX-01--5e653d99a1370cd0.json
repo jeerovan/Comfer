@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Attempt R58-F01; reproduce on Redmi before fix; reuse existing uniqueSearchApps identity guard, verify actual activity default construction and selection result, preserve prior history. Data identity change, no layout rules/styling/touch geometry changes; no locale/orientation matrix required for this bounded fix.",
+  "id": "R58-FIX-01",
+  "kind": "step",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Close uncovered app-picker duplicate identity path"
+}

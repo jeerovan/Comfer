@@ -1,0 +1,36 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Redmi7 Xiaomi API29 serial71a3063 only. User manually installed both pre-fix APKs from Downloads without SIM. No Home/Launcher icon is intentional. Instrumentation begins but AppSelectionActivity fails to foreground; MIUIOP10021 rejectTime coincides with launch. Explicit shell MainActivity start succeeds. Two test attempts stopped without assertions; not a reproduced product failure. ADB settings taps rejected INJECT_EVENTS. App-info opened; user asked to allow Other permissions > Display pop-up windows while running in background. Retain red.txt/red-retry.txt. Current host green APKs compile but are not installed. No Samsung/emulator used; no runtime pass claimed.",
+      "id": "R58-DEVICE-BLOCK",
+      "kind": "risk",
+      "phase": "verification",
+      "refs": [],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Redmi background test launch awaiting permission"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Verified only Redmi7 Xiaomi API29 serial71a3063. No Comfer packages installed at initial inventory. ADB install rejected twice INSTALL_FAILED_USER_RESTRICTED; user says Install via USB requires SIM absent. Normal FileManager installation alternative: pre-fix Comfer-Test.apk and Comfer-Test-Runner.apk copied to Downloads. Direct file URI installer unavailable. Await manual installation; no Samsung/emulator used and no runtime pass claimed.",
+      "id": "R58-DEVICE-BLOCK",
+      "kind": "risk",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Redmi test installation pending"
+    },
+    "node": "R58-DEVICE-BLOCK",
+    "reopened": []
+  },
+  "id": "4d2a0bdad9454f34bda62883bbe5c986",
+  "reason": "Manual installation succeeded; distinguish Redmi harness restriction from product failure.",
+  "seq": 157,
+  "time": "2026-11-10T08:16:58.273821+00:00"
+}

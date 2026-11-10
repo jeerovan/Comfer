@@ -57,7 +57,7 @@
     <queries><intent><action android:name="android.speech.RecognitionService" /></intent></queries>
     <application
         android:name=".ComferApp"
-        android:appComponentFactory=".ComferAppComponentFactory"
+        android:appComponentFactory="com.jeerovan.comfer.ComferAppComponentFactory"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"

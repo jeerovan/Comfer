@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Accepted Play listing scope; existing source and test fixture inspection, historical evidence not fresh verification.",
+      "relation": "implements",
+      "source": "PL-IMPL-MEDIA",
+      "target": "PL-REQ-03"
+    },
+    "reopened": []
+  },
+  "id": "79602231e27748c19e5f3a4ea1fd64d7",
+  "reason": "Record migrated production/test mapping and dependency direction",
+  "seq": 58,
+  "time": "2026-11-10T06:30:14.147288+00:00"
+}

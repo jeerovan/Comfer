@@ -1,0 +1,36 @@
+{
+  "criteria": [
+    {
+      "expected": "Preserve observed en-US v001 copy, release-58 identity and all 26 original assets with bytes, timestamps, source identities and hashes; preserve report generations and raw rows.",
+      "id": "acceptance",
+      "initial_state": "Existing listing and available exports",
+      "invariants": "Original evidence remains immutable; missing access/data is not zero.",
+      "required_level": "integration",
+      "trigger": "Collect baseline"
+    }
+  ],
+  "description": "Migrated accepted behavior from PRD-PLAY-LISTING.md and plan PL-01.",
+  "id": "PL-REQ-01",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "PRD-PLAY-LISTING.md",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "PL-01",
+      "notes": "",
+      "path": "PLAN-PLAY-LISTING-IMPLEMENTATION.md",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Baseline"
+}

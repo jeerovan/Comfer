@@ -1,0 +1,47 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Integration check: live version-filtered collector, importer dry-run/import and compare pre-import backup against resulting DB; assert integrity, current counts and preservation. Importer regression tests use synthetic temporary DB and are only component evidence.",
+      "id": "R58-FETCH-CHECK",
+      "kind": "test",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/tests/test_import_firebase_crashlytics.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/import_firebase_crashlytics.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/firebase-v58-20261110T064551Z/fetch.cjs",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Actual snapshot import and preservation verification"
+    },
+    "before": null,
+    "node": "R58-FETCH-CHECK",
+    "reopened": []
+  },
+  "id": "acf21534b0974b7cac8dfc93f3c495d3",
+  "reason": "Track authorized current-release evidence refresh",
+  "seq": 108,
+  "time": "2026-11-10T06:47:07.517754+00:00"
+}

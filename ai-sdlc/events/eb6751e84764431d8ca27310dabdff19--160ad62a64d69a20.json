@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R58-DEVICE-BLOCK",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "eb6751e84764431d8ca27310dabdff19",
+  "reason": "Owner completed manual installation and allowed MIUI background launches. Hash-verified candidate and updated runner executed on Redmi; seven distinct relevant regressions pass. No Samsung/emulator used.",
+  "seq": 169,
+  "time": "2026-11-10T10:39:06.177749+00:00"
+}

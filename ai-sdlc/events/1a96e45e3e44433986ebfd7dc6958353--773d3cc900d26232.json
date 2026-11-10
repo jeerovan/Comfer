@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "stale",
+    "run": "bd39f5692ee9410fa118e6db901fa7c2"
+  },
+  "id": "1a96e45e3e44433986ebfd7dc6958353",
+  "reason": "Collector pagination optimized before import; original fingerprint superseded",
+  "seq": 117,
+  "time": "2026-11-10T06:50:12.688352+00:00"
+}

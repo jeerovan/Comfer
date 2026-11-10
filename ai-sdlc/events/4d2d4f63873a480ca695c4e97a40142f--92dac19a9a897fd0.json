@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Evidence-backed scoped fixes require isolated Redmi checks; no production completion.",
+      "relation": "affects",
+      "source": "R58-DEVICE-BLOCK",
+      "target": "R58-FIX-01"
+    },
+    "reopened": []
+  },
+  "id": "4d2d4f63873a480ca695c4e97a40142f",
+  "reason": "Link accepted remediation and unverified device boundary",
+  "seq": 155,
+  "time": "2026-11-10T08:08:33.746971+00:00"
+}

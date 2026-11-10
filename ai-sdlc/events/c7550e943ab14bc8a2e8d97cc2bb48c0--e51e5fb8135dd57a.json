@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R58-FETCH",
+    "reopened": [],
+    "to": "in_progress"
+  },
+  "id": "c7550e943ab14bc8a2e8d97cc2bb48c0",
+  "reason": "Fetch and validation in progress",
+  "seq": 115,
+  "time": "2026-11-10T06:47:36.754455+00:00"
+}

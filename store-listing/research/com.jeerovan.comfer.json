@@ -1,0 +1,35 @@
+{
+  "url": "https://play.google.com/store/apps/details?id=com.jeerovan.comfer&hl=en&gl=US",
+  "observed_at": "2026-10-22T06:33:37.304226+00:00",
+  "structured_data": [
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Comfer Launcher for Comfort",
+      "url": "https://play.google.com/store/apps/details/Comfer_Launcher_for_Comfort?id=com.jeerovan.comfer&hl=en",
+      "description": "Your private android launcher. Minimal & fast with 7 quick swipe app shortcuts.",
+      "operatingSystem": "ANDROID",
+      "applicationCategory": "PERSONALIZATION",
+      "image": "https://play-lh.googleusercontent.com/jz3eBO5h1JcEFAkeF_ggATbJSgxYUA-R_YCNYOx6LMW4-lRWIkrYGDcI7QzbxoDoZw2b32BC2WiSXKL8HaKVUks",
+      "contentRating": "Everyone",
+      "author": {
+        "@type": "Person",
+        "name": "Jeerovan",
+        "url": "about:invalid#navigation"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.415841579437256",
+        "ratingCount": "8855"
+      },
+      "offers": [
+        {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        }
+      ]
+    }
+  ]
+}

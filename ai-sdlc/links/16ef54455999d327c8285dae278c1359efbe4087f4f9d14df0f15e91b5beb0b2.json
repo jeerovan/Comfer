@@ -1,0 +1,6 @@
+{
+  "rationale": "Review precedes publication; evaluation follows observed publication.",
+  "relation": "gates",
+  "source": "PL-06-REVIEW",
+  "target": "PL-06-PUBLISH"
+}

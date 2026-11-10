@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "in_progress",
+    "node": "R58-FETCH",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "ceb3110a1a014afba43e8401260861f6",
+  "reason": "Requested complete issue-report import established; preserved evidence/triage verified, gate allows completion. Fix investigation remains separate.",
+  "seq": 130,
+  "time": "2026-11-10T07:08:19.134094+00:00"
+}
