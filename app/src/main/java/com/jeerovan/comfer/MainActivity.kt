@@ -690,6 +690,8 @@ fun WidgetHostScreen(
             // If there are orphaned widgets, remove them.
             if (widgetsToRemove.isNotEmpty()) {
                 widgetsToRemove.forEach { widget ->
+                    // Disposal must not put an orphaned widget's view back into the cache.
+                    WidgetHostViewCache.remove(appWidgetHost, widget.widgetId)
                     appWidgetHost.deleteAppWidgetId(widget.widgetId)
                 }
                 boundWidgets.removeAll(widgetsToRemove)

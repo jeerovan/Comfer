@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Attempt58-R07. Reproduce cache retention in existing Redmi lifecycle regression, reuse existing cache invalidation, verify connected ownership and recovery. No layout/locale behavior change.",
+  "id": "R58-FIX-06",
+  "kind": "step",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "completed",
+  "tags": [],
+  "title": "Invalidate automatically removed widget views"
+}

@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Automatic removal must release owned views while preserving healthy cache reuse",
+      "relation": "verifies",
+      "source": "R58-WIDGET-CACHE-TEST",
+      "target": "R58-FIX-06"
+    },
+    "reopened": []
+  },
+  "id": "280a0b883b234221afbb7811569176be",
+  "reason": "Continue bounded widget memory review; automatic orphan removal omits existing cache invalidation used by manual removal.",
+  "seq": 293,
+  "time": "2026-11-10T14:16:18.166131+00:00"
+}

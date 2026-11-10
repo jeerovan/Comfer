@@ -1,0 +1,33 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "MainActivity WidgetHostScreen orphan cleanup, WidgetHostViewCache release/remove/acquire and WidgetInstance disposal.",
+      "id": "R58-WIDGET-CACHE-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Automatic orphan removal and widget cache ownership"
+    },
+    "before": null,
+    "node": "R58-WIDGET-CACHE-IMPL",
+    "reopened": []
+  },
+  "id": "58d21fc7f375440b91a53a2e1229f7c7",
+  "reason": "Continue bounded widget memory review; automatic orphan removal omits existing cache invalidation used by manual removal.",
+  "seq": 289,
+  "time": "2026-11-10T14:16:15.491355+00:00"
+}

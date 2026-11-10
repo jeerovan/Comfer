@@ -1,0 +1,38 @@
+{
+  "at": "2026-11-10T14:19:32.635112+00:00",
+  "code_discovery": "CurrentMainActivitychangeonlyinvalidatescacheinconfirmedorphanbranch. Nullableinventory,labelOOMfallback,previewfallback,firstsuccessfulRoomrestoreandactualrefreshJobunchangedfromf1649f3. Recoverytestnowalsoassertshealthyviewreuseandnoorphanrecache. Original17passreceiptremainspriorcandidateevidence; new8targetedtests rerunalllookup/recovery/defaultHomecriteriaoncurrentcandidate.",
+  "entrypoints": "NormalMainActivitydefaultwidgetpickeronlaunch/recreate; realproviderquery; WidgetHostScreen lifecyclefixturewithrealboundwidget/Room.",
+  "id": "3e46f5a2637e4437ab398897de327483",
+  "order": 25,
+  "recovery_paths": "Cold/warmunavailablequeryretention,resume/recreate recovery,stalequerycancellation,confirmedemptycleanup,packagefallbackselectionLTR/RTL; no globalheap/ANRclaim.",
+  "reviewed_ids": [
+    "R58-FIX-05",
+    "R58-WIDGET-REFRESH-IMPL",
+    "R58-WIDGET-REFRESH-REQ",
+    "R58-WIDGET-REFRESH-TEST"
+  ],
+  "snapshot": {
+    "files": {
+      "app/src/androidTest/java/com/jeerovan/comfer/Release51RegressionTest.kt": "cda6b7610efe7de7a54d079d547dedce2f10a2e3d8cb86556da7efcc6c140cb4",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetInflationGuardTest.kt": "ec5e66d5a0169bdde270298b1c3f2611512261b37c3963f22dc8dbbefbc6866d",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRecoveryTest.kt": "88765d1d21d45038eaaf5a90c3b030ecf5f8acb73060f3f00802ce33ee389843",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRefreshTest.kt": "2ba172fdffa06bc02a035a5adec5fe87cf6df72cd5cd6682186f277bd53c730e",
+      "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "250a65c1e40dff39a3a2ac684dff629f423891639c79148ec5f15bf5ce193936",
+      "app/src/main/java/com/jeerovan/comfer/WidgetImages.kt": "d4f76e6b3d51d27e47902a31fd43381342c925e2499c9790a76c0b61fe0666ce",
+      "app/src/main/java/com/jeerovan/comfer/WidgetInflationGuard.kt": "a8b9489c2e3f6b8f0191815997982ffdbb85e898658d1415d1c01421d3bd245f",
+      "app/src/main/java/com/jeerovan/comfer/WidgetProviderInventory.kt": "495727f92b066bf22d3b3bc8d43c042c72f250898cfe4bcc6d55d852d4131b71",
+      "app/src/main/java/com/jeerovan/comfer/data/ComferRepository.kt": "35e1640126eb9a5ef0263fe5474b94f4127fc897b39f4ff061b9f08f31b4c846",
+      "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216",
+      "app/src/notificationTest/java/com/jeerovan/comfer/AnrFixtureWidgetProvider.kt": "d6ffce6fe8e48e9a582264d4cd648d694219b4688e329ef71ddfb2de3de953a9",
+      "app/src/notificationTest/res/xml/anr_fixture_widget.xml": "685819f12d4673e3ba371a51b77cffb88ac83dccf056d23c72d3e0b94dbfa5e7"
+    },
+    "graph": "11dd0af6e5053dda3060ad7f3e6a7acb0d047f006098bf50b085465a68231e99",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "step": "R58-FIX-05",
+  "unresolved": []
+}

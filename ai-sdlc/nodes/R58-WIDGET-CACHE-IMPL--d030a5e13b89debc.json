@@ -1,0 +1,20 @@
+{
+  "criteria": [],
+  "description": "MainActivity WidgetHostScreen orphan cleanup, WidgetHostViewCache release/remove/acquire and WidgetInstance disposal.",
+  "id": "R58-WIDGET-CACHE-IMPL",
+  "kind": "implementation",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Automatic orphan removal and widget cache ownership"
+}

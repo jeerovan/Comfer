@@ -1,0 +1,41 @@
+{
+  "criteria": [],
+  "description": "Extend existing real widget/Room/lifecycle fixture with cache-retention and healthy-reuse assertions; reflect only read-only cache ownership for deterministic observation, not GC timing. Existing default Home and query safety checks retained.",
+  "id": "R58-WIDGET-CACHE-TEST",
+  "kind": "test",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRecoveryTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRefreshTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/notificationTest/AndroidManifest.xml",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/notificationTest/java/com/jeerovan/comfer/AnrFixtureWidgetProvider.kt",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Redmi widget cache removal and healthy reuse"
+}

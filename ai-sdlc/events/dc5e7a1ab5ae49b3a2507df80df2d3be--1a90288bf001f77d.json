@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "in_progress",
+    "node": "R58-FIX-06",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "dc5e7a1ab5ae49b3a2507df80df2d3be",
+  "reason": "Current acceptance criteria passed on Redmi with retained proof and verified installed isolated APKs. Eight focused checks cover provider failure/recovery, cache cleanup, healthy reuse and default Home picker. History58-R07 appended without database copies; production resolution remains unverified.",
+  "seq": 305,
+  "time": "2026-11-10T14:22:23.071811+00:00"
+}

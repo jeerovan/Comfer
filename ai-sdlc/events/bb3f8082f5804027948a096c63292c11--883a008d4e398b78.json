@@ -1,0 +1,34 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Deleted widget ID and persisted placement removed; disposed widget view not retained by cache; valid widget reused across recreation and failed inventory does not remove it",
+          "id": "ownership",
+          "initial_state": "Isolated app with bound/rendered widget and host view cache; same widget restored across lifecycle recreation",
+          "invariants": "No cleanup on unavailable lookup; unrelated widgets/data preserved; existing main-thread view ownership retained",
+          "required_level": "integration",
+          "trigger": "Normal widget screen resume with successful inventory confirming provider removal"
+        }
+      ],
+      "description": "Locally discovered cleanup gap during continued v58 memory review. Do not attribute aggregate OOM/ANR telemetry to this gap without heap evidence. Preserve prior widget ownership/threading safeguards and58-R06failure-state semantics.",
+      "id": "R58-WIDGET-CACHE-REQ",
+      "kind": "requirement",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Release cached views when widgets are automatically removed"
+    },
+    "before": null,
+    "node": "R58-WIDGET-CACHE-REQ",
+    "reopened": []
+  },
+  "id": "bb3f8082f5804027948a096c63292c11",
+  "reason": "Continue bounded widget memory review; automatic orphan removal omits existing cache invalidation used by manual removal.",
+  "seq": 287,
+  "time": "2026-11-10T14:16:14.172028+00:00"
+}

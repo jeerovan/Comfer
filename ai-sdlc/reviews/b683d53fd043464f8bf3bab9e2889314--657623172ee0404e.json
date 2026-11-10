@@ -1,0 +1,30 @@
+{
+  "at": "2026-11-10T14:16:18.832481+00:00",
+  "code_discovery": "Exact root and commit f1649f3 confirmed. Graph generation2026-11-10T14:13:03Z; coverageMainActivity/RecoveryTestcleanbest-effort. Search/trace cache release/remove: trace has ambiguous generic-name false edges, so current source verifies actual cache consumers. Manual removal and unsupported widgets callremove; automaticorphan path onlydeleteAppWidgetId/removebound/save. WidgetInstanceonDispose callsrelease, which recaches unless invalidated. Weakhost keys do not boundretainedviewswhileapp hostremainsalive. Prior51-02 preservesdetachedownership/mainthread updates; no reversal.",
+  "entrypoints": "WidgetHostScreen ON_RESUME→successfulinventory→orphanIDdelete→boundWidgets removal→WidgetInstance disposal→cache release; manualremovealreadyinvalidates first.",
+  "id": "b683d53fd043464f8bf3bab9e2889314",
+  "order": 23,
+  "recovery_paths": "FailedinventorymustretainID/view/Room; validwidgetrecreate shouldreusecache; confirmedproviderremoval shouldevictandblocklateonDispose reinsertion. Existing17casechecks offercurrentbehavior baseline; add precise read-only cache observation. No geometry/localizedcopychanges, so noexpandedvisualmatrix.",
+  "reviewed_ids": [
+    "R58-FIX-06",
+    "R58-WIDGET-CACHE-IMPL",
+    "R58-WIDGET-CACHE-REQ",
+    "R58-WIDGET-CACHE-TEST"
+  ],
+  "snapshot": {
+    "files": {
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRecoveryTest.kt": "04f0b435c5c7244bbf1149a174a281a26c81552db2d8060d27a2e5954995f86b",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRefreshTest.kt": "2ba172fdffa06bc02a035a5adec5fe87cf6df72cd5cd6682186f277bd53c730e",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "6ab63953f6ca1f36a6f25042c9dccba6abee6778edfb8476f13214605095c14b",
+      "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216",
+      "app/src/notificationTest/java/com/jeerovan/comfer/AnrFixtureWidgetProvider.kt": "d6ffce6fe8e48e9a582264d4cd648d694219b4688e329ef71ddfb2de3de953a9"
+    },
+    "graph": "cf3feaf80c38bf3d8f93067b19b13ec8a159c6dcada5d71a7ecedff5c78bbe49",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "step": "R58-FIX-06",
+  "unresolved": []
+}

@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "8726913e9a5849d181b218b18da02c14"
+  },
+  "id": "bdf1b1a9512c4bc5897c6d0e6b1ec8db",
+  "reason": "Pre-fix regression confirmed stale cached widget after successful automatic removal.",
+  "seq": 297,
+  "time": "2026-11-10T14:17:48.143500+00:00"
+}

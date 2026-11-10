@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R58-FIX-06",
+    "reopened": [],
+    "to": "in_progress"
+  },
+  "id": "dae01dae224d40e3be39863936f71d3f",
+  "reason": "Continue bounded widget memory review; automatic orphan removal omits existing cache invalidation used by manual removal.",
+  "seq": 295,
+  "time": "2026-11-10T14:16:19.502723+00:00"
+}

@@ -1,0 +1,41 @@
+{
+  "action": "impact_review",
+  "actor": "codex",
+  "details": {
+    "review": {
+      "at": "2026-11-10T14:19:09.612392+00:00",
+      "code_discovery": "CurrentdiffaddsoneexistingWidgetHostViewCache.removecallbeforeorphanIDdelete; sameorderingasmanualremoval. Source inspectedrelease'sinvalidatedIDs guardandacquireclear-on-valid-reuse. Redmi baseline reproducesretainedcacheafteractualID/Roomcleanupandhealthyrecreationreusealreadyworks. No otherproductionorlayoutchange. Source/graphcoverageverifiedexactMainActivity/RecoveryTestat14:13:03Z; graphgenericremovefalseedgesnotreliedupon.",
+      "entrypoints": "ON_RESUME successfulinventory→orphaninvalidated→IDdeleted→Composeitemdisposed→releaseguardrejectsrecache.",
+      "id": "e70e4244b9e04ff3ae7fb3d1c6a07435",
+      "order": 24,
+      "recovery_paths": "Unavailableinventoryreturnsbeforecleanup; validrecreationreusescache; stalequerycanceled; finalsuccessfulemptyremovesID/Room/cache. ExistingnormalHome andproviderlookupregressions rerun.",
+      "reviewed_ids": [
+        "R58-FIX-06",
+        "R58-WIDGET-CACHE-IMPL",
+        "R58-WIDGET-CACHE-REQ",
+        "R58-WIDGET-CACHE-TEST"
+      ],
+      "snapshot": {
+        "files": {
+          "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRecoveryTest.kt": "88765d1d21d45038eaaf5a90c3b030ecf5f8acb73060f3f00802ce33ee389843",
+          "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRefreshTest.kt": "2ba172fdffa06bc02a035a5adec5fe87cf6df72cd5cd6682186f277bd53c730e",
+          "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "250a65c1e40dff39a3a2ac684dff629f423891639c79148ec5f15bf5ce193936",
+          "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216",
+          "app/src/notificationTest/java/com/jeerovan/comfer/AnrFixtureWidgetProvider.kt": "d6ffce6fe8e48e9a582264d4cd648d694219b4688e329ef71ddfb2de3de953a9"
+        },
+        "graph": "cf3feaf80c38bf3d8f93067b19b13ec8a159c6dcada5d71a7ecedff5c78bbe49",
+        "origin": {
+          "branch": "refs/heads/main",
+          "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+        }
+      },
+      "step": "R58-FIX-06",
+      "unresolved": []
+    },
+    "step": "R58-FIX-06"
+  },
+  "id": "07f075c0efa3455aa64765143dad047b",
+  "reason": "Candidate reuses existing cache invalidation before automatic widget ID removal; baseline confirmed retention.",
+  "seq": 298,
+  "time": "2026-11-10T14:19:09.612456+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "81b5051f45284b32bc18055758a5a74d"
+  },
+  "id": "b3a46e317b4b485dbbc8e55733baf93f",
+  "reason": "Current candidate passed eight focused Redmi checks; retain original failure and historical candidate evidence.",
+  "seq": 303,
+  "time": "2026-11-10T14:21:54.114163+00:00"
+}

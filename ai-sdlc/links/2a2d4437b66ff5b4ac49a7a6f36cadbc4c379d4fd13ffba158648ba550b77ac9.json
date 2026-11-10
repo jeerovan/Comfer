@@ -1,0 +1,6 @@
+{
+  "rationale": "Automatic removal must release owned views while preserving healthy cache reuse",
+  "relation": "realizes",
+  "source": "R58-WIDGET-CACHE-IMPL",
+  "target": "R58-FIX-06"
+}

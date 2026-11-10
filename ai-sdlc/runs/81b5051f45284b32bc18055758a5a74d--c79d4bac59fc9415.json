@@ -1,0 +1,41 @@
+{
+  "adaptations": [
+    "Injected provider inventory; real widget binding and persistence",
+    "Read-only cache inspection after UI idle"
+  ],
+  "bypasses": [
+    "No actual third-party provider uninstall; separate default Home check uses real installed inventory"
+  ],
+  "criteria": [
+    "R58-WIDGET-CACHE-REQ#ownership"
+  ],
+  "entrypoint": "WidgetHostScreen actual lifecycle, bound widget, Room and post-disposal cache ownership",
+  "environment": "Redmi7 Android10 71a3063 isolatednotificationtest",
+  "finished_at": "2026-11-10T14:21:54.114082+00:00",
+  "id": "81b5051f45284b32bc18055758a5a74d",
+  "level": "integration",
+  "observation": "58-R07 cache ownership: 8/8 tests passed on Redmi7 Android10. Pre-fix disposed orphan remained cached after ID/Room removal; new invalidation prevents recache. Healthy widget still reuses view across recreation. Cold/warm failures preserve saved binding and Room; resume recovers; stale query cannot publish; default Home picker/Workspace navigation and metadata fallback pass. Controlled inventory disappearance with real bound fixture and read-only ownership inspection, not production heap attribution. Installed APK hashes verified; local declared-evidence gate passes.",
+  "order": 32,
+  "proof": {
+    "validation-artifacts/release58-widget-cache-20261110/final-proof.json": "a35857febcf271860faa5a46c069973994549f98c75e66050868b14b05d6974c"
+  },
+  "proof_path": "validation-artifacts/release58-widget-cache-20261110/final-proof.json",
+  "result": "passed",
+  "snapshot": {
+    "files": {
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRecoveryTest.kt": "88765d1d21d45038eaaf5a90c3b030ecf5f8acb73060f3f00802ce33ee389843",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRefreshTest.kt": "2ba172fdffa06bc02a035a5adec5fe87cf6df72cd5cd6682186f277bd53c730e",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "250a65c1e40dff39a3a2ac684dff629f423891639c79148ec5f15bf5ce193936",
+      "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216",
+      "app/src/notificationTest/java/com/jeerovan/comfer/AnrFixtureWidgetProvider.kt": "d6ffce6fe8e48e9a582264d4cd648d694219b4688e329ef71ddfb2de3de953a9"
+    },
+    "graph": "cf3feaf80c38bf3d8f93067b19b13ec8a159c6dcada5d71a7ecedff5c78bbe49",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-10T14:19:10.288523+00:00",
+  "step": "R58-FIX-06",
+  "test": "R58-WIDGET-CACHE-TEST"
+}

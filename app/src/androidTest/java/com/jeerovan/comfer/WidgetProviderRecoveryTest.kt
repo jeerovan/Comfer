@@ -174,6 +174,7 @@ class WidgetProviderRecoveryTest {
                 compose.waitForIdle()
                 assertPreserved()
 
+                val viewsBeforeRecreation = views.size
                 mode.set(0)
                 scenario.recreate()
                 mount()
@@ -182,6 +183,7 @@ class WidgetProviderRecoveryTest {
                 resume(1)
                 compose.waitUntil(15_000) { views.any { it.isShown } }
                 assertPreserved()
+                assertEquals("A valid widget should reuse its retained view", viewsBeforeRecreation, views.size)
 
                 // A successful empty service snapshot really does permit orphan cleanup.
                 resume(2)
@@ -189,6 +191,15 @@ class WidgetProviderRecoveryTest {
                     runBlocking { ComferRepository.getWidgetPlacement(context, slot)?.widgetsJson == "[]" }
                 }
                 assertNull(manager.getAppWidgetInfo(id))
+                compose.waitForIdle()
+                compose.runOnIdle {
+                    // Read ownership after disposal; do not rely on nondeterministic GC timing.
+                    val cache = Class.forName("com.jeerovan.comfer.WidgetHostViewCache")
+                        .getDeclaredField("views").apply { isAccessible = true }.get(null) as Map<*, *>
+                    val retained = cache[host] as? Map<*, *>
+                    assertFalse("Automatically removed widget view must not remain cached",
+                        retained?.containsKey(id) == true)
+                }
             }
         } finally {
             release.countDown()

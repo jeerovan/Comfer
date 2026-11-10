@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Attempt58-R07. Reproduce cache retention in existing Redmi lifecycle regression, reuse existing cache invalidation, verify connected ownership and recovery. No layout/locale behavior change.",
+      "id": "R58-FIX-06",
+      "kind": "step",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Invalidate automatically removed widget views"
+    },
+    "before": null,
+    "node": "R58-FIX-06",
+    "reopened": []
+  },
+  "id": "a5476e66844b4709a57b4ffb374f23f3",
+  "reason": "Continue bounded widget memory review; automatic orphan removal omits existing cache invalidation used by manual removal.",
+  "seq": 288,
+  "time": "2026-11-10T14:16:14.835953+00:00"
+}

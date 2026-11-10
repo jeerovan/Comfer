@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "8726913e9a5849d181b218b18da02c14"
+  },
+  "id": "c1b72a16b0034ac3b9fe6fa30664284d",
+  "reason": "Reproduce retained removed widget view on unchanged candidate before adding invalidation.",
+  "seq": 296,
+  "time": "2026-11-10T14:16:44.120026+00:00"
+}
