@@ -3,9 +3,10 @@
 - Use the configured AI SDLC MCP project `comfer`, canonical root
   `/Volumes/JS/Repos/Comfer`, for active requirements and delivery state.
   Current priority is release-58 issue investigation (`R58-REFRESH-01`,
-  `R58-FETCH`) and scoped remediation (`R58-FIX-01`, `R58-FIX-02`). The issue
-  history attempt IDs are `58-R02` and `58-R03`, respectively; these are
-  candidates, not verified production resolutions. Sync remains future work.
+  `R58-FETCH`), scoped remediation (`R58-FIX-01`–`R58-FIX-09`) and version-59
+  release testing (`R59-LOCAL-TESTS`, `R59-PREPARE`). The corresponding issue
+  history attempt IDs remain `58-R02`–`58-R10`; target-version changes do not
+  rename attempts or establish production resolution. Sync remains future work.
   Play listing scope is preserved.
   On resume, verify `list_projects`, `project_status`, then focused
   `get_context` for the active step and `PL-MIGRATION`. Use current opaque versions for
@@ -50,6 +51,17 @@
   import-snapshot and issue-state revision tables; do not create full database
   copies for routine updates. Preserve unique historical rows before removing
   duplicate copies. Do not infer production resolution from local test passes.
+- Current release target: **59**. Keep the fix register in `play_reporting.db`
+  (`record:release59-fix-register`), appending revisions with target version,
+  stable attempt IDs, issue links, source/test references and validation state.
+  Preserve existing `58-Rxx` IDs and historical evidence. Planned validation is
+  the regular production-package release build delivered through Play Internal
+  testing on Redmi, including in-place 58-to-59 upgrade and affected journeys.
+  Track local checks, delivered-build validation and production follow-up
+  separately; do not mark production resolution from local/internal-test passes.
+- Finish the evidence-backed issue fixes/review and required release testing
+  before building or uploading the version 59 internal-testing candidate.
+  Keep unresolved evidence gaps explicit; development test APKs are separate.
 
 # Project regression testing
 

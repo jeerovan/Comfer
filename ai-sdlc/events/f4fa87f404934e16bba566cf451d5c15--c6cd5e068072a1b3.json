@@ -1,0 +1,73 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Default ComferApp WidgetHostManager factories and AppWidgetHostView recovery.",
+      "id": "R58-WIDGET-MEASURE-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "WidgetHostManager.initHosts",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ComferApp.kt",
+          "symbol": "widgetHostManager",
+          "tool": "source"
+        }
+      ],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Production widget host measurement boundary"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Default ComferApp WidgetHostManager factories and AppWidgetHostView recovery.",
+      "id": "R58-WIDGET-MEASURE-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "WidgetHostManager.initHosts",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ComferApp.kt",
+          "symbol": "widgetHostManager",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/RecoverableWidgetHost.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Production widget host measurement boundary"
+    },
+    "node": "R58-WIDGET-MEASURE-IMPL",
+    "reopened": []
+  },
+  "id": "f4fa87f404934e16bba566cf451d5c15",
+  "reason": "Baseline scope uses existing factory; add new implementation path when it exists",
+  "seq": 331,
+  "time": "2026-11-10T16:23:35.290675+00:00"
+}

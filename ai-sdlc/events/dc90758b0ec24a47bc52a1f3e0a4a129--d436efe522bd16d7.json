@@ -1,0 +1,54 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Existing normal ActivityScenario Inbox entry with actual OS notification and unchanged access assertion; real listener integration regression covers revocation/regrant. OEM auto-start capability explicit environment difference. Baseline failures retained under release59-testing-20261110.",
+      "id": "R58-LISTENER-RECOVERY-TEST",
+      "kind": "test",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/NotificationListenerRecoveryTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/NotificationListenerIntegrationTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/notificationTest/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/build.gradle.kts",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Redmi cold granted-listener recovery and access lifecycle"
+    },
+    "before": null,
+    "node": "R58-LISTENER-RECOVERY-TEST",
+    "reopened": []
+  },
+  "id": "dc90758b0ec24a47bc52a1f3e0a4a129",
+  "reason": "Record observed release-blocking cold listener recovery and bounded existing-path correction",
+  "seq": 393,
+  "time": "2026-11-10T17:55:00.951888+00:00"
+}

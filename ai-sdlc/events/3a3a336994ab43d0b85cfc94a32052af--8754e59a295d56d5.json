@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "6b7087dea25e41f7aae2cf3bc8c16cc8"
+  },
+  "id": "3a3a336994ab43d0b85cfc94a32052af",
+  "reason": "Final notification suite on current runner",
+  "seq": 378,
+  "time": "2026-11-10T17:08:55.879486+00:00"
+}

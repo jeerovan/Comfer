@@ -1,0 +1,19 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Preserve prerequisites: fix acceptance before consolidated release preparation, delivery before version59 follow-up.",
+      "relation": "depends_on",
+      "source": "R59-PREPARE",
+      "target": "R58-FIX-05"
+    },
+    "reopened": [
+      "R58-FIX-05"
+    ]
+  },
+  "id": "77809e25559a45468e20700c06c714d6",
+  "reason": "Owner designates version59 for current fixes and plans validation through Play Internal using the regular release build.",
+  "seq": 320,
+  "time": "2026-11-10T16:07:54.568293+00:00"
+}

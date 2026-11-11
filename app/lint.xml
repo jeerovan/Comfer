@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- Android reads appComponentFactory only on API 28+. Older platforms use
+         their normal activity loader; the factory itself correctly requires P.
+         Match only this manifest diagnostic, leaving other NewApi checks active.
+         https://developer.android.com/reference/android/app/AppComponentFactory -->
+    <issue id="NewApi">
+        <ignore regexp="^`?&lt;com\.jeerovan\.comfer\.ComferAppComponentFactory&gt;`? requires API level 28 \(current min is 24\)$" />
+    </issue>
+</lint>

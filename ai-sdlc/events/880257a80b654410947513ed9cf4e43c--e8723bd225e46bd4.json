@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "b79876700f4249f48f4bd53c6a8f2f28"
+  },
+  "id": "880257a80b654410947513ed9cf4e43c",
+  "reason": "Final current-source host checks completed",
+  "seq": 411,
+  "time": "2026-11-10T18:11:09.865553+00:00"
+}

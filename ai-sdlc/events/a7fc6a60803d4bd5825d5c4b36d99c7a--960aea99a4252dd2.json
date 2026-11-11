@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Attempt58-R08 targeting59. Reproduce real Android ListView recycler failure on Redmi via provider-adapter fault; connect guarded host factory for all production slots; verify recovery and retained placement. Shared framework error view only, no custom layout rules or localized text changes.",
+      "id": "R58-FIX-07",
+      "kind": "step",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Contain recurring widget recycler measurement failure"
+    },
+    "before": null,
+    "node": "R58-FIX-07",
+    "reopened": []
+  },
+  "id": "a7fc6a60803d4bd5825d5c4b36d99c7a",
+  "reason": "Evidence-backed recurring release58 issue review for version59",
+  "seq": 324,
+  "time": "2026-11-10T16:22:26.453280+00:00"
+}

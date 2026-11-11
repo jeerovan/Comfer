@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "7de1b6a2ffa54516bb15b076977cc9c3"
+  },
+  "id": "e5d41025794e4039af18ee3eaf71a667",
+  "reason": "Resource probe fixture did not intercept cached Icon resource access",
+  "seq": 354,
+  "time": "2026-11-10T16:53:23.597115+00:00"
+}

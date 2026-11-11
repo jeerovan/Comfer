@@ -1,0 +1,54 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Real OS notifications/listener feed NotificationHomeEntry; ContextWrapper delays only Icon resource lookup, UI control proves responsiveness and later bitmap update proves stale-result exclusion. Existing artwork/fallback tests retained; mounted Home component is integration, not entire launch journey.",
+      "id": "R58-NOTIF-ICON-TEST",
+      "kind": "test",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/NotificationListenerIntegrationTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/NotificationSmallIconTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/notificationTest/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "notification-fixtures/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Redmi notification resource stall and artwork regressions"
+    },
+    "before": null,
+    "node": "R58-NOTIF-ICON-TEST",
+    "reopened": []
+  },
+  "id": "28ccf3669816421589f43e106b4a8c04",
+  "reason": "Register evidence-backed notification resource-loading fix",
+  "seq": 348,
+  "time": "2026-11-10T16:50:53.932325+00:00"
+}

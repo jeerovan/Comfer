@@ -1,0 +1,6 @@
+{
+  "rationale": "Full current release checks precede version59 candidate build",
+  "relation": "depends_on",
+  "source": "R59-PREPARE",
+  "target": "R59-LOCAL-TESTS"
+}

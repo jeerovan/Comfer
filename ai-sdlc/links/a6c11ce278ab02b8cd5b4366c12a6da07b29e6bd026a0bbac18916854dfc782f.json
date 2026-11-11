@@ -1,0 +1,6 @@
+{
+  "rationale": "Notification resource responsiveness is required before consolidated release testing",
+  "relation": "depends_on",
+  "source": "R59-PREPARE",
+  "target": "R58-FIX-08"
+}

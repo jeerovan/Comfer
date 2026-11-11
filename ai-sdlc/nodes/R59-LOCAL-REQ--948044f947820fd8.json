@@ -1,0 +1,37 @@
+{
+  "criteria": [
+    {
+      "expected": "Affected launcher/widget/notification/startup/data/wallpaper regressions pass on Redmi, with actual instrumentation counts and fixture/skip limits retained",
+      "id": "regressions",
+      "initial_state": "Current source with registered version59 fixes",
+      "invariants": "Do not alter regular app data or mislabel historical results as current; original failures retained",
+      "required_level": "integration",
+      "trigger": "Run affected existing/new device regressions"
+    },
+    {
+      "expected": "Geometry/visibility/touch targets and language-source parity pass; switching and system-default return work; original device language/rotation restored",
+      "id": "locales",
+      "initial_state": "Original Redmi system language/rotation and isolated app language captured",
+      "invariants": "No source/layout changes accepted by weakening assertions; generic English-only tests kept in English",
+      "required_level": "integration",
+      "trigger": "Release English/Arabic system and in-app language checks, both supported orientations and explicit LTR/RTL tests"
+    },
+    {
+      "expected": "Applicable host checks pass or concrete blockers retained; no release-ready claim with unresolved failures",
+      "id": "host",
+      "initial_state": "Current source/configuration",
+      "invariants": "No release version bump or release artifact/upload until gate",
+      "required_level": "component",
+      "trigger": "Unit, translation and lint checks before signed/minified build"
+    }
+  ],
+  "description": "Owner directs all independent issue fixes and release testing without input. One coherent source candidate, Redmi only; preserve regular app data/device configuration. Unknown OEM/SDK causes and Play delivery remain explicit. This authorizes development tests, not an upload.",
+  "id": "R59-LOCAL-REQ",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 2,
+  "status": "pending",
+  "tags": [],
+  "title": "Complete autonomous Redmi release testing before a version59 candidate"
+}

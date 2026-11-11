@@ -6,7 +6,7 @@
   "phase": "implementation",
   "refs": [],
   "revision": 1,
-  "status": "completed",
+  "status": "pending",
   "tags": [],
   "title": "Guard internal launch rejection and preserve retry"
 }

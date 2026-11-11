@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "40f26839e0db4d599b0024fbac286ca0"
+  },
+  "id": "ca3c75ea919e43ca84bf9639c8f61407",
+  "reason": "Completed confirmed full locale matrix and restored original device configuration",
+  "seq": 422,
+  "time": "2026-11-10T18:51:01.402401+00:00"
+}

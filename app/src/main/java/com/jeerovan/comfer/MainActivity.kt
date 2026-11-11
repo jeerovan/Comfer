@@ -5925,9 +5925,9 @@ class WidgetHostManager(private val context: Context) {
     }
 
     fun initHosts() {
-        mainHost = AppWidgetHost(context, MAIN_WIDGET_HOST_ID)
-        leftHost = AppWidgetHost(context, LEFT_SIDE_WIDGET_HOST_ID)
-        rightHost = AppWidgetHost(context, RIGHT_SIDE_WIDGET_HOST_ID)
+        mainHost = RecoverableWidgetHost(context, MAIN_WIDGET_HOST_ID)
+        leftHost = RecoverableWidgetHost(context, LEFT_SIDE_WIDGET_HOST_ID)
+        rightHost = RecoverableWidgetHost(context, RIGHT_SIDE_WIDGET_HOST_ID)
     }
 
     fun startListening() {

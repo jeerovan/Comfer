@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "69dc5058d7994bbf90aa9828bd19bb3d"
+  },
+  "id": "b6f0bbb4a9a9460b8e89f70c40f5e4d6",
+  "reason": "Final affected regression batch and actual stale binding transitions",
+  "seq": 416,
+  "time": "2026-11-10T18:14:11.094272+00:00"
+}

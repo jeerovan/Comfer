@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "8542c68510334732af976a6e428c9a3c"
+  },
+  "id": "7f81f90f6308411fac8e730a1f605edd",
+  "reason": "Bind acceptance to finalized release dependency context",
+  "seq": 342,
+  "time": "2026-11-10T16:30:24.523327+00:00"
+}

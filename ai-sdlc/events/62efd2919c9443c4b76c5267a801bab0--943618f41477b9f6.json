@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Measurement containment must be verified before consolidated release preparation",
+      "relation": "verifies",
+      "source": "R58-WIDGET-MEASURE-TEST",
+      "target": "R58-FIX-07"
+    },
+    "reopened": []
+  },
+  "id": "62efd2919c9443c4b76c5267a801bab0",
+  "reason": "Connect version59 prerequisite and verification evidence",
+  "seq": 329,
+  "time": "2026-11-10T16:22:30.082856+00:00"
+}

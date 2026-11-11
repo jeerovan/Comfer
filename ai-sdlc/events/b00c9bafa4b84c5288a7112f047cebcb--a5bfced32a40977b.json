@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "40f26839e0db4d599b0024fbac286ca0"
+  },
+  "id": "b00c9bafa4b84c5288a7112f047cebcb",
+  "reason": "Final matrix on unchanged source after host evidence classification correction",
+  "seq": 409,
+  "time": "2026-11-10T18:08:20.790805+00:00"
+}

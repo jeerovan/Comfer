@@ -1,0 +1,21 @@
+{
+  "criteria": [
+    {
+      "expected": "Resource lookup runs off Main with bounded concurrency; Home input remains responsive; newest icon replaces pending one and obsolete work never overwrites it; existing fallback/artwork/opacity remain intact",
+      "id": "responsive",
+      "initial_state": "Home notification row has a resource-backed icon whose lookup is slow",
+      "invariants": "Preserve notification actions/data, layout and original artwork; cancel disposed work and respect configuration identity; Redmi only",
+      "required_level": "integration",
+      "trigger": "OS listener publishes notification and later replaces it"
+    }
+  ],
+  "description": "58-R09 target59. Firebase0d14e565efe641714eab630ab5264248 and5a97b87e5429b46d7c0b9dc324199e58 show Icon.loadDrawable on main during NotificationHomeEntry composition. No exact historical fix linked; preserve prior notification artwork and icon allocation safeguards. Moving resource work cannot establish all ANR causes resolved.",
+  "id": "R58-NOTIF-ICON-REQ",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Keep Home responsive during notification icon resource loading"
+}

@@ -118,10 +118,15 @@ class NotificationListenerIntegrationTest {
             compose.waitUntil(5000) { colorCount(blue) > 100 }
             assertTrue("Posted icon logo is visible", colorCount(android.graphics.Color.WHITE) > 20)
             compose.runOnIdle { glass = true }
+            // A listener refresh can replace the icon while appearance changes.
+            // Await the painted result now that resource loading is asynchronous.
+            compose.waitUntil(5000) { colorCount(blue) > 100 }
             assertTrue("Glass preserves posted artwork", colorCount(blue) > 100)
             compose.runOnIdle { opacity = 0f }
+            compose.waitUntil(5000) { colorCount(blue) == 0 }
             assertEquals("User opacity still hides artwork", 0, colorCount(blue))
             compose.runOnIdle { opacity = 1f }
+            compose.waitUntil(5000) { colorCount(blue) > 100 }
             assertTrue("Restoring opacity restores artwork", colorCount(blue) > 100)
             postArtwork(green)
             await { MyNotificationListenerService.snapshot.value.items.any { it.key == item.key && it.revision != item.revision } }
@@ -131,6 +136,90 @@ class NotificationListenerIntegrationTest {
             manager.deleteNotificationChannel(channel)
         }
     }
+    @Test @SdkSuppress(minSdkVersion = 26)
+    fun resourceIconLoadingDoesNotBlockHomeOrRestoreAnObsoleteIcon() {
+        val manager = context.getSystemService(android.app.NotificationManager::class.java)
+        val channel = "icon-resource-${System.nanoTime()}"
+        val title = "Resource${System.nanoTime()}"
+        val id = 70419
+        val mainReads = java.util.concurrent.atomic.AtomicInteger()
+        val entered = java.util.concurrent.CountDownLatch(1)
+        val release = java.util.concurrent.CountDownLatch(1)
+        val returned = java.util.concurrent.CountDownLatch(1)
+        val blockedOnce = java.util.concurrent.atomic.AtomicBoolean()
+        val green = android.graphics.Color.rgb(20, 146, 71)
+        var clicks by mutableStateOf(0)
+        val guarded = object : android.content.ContextWrapper(context) {
+            override fun getTheme(): android.content.res.Resources.Theme {
+                // Icon can retain its Resources instance across reads. Theme lookup
+                // still crosses Context while loading this resource-backed drawable.
+                // Compose's own resources and the listener remain untouched.
+                if (Thread.currentThread().stackTrace.any { it.className == "android.graphics.drawable.Icon" && it.methodName == "loadDrawableInner" }) {
+                    if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) mainReads.incrementAndGet()
+                    else if (blockedOnce.compareAndSet(false, true)) {
+                        entered.countDown()
+                        check(release.await(15, java.util.concurrent.TimeUnit.SECONDS))
+                        returned.countDown()
+                    }
+                }
+                return super.getTheme()
+            }
+        }
+        fun greenPixels(): Int {
+            val pixels = compose.onNodeWithTag("resource-row").captureToImage().toPixelMap()
+            return (0 until pixels.height).sumOf { y ->
+                (0 until pixels.width).count { x -> pixels[x, y].toArgb() == green }
+            }
+        }
+        manager.createNotificationChannel(android.app.NotificationChannel(channel, title, android.app.NotificationManager.IMPORTANCE_LOW))
+        try {
+            manager.notify(id, android.app.Notification.Builder(context, channel)
+                .setSmallIcon(R.drawable.outline_notifications_unread_24).setContentTitle(title).build())
+            await { MyNotificationListenerService.snapshot.value.items.any { it.title == title } }
+            val item = MyNotificationListenerService.snapshot.value.items.first { it.title == title }
+            runBlocking { NotificationPreferences.update { it.copy(pinned = setOf(item.appId)) } }
+            compose.setContent { MaterialTheme {
+                androidx.compose.runtime.CompositionLocalProvider(androidx.compose.ui.platform.LocalContext provides guarded) {
+                    androidx.compose.foundation.layout.Column {
+                        androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.background(Color.Black).testTag("resource-row")) {
+                            NotificationHomeEntry(48.dp, true, color = Color.White, maxVisibleIcons = 1)
+                        }
+                        androidx.compose.material3.Button(onClick = { clicks++ }, modifier = androidx.compose.ui.Modifier.testTag("responsive-control")) {
+                            androidx.compose.material3.Text("Clicks $clicks")
+                        }
+                    }
+                }
+            } }
+            compose.waitUntil(5_000) { mainReads.get() > 0 || entered.count == 0L }
+            assertEquals("Posted icon resources must not load on the UI thread", 0, mainReads.get())
+            compose.onNodeWithTag("responsive-control").performClick()
+            compose.onNodeWithText("Clicks 1").assertIsDisplayed()
+            assertEquals("Original icon load is still blocked", 1L, returned.count)
+
+            // A newer notification must render even while the old resource call is
+            // stuck. Releasing the obsolete request must not put its artwork back.
+            val bitmap = android.graphics.Bitmap.createBitmap(48, 48, android.graphics.Bitmap.Config.ARGB_8888).apply {
+                eraseColor(green)
+                // A two-color logo is artwork; a single-color glyph is correctly
+                // tinted white by the existing renderer and cannot prove green pixels.
+                android.graphics.Canvas(this).drawRect(16f, 16f, 32f, 32f,
+                    android.graphics.Paint().apply { color = android.graphics.Color.WHITE })
+            }
+            manager.notify(id, android.app.Notification.Builder(context, channel)
+                .setSmallIcon(android.graphics.drawable.Icon.createWithBitmap(bitmap)).setContentTitle(title).build())
+            await { MyNotificationListenerService.snapshot.value.items.any { it.key == item.key && it.revision != item.revision } }
+            compose.waitUntil(8_000) { greenPixels() > 100 }
+            release.countDown()
+            assertTrue(returned.await(5, java.util.concurrent.TimeUnit.SECONDS))
+            compose.waitForIdle()
+            assertTrue("Obsolete resource result cannot replace the latest icon", greenPixels() > 100)
+        } finally {
+            release.countDown()
+            manager.cancel(id)
+            manager.deleteNotificationChannel(channel)
+        }
+    }
+
     @Test fun groupsAcrossAppsUpdatesAndDismissal() = runBlocking {
         post("mail", 1, "--es group mail --es title First")
         post("mail", 2, "--es group mail --es title Second")

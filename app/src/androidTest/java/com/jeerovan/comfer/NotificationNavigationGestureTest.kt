@@ -121,7 +121,9 @@ class NotificationNavigationGestureTest {
         compose.onNodeWithText("Sound and notification settings").performClick()
         await { shell("dumpsys activity activities").lineSequence().any { (it.contains("mResumedActivity") || it.contains("topResumedActivity")) && it.contains("com.android.settings") } }
         await { shell("dumpsys window").lineSequence().any { it.contains("mCurrentFocus") && it.contains("com.android.settings") } }
-        InstrumentationRegistry.getInstrumentation().uiAutomation.waitForIdle(500, 5000)
+        // OEM Settings can emit accessibility events continuously. The bounded
+        // resumed-activity and focused-window checks above establish our target;
+        // global UI idleness is not required to exercise Back and verify return.
         shell("input keyevent 4")
         await { shell("dumpsys activity activities").lineSequence().any { (it.contains("mResumedActivity") || it.contains("topResumedActivity")) && it.contains("NotificationInboxActivity") } }
         compose.waitUntil(10_000) { runCatching { compose.onNodeWithTag("notification-card-${target.key}").isDisplayed() }.getOrDefault(false) }

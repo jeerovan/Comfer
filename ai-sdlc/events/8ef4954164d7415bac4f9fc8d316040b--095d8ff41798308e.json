@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "ad122dc384e34945859e165b6c3d27a0"
+  },
+  "id": "8ef4954164d7415bac4f9fc8d316040b",
+  "reason": "Candidate behavior observed on Redmi with retained original failing baseline",
+  "seq": 338,
+  "time": "2026-11-10T16:28:57.013445+00:00"
+}

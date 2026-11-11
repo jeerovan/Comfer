@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "84889e26057d44f9bcd968e4c3dfb25c"
+  },
+  "id": "d00fdedd2b5d4f938329b0911c55d3b5",
+  "reason": "Existing immediate-frame artwork assertion needs asynchronous boundary diagnosis",
+  "seq": 374,
+  "time": "2026-11-10T17:02:35.861304+00:00"
+}

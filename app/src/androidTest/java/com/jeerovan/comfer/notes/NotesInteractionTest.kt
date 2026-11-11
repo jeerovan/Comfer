@@ -232,8 +232,13 @@ class NotesInteractionTest {
             val root=compose.onRoot().fetchSemanticsNode().boundsInWindow
             return bitmap.getPixel((root.left+point.x).toInt(),(root.top+point.y).toInt())
         }
-        // Native activity/window transitions are outside Compose's test clock.
-        InstrumentationRegistry.getInstrumentation().uiAutomation.waitForIdle(500,5000)
+        // Wait for this window, not silence from every OEM accessibility source.
+        compose.waitUntil(5000) {
+            var focused = false
+            activity?.onActivity { focused = it.hasWindowFocus() && it.window.decorView.isShown }
+            focused
+        }
+        compose.waitForIdle()
         val before=capture()
         val card=pixel(before,sample)
         val backdrop=pixel(before,androidx.compose.ui.geometry.Offset(original.left/2f,sample.y))

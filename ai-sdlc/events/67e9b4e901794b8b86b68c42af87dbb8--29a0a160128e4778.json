@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "b79876700f4249f48f4bd53c6a8f2f28"
+  },
+  "id": "67e9b4e901794b8b86b68c42af87dbb8",
+  "reason": "Refresh final source unit/lint/translations after listener and harness changes",
+  "seq": 410,
+  "time": "2026-11-10T18:08:52.436742+00:00"
+}

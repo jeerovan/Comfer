@@ -1,0 +1,19 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Notification resource responsiveness is required before consolidated release testing",
+      "relation": "depends_on",
+      "source": "R59-PREPARE",
+      "target": "R58-FIX-08"
+    },
+    "reopened": [
+      "R58-FIX-07"
+    ]
+  },
+  "id": "b6dfe61545f04e24a8b8683bf40030cd",
+  "reason": "Attach source/test and release prerequisite",
+  "seq": 352,
+  "time": "2026-11-10T16:50:57.786301+00:00"
+}

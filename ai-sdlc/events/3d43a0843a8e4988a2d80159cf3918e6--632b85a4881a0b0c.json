@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R59-LOCAL-TESTS",
+    "reopened": [],
+    "to": "blocked"
+  },
+  "id": "3d43a0843a8e4988a2d80159cf3918e6",
+  "reason": "Autonomous feasible checks finished; original intermittent note-formatting failure remains unexplained, so release acceptance is blocked despite current passes. Evidence retained in play_reporting.db and proof.",
+  "seq": 428,
+  "time": "2026-11-10T18:53:34.382953+00:00"
+}

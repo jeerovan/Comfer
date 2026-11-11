@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "blocked",
+    "run": "8172feca0bca47cb9eb7d7fe38501efd"
+  },
+  "id": "9e92b69f2b9f4b70b07ff2f2f7ae8795",
+  "reason": "Do not promote an early healthy reconnect into evidence for delayed stale-registration fallback",
+  "seq": 400,
+  "time": "2026-11-10T17:58:59.091790+00:00"
+}

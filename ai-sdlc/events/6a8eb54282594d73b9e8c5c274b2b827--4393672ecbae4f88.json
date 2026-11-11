@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "62e2cf5d6b6d494ab9991312dca31b93"
+  },
+  "id": "6a8eb54282594d73b9e8c5c274b2b827",
+  "reason": "Focused tests isolated OEM/harness failures; retain unresolved intermittent color cause",
+  "seq": 387,
+  "time": "2026-11-10T17:36:12.159732+00:00"
+}

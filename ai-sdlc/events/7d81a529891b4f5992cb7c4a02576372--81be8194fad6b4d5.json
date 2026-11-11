@@ -1,0 +1,34 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Affected regressions and full required release layout/localization checks pass on Redmi; then signed/minified59 artifact is built and its manifest, DEX, signing and source identity checked",
+          "id": "candidate",
+          "initial_state": "Current source at version58; fixes have local/historical evidence but no consolidated59 artifact",
+          "invariants": "Preserve user data, stable issue/attempt IDs and original evidence; no Samsung/emulators under current owner scope; do not carry historical passes forward without affected revalidation",
+          "required_level": "integration",
+          "trigger": "Release preparation for version59"
+        }
+      ],
+      "description": "Use release59-fix-register for scope. Reconcile six fix implementations and current acceptance evidence, preserving historical limits. Follow existing release gate before building any release candidate; record exact source/configuration and artifact identities. This is a planned gate, not a build request already executed.",
+      "id": "R59-PREPARE",
+      "kind": "step",
+      "phase": "release",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Consolidate fixes and prepare the version59 release candidate"
+    },
+    "before": null,
+    "node": "R59-PREPARE",
+    "reopened": []
+  },
+  "id": "7d81a529891b4f5992cb7c4a02576372",
+  "reason": "Owner designates version59 for current fixes and plans validation through Play Internal using the regular release build.",
+  "seq": 307,
+  "time": "2026-11-10T16:07:44.978193+00:00"
+}

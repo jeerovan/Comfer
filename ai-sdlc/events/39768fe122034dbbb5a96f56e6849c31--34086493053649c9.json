@@ -1,0 +1,34 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Replace the failed widget content with the framework error view, retain ID and placement; later valid provider update restores content; normal Home/Workspace and recreation remain usable",
+          "id": "recovery",
+          "initial_state": "A bound widget contains a provider ListView with an invalid recycler view type",
+          "invariants": "No provider blacklist, deletion, data loss, off-main view work or suppression of unrelated failures; healthy geometry unchanged",
+          "required_level": "integration",
+          "trigger": "Normal host measurement after RemoteViews delivery"
+        }
+      ],
+      "description": "58-R08, target59; recurring Firebase566c180517cb9cdfee4da799b67cf384. v56/v57 investigations and51-02 ordering fix do not contain measurement failures. Contain only the confirmed framework recycler bounds failure; unknown provider/OEM cause and production recurrence remain open.",
+      "id": "R58-WIDGET-MEASURE-REQ",
+      "kind": "requirement",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Keep Home usable after a widget recycler measurement failure"
+    },
+    "before": null,
+    "node": "R58-WIDGET-MEASURE-REQ",
+    "reopened": []
+  },
+  "id": "39768fe122034dbbb5a96f56e6849c31",
+  "reason": "Evidence-backed recurring release58 issue review for version59",
+  "seq": 323,
+  "time": "2026-11-10T16:22:25.730272+00:00"
+}

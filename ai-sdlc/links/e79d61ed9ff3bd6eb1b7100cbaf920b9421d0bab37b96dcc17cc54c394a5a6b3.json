@@ -1,0 +1,6 @@
+{
+  "rationale": "Measurement containment must be verified before consolidated release preparation",
+  "relation": "realizes",
+  "source": "R58-WIDGET-MEASURE-IMPL",
+  "target": "R58-FIX-07"
+}

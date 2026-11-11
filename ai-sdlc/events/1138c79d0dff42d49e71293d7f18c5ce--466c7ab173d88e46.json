@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "a917f4b102814684a4f587ce08e77f8e"
+  },
+  "id": "1138c79d0dff42d49e71293d7f18c5ce",
+  "reason": "Consolidated final affected regressions after fixing discovered recovery defect and test harness issues",
+  "seq": 412,
+  "time": "2026-11-10T18:12:37.063600+00:00"
+}

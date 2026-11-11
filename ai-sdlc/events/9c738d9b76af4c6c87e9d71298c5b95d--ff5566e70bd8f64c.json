@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "7de1b6a2ffa54516bb15b076977cc9c3"
+  },
+  "id": "9c738d9b76af4c6c87e9d71298c5b95d",
+  "reason": "Pre-fix real notification row regression",
+  "seq": 353,
+  "time": "2026-11-10T16:50:58.766703+00:00"
+}

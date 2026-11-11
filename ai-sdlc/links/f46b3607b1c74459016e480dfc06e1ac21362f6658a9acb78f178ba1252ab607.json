@@ -1,0 +1,6 @@
+{
+  "rationale": "Measurement containment must be verified before consolidated release preparation",
+  "relation": "depends_on",
+  "source": "R59-PREPARE",
+  "target": "R58-FIX-07"
+}

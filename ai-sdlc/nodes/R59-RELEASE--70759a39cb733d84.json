@@ -1,0 +1,25 @@
+{
+  "criteria": [
+    {
+      "expected": "Release59 artifact identity, affected Redmi journeys and data-preserving58-to59 upgrade are verified; fix register links exact evidence and records telemetry outcomes without overstating production resolution",
+      "id": "internal-acceptance",
+      "initial_state": "Six recorded fixes target59; historical local evidence exists but no delivered59 candidate has been verified",
+      "invariants": "Stable IDs and historical evidence retained; failed or unverified requirements remain open; internal-track acceptance is distinct from public production rollout",
+      "required_level": "delivery",
+      "trigger": "Complete consolidated release checks, Play Internal delivery/upgrade tests and version59 follow-up"
+    }
+  ],
+  "description": "Authoritative fix/evidence register: play_reporting.db record:release59-fix-register. Six current attempts58-R02 through58-R07 target59; stable IDs and all original receipts remain unchanged. Earlier58-R01 stays prior58 baseline; Sync remains future. Current source version58; no59 artifact built or uploaded. Internal testing uses regular com.jeerovan.comfer release/production configuration on Redmi. Track local checks, delivered-build acceptance and production follow-up separately; all59 gates pending.",
+  "id": "R59-RELEASE",
+  "kind": "release",
+  "phase": "release",
+  "refs": [],
+  "revision": 3,
+  "status": "pending",
+  "tags": [
+    "version59",
+    "internal-testing",
+    "redmi-only"
+  ],
+  "title": "Version59: current fixes and Play Internal validation"
+}

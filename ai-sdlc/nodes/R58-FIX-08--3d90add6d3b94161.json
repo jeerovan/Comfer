@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Attempt58-R09, target59. Reproduce current main-thread resource load with real posted notification and Context resource probe. Add cancellable keyed async loading; verify stalled old lookup and actual listener update. No geometry/layout rule changes.",
+  "id": "R58-FIX-08",
+  "kind": "step",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "completed",
+  "tags": [],
+  "title": "Load Home notification icons outside UI composition"
+}

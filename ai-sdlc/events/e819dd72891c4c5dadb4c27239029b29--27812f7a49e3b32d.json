@@ -1,0 +1,47 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Bound current candidate across launcher, modules, startup and test variant configuration.",
+      "id": "R59-LOCAL-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/build.gradle.kts",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "gradle/libs.versions.toml",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Current launcher release-test source and configuration"
+    },
+    "before": null,
+    "node": "R59-LOCAL-IMPL",
+    "reopened": []
+  },
+  "id": "e819dd72891c4c5dadb4c27239029b29",
+  "reason": "Owner requests autonomous full release testing after feasible fixes",
+  "seq": 360,
+  "time": "2026-11-10T16:57:11.724990+00:00"
+}

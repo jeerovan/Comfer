@@ -1,0 +1,6 @@
+{
+  "rationale": "Notification resource responsiveness is required before consolidated release testing",
+  "relation": "realizes",
+  "source": "R58-NOTIF-ICON-IMPL",
+  "target": "R58-FIX-08"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "60537447e02d4b25b0745b00958a2fd3"
+  },
+  "id": "26b758817a4a43a299513ef95e8179e0",
+  "reason": "Candidate responsiveness and existing artwork/fallback checks",
+  "seq": 368,
+  "time": "2026-11-10T16:58:16.338165+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "8172feca0bca47cb9eb7d7fe38501efd"
+  },
+  "id": "6fd3d537b3f54979bc94bc0a013669a2",
+  "reason": "Verify candidate against reproduced normal cold-entry failure",
+  "seq": 399,
+  "time": "2026-11-10T17:55:44.642939+00:00"
+}

@@ -111,6 +111,32 @@ class NotesThemeTest {
         return results.last()
     }
 
+    private fun awaitVisualReview(stage: Int, night: Boolean) {
+        if (InstrumentationRegistry.getArguments().getString("manualThemeReview") != "true") return
+        // Optional owner review of the same asserted fixture. Collapse selection
+        // so its highlight cannot obscure the text colors; do not alter marks.
+        val end = (model.title + "\n" + model.body.text).length
+        compose.onNodeWithTag("notes-editor").performSemanticsAction(SemanticsActions.SetSelection) {
+            it(end, end, false)
+        }
+        androidx.test.espresso.Espresso.closeSoftKeyboard()
+        compose.waitForIdle()
+        val directory = File(context.cacheDir, "notes-theme-review").apply { mkdirs() }
+        val resume = File(directory, "continue-$stage").apply { delete() }
+        val ready = File(directory, "ready")
+        ready.writeText("$stage:${if (night) "dark" else "light"}")
+        try {
+            val deadline = android.os.SystemClock.uptimeMillis() + 10 * 60_000
+            while (!resume.exists() && android.os.SystemClock.uptimeMillis() < deadline) {
+                android.os.SystemClock.sleep(100)
+            }
+            assertTrue("Manual theme review timed out; no owner confirmation received", resume.exists())
+        } finally {
+            ready.delete()
+            resume.delete()
+        }
+    }
+
     private fun theme(night: Boolean) {
         compose.runOnIdle { dark.value=night }
         compose.waitForIdle()
@@ -229,15 +255,25 @@ class NotesThemeTest {
         for (name in names) {
             val start=text.indexOf(name)
             compose.onNodeWithTag("notes-editor").performSemanticsAction(SemanticsActions.SetSelection) { it(start,start+name.length,false) }
-            compose.runOnIdle { model.format("color",name) }
+            compose.runOnIdle {
+                assertEquals("Selected start for $name", start, model.canvasSelection.min)
+                assertEquals("Selected end for $name", start+name.length, model.canvasSelection.max)
+                model.format("color",name)
+                assertTrue("Applied color mark for $name: ${model.marks}",
+                    model.marks.any { it.start==start && it.end==start+name.length && it.kind=="color" && it.value==name })
+            }
         }
         compose.runOnIdle { model.link(text.indexOf("link"),text.indexOf("link")+4,"https://example.com") }
         val original=model.marks.toList()
         val renderedColors=mutableListOf<List<Color>>()
-        for (night in listOf(true,false,true)) {
+        for ((stage, night) in listOf(true,false,true).withIndex()) {
             theme(night)
             val layout=layout(compose.onNodeWithTag("notes-editor"))
-            val colors=names.map { name -> layout.layoutInput.text.spanStyles.single { it.start==text.indexOf(name)&&it.item.color!=Color.Unspecified }.item.color }
+            val colors=names.map { name ->
+                val matches=layout.layoutInput.text.spanStyles.filter { it.start==text.indexOf(name)&&it.item.color!=Color.Unspecified }
+                assertEquals("Rendered $name at ${text.indexOf(name)}; marks=${model.marks}; spans=${layout.layoutInput.text.spanStyles}", 1, matches.size)
+                matches.single().item.color
+            }
             renderedColors+=colors
             // Notes keeps wallpaper transparency: require readable text even over either wallpaper extreme.
             for (color in colors) for (wallpaper in listOf(Color.White,Color.Black)) {
@@ -250,6 +286,7 @@ class NotesThemeTest {
             assertEquals(original,model.marks)
             androidx.test.espresso.Espresso.closeSoftKeyboard()
             capture("rich-editor-$night")
+            awaitVisualReview(stage, night)
             compose.onNodeWithContentDescription("Text formatting").performScrollTo().performClick()
             names.forEachIndexed { index, name -> rendered(compose.onNodeWithContentDescription(context.getString(R.string.module_text_color_1_s, name.replaceFirstChar { it.uppercaseChar() })),colors[index]) }
             compose.onNodeWithContentDescription("URL").performClick()

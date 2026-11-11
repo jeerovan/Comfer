@@ -1,0 +1,54 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Affected regressions and full required release layout/localization checks pass on Redmi; then signed/minified59 artifact is built and its manifest, DEX, signing and source identity checked",
+          "id": "candidate",
+          "initial_state": "Current source at version58; fixes have local/historical evidence but no consolidated59 artifact",
+          "invariants": "Preserve user data, stable issue/attempt IDs and original evidence; no Samsung/emulators under current owner scope; do not carry historical passes forward without affected revalidation",
+          "required_level": "integration",
+          "trigger": "Release preparation for version59"
+        }
+      ],
+      "description": "Use release59-fix-register for scope. Reconcile registered fix implementations and current acceptance evidence, preserving historical limits. Follow existing release gate before building any release candidate; record exact source/configuration and artifact identities. This is a planned gate, not a build request already executed. Owner clarified: finish the evidence-backed, safely actionable issue review and required release testing before building or uploading the version59 internal-testing candidate. Record unresolved evidence gaps; do not infer zero remaining defects.",
+      "id": "R59-PREPARE",
+      "kind": "step",
+      "phase": "release",
+      "refs": [],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Consolidate fixes and prepare the version59 release candidate"
+    },
+    "before": {
+      "criteria": [
+        {
+          "expected": "Affected regressions and full required release layout/localization checks pass on Redmi; then signed/minified59 artifact is built and its manifest, DEX, signing and source identity checked",
+          "id": "candidate",
+          "initial_state": "Current source at version58; fixes have local/historical evidence but no consolidated59 artifact",
+          "invariants": "Preserve user data, stable issue/attempt IDs and original evidence; no Samsung/emulators under current owner scope; do not carry historical passes forward without affected revalidation",
+          "required_level": "integration",
+          "trigger": "Release preparation for version59"
+        }
+      ],
+      "description": "Use release59-fix-register for scope. Reconcile six fix implementations and current acceptance evidence, preserving historical limits. Follow existing release gate before building any release candidate; record exact source/configuration and artifact identities. This is a planned gate, not a build request already executed.",
+      "id": "R59-PREPARE",
+      "kind": "step",
+      "phase": "release",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Consolidate fixes and prepare the version59 release candidate"
+    },
+    "node": "R59-PREPARE",
+    "reopened": []
+  },
+  "id": "3ed0683c3ab340c190b9fdc4fd37a1af",
+  "reason": "Reconcile expanding fix register and owner release ordering before final evidence",
+  "seq": 339,
+  "time": "2026-11-10T16:29:36.179941+00:00"
+}

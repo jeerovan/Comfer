@@ -67,6 +67,12 @@ import com.jeerovan.comfer.ui.theme.ComferTheme
 import com.jeerovan.comfer.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+// Bound third-party resource work without letting one stuck icon prevent a newer
+// notification from loading. View composition and input must never wait for it.
+private val notificationIconDispatcher = Dispatchers.IO.limitedParallelism(2)
 
 class NotificationInboxActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -130,13 +136,21 @@ fun NotificationHomeEntry(
             }
         } else items(visible, key = { it.appId }) { item ->
             val notification = activeNotifications.firstOrNull { it.key == item.key }?.notification
-            val smallIcon = remember(item.key, item.revision, notification, resources.configuration) {
-                loadNotificationSmallIcon(context, notification)
+            // A fresh state holder prevents an obsolete request from restoring its
+            // artwork after notification replacement or a configuration change.
+            val smallIcon = remember(item.key, item.revision, notification, context,
+                android.content.res.Configuration(resources.configuration)) {
+                mutableStateOf<android.graphics.drawable.Drawable?>(null)
+            }
+            LaunchedEffect(smallIcon) {
+                smallIcon.value = withContext(notificationIconDispatcher) {
+                    loadNotificationSmallIcon(context, notification)
+                }
             }
             Box(Modifier.size(targetSize), contentAlignment = Alignment.Center) {
                 // Pass original artwork: the renderer decides whether tint/glass is safe.
                 // Pre-tinting here destroys opaque/adaptive logos before it can inspect them.
-                NotificationContrastIcon(rememberDrawableBitmapPainter(smallIcon), iconSize, color, glass)
+                NotificationContrastIcon(rememberDrawableBitmapPainter(smallIcon.value), iconSize, color, glass)
             }
         }
         if (apps.size > visible.size) item {

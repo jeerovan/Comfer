@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "4322d8f157d745e2ba7cac4328dfdc15"
+  },
+  "id": "ea35e33ef22d42d8a2309d12b6a11404",
+  "reason": "Storage batch completed; preserve confirmed cold-recovery and lazy-list harness failures",
+  "seq": 389,
+  "time": "2026-11-10T17:54:56.641603+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Complete independent checks on isolated notificationTest before release candidate. Reconcile newly discovered failures; report explicit missing OS/version/delivery boundaries.",
+  "id": "R59-LOCAL-TESTS",
+  "kind": "step",
+  "phase": "verification",
+  "refs": [],
+  "revision": 1,
+  "status": "blocked",
+  "tags": [],
+  "title": "Run autonomous release regression and locale testing on Redmi"
+}

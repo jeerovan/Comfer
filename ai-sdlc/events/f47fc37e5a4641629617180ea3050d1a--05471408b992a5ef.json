@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Full current release checks precede version59 candidate build",
+      "relation": "realizes",
+      "source": "R59-LOCAL-IMPL",
+      "target": "R59-LOCAL-TESTS"
+    },
+    "reopened": []
+  },
+  "id": "f47fc37e5a4641629617180ea3050d1a",
+  "reason": "Keep local release checks before candidate preparation",
+  "seq": 363,
+  "time": "2026-11-10T16:57:14.201351+00:00"
+}

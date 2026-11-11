@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R58-FIX-07",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "01b4f7416908464a8c36723d7727ffa1",
+  "reason": "Current Redmi isolated acceptance established with exact candidate evidence; production59/internal delivery explicitly remains pending",
+  "seq": 424,
+  "time": "2026-11-10T18:52:56.579842+00:00"
+}

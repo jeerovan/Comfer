@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "9bf57f250776482489fb5f58dbe71dcb"
+  },
+  "id": "c3b53d7c319740afb55940f8af86e239",
+  "reason": "Current host release checks before candidate build",
+  "seq": 373,
+  "time": "2026-11-10T17:01:22.109309+00:00"
+}

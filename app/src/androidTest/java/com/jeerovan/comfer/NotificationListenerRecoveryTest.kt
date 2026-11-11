@@ -18,6 +18,10 @@ class NotificationListenerRecoveryTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         assertTrue("Precondition: access already granted", MyNotificationListenerService.hasAccess(context))
         val grantBefore = Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners")
+        val component = android.content.ComponentName(context, MyNotificationListenerService::class.java)
+        val registrationBefore = context.packageManager.getComponentEnabledSetting(component)
+        val expectRegistrationRefresh = InstrumentationRegistry.getArguments()
+            .getString("expectRegistrationRefresh") == "true"
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channel = "recovery-test"
         if (android.os.Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(NotificationChannel(channel, "Recovery test", NotificationManager.IMPORTANCE_LOW))
@@ -37,6 +41,13 @@ class NotificationListenerRecoveryTest {
                 assertEquals(ListenerHealth.CONNECTED, state.health)
                 assertTrue(state.items.any { it.app == context.packageName && it.title == "Listener recovery fixture" })
                 assertNotNull(state.lastSync)
+                if (expectRegistrationRefresh) {
+                    val registrationAfter = context.packageManager.getComponentEnabledSetting(component)
+                    val enabledStates = setOf(android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT,
+                        android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
+                    assertTrue("Registration stays enabled", registrationBefore in enabledStates && registrationAfter in enabledStates)
+                    assertNotEquals("Stale binding must exercise registration refresh", registrationBefore, registrationAfter)
+                }
                 assertEquals("Recovery must preserve notification access", grantBefore,
                     Settings.Secure.getString(context.contentResolver, "enabled_notification_listeners"))
             }

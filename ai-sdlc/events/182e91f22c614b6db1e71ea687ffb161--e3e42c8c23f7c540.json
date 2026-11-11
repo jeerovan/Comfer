@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "e8a29c16085d4bf983385b041208818b"
+  },
+  "id": "182e91f22c614b6db1e71ea687ffb161",
+  "reason": "Final actual registration-transition and notification lifecycle checks passed",
+  "seq": 421,
+  "time": "2026-11-10T18:48:23.628662+00:00"
+}

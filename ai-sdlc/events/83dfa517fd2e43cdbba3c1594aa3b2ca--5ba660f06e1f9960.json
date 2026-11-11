@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "stale",
+    "run": "88e7b6e51f3a4e1d9916c1fd1fce1b33"
+  },
+  "id": "83dfa517fd2e43cdbba3c1594aa3b2ca",
+  "reason": "Supersede before restarting matrix after correcting host criterion metadata",
+  "seq": 407,
+  "time": "2026-11-10T18:07:47.734863+00:00"
+}

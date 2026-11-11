@@ -1,0 +1,34 @@
+{
+  "criteria": [],
+  "description": "onResume -> refresh -> requestRebind -> bounded still-enabled registration refresh; access and component-state guards retained.",
+  "id": "R58-LISTENER-RECOVERY-IMPL",
+  "kind": "implementation",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/MyNotificationListenerService.kt",
+      "symbol": "MyNotificationListenerService.refresh",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt",
+      "symbol": "NotificationInboxActivity.onResume",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/AndroidManifest.xml",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Normal Inbox resume and listener registration recovery"
+}

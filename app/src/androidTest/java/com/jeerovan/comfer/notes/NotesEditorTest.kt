@@ -34,6 +34,13 @@ class NotesEditorTest {
     }
     private fun saved()=runBlocking{NotesBackup.snapshot(context).notes.single{it.id=="editor"}.content}
     private fun select(start:Int,end:Int)=compose.onNodeWithTag("notes-editor").performSemanticsAction(SemanticsActions.SetSelection){it(start,end,false)}
+    private fun imageWritingArea(index:Int):SemanticsNodeInteraction {
+        val tag="notes-editor-after-image-$index"
+        // The keyboard can put later segments outside a small screen's lazy
+        // viewport. Scroll the list to create the child before addressing it.
+        compose.onNodeWithTag("notes-canvas").performScrollToNode(hasTestTag(tag))
+        return compose.onNodeWithTag(tag).assertIsDisplayed()
+    }
     private fun capture(name:String) {
         InstrumentationRegistry.getInstrumentation().uiAutomation.waitForIdle(100,3000)
         val bitmap=InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
@@ -148,7 +155,7 @@ class NotesEditorTest {
             activity!!.onActivity{ViewModelProvider(it)[NotesViewModel::class.java].queueImage(Uri.fromFile(source))}
             compose.waitUntil(15000){saved().images.size==1}
             source.delete()
-            compose.onNodeWithTag("notes-editor-after-image-1").performScrollTo().performClick().performTextInput("Below the image")
+            imageWritingArea(1).performClick().performTextInput("Below the image")
             compose.waitUntil(10000){saved().text.endsWith("Below the image")}
             compose.onNodeWithTag("notes-editor-after-image-1").performSemanticsAction(SemanticsActions.SetSelection){it(0,5,false)}
             format();compose.onNodeWithContentDescription("Italic").performClick();androidx.test.espresso.Espresso.pressBack()
@@ -156,7 +163,7 @@ class NotesEditorTest {
             returnToCollection()
             compose.onNodeWithTag("note-editor").performClick()
             compose.waitUntil(10000){compose.onAllNodesWithTag("notes-editor-after-image-1").fetchSemanticsNodes().isNotEmpty()}
-            compose.onNodeWithTag("notes-editor-after-image-1").performScrollTo().assertTextContains("Below the image")
+            imageWritingArea(1).assertTextContains("Below the image")
             val rich=saved();assertNotNull(NotesImages.decode(rich.images.single()))
             androidx.test.espresso.Espresso.closeSoftKeyboard()
             capture("image")
@@ -186,8 +193,8 @@ class NotesEditorTest {
                 store.mutate(note.id,note.revision){it.copy(content=it.content.copy(images=listOf(image,image.copy(id="second-image"))))}
             }
             launch()
-            compose.onNodeWithTag("notes-editor-after-image-1").performScrollTo().performClick().performTextInput("Between")
-            compose.onNodeWithTag("notes-editor-after-image-2").performScrollTo().performClick().performTextInput("After")
+            imageWritingArea(1).performClick().performTextInput("Between")
+            imageWritingArea(2).performClick().performTextInput("After")
             compose.waitUntil(10000){saved().text.endsWith("After")}
             val content=saved();val canvas=NoteFormatting.canvas(content)
             assertEquals("Between\n\n",canvas.substring(content.images[0].offset!!,content.images[1].offset!!))

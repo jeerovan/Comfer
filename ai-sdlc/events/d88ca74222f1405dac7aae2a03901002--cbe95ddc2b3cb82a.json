@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Complete independent checks on isolated notificationTest before release candidate. Reconcile newly discovered failures; report explicit missing OS/version/delivery boundaries.",
+      "id": "R59-LOCAL-TESTS",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Run autonomous release regression and locale testing on Redmi"
+    },
+    "before": null,
+    "node": "R59-LOCAL-TESTS",
+    "reopened": []
+  },
+  "id": "d88ca74222f1405dac7aae2a03901002",
+  "reason": "Owner requests autonomous full release testing after feasible fixes",
+  "seq": 359,
+  "time": "2026-11-10T16:57:10.920912+00:00"
+}

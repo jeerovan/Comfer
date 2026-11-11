@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "1aebd2fc073447599321d5d625058c76"
+  },
+  "id": "319fa62d93764c62a3fd271f75715326",
+  "reason": "Pre-fix regression reproduced exact framework boundary",
+  "seq": 333,
+  "time": "2026-11-10T16:24:50.838356+00:00"
+}

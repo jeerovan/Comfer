@@ -1,0 +1,54 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Existing listener state and actual Home row; async resource-loading boundary must preserve renderer behavior.",
+      "id": "R58-NOTIF-ICON-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MyNotificationListenerService.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "NotificationIconRow",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/DrawableExt.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Notification listener to Home icon rendering path"
+    },
+    "before": null,
+    "node": "R58-NOTIF-ICON-IMPL",
+    "reopened": []
+  },
+  "id": "8d49d97672dd473aa98b28a3280554a1",
+  "reason": "Register evidence-backed notification resource-loading fix",
+  "seq": 347,
+  "time": "2026-11-10T16:50:52.931802+00:00"
+}

@@ -1,0 +1,21 @@
+{
+  "criteria": [
+    {
+      "expected": "Delivered regular package/version59 identity verified; in-place upgrade retains data; Home/Recents, picker identities, saved-state recovery, internal navigation, icons and widget recovery/removal function in the delivered build",
+      "id": "delivery",
+      "initial_state": "Existing Redmi version58 installation with saved settings, shortcuts, notes/tasks and widgets; prepared59 candidate",
+      "invariants": "Bind observations to actual delivered artifacts; preserve user data; internal-track acceptance does not imply public production resolution",
+      "required_level": "delivery",
+      "trigger": "Install version59 from the Play Internal testing track and run affected normal journeys"
+    }
+  ],
+  "description": "Planned regular production-package release build, not the isolated notificationTest artifact. Record Play-delivered artifact/splits and signing relationship plus source candidate. In-place update from58 to59 without uninstall/clear-data; verify affected journeys. Delivery evidence remains open; the current AI SDLC server does not itself attest delivered artifacts.",
+  "id": "R59-INTERNAL-TEST",
+  "kind": "step",
+  "phase": "verification",
+  "refs": [],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Validate Play Internal version59 delivery and upgrade on Redmi"
+}

@@ -6,7 +6,7 @@
   "phase": "implementation",
   "refs": [],
   "revision": 1,
-  "status": "completed",
+  "status": "pending",
   "tags": [],
   "title": "Contain widget label memory failure and preserve inventory on refresh failure"
 }

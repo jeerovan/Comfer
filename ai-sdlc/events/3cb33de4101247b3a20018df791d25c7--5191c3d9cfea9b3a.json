@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "60537447e02d4b25b0745b00958a2fd3"
+  },
+  "id": "3cb33de4101247b3a20018df791d25c7",
+  "reason": "Investigate update artwork assertion; preserve failure",
+  "seq": 369,
+  "time": "2026-11-10T16:59:28.623544+00:00"
+}

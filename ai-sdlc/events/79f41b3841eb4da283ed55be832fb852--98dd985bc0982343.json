@@ -1,0 +1,34 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Version-filtered evidence and exposure recorded, recurring signatures reviewed against prior attempts, each fix status updated with evidence and limitations; unresolved/no-exposure groups remain unverified",
+          "id": "recurrence",
+          "initial_state": "Verified delivered59 build and retained58 issue/fix history",
+          "invariants": "Absence of events or local/internal passes alone cannot establish production resolution; no deletion of earlier attempts or snapshots",
+          "required_level": "integration",
+          "trigger": "Collect version59 Firebase evidence after meaningful test exposure and subsequent separately recorded production follow-up"
+        }
+      ],
+      "description": "Append version59 test outcomes and Firebase follow-up to the single reporting DB; compare exact issue IDs plus actual signatures and exposure. Retain unresolved OEM/system/SDK/ANR groups. Record later production exposure separately from internal-track testing.",
+      "id": "R59-FOLLOWUP",
+      "kind": "step",
+      "phase": "maintenance",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Review version59 telemetry and recurrence after internal testing"
+    },
+    "before": null,
+    "node": "R59-FOLLOWUP",
+    "reopened": []
+  },
+  "id": "79f41b3841eb4da283ed55be832fb852",
+  "reason": "Owner designates version59 for current fixes and plans validation through Play Internal using the regular release build.",
+  "seq": 309,
+  "time": "2026-11-10T16:07:46.364363+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "5885e519c18d49a89df2fff45a5d0e7d"
+  },
+  "id": "788b1bf44fbe4728ba32275407fd5e4e",
+  "reason": "Require actual delayed registration transition after observed denied bind",
+  "seq": 402,
+  "time": "2026-11-10T17:59:45.659782+00:00"
+}

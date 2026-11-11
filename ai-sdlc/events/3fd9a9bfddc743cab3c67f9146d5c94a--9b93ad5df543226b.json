@@ -1,0 +1,61 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Real production host factories and Android recycler; invalid adapter injected within a real RemoteViews subtree. Normal Home check includes actual service binding and persistence; only isolated app data changed. Exact OEM provider unknown, not production resolution.",
+      "id": "R58-WIDGET-MEASURE-TEST",
+      "kind": "test",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/WidgetMeasurementRecoveryTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/notificationTest/res/layout/widget_recycler_fixture.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/notificationTest/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/Release51RegressionTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRecoveryTest.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Redmi recycler failure and healthy update regression"
+    },
+    "before": null,
+    "node": "R58-WIDGET-MEASURE-TEST",
+    "reopened": []
+  },
+  "id": "3fd9a9bfddc743cab3c67f9146d5c94a",
+  "reason": "Evidence-backed recurring release58 issue review for version59",
+  "seq": 326,
+  "time": "2026-11-10T16:22:27.904793+00:00"
+}

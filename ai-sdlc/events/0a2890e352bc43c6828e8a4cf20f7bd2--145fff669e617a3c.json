@@ -1,0 +1,73 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Default ComferApp WidgetHostManager factories and AppWidgetHostView recovery.",
+      "id": "R58-WIDGET-MEASURE-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "WidgetHostManager.initHosts",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ComferApp.kt",
+          "symbol": "widgetHostManager",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/RecoverableWidgetHost.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 3,
+      "status": "pending",
+      "tags": [],
+      "title": "Production widget host measurement boundary"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Default ComferApp WidgetHostManager factories and AppWidgetHostView recovery.",
+      "id": "R58-WIDGET-MEASURE-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "WidgetHostManager.initHosts",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ComferApp.kt",
+          "symbol": "widgetHostManager",
+          "tool": "source"
+        }
+      ],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Production widget host measurement boundary"
+    },
+    "node": "R58-WIDGET-MEASURE-IMPL",
+    "reopened": []
+  },
+  "id": "0a2890e352bc43c6828e8a4cf20f7bd2",
+  "reason": "Register implemented measurement boundary before candidate verification",
+  "seq": 335,
+  "time": "2026-11-10T16:25:43.022932+00:00"
+}

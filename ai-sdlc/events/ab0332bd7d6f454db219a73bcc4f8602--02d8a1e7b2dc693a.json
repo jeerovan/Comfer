@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "6b7087dea25e41f7aae2cf3bc8c16cc8"
+  },
+  "id": "ab0332bd7d6f454db219a73bcc4f8602",
+  "reason": "Inspected actual 22-test terminal result",
+  "seq": 379,
+  "time": "2026-11-10T17:10:34.533352+00:00"
+}

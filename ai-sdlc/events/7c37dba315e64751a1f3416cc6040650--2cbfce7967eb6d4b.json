@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Notification resource responsiveness is required before consolidated release testing",
+      "relation": "verifies",
+      "source": "R58-NOTIF-ICON-TEST",
+      "target": "R58-FIX-08"
+    },
+    "reopened": []
+  },
+  "id": "7c37dba315e64751a1f3416cc6040650",
+  "reason": "Attach source/test and release prerequisite",
+  "seq": 351,
+  "time": "2026-11-10T16:50:56.864441+00:00"
+}

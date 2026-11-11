@@ -1,0 +1,6 @@
+{
+  "rationale": "Preserve prerequisites: fix acceptance before consolidated release preparation, delivery before version59 follow-up.",
+  "relation": "depends_on",
+  "source": "R59-PREPARE",
+  "target": "R58-FIX-05"
+}

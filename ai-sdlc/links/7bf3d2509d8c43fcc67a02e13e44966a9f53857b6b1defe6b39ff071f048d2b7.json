@@ -1,0 +1,6 @@
+{
+  "rationale": "Full current release checks precede version59 candidate build",
+  "relation": "realizes",
+  "source": "R59-LOCAL-IMPL",
+  "target": "R59-LOCAL-TESTS"
+}

@@ -104,13 +104,14 @@ class MyNotificationListenerService : NotificationListenerService() {
                             }
                             if (snapshot.value.health == com.jeerovan.comfer.notifications.ListenerHealth.CONNECTED && connectedService != null) return@recovery
                         }
-                        // Android 7 can retain a dead binding across package updates. Announce
-                        // a package change without ever disabling the service or changing access.
+                        // Through Android 10, requestRebind can be a no-op when the
+                        // system still considers a dead listener binding enabled.
+                        // Refresh registration without disabling the service or changing access.
                         val manager = app.packageManager
                         val current = manager.getComponentEnabledSetting(component)
                         val defaultState = android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
                         val enabledState = android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-                        if (android.os.Build.VERSION.SDK_INT <= 25 && (current == defaultState || current == enabledState)) {
+                        if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q && (current == defaultState || current == enabledState)) {
                             android.util.Log.i("NotificationRecovery", "refresh_enabled_registration")
                             manager.setComponentEnabledSetting(component,
                                 if (current == defaultState) enabledState else defaultState,

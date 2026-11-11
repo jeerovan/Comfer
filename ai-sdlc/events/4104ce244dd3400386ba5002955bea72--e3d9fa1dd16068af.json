@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "8542c68510334732af976a6e428c9a3c"
+  },
+  "id": "4104ce244dd3400386ba5002955bea72",
+  "reason": "Focused tests repeated after release-tracking reconciliation, unchanged candidate",
+  "seq": 343,
+  "time": "2026-11-10T16:31:06.433407+00:00"
+}

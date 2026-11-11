@@ -1,0 +1,6 @@
+{
+  "rationale": "Full current release checks precede version59 candidate build",
+  "relation": "verifies",
+  "source": "R59-LOCAL-CHECKS",
+  "target": "R59-LOCAL-TESTS"
+}

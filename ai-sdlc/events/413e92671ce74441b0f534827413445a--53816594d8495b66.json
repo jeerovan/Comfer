@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "0fb0eaa06c0a42a4a5b67fa847134306"
+  },
+  "id": "413e92671ce74441b0f534827413445a",
+  "reason": "Initial full Redmi regression pass completed with explicit failures retained",
+  "seq": 384,
+  "time": "2026-11-10T17:31:39.088954+00:00"
+}

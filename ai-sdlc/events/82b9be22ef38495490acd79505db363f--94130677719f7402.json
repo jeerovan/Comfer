@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Attempt58-R10 target59. Baseline normal Inbox recovery fails twice on Redmi API29 with access granted, including auto-start allowed. Extend existing still-enabled registration refresh through Q and validate normal cold entry plus listener access loss. Do not claim OEM settings bypass or production resolution.",
+      "id": "R58-FIX-09",
+      "kind": "step",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Extend stale listener registration recovery through Android10"
+    },
+    "before": null,
+    "node": "R58-FIX-09",
+    "reopened": []
+  },
+  "id": "82b9be22ef38495490acd79505db363f",
+  "reason": "Record observed release-blocking cold listener recovery and bounded existing-path correction",
+  "seq": 391,
+  "time": "2026-11-10T17:54:58.771747+00:00"
+}

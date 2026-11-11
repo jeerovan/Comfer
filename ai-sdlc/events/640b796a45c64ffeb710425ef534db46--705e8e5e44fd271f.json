@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "blocked",
+    "run": "9b23fa7954564bbdbbe7e5c0072f23ac"
+  },
+  "id": "640b796a45c64ffeb710425ef534db46",
+  "reason": "Owner visual review and existing automated color-preservation test completed; original cause remains open",
+  "seq": 431,
+  "time": "2026-11-10T23:59:59.961507+00:00"
+}

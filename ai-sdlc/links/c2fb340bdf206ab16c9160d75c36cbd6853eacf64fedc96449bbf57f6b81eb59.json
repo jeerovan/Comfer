@@ -1,0 +1,6 @@
+{
+  "rationale": "Normal granted-listener recovery is a release prerequisite; preserve permission and lifecycle acceptance",
+  "relation": "depends_on",
+  "source": "R59-PREPARE",
+  "target": "R58-FIX-09"
+}

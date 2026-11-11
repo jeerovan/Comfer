@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "0fb0eaa06c0a42a4a5b67fa847134306"
+  },
+  "id": "0852d215d2b54417a08c07df40486d98",
+  "reason": "Current snapshot autonomous release check",
+  "seq": 381,
+  "time": "2026-11-10T17:11:00.678591+00:00"
+}

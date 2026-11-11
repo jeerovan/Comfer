@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "c7a7e64e5d174944a06a8aabef968bcd"
+  },
+  "id": "f98327860237487d8e3c69aac7ac963c",
+  "reason": "Corrected baseline proves current resource lookup on Main",
+  "seq": 356,
+  "time": "2026-11-10T16:55:44.952963+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "546042d5906b4504a39fc76d5cee0197"
+  },
+  "id": "caa95ac68c564ad6881c288636d724d9",
+  "reason": "Current candidate widget and Home regressions passed",
+  "seq": 419,
+  "time": "2026-11-10T18:41:29.248008+00:00"
+}

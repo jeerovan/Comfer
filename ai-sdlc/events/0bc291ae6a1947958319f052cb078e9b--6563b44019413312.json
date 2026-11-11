@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "blocked",
+    "run": "a917f4b102814684a4f587ce08e77f8e"
+  },
+  "id": "0bc291ae6a1947958319f052cb078e9b",
+  "reason": "Reconcile current passing checks with unresolved original failure",
+  "seq": 423,
+  "time": "2026-11-10T18:52:25.688963+00:00"
+}

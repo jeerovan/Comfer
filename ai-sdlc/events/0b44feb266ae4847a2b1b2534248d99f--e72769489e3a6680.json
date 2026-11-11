@@ -1,0 +1,47 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Default ComferApp WidgetHostManager factories and AppWidgetHostView recovery.",
+      "id": "R58-WIDGET-MEASURE-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "WidgetHostManager.initHosts",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ComferApp.kt",
+          "symbol": "widgetHostManager",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/RecoverableWidgetHost.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Production widget host measurement boundary"
+    },
+    "before": null,
+    "node": "R58-WIDGET-MEASURE-IMPL",
+    "reopened": []
+  },
+  "id": "0b44feb266ae4847a2b1b2534248d99f",
+  "reason": "Evidence-backed recurring release58 issue review for version59",
+  "seq": 325,
+  "time": "2026-11-10T16:22:27.175292+00:00"
+}

@@ -1,0 +1,34 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Listener connects and displays a real newly posted notification within bounded recovery window",
+          "id": "rebind",
+          "initial_state": "Redmi API29 isolated app has granted notification access and OEM auto-start capability, then is stopped/restarted with a stale listener binding",
+          "invariants": "Notification access unchanged, service never disabled, unrelated app data retained; access loss clears items and remains recoverable; blocked OEM capability is not silently overridden",
+          "required_level": "integration",
+          "trigger": "Open real NotificationInboxActivity normally; no permission toggle or extra initializer during check"
+        }
+      ],
+      "description": "Local release-testing finding, stable attempt58-R10 targeting59. Existing API24/25 registration refresh excluded Redmi API29 even though requestRebind can be a no-op for an already enabled stale binding. Preserve explicit access and OEM restrictions; no production Firebase attribution.",
+      "id": "R58-LISTENER-RECOVERY-REQ",
+      "kind": "requirement",
+      "phase": "verification",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Recover a granted notification listener after cold restart"
+    },
+    "before": null,
+    "node": "R58-LISTENER-RECOVERY-REQ",
+    "reopened": []
+  },
+  "id": "0bb7321e9be4414aa0345290331a882c",
+  "reason": "Record observed release-blocking cold listener recovery and bounded existing-path correction",
+  "seq": 390,
+  "time": "2026-11-10T17:54:57.741542+00:00"
+}

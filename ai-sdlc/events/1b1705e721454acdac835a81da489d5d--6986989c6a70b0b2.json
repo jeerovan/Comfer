@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "1aebd2fc073447599321d5d625058c76"
+  },
+  "id": "1b1705e721454acdac835a81da489d5d",
+  "reason": "Reproduce before changing production code",
+  "seq": 332,
+  "time": "2026-11-10T16:23:36.488397+00:00"
+}

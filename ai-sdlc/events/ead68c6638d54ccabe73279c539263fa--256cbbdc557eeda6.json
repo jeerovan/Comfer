@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "355066d54748428181a2a26d2e26eb4b"
+  },
+  "id": "ead68c6638d54ccabe73279c539263fa",
+  "reason": "Actual current host results inspected",
+  "seq": 383,
+  "time": "2026-11-10T17:14:31.280881+00:00"
+}

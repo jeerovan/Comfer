@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "4322d8f157d745e2ba7cac4328dfdc15"
+  },
+  "id": "036bbf3ad5e749e3b5193f8b022d8c04",
+  "reason": "Run cold recovery with OEM capability, full Notes rendering/editor and existing persistence suites",
+  "seq": 388,
+  "time": "2026-11-10T17:36:13.302823+00:00"
+}

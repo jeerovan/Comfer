@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "5885e519c18d49a89df2fff45a5d0e7d"
+  },
+  "id": "d74533e07fa34083a2a7c976326bcc32",
+  "reason": "Observed actual recovery branch twice and current candidate followup",
+  "seq": 405,
+  "time": "2026-11-10T18:06:24.502136+00:00"
+}

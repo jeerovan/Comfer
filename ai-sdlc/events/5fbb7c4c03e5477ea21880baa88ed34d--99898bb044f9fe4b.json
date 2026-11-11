@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Normal granted-listener recovery is a release prerequisite; preserve permission and lifecycle acceptance",
+      "relation": "implements",
+      "source": "R58-FIX-09",
+      "target": "R58-LISTENER-RECOVERY-REQ"
+    },
+    "reopened": []
+  },
+  "id": "5fbb7c4c03e5477ea21880baa88ed34d",
+  "reason": "Cold listener recovery must be checked before candidate preparation",
+  "seq": 394,
+  "time": "2026-11-10T17:55:01.978491+00:00"
+}

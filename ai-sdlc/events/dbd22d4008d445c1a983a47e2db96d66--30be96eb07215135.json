@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "stale",
+    "run": "9bf57f250776482489fb5f58dbe71dcb"
+  },
+  "id": "dbd22d4008d445c1a983a47e2db96d66",
+  "reason": "Host suite identifies release lint blocker",
+  "seq": 375,
+  "time": "2026-11-10T17:03:35.129312+00:00"
+}

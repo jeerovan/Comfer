@@ -1,0 +1,29 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Authoritative fix/evidence register: play_reporting.db record:release59-fix-register. Six current attempts58-R02 through58-R07 target59; stable IDs and all original receipts remain unchanged. Earlier58-R01 stays prior58 baseline; Sync remains future. Current source version58; no59 artifact built or uploaded. Internal testing uses regular com.jeerovan.comfer release/production configuration on Redmi. Track local checks, delivered-build acceptance and production follow-up separately; all59 gates pending.",
+      "id": "R59-RELEASE",
+      "kind": "release",
+      "phase": "release",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [
+        "version59",
+        "internal-testing",
+        "redmi-only"
+      ],
+      "title": "Version59: current fixes and Play Internal validation"
+    },
+    "before": null,
+    "node": "R59-RELEASE",
+    "reopened": []
+  },
+  "id": "8d57addf294949d1b1d433e72efd0faa",
+  "reason": "Owner designates version59 for current fixes and plans validation through Play Internal using the regular release build.",
+  "seq": 306,
+  "time": "2026-11-10T16:07:44.302032+00:00"
+}

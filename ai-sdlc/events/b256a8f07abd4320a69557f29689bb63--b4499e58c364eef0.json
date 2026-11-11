@@ -1,0 +1,47 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "onResume -> refresh -> requestRebind -> bounded still-enabled registration refresh; access and component-state guards retained.",
+      "id": "R58-LISTENER-RECOVERY-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MyNotificationListenerService.kt",
+          "symbol": "MyNotificationListenerService.refresh",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt",
+          "symbol": "NotificationInboxActivity.onResume",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Normal Inbox resume and listener registration recovery"
+    },
+    "before": null,
+    "node": "R58-LISTENER-RECOVERY-IMPL",
+    "reopened": []
+  },
+  "id": "b256a8f07abd4320a69557f29689bb63",
+  "reason": "Record observed release-blocking cold listener recovery and bounded existing-path correction",
+  "seq": 392,
+  "time": "2026-11-10T17:54:59.799719+00:00"
+}

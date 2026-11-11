@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "9b23fa7954564bbdbbe7e5c0072f23ac"
+  },
+  "id": "d9c2cbcd9d2048b3a8be5f7c4bb94fa5",
+  "reason": "Owner visual inspection requested for named-color screen while switching themes",
+  "seq": 430,
+  "time": "2026-11-10T23:54:45.376509+00:00"
+}
