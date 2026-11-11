@@ -1,0 +1,33 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Manual regular-package normal Settings/rotation check must inspect visible MIUI keyguard. Existing LockScreenWallpaperTest is component/integration descriptor evidence only; temporary files restore Android lock state but do not establish preservation of private MIUI theme image.",
+      "id": "R59-WALLPAPER-CHECK",
+      "kind": "test",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/LockScreenWallpaperTest.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Redmi actual keyguard and existing lock-copy regressions"
+    },
+    "before": null,
+    "node": "R59-WALLPAPER-CHECK",
+    "reopened": []
+  },
+  "id": "60de9414ebdf42e5a02109ec1ed546ab",
+  "reason": "Track newly reported Redmi wallpaper gap before reproduction",
+  "seq": 435,
+  "time": "2026-11-11T00:10:59.087851+00:00"
+}

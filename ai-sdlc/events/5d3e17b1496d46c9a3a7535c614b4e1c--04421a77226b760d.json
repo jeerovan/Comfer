@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "bbd79f57a5b841478024df9813caf627"
+  },
+  "id": "5d3e17b1496d46c9a3a7535c614b4e1c",
+  "reason": "Reproduce owner-reported visible lock mismatch using installed regular app before any source fix",
+  "seq": 440,
+  "time": "2026-11-11T00:11:23.220972+00:00"
+}

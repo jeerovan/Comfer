@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Keep original setting actions and lifecycle in SettingsScreen, isolate category navigation/layout in SettingsNavigation. Update affected navigation/layout regressions and test only Redmi before release build.",
+      "id": "R59-SETTINGS",
+      "kind": "step",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Implement and validate modular Settings"
+    },
+    "before": null,
+    "node": "R59-SETTINGS",
+    "reopened": []
+  },
+  "id": "1aedc9b68ea6441a9af596951e08520c",
+  "reason": "Owner requests modular bottom-reachable Settings before release",
+  "seq": 444,
+  "time": "2026-11-11T00:44:17.469711+00:00"
+}

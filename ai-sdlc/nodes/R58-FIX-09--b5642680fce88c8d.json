@@ -6,7 +6,7 @@
   "phase": "implementation",
   "refs": [],
   "revision": 1,
-  "status": "completed",
+  "status": "pending",
   "tags": [],
   "title": "Extend stale listener registration recovery through Android10"
 }

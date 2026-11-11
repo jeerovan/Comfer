@@ -412,7 +412,7 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     val quickAppsLayout = settingsState.quickAppsLayout
     val appDrawerLayout = settingsState.appDrawerLayout
     var showDisclosure by remember { mutableStateOf(false) }
-    var showLocaleSelection by remember {mutableStateOf(false)}
+    var showLocaleSelection by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(false) }
 
     val textSavingBattery = stringResource(R.string.text_saving_battery)
 
@@ -436,797 +436,774 @@ fun SettingsScreen(settingsViewModel: SettingsViewModel) {
     }
 
     var howtoGuideShown by remember { mutableStateOf(true) }
-    val scale = if (!howtoGuideShown) {
-        val infiniteTransition = rememberInfiniteTransition(label = "howToGuidePulse")
-        infiniteTransition.animateFloat(
-            initialValue = 1.07f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(1000, easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "howToGuideScale",
-        ).value
-    } else {
-        1f
-    }
     val howtoGuideKey = "howto_guide_shown_key"
-    var howtoGuideModifier  = Modifier
-        .then(if (!howtoGuideShown) Modifier.graphicsLayer {
-            scaleX = scale
-            scaleY = scale
-        } else Modifier)
-        .clickable {
-            if(!howtoGuideShown) {
-                settingsViewModel.setStepGuideShown(context, howtoGuideKey)
-                howtoGuideShown = true
-            }
-            context.startActivity(Intent(context, GuideActivity::class.java))
-        }
     LaunchedEffect(Unit) {
         howtoGuideShown = settingsViewModel.isStepGuideShown(context, howtoGuideKey)
     }
-    BoxWithConstraints(Modifier.fillMaxSize().safeDrawingPadding().testTag("settings-viewport")) {
-        val landscape = maxWidth > maxHeight
-        val startPadding = if (landscape) 0.dp else (maxHeight.value - reachableHeightDp(maxHeight.value)).coerceAtLeast(0f).dp
-        val reach = rememberThumbReach(startPadding)
-        val reachTop = with(androidx.compose.ui.platform.LocalDensity.current) { reach.offset.toDp() }
-        Column(Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier.weight(1f).nestedScroll(reach).testTag("settings-list"),
-            contentPadding = PaddingValues(top = reachTop)
-        ) {
-            item {
-                Spacer(Modifier.height(24.dp))
-            }
-            item { SectionHeader(stringResource(R.string.more_from_jeerovan)) }
-            item {
-                PromoAppSection(
-                    title = "FiFe",
-                    subtitle = stringResource(R.string.fife_subtitle),
-                    logoPainter = painterResource(R.drawable.fife_logo),
-                    onClick = {
-                        openUrl(
-                            "https://play.google.com/store/apps/details?id=com.jeerovan.fife",
-                            context,
-                        )
-                    }
-                )
-            }
-            item {
-                PromoAppSection(
-                    title = "TechNews24",
-                    subtitle = "AI & Tech News",
-                    logoPainter = painterResource(R.drawable.technews24),
-                    onClick = {
-                        openUrl(
-                            "https://play.google.com/store/apps/details?id=app.technews24",
-                            context,
-                        )
-                    }
-                )
-            }
-            item { SectionHeader(stringResource(R.string.title_wallpapers)) }
-            item(key = "wallpaper-auto") {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_auto_wallpapers)) },
-                    supportingContent = { Text(stringResource(R.string.auto_wallpaper_text)) },
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.Wallpaper,
-                            contentDescription = stringResource(R.string.icon_wallpaper)
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settingsState.autoWallpapers,
-                            enabled = !settingsState.isBatterySaver,
-                            onCheckedChange = { settingsViewModel.setAutoWallpapers(it) }
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        if (!settingsState.isBatterySaver) settingsViewModel.setAutoWallpapers(!settingsState.autoWallpapers)
-                        else Toast.makeText(context, textSavingBattery, Toast.LENGTH_SHORT).show()
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            if(!settingsState.autoWallpapers)item(key = "wallpaper-monochrome") {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_monochrome)) },
-                    supportingContent = { Text(stringResource(R.string.title_color_less_world)) },
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.InvertColors,
-                            contentDescription = stringResource(R.string.icon_monochrome)
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settingsState.monochrome,
-                            onCheckedChange = {
-                                if(!settingsState.isBatterySaver) {
-                                    settingsViewModel.setMonochrome(it)
-                                } else {
-                                    Toast.makeText(context,textSavingBattery,Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        if (!settingsState.isBatterySaver) {
-                            settingsViewModel.setMonochrome(!settingsState.monochrome)
-                        } else {
-                            Toast.makeText(context,textSavingBattery,Toast.LENGTH_SHORT).show()
-                        }
-                                                  },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            if (settingsState.autoWallpapers) item(key = "wallpaper-motion") {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_wallpaper_motion)) },
-                    supportingContent = { Text(stringResource(R.string.wallpaper_motion_text)) },
-                    leadingContent = {
-                        Icon(
-                            painter = painterResource(R.drawable.outline_motion_mode_24),
-                            contentDescription = stringResource(R.string.icon_wallpaper_motion)
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settingsState.wallpaperMotionEnabled,
-                            onCheckedChange = { settingsViewModel.setWallpaperMotion(it) }
-                        )
-                    },
-                    modifier = Modifier.clickable { settingsViewModel.setWallpaperMotion(!settingsState.wallpaperMotionEnabled) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            if (settingsState.autoWallpapers) item(key = "wallpaper-3d") {
-                com.jeerovan.comfer.spatial.LocalWallpaperSetting(ownWallpapers = settingsState.wallpaperDirectory != null)
-            }
-            if(settingsState.autoWallpapers){
-                item(key = "wallpaper-frequency") {
-                    SelectOptionsWithListItemSettingItem(
-                        stringResource(R.string.title_wallpaper_frequency),
-                        stringResource(R.string.wallpaper_frequency_text),
-                        {Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.icon_wallpaper_frequency))},
-                        settingsState.wallpaperFrequency,
-                        {frequency -> settingsViewModel.setWallpaperFrequency(frequency)},
-                        arrayOf(getKeyTextObject("Hourly",context),getKeyTextObject("Daily",context))
-                    )
-                }
-            }
-            if(settingsState.autoWallpapers)item(key = "wallpaper-own") {
-                SelectSetOwnWallpapersDirectory(
-                    isDefaultLauncher = isDefaultLauncherState,
-                    onSelectDirectory = { directoryUri -> settingsViewModel.setWallpaperDirectory(directoryUri)},
-                    selectedDirectory = settingsState.wallpaperDirectory)
-            }
-            if (settingsState.autoWallpapers) item(key = "wallpaper-change") {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_change_wallpaper)) },
-                    supportingContent = { Text(stringResource(R.string.change_wallpaper_text)) },
-                    leadingContent = {
-                        Icon(Icons.Filled.Wallpaper, contentDescription = stringResource(R.string.icon_wallpaper_change))
-                    },
-                    modifier = Modifier.clickable { settingsViewModel.signalToChangeWallpaper() },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            if(isDefaultLauncherState){
-                item {
+    SettingsNavigation(onLanguage = { showLocaleSelection = true }) { page ->
+        when (page) {
+            SettingsPage.WALLPAPERS -> {
+                item(key = "wallpaper-auto") {
                     ListItem(
-                        headlineContent = { Text(stringResource(R.string.title_lock_screen)) },
-                        supportingContent = { Text(stringResource(R.string.lock_screen_wallpaper_text)) },
+                        headlineContent = { Text(stringResource(R.string.title_auto_wallpapers)) },
+                        supportingContent = { Text(stringResource(R.string.auto_wallpaper_text)) },
                         leadingContent = {
                             Icon(
-                                painter = painterResource(R.drawable.outline_mobile_lock_portrait_24),
-                                contentDescription = stringResource(R.string.icon_lock_screen_wallpaper)
+                                Icons.Filled.Wallpaper,
+                                contentDescription = stringResource(R.string.icon_wallpaper)
                             )
                         },
                         trailingContent = {
                             Switch(
-                                checked = settingsState.wallpaperOnLockScreen,
-                                onCheckedChange = { settingsViewModel.setWallpaperOnLockScreen(it) }
+                                checked = settingsState.autoWallpapers,
+                                enabled = !settingsState.isBatterySaver,
+                                onCheckedChange = { settingsViewModel.setAutoWallpapers(it) }
                             )
                         },
-                        modifier = Modifier.clickable { settingsViewModel.setWallpaperOnLockScreen(!settingsState.wallpaperOnLockScreen) },
+                        modifier = Modifier.clickable {
+                            if (!settingsState.isBatterySaver) settingsViewModel.setAutoWallpapers(!settingsState.autoWallpapers)
+                            else Toast.makeText(context, textSavingBattery, Toast.LENGTH_SHORT).show()
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+                if(!settingsState.autoWallpapers)item(key = "wallpaper-monochrome") {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_monochrome)) },
+                        supportingContent = { Text(stringResource(R.string.title_color_less_world)) },
+                        leadingContent = {
+                            Icon(
+                                Icons.Filled.InvertColors,
+                                contentDescription = stringResource(R.string.icon_monochrome)
+                            )
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = settingsState.monochrome,
+                                onCheckedChange = {
+                                    if(!settingsState.isBatterySaver) {
+                                        settingsViewModel.setMonochrome(it)
+                                    } else {
+                                        Toast.makeText(context,textSavingBattery,Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            if (!settingsState.isBatterySaver) {
+                                settingsViewModel.setMonochrome(!settingsState.monochrome)
+                            } else {
+                                Toast.makeText(context,textSavingBattery,Toast.LENGTH_SHORT).show()
+                            }
+                                                      },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+                if (settingsState.autoWallpapers) item(key = "wallpaper-motion") {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_wallpaper_motion)) },
+                        supportingContent = { Text(stringResource(R.string.wallpaper_motion_text)) },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.outline_motion_mode_24),
+                                contentDescription = stringResource(R.string.icon_wallpaper_motion)
+                            )
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = settingsState.wallpaperMotionEnabled,
+                                onCheckedChange = { settingsViewModel.setWallpaperMotion(it) }
+                            )
+                        },
+                        modifier = Modifier.clickable { settingsViewModel.setWallpaperMotion(!settingsState.wallpaperMotionEnabled) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+                if (settingsState.autoWallpapers) item(key = "wallpaper-3d") {
+                    com.jeerovan.comfer.spatial.LocalWallpaperSetting(ownWallpapers = settingsState.wallpaperDirectory != null)
+                }
+                if(settingsState.autoWallpapers){
+                    item(key = "wallpaper-frequency") {
+                        SelectOptionsWithListItemSettingItem(
+                            stringResource(R.string.title_wallpaper_frequency),
+                            stringResource(R.string.wallpaper_frequency_text),
+                            {Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.icon_wallpaper_frequency))},
+                            settingsState.wallpaperFrequency,
+                            {frequency -> settingsViewModel.setWallpaperFrequency(frequency)},
+                            arrayOf(getKeyTextObject("Hourly",context),getKeyTextObject("Daily",context))
+                        )
+                    }
+                }
+                if(settingsState.autoWallpapers)item(key = "wallpaper-own") {
+                    SelectSetOwnWallpapersDirectory(
+                        isDefaultLauncher = isDefaultLauncherState,
+                        onSelectDirectory = { directoryUri -> settingsViewModel.setWallpaperDirectory(directoryUri)},
+                        selectedDirectory = settingsState.wallpaperDirectory)
+                }
+                if (settingsState.autoWallpapers) item(key = "wallpaper-change") {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_change_wallpaper)) },
+                        supportingContent = { Text(stringResource(R.string.change_wallpaper_text)) },
+                        leadingContent = {
+                            Icon(Icons.Filled.Wallpaper, contentDescription = stringResource(R.string.icon_wallpaper_change))
+                        },
+                        modifier = Modifier.clickable { settingsViewModel.signalToChangeWallpaper() },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+                if(isDefaultLauncherState){
+                    item {
+                        ListItem(
+                            headlineContent = { Text(stringResource(R.string.title_lock_screen)) },
+                            supportingContent = { Text(stringResource(R.string.lock_screen_wallpaper_text)) },
+                            leadingContent = {
+                                Icon(
+                                    painter = painterResource(R.drawable.outline_mobile_lock_portrait_24),
+                                    contentDescription = stringResource(R.string.icon_lock_screen_wallpaper)
+                                )
+                            },
+                            trailingContent = {
+                                Switch(
+                                    checked = settingsState.wallpaperOnLockScreen,
+                                    onCheckedChange = { settingsViewModel.setWallpaperOnLockScreen(it) }
+                                )
+                            },
+                            modifier = Modifier.clickable { settingsViewModel.setWallpaperOnLockScreen(!settingsState.wallpaperOnLockScreen) },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                        )
+                    }
+                }
+            }
+            SettingsPage.ICONS -> {
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_app_icon_size)) },
+                        supportingContent = { Text("${settingsState.iconSize} dp") },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.outline_photo_size_select_small_24),
+                                contentDescription = stringResource(R.string.icon_app_icon_size)
+                            )
+                        },
+                        trailingContent = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(onClick = { settingsViewModel.changeIconSize(increase = false) }) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.outline_remove_24),
+                                        contentDescription = stringResource(R.string.button_decrease_app_icon_size)
+                                    )
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .clip(CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(settingsState.iconSize.dp) // Adjust preview size
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.onSurface)
+                                    )
+                                }
+                                IconButton(onClick = { settingsViewModel.changeIconSize(increase = true) }) {
+                                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.button_increase_app_icon_size))
+                                }
+                            }
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+                item {
+                    IconShapeSettingItem(currentShape = iconShapeString,
+                        onShapeChange = {
+                            newShape ->
+                            settingsViewModel.setIconShape(newShape)
+                        }
+                    )
+                }
+                item {
+                    IconPackSettingItem(
+                        currentPack = iconPackPackage,
+                       onSetPack = { pack ->
+                           settingsViewModel.setIconPackPackage(pack)
+                       } )
+                }
+                if(settingsState.autoWallpapers || settingsState.monochrome )item{
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_themed_icons)) },
+                        supportingContent = { Text(stringResource(R.string.themed_icons_text)) },
+                        leadingContent = {
+                            Icon(
+                                Icons.Filled.ColorLens,
+                                contentDescription = stringResource(R.string.icon_themed_icons)
+                            )
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = settingsState.showThemedIcons,
+                                onCheckedChange = {
+                                    if(!settingsState.isBatterySaver){
+                                        settingsViewModel.setThemedIcons(it)
+                                    } else {
+                                        Toast.makeText(context,textSavingBattery,Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            if(!settingsState.isBatterySaver) {
+                                settingsViewModel.setThemedIcons(!settingsState.showThemedIcons)
+                            } else {
+                                Toast.makeText(context,textSavingBattery,Toast.LENGTH_SHORT).show()
+                            }
+                                                      },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_notification_badges)) },
+                        supportingContent = { Text(stringResource(R.string.requires_notification_permission)) },
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.outline_notifications_unread_24),
+                                contentDescription = stringResource(R.string.icon_notification_badges)
+                            )
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = settingsState.hasNotificationAccess,
+                                onCheckedChange = { checkShowDiscloseOrPermissionIntent() }
+                            )
+                        },
+                        modifier = Modifier.clickable { checkShowDiscloseOrPermissionIntent() },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                     )
                 }
             }
-            item { SectionHeader(stringResource(R.string.title_app_icons)) }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_app_icon_size)) },
-                    supportingContent = { Text("${settingsState.iconSize} dp") },
-                    leadingContent = {
-                        Icon(
-                            painter = painterResource(R.drawable.outline_photo_size_select_small_24),
-                            contentDescription = stringResource(R.string.icon_app_icon_size)
-                        )
-                    },
-                    trailingContent = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { settingsViewModel.changeIconSize(increase = false) }) {
-                                Icon(
-                                    painter = painterResource(R.drawable.outline_remove_24),
-                                    contentDescription = stringResource(R.string.button_decrease_app_icon_size)
-                                )
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .size(56.dp)
-                                    .clip(CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(settingsState.iconSize.dp) // Adjust preview size
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.onSurface)
-                                )
-                            }
-                            IconButton(onClick = { settingsViewModel.changeIconSize(increase = true) }) {
-                                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.button_increase_app_icon_size))
-                            }
-                        }
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            item {
-                IconShapeSettingItem(currentShape = iconShapeString,
-                    onShapeChange = {
-                        newShape ->
-                        settingsViewModel.setIconShape(newShape)
-                    }
-                )
-            }
-            item {
-                IconPackSettingItem(
-                    currentPack = iconPackPackage,
-                   onSetPack = { pack ->
-                       settingsViewModel.setIconPackPackage(pack)
-                   } )
-            }
-            if(settingsState.autoWallpapers || settingsState.monochrome )item{
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_themed_icons)) },
-                    supportingContent = { Text(stringResource(R.string.themed_icons_text)) },
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.ColorLens,
-                            contentDescription = stringResource(R.string.icon_themed_icons)
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settingsState.showThemedIcons,
-                            onCheckedChange = {
-                                if(!settingsState.isBatterySaver){
-                                    settingsViewModel.setThemedIcons(it)
-                                } else {
-                                    Toast.makeText(context,textSavingBattery,Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        if(!settingsState.isBatterySaver) {
-                            settingsViewModel.setThemedIcons(!settingsState.showThemedIcons)
-                        } else {
-                            Toast.makeText(context,textSavingBattery,Toast.LENGTH_SHORT).show()
-                        }
-                                                  },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_notification_badges)) },
-                    supportingContent = { Text(stringResource(R.string.requires_notification_permission)) },
-                    leadingContent = {
-                        Icon(
-                            painter = painterResource(R.drawable.outline_notifications_unread_24),
-                            contentDescription = stringResource(R.string.icon_notification_badges)
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settingsState.hasNotificationAccess,
-                            onCheckedChange = { checkShowDiscloseOrPermissionIntent() }
-                        )
-                    },
-                    modifier = Modifier.clickable { checkShowDiscloseOrPermissionIntent() },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            item { SectionHeader(stringResource(R.string.title_home_screen)) }
-            item {
-                ListItem(
-                    headlineContent = {
-                        Row {
-                            Text(stringResource(R.string.title_custom_widgets))
-                        }
-                    },
-                    supportingContent = { Text(stringResource(R.string.custom_widgets_text)) },
-                    leadingContent = {
-                        Icon(
-                            painter = painterResource(R.drawable.outline_custom_widgets_24),
-                            contentDescription = stringResource(R.string.icon_custom_widgets)
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settingsState.hasCustomWidgets,
-                            onCheckedChange = { settingsViewModel.setCustomWidgets(it) }
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        settingsViewModel.setCustomWidgets(!settingsState.hasCustomWidgets)
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            if (!settingsState.hasCustomWidgets) {
+            SettingsPage.HOME -> {
                 item {
                     ListItem(
                         headlineContent = {
-                            Text(stringResource(R.string.weather_widget_title))
+                            Row {
+                                Text(stringResource(R.string.title_custom_widgets))
+                            }
                         },
-                        supportingContent = {
-                            Text(stringResource(R.string.weather_widget_summary))
-                        },
+                        supportingContent = { Text(stringResource(R.string.custom_widgets_text)) },
                         leadingContent = {
                             Icon(
-                                Icons.Filled.Cloud,
-                                contentDescription = stringResource(R.string.weather_widget_title),
+                                painter = painterResource(R.drawable.outline_custom_widgets_24),
+                                contentDescription = stringResource(R.string.icon_custom_widgets)
                             )
                         },
                         trailingContent = {
                             Switch(
-                                checked = settingsState.showWeatherWidget,
-                                onCheckedChange = ::updateWeatherWidget,
+                                checked = settingsState.hasCustomWidgets,
+                                onCheckedChange = { settingsViewModel.setCustomWidgets(it) }
                             )
                         },
                         modifier = Modifier.clickable {
-                            updateWeatherWidget(!settingsState.showWeatherWidget)
+                            settingsViewModel.setCustomWidgets(!settingsState.hasCustomWidgets)
                         },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                     )
                 }
-            }
-            item {
-                val layoutOptions:Map<String,Painter> = mapOf(
-                    "linear" to painterResource(R.drawable.layout_linear),
-                    "circular" to painterResource(R.drawable.layout_circular)
-                )
-                AppsLayoutSettingItem(
-                    title = stringResource(R.string.title_quick_apps_layout),
-                    subtitle = stringResource(R.string.quick_apps_layout_text),
-                    leadingPainter = painterResource(R.drawable.outline_apps_24),
-                    layoutOptions = layoutOptions,
-                    selectedLayout = quickAppsLayout,
-                    onLayoutSelected = { layout -> settingsViewModel.setQuickAppsLayout(layout)}
-                )
-            }
-            item {
-                val intent = Intent(context, AppSelectionActivity::class.java).apply {
-                    putExtra("swipe_direction", "left")
+                if (!settingsState.hasCustomWidgets) {
+                    item {
+                        ListItem(
+                            headlineContent = {
+                                Text(stringResource(R.string.weather_widget_title))
+                            },
+                            supportingContent = {
+                                Text(stringResource(R.string.weather_widget_summary))
+                            },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Filled.Cloud,
+                                    contentDescription = stringResource(R.string.weather_widget_title),
+                                )
+                            },
+                            trailingContent = {
+                                Switch(
+                                    checked = settingsState.showWeatherWidget,
+                                    onCheckedChange = ::updateWeatherWidget,
+                                )
+                            },
+                            modifier = Modifier.clickable {
+                                updateWeatherWidget(!settingsState.showWeatherWidget)
+                            },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        )
+                    }
                 }
-                SwipeActionSettingItem(
-                    headline = stringResource(R.string.title_left_swipe_action),
-                    icon = {
-                        Icon(
-                            Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = stringResource(R.string.icon_left_swipe_action)
-                        )
-                    },
-                    selectedApp = leftSwipeApp, // Your state variable
-                    isWidgetsSelected = isLeftSwipeWidgets, // Your state variable
-                    onAppSelectionClick = {
-                        // This now launches the app selection activity
-                        appSelectionLauncher.launch(intent)
-                    },
-                    onWidgetsSelectionClick = {
-                        settingsViewModel.setWidgetsOnSwipe("left")
-                    },
-                    iconShape = getShapeFromShape(iconShape, iconSize.dp)
-                )
-            }
-            item {
-                val intent = Intent(context, AppSelectionActivity::class.java).apply {
-                    putExtra("swipe_direction", "right")
+                item {
+                    val layoutOptions:Map<String,Painter> = mapOf(
+                        "linear" to painterResource(R.drawable.layout_linear),
+                        "circular" to painterResource(R.drawable.layout_circular)
+                    )
+                    AppsLayoutSettingItem(
+                        title = stringResource(R.string.title_quick_apps_layout),
+                        subtitle = stringResource(R.string.quick_apps_layout_text),
+                        leadingPainter = painterResource(R.drawable.outline_apps_24),
+                        layoutOptions = layoutOptions,
+                        selectedLayout = quickAppsLayout,
+                        onLayoutSelected = { layout -> settingsViewModel.setQuickAppsLayout(layout)}
+                    )
                 }
-                SwipeActionSettingItem(
-                    headline = stringResource(R.string.title_right_swipe_action),
-                    icon = {
-                        Icon(
-                            Icons.AutoMirrored.Default.ArrowForward,
-                            contentDescription = stringResource(R.string.icon_right_swipe_action)
-                        )
-                    },
-                    selectedApp = rightSwipeApp, // Your state variable
-                    isWidgetsSelected = isRightSwipeWidgets, // Your state variable
-                    onAppSelectionClick = {
-                        // This now launches the app selection activity
-                        appSelectionLauncher.launch(intent)
-                    },
-                    onWidgetsSelectionClick = {
-                        settingsViewModel.setWidgetsOnSwipe("right")
-                    },
-                    iconShape = getShapeFromShape(iconShape, iconSize.dp)
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = {
-                        Row {
-                            Text(stringResource(R.string.title_swipe_gestures))
-                        }
-                                      },
-                    supportingContent = { Text(stringResource(R.string.swipe_gestures_text)) },
-                    leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
-                        contentDescription = stringResource(R.string.icon_swipe_gestures)) },
-                    trailingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.icon_arrow_right)
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, GestureShortcutActivity::class.java))
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_status_bar)) },
-                    supportingContent = { Text(stringResource(R.string.show_hide_status_bar)) },
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.SmartButton,
-                            contentDescription = stringResource(R.string.title_status_bar)
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settingsState.topBarVisible,
-                            onCheckedChange = { settingsViewModel.setTopBarVisible(it) }
-                        )
-                    },
-                    modifier = Modifier.clickable { settingsViewModel.setTopBarVisible(!settingsState.topBarVisible) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            item { SectionHeader(stringResource(R.string.title_app_drawer)) }
-            item {
-                val layoutOptions:Map<String,Painter> = mapOf(
-                    "linear" to painterResource(R.drawable.outline_apps_24),
-                    "circular" to painterResource(R.drawable.layout_comfer)
-                )
-                AppsLayoutSettingItem(
-                    title = stringResource(R.string.title_app_drawer_layouts),
-                    subtitle = stringResource(R.string.app_drawer_layouts_text),
-                    leadingPainter = painterResource(R.drawable.outline_apps_24),
-                    layoutOptions = layoutOptions,
-                    selectedLayout = appDrawerLayout,
-                    onLayoutSelected = { layout -> settingsViewModel.setAppDrawerLayout(layout)}
-                )
-            }
-            if (appDrawerLayout != "circular") {
+                item {
+                    val intent = Intent(context, AppSelectionActivity::class.java).apply {
+                        putExtra("swipe_direction", "left")
+                    }
+                    SwipeActionSettingItem(
+                        headline = stringResource(R.string.title_left_swipe_action),
+                        icon = {
+                            Icon(
+                                Icons.AutoMirrored.Default.ArrowBack,
+                                contentDescription = stringResource(R.string.icon_left_swipe_action)
+                            )
+                        },
+                        selectedApp = leftSwipeApp, // Your state variable
+                        isWidgetsSelected = isLeftSwipeWidgets, // Your state variable
+                        onAppSelectionClick = {
+                            // This now launches the app selection activity
+                            appSelectionLauncher.launch(intent)
+                        },
+                        onWidgetsSelectionClick = {
+                            settingsViewModel.setWidgetsOnSwipe("left")
+                        },
+                        iconShape = getShapeFromShape(iconShape, iconSize.dp)
+                    )
+                }
+                item {
+                    val intent = Intent(context, AppSelectionActivity::class.java).apply {
+                        putExtra("swipe_direction", "right")
+                    }
+                    SwipeActionSettingItem(
+                        headline = stringResource(R.string.title_right_swipe_action),
+                        icon = {
+                            Icon(
+                                Icons.AutoMirrored.Default.ArrowForward,
+                                contentDescription = stringResource(R.string.icon_right_swipe_action)
+                            )
+                        },
+                        selectedApp = rightSwipeApp, // Your state variable
+                        isWidgetsSelected = isRightSwipeWidgets, // Your state variable
+                        onAppSelectionClick = {
+                            // This now launches the app selection activity
+                            appSelectionLauncher.launch(intent)
+                        },
+                        onWidgetsSelectionClick = {
+                            settingsViewModel.setWidgetsOnSwipe("right")
+                        },
+                        iconShape = getShapeFromShape(iconShape, iconSize.dp)
+                    )
+                }
                 item {
                     ListItem(
-                        headlineContent = { Text(stringResource(R.string.show_app_titles)) },
-                        supportingContent = {
-                            Text(stringResource(R.string.show_app_titles_summary))
+                        headlineContent = {
+                            Row {
+                                Text(stringResource(R.string.title_swipe_gestures))
+                            }
+                                          },
+                        supportingContent = { Text(stringResource(R.string.swipe_gestures_text)) },
+                        leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
+                            contentDescription = stringResource(R.string.icon_swipe_gestures)) },
+                        trailingContent = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = stringResource(R.string.icon_arrow_right)
+                            )
                         },
+                        modifier = Modifier.clickable {
+                            context.startActivity(Intent(context, GestureShortcutActivity::class.java))
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_status_bar)) },
+                        supportingContent = { Text(stringResource(R.string.show_hide_status_bar)) },
                         leadingContent = {
                             Icon(
-                                Icons.Filled.TextFields,
-                                contentDescription = stringResource(R.string.show_app_titles),
+                                Icons.Filled.SmartButton,
+                                contentDescription = stringResource(R.string.title_status_bar)
                             )
                         },
                         trailingContent = {
                             Switch(
-                                checked = settingsState.showAppTitles,
-                                onCheckedChange = settingsViewModel::setShowAppTitles,
+                                checked = settingsState.topBarVisible,
+                                onCheckedChange = { settingsViewModel.setTopBarVisible(it) }
+                            )
+                        },
+                        modifier = Modifier.clickable { settingsViewModel.setTopBarVisible(!settingsState.topBarVisible) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+            }
+            SettingsPage.DRAWER -> {
+                item {
+                    val layoutOptions:Map<String,Painter> = mapOf(
+                        "linear" to painterResource(R.drawable.outline_apps_24),
+                        "circular" to painterResource(R.drawable.layout_comfer)
+                    )
+                    AppsLayoutSettingItem(
+                        title = stringResource(R.string.title_app_drawer_layouts),
+                        subtitle = stringResource(R.string.app_drawer_layouts_text),
+                        leadingPainter = painterResource(R.drawable.outline_apps_24),
+                        layoutOptions = layoutOptions,
+                        selectedLayout = appDrawerLayout,
+                        onLayoutSelected = { layout -> settingsViewModel.setAppDrawerLayout(layout)}
+                    )
+                }
+                if (appDrawerLayout != "circular") {
+                    item {
+                        ListItem(
+                            headlineContent = { Text(stringResource(R.string.show_app_titles)) },
+                            supportingContent = {
+                                Text(stringResource(R.string.show_app_titles_summary))
+                            },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Filled.TextFields,
+                                    contentDescription = stringResource(R.string.show_app_titles),
+                                )
+                            },
+                            trailingContent = {
+                                Switch(
+                                    checked = settingsState.showAppTitles,
+                                    onCheckedChange = settingsViewModel::setShowAppTitles,
+                                )
+                            },
+                            modifier = Modifier.clickable {
+                                settingsViewModel.setShowAppTitles(!settingsState.showAppTitles)
+                            },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        )
+                    }
+                }
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_alphabetical_order)) },
+                        supportingContent = { Text(stringResource(R.string.alphabetical_order_text)) },
+                        leadingContent = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.Sort,
+                                contentDescription = stringResource(R.string.icon_alphabetical_order)
+                            )
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = settingsState.arrangeInAlphabeticalOrder,
+                                onCheckedChange = { settingsViewModel.setAlphabeticalOrder(it) }
+                            )
+                        },
+                        modifier = Modifier.clickable { settingsViewModel.setAlphabeticalOrder(!settingsState.arrangeInAlphabeticalOrder) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+                item { SectionHeader(stringResource(R.string.title_apps_list)) }
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_manage_app_list)) },
+                        supportingContent = { Text(stringResource(R.string.manage_app_list_text)) },
+                        leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.icon_manage_app_list)) },
+                        trailingContent = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = stringResource(R.string.icon_arrow_right)
                             )
                         },
                         modifier = Modifier.clickable {
-                            settingsViewModel.setShowAppTitles(!settingsState.showAppTitles)
+                            context.startActivity(Intent(context, ManageAppListActivity::class.java))
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+            }
+            SettingsPage.PROTECTION -> {
+                item { ProtectionTimeoutSetting(settingsState.protectionTimeoutSeconds, settingsViewModel::setProtectionTimeout) }
+            }
+            SettingsPage.BACKUP -> {
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_backup)) },
+                        supportingContent = { Text(stringResource(R.string.backup_summary)) },
+                        leadingContent = {
+                            Icon(
+                                Icons.Filled.Backup,
+                                contentDescription = stringResource(R.string.title_backup),
+                            )
+                        },
+                        trailingContent = {
+                            if (backupRestoreOperation == BackupRestoreOperation.BACKUP) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                            }
+                        },
+                        modifier = Modifier.clickable(enabled = backupRestoreOperation == null) {
+                            coroutineScope.launch {
+                            protectedNotesForBackup = try { withContext(Dispatchers.IO) { com.jeerovan.comfer.notes.NotesBackup.requiresAuthentication(context) } } catch (error: Exception) { Toast.makeText(context, resources.getString(backupErrorLabel(error)), Toast.LENGTH_LONG).show(); return@launch }
+                            if (com.jeerovan.comfer.journals.JournalProtection.requiresAuthentication(context) || protectedNotesForBackup) {
+                                journalPassword = ""; showJournalExportPassword = true
+                            } else if (!launchDocumentPickerSafely {
+                                    journalPassword = ""
+                                    createBackupLauncher.launch(
+                                        BackupRestoreManager.suggestedFileName()
+                                    )
+                                }) {
+                                Toast.makeText(
+                                    context,
+                                    R.string.backup_document_picker_unavailable,
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            }
+                            }
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    )
+                }
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_restore)) },
+                        supportingContent = { Text(stringResource(R.string.restore_summary)) },
+                        leadingContent = {
+                            Icon(
+                                Icons.Filled.Restore,
+                                contentDescription = stringResource(R.string.title_restore),
+                            )
+                        },
+                        trailingContent = {
+                            if (backupRestoreOperation == BackupRestoreOperation.RESTORE) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                            }
+                        },
+                        modifier = Modifier.clickable(enabled = backupRestoreOperation == null) {
+                            // Older DocumentsUI providers report ZIP files with
+                            // vendor-specific MIME types. Let the user select any
+                            // file; the restore preflight strictly validates ZIP
+                            // structure, manifest, version, and checksums.
+                            if (!launchDocumentPickerSafely {
+                                    openRestoreLauncher.launch(arrayOf("*/*"))
+                                }) {
+                                Toast.makeText(
+                                    context,
+                                    R.string.backup_document_picker_unavailable,
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            }
                         },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                     )
                 }
             }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_alphabetical_order)) },
-                    supportingContent = { Text(stringResource(R.string.alphabetical_order_text)) },
-                    leadingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Sort,
-                            contentDescription = stringResource(R.string.icon_alphabetical_order)
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settingsState.arrangeInAlphabeticalOrder,
-                            onCheckedChange = { settingsViewModel.setAlphabeticalOrder(it) }
-                        )
-                    },
-                    modifier = Modifier.clickable { settingsViewModel.setAlphabeticalOrder(!settingsState.arrangeInAlphabeticalOrder) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
+            SettingsPage.PERFORMANCE -> {
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_battery_saver)) },
+                        supportingContent = { Text(stringResource(R.string.battery_saver_text)) },
+                        leadingContent = {
+                            Icon(
+                                Icons.Filled.BatterySaver,
+                                contentDescription = stringResource(R.string.title_battery_saver)
+                            )
+                        },
+                        trailingContent = {
+                            Switch(
+                                checked = settingsState.isBatterySaver,
+                                onCheckedChange = { settingsViewModel.setBatterySaver(it) }
+                            )
+                        },
+                        modifier = Modifier.clickable { settingsViewModel.setBatterySaver(!settingsState.isBatterySaver) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
             }
-            item { SectionHeader(stringResource(R.string.title_apps_list)) }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_manage_app_list)) },
-                    supportingContent = { Text(stringResource(R.string.manage_app_list_text)) },
-                    leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.icon_manage_app_list)) },
-                    trailingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.icon_arrow_right)
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, ManageAppListActivity::class.java))
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            item { SectionHeader(stringResource(R.string.protection_settings)) }
-            item { ProtectionTimeoutSetting(settingsState.protectionTimeoutSeconds, settingsViewModel::setProtectionTimeout) }
-            item { SectionHeader(stringResource(R.string.title_backup_section)) }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_backup)) },
-                    supportingContent = { Text(stringResource(R.string.backup_summary)) },
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.Backup,
-                            contentDescription = stringResource(R.string.title_backup),
-                        )
-                    },
-                    trailingContent = {
-                        if (backupRestoreOperation == BackupRestoreOperation.BACKUP) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            SettingsPage.SUPPORT -> {
+                item { SocialLinksRow() }
+                item {
+                    val scale = if (!howtoGuideShown) {
+                        val infiniteTransition = rememberInfiniteTransition(label = "howToGuidePulse")
+                        infiniteTransition.animateFloat(
+                            initialValue = 1.07f,
+                            targetValue = 1f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(1000, easing = FastOutSlowInEasing),
+                                repeatMode = RepeatMode.Reverse
+                            ),
+                            label = "howToGuideScale",
+                        ).value
+                    } else {
+                        1f
+                    }
+                    var howtoGuideModifier  = Modifier
+                        .then(if (!howtoGuideShown) Modifier.graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                        } else Modifier)
+                        .clickable {
+                            if(!howtoGuideShown) {
+                                settingsViewModel.setStepGuideShown(context, howtoGuideKey)
+                                howtoGuideShown = true
+                            }
+                            context.startActivity(Intent(context, GuideActivity::class.java))
                         }
-                    },
-                    modifier = Modifier.clickable(enabled = backupRestoreOperation == null) {
-                        coroutineScope.launch {
-                        protectedNotesForBackup = try { withContext(Dispatchers.IO) { com.jeerovan.comfer.notes.NotesBackup.requiresAuthentication(context) } } catch (error: Exception) { Toast.makeText(context, resources.getString(backupErrorLabel(error)), Toast.LENGTH_LONG).show(); return@launch }
-                        if (com.jeerovan.comfer.journals.JournalProtection.requiresAuthentication(context) || protectedNotesForBackup) {
-                            journalPassword = ""; showJournalExportPassword = true
-                        } else if (!launchDocumentPickerSafely {
-                                journalPassword = ""
-                                createBackupLauncher.launch(
-                                    BackupRestoreManager.suggestedFileName()
+                    ListItem(
+                        modifier = howtoGuideModifier,
+                        headlineContent = { Text(stringResource(R.string.title_how_to)) },
+                        supportingContent = { Text(stringResource(R.string.app_guide_title)) },
+                        leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
+                            contentDescription = stringResource(R.string.icon_how_to_guide)) },
+                        trailingContent = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = stringResource(R.string.icon_arrow_right)
+                            )
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+                item {
+                    val context = LocalContext.current
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_report_issue)) },
+                        leadingContent = {
+                            Icon(
+                                Icons.Filled.Support,
+                                contentDescription = stringResource(R.string.icon_support))
+                        },
+                        trailingContent = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = stringResource(R.string.icon_arrow_right)
+                            )
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.clickable {
+                            openUrl("https://github.com/jeerovan/Comfer/issues",context)
+                        }
+                    )
+                }
+                item {
+                    val context = LocalContext.current
+                    val packageName = context.packageName
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_feedback)) },
+                        leadingContent = { Icon(painter = painterResource(R.drawable.outline_star_rate_24), contentDescription = stringResource(R.string.icon_feedback)) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.clickable {
+                            try {
+                                // Try to open the Play Store app directly
+                                val playStoreIntent = Intent(Intent.ACTION_VIEW,
+                                    "market://details?id=$packageName".toUri())
+                                context.startActivity(playStoreIntent)
+                            } catch (_: Exception) {
+                                // If Play Store is not installed, open in a web browser
+                                openUrl(
+                                    "https://play.google.com/store/apps/details?id=$packageName",
+                                    context,
                                 )
-                            }) {
-                            Toast.makeText(
-                                context,
-                                R.string.backup_document_picker_unavailable,
-                                Toast.LENGTH_SHORT,
-                            ).show()
+                            }
                         }
+                    )
+                }
+                item {
+                    val context = LocalContext.current
+                    val packageName = context.packageName
+                    val playStoreUrl = "https://play.google.com/store/apps/details?id=$packageName"
+                    val shareText = stringResource(R.string.share_app_text)
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_share_app)) },
+                        leadingContent = { Icon(Icons.Default.Share, contentDescription = stringResource(R.string.icon_share_app)) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.clickable {
+                            // Create a share intent
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(
+                                    Intent.EXTRA_TEXT,
+                                    "$shareText $playStoreUrl"
+                                )
+                            }
+                            // Use a chooser to show the Android share sheet
+                            context.startActivity(Intent.createChooser(shareIntent, stringShareWith))
                         }
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_restore)) },
-                    supportingContent = { Text(stringResource(R.string.restore_summary)) },
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.Restore,
-                            contentDescription = stringResource(R.string.title_restore),
-                        )
-                    },
-                    trailingContent = {
-                        if (backupRestoreOperation == BackupRestoreOperation.RESTORE) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                        }
-                    },
-                    modifier = Modifier.clickable(enabled = backupRestoreOperation == null) {
-                        // Older DocumentsUI providers report ZIP files with
-                        // vendor-specific MIME types. Let the user select any
-                        // file; the restore preflight strictly validates ZIP
-                        // structure, manifest, version, and checksums.
-                        if (!launchDocumentPickerSafely {
-                                openRestoreLauncher.launch(arrayOf("*/*"))
-                            }) {
-                            Toast.makeText(
-                                context,
-                                R.string.backup_document_picker_unavailable,
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        }
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                )
-            }
-            item { SectionHeader(stringResource(R.string.title_performance)) }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_battery_saver)) },
-                    supportingContent = { Text(stringResource(R.string.battery_saver_text)) },
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.BatterySaver,
-                            contentDescription = stringResource(R.string.title_battery_saver)
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = settingsState.isBatterySaver,
-                            onCheckedChange = { settingsViewModel.setBatterySaver(it) }
-                        )
-                    },
-                    modifier = Modifier.clickable { settingsViewModel.setBatterySaver(!settingsState.isBatterySaver) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            item { SectionHeader(stringResource(R.string.title_support))}
-            item { SocialLinksRow() }
-            item {
-                ListItem(
-                    modifier = howtoGuideModifier,
-                    headlineContent = { Text(stringResource(R.string.title_how_to)) },
-                    supportingContent = { Text(stringResource(R.string.app_guide_title)) },
-                    leadingContent = { Icon(painter = painterResource(R.drawable.outline_gesture_24),
-                        contentDescription = stringResource(R.string.icon_how_to_guide)) },
-                    trailingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.icon_arrow_right)
-                        )
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            item {
-                val context = LocalContext.current
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_report_issue)) },
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.Support,
-                            contentDescription = stringResource(R.string.icon_support))
-                    },
-                    trailingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.icon_arrow_right)
-                        )
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    modifier = Modifier.clickable {
-                        openUrl("https://github.com/jeerovan/Comfer/issues",context)
-                    }
-                )
-            }
-            item {
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp),
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = {Text(stringResource(R.string.title_app_language))},
-                    supportingContent = { Text(stringResource(R.string.app_language_text))},
-                    leadingContent = { Icon(Icons.Default.Translate, contentDescription = stringResource(R.string.icon_app_language))},
-                    modifier = Modifier.clickable {
-                        showLocaleSelection = true
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                )
-            }
-            item {
-                val context = LocalContext.current
-                val packageName = context.packageName
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_feedback)) },
-                    leadingContent = { Icon(painter = painterResource(R.drawable.outline_star_rate_24), contentDescription = stringResource(R.string.icon_feedback)) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    modifier = Modifier.clickable {
-                        try {
-                            // Try to open the Play Store app directly
-                            val playStoreIntent = Intent(Intent.ACTION_VIEW,
-                                "market://details?id=$packageName".toUri())
-                            context.startActivity(playStoreIntent)
-                        } catch (_: Exception) {
-                            // If Play Store is not installed, open in a web browser
+                    )
+                }
+                item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.title_app_version)) },
+                        supportingContent = { Text(appVersion.orEmpty()) },
+                        leadingContent = { Icon(Icons.Default.Info, contentDescription = stringResource(R.string.icon_app_version)) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+                if(saveLogs)item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.ui_logs)) },
+                        supportingContent = { Text(stringResource(R.string.ui_app_logs)) },
+                        leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.ui_app_logs)) },
+                        trailingContent = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = stringResource(R.string.ui_view)
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            context.startActivity(Intent(context, LogcatViewActivity::class.java))
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+                if(saveCrashes)item {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.ui_crash_logs)) },
+                        supportingContent = { Text(stringResource(R.string.ui_view_uncaught_exceptions)) },
+                        leadingContent = {
+                            Icon(
+                                Icons.Default.Menu,
+                                contentDescription = stringResource(R.string.ui_view_crash_logs))
+                        },
+                        trailingContent = {
+                            Icon(
+                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = stringResource(R.string.ui_go)
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            context.startActivity(Intent(context, CrashViewActivity::class.java))
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+                item { SectionHeader(stringResource(R.string.more_from_jeerovan)) }
+                item {
+                    PromoAppSection(
+                        title = "FiFe",
+                        subtitle = stringResource(R.string.fife_subtitle),
+                        logoPainter = painterResource(R.drawable.fife_logo),
+                        onClick = {
                             openUrl(
-                                "https://play.google.com/store/apps/details?id=$packageName",
+                                "https://play.google.com/store/apps/details?id=com.jeerovan.fife",
                                 context,
                             )
                         }
-                    }
-                )
-            }
-            item {
-                val context = LocalContext.current
-                val packageName = context.packageName
-                val playStoreUrl = "https://play.google.com/store/apps/details?id=$packageName"
-                val shareText = stringResource(R.string.share_app_text)
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_share_app)) },
-                    leadingContent = { Icon(Icons.Default.Share, contentDescription = stringResource(R.string.icon_share_app)) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                    modifier = Modifier.clickable {
-                        // Create a share intent
-                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(
-                                Intent.EXTRA_TEXT,
-                                "$shareText $playStoreUrl"
+                    )
+                }
+                item {
+                    PromoAppSection(
+                        title = "TechNews24",
+                        subtitle = "AI & Tech News",
+                        logoPainter = painterResource(R.drawable.technews24),
+                        onClick = {
+                            openUrl(
+                                "https://play.google.com/store/apps/details?id=app.technews24",
+                                context,
                             )
                         }
-                        // Use a chooser to show the Android share sheet
-                        context.startActivity(Intent.createChooser(shareIntent, stringShareWith))
-                    }
-                )
+                    )
+                }
             }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.title_app_version)) },
-                    supportingContent = { Text(appVersion.orEmpty()) },
-                    leadingContent = { Icon(Icons.Default.Info, contentDescription = stringResource(R.string.icon_app_version)) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            if(saveLogs)item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.ui_logs)) },
-                    supportingContent = { Text(stringResource(R.string.ui_app_logs)) },
-                    leadingContent = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.ui_app_logs)) },
-                    trailingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.ui_view)
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, LogcatViewActivity::class.java))
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            if(saveCrashes)item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.ui_crash_logs)) },
-                    supportingContent = { Text(stringResource(R.string.ui_view_uncaught_exceptions)) },
-                    leadingContent = {
-                        Icon(
-                            Icons.Default.Menu,
-                            contentDescription = stringResource(R.string.ui_view_crash_logs))
-                    },
-                    trailingContent = {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.ui_go)
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        context.startActivity(Intent(context, CrashViewActivity::class.java))
-                    },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                )
-            }
-            item { Spacer(Modifier.height(24.dp)) }
-        }
         }
     }
     if (showJournalExportPassword) com.jeerovan.comfer.journals.JournalExportPasswordDialog(

@@ -1,0 +1,6 @@
+{
+  "rationale": "Requested Settings enhancement precedes release candidate",
+  "relation": "verifies",
+  "source": "R59-SETTINGS-CHECK",
+  "target": "R59-SETTINGS"
+}

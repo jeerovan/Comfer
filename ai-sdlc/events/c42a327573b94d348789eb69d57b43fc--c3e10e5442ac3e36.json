@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R59-SETTINGS",
+    "reopened": [],
+    "to": "in_progress"
+  },
+  "id": "c42a327573b94d348789eb69d57b43fc",
+  "reason": "Category implementation built and installed in isolated package; current device matrix in progress",
+  "seq": 461,
+  "time": "2026-11-11T01:00:41.352398+00:00"
+}

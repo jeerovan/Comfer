@@ -1,0 +1,6 @@
+{
+  "rationale": "Visible Redmi wallpaper behavior must be reconciled before candidate preparation",
+  "relation": "implements",
+  "source": "R59-WALLPAPER-REVIEW",
+  "target": "R59-WALLPAPER-REQ"
+}

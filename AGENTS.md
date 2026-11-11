@@ -4,7 +4,14 @@
   `/Volumes/JS/Repos/Comfer`, for active requirements and delivery state.
   Current priority is release-58 issue investigation (`R58-REFRESH-01`,
   `R58-FETCH`), scoped remediation (`R58-FIX-01`–`R58-FIX-09`) and version-59
-  release testing (`R59-LOCAL-TESTS`, `R59-PREPARE`). The corresponding issue
+  release testing (`R59-LOCAL-TESTS`, `R59-PREPARE`) and the unresolved Redmi
+  visible lock-wallpaper mismatch (`R59-WALLPAPER-REVIEW`). Android wallpaper
+  IDs/readback do not verify MIUI's visible keyguard; retain the actual device
+  failure in `record:release59-redmi-lock-wallpaper` and do not treat it as fixed.
+  The owner-requested modular Settings enhancement (`R59-SETTINGS`) is also a
+  prerequisite for the version-59 release build. Preserve every existing setting
+  while validating bottom-reachable categories, Back/recreation and locale layouts.
+  The corresponding issue
   history attempt IDs remain `58-R02`–`58-R10`; target-version changes do not
   rename attempts or establish production resolution. Sync remains future work.
   Play listing scope is preserved.

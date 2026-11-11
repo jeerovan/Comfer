@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "544d2d685afd4fda8443137e085944c2"
+  },
+  "id": "9aeb1dd4651c4944ad3e247b0f0a4a6d",
+  "reason": "Rerun corrected selectors and execute real language-source/layout matrix",
+  "seq": 454,
+  "time": "2026-11-11T00:51:58.452289+00:00"
+}

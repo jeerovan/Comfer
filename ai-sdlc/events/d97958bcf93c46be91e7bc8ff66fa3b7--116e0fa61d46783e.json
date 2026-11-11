@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "bbd79f57a5b841478024df9813caf627"
+  },
+  "id": "d97958bcf93c46be91e7bc8ff66fa3b7",
+  "reason": "Retain actual visible failure; successful Android ID is insufficient evidence",
+  "seq": 441,
+  "time": "2026-11-11T00:17:31.324375+00:00"
+}

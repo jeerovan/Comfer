@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Visible Redmi wallpaper behavior must be reconciled before candidate preparation",
+      "relation": "realizes",
+      "source": "R59-WALLPAPER-IMPL",
+      "target": "R59-WALLPAPER-REVIEW"
+    },
+    "reopened": []
+  },
+  "id": "9346490365a846d6bcc458a548c89613",
+  "reason": "Make reported runtime gap explicit release prerequisite",
+  "seq": 437,
+  "time": "2026-11-11T00:11:01.309727+00:00"
+}

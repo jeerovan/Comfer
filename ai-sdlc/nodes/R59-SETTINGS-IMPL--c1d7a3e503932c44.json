@@ -1,0 +1,41 @@
+{
+  "criteria": [],
+  "description": "MainActivity lower-half long press -> SettingsActivity -> SettingsScreen; new saved category navigation wraps existing LazyList controls. Shared callbacks/activity-result launchers remain above destinations.",
+  "id": "R59-SETTINGS-IMPL",
+  "kind": "implementation",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/Settings.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/SettingsNavigation.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/ui/ThumbReach.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "completed",
+  "tags": [],
+  "title": "Settings navigation and existing action wiring"
+}

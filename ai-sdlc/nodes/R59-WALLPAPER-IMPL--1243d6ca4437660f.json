@@ -1,0 +1,48 @@
+{
+  "criteria": [],
+  "description": "Normal downloaded/selected image path reaches applyWallpaperBitmap via downloadImage/setWallpaper; default launcher gates WallpaperManager combined flags. Settings opt-in persists then app-scope coordinated lock-only copy. Existing test substitutes isolated prefs and checks Android descriptors, not OEM visible keyguard.",
+  "id": "R59-WALLPAPER-IMPL",
+  "kind": "implementation",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/utils/CommonUtil.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/SettingsViewModel.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/ComferApp.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/PreferenceManager.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/Settings.kt",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Shared wallpaper application and opt-in lifecycle"
+}

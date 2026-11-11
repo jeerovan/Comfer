@@ -1,0 +1,21 @@
+{
+  "criteria": [
+    {
+      "expected": "Visible Redmi lock screen displays the selected current photo; determine and disclose any OEM prerequisite with runtime evidence",
+      "id": "visible-lock",
+      "initial_state": "Redmi regular launcher with lock-wallpaper opt-in enabled and existing owner settings/data",
+      "invariants": "Preserve owner data, theme and wallpaper unless applying requested current Home image; opt-out preserves independent lock wallpaper. No production resolution inferred.",
+      "required_level": "journey",
+      "trigger": "Change Home wallpaper through automatic and selected-photo paths, then view real lock screen"
+    }
+  ],
+  "description": "Owner reports both automatic and selected-photo Home changes leave Redmi lock screen unchanged, despite enabled opt-in. Existing lock-copy commit 2b1bf4a and Android descriptor tests are historical component evidence, not visible MIUI keyguard proof.",
+  "id": "R59-WALLPAPER-REQ",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Redmi lock wallpaper follows enabled Home wallpaper changes"
+}

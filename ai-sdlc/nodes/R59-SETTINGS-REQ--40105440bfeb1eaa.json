@@ -1,0 +1,29 @@
+{
+  "criteria": [
+    {
+      "expected": "Only selected category controls appear; all prior settings remain reachable, saved values persist; Back returns to root then Home; selected category/scroll restore across recreation",
+      "id": "navigation",
+      "initial_state": "Existing preferences and Settings entry from Home",
+      "invariants": "No preference schema/default changes or loss of user data; existing permission/backup/picker flows retained",
+      "required_level": "integration",
+      "trigger": "Open categories, edit representative setting, Back, reopen and recreate Activity"
+    },
+    {
+      "expected": "Root initially shows frequent categories at bottom; leading icons and mirrored trailing arrows; rows remain unclipped and tappable, details scroll, fixed Back remains reachable, locale sources agree",
+      "id": "layout",
+      "initial_state": "Redmi isolated app; English/Arabic system and app locales, portrait/landscape and constrained viewport",
+      "invariants": "Full safe viewport, no landscape reach expansion; preserve original system locale/rotation; labels accessible and all current controls retained",
+      "required_level": "integration",
+      "trigger": "Open root/category, scroll, pull into reach, change orientation and locale"
+    }
+  ],
+  "description": "Replace monolithic settings list with icon/forward-chevron categories. Frequent categories nearest bottom; root starts at bottom and remains scrollable on small screens. Wallpapers, App Icons, Home Screen, App Drawer (including app lists), Protection, Backup, Performance, Support (including promotions/about). App Language remains directly reachable in root. Retain all existing controls and callback behavior.",
+  "id": "R59-SETTINGS-REQ",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "completed",
+  "tags": [],
+  "title": "Modular thumb-reachable Settings"
+}

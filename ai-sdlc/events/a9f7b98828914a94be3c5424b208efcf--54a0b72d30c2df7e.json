@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R59-WALLPAPER-REVIEW",
+    "reopened": [],
+    "to": "blocked"
+  },
+  "id": "a9f7b98828914a94be3c5424b208efcf",
+  "reason": "Visible Redmi acceptance reproduced failed; OEM compatibility remedy remains unresolved",
+  "seq": 442,
+  "time": "2026-11-11T00:17:32.446171+00:00"
+}

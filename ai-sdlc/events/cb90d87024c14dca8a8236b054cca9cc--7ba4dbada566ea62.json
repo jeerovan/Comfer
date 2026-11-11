@@ -1,0 +1,54 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "MainActivity lower-half long press -> SettingsActivity -> SettingsScreen; new saved category navigation wraps existing LazyList controls. Shared callbacks/activity-result launchers remain above destinations.",
+      "id": "R59-SETTINGS-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/Settings.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/SettingsNavigation.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ui/ThumbReach.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Settings navigation and existing action wiring"
+    },
+    "before": null,
+    "node": "R59-SETTINGS-IMPL",
+    "reopened": []
+  },
+  "id": "cb90d87024c14dca8a8236b054cca9cc",
+  "reason": "Owner requests modular bottom-reachable Settings before release",
+  "seq": 445,
+  "time": "2026-11-11T00:44:18.591452+00:00"
+}

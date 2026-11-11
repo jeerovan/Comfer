@@ -1,0 +1,40 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Owner requested install of current changes. Built regular debug58.0 and installed in place on Redmi7/API29 serial71a3063. Installed SHA256 cea473748eb85fd674c9b967ad930e0de0564a7dd117bc0e780e8800aafe3b8c matches local APK; UID/firstInstallTime retained; no uninstall/data clear or owner preference edits. prepare_manual_check.py cold launch passed, actual Home gesture -> modular Settings -> Home Screen category -> Back menu -> Home verified; Recents return and Workspace interaction passed. R59-SETTINGS prior source/test fingerprints unchanged. Focused regular-debug handoff only, no signed/minified59/Play delivery or production resolution. Retained proof and local declared-evidence gate passed. Database record: release59-redmi-debug-update-20261111.",
+      "id": "R59-REDMI-DEBUG-UPDATE",
+      "kind": "change",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "Nonsecret installed identity and actual regular-app observations",
+          "path": "validation-artifacts/redmi-update-20261111/proof.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Installed APK, cold Home and visible control verification",
+          "path": "scripts/prepare_manual_check.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Regular Redmi updated with current fixes and modular Settings"
+    },
+    "before": null,
+    "node": "R59-REDMI-DEBUG-UPDATE",
+    "reopened": []
+  },
+  "id": "61e8215598f4491b94ae9f61b58c13ca",
+  "reason": "Record owner-requested regular Redmi debug update; separate from pending release59/Play delivery.",
+  "seq": 468,
+  "time": "2026-11-11T02:01:08.451135+00:00"
+}

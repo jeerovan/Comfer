@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "ad0333af1626494e8bded55ef63d662a"
+  },
+  "id": "1e63bc4984d641e4964527ab3d9d8bc4",
+  "reason": "Rerun corrected contrast measurement against baseline installed app",
+  "seq": 458,
+  "time": "2026-11-11T00:55:23.573321+00:00"
+}

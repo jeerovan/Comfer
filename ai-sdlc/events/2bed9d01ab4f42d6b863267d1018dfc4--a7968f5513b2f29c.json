@@ -1,0 +1,61 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Normal downloaded/selected image path reaches applyWallpaperBitmap via downloadImage/setWallpaper; default launcher gates WallpaperManager combined flags. Settings opt-in persists then app-scope coordinated lock-only copy. Existing test substitutes isolated prefs and checks Android descriptors, not OEM visible keyguard.",
+      "id": "R59-WALLPAPER-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/utils/CommonUtil.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/SettingsViewModel.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ComferApp.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/PreferenceManager.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/Settings.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Shared wallpaper application and opt-in lifecycle"
+    },
+    "before": null,
+    "node": "R59-WALLPAPER-IMPL",
+    "reopened": []
+  },
+  "id": "2bed9d01ab4f42d6b863267d1018dfc4",
+  "reason": "Track newly reported Redmi wallpaper gap before reproduction",
+  "seq": 434,
+  "time": "2026-11-11T00:10:57.974517+00:00"
+}

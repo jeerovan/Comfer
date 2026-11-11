@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "stale",
+    "run": "ad0333af1626494e8bded55ef63d662a"
+  },
+  "id": "d7b27810da214be68879361defd26f3b",
+  "reason": "Contrast regression reproduced observed defect on installed baseline app; source navigation also refined hidden guide animation after run",
+  "seq": 459,
+  "time": "2026-11-11T00:57:00.747305+00:00"
+}

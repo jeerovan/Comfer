@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "e78388d8a9524b9cb476c06ba9713f2a"
+  },
+  "id": "c34dc6ceff124aa682eb6ab79aa47097",
+  "reason": "Preserve initial result; fix confirmed ambiguous test selector before rerun",
+  "seq": 453,
+  "time": "2026-11-11T00:50:28.779212+00:00"
+}

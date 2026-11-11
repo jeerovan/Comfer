@@ -1,0 +1,68 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Normal SettingsActivity constructors with real preference load; isolated test package. Preserve fixture settings. Existing Home navigation test covers launcher entry; category tests cover menu, Back, recreation, saved toggles and geometry. Wallpaper and language-picker regressions follow new menu.",
+      "id": "R59-SETTINGS-CHECK",
+      "kind": "test",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/SettingsReachLayoutTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/SettingsCategoryNavigationTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/WallpaperSettingsTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/SettingsActivitySmokeTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/InternalNavigationHomeTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/ManageFolderSelectionTest.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Modular Settings navigation, preservation and locale regressions"
+    },
+    "before": null,
+    "node": "R59-SETTINGS-CHECK",
+    "reopened": []
+  },
+  "id": "a3b5dbd12f744062a4131ca5605fe9ba",
+  "reason": "Owner requests modular bottom-reachable Settings before release",
+  "seq": 446,
+  "time": "2026-11-11T00:44:19.739853+00:00"
+}

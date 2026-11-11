@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "77143de732f94208ab8908c3e2310688"
+  },
+  "id": "fe4d7d7153b44fbfa2e0f71c784c2f0c",
+  "reason": "Retain contrast harness error before correction",
+  "seq": 457,
+  "time": "2026-11-11T00:55:18.496950+00:00"
+}

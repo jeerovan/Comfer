@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "544d2d685afd4fda8443137e085944c2"
+  },
+  "id": "dac9a77e0654479688a5465c83f044e6",
+  "reason": "Visual review found dark footer contrast failure despite navigation tests passing",
+  "seq": 455,
+  "time": "2026-11-11T00:53:26.435621+00:00"
+}

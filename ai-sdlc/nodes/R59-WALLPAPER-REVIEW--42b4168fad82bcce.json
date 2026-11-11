@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Compare combined SYSTEM|LOCK normal rotation versus LOCK-only opt-in; inspect actual MIUI lock display and installed artifact. User confirms both automatic and selected photos. Do not apply speculative vendor workarounds or clear Themes data.",
+  "id": "R59-WALLPAPER-REVIEW",
+  "kind": "step",
+  "phase": "discovery",
+  "refs": [],
+  "revision": 1,
+  "status": "blocked",
+  "tags": [],
+  "title": "Investigate Redmi visible lock-wallpaper mismatch"
+}

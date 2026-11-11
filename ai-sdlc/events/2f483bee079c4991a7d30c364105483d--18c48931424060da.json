@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Requested Settings enhancement precedes release candidate",
+      "relation": "verifies",
+      "source": "R59-SETTINGS-CHECK",
+      "target": "R59-SETTINGS"
+    },
+    "reopened": []
+  },
+  "id": "2f483bee079c4991a7d30c364105483d",
+  "reason": "Owner requests modular bottom-reachable Settings before release",
+  "seq": 449,
+  "time": "2026-11-11T00:44:23.603942+00:00"
+}

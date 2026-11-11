@@ -55,7 +55,8 @@ class WallpaperSettingsTest {
         }
         try {
             val snapshots = mutableListOf<Map<Int, List<Float>>>()
-            for (tag in listOf("", systemTag, if (systemLanguage == "ar") "en" else "ar", "")) {
+            val menuSnapshots = mutableListOf<List<List<Float>>>()
+            for (tag in listOf("", systemLanguage, if (systemLanguage == "ar") "en" else "ar", "")) {
                 compose.mainClock.autoAdvance = true
                 changeLanguage(tag)
                 PreferenceManager.setAutoWallpapers(context, false)
@@ -92,6 +93,19 @@ class WallpaperSettingsTest {
                     }
                     waitFor(false)
                     compose.onNodeWithTag("settings-list").assertIsDisplayed()
+                    menuSnapshots += SettingsPage.entries.map { page ->
+                        val tag = "settings-category-${page.name}"
+                        compose.onNodeWithTag("settings-list").performScrollToNode(hasTestTag(tag))
+                        val row = compose.onNodeWithTag(tag).assertIsDisplayed().assertHasClickAction()
+                            .getUnclippedBoundsInRoot()
+                        val icon = compose.onNodeWithTag("settings-icon-${page.name}", true).getUnclippedBoundsInRoot()
+                        val arrow = compose.onNodeWithTag("settings-arrow-${page.name}", true).getUnclippedBoundsInRoot()
+                        assertTrue("Category affordances follow actual effective layout direction",
+                            if (res.configuration.layoutDirection == 1) icon.left > arrow.right else icon.right < arrow.left)
+                        listOf(row.left.value, (row.right - row.left).value, (row.bottom - row.top).value)
+                    }
+                    compose.onNodeWithTag("settings-list").performScrollToNode(hasTestTag("settings-category-WALLPAPERS"))
+                    compose.onNodeWithTag("settings-category-WALLPAPERS").performClick()
                     compose.mainClock.advanceTimeBy(1000)
                     Log.i("WallpaperSettingsTest", "source=$tag settings-ready")
                     compose.onNodeWithTag("settings-list").performScrollToNode(hasText(res.getString(R.string.title_auto_wallpapers)))
@@ -138,6 +152,8 @@ class WallpaperSettingsTest {
             }
             assertEquals("System and picker locales must have the same row geometry", snapshots[0], snapshots[1])
             assertEquals("Returning to system language must restore row geometry", snapshots[0], snapshots[3])
+            assertEquals("Category geometry agrees for system and app language", menuSnapshots[0], menuSnapshots[1])
+            assertEquals("Category geometry returns with system language", menuSnapshots[0], menuSnapshots[3])
         } finally { changeLanguage(previousLocale) }
     }
 
@@ -196,8 +212,28 @@ class WallpaperSettingsTest {
     }
 
     private fun changeLanguage(tag: String) {
-        context.startActivity(Intent(context, LanguageUpdateActivity::class.java)
-            .putExtra(LanguageUpdateActivity.EXTRA_LOCALE_TAG, tag).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        // Language choices use the real root menu and picker. Exact regional tags / system reset
+        // use its existing shared handler because the picker currently only offers language tags.
+        val selected = if (tag.isEmpty()) "" else Locale.forLanguageTag(tag).language
+        if (tag.isNotEmpty() && tag == selected) {
+            ActivityScenario.launch(SettingsActivity::class.java).use { scenario ->
+                compose.onNodeWithTag("settings-list").performScrollToNode(hasTestTag("settings-category-language"))
+                compose.onNodeWithTag("settings-category-language").performClick()
+                val locale = Locale.forLanguageTag(selected)
+                val option = locale.getDisplayName(locale)
+                compose.onNode(hasScrollToIndexAction() and hasAnyAncestor(isDialog()))
+                    .performScrollToNode(hasText(option))
+                compose.onNodeWithText(option).performClick()
+                compose.waitUntil(15_000) {
+                    var ready = false
+                    scenario.onActivity { ready = it.resources.configuration.locales[0].language == selected && it.hasWindowFocus() }
+                    ready
+                }
+            }
+        } else {
+            context.startActivity(Intent(context, LanguageUpdateActivity::class.java)
+                .putExtra(LanguageUpdateActivity.EXTRA_LOCALE_TAG, tag).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
         val deadline = SystemClock.uptimeMillis() + 10_000
         do {
             var applied = false

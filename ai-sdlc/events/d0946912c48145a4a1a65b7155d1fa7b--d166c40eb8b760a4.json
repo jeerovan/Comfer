@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "6e4a9f400ebf4872b60c99559b478853"
+  },
+  "id": "d0946912c48145a4a1a65b7155d1fa7b",
+  "reason": "Verify coherent Settings candidate after contrast and hidden-animation corrections",
+  "seq": 460,
+  "time": "2026-11-11T00:57:19.450236+00:00"
+}
