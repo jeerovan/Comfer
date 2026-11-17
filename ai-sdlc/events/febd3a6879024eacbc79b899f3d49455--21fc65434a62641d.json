@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "6049afb93d484119b4bfe9c053f56c76"
+  },
+  "id": "febd3a6879024eacbc79b899f3d49455",
+  "reason": "Record actual default Home journey observations",
+  "seq": 754,
+  "time": "2026-11-17T03:23:21.771627+00:00"
+}

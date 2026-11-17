@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "stale",
+    "run": "dc1a3c2b910a4a03bca7db52cd1ba9e1"
+  },
+  "id": "3189f836d48a494b966bbfc42e6004e1",
+  "reason": "Keep partial results distinct while completing native locale setup and picker regression",
+  "seq": 764,
+  "time": "2026-11-17T03:36:07.903449+00:00"
+}

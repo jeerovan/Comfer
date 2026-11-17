@@ -86,14 +86,22 @@ class ProSettingsSystemBackTest {
     @Test fun systemBackReturnsBothChildrenToBasicAndPreservesEdits() = withHome { _, model, back, advanced ->
         openSettings(back)
         for (index in 0..1) {
-            compose.onAllNodesWithText(advanced)[index].performScrollTo().performClick()
-            compose.onAllNodesWithText(advanced).assertCountEquals(0)
+            val destination = compose.onAllNodesWithTag("pro-advanced-destination")[index].performScrollTo()
+            val scrollBefore = compose.onNodeWithTag("pro-settings-scroll").fetchSemanticsNode()
+                .config[SemanticsProperties.VerticalScrollAxisRange].value()
+            destination.performClick()
+            compose.onAllNodesWithTag("pro-advanced-destination").assertCountEquals(0)
+            compose.onNodeWithTag("pro-panel-title").assertTextEquals(instrumentation.targetContext.getString(
+                if (index == 0) R.string.title_time else R.string.title_date))
             val angle = compose.onNode(SemanticsMatcher("Angle slider") {
                 it.config.getOrNull(SemanticsProperties.ProgressBarRangeInfo)?.range == 0f..360f
             })
             angle.performScrollTo().performSemanticsAction(SemanticsActions.SetProgress) { it(78f) }
             compose.waitUntil(10_000) { (if (index == 0) model.uiState.value.timeAngle else model.uiState.value.dateAngle) == 78 }
             systemBack()
+            assertEquals("Parent scroll is restored", scrollBefore,
+                compose.onNodeWithTag("pro-settings-scroll").fetchSemanticsNode()
+                    .config[SemanticsProperties.VerticalScrollAxisRange].value(), 1f)
             compose.onAllNodesWithText(advanced).assertCountEquals(2)
             compose.onNodeWithContentDescription(back).assertIsDisplayed()
             compose.onAllNodesWithText(advanced)[index].performScrollTo().performClick()

@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "47dfb52390e341919f95792b18d7b1ba"
+  },
+  "id": "8c3f9d947413455bbf45b73a3b28063f",
+  "reason": "Final coherent appearance and locale acceptance established",
+  "seq": 791,
+  "time": "2026-11-17T04:11:37.416424+00:00"
+}

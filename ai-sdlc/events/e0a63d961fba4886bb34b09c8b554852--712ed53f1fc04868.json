@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "dc6338aaa7cf4f1d9ad48adf34abb1a5"
+  },
+  "id": "e0a63d961fba4886bb34b09c8b554852",
+  "reason": "Final accepted candidate check, all fixes and test setup settled",
+  "seq": 782,
+  "time": "2026-11-17T03:47:57.203307+00:00"
+}

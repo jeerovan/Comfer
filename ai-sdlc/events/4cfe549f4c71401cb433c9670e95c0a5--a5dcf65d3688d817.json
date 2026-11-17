@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "128aa5c8024f4144a37a6df93acf88cc"
+  },
+  "id": "4cfe549f4c71401cb433c9670e95c0a5",
+  "reason": "Final candidate including reproduced system-bar boundary fix",
+  "seq": 790,
+  "time": "2026-11-17T04:02:51.539645+00:00"
+}

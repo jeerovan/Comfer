@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "eb78dc4e0ab04161bad2db3cc64b66c8"
+  },
+  "id": "c8c594d38f844ec0836b24593a955484",
+  "reason": "Picker button geometry passes; shared test helper incorrectly requires slider track to match button height",
+  "seq": 777,
+  "time": "2026-11-17T03:45:42.749750+00:00"
+}

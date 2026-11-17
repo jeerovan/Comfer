@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "3a8846ed2b6f4b5fb5caf1e5b5751fcb"
+  },
+  "id": "372aad9436c247209bee87b560b2b0be",
+  "reason": "Confirm landscape dialog actions are not reachable before fix",
+  "seq": 766,
+  "time": "2026-11-17T03:37:54.514655+00:00"
+}

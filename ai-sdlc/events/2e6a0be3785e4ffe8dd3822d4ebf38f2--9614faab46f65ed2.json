@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "859388ad33544632a29e70a659e1150a"
+  },
+  "id": "2e6a0be3785e4ffe8dd3822d4ebf38f2",
+  "reason": "Final picker check exposed visual action bounds below the declared 48dp minimum",
+  "seq": 775,
+  "time": "2026-11-17T03:44:21.251908+00:00"
+}

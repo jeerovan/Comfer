@@ -1,0 +1,52 @@
+{
+  "adaptations": [],
+  "bypasses": [
+    "Component host; callback state"
+  ],
+  "criteria": [
+    "PRO-SETTINGS-UI-REQ#appearance"
+  ],
+  "entrypoint": "Swatch -> real picker -> Cancel/Save with alpha edit",
+  "environment": "Redmi7 API29 portrait and large landscape, light/dark",
+  "finished_at": "2026-11-17T03:47:52.136802+00:00",
+  "id": "77db7fb43c5d4710882e656393b6cadb",
+  "level": "integration",
+  "observation": "Picker passes in portrait9.604s and original landscape1.3 case9.387s: both themes, Cancel no save, full48dp action bounds, edited alpha74 and unchanged blue color saved once. Matrix log naming changed to preserve prior failures, so broad setup fingerprint may mark this receipt stale; repeat in final matrix.",
+  "order": 132,
+  "proof": {
+    "validation-artifacts/pro-settings-ui-20261117/picker-check-landscape.log": "2e9969a7518b4efae58a89d557b1a4d35450c3a21f20cf56da54dda5879ef24a"
+  },
+  "proof_path": "validation-artifacts/pro-settings-ui-20261117/picker-check-landscape.log",
+  "result": "stale",
+  "snapshot": {
+    "files": {
+      "app/build.gradle.kts": "e3c52ebc4275884e8c5bb072da0b52d48b2a65c78b6db352e9cc16cfa6ce9b36",
+      "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsAppearanceTest.kt": "da8625f6dc72d419efc6283a7f43f51673eb18c8fc0a4f05464e8a16a8198cd2",
+      "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsBackSoundTest.kt": "b9affdad2ef50dd7a24907e697e1a0be5254e14c703a1b68dc6948e9ca99391a",
+      "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsSystemBackTest.kt": "a00b2ad4dce4f0167f16aefb9de68aea3ca8ed7cf1605d6d38328a0869c8cbd8",
+      "app/src/androidTest/java/com/jeerovan/comfer/SettingsOptionsWrapTest.kt": "bb4c7c5bda792281fe9796f992f19791277ef84ab8e7f1c027634f5f81e3cdf9",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetGlassLocaleSourceTest.kt": "5214af5e320c44e70aaac8c492e542cbd9ee0745ad74cd38bc843e5c47565a62",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetResetTest.kt": "5328d5397d0c6740ae7832d8a763c498d49821ac20dae066b48ba97ec921dd9b",
+      "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1",
+      "app/src/main/java/com/jeerovan/comfer/GuideActivity.kt": "07e1245e3523b76b416dad26bf9728a8d160d01e57b491d46def1cbfa95f714e",
+      "app/src/main/java/com/jeerovan/comfer/LanguageUpdateActivity.kt": "7befcfe5f775ba012e62db0c7fbc910230d0a9691856a5ed25685fe1da0ac597",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "3570452257156d80dc21e68e1ced133a3d9b1556b552e25ac09f2ae47f850526",
+      "app/src/main/java/com/jeerovan/comfer/ProSettingsActivity.kt": "92bfc52a0171a8db1dae1207c39c82003bb9606fb22fb0bec3c5641dd45b42ad",
+      "app/src/main/java/com/jeerovan/comfer/ProSettingsComponents.kt": "80583f0b967ee592d0f0849898583cb7d709a1ac48f9adabf60a7fa2b9d00aa8",
+      "app/src/main/java/com/jeerovan/comfer/SettingsViewModel.kt": "ed9c924530e11db5c37122deb0f89f5f91f8a8b8560dabc16822cc2d61bf6c56",
+      "app/src/main/java/com/jeerovan/comfer/ui/ThumbReach.kt": "2b5386af8dcf7959ce523b7a8b3cd06f461b6ce8c2f2d758982f2e940af911a0",
+      "app/src/main/java/com/jeerovan/comfer/ui/theme/Theme.kt": "059ecf453be2ef172ac51ada38b2ba1b3efc640082206e431dc7aa04b88a85e8",
+      "app/src/main/java/com/jeerovan/comfer/ui/theme/Type.kt": "5000d08ed6b6e1ab5d1a4eb0d6d628a4f6eee7474493716fed9f733811765a89",
+      "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216",
+      "validation-artifacts/pro-settings-ui-20261117/run-matrix.py": "25fe12c02fcdd57d61717ea3be2a1597294bb3c25fa25845a5ba24afbe0fc1df"
+    },
+    "graph": "19f511d9b2249bc7252d1fc48f9b400a975cc31ffb820041dd95df6c8003eae1",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-17T03:45:48.378456+00:00",
+  "step": "PRO-SETTINGS-UI",
+  "test": "PRO-SETTINGS-UI-TEST"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "bfcd93d40dea4072844dbdc8c2b2bf0f"
+  },
+  "id": "afbb7ce17a3a4f25ac5bf5a819de1b85",
+  "reason": "Reproduce the landscape Back/status-bar boundary before adjusting inset handling",
+  "seq": 786,
+  "time": "2026-11-17T04:00:50.331442+00:00"
+}

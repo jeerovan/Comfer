@@ -1,0 +1,178 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Native theme/locale geometry checks and screenshots plus existing Back/sound/reset/options regressions. Update obsolete Advanced text-count assertion for new header; preserve behavioral acceptance. Default Home tests separate from component fixtures.",
+      "id": "PRO-SETTINGS-UI-TEST",
+      "kind": "test",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsSystemBackTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsBackSoundTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/WidgetGlassLocaleSourceTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/WidgetResetTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/SettingsOptionsWrapTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/notificationTest/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/build.gradle.kts",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsAppearanceTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Real locale trampoline, component host and native-device setup; no default Home substitution in journey tests.",
+          "path": "app/src/main/java/com/jeerovan/comfer/LanguageUpdateActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Real locale trampoline, component host and native-device setup; no default Home substitution in journey tests.",
+          "path": "app/src/main/java/com/jeerovan/comfer/GuideActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Real locale trampoline, component host and native-device setup; no default Home substitution in journey tests.",
+          "path": "app/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Real locale trampoline, component host and native-device setup; no default Home substitution in journey tests.",
+          "path": "validation-artifacts/pro-settings-ui-20261117/run-matrix.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 3,
+      "status": "pending",
+      "tags": [],
+      "title": "Pro appearance, locale sources and navigation regressions"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Native theme/locale geometry checks and screenshots plus existing Back/sound/reset/options regressions. Update obsolete Advanced text-count assertion for new header; preserve behavioral acceptance. Default Home tests separate from component fixtures.",
+      "id": "PRO-SETTINGS-UI-TEST",
+      "kind": "test",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsSystemBackTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsBackSoundTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/WidgetGlassLocaleSourceTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/WidgetResetTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/SettingsOptionsWrapTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/notificationTest/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/build.gradle.kts",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsAppearanceTest.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Pro appearance, locale sources and navigation regressions"
+    },
+    "node": "PRO-SETTINGS-UI-TEST",
+    "reopened": []
+  },
+  "id": "753d3846985c4d549aee35fe6541b2c9",
+  "reason": "Include actual locale wiring and fixture setup in verification scope",
+  "seq": 759,
+  "time": "2026-11-17T03:30:56.319281+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "stale",
+    "run": "c00a415075ae4e87af39386ba6ed18dd"
+  },
+  "id": "f9194ed84bc5492fac5b4c305430b61d",
+  "reason": "Native MIUI confirmation added to setup before final run",
+  "seq": 770,
+  "time": "2026-11-17T03:41:47.773122+00:00"
+}

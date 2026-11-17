@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "10f0f019061f4d329fda5f6ad7211c3f"
+  },
+  "id": "92e9f7a62c4242a7b0d82be7f998fb2f",
+  "reason": "Verify final coherent candidate including landscape picker correction",
+  "seq": 769,
+  "time": "2026-11-17T03:38:52.312663+00:00"
+}

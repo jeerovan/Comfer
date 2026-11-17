@@ -1,0 +1,6 @@
+{
+  "rationale": "Themed Pro panel acceptance",
+  "relation": "verifies",
+  "source": "PRO-SETTINGS-UI-TEST",
+  "target": "PRO-SETTINGS-UI"
+}

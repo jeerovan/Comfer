@@ -35,12 +35,21 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Brightness1
 import androidx.compose.material3.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,7 +80,6 @@ import androidx.compose.ui.window.Dialog
 import com.jeerovan.comfer.ui.theme.fontProvider
 import com.jeerovan.comfer.utils.CommonUtil.getFontWeightFromString
 import com.jeerovan.comfer.utils.CommonUtil.getKeyTextObject
-import com.jeerovan.comfer.utils.CommonUtil.isColorDark
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.ReorderableItem
@@ -105,12 +113,14 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
     // The panel lives inside Home rather than a separate Activity. Register
     // its hierarchy with Android as well as the visible Back controls.
     BackHandler(onBack = navigateBack)
+    val screenState = rememberSaveableStateHolder()
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     AnimatedContent(
         targetState = currentScreen,
         transitionSpec = {
             // Logic: If the destination is Basic, we are going "Back".
             // Otherwise, we are going "Forward" (deeper) into settings.
-            val direction = if (targetState == SettingsScreen.Basic) {
+            val direction = if ((targetState == SettingsScreen.Basic) != rtl) {
                 AnimatedContentTransitionScope.SlideDirection.Right
             } else {
                 AnimatedContentTransitionScope.SlideDirection.Left
@@ -123,27 +133,29 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
         label = "SettingsNavigation"
     ) { screen ->
         // The 'screen' parameter ensures the correct content is rendered
-        when (screen) {
-            SettingsScreen.Basic -> {
-                BasicSettings(
-                    settingsViewModel,
-                    navigateBack,
-                    // Pass distinct callbacks for each sub-screen
-                    onShowTimeAdvanced = { currentScreen = SettingsScreen.TimeAdvanced },
-                    onShowDateAdvanced = { currentScreen = SettingsScreen.DateAdvanced }
-                )
-            }
-            SettingsScreen.TimeAdvanced -> {
-                TimeAdvancedSettings(
-                    settingsViewModel,
-                    onBack = navigateBack
-                )
-            }
-            SettingsScreen.DateAdvanced -> {
-                DateAdvancedSettings(
-                    settingsViewModel,
-                    onBack = navigateBack
-                )
+        screenState.SaveableStateProvider(screen) {
+            when (screen) {
+                SettingsScreen.Basic -> {
+                    BasicSettings(
+                        settingsViewModel,
+                        navigateBack,
+                        // Pass distinct callbacks for each sub-screen
+                        onShowTimeAdvanced = { currentScreen = SettingsScreen.TimeAdvanced },
+                        onShowDateAdvanced = { currentScreen = SettingsScreen.DateAdvanced }
+                    )
+                }
+                SettingsScreen.TimeAdvanced -> {
+                    TimeAdvancedSettings(
+                        settingsViewModel,
+                        onBack = navigateBack
+                    )
+                }
+                SettingsScreen.DateAdvanced -> {
+                    DateAdvancedSettings(
+                        settingsViewModel,
+                        onBack = navigateBack
+                    )
+                }
             }
         }
     }
@@ -183,635 +195,546 @@ fun BasicSettings(
         settingsViewModel.setNotificationLayoutId(id)
         selectedNotificationLayoutId = id
     }
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+    ProSettingsPanel(
+        title = stringResource(R.string.title_widgets),
+        subtitle = stringResource(R.string.title_home_screen),
+        onBack = exitWidgetSettings,
     ) {
-        Column {
-            Box(Modifier.fillMaxWidth()) { // Use a Box to control alignment
-                SmallFloatingActionButton(
-                    onClick = exitWidgetSettings,
-                    shape = CircleShape,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter) // Align to the bottom-right corner
-                        .padding(8.dp) // Add standard margin from the edges
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.icon_go_back),
+        SettingSection(stringResource(R.string.title_color), Icons.Outlined.Palette) {
+            if (settingsState.autoWallpapers) {
+                SettingSwitch(
+                    label = stringResource(R.string.title_wallpaper_colors),
+                    checked = settingsState.showThemedText,
+                    onCheckedChange = {
+                        settingsViewModel.setThemedText(it)
+                    }
+                )
+            }
+            SettingSwitch(
+                label = stringResource(R.string.title_glass_effect),
+                checked = settingsState.widgetGlassEffect,
+                onCheckedChange = settingsViewModel::setWidgetGlassEffect
+            )
+        }
+        Spacer(Modifier.height(16.dp))
+        // Time Settings
+        SettingSection(stringResource(R.string.title_time), Icons.Outlined.Schedule) {
+            SettingSwitch(
+                label = stringResource(R.string.title_analog_clock),
+                checked = settingsState.showAnalog,
+                onCheckedChange = {
+                    settingsViewModel.showAnalog(it)
+                }
+            )
+            if (settingsState.showAnalog) {
+                // Clock Size
+                SettingSlider(
+                    label = stringResource(R.string.title_clock_size),
+                    value = settingsState.clockSize,
+                    range = 70f..250f,
+                    onValueChange = { settingsViewModel.setClockSize(it) }
+                )
+                if (customWallpaper) {
+                    // Background Color
+                    ColorPickerSettingItem(
+                        stringResource(R.string.clock_background_color),
+                        settingsState.clockBgColor.copy(alpha=settingsState.clockBgAlpha/100f)
+                    ) { showClockBgPicker = true }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    // Hour Color
+                    ColorPickerSettingItem(
+                        stringResource(R.string.hour_hand_color),
+                        settingsState.clockHourColor.copy(alpha = settingsState.clockHourAlpha/100f)
+                    ) { showClockHourPicker = true }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    // Minute Color
+                    ColorPickerSettingItem(
+                        stringResource(R.string.minute_hand_color),
+                        settingsState.clockMinuteColor.copy(alpha=settingsState.clockMinuteAlpha/100f)
+                    ) { showClockMinutePicker = true }
+                }
+                if (showClockBgPicker) {
+                    EnhancedColorPicker(
+                        predefinedColors = settingsViewModel.predefinedColors,
+                        initialColor = settingsState.clockBgColor,
+                        initialAlpha = settingsState.clockBgAlpha,
+                        onColorSelected = { color,alpha ->
+                            settingsViewModel.setClockBgColor(color)
+                            settingsViewModel.setClockBgAlpha(alpha)
+                        },
+                        onDismissRequest = { showClockBgPicker = false }
                     )
                 }
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
-                    .windowInsetsPadding(WindowInsets.navigationBars)
-            ) {
-                SettingSection(stringResource(R.string.title_widgets)) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 48.dp)
-                            .clickable {
-                                settingsViewModel.resetWidgets(widgetOrientation)
-                            }
-                            .padding(vertical = 8.dp)
-                    ) {
+                if (showClockHourPicker) {
+                    EnhancedColorPicker(
+                        predefinedColors = settingsViewModel.predefinedColors,
+                        initialColor = settingsState.clockHourColor,
+                        initialAlpha = settingsState.clockHourAlpha,
+                        onColorSelected = { color,alpha ->
+                            settingsViewModel.setClockHourColor(color)
+                            settingsViewModel.setClockHourAlpha(alpha)
+                        },
+                        onDismissRequest = { showClockHourPicker = false }
+                    )
+                }
+                if (showClockMinutePicker) {
+                    EnhancedColorPicker(
+                        predefinedColors = settingsViewModel.predefinedColors,
+                        initialColor = settingsState.clockMinuteColor,
+                        initialAlpha = settingsState.clockMinuteAlpha,
+                        onColorSelected = { color,alpha ->
+                            settingsViewModel.setClockMinuteColor(color)
+                            settingsViewModel.setClockMinuteAlpha(alpha)
+                        },
+                        onDismissRequest = { showClockMinutePicker = false }
+                    )
+                }
+            } else {
+                // Time Format
+                SettingChoiceButtons(
+                    label = stringResource(R.string.title_time_format),
+                    selectedValue = settingsState.timeFormat,
+                    options = arrayOf(
+                        getKeyTextObject("H12", context),
+                        getKeyTextObject("H24", context)
+                    ),
+                    onValueChange = {
+                        settingsViewModel.setTimeFormat(it)
+                    }
+                )
+                // Time Font Size
+                SettingSlider(
+                    label = stringResource(R.string.title_font_size),
+                    value = settingsState.timeFontSize,
+                    range = 30f..150f,
+                    onValueChange = { settingsViewModel.setTimeFontSize(it) }
+                )
+
+                // Time Text Style
+                SettingDropdown(
+                    label = stringResource(R.string.title_font_weight),
+                    selectedValue = settingsState.timeFontWeight,
+                    options = arrayOf(
+                        getKeyTextObject("Light", context),
+                        getKeyTextObject("Normal", context),
+                        getKeyTextObject("Bold", context)
+                    ),
+                    onValueChange = {
+                        settingsViewModel.setTimeFontWeight(it)
+                    }
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            showTimeFontDialog = true
+                        } // Make the whole row clickable
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    val fontName = settingsState.timeFontName
+                    val fontFamily = remember(fontName) {
+                        FontFamily(
+                            Font(
+                                googleFont = GoogleFont(fontName),
+                                fontProvider = fontProvider
+                            )
+                        )
+                    }
+                    Row(Modifier.weight(1f)) {
                         Text(
-                            stringResource(R.string.rest_widget_positions),
+                            stringResource(R.string.title_font_style),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
-                }
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
-                )
-                SettingSection(stringResource(R.string.title_color)) {
-                    if (settingsState.autoWallpapers) {
-                        SettingSwitch(
-                            label = stringResource(R.string.title_wallpaper_colors),
-                            checked = settingsState.showThemedText,
-                            onCheckedChange = {
-                                settingsViewModel.setThemedText(it)
-                            }
-                        )
-                    }
-                    SettingSwitch(
-                        label = stringResource(R.string.title_glass_effect),
-                        checked = settingsState.widgetGlassEffect,
-                        onCheckedChange = settingsViewModel::setWidgetGlassEffect
+                    Text(
+                        text = "12:34",
+                        modifier = Modifier.widthIn(max = 120.dp).padding(start = 12.dp),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontFamily = fontFamily,
+                        fontSize = 32.sp,
+                        fontWeight = getFontWeightFromString(settingsState.timeFontWeight)
                     )
                 }
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
-                )
-                // Time Settings
-                SettingSection(stringResource(R.string.title_time)) {
-                    SettingSwitch(
-                        label = stringResource(R.string.title_analog_clock),
-                        checked = settingsState.showAnalog,
-                        onCheckedChange = {
-                            settingsViewModel.showAnalog(it)
-                        }
-                    )
-                    if (settingsState.showAnalog) {
-                        // Clock Size
-                        SettingSlider(
-                            label = stringResource(R.string.title_clock_size),
-                            value = settingsState.clockSize,
-                            range = 70f..250f,
-                            onValueChange = { settingsViewModel.setClockSize(it) }
-                        )
-                        if (customWallpaper) {
-                            // Background Color
-                            ColorPickerSettingItem(
-                                stringResource(R.string.clock_background_color),
-                                settingsState.clockBgColor.copy(alpha=settingsState.clockBgAlpha/100f)
-                            ) { showClockBgPicker = true }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            // Hour Color
-                            ColorPickerSettingItem(
-                                stringResource(R.string.hour_hand_color),
-                                settingsState.clockHourColor.copy(alpha = settingsState.clockHourAlpha/100f)
-                            ) { showClockHourPicker = true }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            // Minute Color
-                            ColorPickerSettingItem(
-                                stringResource(R.string.minute_hand_color),
-                                settingsState.clockMinuteColor.copy(alpha=settingsState.clockMinuteAlpha/100f)
-                            ) { showClockMinutePicker = true }
-                        }
-                        if (showClockBgPicker) {
-                            EnhancedColorPicker(
-                                predefinedColors = settingsViewModel.predefinedColors,
-                                initialColor = settingsState.clockBgColor,
-                                initialAlpha = settingsState.clockBgAlpha,
-                                onColorSelected = { color,alpha ->
-                                    settingsViewModel.setClockBgColor(color)
-                                    settingsViewModel.setClockBgAlpha(alpha)
-                                },
-                                onDismissRequest = { showClockBgPicker = false }
-                            )
-                        }
-                        if (showClockHourPicker) {
-                            EnhancedColorPicker(
-                                predefinedColors = settingsViewModel.predefinedColors,
-                                initialColor = settingsState.clockHourColor,
-                                initialAlpha = settingsState.clockHourAlpha,
-                                onColorSelected = { color,alpha ->
-                                    settingsViewModel.setClockHourColor(color)
-                                    settingsViewModel.setClockHourAlpha(alpha)
-                                },
-                                onDismissRequest = { showClockHourPicker = false }
-                            )
-                        }
-                        if (showClockMinutePicker) {
-                            EnhancedColorPicker(
-                                predefinedColors = settingsViewModel.predefinedColors,
-                                initialColor = settingsState.clockMinuteColor,
-                                initialAlpha = settingsState.clockMinuteAlpha,
-                                onColorSelected = { color,alpha ->
-                                    settingsViewModel.setClockMinuteColor(color)
-                                    settingsViewModel.setClockMinuteAlpha(alpha)
-                                },
-                                onDismissRequest = { showClockMinutePicker = false }
-                            )
-                        }
-                    } else {
-                        // Time Format
-                        SettingChoiceButtons(
-                            label = stringResource(R.string.title_time_format),
-                            selectedValue = settingsState.timeFormat,
-                            options = arrayOf(
-                                getKeyTextObject("H12", context),
-                                getKeyTextObject("H24", context)
-                            ),
-                            onValueChange = {
-                                settingsViewModel.setTimeFormat(it)
-                            }
-                        )
-                        // Time Font Size
-                        SettingSlider(
-                            label = stringResource(R.string.title_font_size),
-                            value = settingsState.timeFontSize,
-                            range = 30f..150f,
-                            onValueChange = { settingsViewModel.setTimeFontSize(it) }
-                        )
-
-                        // Time Text Style
-                        SettingDropdown(
-                            label = stringResource(R.string.title_font_weight),
-                            selectedValue = settingsState.timeFontWeight,
-                            options = arrayOf(
-                                getKeyTextObject("Light", context),
-                                getKeyTextObject("Normal", context),
-                                getKeyTextObject("Bold", context)
-                            ),
-                            onValueChange = {
-                                settingsViewModel.setTimeFontWeight(it)
-                            }
-                        )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    showTimeFontDialog = true
-                                } // Make the whole row clickable
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            val fontName = settingsState.timeFontName
-                            val fontFamily = remember(fontName) {
-                                FontFamily(
-                                    Font(
-                                        googleFont = GoogleFont(fontName),
-                                        fontProvider = fontProvider
-                                    )
-                                )
-                            }
-                            Row {
-                                Text(
-                                    stringResource(R.string.title_font_style),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                            Text(
-                                text = "12:34",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontFamily = fontFamily,
-                                fontSize = 32.sp,
-                                fontWeight = getFontWeightFromString(settingsState.timeFontWeight)
-                            )
-                        }
-                        if (customWallpaper) {
-                            ColorPickerSettingItem(
-                                stringResource(R.string.title_time_font_color),
-                                settingsState.timeFontColor.copy(alpha=settingsState.timeFontAlpha/100f)
-                            ) { showTimeFontColor = true }
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onShowTimeAdvanced()
-                                } // Make the whole row clickable
-                                .padding(vertical = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row {
-                                Text(
-                                    stringResource(R.string.title_advanced),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                            Icon(
-                                Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                contentDescription = stringResource(R.string.icon_arrow_right),
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        if (showTimeFontDialog) {
-                            FontSelectionDialog(
-                                sampleText = "12:34",
-                                onDismissRequest = { showTimeFontDialog = false },
-                                onFontSelected = { fontName ->
-                                    settingsViewModel.setTimeFontName(fontName)
-                                    showTimeFontDialog =
-                                        false // Also dismiss dialog after selection
-                                }
-                            )
-                        }
-                        if (showTimeFontColor) {
-                            EnhancedColorPicker(
-                                predefinedColors = settingsViewModel.predefinedColors,
-                                initialColor = settingsState.timeFontColor,
-                                initialAlpha = settingsState.timeFontAlpha,
-                                onColorSelected = { color,alpha ->
-                                    settingsViewModel.setTimeFontColor(color)
-                                    settingsViewModel.setTimeFontAlpha(alpha)
-                                },
-                                onDismissRequest = { showTimeFontColor = false }
-                            )
-                        }
-                    }
+                if (customWallpaper) {
+                    ColorPickerSettingItem(
+                        stringResource(R.string.title_time_font_color),
+                        settingsState.timeFontColor.copy(alpha=settingsState.timeFontAlpha/100f)
+                    ) { showTimeFontColor = true }
                 }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
-                )
-
-                // Date Settings
-                SettingSection(stringResource(R.string.title_date)) {
-                    // Date Font Size
-                    SettingSlider(
-                        label = stringResource(R.string.title_font_size),
-                        value = settingsState.dateFontSize,
-                        range = 15f..60f,
-                        onValueChange = { settingsViewModel.setDateFontSize(it) }
-                    )
-
-                    // Date Text Style
-                    SettingDropdown(
-                        label = stringResource(R.string.title_font_weight),
-                        selectedValue = settingsState.dateFontWeight,
-                        options = arrayOf(
-                            getKeyTextObject("Light", context),
-                            getKeyTextObject("Normal", context),
-                            getKeyTextObject("Bold", context)
-                        ),
-                        onValueChange = {
-                            settingsViewModel.setDateFontWeight(it)
+                ProAdvancedDestination(onShowTimeAdvanced)
+                if (showTimeFontDialog) {
+                    FontSelectionDialog(
+                        sampleText = "12:34",
+                        onDismissRequest = { showTimeFontDialog = false },
+                        onFontSelected = { fontName ->
+                            settingsViewModel.setTimeFontName(fontName)
+                            showTimeFontDialog =
+                                false // Also dismiss dialog after selection
                         }
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { showDateFontDialog = true }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        val fontName = settingsState.dateFontName
-                        val fontFamily = remember(fontName) {
-                            FontFamily(
-                                Font(
-                                    googleFont = GoogleFont(fontName),
-                                    fontProvider = fontProvider
-                                )
-                            )
-                        }
-                        Row {
-                            Text(
-                                stringResource(R.string.title_font_style),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        Text(
-                            text = stringResource(R.string.date_example),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontFamily = fontFamily,
-                            fontWeight = getFontWeightFromString(settingsState.dateFontWeight),
-                            fontSize = 24.sp
-                        )
-                    }
-                    if (customWallpaper) {
-                        ColorPickerSettingItem(
-                            stringResource(R.string.date_font_color),
-                            settingsState.dateFontColor.copy(alpha=settingsState.dateFontAlpha/100f)
-                        ) { showDateFontColor = true }
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onShowDateAdvanced()
-                            } // Make the whole row clickable
-                            .padding(vertical = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row {
-                            Text(
-                                stringResource(R.string.title_advanced),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.icon_arrow_right),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    if (showDateFontDialog) {
-                        FontSelectionDialog(
-                            sampleText = stringResource(R.string.date_example),
-                            onDismissRequest = { showDateFontDialog = false },
-                            onFontSelected = { fontName ->
-                                settingsViewModel.setDateFontName(fontName)
-                                showDateFontDialog = false // Also dismiss dialog after selection
-                            }
-                        )
-                    }
-                    if (showDateFontColor) {
-                        EnhancedColorPicker(
-                            predefinedColors = settingsViewModel.predefinedColors,
-                            initialColor = settingsState.dateFontColor,
-                            initialAlpha = settingsState.dateFontAlpha,
-                            onColorSelected = { color,alpha ->
-                                settingsViewModel.setDateFontColor(color)
-                                settingsViewModel.setDateFontAlpha(alpha)
-                            },
-                            onDismissRequest = { showDateFontColor = false }
-                        )
-                    }
-                }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
-                )
-
-                if (settingsState.showWeatherWidget) {
-                    SettingSection(stringResource(R.string.weather_widget_title)) {
-                        SettingChoiceButtons(
-                            label = stringResource(R.string.weather_temperature_unit),
-                            selectedValue = if (settingsState.weatherUseFahrenheit) {
-                                "Fahrenheit"
-                            } else {
-                                "Celsius"
-                            },
-                            options = arrayOf(
-                                KeyTextObject(
-                                    text = stringResource(R.string.weather_celsius),
-                                    key = "Celsius",
-                                ),
-                                KeyTextObject(
-                                    text = stringResource(R.string.weather_fahrenheit),
-                                    key = "Fahrenheit",
-                                ),
-                            ),
-                            onValueChange = { unit ->
-                                settingsViewModel.setWeatherUseFahrenheit(unit == "Fahrenheit")
-                            },
-                        )
-                        SettingSlider(
-                            label = stringResource(R.string.title_font_size),
-                            value = settingsState.weatherFontSize,
-                            range = 10f..40f,
-                            onValueChange = { settingsViewModel.setWeatherSize(it) },
-                        )
-                        if (customWallpaper) {
-                            ColorPickerSettingItem(
-                                stringResource(R.string.title_color),
-                                settingsState.weatherColor.copy(
-                                    alpha = settingsState.weatherAlpha / 100f,
-                                ),
-                            ) { showWeatherColor = true }
-                        }
-                        if (showWeatherColor) {
-                            EnhancedColorPicker(
-                                predefinedColors = settingsViewModel.predefinedColors,
-                                initialColor = settingsState.weatherColor,
-                                initialAlpha = settingsState.weatherAlpha,
-                                onColorSelected = { color, alpha ->
-                                    settingsViewModel.setWeatherColor(color)
-                                    settingsViewModel.setWeatherAlpha(alpha)
-                                },
-                                onDismissRequest = { showWeatherColor = false },
-                            )
-                        }
-                    }
-
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 16.dp),
-                        thickness = DividerDefaults.Thickness,
-                        color = DividerDefaults.color
                     )
                 }
-
-                // Battery Settings
-                SettingSection(stringResource(R.string.title_battery)) {
-                    SettingSwitch(
-                        label = stringResource(R.string.show_battery_icon),
-                        checked = settingsState.showBatteryIcon,
-                        onCheckedChange = { settingsViewModel.setShowBatteryIcon(it) }
+                if (showTimeFontColor) {
+                    EnhancedColorPicker(
+                        predefinedColors = settingsViewModel.predefinedColors,
+                        initialColor = settingsState.timeFontColor,
+                        initialAlpha = settingsState.timeFontAlpha,
+                        onColorSelected = { color,alpha ->
+                            settingsViewModel.setTimeFontColor(color)
+                            settingsViewModel.setTimeFontAlpha(alpha)
+                        },
+                        onDismissRequest = { showTimeFontColor = false }
                     )
-                    SettingSwitch(
-                        label = stringResource(R.string.show_battery_percentage),
-                        checked = settingsState.showBatteryPercentage,
-                        onCheckedChange = { settingsViewModel.setShowBatteryPercentage(it) }
-                    )
-                    SettingSlider(
-                        label = stringResource(R.string.title_font_size),
-                        value = settingsState.batteryFontSize,
-                        range = 10f..40f,
-                        onValueChange = { settingsViewModel.setBatterySize(it) }
-                    )
-                    SettingDropdown(
-                        label = stringResource(R.string.title_font_weight),
-                        selectedValue = settingsState.batteryFontWeight,
-                        options = arrayOf(
-                            getKeyTextObject("Light", context),
-                            getKeyTextObject("Normal", context),
-                            getKeyTextObject("Bold", context)
-                        ),
-                        onValueChange = {
-                            settingsViewModel.setBatteryFontWeight(it)
-                        }
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { showBatteryFontDialog = true }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        val fontName = settingsState.batteryFontName
-                        val fontFamily = remember(fontName) {
-                            FontFamily(
-                                Font(
-                                    googleFont = GoogleFont(fontName),
-                                    fontProvider = fontProvider
-                                )
-                            )
-                        }
-                        Row {
-                            Text(
-                                stringResource(R.string.title_font_style),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        Text(
-                            text = "100%",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontFamily = fontFamily,
-                            fontWeight = getFontWeightFromString(settingsState.batteryFontWeight),
-                            fontSize = 24.sp
-                        )
-                    }
-                    if (customWallpaper) {
-                        ColorPickerSettingItem(
-                            stringResource(R.string.battery_indicator_color),
-                            settingsState.batteryColor.copy(alpha = settingsState.batteryAlpha/100f)
-                        ) { showBatteryColor = true }
-                    }
-                    if (showBatteryFontDialog) {
-                        FontSelectionDialog(
-                            sampleText = "100%",
-                            onDismissRequest = { showBatteryFontDialog = false },
-                            onFontSelected = { fontName ->
-                                settingsViewModel.setBatteryFontName(fontName)
-                                showBatteryFontDialog = false
-                            }
-                        )
-                    }
-                    if (showBatteryColor) {
-                        EnhancedColorPicker(
-                            predefinedColors = settingsViewModel.predefinedColors,
-                            initialColor = settingsState.batteryColor,
-                            initialAlpha = settingsState.batteryAlpha,
-                            onColorSelected = { color,alpha ->
-                                settingsViewModel.setBatteryColor(color)
-                                settingsViewModel.setBatteryAlpha(alpha)
-                            },
-                            onDismissRequest = { showBatteryColor = false }
-                        )
-                    }
-                }
-
-                if (settingsState.hasNotificationAccess) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 16.dp),
-                        thickness = DividerDefaults.Thickness,
-                        color = DividerDefaults.color
-                    )
-                    // Notification Settings
-                    SettingSection(stringResource(R.string.title_notifications)) {
-                        Text(
-                            stringResource(R.string.notification_entry_required),
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        SettingSlider(
-                            label = stringResource(R.string.title_size),
-                            value = settingsState.notificationSize,
-                            range = 12f..40f,
-                            onValueChange = { settingsViewModel.setNotificationSize(it) }
-                        )
-                        if (customWallpaper) {
-                            ColorPickerSettingItem(
-                                stringResource(R.string.title_color),
-                                settingsState.notificationColor.copy(alpha = settingsState.notificationAlpha/100f)
-                            ) { showNotificationColor = true }
-                        }
-                        FlowRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            // Box 1
-                            SelectableSquareBox(
-                                id = 1,
-                                selectedId = selectedNotificationLayoutId,
-                                onSelect = { onSelectNotificationLayout(it) }
-                            ) {
-                                Row {
-                                    Icon(Icons.Filled.Brightness1,
-                                        contentDescription = "",
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                                    Icon(Icons.Filled.Brightness1,
-                                        contentDescription = "",
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                                    Icon(Icons.Filled.Brightness1,
-                                        contentDescription = "",
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                                    Icon(Icons.Filled.Brightness1,
-                                        contentDescription = "",
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                                }
-                            }
-
-                            // Box 2
-                            SelectableSquareBox(
-                                id = 2,
-                                selectedId = selectedNotificationLayoutId,
-                                onSelect = { onSelectNotificationLayout(it) }
-                            ) {
-                                Column {
-                                    Icon(Icons.Filled.Brightness1,
-                                        contentDescription = "",
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                                    Icon(Icons.Filled.Brightness1,
-                                        contentDescription = "",
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                                    Icon(Icons.Filled.Brightness1,
-                                        contentDescription = "",
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                                    Icon(Icons.Filled.Brightness1,
-                                        contentDescription = "",
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                                }
-                            }
-                        }
-                        if (showNotificationColor) {
-                            EnhancedColorPicker(
-                                predefinedColors = settingsViewModel.predefinedColors,
-                                initialColor = settingsState.notificationColor,
-                                initialAlpha = settingsState.notificationAlpha,
-                                onColorSelected = { color,alpha ->
-                                    settingsViewModel.setNotificationColor(color)
-                                    settingsViewModel.setNotificationAlpha(alpha)
-                                },
-                                onDismissRequest = { showNotificationColor = false }
-                            )
-                        }
-                    }
                 }
             }
         }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Date Settings
+        SettingSection(stringResource(R.string.title_date), Icons.Outlined.CalendarMonth) {
+            // Date Font Size
+            SettingSlider(
+                label = stringResource(R.string.title_font_size),
+                value = settingsState.dateFontSize,
+                range = 15f..60f,
+                onValueChange = { settingsViewModel.setDateFontSize(it) }
+            )
+
+            // Date Text Style
+            SettingDropdown(
+                label = stringResource(R.string.title_font_weight),
+                selectedValue = settingsState.dateFontWeight,
+                options = arrayOf(
+                    getKeyTextObject("Light", context),
+                    getKeyTextObject("Normal", context),
+                    getKeyTextObject("Bold", context)
+                ),
+                onValueChange = {
+                    settingsViewModel.setDateFontWeight(it)
+                }
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showDateFontDialog = true }
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                val fontName = settingsState.dateFontName
+                val fontFamily = remember(fontName) {
+                    FontFamily(
+                        Font(
+                            googleFont = GoogleFont(fontName),
+                            fontProvider = fontProvider
+                        )
+                    )
+                }
+                Row(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.title_font_style),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.date_example),
+                    modifier = Modifier.widthIn(max = 120.dp).padding(start = 12.dp),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontFamily = fontFamily,
+                    fontWeight = getFontWeightFromString(settingsState.dateFontWeight),
+                    fontSize = 24.sp
+                )
+            }
+            if (customWallpaper) {
+                ColorPickerSettingItem(
+                    stringResource(R.string.date_font_color),
+                    settingsState.dateFontColor.copy(alpha=settingsState.dateFontAlpha/100f)
+                ) { showDateFontColor = true }
+            }
+            ProAdvancedDestination(onShowDateAdvanced)
+            if (showDateFontDialog) {
+                FontSelectionDialog(
+                    sampleText = stringResource(R.string.date_example),
+                    onDismissRequest = { showDateFontDialog = false },
+                    onFontSelected = { fontName ->
+                        settingsViewModel.setDateFontName(fontName)
+                        showDateFontDialog = false // Also dismiss dialog after selection
+                    }
+                )
+            }
+            if (showDateFontColor) {
+                EnhancedColorPicker(
+                    predefinedColors = settingsViewModel.predefinedColors,
+                    initialColor = settingsState.dateFontColor,
+                    initialAlpha = settingsState.dateFontAlpha,
+                    onColorSelected = { color,alpha ->
+                        settingsViewModel.setDateFontColor(color)
+                        settingsViewModel.setDateFontAlpha(alpha)
+                    },
+                    onDismissRequest = { showDateFontColor = false }
+                )
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        if (settingsState.showWeatherWidget) {
+            SettingSection(stringResource(R.string.weather_widget_title), Icons.Outlined.Cloud) {
+                SettingChoiceButtons(
+                    label = stringResource(R.string.weather_temperature_unit),
+                    selectedValue = if (settingsState.weatherUseFahrenheit) {
+                        "Fahrenheit"
+                    } else {
+                        "Celsius"
+                    },
+                    options = arrayOf(
+                        KeyTextObject(
+                            text = stringResource(R.string.weather_celsius),
+                            key = "Celsius",
+                        ),
+                        KeyTextObject(
+                            text = stringResource(R.string.weather_fahrenheit),
+                            key = "Fahrenheit",
+                        ),
+                    ),
+                    onValueChange = { unit ->
+                        settingsViewModel.setWeatherUseFahrenheit(unit == "Fahrenheit")
+                    },
+                )
+                SettingSlider(
+                    label = stringResource(R.string.title_font_size),
+                    value = settingsState.weatherFontSize,
+                    range = 10f..40f,
+                    onValueChange = { settingsViewModel.setWeatherSize(it) },
+                )
+                if (customWallpaper) {
+                    ColorPickerSettingItem(
+                        stringResource(R.string.title_color),
+                        settingsState.weatherColor.copy(
+                            alpha = settingsState.weatherAlpha / 100f,
+                        ),
+                    ) { showWeatherColor = true }
+                }
+                if (showWeatherColor) {
+                    EnhancedColorPicker(
+                        predefinedColors = settingsViewModel.predefinedColors,
+                        initialColor = settingsState.weatherColor,
+                        initialAlpha = settingsState.weatherAlpha,
+                        onColorSelected = { color, alpha ->
+                            settingsViewModel.setWeatherColor(color)
+                            settingsViewModel.setWeatherAlpha(alpha)
+                        },
+                        onDismissRequest = { showWeatherColor = false },
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+        }
+
+        // Battery Settings
+        SettingSection(stringResource(R.string.title_battery), Icons.Outlined.BatteryFull) {
+            SettingSwitch(
+                label = stringResource(R.string.show_battery_icon),
+                checked = settingsState.showBatteryIcon,
+                onCheckedChange = { settingsViewModel.setShowBatteryIcon(it) }
+            )
+            SettingSwitch(
+                label = stringResource(R.string.show_battery_percentage),
+                checked = settingsState.showBatteryPercentage,
+                onCheckedChange = { settingsViewModel.setShowBatteryPercentage(it) }
+            )
+            SettingSlider(
+                label = stringResource(R.string.title_font_size),
+                value = settingsState.batteryFontSize,
+                range = 10f..40f,
+                onValueChange = { settingsViewModel.setBatterySize(it) }
+            )
+            SettingDropdown(
+                label = stringResource(R.string.title_font_weight),
+                selectedValue = settingsState.batteryFontWeight,
+                options = arrayOf(
+                    getKeyTextObject("Light", context),
+                    getKeyTextObject("Normal", context),
+                    getKeyTextObject("Bold", context)
+                ),
+                onValueChange = {
+                    settingsViewModel.setBatteryFontWeight(it)
+                }
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showBatteryFontDialog = true }
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                val fontName = settingsState.batteryFontName
+                val fontFamily = remember(fontName) {
+                    FontFamily(
+                        Font(
+                            googleFont = GoogleFont(fontName),
+                            fontProvider = fontProvider
+                        )
+                    )
+                }
+                Row(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.title_font_style),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Text(
+                    text = "100%",
+                    modifier = Modifier.widthIn(max = 120.dp).padding(start = 12.dp),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontFamily = fontFamily,
+                    fontWeight = getFontWeightFromString(settingsState.batteryFontWeight),
+                    fontSize = 24.sp
+                )
+            }
+            if (customWallpaper) {
+                ColorPickerSettingItem(
+                    stringResource(R.string.battery_indicator_color),
+                    settingsState.batteryColor.copy(alpha = settingsState.batteryAlpha/100f)
+                ) { showBatteryColor = true }
+            }
+            if (showBatteryFontDialog) {
+                FontSelectionDialog(
+                    sampleText = "100%",
+                    onDismissRequest = { showBatteryFontDialog = false },
+                    onFontSelected = { fontName ->
+                        settingsViewModel.setBatteryFontName(fontName)
+                        showBatteryFontDialog = false
+                    }
+                )
+            }
+            if (showBatteryColor) {
+                EnhancedColorPicker(
+                    predefinedColors = settingsViewModel.predefinedColors,
+                    initialColor = settingsState.batteryColor,
+                    initialAlpha = settingsState.batteryAlpha,
+                    onColorSelected = { color,alpha ->
+                        settingsViewModel.setBatteryColor(color)
+                        settingsViewModel.setBatteryAlpha(alpha)
+                    },
+                    onDismissRequest = { showBatteryColor = false }
+                )
+            }
+        }
+
+        if (settingsState.hasNotificationAccess) {
+            Spacer(Modifier.height(16.dp))
+            // Notification Settings
+            SettingSection(stringResource(R.string.title_notifications), Icons.Outlined.Notifications) {
+                Text(
+                    stringResource(R.string.notification_entry_required),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                SettingSlider(
+                    label = stringResource(R.string.title_size),
+                    value = settingsState.notificationSize,
+                    range = 12f..40f,
+                    onValueChange = { settingsViewModel.setNotificationSize(it) }
+                )
+                if (customWallpaper) {
+                    ColorPickerSettingItem(
+                        stringResource(R.string.title_color),
+                        settingsState.notificationColor.copy(alpha = settingsState.notificationAlpha/100f)
+                    ) { showNotificationColor = true }
+                }
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    // Box 1
+                    SelectableSquareBox(
+                        id = 1,
+                        selectedId = selectedNotificationLayoutId,
+                        onSelect = { onSelectNotificationLayout(it) }
+                    ) {
+                        Row {
+                            Icon(Icons.Filled.Brightness1,
+                                contentDescription = "",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Icon(Icons.Filled.Brightness1,
+                                contentDescription = "",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Icon(Icons.Filled.Brightness1,
+                                contentDescription = "",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Icon(Icons.Filled.Brightness1,
+                                contentDescription = "",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                        }
+                    }
+
+                    // Box 2
+                    SelectableSquareBox(
+                        id = 2,
+                        selectedId = selectedNotificationLayoutId,
+                        onSelect = { onSelectNotificationLayout(it) }
+                    ) {
+                        Column {
+                            Icon(Icons.Filled.Brightness1,
+                                contentDescription = "",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Icon(Icons.Filled.Brightness1,
+                                contentDescription = "",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Icon(Icons.Filled.Brightness1,
+                                contentDescription = "",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Icon(Icons.Filled.Brightness1,
+                                contentDescription = "",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                        }
+                    }
+                }
+                if (showNotificationColor) {
+                    EnhancedColorPicker(
+                        predefinedColors = settingsViewModel.predefinedColors,
+                        initialColor = settingsState.notificationColor,
+                        initialAlpha = settingsState.notificationAlpha,
+                        onColorSelected = { color,alpha ->
+                            settingsViewModel.setNotificationColor(color)
+                            settingsViewModel.setNotificationAlpha(alpha)
+                        },
+                        onDismissRequest = { showNotificationColor = false }
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+        SettingSection(stringResource(R.string.title_widgets), Icons.Outlined.Widgets) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .clickable {
+                        settingsViewModel.resetWidgets(widgetOrientation)
+                    }
+                    .padding(vertical = 8.dp)
+            ) {
+                Text(
+                    stringResource(R.string.rest_widget_positions),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+        Spacer(Modifier.height(16.dp))
     }
 }
 
@@ -823,110 +746,85 @@ fun TimeAdvancedSettings(
     val settingsState by settingsViewModel.uiState.collectAsState()
     val locale = LocalConfiguration.current.locales[0]
     val previewTime = remember(locale) { String.format(locale, "%02d:%02d", 12, 34) }
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+    val customWallpaper = !settingsState.autoWallpapers && !settingsState.monochrome
+    ProSettingsPanel(
+        title = stringResource(R.string.title_time),
+        subtitle = stringResource(R.string.title_advanced),
+        onBack = onBack,
     ) {
-        val customWallpaper = !settingsState.autoWallpapers && !settingsState.monochrome
-        Column {
-            Box(Modifier.fillMaxWidth()) {
-                SmallFloatingActionButton(
-                    onClick = onBack,
-                    shape = CircleShape,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter) // Align to the bottom-right corner
-                        .padding(8.dp) // Add standard margin from the edges
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.icon_go_back),
-                    )
+        var selectedId by remember { mutableIntStateOf(settingsState.timeLayoutId) }
+        var angle by remember { mutableIntStateOf(settingsState.timeAngle) }
+        var radius by remember { mutableIntStateOf(settingsState.timeRadius) }
+        var showShadowColorPicker by remember { mutableStateOf(false) }
+        fun onSelectLayoutId(id: Int) {
+            settingsViewModel.setTimeLayoutId(id)
+            selectedId = id
+        }
+        fun onSetAngle(value:Int){
+            settingsViewModel.setTimeAngle(value)
+            angle = value
+        }
+        fun onSetRadius(value:Int){
+            settingsViewModel.setTimeRadius(value)
+            radius = value
+        }
+        val fontSize = 30
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            for (id in 1..3) {
+                SelectableSquareBox(id = id, selectedId = selectedId,
+                    onSelect = { onSelectLayoutId(it) }) {
+                    ClockText(time = previewTime, layoutId = id, fontSize = fontSize.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontFamily = settingsState.timeFontFamily,
+                        fontWeight = getFontWeightFromString(settingsState.timeFontWeight),
+                        semanticText = when (id) { 2 -> previewTime.replace(":", ""); 3 -> previewTime.replace(':', '\n'); else -> previewTime })
                 }
             }
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
-                    .windowInsetsPadding(WindowInsets.navigationBars)
-            ) {
-                var selectedId by remember { mutableIntStateOf(settingsState.timeLayoutId) }
-                var angle by remember { mutableIntStateOf(settingsState.timeAngle) }
-                var radius by remember { mutableIntStateOf(settingsState.timeRadius) }
-                var showShadowColorPicker by remember { mutableStateOf(false) }
-                fun onSelectLayoutId(id: Int) {
-                    settingsViewModel.setTimeLayoutId(id)
-                    selectedId = id
-                }
-                fun onSetAngle(value:Int){
-                    settingsViewModel.setTimeAngle(value)
-                    angle = value
-                }
-                fun onSetRadius(value:Int){
-                    settingsViewModel.setTimeRadius(value)
-                    radius = value
-                }
-                val fontSize = 30
-                FlowRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    for (id in 1..3) {
-                        SelectableSquareBox(id = id, selectedId = selectedId,
-                            onSelect = { onSelectLayoutId(it) }) {
-                            ClockText(time = previewTime, layoutId = id, fontSize = fontSize.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                fontFamily = settingsState.timeFontFamily,
-                                fontWeight = getFontWeightFromString(settingsState.timeFontWeight),
-                                semanticText = when (id) { 2 -> previewTime.replace(":", ""); 3 -> previewTime.replace(':', '\n'); else -> previewTime })
-                        }
-                    }
-                }
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
-                )
-                SettingSlider(
-                    label = stringResource(R.string.title_text_angle),
-                    value = angle,
-                    range = 0f..360f,
-                    onValueChange = { onSetAngle(it) }
-                )
-                CurveRadiusSlider (
-                    label = stringResource(R.string.title_text_radius),
-                    value = radius,
-                    onValueChange = { onSetRadius(it) }
-                )
-                if(customWallpaper)SettingSwitch(
-                    label = stringResource(R.string.title_shadow),
-                    checked = settingsState.timeHasShadow,
-                    onCheckedChange = {
-                        settingsViewModel.setTimeHasShadow(it)
-                    }
-                )
-                if (settingsState.timeHasShadow && customWallpaper) {
-                    ColorPickerSettingItem(
-                        stringResource(R.string.title_color),
-                        settingsState.timeShadowColor,
-                    ) { showShadowColorPicker = true }
-                }
-                if (showShadowColorPicker) {
-                    EnhancedColorPicker(
-                        predefinedColors = settingsViewModel.predefinedColors,
-                        initialColor = settingsState.timeShadowColor,
-                        onColorSelected = { color,alpha ->
-                            settingsViewModel.setTimeShadow(color)
-                        },
-                        onDismissRequest = { showShadowColorPicker = false },
-                        setAlpha = false
-                    )
-                }
+        }
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 16.dp),
+            thickness = DividerDefaults.Thickness,
+            color = DividerDefaults.color
+        )
+        SettingSlider(
+            label = stringResource(R.string.title_text_angle),
+            value = angle,
+            range = 0f..360f,
+            onValueChange = { onSetAngle(it) }
+        )
+        CurveRadiusSlider (
+            label = stringResource(R.string.title_text_radius),
+            value = radius,
+            onValueChange = { onSetRadius(it) }
+        )
+        if(customWallpaper)SettingSwitch(
+            label = stringResource(R.string.title_shadow),
+            checked = settingsState.timeHasShadow,
+            onCheckedChange = {
+                settingsViewModel.setTimeHasShadow(it)
             }
+        )
+        if (settingsState.timeHasShadow && customWallpaper) {
+            ColorPickerSettingItem(
+                stringResource(R.string.title_color),
+                settingsState.timeShadowColor,
+            ) { showShadowColorPicker = true }
+        }
+        if (showShadowColorPicker) {
+            EnhancedColorPicker(
+                predefinedColors = settingsViewModel.predefinedColors,
+                initialColor = settingsState.timeShadowColor,
+                onColorSelected = { color,alpha ->
+                    settingsViewModel.setTimeShadow(color)
+                },
+                onDismissRequest = { showShadowColorPicker = false },
+                setAlpha = false
+            )
         }
     }
 }
@@ -936,138 +834,128 @@ fun DateAdvancedSettings(
     settingsViewModel: SettingsViewModel,
     onBack: () -> Unit) {
     val settingsState by settingsViewModel.uiState.collectAsState()
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+    ProSettingsPanel(
+        title = stringResource(R.string.title_date),
+        subtitle = stringResource(R.string.title_advanced),
+        onBack = onBack,
     ) {
-        Column {
-            Box(Modifier.fillMaxWidth()) {
-                SmallFloatingActionButton(
-                    onClick = onBack,
-                    shape = CircleShape,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter) // Align to the bottom-right corner
-                        .padding(8.dp) // Add standard margin from the edges
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.icon_go_back),
-                    )
-                }
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
-                    .windowInsetsPadding(WindowInsets.navigationBars)
+        var selectedId by remember { mutableIntStateOf(settingsState.dateLayoutId) }
+        var angle by remember { mutableIntStateOf(settingsState.dateAngle) }
+        var radius by remember { mutableIntStateOf(settingsState.dateRadius) }
+        var showShadowColorPicker by remember { mutableStateOf(false) }
+        val customWallpaper = !settingsState.autoWallpapers && !settingsState.monochrome
+        fun onSelectLayoutId(id: Int) {
+            settingsViewModel.setDateLayoutId(id)
+            selectedId = id
+        }
+        fun onSetAngle(value:Int){
+            settingsViewModel.setDateAngle(value)
+            angle = value
+        }
+        fun onSetRadius(value:Int){
+            settingsViewModel.setDateRadius(value)
+            radius = value
+        }
+        val fontSize = 20
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            // Box 1
+            SelectableSquareBox(
+                id = 1,
+                selectedId = selectedId,
+                optionWidth = 168.dp,
+                optionHeight = 120.dp,
+                onSelect = { onSelectLayoutId(it) }
             ) {
-                var selectedId by remember { mutableIntStateOf(settingsState.dateLayoutId) }
-                var angle by remember { mutableIntStateOf(settingsState.dateAngle) }
-                var radius by remember { mutableIntStateOf(settingsState.dateRadius) }
-                var showShadowColorPicker by remember { mutableStateOf(false) }
-                val customWallpaper = !settingsState.autoWallpapers && !settingsState.monochrome
-                fun onSelectLayoutId(id: Int) {
-                    settingsViewModel.setDateLayoutId(id)
-                    selectedId = id
-                }
-                fun onSetAngle(value:Int){
-                    settingsViewModel.setDateAngle(value)
-                    angle = value
-                }
-                fun onSetRadius(value:Int){
-                    settingsViewModel.setDateRadius(value)
-                    radius = value
-                }
-                val fontSize = 20
-                FlowRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    // Box 1
-                    SelectableSquareBox(
-                        id = 1,
-                        selectedId = selectedId,
-                        onSelect = { onSelectLayoutId(it) }
-                    ) {
-                        Text(stringResource(R.string.date_example),
-                            fontSize = fontSize.sp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer)
-                    }
-
-                    // Box 2
-                    SelectableSquareBox(
-                        id = 2,
-                        selectedId = selectedId,
-                        onSelect = { onSelectLayoutId(it) }
-                    ) {
-                        Text(stringResource(R.string.date_example_two),
-                            fontSize = fontSize.sp,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer)
-                    }
-                }
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    thickness = DividerDefaults.Thickness,
-                    color = DividerDefaults.color
-                )
-                SettingSlider(
-                    label = stringResource(R.string.title_text_angle),
-                    value = angle,
-                    range = 0f..360f,
-                    onValueChange = { onSetAngle(it)}
-                )
-                CurveRadiusSlider(
-                    label = stringResource(R.string.title_text_radius),
-                    value = radius,
-                    onValueChange = { onSetRadius(it) }
-                )
-                if(customWallpaper)SettingSwitch(
-                    label = stringResource(R.string.title_shadow),
-                    checked = settingsState.dateHasShadow,
-                    onCheckedChange = {
-                        settingsViewModel.setDateHasShadow(it)
-                    }
-                )
-                if (settingsState.dateHasShadow && customWallpaper) {
-                    ColorPickerSettingItem(
-                        stringResource(R.string.title_color),
-                        settingsState.dateShadowColor
-                    ) { showShadowColorPicker = true }
-                }
-                if (showShadowColorPicker) {
-                    EnhancedColorPicker(
-                        predefinedColors = settingsViewModel.predefinedColors,
-                        initialColor = settingsState.dateShadowColor,
-                        onColorSelected = { color,alpha ->
-                            settingsViewModel.setDateShadow(color)
-                        },
-                        onDismissRequest = { showShadowColorPicker = false },
-                        setAlpha = false
-                    )
-                }
+                Text(stringResource(R.string.date_example),
+                    fontSize = fontSize.sp,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer)
             }
+
+            // Box 2
+            SelectableSquareBox(
+                id = 2,
+                selectedId = selectedId,
+                optionHeight = 120.dp,
+                onSelect = { onSelectLayoutId(it) }
+            ) {
+                Text(stringResource(R.string.date_example_two),
+                    fontSize = fontSize.sp,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer)
+            }
+        }
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 16.dp),
+            thickness = DividerDefaults.Thickness,
+            color = DividerDefaults.color
+        )
+        SettingSlider(
+            label = stringResource(R.string.title_text_angle),
+            value = angle,
+            range = 0f..360f,
+            onValueChange = { onSetAngle(it)}
+        )
+        CurveRadiusSlider(
+            label = stringResource(R.string.title_text_radius),
+            value = radius,
+            onValueChange = { onSetRadius(it) }
+        )
+        if(customWallpaper)SettingSwitch(
+            label = stringResource(R.string.title_shadow),
+            checked = settingsState.dateHasShadow,
+            onCheckedChange = {
+                settingsViewModel.setDateHasShadow(it)
+            }
+        )
+        if (settingsState.dateHasShadow && customWallpaper) {
+            ColorPickerSettingItem(
+                stringResource(R.string.title_color),
+                settingsState.dateShadowColor
+            ) { showShadowColorPicker = true }
+        }
+        if (showShadowColorPicker) {
+            EnhancedColorPicker(
+                predefinedColors = settingsViewModel.predefinedColors,
+                initialColor = settingsState.dateShadowColor,
+                onColorSelected = { color,alpha ->
+                    settingsViewModel.setDateShadow(color)
+                },
+                onDismissRequest = { showShadowColorPicker = false },
+                setAlpha = false
+            )
         }
     }
 }
-// Helper composable for a cleaner settings screen
 @Composable
-fun SettingSection(title: String,
-                   content: @Composable ColumnScope.() -> Unit) {
-    Column {
-        Text(
-            text = title.uppercase(),
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding( vertical = 8.dp)
-        )
-        Column(modifier = Modifier, content = content)
+fun SettingSection(
+    title: String,
+    icon: ImageVector? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+    ) {
+        Column(Modifier.padding(12.dp)) {
+            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (icon != null) Icon(icon, null, Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.primary)
+                Text(title, Modifier.weight(1f).semantics { heading() },
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary)
+            }
+            content()
+        }
     }
 }
 
@@ -1076,23 +964,16 @@ fun SettingSwitch(label: String,
                   checked: Boolean,
                   onCheckedChange: (Boolean) -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .clickable{ onCheckedChange(!checked) },
+        modifier = Modifier.fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .heightIn(min = 56.dp).padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row {
-            Text(label,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange
-        )
+        Text(label, Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface)
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 
@@ -1104,10 +985,7 @@ fun SettingSlider(label: String,
                   onValueChange: (Int) -> Unit) {
     var previewValue by remember(value) { mutableIntStateOf(value) }
     Column(modifier = Modifier.padding( vertical = 8.dp)) {
-        Text(label,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        ProSliderHeading(label, previewValue)
         Slider(
             modifier = modifier,
             value = previewValue.toFloat(),
@@ -1177,11 +1055,7 @@ fun CurveRadiusSlider(
     val steps = 499
 
     Column(modifier = Modifier.padding(vertical = 8.dp)) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        ProSliderHeading(label, previewValue)
 
         Slider(
             value = previewValue.toFloat(),
@@ -1205,20 +1079,20 @@ fun SettingDropdown(label: String,
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp)
-            .clickable { expanded = true },
+            .clickable { expanded = true }
+            .heightIn(min = 56.dp).padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(label,
+        Text(label, Modifier.weight(1f),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
-        Box {
+        Box(Modifier.widthIn(max = 120.dp)) {
             Text(
                 text = selectedOption.text,
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.primary
             )
             DropdownMenu(
                 expanded = expanded,
@@ -1412,24 +1286,23 @@ fun EnhancedColorPicker(
     Dialog(onDismissRequest = onDismissRequest) {
         Column(
             modifier = Modifier
-                .background(Color.White, RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Color preview rectangle
+            Text(stringResource(R.string.title_selected_color),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface)
+            // Keep the label outside translucent/custom colors.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(40.dp)
                     .background(selectedColor.copy(alpha = colorAlpha/100f), RoundedCornerShape(8.dp))
-            ) {
-                Text(
-                    text = stringResource(R.string.title_selected_color),
-                    modifier = Modifier.align(Alignment.Center),
-                    color = if (isColorDark(selectedColor)) Color.White else Color.Black
-                )
-            }
+            )
 
             // Predefined color palette
             LazyVerticalGrid(
@@ -1445,7 +1318,7 @@ fun EnhancedColorPicker(
                             .background(color)
                             .border(
                                 width = if (color == selectedColor) 3.dp else 1.dp,
-                                color = if (color == selectedColor) Color.DarkGray else Color.LightGray,
+                                color = if (color == selectedColor) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                 shape = CircleShape
                             )
                             .clickable {
@@ -1475,10 +1348,10 @@ fun EnhancedColorPicker(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                TextButton(onClick = onDismissRequest) {
+                TextButton(onClick = onDismissRequest, modifier = Modifier.heightIn(min = 48.dp)) {
                     Text(stringResource(R.string.cancel_text))
                 }
-                TextButton(onClick = {
+                TextButton(modifier = Modifier.heightIn(min = 48.dp), onClick = {
                     onColorSelected(selectedColor,colorAlpha)
                     onDismissRequest()
                 }) {
@@ -1489,23 +1362,17 @@ fun EnhancedColorPicker(
     }
 }
 @Composable
-fun ColorPickerSettingItem(
-    title: String,
-    color: Color,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp)
-            .background(color, RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
+fun ColorPickerSettingItem(title: String, color: Color, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick).heightIn(min = 56.dp).padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            text = title,
-            modifier = Modifier.align(Alignment.Center),
-            color = if (isColorDark(color)) Color.White else Color.Black
-        )
+        Text(title, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface)
+        Box(Modifier.size(32.dp).clip(CircleShape).background(color)
+            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape))
     }
 }
 
@@ -1992,26 +1859,27 @@ fun SelectableSquareBox(
     id: Int,
     selectedId: Int,
     onSelect: (Int) -> Unit,
+    optionWidth: Dp = 104.dp,
+    optionHeight: Dp = 104.dp,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val isSelected = selectedId == id
-    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+    val selected = selectedId == id
+    val colors = MaterialTheme.colorScheme
+    val scale = LocalDensity.current.fontScale.coerceAtLeast(1f)
     Box(
-        modifier = Modifier
-            .width(104.dp)          // Natural option width; the parent wraps choices
-            .aspectRatio(1f)        // Force Square shape
-            .clip(RoundedCornerShape(12.dp)) // Corner Radius
-            .background(backgroundColor)
-            .border(
-                width = 2.dp,
-                color = borderColor,
-                shape = RoundedCornerShape(12.dp)
-            )
-            .clickable {
-                onSelect(id)
-                       },
+        Modifier.width(optionWidth * scale).heightIn(min = optionHeight * scale)
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (selected) colors.primaryContainer else colors.surfaceColorAtElevation(3.dp))
+            .border(if (selected) 2.dp else 1.dp,
+                if (selected) colors.primary else colors.outlineVariant, RoundedCornerShape(16.dp))
+            .selectable(selected = selected, role = Role.RadioButton, onClick = { onSelect(id) })
+            .testTag("pro-layout-$id")
+            .padding(vertical = 24.dp, horizontal = 4.dp),
         contentAlignment = Alignment.Center,
-        content = content
-    )
+    ) {
+        content()
+        if (selected) Icon(Icons.Filled.Check, null,
+            Modifier.align(Alignment.TopEnd).offset(y = (-18).dp).size(16.dp),
+            tint = colors.primary)
+    }
 }

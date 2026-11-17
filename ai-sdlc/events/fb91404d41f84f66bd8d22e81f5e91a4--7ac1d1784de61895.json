@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "stale",
+    "run": "5001f169a96645d2bcdc673b5bbb0196"
+  },
+  "id": "fb91404d41f84f66bd8d22e81f5e91a4",
+  "reason": "Supersede pending journey receipt before final unchanged-source run",
+  "seq": 780,
+  "time": "2026-11-17T03:47:53.830406+00:00"
+}

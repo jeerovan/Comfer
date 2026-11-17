@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "dc1a3c2b910a4a03bca7db52cd1ba9e1"
+  },
+  "id": "fcb619e778a04136aa875b2b4010070a",
+  "reason": "Final coherent UI candidate verification",
+  "seq": 762,
+  "time": "2026-11-17T03:31:01.357622+00:00"
+}

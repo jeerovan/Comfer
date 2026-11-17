@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "stale",
+    "run": "dc6338aaa7cf4f1d9ad48adf34abb1a5"
+  },
+  "id": "784b1a9dfad54d848d707416c25646b3",
+  "reason": "Preserve passing observations while closing the visible-system-bar gap",
+  "seq": 784,
+  "time": "2026-11-17T04:00:46.838043+00:00"
+}

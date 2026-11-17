@@ -1,0 +1,44 @@
+{
+  "at": "2026-11-17T03:38:48.703759+00:00",
+  "code_discovery": "Source/Serena local references confirm Pro helpers only. Reviewed MainActivity construction, model persistence, Theme/ThumbReach, actual LanguageUpdateActivity and GuideActivity setup. Rendered-line test corrects paragraph allocation false positive. New real swatch->dialog regression reproduced missing Cancel/Save in landscape1.3; bounded dialog scrolling fixes that connected path. No unrelated settings or app drawer behavior changed.",
+  "entrypoints": "Default Home upper long press -> Basic -> Time/Date Advanced; component host checks same controls and actual swatch click -> color dialog. Real locale trampoline and native system picker supply resources. Picker fixture uses local callback color/alpha state, not persistence; Home tests separately prove setting persistence.",
+  "id": "6b2bbf34415e4f859229331d84043228",
+  "order": 74,
+  "recovery_paths": "Back/dialog priority; saved edits and parent scroll on child return/reopen/recreation; radio selections and reset; picker Cancel has no save, Save retains color with chosen alpha; both themes, real English/Arabic sources, normal portrait and larger landscape. Fixtures restore settings and device configuration.",
+  "reviewed_ids": [
+    "PRO-SETTINGS-UI",
+    "PRO-SETTINGS-UI-IMPL",
+    "PRO-SETTINGS-UI-REQ",
+    "PRO-SETTINGS-UI-TEST"
+  ],
+  "snapshot": {
+    "files": {
+      "app/build.gradle.kts": "e3c52ebc4275884e8c5bb072da0b52d48b2a65c78b6db352e9cc16cfa6ce9b36",
+      "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsAppearanceTest.kt": "91cebf92fd1cce0079c21edca08db9069e9a38aa29a2c89ed7265d08dc3e4889",
+      "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsBackSoundTest.kt": "b9affdad2ef50dd7a24907e697e1a0be5254e14c703a1b68dc6948e9ca99391a",
+      "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsSystemBackTest.kt": "a00b2ad4dce4f0167f16aefb9de68aea3ca8ed7cf1605d6d38328a0869c8cbd8",
+      "app/src/androidTest/java/com/jeerovan/comfer/SettingsOptionsWrapTest.kt": "bb4c7c5bda792281fe9796f992f19791277ef84ab8e7f1c027634f5f81e3cdf9",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetGlassLocaleSourceTest.kt": "5214af5e320c44e70aaac8c492e542cbd9ee0745ad74cd38bc843e5c47565a62",
+      "app/src/androidTest/java/com/jeerovan/comfer/WidgetResetTest.kt": "5328d5397d0c6740ae7832d8a763c498d49821ac20dae066b48ba97ec921dd9b",
+      "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1",
+      "app/src/main/java/com/jeerovan/comfer/GuideActivity.kt": "07e1245e3523b76b416dad26bf9728a8d160d01e57b491d46def1cbfa95f714e",
+      "app/src/main/java/com/jeerovan/comfer/LanguageUpdateActivity.kt": "7befcfe5f775ba012e62db0c7fbc910230d0a9691856a5ed25685fe1da0ac597",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "3570452257156d80dc21e68e1ced133a3d9b1556b552e25ac09f2ae47f850526",
+      "app/src/main/java/com/jeerovan/comfer/ProSettingsActivity.kt": "02aa3d74399617945cb13a6ef6eb71542f7f042f0009cb53956baca00f74fc4d",
+      "app/src/main/java/com/jeerovan/comfer/ProSettingsComponents.kt": "80583f0b967ee592d0f0849898583cb7d709a1ac48f9adabf60a7fa2b9d00aa8",
+      "app/src/main/java/com/jeerovan/comfer/SettingsViewModel.kt": "ed9c924530e11db5c37122deb0f89f5f91f8a8b8560dabc16822cc2d61bf6c56",
+      "app/src/main/java/com/jeerovan/comfer/ui/ThumbReach.kt": "2b5386af8dcf7959ce523b7a8b3cd06f461b6ce8c2f2d758982f2e940af911a0",
+      "app/src/main/java/com/jeerovan/comfer/ui/theme/Theme.kt": "059ecf453be2ef172ac51ada38b2ba1b3efc640082206e431dc7aa04b88a85e8",
+      "app/src/main/java/com/jeerovan/comfer/ui/theme/Type.kt": "5000d08ed6b6e1ab5d1a4eb0d6d628a4f6eee7474493716fed9f733811765a89",
+      "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216",
+      "validation-artifacts/pro-settings-ui-20261117/run-matrix.py": "6aee0ee060c60f371652830ad598c241bc7e5da18a43652843223ee096042033"
+    },
+    "graph": "19f511d9b2249bc7252d1fc48f9b400a975cc31ffb820041dd95df6c8003eae1",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "step": "PRO-SETTINGS-UI",
+  "unresolved": []
+}

@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "128aa5c8024f4144a37a6df93acf88cc"
+  },
+  "id": "f3112c4828b5460496776c0e33a172f6",
+  "reason": "Final default Home journey and adjacent regressions passed",
+  "seq": 792,
+  "time": "2026-11-17T04:12:01.031252+00:00"
+}

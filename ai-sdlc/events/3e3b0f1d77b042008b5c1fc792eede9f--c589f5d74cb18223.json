@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "PRO-SETTINGS-UI",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "3e3b0f1d77b042008b5c1fc792eede9f",
+  "reason": "Accepted UI established: final16 Redmi checks pass, real regular debug light/dark and landscape touch/Back/Home-Recents verified, APK69266f2e... identified, data/configuration preserved. Canonical history record release60-pro-settings-ui-20261117 and register revision retain evidence/failures; no release/production claim.",
+  "seq": 793,
+  "time": "2026-11-17T04:18:24.112485+00:00"
+}
