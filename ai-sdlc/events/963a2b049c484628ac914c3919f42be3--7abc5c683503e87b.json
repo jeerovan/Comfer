@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "PRO-SETTINGS-BACK",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "963a2b049c484628ac914c3919f42be3",
+  "reason": "System Back baseline reproduced and final four Redmi regressions pass; callback hierarchy, dialog priority, persisted edits and existing button sound verified. Regular debug installed and real Time Advanced -> Basic -> Home phone Back observed. Metadata gate passed; no production claim.",
+  "seq": 739,
+  "time": "2026-11-17T03:05:26.656765+00:00"
+}

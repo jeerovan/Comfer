@@ -1,0 +1,41 @@
+{
+  "adaptations": [
+    "Isolated package; unrelated guide/feedback flags suppressed and built-in digital widgets selected; original preferences restored."
+  ],
+  "bypasses": [],
+  "criteria": [
+    "PRO-SETTINGS-BACK-REQ#dialog",
+    "PRO-SETTINGS-BACK-REQ#navigation"
+  ],
+  "entrypoint": "Default MainActivity upper long press then physical KEYCODE_BACK",
+  "environment": "Redmi7 71a3063 API29 isolated notificationTest",
+  "finished_at": "2026-11-17T02:57:27.457753+00:00",
+  "id": "a369ff190138468ca5220c28e089fb6b",
+  "level": "journey",
+  "observation": "Three tests ran: root Back failed to dismiss panel; dialog Back correctly dismissed dialog but next Back failed to return Home. Child test stopped before Back because fixture requested 77 on a slider stepping by 2 and waited for exact77; this is a test expectation issue, not yet child navigation evidence. Correct fixture to valid step78 then rerun pre-fix child case.",
+  "order": 116,
+  "proof": {
+    "validation-artifacts/pro-settings-back-20261117/baseline-redmi.log": "9eae636ca27c9fb5d768d39731c06e8de637962414911299a80660b64b19c831"
+  },
+  "proof_path": "validation-artifacts/pro-settings-back-20261117/baseline-redmi.log",
+  "result": "failed",
+  "snapshot": {
+    "files": {
+      "app/build.gradle.kts": "e3c52ebc4275884e8c5bb072da0b52d48b2a65c78b6db352e9cc16cfa6ce9b36",
+      "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsBackSoundTest.kt": "b9affdad2ef50dd7a24907e697e1a0be5254e14c703a1b68dc6948e9ca99391a",
+      "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsSystemBackTest.kt": "9deb6c50c7bb88db5b001c6cb087c7be254d807d73369e0e3cb5e1a23d31eeb0",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "3570452257156d80dc21e68e1ced133a3d9b1556b552e25ac09f2ae47f850526",
+      "app/src/main/java/com/jeerovan/comfer/ProSettingsActivity.kt": "f949451b4d2c1c9d338afe82f7978ca7e4c9832beb74b1ab41634602bce440fd",
+      "app/src/main/java/com/jeerovan/comfer/SettingsViewModel.kt": "ed9c924530e11db5c37122deb0f89f5f91f8a8b8560dabc16822cc2d61bf6c56",
+      "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216"
+    },
+    "graph": "284def3e647707402404f073aaf48011bfeabde205bfa8ba5ee6f8038ebddd31",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-17T02:55:17.126443+00:00",
+  "step": "PRO-SETTINGS-BACK",
+  "test": "PRO-SETTINGS-BACK-TEST"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "d388e72d0ece4eab93b2c687eaa12279"
+  },
+  "id": "ad33d4e0674e44269e0e72d70f125197",
+  "reason": "Verify final shared system/button Back hierarchy and existing feedback.",
+  "seq": 735,
+  "time": "2026-11-17T02:59:29.866747+00:00"
+}

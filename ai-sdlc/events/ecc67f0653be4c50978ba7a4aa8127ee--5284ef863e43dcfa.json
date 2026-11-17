@@ -1,0 +1,50 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Child -> Basic -> Home, exactly one level per Back, matching on-screen control. Root can reopen after exit/recreation; edited settings retained.",
+          "id": "navigation",
+          "initial_state": "Default MainActivity, built-in upper widgets; existing saved preferences",
+          "invariants": "Use real Home entry and Android Back dispatch, not direct callbacks. Preserve unrelated data. No changed geometry or direction rules.",
+          "required_level": "journey",
+          "trigger": "Long-press upper area, open root or Time/Date Advanced, then press phone Back"
+        },
+        {
+          "expected": "First dismisses dialog leaving Basic, second exits to Home.",
+          "id": "dialog",
+          "initial_state": "Pro Basic settings font dialog open via real UI",
+          "invariants": "No unintended settings changes or parent dismissal behind modal.",
+          "required_level": "journey",
+          "trigger": "Phone Back then another Back"
+        },
+        {
+          "expected": "Existing navigation and single click sound preserved; cancellation stays silent.",
+          "id": "buttons",
+          "initial_state": "Existing Home/Advanced on-screen Back controls",
+          "invariants": "System Back uses navigation action without adding duplicate explicit click feedback.",
+          "required_level": "integration",
+          "trigger": "Complete or cancel a Back-button press"
+        }
+      ],
+      "description": "Basic settings exits widget edit mode to Home; Time/Date Advanced returns to Basic. Dialog owns Back before parent. Preserve edits and existing tap sound/animations.",
+      "id": "PRO-SETTINGS-BACK-REQ",
+      "kind": "requirement",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Phone Back mirrors Pro settings Back navigation"
+    },
+    "before": null,
+    "node": "PRO-SETTINGS-BACK-REQ",
+    "reopened": []
+  },
+  "id": "ecc67f0653be4c50978ba7a4aa8127ee",
+  "reason": "Track owner-requested system Back with bounded observable acceptance and production/test references.",
+  "seq": 723,
+  "time": "2026-11-17T02:54:33.504485+00:00"
+}

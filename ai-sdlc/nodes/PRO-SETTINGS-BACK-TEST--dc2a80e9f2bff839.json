@@ -1,0 +1,41 @@
+{
+  "criteria": [],
+  "description": "Real MainActivity + upper long press + physical KEYCODE_BACK, child navigation and persisted edit assertions, dialog priority and Home recreation. Seed unrelated tutorial flags and built-in/digital widgets only; restore preferences. Existing sound test substitutes sound sink/QuickListOverlay so component-only for wiring.",
+  "id": "PRO-SETTINGS-BACK-TEST",
+  "kind": "test",
+  "phase": "verification",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsSystemBackTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsBackSoundTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/notificationTest/AndroidManifest.xml",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/build.gradle.kts",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Default Home system Back hierarchy and existing button regressions"
+}

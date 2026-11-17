@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Owner requires phone Back to match top Back button for upper Home long-press settings and child screens. Scope is callback registration/navigation only; no layout, translations or styling change. Redmi debug development target, no release bump.",
+      "id": "PRO-SETTINGS-BACK",
+      "kind": "step",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Support system Back through Pro settings hierarchy"
+    },
+    "before": null,
+    "node": "PRO-SETTINGS-BACK",
+    "reopened": []
+  },
+  "id": "6020452aebaa47f985f02baaf8105596",
+  "reason": "Track owner-requested system Back with bounded observable acceptance and production/test references.",
+  "seq": 722,
+  "time": "2026-11-17T02:54:31.918327+00:00"
+}

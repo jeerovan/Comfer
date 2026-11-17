@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "bddb32e7df6f408da2bd169d82205249"
+  },
+  "id": "89ba932cae5a4a8ea1199207b5d59ec6",
+  "reason": "Reproduce child Back with valid slider-step fixture; product unchanged.",
+  "seq": 732,
+  "time": "2026-11-17T02:57:43.868508+00:00"
+}

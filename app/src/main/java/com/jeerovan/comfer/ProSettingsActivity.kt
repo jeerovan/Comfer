@@ -4,6 +4,7 @@ package com.jeerovan.comfer
 
 import android.os.Bundle
 import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedContent
@@ -97,6 +98,13 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
                       exitWidgetSettings: () -> Unit) {
     // State variable tracks the current screen
     var currentScreen by remember { mutableStateOf(SettingsScreen.Basic) }
+    val navigateBack: () -> Unit = {
+        if (currentScreen == SettingsScreen.Basic) exitWidgetSettings()
+        else currentScreen = SettingsScreen.Basic
+    }
+    // The panel lives inside Home rather than a separate Activity. Register
+    // its hierarchy with Android as well as the visible Back controls.
+    BackHandler(onBack = navigateBack)
     AnimatedContent(
         targetState = currentScreen,
         transitionSpec = {
@@ -119,7 +127,7 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
             SettingsScreen.Basic -> {
                 BasicSettings(
                     settingsViewModel,
-                    exitWidgetSettings,
+                    navigateBack,
                     // Pass distinct callbacks for each sub-screen
                     onShowTimeAdvanced = { currentScreen = SettingsScreen.TimeAdvanced },
                     onShowDateAdvanced = { currentScreen = SettingsScreen.DateAdvanced }
@@ -128,17 +136,13 @@ fun ProSettingsScreen(settingsViewModel: SettingsViewModel,
             SettingsScreen.TimeAdvanced -> {
                 TimeAdvancedSettings(
                     settingsViewModel,
-                    onBack = {
-                        currentScreen = SettingsScreen.Basic
-                    }
+                    onBack = navigateBack
                 )
             }
             SettingsScreen.DateAdvanced -> {
                 DateAdvancedSettings(
                     settingsViewModel,
-                    onBack = {
-                        currentScreen = SettingsScreen.Basic
-                    }
+                    onBack = navigateBack
                 )
             }
         }

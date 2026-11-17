@@ -1,0 +1,42 @@
+{
+  "adaptations": [
+    "Isolated package; guide/feedback flags suppressed and built-in digital widgets selected; restore test-owned preferences."
+  ],
+  "bypasses": [
+    "Test-owned GuideActivity content and sound sink; normal Home wiring covered separately."
+  ],
+  "criteria": [
+    "PRO-SETTINGS-BACK-REQ#buttons"
+  ],
+  "entrypoint": "Existing ProSettingsBackSoundTest QuickListOverlay/actual Material controls",
+  "environment": "Redmi7 API29 isolated notificationTest; English portrait; no layout/locale changes",
+  "finished_at": "2026-11-17T03:01:41.303504+00:00",
+  "id": "1c3885d74d67439ca37b602c2fd4eac4",
+  "level": "integration",
+  "observation": "Existing ProSettingsBackSoundTest passes: root and both Advanced buttons navigate correctly with one click sound per committed tap; cancelled press stays silent. Test substitutes sound sink/GuideActivity content, so normal Home wiring is established by separate system-Back tests.",
+  "order": 119,
+  "proof": {
+    "validation-artifacts/pro-settings-back-20261117/final-redmi.log": "4e86b494c10f41076d2fda4132ff80928d32c1197cbf2a8e28b87ce675bd7f9e"
+  },
+  "proof_path": "validation-artifacts/pro-settings-back-20261117/final-redmi.log",
+  "result": "passed",
+  "snapshot": {
+    "files": {
+      "app/build.gradle.kts": "e3c52ebc4275884e8c5bb072da0b52d48b2a65c78b6db352e9cc16cfa6ce9b36",
+      "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsBackSoundTest.kt": "b9affdad2ef50dd7a24907e697e1a0be5254e14c703a1b68dc6948e9ca99391a",
+      "app/src/androidTest/java/com/jeerovan/comfer/ProSettingsSystemBackTest.kt": "59cb0f8b89a0d44341acf323b947d1fee339c1c82e9d566bee3ed3860211d08f",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "3570452257156d80dc21e68e1ced133a3d9b1556b552e25ac09f2ae47f850526",
+      "app/src/main/java/com/jeerovan/comfer/ProSettingsActivity.kt": "7f5f4490a686a6552f25d0fb36a5e5cf7f78710038f10533390e079c0eb10b7c",
+      "app/src/main/java/com/jeerovan/comfer/SettingsViewModel.kt": "ed9c924530e11db5c37122deb0f89f5f91f8a8b8560dabc16822cc2d61bf6c56",
+      "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216"
+    },
+    "graph": "284def3e647707402404f073aaf48011bfeabde205bfa8ba5ee6f8038ebddd31",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-17T02:59:31.502233+00:00",
+  "step": "PRO-SETTINGS-BACK",
+  "test": "PRO-SETTINGS-BACK-TEST"
+}

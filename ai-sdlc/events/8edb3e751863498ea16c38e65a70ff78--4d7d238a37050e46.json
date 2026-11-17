@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Actual Home Back hierarchy and regression verification",
+      "relation": "verifies",
+      "source": "PRO-SETTINGS-BACK-TEST",
+      "target": "PRO-SETTINGS-BACK"
+    },
+    "reopened": []
+  },
+  "id": "8edb3e751863498ea16c38e65a70ff78",
+  "reason": "Bind Pro settings system Back acceptance.",
+  "seq": 728,
+  "time": "2026-11-17T02:54:41.599822+00:00"
+}
