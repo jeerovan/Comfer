@@ -67,7 +67,11 @@
   import-snapshot and issue-state revision tables; do not create full database
   copies for routine updates. Preserve unique historical rows before removing
   duplicate copies. Do not infer production resolution from local test passes.
-- Current release target: **60**. Keep the fix register in `play_reporting.db`
+- Current release target: **61**. `R61-AAB` tracks the owner-requested signed
+  internal-testing bundle; `R61-INTERNAL-TEST` remains a separate Play-delivered
+  verification step after owner upload. Preserve version60 and earlier evidence
+  with its original artifact scope; a metadata bump does not rerun those tests.
+  Keep the fix register in `play_reporting.db`
   (`record:release59-fix-register`), appending revisions with target version,
   stable attempt IDs, issue links, source/test references and validation state.
   Preserve existing `58-Rxx` IDs and historical evidence. Planned validation is

@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "a9d0371975184857b9896aa6995a3a67"
+  },
+  "id": "e76d83c3f39a43f9b431c2feeebe020b",
+  "reason": "Corrected harness import only; rerun affected scoped checks",
+  "seq": 810,
+  "time": "2026-11-17T04:34:24.530798+00:00"
+}

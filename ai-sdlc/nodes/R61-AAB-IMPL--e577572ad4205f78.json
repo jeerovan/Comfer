@@ -1,0 +1,27 @@
+{
+  "criteria": [],
+  "description": "Existing signing, shrinking and language packaging retained; version metadata updated.",
+  "id": "R61-AAB-IMPL",
+  "kind": "implementation",
+  "phase": "release",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/build.gradle.kts",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/AndroidManifest.xml",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Version61 release configuration"
+}

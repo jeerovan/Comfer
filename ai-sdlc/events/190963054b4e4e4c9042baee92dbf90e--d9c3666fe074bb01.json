@@ -1,0 +1,42 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "com.jeerovan.comfer version61/61.0 nondebuggable AAB signed with configured upload certificate; mapping embedded and all supported picker languages in base",
+          "id": "artifact",
+          "initial_state": "Current committed UI and fixes with pre-bump matching layout evidence",
+          "invariants": "No production upload, no user data loss, prior evidence retains original scope",
+          "required_level": "integration",
+          "trigger": "Build signed minified version61 release and inspect bundle-generated English device APKs"
+        },
+        {
+          "expected": "French and Arabic translations available offline; English restored; regular debug app data retained",
+          "id": "picker",
+          "initial_state": "Redmi isolated English-only bundle split install, offline",
+          "invariants": "Explicit isolated launch and debug signing are local fixture adaptations, not Play delivery proof",
+          "required_level": "integration",
+          "trigger": "Open actual Settings picker, select supported languages and restart"
+        }
+      ],
+      "description": "Owner requests version61 AAB for manual Play Internal upload; preserve prior evidence and production history. Play-delivered testing is separate.",
+      "id": "R61-AAB-REQ",
+      "kind": "requirement",
+      "phase": "release",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Version61 signed internal-testing bundle"
+    },
+    "before": null,
+    "node": "R61-AAB-REQ",
+    "reopened": []
+  },
+  "id": "190963054b4e4e4c9042baee92dbf90e",
+  "reason": "Owner requested version61 internal-testing bundle",
+  "seq": 794,
+  "time": "2026-11-17T04:30:47.561197+00:00"
+}

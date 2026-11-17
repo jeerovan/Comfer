@@ -1,0 +1,6 @@
+{
+  "rationale": "Local preparation and verification precede owner upload and Play-delivered checks",
+  "relation": "realizes",
+  "source": "R61-AAB-IMPL",
+  "target": "R61-AAB"
+}

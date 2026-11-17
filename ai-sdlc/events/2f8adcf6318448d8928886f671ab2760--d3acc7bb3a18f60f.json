@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Local preparation and verification precede owner upload and Play-delivered checks",
+      "relation": "implements",
+      "source": "R61-AAB",
+      "target": "R61-AAB-REQ"
+    },
+    "reopened": []
+  },
+  "id": "2f8adcf6318448d8928886f671ab2760",
+  "reason": "Separate local artifact and later delivery gates",
+  "seq": 799,
+  "time": "2026-11-17T04:30:56.855953+00:00"
+}

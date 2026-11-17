@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Pending owner upload/availability. Local AAB checks do not verify Play delivery or production resolution.",
+      "id": "R61-INTERNAL-TEST",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Verify Play-delivered version61 after owner upload"
+    },
+    "before": null,
+    "node": "R61-INTERNAL-TEST",
+    "reopened": []
+  },
+  "id": "e01f275bcac747f4be93c3eb661f7b0d",
+  "reason": "Owner requested version61 internal-testing bundle",
+  "seq": 798,
+  "time": "2026-11-17T04:30:54.919735+00:00"
+}

@@ -1,0 +1,35 @@
+{
+  "at": "2026-11-17T04:36:21.639993+00:00",
+  "code_discovery": "Bounded source review: only production edit is60→61 metadata; signing/shrinking/language packaging unchanged. Corrected copied helper import (initial failure before device work), reran artifact and real picker checks. Current declared verification gate passes. Retain pre-bump matching16 UI checks and actualdebug journeys with original scope; not relabeled release61.",
+  "entrypoints": "Verified bundleRelease output version61/61.0 signature matching configuredupload key, embedded mapping, manifest classes and35languages in English-only master; real isolated Main→lower longpress→Settings→French/Arabic/English picker offline.",
+  "id": "b1ef0473e6084a51a3b341406d4ee6d7",
+  "order": 80,
+  "recovery_paths": "Each language survived force-stop/restart. Network/rotation restored, regular debug Home visible, data untouched; isolated version61 has no HOME/LAUNCHER filters.",
+  "reviewed_ids": [
+    "R61-AAB",
+    "R61-AAB-CHECK",
+    "R61-AAB-IMPL",
+    "R61-AAB-REQ",
+    "R61-INTERNAL-TEST"
+  ],
+  "snapshot": {
+    "files": {
+      "app/build.gradle.kts": "abfa1308f210545d32873445c85c12a1852a62c25d7cb1cf62279661cd8f5470",
+      "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1",
+      "scripts/verify_apk_components.py": "afc6a086cd5b72018449eba7276a873559899ffa7d9fe6c8fd0192ff6e52145b",
+      "scripts/verify_bundle_languages.py": "3aeabb42407c26ed484bd2cb14cb607d502c8aeef12d253ff6bc1f4d1939e7ff",
+      "validation-artifacts/release59-aab-20261111/VerifyBundleSignature.java": "332a3421c6fc3dc30d53d4a83d4b0a9acfffc483733179154edc65dc039757aa",
+      "validation-artifacts/release60-language-20261111/ui_helper.py": "695d36b6ea05441c82f3a6b200309622d9592a62b1589a209250e7415e0ef931",
+      "validation-artifacts/release61-aab-20261117/offline_picker.py": "3b16e26979f65fd8b40751bfa26a1a48f0584f583537b93dfaeabb51bf7cfa9a",
+      "validation-artifacts/release61-aab-20261117/prepare_isolated.py": "8767f5d748961905843557baa9438086eea6c09a2e6d1c0f7d833094381869a4",
+      "validation-artifacts/release61-aab-20261117/verify_release.py": "5fdb345b9738907f8235719549cdd043aaeab1df4a0e8fc03db3135f633c9193"
+    },
+    "graph": "2782c0d08f6b05a6bdbd4d9a24b6175db04abc046e8fe43ca3c92b42b1800214",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "step": "R61-AAB",
+  "unresolved": []
+}

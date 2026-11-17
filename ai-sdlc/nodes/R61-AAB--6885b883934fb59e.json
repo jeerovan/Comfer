@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Bump metadata only, retain verified current-source layout evidence, verify signed bundle and offline picker. No production readiness claim.",
+  "id": "R61-AAB",
+  "kind": "step",
+  "phase": "release",
+  "refs": [],
+  "revision": 1,
+  "status": "completed",
+  "tags": [],
+  "title": "Prepare version61 AAB for owner upload"
+}

@@ -1,0 +1,115 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Signature, manifest, bundle config, resource/master APK, mapping plus actual offline picker; prior UI evidence remains pre-bump.",
+      "id": "R61-AAB-CHECK",
+      "kind": "test",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/verify_bundle_languages.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/verify_apk_components.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release59-aab-20261111/VerifyBundleSignature.java",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-language-20261111/ui_helper.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release61-aab-20261117/verify_release.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release61-aab-20261117/prepare_isolated.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release61-aab-20261117/offline_picker.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Version61 artifact and isolated offline picker checks"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Signature, manifest, bundle config, resource/master APK, mapping plus actual offline picker; prior UI evidence remains pre-bump.",
+      "id": "R61-AAB-CHECK",
+      "kind": "test",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/verify_bundle_languages.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/verify_apk_components.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release59-aab-20261111/VerifyBundleSignature.java",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-language-20261111/ui_helper.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Version61 artifact and isolated offline picker checks"
+    },
+    "node": "R61-AAB-CHECK",
+    "reopened": []
+  },
+  "id": "a8b6538b8ab147d9b4410b519ef9d744",
+  "reason": "Bind checks to adapted version61 scripts",
+  "seq": 804,
+  "time": "2026-11-17T04:32:13.932760+00:00"
+}
