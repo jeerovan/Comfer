@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "79d7cc82fcab4b509d2604427e6ce015"
+  },
+  "id": "7f44fd02f93b4f00ba7b01fc92f7f517",
+  "reason": "Rerun unchanged acceptance after confirmed harness corrections.",
+  "seq": 527,
+  "time": "2026-11-11T04:45:42.178224+00:00"
+}

@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R59-AAB",
+    "reopened": [],
+    "to": "in_progress"
+  },
+  "id": "03f14860de96478dacf16cc8c50fa7c5",
+  "reason": "Proceed with explicitly requested artifact build.",
+  "seq": 478,
+  "time": "2026-11-11T02:14:15.028168+00:00"
+}

@@ -26,6 +26,28 @@ class DrawableMemoryHomeTest {
             compose.waitUntil(60_000) {
                 StartupCoordinator.isReady && PerformanceTrace.appRefreshStats().active == 0 && model.uiState.value.quickApps.isNotEmpty()
             }
+            // A zero active count can occur while Home's initial reload is still
+            // debouncing. Wait for the real refresh generation and visible
+            // inventory to settle before replacing a test-owned in-memory icon.
+            val generation = AppInfoViewModel::class.java.getDeclaredField("refreshGeneration").let {
+                it.isAccessible = true
+                it.get(model) as java.util.concurrent.atomic.AtomicLong
+            }
+            var lastGeneration = generation.get()
+            var quietSince = android.os.SystemClock.elapsedRealtime()
+            compose.waitUntil(30_000) {
+                val now = android.os.SystemClock.elapsedRealtime()
+                val currentGeneration = generation.get()
+                val firstLabel = model.uiState.value.quickApps.firstOrNull()?.label
+                val visible = firstLabel != null && compose.onAllNodesWithContentDescription(firstLabel)
+                    .fetchSemanticsNodes().isNotEmpty() &&
+                    compose.onAllNodesWithContentDescription(firstLabel)[0].isDisplayed()
+                if (currentGeneration != lastGeneration || PerformanceTrace.appRefreshStats().active != 0 || !visible) {
+                    lastGeneration = currentGeneration
+                    quietSince = now
+                }
+                now - quietSince >= 1_000 // Covers the production 300 ms debounce; no fixed refresh count.
+            }
             @Suppress("UNCHECKED_CAST")
             val state = AppInfoViewModel::class.java.getDeclaredField("_uiState").let {
                 it.isAccessible = true
@@ -37,6 +59,14 @@ class DrawableMemoryHomeTest {
             try {
                 compose.runOnIdle { state.value = original.copy(quickApps = listOf(item)) }
                 val icon = compose.onNodeWithContentDescription(item.label)
+                try {
+                    compose.waitUntil(10_000) { icon.isDisplayed() }
+                } catch (failure: Throwable) {
+                    runCatching {
+                        println("Memory icon draws=${failing.draws}; stillInjected=${state.value.quickApps.any { it.foreground === failing }}; refresh=${PerformanceTrace.appRefreshStats()}")
+                    }.exceptionOrNull()?.let(failure::addSuppressed)
+                    throw failure
+                }
                 icon.assertIsDisplayed()
                 val bounds = icon.fetchSemanticsNode().boundsInRoot
                 compose.runOnIdle { assertEquals("No repeated allocation attempts for the same source", 1, failing.draws) }

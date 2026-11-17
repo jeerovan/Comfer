@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Natural shortcut recognition and exclusive routing",
+      "relation": "implements",
+      "source": "HOME-GESTURES",
+      "target": "HOME-GESTURES-REQ"
+    },
+    "reopened": []
+  },
+  "id": "82d0b440d91a43fcaa51484171230b4d",
+  "reason": "Bind intended behavior to implementation and regressions",
+  "seq": 644,
+  "time": "2026-11-16T16:44:22.728509+00:00"
+}

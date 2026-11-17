@@ -1,0 +1,38 @@
+{
+  "adaptations": [
+    "Owner explicitly authorizes clearing existing regular app data; fresh install rather than upgrade",
+    "ADB selects default Home and exercises UI; no Play-delivery or gesture-regression closure claim"
+  ],
+  "bypasses": [],
+  "criteria": [
+    "REDMI-DEBUG-20261117-REQ#manual"
+  ],
+  "entrypoint": "Regular debug install and MainActivity HOME with ADB UI input",
+  "environment": "Redmi7 API29 serial71a3063 com.jeerovan.comfer debug60",
+  "finished_at": "2026-11-17T01:48:35.373897+00:00",
+  "id": "fd03991f1e8948d7a1ba161e9c7e713e",
+  "level": "journey",
+  "observation": "Installed regular debug60 on Redmi after authorized uninstall and MIUI approval. Exact installed/local SHA256 and debug certificate verified. Visually observed Workspace/Back and Home→Recents→Home, then Workspace responding again; regular MainActivity resumed. Isolated tests stopped with no HOME/LAUNCHER entries. Helper's automated UI dump failed could not get idle state while first-use animated hint visible; retained failure and used actual screenshot/ADB journey observation, not a claimed helper pass. No Samsung tests, release claim or resolution of two known gesture regressions.",
+  "order": 107,
+  "proof": {
+    "validation-artifacts/redmi-manual-update-20261117/outcome.json": "d544af502bafa1301d76babd7177b4d0ba68a10efaf6c4734b3be67592c33bb0"
+  },
+  "proof_path": "validation-artifacts/redmi-manual-update-20261117/outcome.json",
+  "result": "passed",
+  "snapshot": {
+    "files": {
+      "app/build.gradle.kts": "e3c52ebc4275884e8c5bb072da0b52d48b2a65c78b6db352e9cc16cfa6ce9b36",
+      "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1",
+      "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216",
+      "scripts/prepare_manual_check.py": "6fbc12f3b08d8fd9121e8d409af10cb35da0c5a83403637abe94dc4e69f9581b"
+    },
+    "graph": "631a57d56b145d417b5ceb93c16dba16a06ef7cc10e628abb41d5d4843d8ba89",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-17T01:41:11.630649+00:00",
+  "step": "REDMI-DEBUG-20261117",
+  "test": "REDMI-DEBUG-20261117-CHECK"
+}

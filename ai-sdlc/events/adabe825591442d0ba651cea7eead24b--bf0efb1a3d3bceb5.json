@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "84d841c702ab4f42bd35480dd8e1970e"
+  },
+  "id": "adabe825591442d0ba651cea7eead24b",
+  "reason": "Retain current component observations with explicit scope.",
+  "seq": 598,
+  "time": "2026-11-16T13:55:27.768361+00:00"
+}

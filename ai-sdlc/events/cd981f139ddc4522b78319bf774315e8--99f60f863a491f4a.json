@@ -1,0 +1,47 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Real NotificationManager posts and OS listener; mounted production Home row in Compose harness. Fixture access/config setup is test-owned, not default launcher proof. Existing artwork, delay/cancellation and icon rendering checks retained.",
+      "id": "R60-NOTIF-ROW-TEST",
+      "kind": "test",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/NotificationListenerIntegrationTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/NotificationSmallIconTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/NotificationIconContrastTest.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Grouped artwork and prior async icon regressions on Redmi"
+    },
+    "before": null,
+    "node": "R60-NOTIF-ROW-TEST",
+    "reopened": []
+  },
+  "id": "cd981f139ddc4522b78319bf774315e8",
+  "reason": "Track owner notification icon report and bounded regression",
+  "seq": 625,
+  "time": "2026-11-16T14:32:18.379780+00:00"
+}

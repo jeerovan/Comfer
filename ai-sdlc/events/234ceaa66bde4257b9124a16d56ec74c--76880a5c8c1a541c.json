@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "314560ef7895489ead8a2df2fd581c35"
+  },
+  "id": "234ceaa66bde4257b9124a16d56ec74c",
+  "reason": "Final component acceptance verified after both fixes.",
+  "seq": 712,
+  "time": "2026-11-17T02:13:50.532740+00:00"
+}

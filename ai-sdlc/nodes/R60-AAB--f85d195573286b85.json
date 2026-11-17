@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Build only after completed focused local checks. Verify exact signed/minified AAB and generated English-device APK set. Deliver local path and SHA256 for owner upload; subsequent Play testing remains pending.",
+  "id": "R60-AAB",
+  "kind": "step",
+  "phase": "release",
+  "refs": [],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Verify and hand off signed version60 AAB"
+}

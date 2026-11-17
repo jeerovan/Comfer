@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "blocked",
+    "run": "dfabf2f09aa6434ba38f54be825184d6"
+  },
+  "id": "412368c58835423086194e4427d9e946",
+  "reason": "Correct verification metadata before passing artifact acceptance.",
+  "seq": 484,
+  "time": "2026-11-11T02:18:02.461907+00:00"
+}

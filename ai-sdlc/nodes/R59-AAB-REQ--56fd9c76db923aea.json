@@ -1,0 +1,21 @@
+{
+  "criteria": [
+    {
+      "expected": "Signed nondebuggable production-package AAB declares59/59.0; release shrinking and bundled DEX/schema outputs present; retain hash/mapping/source identity and deliver local path",
+      "id": "artifact",
+      "initial_state": "Committed current fixes and modular Settings with historical and affected local evidence; regular Redmi remains58debug",
+      "invariants": "No upload, no device data change, preserve stable issue IDs and all unresolved release gates",
+      "required_level": "component",
+      "trigger": "Bump version to59/59.0, build release bundle and inspect it"
+    }
+  ],
+  "description": "Latest owner request authorizes version bump and local AAB creation now. Scope is artifact preparation for owner upload do not mark unresolved Notes or full release/Play upgrade gates complete.",
+  "id": "R59-AAB-REQ",
+  "kind": "requirement",
+  "phase": "release",
+  "refs": [],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Produce version59 internal-testing upload bundle"
+}

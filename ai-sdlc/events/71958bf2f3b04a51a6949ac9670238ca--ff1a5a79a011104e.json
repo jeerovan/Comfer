@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "aed6ebf173bf4d7fb2b1f5e4a4ef3e8d"
+  },
+  "id": "71958bf2f3b04a51a6949ac9670238ca",
+  "reason": "Recheck the normal runtime outcome against final source/requirement mapping; original clone-creation evidence retained.",
+  "seq": 576,
+  "time": "2026-11-11T06:19:51.729239+00:00"
+}

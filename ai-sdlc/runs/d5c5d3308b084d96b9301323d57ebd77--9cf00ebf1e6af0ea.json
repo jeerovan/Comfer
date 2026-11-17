@@ -1,0 +1,38 @@
+{
+  "adaptations": [],
+  "bypasses": [],
+  "criteria": [
+    "R60-AAB-REQ#artifact"
+  ],
+  "entrypoint": "verify_release.py signed AAB and English-device APK generation with SDK aapt2",
+  "environment": "Local signed/minified60 AAB; no app or AAB change after first attempt",
+  "finished_at": "2026-11-11T04:55:46.012330+00:00",
+  "id": "d5c5d3308b084d96b9301323d57ebd77",
+  "level": "integration",
+  "observation": "Valid upload-signed nondebuggable com.jeerovan.comfer60/60.0 AAB.35 supported languages in English-targeted master; language splits disabled, ABI/density retained.55 manifest+1 dynamic class verified; embedded R8 mapping matches. Local artifact boundary only; owner upload and both Play updates pending.",
+  "order": 78,
+  "proof": {
+    "validation-artifacts/release60-language-20261111/artifact-proof.json": "296e628dabdb1e8db9fcb9487aa400c85030c3786763b435298bff940490737e"
+  },
+  "proof_path": "validation-artifacts/release60-language-20261111/artifact-proof.json",
+  "result": "passed",
+  "snapshot": {
+    "files": {
+      "app/build.gradle.kts": "e3c52ebc4275884e8c5bb072da0b52d48b2a65c78b6db352e9cc16cfa6ce9b36",
+      "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1",
+      "app/src/main/res/xml/locales_config.xml": "073f1581fb48a921d411c74db1cc06cd3215d03899e749bd053ff3f93a330bdf",
+      "scripts/verify_apk_components.py": "afc6a086cd5b72018449eba7276a873559899ffa7d9fe6c8fd0192ff6e52145b",
+      "scripts/verify_bundle_languages.py": "3aeabb42407c26ed484bd2cb14cb607d502c8aeef12d253ff6bc1f4d1939e7ff",
+      "validation-artifacts/release59-aab-20261111/VerifyBundleSignature.java": "332a3421c6fc3dc30d53d4a83d4b0a9acfffc483733179154edc65dc039757aa",
+      "validation-artifacts/release60-language-20261111/verify_release.py": "eaa0f6426f51483221586c7868d7ca27791d32303bfdcc47de5b0f4e1e63727b"
+    },
+    "graph": "02864581b8c7432c672c89e359d527f84840a0ac72b4fa11ee8c2a2e520c84d0",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-11T04:55:07.757070+00:00",
+  "step": "R60-AAB",
+  "test": "R60-AAB-CHECK"
+}

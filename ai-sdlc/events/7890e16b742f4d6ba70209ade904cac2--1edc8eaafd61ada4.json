@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "eaba6c682200425f9de48b671f212e96"
+  },
+  "id": "7890e16b742f4d6ba70209ade904cac2",
+  "reason": "Verify current bounded source/test snapshot, preserving earlier failed run.",
+  "seq": 604,
+  "time": "2026-11-16T14:05:21.081721+00:00"
+}

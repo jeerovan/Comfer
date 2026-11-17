@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "fd03991f1e8948d7a1ba161e9c7e713e"
+  },
+  "id": "2c6b3ed830444efab9efca94b913bd0c",
+  "reason": "Complete authorized debug replacement with observed APK identity and manual navigation; disclose automated UI idle timeout.",
+  "seq": 691,
+  "time": "2026-11-17T01:48:35.374027+00:00"
+}

@@ -1,0 +1,47 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Only version metadata changes after pre-bump tests; existing enableSplit=false fixes supported language delivery without changing picker or user data.",
+      "id": "R60-AAB-IMPL",
+      "kind": "implementation",
+      "phase": "release",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/build.gradle.kts",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/res/xml/locales_config.xml",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Version60 release configuration and supported-language bundling"
+    },
+    "before": null,
+    "node": "R60-AAB-IMPL",
+    "reopened": []
+  },
+  "id": "cc306bf52136411abd58bdef8b7861f4",
+  "reason": "Track owner-authorized60 artifact and focused subsequent Play validation.",
+  "seq": 537,
+  "time": "2026-11-11T04:53:17.961872+00:00"
+}

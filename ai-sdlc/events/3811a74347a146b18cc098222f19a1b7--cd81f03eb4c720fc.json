@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "e86d67ac3f344647a3ef99c81aa25da0"
+  },
+  "id": "3811a74347a146b18cc098222f19a1b7",
+  "reason": "Diagnose persistent icon visibility failure, retaining original acceptance.",
+  "seq": 610,
+  "time": "2026-11-16T14:08:57.946615+00:00"
+}

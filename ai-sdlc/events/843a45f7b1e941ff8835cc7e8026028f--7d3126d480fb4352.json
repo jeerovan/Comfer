@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "7ad48c6b3d534565bdbb1328822c4594"
+  },
+  "id": "843a45f7b1e941ff8835cc7e8026028f",
+  "reason": "Recheck unchanged expected swipe behavior and new shape cases",
+  "seq": 655,
+  "time": "2026-11-16T16:49:48.196438+00:00"
+}

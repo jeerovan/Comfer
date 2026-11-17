@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "0d97a8fe72ac40cf85d8ebe73bfecf48"
+  },
+  "id": "4b146cd7e3544686b78c600b92754975",
+  "reason": "Record actual device results including target environment failure",
+  "seq": 660,
+  "time": "2026-11-16T16:52:11.325223+00:00"
+}

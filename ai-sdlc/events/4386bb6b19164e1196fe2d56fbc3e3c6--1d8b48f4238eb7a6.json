@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "R59-NOTES-OWNER-CLOSURE",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "4386bb6b19164e1196fe2d56fbc3e3c6",
+  "reason": "Owner closure recorded in canonical issue database and linked release tracking.",
+  "seq": 483,
+  "time": "2026-11-11T02:16:31.097656+00:00"
+}

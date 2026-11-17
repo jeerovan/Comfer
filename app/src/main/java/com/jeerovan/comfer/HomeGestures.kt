@@ -18,8 +18,10 @@ private enum class LPatternType { DOWN_RIGHT, DOWN_LEFT, UP_RIGHT, UP_LEFT, RIGH
 internal fun classifyHomeGesture(path: List<Offset>, density: Float): HomeGesture {
     if (path.size < 2 || density <= 0f || !density.isFinite() || path.any { !it.x.isFinite() || !it.y.isFinite() }) return HomeGesture.NONE
     val threshold = 50f * density
-    if (detectCircularPattern(path, threshold) != null) return HomeGesture.CIRCLE
-    detectLPatternWithCorner(path, threshold)?.let {
+    // Finger speed and event coalescing must not change the shape's weighting.
+    val shape = resampleGesturePath(path)
+    if (detectCircularPattern(shape, 44f * density) != null) return HomeGesture.CIRCLE
+    detectLPatternWithCorner(shape, 36f * density)?.let {
         return when (it) {
             LPatternType.LEFT_UP, LPatternType.DOWN_RIGHT -> HomeGesture.TOP_RIGHT
             LPatternType.UP_LEFT, LPatternType.RIGHT_DOWN -> HomeGesture.BOTTOM_LEFT
@@ -36,23 +38,32 @@ internal fun classifyHomeGesture(path: List<Offset>, density: Float): HomeGestur
         var valid = true
         for (point in path) {
             if (!returning) {
-                if (point.y < start.y - 8f * density) valid = false
                 peak = maxOf(peak, point.y)
                 if (peak - start.y >= 80f * density && peak - point.y >= 24f * density) {
                     returning = true
                     trough = point.y
-                }
+                } else if (point.y < start.y - 8f * density) valid = false
             } else {
                 trough = minOf(trough, point.y)
                 if (point.y - trough > 12f * density) valid = false
             }
         }
         if (returning) {
-            return if (valid && abs(path.last().y - start.y) <= 20f * density &&
-                peak - path.last().y >= 60f * density) HomeGesture.INBOX else HomeGesture.NONE
+            // Recognize the reversal, not a return to an exact starting height.
+            // Thumb strokes naturally have unequal lengths; each leg only needs
+            // enough travel to be deliberate. A partial return still cannot
+            // fall through to the notification shade or another Home swipe.
+            return if (valid && peak - path.last().y >= 40f * density)
+                HomeGesture.INBOX else HomeGesture.NONE
         }
     }
     val delta = path.last() - start
+    // A rejected loop/corner is not a swipe merely because its endpoints differ.
+    // Retain small natural drift, but require a predominantly straight stroke.
+    val distance = delta.getDistance()
+    val length = path.zipWithNext().sumOf { (a, b) -> (b - a).getDistance().toDouble() }.toFloat()
+    if (distance + 16f * density < length * .88f ||
+        path.any { distanceFromGestureSegment(it, start, path.last()) > 24f * density }) return HomeGesture.NONE
     return if (abs(delta.x) <= threshold && abs(delta.y) <= threshold) HomeGesture.NONE
     else if (abs(delta.x) > abs(delta.y)) {
         if (delta.x > 0) HomeGesture.RIGHT else HomeGesture.LEFT
@@ -112,88 +123,76 @@ fun Modifier.detectGestures(
     }
 }
 
-private fun detectLPatternWithCorner(points: List<Offset>,swipeThreshold: Float): LPatternType? {
-    if (points.size < 10) return null
+private fun distanceFromGestureSegment(point: Offset, start: Offset, end: Offset): Float {
+    val delta = end - start
+    val squared = delta.x * delta.x + delta.y * delta.y
+    if (squared == 0f) return (point - start).getDistance()
+    val fromStart = point - start
+    val fraction = ((fromStart.x * delta.x + fromStart.y * delta.y) / squared).coerceIn(0f, 1f)
+    return (point - (start + delta * fraction)).getDistance()
+}
 
-    // Helper function to normalize angle difference
-    fun normalizeAngleDiff(angle1: Float, angle2: Float): Float {
-        val diff = abs(angle1 - angle2)
-        return minOf(diff, (2 * PI).toFloat() - diff)
+/** Fixed spatial sampling bounds recognition cost and removes pauses/duplicate events. */
+private fun resampleGesturePath(path: List<Offset>): List<Offset> {
+    val lengths = path.zipWithNext().map { (a, b) -> (b - a).getDistance() }
+    val total = lengths.sum()
+    if (total <= 0f || !total.isFinite()) return listOf(path.first())
+    var segment = 0
+    var traversed = 0f
+    return (0..63).map { index ->
+        val target = total * index / 63f
+        while (segment < lengths.lastIndex && traversed + lengths[segment] < target) {
+            traversed += lengths[segment++]
+        }
+        val length = lengths[segment]
+        val fraction = if (length == 0f) 0f else ((target - traversed) / length).coerceIn(0f, 1f)
+        path[segment] + (path[segment + 1] - path[segment]) * fraction
     }
+}
 
-    // Find the corner point (where direction changes most)
-    var maxDirectionChange = 0f
-    var cornerIndex = 0
-
-    for (i in 3 until points.size - 3) {
-        val beforeStartIdx = (i - 3).coerceAtLeast(0)
-        val afterEndIdx = (i + 3).coerceAtMost(points.size - 1)
-
-        val beforeAngle = atan2(
-            points[i - 1].y - points[beforeStartIdx].y,
-            points[i - 1].x - points[beforeStartIdx].x
-        )
-        val afterAngle = atan2(
-            points[afterEndIdx].y - points[i].y,
-            points[afterEndIdx].x - points[i].x
-        )
-
-        val directionChange = normalizeAngleDiff(beforeAngle, afterAngle)
-        if (directionChange > maxDirectionChange) {
-            maxDirectionChange = directionChange
-            cornerIndex = i
+private fun detectLPatternWithCorner(points: List<Offset>, swipeThreshold: Float): LPatternType? {
+    if (points.size < 3) return null
+    var best: LPatternType? = null
+    var bestError = Float.POSITIVE_INFINITY
+    // Fit whole legs instead of looking for a sharp turn in six touch events.
+    for (corner in 1 until points.lastIndex) {
+        val first = points[corner] - points.first()
+        val second = points.last() - points[corner]
+        val firstLength = first.getDistance()
+        val secondLength = second.getDistance()
+        if (firstLength < swipeThreshold || secondLength < swipeThreshold) continue
+        val pattern = if (abs(first.y) > abs(first.x) * 1.4f &&
+            abs(second.x) > abs(second.y) * 1.4f) {
+            if (first.y > 0) {
+                if (second.x > 0) LPatternType.DOWN_RIGHT else LPatternType.DOWN_LEFT
+            } else {
+                if (second.x > 0) LPatternType.UP_RIGHT else LPatternType.UP_LEFT
+            }
+        } else if (abs(first.x) > abs(first.y) * 1.4f &&
+            abs(second.y) > abs(second.x) * 1.4f) {
+            if (first.x > 0) {
+                if (second.y > 0) LPatternType.RIGHT_DOWN else LPatternType.RIGHT_UP
+            } else {
+                if (second.y > 0) LPatternType.LEFT_DOWN else LPatternType.LEFT_UP
+            }
+        } else continue
+        var error = 0f
+        var valid = true
+        for (i in points.indices) {
+            val length = if (i <= corner) firstLength else secondLength
+            val deviation = if (i <= corner)
+                distanceFromGestureSegment(points[i], points.first(), points[corner])
+            else distanceFromGestureSegment(points[i], points[corner], points.last())
+            val relative = deviation / length
+            if (relative > .24f) { valid = false; break }
+            error += relative * relative
+        }
+        if (valid && error < bestError) {
+            bestError = error
+            best = pattern
         }
     }
-
-    // Require significant direction change (close to 90 degrees)
-    if (maxDirectionChange < PI / 3) return null
-
-    // Calculate movements without creating sublists
-    val firstStartIdx = 0
-    val firstEndIdx = cornerIndex
-    val secondStartIdx = cornerIndex
-    val secondEndIdx = points.size
-
-    val firstVertical = points[firstEndIdx - 1].y - points[firstStartIdx].y
-    val firstHorizontal = points[firstEndIdx - 1].x - points[firstStartIdx].x
-    val secondVertical = points[secondEndIdx - 1].y - points[secondStartIdx].y
-    val secondHorizontal = points[secondEndIdx - 1].x - points[secondStartIdx].x
-
-    val threshold = 1.2f
-
-    // Check if segments are long enough
-    val firstSegmentLength = kotlin.math.sqrt(firstVertical * firstVertical + firstHorizontal * firstHorizontal)
-    val secondSegmentLength = kotlin.math.sqrt(secondVertical * secondVertical + secondHorizontal * secondHorizontal)
-
-    if (firstSegmentLength < swipeThreshold || secondSegmentLength < swipeThreshold) {
-        return null
-    }
-    // Determine pattern type
-    if (abs(firstVertical) > abs(firstHorizontal) * threshold &&
-        abs(secondHorizontal) > abs(secondVertical) * threshold) {
-
-        return when {
-            firstVertical > 0 && secondHorizontal > 0 -> LPatternType.DOWN_RIGHT
-            firstVertical > 0 && secondHorizontal < 0 -> LPatternType.DOWN_LEFT
-            firstVertical < 0 && secondHorizontal > 0 -> LPatternType.UP_RIGHT
-            firstVertical < 0 && secondHorizontal < 0 -> LPatternType.UP_LEFT
-            else -> null
-        }
-    }
-
-    if (abs(firstHorizontal) > abs(firstVertical) * threshold &&
-        abs(secondVertical) > abs(secondHorizontal) * threshold) {
-
-        return when {
-            firstHorizontal > 0 && secondVertical > 0 -> LPatternType.RIGHT_DOWN
-            firstHorizontal > 0 && secondVertical < 0 -> LPatternType.RIGHT_UP
-            firstHorizontal < 0 && secondVertical > 0 -> LPatternType.LEFT_DOWN
-            firstHorizontal < 0 && secondVertical < 0 -> LPatternType.LEFT_UP
-            else -> null
-        }
-    }
-
-    return null
+    return best
 }
 
 private fun detectCircularPattern(path: List<Offset>,swipeThreshold:Float): String? {
@@ -227,49 +226,31 @@ private fun detectCircularPattern(path: List<Offset>,swipeThreshold:Float): Stri
 }
 
 private fun isCircularPattern(points: List<Offset>, width: Float, height: Float): Boolean {
-    // Check if aspect ratio is close to square
-    val aspectRatio = width / height
-    if (aspectRatio !in 0.6f..1.6f) return false
+    // Thumb loops are often elliptical. Normalize axes, but reject line-like loops.
+    if (width / height !in .4f..2.5f) return false
+    val center = Offset(.5f, .5f)
+    val distances = points.map { (it - center).getDistance() }
+    val average = distances.average().toFloat()
+    if (average < .3f) return false
+    val variance = distances.sumOf { ((it - average) * (it - average)).toDouble() } / distances.size
+    if (kotlin.math.sqrt(variance) / average > .28f) return false
+    if ((points.first() - points.last()).getDistance() > .65f) return false
 
-    // Calculate center
-    val centerX = points.map { it.x }.average().toFloat()
-    val centerY = points.map { it.y }.average().toFloat()
-    val center = Offset(centerX, centerY)
-
-    // Calculate distances from center
-    val distances = points.map { point ->
-        kotlin.math.sqrt(
-            (point.x - center.x) * (point.x - center.x) +
-                    (point.y - center.y) * (point.y - center.y)
-        )
-    }
-
-    val avgDistance = distances.average().toFloat()
-    val variance = distances.map { (it - avgDistance) * (it - avgDistance) }.average()
-    val stdDev = kotlin.math.sqrt(variance).toFloat()
-
-    // Low standard deviation indicates circular path
-    if (stdDev / avgDistance > 0.25f) return false
-
-    // Check if the path is closed (start and end points are relatively close)
-    val startPoint = points.first()
-    val endPoint = points.last()
-    val closureDistance = kotlin.math.sqrt(
-        (startPoint.x - endPoint.x) * (startPoint.x - endPoint.x) +
-                (startPoint.y - endPoint.y) * (startPoint.y - endPoint.y)
-    )
-    if (closureDistance > avgDistance * 1.2f) return false
-
-    // Check total angle swept to ensure it's a loop, not just a small arc
     var totalAngle = 0f
-    for (i in 0 until points.size - 1) {
-        val p1 = Offset(points[i].x - center.x, points[i].y - center.y)
-        val p2 = Offset(points[i + 1].x - center.x, points[i + 1].y - center.y)
-        var angle = atan2(p2.y, p2.x) - atan2(p1.y, p1.x)
+    var absoluteAngle = 0f
+    var twiceArea = 0f
+    for (i in points.indices) {
+        val a = points[i] - center
+        val b = points[(i + 1) % points.size] - center
+        twiceArea += a.x * b.y - b.x * a.y
+        if (i == points.lastIndex) continue // Closing the gap must not invent travel.
+        var angle = atan2(b.y, b.x) - atan2(a.y, a.x)
         if (angle > PI) angle -= 2 * PI.toFloat()
         if (angle < -PI) angle += 2 * PI.toFloat()
         totalAngle += angle
+        absoluteAngle += abs(angle)
     }
-
-    return abs(totalAngle) > 1.5 * PI.toFloat()
+    // A mostly completed, consistently wound loop; not a triangle or scribble.
+    return abs(totalAngle) >= 1.55f * PI.toFloat() &&
+        abs(totalAngle) >= absoluteAngle * .88f && abs(twiceArea) >= 1.1f
 }

@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "blocked",
+    "run": "5f9674d1cfe841cda3aab240b623bf20"
+  },
+  "id": "c0609c7461d74cb6adc241af47b7900e",
+  "reason": "Record remaining actual Play59 journeys while retaining the language-delivery release blocker.",
+  "seq": 512,
+  "time": "2026-11-11T03:48:00.751725+00:00"
+}

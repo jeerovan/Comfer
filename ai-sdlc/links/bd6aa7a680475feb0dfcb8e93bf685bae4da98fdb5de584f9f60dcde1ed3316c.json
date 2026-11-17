@@ -1,0 +1,6 @@
+{
+  "rationale": "Current code and baseline evidence for investigation; causal acceptance remains open.",
+  "relation": "realizes",
+  "source": "R60-INVESTIGATE-IMPL",
+  "target": "R60-INVESTIGATE-01"
+}

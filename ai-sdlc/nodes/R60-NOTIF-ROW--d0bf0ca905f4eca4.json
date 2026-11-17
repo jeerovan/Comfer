@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Owner reports information icon for some apps. Investigate exact-key mismatch between child selection and app-deduplicated handle projection; preserve 58-R09 async loading and existing artwork. No release version bump.",
+  "id": "R60-NOTIF-ROW",
+  "kind": "step",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "completed",
+  "tags": [],
+  "title": "Fix grouped notification row information fallback"
+}

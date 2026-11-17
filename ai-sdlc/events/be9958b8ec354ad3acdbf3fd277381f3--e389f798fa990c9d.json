@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "075fa0322cf64968a4e250e83ad8cf5b"
+  },
+  "id": "be9958b8ec354ad3acdbf3fd277381f3",
+  "reason": "Final coherent candidate after test target correction",
+  "seq": 663,
+  "time": "2026-11-16T16:52:50.279882+00:00"
+}

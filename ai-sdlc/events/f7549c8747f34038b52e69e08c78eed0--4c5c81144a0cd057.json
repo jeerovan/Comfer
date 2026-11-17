@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "86514733e0b547a39848de74e537faf9"
+  },
+  "id": "f7549c8747f34038b52e69e08c78eed0",
+  "reason": "Transient null UI hierarchy during restart; rerun with bounded hierarchy retry.",
+  "seq": 525,
+  "time": "2026-11-11T04:45:39.279963+00:00"
+}

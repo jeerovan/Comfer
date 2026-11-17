@@ -119,10 +119,17 @@ android {
         applicationId = "com.jeerovan.comfer"
         minSdk = 24
         targetSdk = 37
-        versionCode = 58
-        versionName = "58.0"
+        versionCode = 60
+        versionName = "60.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    bundle {
+        language {
+            // The in-app picker must work immediately, including offline, for
+            // languages that were not selected when Play installed the app.
+            enableSplit = false
+        }
     }
     signingConfigs {
         if (hasReleaseSigningCredentials) {

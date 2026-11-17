@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "in_progress",
+    "node": "R59-AAB",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "f0d601cfe892446aa7d97aa95d6d410c",
+  "reason": "Owner-requested local signed AAB produced and artifact acceptance verified. Notes closed by owner",
+  "seq": 489,
+  "time": "2026-11-11T02:21:01.097431+00:00"
+}

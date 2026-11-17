@@ -1,0 +1,22 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Prepared artifact enables internal testing; internal testing does not claim all readiness gates complete.",
+      "relation": "depends_on",
+      "source": "R59-INTERNAL-TEST",
+      "target": "R59-AAB"
+    },
+    "reopened": [
+      "R59-AAB",
+      "R59-AAB-CHECK",
+      "R59-AAB-IMPL",
+      "R59-AAB-REQ"
+    ]
+  },
+  "id": "da41762ba3fb457387487ea5ab3b0aca",
+  "reason": "Owner explicitly authorizes delivered testing now; full release readiness remains separate.",
+  "seq": 493,
+  "time": "2026-11-11T02:40:02.630713+00:00"
+}

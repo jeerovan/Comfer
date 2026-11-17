@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "HOME-GESTURES",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "97da4418e8ca42f5b95351650ae9cb40",
+  "reason": "Accepted classifier, input and normal Home saved-state criteria verified locally; no production delivery or subjective comfort claim",
+  "seq": 670,
+  "time": "2026-11-16T16:56:31.357291+00:00"
+}

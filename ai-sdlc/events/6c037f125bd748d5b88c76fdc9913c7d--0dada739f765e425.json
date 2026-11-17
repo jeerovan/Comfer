@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "45cded0c25e44cfebe10bfa142aa09b2"
+  },
+  "id": "6c037f125bd748d5b88c76fdc9913c7d",
+  "reason": "Record final21/21 actual Redmi results and fixture limitations.",
+  "seq": 619,
+  "time": "2026-11-16T14:18:18.745564+00:00"
+}

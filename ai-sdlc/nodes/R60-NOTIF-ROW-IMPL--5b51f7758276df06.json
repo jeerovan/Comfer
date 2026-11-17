@@ -1,0 +1,41 @@
+{
+  "criteria": [],
+  "description": "OS callbacks -> handles/ledger -> publish -> notificationChildren -> exact-key icon lookup. Existing publish deduplicates before child filtering. MainActivity maps handles to package list; AppIcon uses membership (in), not count, for badge. Preserve per-app row grouping and profile-aware notification keys. Consumer references inspected; full handle projection needs no additional platform calls.",
+  "id": "R60-NOTIF-ROW-IMPL",
+  "kind": "implementation",
+  "phase": "implementation",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/MyNotificationListenerService.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/notifications/NotificationModel.kt",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 2,
+  "status": "pending",
+  "tags": [],
+  "title": "Notification handle projection and Home selection"
+}

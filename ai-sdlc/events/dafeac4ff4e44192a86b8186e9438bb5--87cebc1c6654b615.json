@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "cd09c08c4a88496a9cbcf2ebb850d42c"
+  },
+  "id": "dafeac4ff4e44192a86b8186e9438bb5",
+  "reason": "Verify corrected fixture and unchanged safeguards in one coherent runner.",
+  "seq": 616,
+  "time": "2026-11-16T14:15:56.570210+00:00"
+}

@@ -1,0 +1,75 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Existing source under review, not a new implementation. Source review: per-package inventory collapses components/profiles; lists/folders and picker results use package strings; launch helper delegates package intent to OEM resolver. Search dedup/icon badges retain profile when input contains it. Future direct clone support requires profile identity, persistence migration and connected launch/lifecycle changes; LauncherApps access for MIUI user999 not established by shell inventory.",
+      "id": "DUAL-REVIEW-IMPL",
+      "kind": "implementation",
+      "phase": "discovery",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "Existing production path inspected; no behavior changes.",
+          "path": "app/src/main/java/com/jeerovan/comfer/AppInfoViewModel.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Existing production path inspected; no behavior changes.",
+          "path": "app/src/main/java/com/jeerovan/comfer/AppInfoManager.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Existing production path inspected; no behavior changes.",
+          "path": "app/src/main/java/com/jeerovan/comfer/SearchAppIdentity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Existing production path inspected; no behavior changes.",
+          "path": "app/src/main/java/com/jeerovan/comfer/AppSelectionActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Existing production path inspected; no behavior changes.",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Existing production path inspected; no behavior changes.",
+          "path": "app/src/main/java/com/jeerovan/comfer/utils/CommonUtil.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Existing production path inspected; no behavior changes.",
+          "path": "app/src/main/java/com/jeerovan/comfer/data/Entities.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Existing package-based launcher inventory and OEM chooser route"
+    },
+    "before": null,
+    "node": "DUAL-REVIEW-IMPL",
+    "reopened": []
+  },
+  "id": "7be95d2b1e994a44aa4403a744bfe6d1",
+  "reason": "Complete task-scoped requirements/source mapping for feasibility review.",
+  "seq": 572,
+  "time": "2026-11-11T06:19:17.093713+00:00"
+}

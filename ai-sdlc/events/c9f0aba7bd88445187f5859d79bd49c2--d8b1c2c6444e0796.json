@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "a137619810df44c1bbdea9928e7079c1"
+  },
+  "id": "c9f0aba7bd88445187f5859d79bd49c2",
+  "reason": "Runner installation was still pending when test started; preserve failure and wait for confirmed artifact replacement.",
+  "seq": 532,
+  "time": "2026-11-11T04:51:15.213386+00:00"
+}

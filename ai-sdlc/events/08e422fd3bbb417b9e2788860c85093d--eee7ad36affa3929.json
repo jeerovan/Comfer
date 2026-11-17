@@ -1,0 +1,87 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Current Firebase review, 2026-11-13: trailing interval 2026-11-12T07:40:58Z to 2026-11-13T07:40:58Z. Version60 now present: 3,995 users,30,379 sessions,23 events affecting16 users. Independent per-type topIssues reconciles2 FATAL events,21 ANRs,0 NON_FATAL across15 groups. Fetched23 version-filtered events; all match package/version/time and build stamp811d3a7ba32effccff25672a655a9a7d1128ef3f. Imported canonical play_reporting.db run17; full review record:release60-firebase-review-20261113. No per-event APK/mapping attestation or production-track filter. Two groups first seen60 (Compose dispatcher00295a74399996f55862ebd562efbeee; Android startup33516348c17538af8bcd506889f1569b);13 groups predate60 according to Firebase,11 match local history. All8 Firebase IDs linked to58-R02–58-R10 absent in window, not proof of production resolution. Fatal8d782ca9e751c6476994a4d4f4ad0075 current sample is Google measurement certificate exception, not stale CLOSE_SYSTEM_DIALOGS subtitle; other fatal is runtime ReferenceQueueDaemon. Recurring display-rotation Binder18b34d0a89eaae9f81f5dd46f986fd62 and widget startListening aff7cc92a8b18bf660fd021c9814f01a are priority investigation leads. Historical54-03 sensor registration fix and51-02/53-08 widget threading constraints preserved, not freshly source-verified. No safe new fix established from sampled/truncated ANR stacks. Recommend hold25% pending targeted investigation; no rollout action, no remote closures, no production resolution claimed. This is an observational telemetry/history review, not fresh runtime or readiness verification. Details, failed API requests and live denominator drift retained in review evidence.\n\nHistorical update superseded by current review:\nCurrent owner update (recorded 2026-11-12): version 60 production approval is confirmed by the owner, who increased the staged rollout from 10% to 25% after reporting no Firebase logs many hours after approval. Exact approval and rollout-increase timestamps are unknown; actual availability/exposure has not been independently verified. Owner directs waiting a new 24 hours after this increase before fetching Firebase issues. No fetch or automatic scheduled fetch created for this update. Missing logs do not establish zero crashes/ANRs or production resolution. At follow-up verify actual exposure, fetch version 60 issues, and compare recurring signatures against stable 58-R02–58-R10 attempts.\n\nHistorical owner update: previously reported 10% rollout with approval unconfirmed and a planned 24-hour wait after approval; superseded by the current 25% update.\n\nHistorical pre-promotion review (superseded5% recommendation retained as provenance): One-hour review11Nov07:12UTC: API topVersions still omits60; console Release Monitoring also omits60. Official https://firebase.google.com/docs/release/release-monitoring requires500 unique users OR >=1% with >=2 users in3days (linked Prod-track builds exception); two internal testers cannot meet observed app scale. This explains dashboard ineligibility, NOT definitively the API absence. Correct earlier advice that waiting alone would establish readiness. Actual Redmi Play60 normal Home restart: Crashlytics20.1.0 collection enabled, Sessions3.0.7 logs SESSION_START, sessions_enabled true/sampling_rate1; CctTransportBackend HTTP200 observed. Batch acceptance is not version-specific backend ingestion/crash-rate proof. Debug properties restored/Home usable. Both focused Play60 delivery gates still pass source fingerprints and unchanged AAB SHAfc3a110d11cb7b3534d8ca315c78f4e90167cac32b1d87a20c9c4a7f5adbfde1. Recommendation: owner-controlled5% production rollout with exposure/recurrence monitoring before expansion; no rollout performed or authorized. Keep all fixes production_verified=false and retain API/exposure gap; AI SDLC delivery attestation remains unsupported. No rebuild indicated by this observation.",
+      "id": "R60-TELEMETRY-REVIEW",
+      "kind": "decision",
+      "phase": "release",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/promotion-telemetry-hour-recheck.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/telemetry-redmi-runtime-diagnostic.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/gate-check.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Nonsecret aggregate review and canonical DB references; source/event limitations explicit.",
+          "path": "validation-artifacts/release60-firebase-20261113/review.json",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 4,
+      "status": "pending",
+      "tags": [],
+      "title": "Version 60 telemetry arriving: 2 crashes and 21 ANRs; hold at 25% for investigation"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Current owner update (recorded 2026-11-12): version 60 production approval is confirmed by the owner, who increased the staged rollout from 10% to 25% after reporting no Firebase logs many hours after approval. Exact approval and rollout-increase timestamps are unknown; actual availability/exposure has not been independently verified. Owner directs waiting a new 24 hours after this increase before fetching Firebase issues. No fetch or automatic scheduled fetch created for this update. Missing logs do not establish zero crashes/ANRs or production resolution. At follow-up verify actual exposure, fetch version 60 issues, and compare recurring signatures against stable 58-R02–58-R10 attempts.\n\nHistorical owner update: previously reported 10% rollout with approval unconfirmed and a planned 24-hour wait after approval; superseded by the current 25% update.\n\nHistorical pre-promotion review (superseded5% recommendation retained as provenance): One-hour review11Nov07:12UTC: API topVersions still omits60; console Release Monitoring also omits60. Official https://firebase.google.com/docs/release/release-monitoring requires500 unique users OR >=1% with >=2 users in3days (linked Prod-track builds exception); two internal testers cannot meet observed app scale. This explains dashboard ineligibility, NOT definitively the API absence. Correct earlier advice that waiting alone would establish readiness. Actual Redmi Play60 normal Home restart: Crashlytics20.1.0 collection enabled, Sessions3.0.7 logs SESSION_START, sessions_enabled true/sampling_rate1; CctTransportBackend HTTP200 observed. Batch acceptance is not version-specific backend ingestion/crash-rate proof. Debug properties restored/Home usable. Both focused Play60 delivery gates still pass source fingerprints and unchanged AAB SHAfc3a110d11cb7b3534d8ca315c78f4e90167cac32b1d87a20c9c4a7f5adbfde1. Recommendation: owner-controlled5% production rollout with exposure/recurrence monitoring before expansion; no rollout performed or authorized. Keep all fixes production_verified=false and retain API/exposure gap; AI SDLC delivery attestation remains unsupported. No rebuild indicated by this observation.",
+      "id": "R60-TELEMETRY-REVIEW",
+      "kind": "decision",
+      "phase": "release",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/promotion-telemetry-hour-recheck.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/telemetry-redmi-runtime-diagnostic.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/gate-check.json",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 3,
+      "status": "pending",
+      "tags": [],
+      "title": "Version 60 owner-reported 25% rollout; Firebase review after 24 hours"
+    },
+    "node": "R60-TELEMETRY-REVIEW",
+    "reopened": []
+  },
+  "id": "08e422fd3bbb417b9e2788860c85093d",
+  "reason": "Record owner-requested 24-hour version60 Firebase review, recurrence comparison, canonical DB import and unresolved investigation without marking production fixes verified.",
+  "seq": 582,
+  "time": "2026-11-13T07:44:48.175676+00:00"
+}

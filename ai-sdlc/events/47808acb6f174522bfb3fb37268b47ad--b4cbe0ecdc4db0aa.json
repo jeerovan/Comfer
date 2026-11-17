@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "d5c5d3308b084d96b9301323d57ebd77"
+  },
+  "id": "47808acb6f174522bfb3fb37268b47ad",
+  "reason": "Exact60 release artifact passes signature, manifest and English-device resource/component checks.",
+  "seq": 548,
+  "time": "2026-11-11T04:55:46.012438+00:00"
+}

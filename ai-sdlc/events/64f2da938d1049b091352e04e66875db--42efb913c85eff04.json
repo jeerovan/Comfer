@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "d492dd8e021c4f68b7d054ca669b46ca"
+  },
+  "id": "64f2da938d1049b091352e04e66875db",
+  "reason": "Record actual corrected English-targeted bundle packaging outcome.",
+  "seq": 508,
+  "time": "2026-11-11T03:34:51.414915+00:00"
+}

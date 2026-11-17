@@ -1,0 +1,62 @@
+{
+  "criteria": [],
+  "description": "Reuse existing tests; no claim that non-reproduction on Redmi excludes Honor/Realme/Nokia defects. ClockSpacing is component geometry evidence, not native operation timing or OEM ANR reproduction.",
+  "id": "R60-INVESTIGATE-CHECK",
+  "kind": "test",
+  "phase": "verification",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/WidgetInflationGuardTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/WidgetProviderRecoveryTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/DrawableMemoryTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/DrawableMemoryHomeTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/ClockSpacingTest.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/build.gradle.kts",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/notificationTest/AndroidManifest.xml",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Redmi existing policy and drawable baseline checks"
+}

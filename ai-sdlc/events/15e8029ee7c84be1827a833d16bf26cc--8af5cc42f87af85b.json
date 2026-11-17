@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Owner-authorized60 flow: pre-bump tests passed; artifact verification precedes owner upload and actual Play update.",
+      "relation": "realizes",
+      "source": "R60-AAB-IMPL",
+      "target": "R60-AAB"
+    },
+    "reopened": []
+  },
+  "id": "15e8029ee7c84be1827a833d16bf26cc",
+  "reason": "Separate local artifact acceptance from later Play delivery.",
+  "seq": 541,
+  "time": "2026-11-11T04:53:27.207447+00:00"
+}

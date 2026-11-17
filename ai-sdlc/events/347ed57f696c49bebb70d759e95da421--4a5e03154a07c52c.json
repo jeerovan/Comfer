@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "5c0d9fd17f5c48acace31379d43c7d08"
+  },
+  "id": "347ed57f696c49bebb70d759e95da421",
+  "reason": "Final candidate verification after removal fixture correction",
+  "seq": 637,
+  "time": "2026-11-16T14:37:25.365273+00:00"
+}

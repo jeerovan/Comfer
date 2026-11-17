@@ -1,0 +1,6 @@
+{
+  "rationale": "Track observed Play delivery gap and connected packaging/picker acceptance.",
+  "relation": "verifies",
+  "source": "R59-LANGUAGE-CHECK",
+  "target": "R59-LANGUAGE-REQ"
+}

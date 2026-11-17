@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "971ec60857224dfaa47da15b02fa3bfa"
+  },
+  "id": "71da139eca21484a84861aa8b0821bb3",
+  "reason": "Verify accepted unequal return and preserved ownership at its actual boundary.",
+  "seq": 705,
+  "time": "2026-11-17T02:11:54.505068+00:00"
+}

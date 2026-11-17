@@ -1,0 +1,73 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Regression at packaging boundary plus actual picker evidence; universal/debug APK alone is insufficient.",
+      "id": "R59-LANGUAGE-CHECK",
+      "kind": "test",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/verify_bundle_languages.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-language-20261111/offline_picker.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-language-20261111/ui_helper.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/check_translations.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Inspect language resources in English-targeted bundle APKs"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Regression at packaging boundary plus actual picker evidence; universal/debug APK alone is insufficient.",
+      "id": "R59-LANGUAGE-CHECK",
+      "kind": "test",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/verify_bundle_languages.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Inspect language resources in English-targeted bundle APKs"
+    },
+    "node": "R59-LANGUAGE-CHECK",
+    "reopened": []
+  },
+  "id": "5cc9c2e4bef647938fa5aaeafd43a923",
+  "reason": "Bind current offline-picker regression to retained test harness and translation audit.",
+  "seq": 516,
+  "time": "2026-11-11T04:38:56.076158+00:00"
+}

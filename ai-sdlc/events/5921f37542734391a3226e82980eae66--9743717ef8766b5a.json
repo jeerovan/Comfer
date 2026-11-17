@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "eac5bd5376444f61954a4e50719eb74d"
+  },
+  "id": "5921f37542734391a3226e82980eae66",
+  "reason": "Verify owner-defined unsupported-device-language English fallback before60.",
+  "seq": 520,
+  "time": "2026-11-11T04:40:31.413188+00:00"
+}

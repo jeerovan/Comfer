@@ -1,0 +1,35 @@
+{
+  "adaptations": [
+    "Dedicated owner-authorized Redmi test device"
+  ],
+  "bypasses": [],
+  "criteria": [
+    "DUAL-REVIEW#feasibility"
+  ],
+  "entrypoint": "Native Settings Apps Dual apps, then normal Comfer Home",
+  "environment": "Redmi7 API29 MIUI11 Play60 regular package",
+  "finished_at": "2026-11-11T06:18:39.845834+00:00",
+  "id": "2d1ba0df76444bd4bb3aeec69c8b6daf",
+  "level": "journey",
+  "observation": "On unchanged regular Play60 Redmi7/API29/MIUI11, native Settings created Fixture Chat in user999. Comfer retained one Home icon; tapping opened MIUI ResolverActivity with original and Dual app choices. Actual selections launched FixtureActivity in user0 and user999 respectively. Chooser still available after Comfer process restart; normal Home restored. Disposable clone retained for follow-up; no original app cleared/uninstalled. Source review finds package-keyed inventory/persistence/selection/launch. Existing58-R02 tests inject profile rows after construction, so do not prove clone support. Independent icons/profile-targeted placements and actual LauncherApps visibility remain future implementation/discovery boundaries.",
+  "order": 81,
+  "proof": {
+    "validation-artifacts/dual-apps-review-20261111/runtime-proof.json": "fa9c52e03a0786d20de80154eb48fc63175a3f93ee967188cd4dda47f09db865"
+  },
+  "proof_path": "validation-artifacts/dual-apps-review-20261111/runtime-proof.json",
+  "result": "passed",
+  "snapshot": {
+    "files": {
+      "app/src/androidTest/java/com/jeerovan/comfer/AppSelectionIdentityTest.kt": "6a23be947c489c124e17832e920f69e8033cf853b9fe8d5b485b53ce696b7e20",
+      "validation-artifacts/release60-play-testing-20261111/ui_helper.py": "3dd593c454bd8a356b47c829d1040514f116bb8428a6a50e62707109588ff77a"
+    },
+    "graph": "84149ef2bd60fa18ac09da113f49c850d54552220eecf2922c6cec6fb0c5fb7d",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-11T06:14:28.096132+00:00",
+  "step": "DUAL-REVIEW",
+  "test": "DUAL-REVIEW-CHECK"
+}

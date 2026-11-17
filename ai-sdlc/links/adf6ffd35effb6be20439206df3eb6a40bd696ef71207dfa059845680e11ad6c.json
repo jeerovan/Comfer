@@ -1,0 +1,6 @@
+{
+  "rationale": "Actual phone observations bound to installed Play artifacts; does not itself attest external delivery.",
+  "relation": "verifies",
+  "source": "R59-PLAY-JOURNEY-CHECK",
+  "target": "R59-INTERNAL-TEST"
+}

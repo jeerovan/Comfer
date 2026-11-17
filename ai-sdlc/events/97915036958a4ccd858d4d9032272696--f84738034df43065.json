@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "3be021ebc48040d295f0b74ded819bdc"
+  },
+  "id": "97915036958a4ccd858d4d9032272696",
+  "reason": "Review probes executed and established two concrete regressions; this is review evidence, not a passing product acceptance claim",
+  "seq": 677,
+  "time": "2026-11-17T01:35:07.450821+00:00"
+}

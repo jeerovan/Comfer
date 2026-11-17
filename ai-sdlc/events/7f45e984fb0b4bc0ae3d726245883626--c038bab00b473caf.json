@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "e20e382ce56a4c60a7dc2c7fb8a2943b"
+  },
+  "id": "7f45e984fb0b4bc0ae3d726245883626",
+  "reason": "Begin actual Play update and focused runtime checks; delivery criterion retained, external artifact checks supply delivery record.",
+  "seq": 559,
+  "time": "2026-11-11T05:23:07.749561+00:00"
+}

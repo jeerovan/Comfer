@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "8936cf0887dd493586392fce6a201eef"
+  },
+  "id": "beb0452b62214925b36be08be6651af3",
+  "reason": "Retain observed baseline outcomes without extending them to causal resolution.",
+  "seq": 609,
+  "time": "2026-11-16T14:07:46.018887+00:00"
+}

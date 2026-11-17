@@ -1,0 +1,6 @@
+{
+  "rationale": "Owner accepts manual visual validation and closes Notes issue; do not convert historical failed run into a pass.",
+  "relation": "affects",
+  "source": "R59-NOTES-OWNER-CLOSURE",
+  "target": "R59-LOCAL-TESTS"
+}

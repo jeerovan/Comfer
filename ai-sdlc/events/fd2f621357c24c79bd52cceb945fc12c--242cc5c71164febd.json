@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "17c720f51ea54bcfb4da777703fcc420"
+  },
+  "id": "fd2f621357c24c79bd52cceb945fc12c",
+  "reason": "Record observed checks before version bump.",
+  "seq": 521,
+  "time": "2026-11-11T04:41:25.084802+00:00"
+}

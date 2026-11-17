@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Owner explicitly identifies Redmi as development device and authorizes clearing data. Play/debug signing differs, so fresh debug install authorized. Current source60 includes notification and gesture changes plus two unresolved reviewed gesture regressions; no fixes/version bump or release-readiness claim.",
+      "id": "REDMI-DEBUG-20261117",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Replace Redmi Play build with regular development debug build"
+    },
+    "before": null,
+    "node": "REDMI-DEBUG-20261117",
+    "reopened": []
+  },
+  "id": "5782cf74851a4912870cc411c92c60a1",
+  "reason": "Track explicitly authorized clean debug installation",
+  "seq": 682,
+  "time": "2026-11-17T01:40:40.129498+00:00"
+}

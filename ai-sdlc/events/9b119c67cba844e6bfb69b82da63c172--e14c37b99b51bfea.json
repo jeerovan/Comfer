@@ -1,0 +1,54 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "MainActivity Home Box -> detectGestures -> classifyHomeGesture -> settings.patternApps -> CommonUtil launch. Current L local temporal window and circle time-weighted center are sample-dependent; unrestricted endpoint fallback leaks rejected shapes into swipes.",
+      "id": "HOME-GESTURES-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/HomeGestures.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/SettingsViewModel.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/GestureShortcutActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Home path classifier and dispatch"
+    },
+    "before": null,
+    "node": "HOME-GESTURES-IMPL",
+    "reopened": []
+  },
+  "id": "9b119c67cba844e6bfb69b82da63c172",
+  "reason": "Track accepted natural gesture behavior before edit",
+  "seq": 642,
+  "time": "2026-11-16T16:44:19.595676+00:00"
+}

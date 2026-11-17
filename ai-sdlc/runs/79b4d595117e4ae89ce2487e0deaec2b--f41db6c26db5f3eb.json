@@ -1,0 +1,38 @@
+{
+  "adaptations": [],
+  "bypasses": [],
+  "criteria": [
+    "R60-AAB-REQ#artifact"
+  ],
+  "entrypoint": "verify_release.py over generated signed release60 AAB",
+  "environment": "Local signed/minified release60 artifact and English-targeted split set",
+  "finished_at": "2026-11-11T04:55:06.210186+00:00",
+  "id": "79b4d595117e4ae89ce2487e0deaec2b",
+  "level": "integration",
+  "observation": "Bundle validity, configured upload signature and60/nondebuggable manifest passed. English APK generation stopped because cached bundletool JAR lacks embedded aapt2. Add explicit installed SDK aapt2 path; no product/AAB change.",
+  "order": 77,
+  "proof": {
+    "validation-artifacts/release60-language-20261111/build-apks.txt.stderr": "e0071d67f6940702d0845fcc01f0d60a0b59a8274c5baee585eb9cf6ceeee4b0"
+  },
+  "proof_path": "validation-artifacts/release60-language-20261111/build-apks.txt.stderr",
+  "result": "failed",
+  "snapshot": {
+    "files": {
+      "app/build.gradle.kts": "e3c52ebc4275884e8c5bb072da0b52d48b2a65c78b6db352e9cc16cfa6ce9b36",
+      "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1",
+      "app/src/main/res/xml/locales_config.xml": "073f1581fb48a921d411c74db1cc06cd3215d03899e749bd053ff3f93a330bdf",
+      "scripts/verify_apk_components.py": "afc6a086cd5b72018449eba7276a873559899ffa7d9fe6c8fd0192ff6e52145b",
+      "scripts/verify_bundle_languages.py": "3aeabb42407c26ed484bd2cb14cb607d502c8aeef12d253ff6bc1f4d1939e7ff",
+      "validation-artifacts/release59-aab-20261111/VerifyBundleSignature.java": "332a3421c6fc3dc30d53d4a83d4b0a9acfffc483733179154edc65dc039757aa",
+      "validation-artifacts/release60-language-20261111/verify_release.py": "064e3b2ff3a247bd68d5a865a723d7ca07868cdb65ba5f27f990adf3e2f36fd8"
+    },
+    "graph": "02864581b8c7432c672c89e359d527f84840a0ac72b4fa11ee8c2a2e520c84d0",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-11T04:53:33.838660+00:00",
+  "step": "R60-AAB",
+  "test": "R60-AAB-CHECK"
+}

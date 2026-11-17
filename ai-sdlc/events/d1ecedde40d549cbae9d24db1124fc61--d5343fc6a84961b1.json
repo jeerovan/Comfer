@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "13e400f5cf8443de9af5fc4e4942f300"
+  },
+  "id": "d1ecedde40d549cbae9d24db1124fc61",
+  "reason": "Record final candidate observations without extending scope",
+  "seq": 665,
+  "time": "2026-11-16T16:54:58.931034+00:00"
+}

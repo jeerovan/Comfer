@@ -1,0 +1,34 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "One app row renders selected child artwork; summary does not cause generic information fallback; replacement and refresh retain correct artwork.",
+          "id": "grouped",
+          "initial_state": "Connected OS listener; app posts children and newer summary with distinct artwork.",
+          "invariants": "Preserve grouping/profile identity, badge membership, async off-main loading, obsolete-result isolation, tap navigation and notification data. No geometry changes.",
+          "required_level": "integration",
+          "trigger": "Home row renders, notifications update/remove, listener refreshes."
+        }
+      ],
+      "description": "A child notification chosen for Home must retain its matching platform icon even when a newer group summary exists.",
+      "id": "R60-NOTIF-ROW-REQ",
+      "kind": "requirement",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Keep notification row artwork for grouped apps"
+    },
+    "before": null,
+    "node": "R60-NOTIF-ROW-REQ",
+    "reopened": []
+  },
+  "id": "5497a7cecd644e32a760899f235f399b",
+  "reason": "Track owner notification icon report and bounded regression",
+  "seq": 623,
+  "time": "2026-11-16T14:32:15.451736+00:00"
+}

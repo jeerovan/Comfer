@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Assessment of existing implementation; full clone-support implementation remains unrequested/unverified.",
+      "relation": "implements",
+      "source": "DUAL-REVIEW",
+      "target": "DUAL-REVIEW-REQ"
+    },
+    "reopened": []
+  },
+  "id": "256e5d16a0294ce2993141d54da8ce5a",
+  "reason": "Map assessment acceptance to inspected current production path.",
+  "seq": 573,
+  "time": "2026-11-11T06:19:18.482145+00:00"
+}

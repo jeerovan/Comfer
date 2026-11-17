@@ -220,6 +220,71 @@ class NotificationListenerIntegrationTest {
         }
     }
 
+    @Test @SdkSuppress(minSdkVersion = 26)
+    fun groupedHomeRowKeepsChildArtworkWhenNewerSummaryArrives() {
+        val manager = context.getSystemService(android.app.NotificationManager::class.java)
+        val channel = "group-artwork-${System.nanoTime()}"
+        val group = channel
+        val blue = android.graphics.Color.rgb(33, 97, 185)
+        val green = android.graphics.Color.rgb(20, 146, 71)
+        val red = android.graphics.Color.rgb(180, 30, 40)
+        val childId = 70420
+        val summaryId = 70421
+        manager.createNotificationChannel(android.app.NotificationChannel(channel, channel,
+            android.app.NotificationManager.IMPORTANCE_LOW))
+        fun postIcon(id: Int, color: Int, summary: Boolean) {
+            val bitmap = android.graphics.Bitmap.createBitmap(48, 48, android.graphics.Bitmap.Config.ARGB_8888).apply {
+                eraseColor(color)
+                android.graphics.Canvas(this).drawRect(16f, 16f, 32f, 32f,
+                    android.graphics.Paint().apply { this.color = android.graphics.Color.WHITE })
+            }
+            manager.notify(id, android.app.Notification.Builder(context, channel)
+                .setSmallIcon(android.graphics.drawable.Icon.createWithBitmap(bitmap))
+                .setContentTitle(channel).setGroup(group).setGroupSummary(summary).build())
+        }
+        fun count(color: Int): Int {
+            val pixels = compose.onNodeWithTag("group-artwork-row").captureToImage().toPixelMap()
+            return (0 until pixels.height).sumOf { y ->
+                (0 until pixels.width).count { x -> pixels[x, y].toArgb() == color }
+            }
+        }
+        try {
+            postIcon(childId, blue, false)
+            await { MyNotificationListenerService.snapshot.value.items.any { it.title == channel && !it.summary } }
+            val child = MyNotificationListenerService.snapshot.value.items.first { it.title == channel && !it.summary }
+            // Post only after the child is observed, ensuring the summary is newer.
+            postIcon(summaryId, red, true)
+            await { MyNotificationListenerService.snapshot.value.items.count { it.title == channel } == 2 }
+            runBlocking { NotificationPreferences.update { it.copy(pinned = setOf(child.appId)) } }
+            compose.setContent { MaterialTheme {
+                androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.background(Color.Black).testTag("group-artwork-row")) {
+                    NotificationHomeEntry(48.dp, true, color = Color.White, maxVisibleIcons = 1)
+                }
+            } }
+            compose.waitUntil(8_000) { count(blue) > 100 }
+            assertEquals("Summary artwork must not replace child artwork", 0, count(red))
+            postIcon(childId, green, false)
+            await { MyNotificationListenerService.snapshot.value.items.any { it.key == child.key && it.revision != child.revision } }
+            compose.waitUntil(8_000) { count(green) > 100 && count(blue) == 0 }
+            postIcon(summaryId, red, true)
+            val beforeRefresh = MyNotificationListenerService.snapshot.value.lastSync
+            MyNotificationListenerService.refresh(context, force = true)
+            await { MyNotificationListenerService.snapshot.value.lastSync != beforeRefresh }
+            compose.waitUntil(8_000) { count(green) > 100 }
+            assertEquals(0, count(red))
+            manager.cancel(summaryId)
+            // Android removes grouped children with their summary. Verify the OS
+            // result as well as the row instead of assuming the child survives.
+            await { manager.activeNotifications.none { it.id == summaryId || it.id == childId } }
+            await { MyNotificationListenerService.snapshot.value.items.none { it.title == channel } }
+            compose.waitUntil(8_000) { count(green) == 0 && count(red) == 0 }
+        } finally {
+            manager.cancel(childId)
+            manager.cancel(summaryId)
+            manager.deleteNotificationChannel(channel)
+        }
+    }
+
     @Test fun groupsAcrossAppsUpdatesAndDismissal() = runBlocking {
         post("mail", 1, "--es group mail --es title First")
         post("mail", 2, "--es group mail --es title Second")

@@ -1,0 +1,47 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Geometry fixtures plus actual input and default Home routing; synthetic paths establish repeatability, not owner thumb comfort.",
+      "id": "HOME-GESTURES-TEST",
+      "kind": "test",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/test/java/com/jeerovan/comfer/HomeGestureClassifierTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/HomeGestureInputTest.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/androidTest/java/com/jeerovan/comfer/InboxHomeGestureRoutingTest.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Classifier and Redmi Home gesture regressions"
+    },
+    "before": null,
+    "node": "HOME-GESTURES-TEST",
+    "reopened": []
+  },
+  "id": "6180dca537be40e2890f22ddb26bcb9a",
+  "reason": "Track accepted natural gesture behavior before edit",
+  "seq": 643,
+  "time": "2026-11-16T16:44:21.138520+00:00"
+}

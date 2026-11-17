@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Artifact production does not close R59-PREPARE/Play-delivery or known defect gates.",
+      "relation": "realizes",
+      "source": "R59-AAB-IMPL",
+      "target": "R59-AAB"
+    },
+    "reopened": []
+  },
+  "id": "ffa83ae0d7924c478ab3c208ba322007",
+  "reason": "Bind narrow artifact acceptance to build inputs and checks.",
+  "seq": 475,
+  "time": "2026-11-11T02:14:11.298948+00:00"
+}

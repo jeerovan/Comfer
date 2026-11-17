@@ -24,22 +24,69 @@ class HomeGestureInputTest {
     private val actions = mutableListOf<String>()
     private var scale = 1f
     private var childScroll: androidx.compose.foundation.ScrollState? = null
+    private var direction by mutableStateOf(androidx.compose.ui.unit.LayoutDirection.Ltr)
     private fun show(withScroll: Boolean = false) {
         compose.setContent {
             scale = LocalDensity.current.density
-            Box(Modifier.fillMaxSize().testTag("home")
-                .pointerInput(Unit) { detectTapGestures(onDoubleTap = { actions += "double" }, onLongPress = { actions += "long" }) }
-                .detectGestures(onSwipeUp = { actions += "up" }, onSwipeDown = { actions += "down" },
-                    onSwipeLeft = { actions += "left" }, onSwipeRight = { actions += "right" },
-                    onCircular = { actions += "circle" }, onLPatternDetected = { actions += it }, onInbox = { actions += "inbox" })) {
-                Box(Modifier.size(64.dp).testTag("child").clickable { actions += "child" })
-                if (withScroll) {
-                    val scroll = rememberScrollState(500)
-                    childScroll = scroll
-                    Column(Modifier.align(Alignment.TopEnd).size(180.dp).testTag("scroll-child").verticalScroll(scroll)) {
-                        Spacer(Modifier.height(800.dp))
+            CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides direction) {
+                Box(Modifier.fillMaxSize().testTag("home")
+                    .pointerInput(Unit) { detectTapGestures(onDoubleTap = { actions += "double" }, onLongPress = { actions += "long" }) }
+                    .detectGestures(onSwipeUp = { actions += "up" }, onSwipeDown = { actions += "down" },
+                        onSwipeLeft = { actions += "left" }, onSwipeRight = { actions += "right" },
+                        onCircular = { actions += "circle" }, onLPatternDetected = { actions += it }, onInbox = { actions += "inbox" })) {
+                    Box(Modifier.size(64.dp).testTag("child").clickable { actions += "child" })
+                    if (withScroll) {
+                        val scroll = rememberScrollState(500)
+                        childScroll = scroll
+                        Column(Modifier.align(Alignment.TopEnd).size(180.dp).testTag("scroll-child").verticalScroll(scroll)) {
+                            Spacer(Modifier.height(800.dp))
+                        }
                     }
                 }
+            }
+        }
+    }
+    @Test fun naturalShapesStayExclusiveInBothLayoutDirections() {
+        show()
+        val home = compose.onNodeWithTag("home")
+        for (layout in androidx.compose.ui.unit.LayoutDirection.entries) {
+            compose.runOnIdle { direction = layout; actions.clear() }
+            for ((sx, sy) in listOf(1f to 1f, -1f to 1f, 1f to -1f, -1f to -1f)) {
+                home.performTouchInput {
+                    val origin = center
+                    down(origin)
+                    for (point in listOf(Offset(2f, 55f), Offset(10f, 78f), Offset(30f, 96f), Offset(105f, 102f))) {
+                        moveTo(origin + Offset(point.x * sx, point.y * sy) * scale, 70)
+                    }
+                }
+                val count = actions.size
+                home.performTouchInput { up() }
+                compose.runOnIdle { assertEquals(count + 1, actions.size) }
+            }
+            for (winding in listOf(-1, 1)) home.performTouchInput {
+                val origin = center
+                down(origin + Offset(100f, 0f) * scale)
+                for (i in 1..40) {
+                    val angle = winding * 1.85 * kotlin.math.PI * i / 40
+                    moveTo(origin + Offset((100 * kotlin.math.cos(angle)).toFloat(),
+                        (44 * kotlin.math.sin(angle)).toFloat()) * scale, if (i < 12) 24 else 8)
+                }
+                up()
+            }
+            // A substantial but unfinished arc must not become left/right navigation.
+            home.performTouchInput {
+                val origin = center
+                down(origin + Offset(80f, 0f) * scale)
+                for (i in 1..30) {
+                    val angle = 1.35 * kotlin.math.PI * i / 30
+                    moveTo(origin + Offset((80 * kotlin.math.cos(angle)).toFloat(),
+                        (80 * kotlin.math.sin(angle)).toFloat()) * scale, 12)
+                }
+                up()
+            }
+            compose.runOnIdle {
+                assertEquals("Physical shortcuts remain the same in $layout",
+                    listOf("TopRight", "TopLeft", "BottomRight", "BottomLeft", "circle", "circle"), actions)
             }
         }
     }
@@ -50,6 +97,24 @@ class HomeGestureInputTest {
         compose.runOnIdle { assertTrue(actions.isEmpty()) }
         home.performTouchInput { up() }
         compose.runOnIdle { assertEquals(listOf("inbox"), actions) }
+    }
+    @Test fun unequalReturnsDispatchOnlyInboxInBothLayoutDirections() {
+        show()
+        val home = compose.onNodeWithTag("home")
+        for (layout in androidx.compose.ui.unit.LayoutDirection.entries) {
+            compose.runOnIdle { direction = layout; actions.clear() }
+            for ((downDistance, upDistance) in listOf(160f to 50f, 80f to 160f)) {
+                val before = actions.size
+                home.performTouchInput {
+                    down(center)
+                    moveBy(Offset(8f, downDistance) * scale, 200)
+                    moveBy(Offset(4f, -upDistance) * scale, 160)
+                }
+                compose.runOnIdle { assertEquals("No action before release in $layout", before, actions.size) }
+                home.performTouchInput { up() }
+                compose.runOnIdle { assertEquals(List(before + 1) { "inbox" }, actions) }
+            }
+        }
     }
     @Test fun ordinaryVerticalAndHorizontalSwipesRemainExclusive() {
         show()
@@ -62,7 +127,7 @@ class HomeGestureInputTest {
     @Test fun incompleteReturnAndCancellationDoNotLeakIntoNextStroke() {
         show()
         val home = compose.onNodeWithTag("home")
-        home.performTouchInput { down(center); moveBy(Offset(0f, 160f * scale), 180); moveBy(Offset(0f, -60f * scale), 120); up() }
+        home.performTouchInput { down(center); moveBy(Offset(0f, 160f * scale), 180); moveBy(Offset(0f, -30f * scale), 120); up() }
         home.performTouchInput { down(center); moveBy(Offset(0f, 120f * scale), 180); cancel() }
         compose.runOnIdle { assertTrue(actions.isEmpty()) }
         home.performTouchInput { swipe(center, center + Offset(0f, -120f * scale), 300) }

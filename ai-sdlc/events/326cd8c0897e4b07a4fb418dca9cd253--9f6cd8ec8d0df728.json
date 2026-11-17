@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Native cloning visibility and actual Comfer behavior, retaining component-test limitations.",
+      "relation": "verifies",
+      "source": "DUAL-REVIEW-CHECK",
+      "target": "DUAL-REVIEW"
+    },
+    "reopened": []
+  },
+  "id": "326cd8c0897e4b07a4fb418dca9cd253",
+  "reason": "Bind normal-device feasibility observation to its review criterion.",
+  "seq": 568,
+  "time": "2026-11-11T06:14:26.333036+00:00"
+}

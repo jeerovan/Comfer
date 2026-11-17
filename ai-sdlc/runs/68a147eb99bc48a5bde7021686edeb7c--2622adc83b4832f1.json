@@ -1,0 +1,40 @@
+{
+  "adaptations": [],
+  "bypasses": [
+    "Synthetic geometry; no touch event delivery or subjective thumb comfort"
+  ],
+  "criteria": [
+    "HOME-GESTURES-REQ#classifier"
+  ],
+  "entrypoint": "classifyHomeGesture with geometry/negative fixtures across four densities",
+  "environment": "Local JVM Gradle notificationTest unit tests",
+  "finished_at": "2026-11-16T16:45:37.399789+00:00",
+  "id": "68a147eb99bc48a5bde7021686edeb7c",
+  "level": "component",
+  "observation": "10 classifier tests:6 existing pass,4 new tests fail. Uneven oval, rounded/sparse corner, partial-loop swipe leakage and invalid-shape controls reproduced. Full assertions in baseline-unit.xml.",
+  "order": 96,
+  "proof": {
+    "validation-artifacts/home-gestures-20261116/baseline-unit.xml": "92edb841c5aec530ff17717c5d9a35a7b7f694ada59a758d67845db3e98cea72"
+  },
+  "proof_path": "validation-artifacts/home-gestures-20261116/baseline-unit.xml",
+  "result": "failed",
+  "snapshot": {
+    "files": {
+      "app/src/androidTest/java/com/jeerovan/comfer/HomeGestureInputTest.kt": "a35a616e4586e159f3d399df9d85331c03a53e3773fa4ad415c163541ec07065",
+      "app/src/androidTest/java/com/jeerovan/comfer/InboxHomeGestureRoutingTest.kt": "a48c280c3eb3cbc1001d3e224d708313b1954666565a0362905ef539f3b32f7a",
+      "app/src/main/java/com/jeerovan/comfer/GestureShortcutActivity.kt": "6391dff34f898181160fb06530234b579a72aa1f91115f334d1c83a1aaaf24ce",
+      "app/src/main/java/com/jeerovan/comfer/HomeGestures.kt": "53be85d1c993da9d5da3a5d59a3a83cc29ecf06bf6e9b30b8e31ec3dfe3e6bf4",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "3570452257156d80dc21e68e1ced133a3d9b1556b552e25ac09f2ae47f850526",
+      "app/src/main/java/com/jeerovan/comfer/SettingsViewModel.kt": "ed9c924530e11db5c37122deb0f89f5f91f8a8b8560dabc16822cc2d61bf6c56",
+      "app/src/test/java/com/jeerovan/comfer/HomeGestureClassifierTest.kt": "37ac7214f134b684044d1deec3e9f61b9b4c248603ac8791fc1b37e767a895a2"
+    },
+    "graph": "dfcb056da5bcf93fc24fdd47e9022895514fc0df3f0bb0224e54e8bc57548bde",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-16T16:44:43.857218+00:00",
+  "step": "HOME-GESTURES",
+  "test": "HOME-GESTURES-TEST"
+}

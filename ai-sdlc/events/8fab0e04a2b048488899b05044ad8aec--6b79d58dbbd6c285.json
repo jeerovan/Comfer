@@ -1,0 +1,56 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Verify Play59 package/splits/signing on both devices. Samsung retains baseline settings/shortcuts/notes/tasks/widgets after update and restart; Redmi fresh setup/restore preserves backed-up content with permission/widget rebinding disclosed. Exercise Settings, Home/Recents, picker, icons, widget lifecycle, notifications, data modules, wallpaper and locale/orientation journeys.",
+          "id": "delivery",
+          "initial_state": "Samsung existing Play58 with captured saved-state baseline; Redmi debug58 with protected data; signed59 AAB prepared",
+          "invariants": "Bind observations to actual delivered artifacts; preserve user data; internal-track acceptance does not imply public production resolution",
+          "required_level": "delivery",
+          "trigger": "Install59 from Play Internal: Samsung in-place update; Redmi approved debug replacement followed by fresh install and restore"
+        }
+      ],
+      "description": "Owner explicitly approved both available devices on2026-11-11. Samsung Play58 ->59 is the true in-place upgrade Redmi debug58 requires signer check, validated backup and approval before replacement, then Play59 fresh install/restore. Preserve data and separate both evidence types. Record actual Play package/splits/certificate and normal journeys. Notes formatting closed by owner Delivery attestation remains external: AI SDLC cannot itself attest delivered artifacts. Artifact prerequisite R59-AAB replaces earlier full-readiness prerequisite so requested internal testing can establish release evidence.",
+      "id": "R59-INTERNAL-TEST",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Validate Play Internal59 on Samsung upgrade and Redmi install/restore"
+    },
+    "before": {
+      "criteria": [
+        {
+          "expected": "Delivered regular package/version59 identity verified; in-place upgrade retains data; Home/Recents, picker identities, saved-state recovery, internal navigation, icons and widget recovery/removal function in the delivered build",
+          "id": "delivery",
+          "initial_state": "Existing Redmi version58 installation with saved settings, shortcuts, notes/tasks and widgets; prepared59 candidate",
+          "invariants": "Bind observations to actual delivered artifacts; preserve user data; internal-track acceptance does not imply public production resolution",
+          "required_level": "delivery",
+          "trigger": "Install version59 from the Play Internal testing track and run affected normal journeys"
+        }
+      ],
+      "description": "Planned regular production-package release build, not the isolated notificationTest artifact. Record Play-delivered artifact/splits and signing relationship plus source candidate. In-place update from58 to59 without uninstall/clear-data; verify affected journeys. Delivery evidence remains open; the current AI SDLC server does not itself attest delivered artifacts.",
+      "id": "R59-INTERNAL-TEST",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Validate Play Internal version59 delivery and upgrade on Redmi"
+    },
+    "node": "R59-INTERNAL-TEST",
+    "reopened": [
+      "R59-NOTES-OWNER-CLOSURE"
+    ]
+  },
+  "id": "8fab0e04a2b048488899b05044ad8aec",
+  "reason": "Apply approved two-device test plan; preserve stable step and delivery criterion IDs.",
+  "seq": 491,
+  "time": "2026-11-11T02:40:00.159134+00:00"
+}

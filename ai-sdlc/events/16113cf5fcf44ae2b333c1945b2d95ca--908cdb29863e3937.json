@@ -63,11 +63,7 @@
         "R59-SETTINGS",
         "R59-SETTINGS-CHECK",
         "R59-SETTINGS-IMPL",
-        "R59-SETTINGS-REQ",
-        "R59-WALLPAPER-CHECK",
-        "R59-WALLPAPER-IMPL",
-        "R59-WALLPAPER-REQ",
-        "R59-WALLPAPER-REVIEW"
+        "R59-SETTINGS-REQ"
       ],
       "snapshot": {
         "files": {

@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "277c1dc765964672a53c05e6ca220971"
+  },
+  "id": "6086d4c9bcfc43a296d9a3d8b9158d72",
+  "reason": "Retain test runner/app binary mismatch, rebuild runner and rerun affected cases.",
+  "seq": 530,
+  "time": "2026-11-11T04:49:19.063459+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "4ac09f134cee4f44858fb0d275db7971"
+  },
+  "id": "4e789314f00d4807b2ca95ed0ad27c2a",
+  "reason": "Begin normal-journey observations before Play upgrade; preserve delivery-level requirement and explicit external evidence gap.",
+  "seq": 496,
+  "time": "2026-11-11T02:41:39.395379+00:00"
+}

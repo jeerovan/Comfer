@@ -1,0 +1,164 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "No production source changes. Widget discovery and saved WidgetInstance gate known package prefixes before cache/createView; actual Honor provider package remains absent in complete events. Drawable snapshots are bounded/owned and remembered per drawable/composition. Clock colon path remembered per font. Complete raw API retrieval recovered317threads/2764frames for5events; canonical evidence91–95. RealmeGC read-barrier checkpoint and NokiaPowerVR prepareToDraw texture upload are stronger leads but lack duration/causal chain. Fixture failure confirmed: normal debounced reload replaced directly injected icon (draws1,stillInjectedfalse,totalrefresh2); test now waits for visible real inventory, unchanged refresh generation and zero active work across debounce before injection. This is test setup synchronization, not a production ANR repair.",
+      "id": "R60-INVESTIGATE-IMPL",
+      "kind": "implementation",
+      "phase": "maintenance",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/WidgetInflationGuard.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/WidgetProviderInventory.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/RecoverableWidgetHost.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/DrawableExt.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ClockColonGap.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ClockText.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/FolderExpansionIcon.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "observeRefreshRequests debounce and LauncherApps state publication; test-owned inventory can be overwritten.",
+          "path": "app/src/main/java/com/jeerovan/comfer/AppInfoViewModel.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Actual Home composition and animation consumer.",
+          "path": "app/src/main/java/com/jeerovan/comfer/HomeFolderLayout.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Existing widget host and graphics paths under investigation"
+    },
+    "before": {
+      "criteria": [],
+      "description": "No production source changes in initial investigation. WidgetInstance gates discovery/saved providers before cached acquisition/createView; RecoverableWidgetHost contains only known recycler measurement failure. Drawable snapshot caps edge512 and memoizes per drawable/composition; ClockText memoizes colon path per fontPx/typeface/weight. Folder expansion keys recreate compositions. Unknown actual Honor provider component/RemoteViews package; no full ANR thread/GC timing evidence.",
+      "id": "R60-INVESTIGATE-IMPL",
+      "kind": "implementation",
+      "phase": "maintenance",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/WidgetInflationGuard.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/WidgetProviderInventory.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/RecoverableWidgetHost.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/DrawableExt.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ClockColonGap.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ClockText.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/FolderExpansionIcon.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Existing widget host and graphics paths under investigation"
+    },
+    "node": "R60-INVESTIGATE-IMPL",
+    "reopened": []
+  },
+  "id": "9c92c93ef760419a99e0af6354662653",
+  "reason": "Reconcile full-event evidence and confirmed test setup race before rerun.",
+  "seq": 614,
+  "time": "2026-11-16T14:15:29.249703+00:00"
+}

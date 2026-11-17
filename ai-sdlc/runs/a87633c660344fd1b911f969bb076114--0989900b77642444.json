@@ -1,0 +1,42 @@
+{
+  "adaptations": [
+    "Restore isolated listener grant/config after tests; foreground isolated app before runner"
+  ],
+  "bypasses": [
+    "Compose row harness rather than complete default Home layout; no Play delivery claim"
+  ],
+  "criteria": [
+    "R60-NOTIF-ROW-REQ#grouped"
+  ],
+  "entrypoint": "Real OS notifications and listener -> production row; existing resource stall and artwork regressions",
+  "environment": "Redmi7 API29 71a3063 isolated notificationTest",
+  "finished_at": "2026-11-16T14:36:49.218807+00:00",
+  "id": "a87633c660344fd1b911f969bb076114",
+  "level": "integration",
+  "observation": "13/14 passed. Grouped test passes original blue artwork, child update green, newer summary plus refresh; fails line277 expecting green after summary cancellation. Suspected OS cascade removal; next test must assert NotificationManager platform state instead of assuming child remains.",
+  "order": 94,
+  "proof": {
+    "validation-artifacts/notification-row-20261116/fixed-tests.txt": "4bc9afccf7873930655c201b4974128f196b675024a90fb047d6f47787882cc2"
+  },
+  "proof_path": "validation-artifacts/notification-row-20261116/fixed-tests.txt",
+  "result": "failed",
+  "snapshot": {
+    "files": {
+      "app/src/androidTest/java/com/jeerovan/comfer/NotificationIconContrastTest.kt": "d06f18c9dd59e15632d1697f6d27b12e846fdb8b8c620e18917523db6c9139f3",
+      "app/src/androidTest/java/com/jeerovan/comfer/NotificationListenerIntegrationTest.kt": "7ca08c872c4b68251e2aeadd7be8edc24bec4b991c17e31a72a5c5286e7370ef",
+      "app/src/androidTest/java/com/jeerovan/comfer/NotificationSmallIconTest.kt": "8fe73984b1bbb187d741b2e30830b375403a42b1a5caba33740008e59082f548",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "3570452257156d80dc21e68e1ced133a3d9b1556b552e25ac09f2ae47f850526",
+      "app/src/main/java/com/jeerovan/comfer/MyNotificationListenerService.kt": "53db0a19de1832003ea22be88ea8b4f6a10f162a46a29aafee1ed0ecaa0ce4f5",
+      "app/src/main/java/com/jeerovan/comfer/notifications/NotificationInboxActivity.kt": "cd989bfc2483c7938b93bfa2cef28c9204a3b8988e81537fa47066989ade79fc",
+      "app/src/main/java/com/jeerovan/comfer/notifications/NotificationModel.kt": "18a76ea9c21d649093d16e4c64efe791ec300e6dd8bdcbf14d65f8ad7336b430"
+    },
+    "graph": "3c0d0d641348beedb8df218590002fdc3fa6daef7269f2435f281c5c55ebb528",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-16T14:35:28.728058+00:00",
+  "step": "R60-NOTIF-ROW",
+  "test": "R60-NOTIF-ROW-TEST"
+}

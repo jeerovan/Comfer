@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "971ec60857224dfaa47da15b02fa3bfa"
+  },
+  "id": "33c373838524471cbfadeae5ac59ec5c",
+  "reason": "Preserve first-fix regression and stop dependent checks before changing candidate.",
+  "seq": 708,
+  "time": "2026-11-17T02:13:16.961481+00:00"
+}

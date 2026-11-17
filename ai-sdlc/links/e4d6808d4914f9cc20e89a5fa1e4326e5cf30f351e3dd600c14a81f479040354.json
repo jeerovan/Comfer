@@ -1,0 +1,6 @@
+{
+  "rationale": "Native cloning visibility and actual Comfer behavior, retaining component-test limitations.",
+  "relation": "verifies",
+  "source": "DUAL-REVIEW-CHECK",
+  "target": "DUAL-REVIEW"
+}

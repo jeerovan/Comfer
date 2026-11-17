@@ -1,0 +1,41 @@
+{
+  "criteria": [],
+  "description": "ADB-driven normal UI on regular Play-delivered apps. Capture package/splits/signing and backup metadata; validate normal Home, Settings, navigation, data preservation and restore. No instrumentation APK substituted for delivered59. External delivery gate required because MCP cannot attest delivery.",
+  "id": "R59-PLAY-JOURNEY-CHECK",
+  "kind": "test",
+  "phase": "verification",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/prepare_manual_check.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/BackupRestoreManager.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/Settings.kt",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Samsung Play upgrade and Redmi Play setup/restore observations"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "e86d67ac3f344647a3ef99c81aa25da0"
+  },
+  "id": "40b10b5f0c06442e9ed60c29c856492b",
+  "reason": "Retain diagnostic harness error; do not classify it as product failure.",
+  "seq": 611,
+  "time": "2026-11-16T14:10:27.442194+00:00"
+}

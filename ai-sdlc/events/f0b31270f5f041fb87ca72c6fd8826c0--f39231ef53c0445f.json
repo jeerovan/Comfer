@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Actual Play update and regular-app acceptance; delivery remains distinct from local artifact checks.",
+      "relation": "verifies",
+      "source": "R60-PLAY-CHECK",
+      "target": "R60-INTERNAL-TEST"
+    },
+    "reopened": []
+  },
+  "id": "f0b31270f5f041fb87ca72c6fd8826c0",
+  "reason": "Record intent, implementation and external delivery evidence boundary.",
+  "seq": 557,
+  "time": "2026-11-11T05:23:04.667232+00:00"
+}

@@ -1,0 +1,78 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Every supported in-app language is available in the base/master APK without downloading language splits",
+          "id": "packaging",
+          "initial_state": "English-only device specification",
+          "invariants": "ABI/density optimization retained; no new runtime permissions or data migration",
+          "required_level": "integration",
+          "trigger": "Generate APKs from configured bundle"
+        },
+        {
+          "expected": "Correct translated labels and direction immediately after selection and restart",
+          "id": "picker",
+          "initial_state": "Delivered app installed for English, no selected secondary language split",
+          "invariants": "Preserve data and original settings",
+          "required_level": "journey",
+          "trigger": "Choose French/Arabic in normal App language UI while offline, restart, return to English/system default"
+        },
+        {
+          "expected": "Unsupported system language displays English; explicit supported selection displays its translation",
+          "id": "unsupported-system-fallback",
+          "initial_state": "App follows system language; device primary language is unsupported by Comfer",
+          "invariants": "Preserve user data and restore original device/app language settings; do not count expected English fallback as a defect",
+          "required_level": "journey",
+          "trigger": "Open app and restart it, then select a supported language using the normal picker"
+        }
+      ],
+      "description": "Existing language picker must immediately show selected supported translations regardless of install/system languages, preserving data and layout direction. Play59 Redmi lacked French; Arabic arrived only after system locale caused later Play download. All-language debug APK and Samsung with preinstalled Arabic masked delivery gap. Owner clarification: when following an unsupported device language, English is the expected default; this is not a language defect.",
+      "id": "R59-LANGUAGE-REQ",
+      "kind": "requirement",
+      "phase": "release",
+      "refs": [],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Language selection works with delivered resources offline"
+    },
+    "before": {
+      "criteria": [
+        {
+          "expected": "Every supported in-app language is available in the base/master APK without downloading language splits",
+          "id": "packaging",
+          "initial_state": "English-only device specification",
+          "invariants": "ABI/density optimization retained; no new runtime permissions or data migration",
+          "required_level": "integration",
+          "trigger": "Generate APKs from configured bundle"
+        },
+        {
+          "expected": "Correct translated labels and direction immediately after selection and restart",
+          "id": "picker",
+          "initial_state": "Delivered app installed for English, no selected secondary language split",
+          "invariants": "Preserve data and original settings",
+          "required_level": "journey",
+          "trigger": "Choose French/Arabic in normal App language UI while offline, restart, return to English/system default"
+        }
+      ],
+      "description": "Existing language picker must immediately show selected supported translations regardless of install/system languages, preserving data and layout direction. Play59 Redmi lacked French; Arabic arrived only after system locale caused later Play download. All-language debug APK and Samsung with preinstalled Arabic masked delivery gap.",
+      "id": "R59-LANGUAGE-REQ",
+      "kind": "requirement",
+      "phase": "release",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Language selection works with delivered resources offline"
+    },
+    "node": "R59-LANGUAGE-REQ",
+    "reopened": []
+  },
+  "id": "b2bc4e78979e45a4b154ae16ee123413",
+  "reason": "Record owner clarification of intended English fallback while preserving supported-language delivery acceptance.",
+  "seq": 515,
+  "time": "2026-11-11T04:31:00.243680+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Grouped notification exact-key artwork regression",
+      "relation": "implements",
+      "source": "R60-NOTIF-ROW",
+      "target": "R60-NOTIF-ROW-REQ"
+    },
+    "reopened": []
+  },
+  "id": "5d3b4325d56a4ef08628c8248c9e0682",
+  "reason": "Link requirement and actual code/test scope",
+  "seq": 626,
+  "time": "2026-11-16T14:32:19.845477+00:00"
+}

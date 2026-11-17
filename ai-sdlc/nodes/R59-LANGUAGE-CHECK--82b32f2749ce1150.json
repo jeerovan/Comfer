@@ -1,0 +1,48 @@
+{
+  "criteria": [],
+  "description": "Regression at packaging boundary plus actual picker evidence; universal/debug APK alone is insufficient.",
+  "id": "R59-LANGUAGE-CHECK",
+  "kind": "test",
+  "phase": "verification",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/verify_bundle_languages.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "validation-artifacts/release60-language-20261111/offline_picker.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "validation-artifacts/release60-language-20261111/ui_helper.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/check_translations.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "validation-artifacts/release60-language-20261111/fallback_check.py",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 3,
+  "status": "pending",
+  "tags": [],
+  "title": "Inspect language resources in English-targeted bundle APKs"
+}

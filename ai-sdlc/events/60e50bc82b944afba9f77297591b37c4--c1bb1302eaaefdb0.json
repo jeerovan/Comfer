@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "5c0d9fd17f5c48acace31379d43c7d08"
+  },
+  "id": "60e50bc82b944afba9f77297591b37c4",
+  "reason": "Final focused regression results and installed hashes verified",
+  "seq": 638,
+  "time": "2026-11-16T14:38:55.555017+00:00"
+}

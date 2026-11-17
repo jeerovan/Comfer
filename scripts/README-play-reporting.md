@@ -191,6 +191,22 @@ venv/bin/python scripts/import_firebase_crashlytics.py \
   --input crashlytics-export-v56-20261015.json
 ```
 
+For causal investigation, distinguish the MCP event summary from the raw API
+event. The installed Firebase CLI MCP formatter inspected on 2026-11-16 retains
+only blamed/crashed threads for ANRs and crashes, limits stacks to 20 frames,
+and truncates logs/breadcrumbs. Do not infer that Firebase lacks other threads
+from that formatted response. Retrieve the selected event resource names through
+the authenticated Firebase CLI `crashlytics/events.batchGetEvents` client when
+needed, retaining its unformatted `events` response. Use the existing CLI login;
+never print credentials. Recheck the installed formatter if its version changes.
+
+Validate app, package, version, issue and event identity before archiving these
+payloads through `crashlytics_evidence.archive_evidence`. Link the resulting
+evidence IDs from an `issue_history.py record` entry. A partial investigation
+must not replace the complete reporting-window import or change its counts,
+presence flags or historical snapshot links. Keep prior summarized evidence:
+retrieving a fuller event is additional evidence, not a new incident or a fix.
+
 The importer rejects incomplete exports, duplicate issue/sample IDs, mismatched
 package/version/error types, and count mismatches before changing SQLite. It
 uses provider-specific `crashlytics_*` tables, preserves local triage fields on

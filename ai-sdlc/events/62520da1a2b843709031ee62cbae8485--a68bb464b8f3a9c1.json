@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Unequal notification return acceptance",
+      "relation": "implements",
+      "source": "INBOX-GESTURE",
+      "target": "INBOX-GESTURE-REQ"
+    },
+    "reopened": []
+  },
+  "id": "62520da1a2b843709031ee62cbae8485",
+  "reason": "Bind implementation and verification to notification gesture scope.",
+  "seq": 697,
+  "time": "2026-11-17T02:09:23.063723+00:00"
+}

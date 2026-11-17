@@ -1,0 +1,68 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Play update with same signing identity -> regular Home -> Settings -> LanguageUpdateActivity/AppCompat locale; saved data remains in place. No manual locale-state repair on regular apps.",
+      "id": "R60-PLAY-IMPL",
+      "kind": "implementation",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/build.gradle.kts",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/Settings.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/LanguageUpdateActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/BackupRestoreManager.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Actual installed Play language and Settings path"
+    },
+    "before": null,
+    "node": "R60-PLAY-IMPL",
+    "reopened": []
+  },
+  "id": "31ef0866f1114a71ab929df7e9198a82",
+  "reason": "Bind accepted delivered-build criteria and focused implementation/test paths.",
+  "seq": 553,
+  "time": "2026-11-11T05:22:59.089261+00:00"
+}

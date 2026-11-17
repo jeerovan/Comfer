@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Track observed Play delivery gap and connected packaging/picker acceptance.",
+      "relation": "verifies",
+      "source": "R59-LANGUAGE-CHECK",
+      "target": "R59-LANGUAGE-REQ"
+    },
+    "reopened": []
+  },
+  "id": "5dd71490e4a049a9adac8a814f6a5aaa",
+  "reason": "Play Internal59 exposed a language split gap masked by all-language APK tests.",
+  "seq": 504,
+  "time": "2026-11-11T03:30:16.287050+00:00"
+}

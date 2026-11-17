@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "ce7298652174466482751cc069be137d"
+  },
+  "id": "40e899335b174834a3bc83e4ccf223d4",
+  "reason": "Normal Home journey repeated with no bypass of the behavior under test",
+  "seq": 669,
+  "time": "2026-11-16T16:56:29.545743+00:00"
+}

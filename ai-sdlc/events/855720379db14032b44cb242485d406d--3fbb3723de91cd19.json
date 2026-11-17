@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "a137619810df44c1bbdea9928e7079c1"
+  },
+  "id": "855720379db14032b44cb242485d406d",
+  "reason": "Repeat focused regressions after replacing independently verified stale runner.",
+  "seq": 531,
+  "time": "2026-11-11T04:49:55.422746+00:00"
+}

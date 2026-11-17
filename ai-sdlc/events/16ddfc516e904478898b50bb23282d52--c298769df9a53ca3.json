@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "eac5bd5376444f61954a4e50719eb74d"
+  },
+  "id": "16ddfc516e904478898b50bb23282d52",
+  "reason": "Preserve failed assertion; correct fixture typography without product change.",
+  "seq": 523,
+  "time": "2026-11-11T04:44:00.351122+00:00"
+}

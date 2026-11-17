@@ -1,0 +1,33 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Regression at packaging boundary plus actual picker evidence; universal/debug APK alone is insufficient.",
+      "id": "R59-LANGUAGE-CHECK",
+      "kind": "test",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/verify_bundle_languages.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Inspect language resources in English-targeted bundle APKs"
+    },
+    "before": null,
+    "node": "R59-LANGUAGE-CHECK",
+    "reopened": []
+  },
+  "id": "38f9f29d1f894d6ab35713a760136c06",
+  "reason": "Play Internal59 exposed a language split gap masked by all-language APK tests.",
+  "seq": 501,
+  "time": "2026-11-11T03:30:12.085191+00:00"
+}

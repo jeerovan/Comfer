@@ -1,0 +1,82 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "No production source changes in initial investigation. WidgetInstance gates discovery/saved providers before cached acquisition/createView; RecoverableWidgetHost contains only known recycler measurement failure. Drawable snapshot caps edge512 and memoizes per drawable/composition; ClockText memoizes colon path per fontPx/typeface/weight. Folder expansion keys recreate compositions. Unknown actual Honor provider component/RemoteViews package; no full ANR thread/GC timing evidence.",
+      "id": "R60-INVESTIGATE-IMPL",
+      "kind": "implementation",
+      "phase": "maintenance",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/WidgetInflationGuard.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/WidgetProviderInventory.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/RecoverableWidgetHost.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/DrawableExt.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ClockColonGap.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ClockText.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/FolderExpansionIcon.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Existing widget host and graphics paths under investigation"
+    },
+    "before": null,
+    "node": "R60-INVESTIGATE-IMPL",
+    "reopened": []
+  },
+  "id": "e7eb239feb21402e8a0a1cf8090b477d",
+  "reason": "Track owner-requested source and Redmi investigation without claiming a fix.",
+  "seq": 590,
+  "time": "2026-11-16T13:51:38.068926+00:00"
+}

@@ -1,0 +1,6 @@
+{
+  "rationale": "Natural shortcut recognition and exclusive routing",
+  "relation": "verifies",
+  "source": "HOME-GESTURES-TEST",
+  "target": "HOME-GESTURES"
+}

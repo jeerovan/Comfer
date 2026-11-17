@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Narrow artifact handoff independently of R59-PREPARE readiness. Latest direct instruction authorizes build with known unresolved gates retained.",
+      "id": "R59-AAB",
+      "kind": "step",
+      "phase": "release",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Build and verify owner-requested version59 AAB"
+    },
+    "before": null,
+    "node": "R59-AAB",
+    "reopened": []
+  },
+  "id": "c171b6ba6273411295ae5c875fb54bcf",
+  "reason": "Record latest owner-authorized artifact build separately from unresolved release acceptance.",
+  "seq": 471,
+  "time": "2026-11-11T02:14:06.458491+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "5845fac44fb4484a8eb38320fb746f33"
+  },
+  "id": "bd83239fb2ce474fa284d8d7e644c12b",
+  "reason": "Capture nonthrowing fixture state on repeated failure.",
+  "seq": 612,
+  "time": "2026-11-16T14:12:10.495256+00:00"
+}

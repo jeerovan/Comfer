@@ -1,0 +1,54 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Bundle validation, upload certificate match, manifest60/60.0 and nondebuggable checks, all35 locale probes in master, component definitions and mapping. Pre-bump UI tests retained separately; not Play attestation.",
+      "id": "R60-AAB-CHECK",
+      "kind": "test",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-language-20261111/verify_release.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/verify_bundle_languages.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/verify_apk_components.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release59-aab-20261111/VerifyBundleSignature.java",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Signed release60 artifact and English-device resource validation"
+    },
+    "before": null,
+    "node": "R60-AAB-CHECK",
+    "reopened": []
+  },
+  "id": "5249483da7b34b58a695dd652303f101",
+  "reason": "Track owner-authorized60 artifact and focused subsequent Play validation.",
+  "seq": 538,
+  "time": "2026-11-11T04:53:20.607673+00:00"
+}

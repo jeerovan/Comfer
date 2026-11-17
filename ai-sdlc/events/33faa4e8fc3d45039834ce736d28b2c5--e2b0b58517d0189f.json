@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "205d526dc9d947cd8259845b974a7cad"
+  },
+  "id": "33faa4e8fc3d45039834ce736d28b2c5",
+  "reason": "Confirm the delivered regular debug candidate through real ADB touch input after passing isolated regressions.",
+  "seq": 718,
+  "time": "2026-11-17T02:17:03.621800+00:00"
+}

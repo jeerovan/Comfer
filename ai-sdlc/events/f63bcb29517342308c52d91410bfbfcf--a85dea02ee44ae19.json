@@ -1,0 +1,143 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Latest owner direction,15Nov2026: increasing rollout50%→100%, then waiting24hours. This is the owner's chosen action despite the preceding recommendation to hold50%; it is not verification of production stability. Console completion/effective exposure time not independently checked. Next review compares explicit time windows, exposure-adjusted crash/ANR metrics, new/recurring signatures and devices against import19 baseline(0crashes,52ANRs,9,329active users,37reported ANR-affected users). Owner update record:release60-rollout100-owner-update-20261115;fix register appended. No agent Console action, new fetch or scheduled task.\n\nPrevious review and historical decisions:\nLatest observational Firebase review15Nov2026: interval14Nov02:16:28Z–15Nov02:16:28Z (07:46:28IST daily), following owner-announced50% rollout. All52 events are ANRs;0fatal/0nonfatal;26groups;9,329reported active users;37reported ANR-affected users;80,087sessions(initial request80,086). Prior non-overlapping24h baseline:3fatal,17ANR,4,679active users,10ANR-affected users. Firebase ANR-affected share increased0.214%→0.397%;events per1,000users3.63→5.57. No identical events;22-minute gap between windows. SDK metrics are not Play user-perceived ANR rates; cohort/reporting maturity limits causal conclusions.\n\nThree groups first seen60:18377197640c2bed8b030c09fd07ead8(DataStore collector,TECNO BF6 Android12),49cd5b1e2db89478f7521243e50f8770(vivo OEM touch handler),6e7dcdd112167bf37b987c3c6837458c(Android service class-loading,TECNO CM6). Other23groups predate60;21local exact-ID recurrences.26ANRs have unknown root causes.39model labels;itel A665L highest4/52(7.69%);excludedBG6m/X6525D one each. No exclusion benefit inferred.\n\nAll52event identities/time/package/version/buildstamps validated against811d3a7ba32effccff25672a655a9a7d1128ef3f;2events lack stacks and remain retained. Import19 has26evidence-linked snapshots in canonical play_reporting.db;record:release60-firebase-review-20261115;record:release59-fix-register appended and stale summary fields reconciled. Eight exact IDs linked to58-R02–58-R10 absent, not proof of resolution. Package-change requestInventoryRefresh iteration,Coil trimMemory andDataStore collection are investigation leads; trace-only review establishes no safe new repair. Historical51-02/53-08 widget constraints and58-R05 bitmap cleanup context preserved; no fresh source/runtime verification. Recommend retain50% without further expansion, complete planned48h observation and obtain targeted timed evidence. Console rollout state/time not independently checked;no rollout,exclusion,remote closure,code or test action performed. Production resolution remains unverified.\n\nHistorical context (full prior node revisions remain in AI SDLC audit; full detailed observations remain in referenced artifacts and canonical DB):\n- Owner14Nov announced50% rollout and24–48h observation, superseding hold25% recommendation. record:release60-rollout50-owner-update-20261114.\n-14Nov review,import18,record:release60-firebase-review-20261114:3fatal17ANR across12groups. One new InsetsController/realme group;unknown-root9ANRs. Prior13Nov window overlapped5h46m10s and6identical events, so no improvement/exclusion benefit established.16ANR model labels;none excluded appeared;all8tracked fix IDs absent without resolution claim.\n-13Nov review,import17,record:release60-firebase-review-20261113:2fatal21ANR across15groups;3,995users30,379sessions. New Compose dispatcher andAndroid startup groups. Recurring display-rotation Binder andwidget startListening were leads. FatalGoogle measurement certificate exception differed from stale CLOSE_SYSTEM_DIALOGS title;otherfatalReferenceQueueDaemon. No safe new fix established.23filtered events matched version/package/time/buildstamp;no signed-APK/mapping attestation.\n-12Nov owner confirmed production approval and increased10%→25%, directed24h wait. Earlier10%announcement had approval unconfirmed. Exact rollout timestamps/exposure were not independently verified.\n-11Nov pre-promotion:API/dashboard omitted60; official Firebase Release Monitoring threshold500unique users OR>=1%with>=2users in3days(linked production exception) explains small internal cohort dashboard ineligibility, not definitively API absence. Earlier advice that waiting alone proves readiness was corrected. Redmi Play60 SDK collection/session logs andHTTP200 establish enabled SDK/accepted transport, not version-specific backend ingestion. Debug properties restored. Focused delivered-build gates passed unchanged AAB SHAfc3a110d11cb7b3534d8ca315c78f4e90167cac32b1d87a20c9c4a7f5adbfde1;AI SDLC delivery attestation unsupported. Historical owner-controlled5%recommendation was superseded by later owner rollout actions. Fixes remain production_verified=false.",
+      "id": "R60-TELEMETRY-REVIEW",
+      "kind": "decision",
+      "phase": "release",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/promotion-telemetry-hour-recheck.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/telemetry-redmi-runtime-diagnostic.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/gate-check.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Nonsecret aggregate review and canonical DB references; source/event limitations explicit.",
+          "path": "validation-artifacts/release60-firebase-20261113/review.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Current observational review; DB record and retained source-event limitations. Not runtime verification.",
+          "path": "validation-artifacts/release60-firebase-20261114/review.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Owner-announced rollout change and observation plan; Console completion not independently verified.",
+          "path": "validation-artifacts/release60-firebase-20261114/rollout50-owner-update.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Observational review; no runtime fix or production-resolution claim.",
+          "path": "validation-artifacts/release60-firebase-20261115/review.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Owner-announced100% rollout and24h observation; not independently verified.",
+          "path": "validation-artifacts/release60-firebase-20261115/rollout100-owner-update.json",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 8,
+      "status": "pending",
+      "tags": [],
+      "title": "Version60: owner increasing rollout to100%; observe24 hours"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Latest observational Firebase review15Nov2026: interval14Nov02:16:28Z–15Nov02:16:28Z (07:46:28IST daily), following owner-announced50% rollout. All52 events are ANRs;0fatal/0nonfatal;26groups;9,329reported active users;37reported ANR-affected users;80,087sessions(initial request80,086). Prior non-overlapping24h baseline:3fatal,17ANR,4,679active users,10ANR-affected users. Firebase ANR-affected share increased0.214%→0.397%;events per1,000users3.63→5.57. No identical events;22-minute gap between windows. SDK metrics are not Play user-perceived ANR rates; cohort/reporting maturity limits causal conclusions.\n\nThree groups first seen60:18377197640c2bed8b030c09fd07ead8(DataStore collector,TECNO BF6 Android12),49cd5b1e2db89478f7521243e50f8770(vivo OEM touch handler),6e7dcdd112167bf37b987c3c6837458c(Android service class-loading,TECNO CM6). Other23groups predate60;21local exact-ID recurrences.26ANRs have unknown root causes.39model labels;itel A665L highest4/52(7.69%);excludedBG6m/X6525D one each. No exclusion benefit inferred.\n\nAll52event identities/time/package/version/buildstamps validated against811d3a7ba32effccff25672a655a9a7d1128ef3f;2events lack stacks and remain retained. Import19 has26evidence-linked snapshots in canonical play_reporting.db;record:release60-firebase-review-20261115;record:release59-fix-register appended and stale summary fields reconciled. Eight exact IDs linked to58-R02–58-R10 absent, not proof of resolution. Package-change requestInventoryRefresh iteration,Coil trimMemory andDataStore collection are investigation leads; trace-only review establishes no safe new repair. Historical51-02/53-08 widget constraints and58-R05 bitmap cleanup context preserved; no fresh source/runtime verification. Recommend retain50% without further expansion, complete planned48h observation and obtain targeted timed evidence. Console rollout state/time not independently checked;no rollout,exclusion,remote closure,code or test action performed. Production resolution remains unverified.\n\nHistorical context (full prior node revisions remain in AI SDLC audit; full detailed observations remain in referenced artifacts and canonical DB):\n- Owner14Nov announced50% rollout and24–48h observation, superseding hold25% recommendation. record:release60-rollout50-owner-update-20261114.\n-14Nov review,import18,record:release60-firebase-review-20261114:3fatal17ANR across12groups. One new InsetsController/realme group;unknown-root9ANRs. Prior13Nov window overlapped5h46m10s and6identical events, so no improvement/exclusion benefit established.16ANR model labels;none excluded appeared;all8tracked fix IDs absent without resolution claim.\n-13Nov review,import17,record:release60-firebase-review-20261113:2fatal21ANR across15groups;3,995users30,379sessions. New Compose dispatcher andAndroid startup groups. Recurring display-rotation Binder andwidget startListening were leads. FatalGoogle measurement certificate exception differed from stale CLOSE_SYSTEM_DIALOGS title;otherfatalReferenceQueueDaemon. No safe new fix established.23filtered events matched version/package/time/buildstamp;no signed-APK/mapping attestation.\n-12Nov owner confirmed production approval and increased10%→25%, directed24h wait. Earlier10%announcement had approval unconfirmed. Exact rollout timestamps/exposure were not independently verified.\n-11Nov pre-promotion:API/dashboard omitted60; official Firebase Release Monitoring threshold500unique users OR>=1%with>=2users in3days(linked production exception) explains small internal cohort dashboard ineligibility, not definitively API absence. Earlier advice that waiting alone proves readiness was corrected. Redmi Play60 SDK collection/session logs andHTTP200 establish enabled SDK/accepted transport, not version-specific backend ingestion. Debug properties restored. Focused delivered-build gates passed unchanged AAB SHAfc3a110d11cb7b3534d8ca315c78f4e90167cac32b1d87a20c9c4a7f5adbfde1;AI SDLC delivery attestation unsupported. Historical owner-controlled5%recommendation was superseded by later owner rollout actions. Fixes remain production_verified=false.",
+      "id": "R60-TELEMETRY-REVIEW",
+      "kind": "decision",
+      "phase": "release",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/promotion-telemetry-hour-recheck.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/telemetry-redmi-runtime-diagnostic.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/gate-check.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Nonsecret aggregate review and canonical DB references; source/event limitations explicit.",
+          "path": "validation-artifacts/release60-firebase-20261113/review.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Current observational review; DB record and retained source-event limitations. Not runtime verification.",
+          "path": "validation-artifacts/release60-firebase-20261114/review.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Owner-announced rollout change and observation plan; Console completion not independently verified.",
+          "path": "validation-artifacts/release60-firebase-20261114/rollout50-owner-update.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Observational review; no runtime fix or production-resolution claim.",
+          "path": "validation-artifacts/release60-firebase-20261115/review.json",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 7,
+      "status": "pending",
+      "tags": [],
+      "title": "Version60 at owner-reported50%: 52 ANRs, no crashes; hold further expansion"
+    },
+    "node": "R60-TELEMETRY-REVIEW",
+    "reopened": []
+  },
+  "id": "f63bcb29517342308c52d91410bfbfcf",
+  "reason": "Record owner's announced100% rollout and24h observation; preserve prior hold50% recommendation and telemetry baseline without claiming completion or production resolution.",
+  "seq": 586,
+  "time": "2026-11-15T02:24:42.908161+00:00"
+}

@@ -1,0 +1,6 @@
+{
+  "rationale": "Review evidence only; no implementation modification",
+  "relation": "verifies",
+  "source": "REVIEW-20261117-CHECK",
+  "target": "REVIEW-20261117"
+}

@@ -330,9 +330,11 @@ class MyNotificationListenerService : NotificationListenerService() {
         mutableSnapshot.value = com.jeerovan.comfer.notifications.NotificationSnapshot(
             ledger.items(), com.jeerovan.comfer.notifications.ListenerHealth.CONNECTED, lastSync, overflow, connectionId,
         )
-        // Compatibility projection for existing home badges; full records live in snapshot.
+        // Home resolves the selected child's artwork by notification key. Keep every
+        // handle: deduplicating by app here can retain a newer group summary while
+        // notificationChildren selects a different key, yielding the generic icon.
+        // Row grouping and badge package membership are handled by their consumers.
         _activeNotifications.value = handles.values.sortedByDescending { it.postTime }
-            .distinctBy { it.user to it.packageName }
     }
 
     private fun applyContentRules(item: com.jeerovan.comfer.notifications.NotificationItem, generation: Long) {

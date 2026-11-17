@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "dfabf2f09aa6434ba38f54be825184d6"
+  },
+  "id": "e7101deeb0484c44ac57ef11b39d4a67",
+  "reason": "Begin before build and external artifact checks; release/Play runtime acceptance remains open.",
+  "seq": 479,
+  "time": "2026-11-11T02:14:16.763500+00:00"
+}

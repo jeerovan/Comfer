@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Actual phone observations bound to installed Play artifacts; does not itself attest external delivery.",
+      "relation": "verifies",
+      "source": "R59-PLAY-JOURNEY-CHECK",
+      "target": "R59-INTERNAL-TEST"
+    },
+    "reopened": []
+  },
+  "id": "7ebabbf1160d42e4a06473c5036824cb",
+  "reason": "Attach normal delivered-app journey evidence.",
+  "seq": 495,
+  "time": "2026-11-11T02:41:38.111740+00:00"
+}

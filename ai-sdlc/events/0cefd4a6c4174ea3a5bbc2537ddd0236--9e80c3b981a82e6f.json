@@ -1,0 +1,14 @@
+{
+  "action": "transition",
+  "actor": "codex",
+  "details": {
+    "from": "pending",
+    "node": "INBOX-GESTURE",
+    "reopened": [],
+    "to": "completed"
+  },
+  "id": "0cefd4a6c4174ea3a5bbc2537ddd0236",
+  "reason": "Unequal Inbox gesture acceptance reproduced then verified at geometry, Compose input, real default Home/recreation and installed regular debug boundaries; metadata gate passed. Known separate HOME-GESTURES review risks remain open; production status unchanged.",
+  "seq": 720,
+  "time": "2026-11-17T02:21:53.632742+00:00"
+}

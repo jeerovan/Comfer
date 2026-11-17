@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "17c720f51ea54bcfb4da777703fcc420"
+  },
+  "id": "d3d5c71f9e314e5187181806f9d55689",
+  "reason": "Run actual supported language picker regression before version bump.",
+  "seq": 518,
+  "time": "2026-11-11T04:39:27.010257+00:00"
+}

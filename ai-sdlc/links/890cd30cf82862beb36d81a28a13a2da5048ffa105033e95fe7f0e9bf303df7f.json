@@ -1,0 +1,6 @@
+{
+  "rationale": "Current debug installation and interactive Home outcome",
+  "relation": "implements",
+  "source": "REDMI-DEBUG-20261117",
+  "target": "REDMI-DEBUG-20261117-REQ"
+}

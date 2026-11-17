@@ -1,0 +1,36 @@
+{
+  "adaptations": [
+    "Supported debug unit task; no release unit task configured"
+  ],
+  "bypasses": [],
+  "criteria": [
+    "R59-AAB-REQ#artifact"
+  ],
+  "entrypoint": ":app:bundleRelease and bundletool1.18.3/JarFile signature/manifest/DEX inspection",
+  "environment": "macOS-JBR25.0.3-Gradle9.6.1-release-upload-signing",
+  "finished_at": "2026-11-11T02:20:31.843232+00:00",
+  "id": "d106b78e0291445d9fe06014f47d12bf",
+  "level": "component",
+  "observation": "Signed29,572,345-byte AAB is com.jeerovan.comfer59/59.0, nondebuggable/non-testOnly, minSdk24 target37. Bundletool1.18.3 validates it. All516 signed entries verify against configured upload certificate. Both DEX files contain all4 generated Room implementations and retained Settings code ReportFragment public noarg constructor preserved. Embedded mapping matches external mapping. Build succeeded,272 supported debug unit checks pass, release lint0errors367warnings. No Play upload/runtime59 claim Host build occurred in preceding retained attempt this attempt performed corrected metadata/signature/DEX checks on same unchanged source/artifact.",
+  "order": 64,
+  "proof": {
+    "validation-artifacts/release59-aab-20261111/final-proof.json": "8936d60c359a15d9aa6a89d481f53cc27703c6272fcdf23977d56b5cfa4f6c12"
+  },
+  "proof_path": "validation-artifacts/release59-aab-20261111/final-proof.json",
+  "result": "passed",
+  "snapshot": {
+    "files": {
+      "app/build.gradle.kts": "0938dd3a9d87c91a59d0c62316499bf79fee9835fac89b3b26bb163c1ce0cb8b",
+      "app/proguard-rules.pro": "54de8e2a116a27445420cff93312c993f7d7ac43779379c3b969e9775e1669e8",
+      "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1"
+    },
+    "graph": "94ae019a41101ad7459e5a3284d56d2808521cc5f12f595035d6016a547e09b0",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-11T02:18:03.728277+00:00",
+  "step": "R59-AAB",
+  "test": "R59-AAB-CHECK"
+}

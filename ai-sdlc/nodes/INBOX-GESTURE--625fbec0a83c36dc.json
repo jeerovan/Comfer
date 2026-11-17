@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Owner reports down-up notification gesture requires equal lengths and frequently fails. Preserve existing Home shortcut work and its two separately open review regressions. Redmi-only verification.",
+  "id": "INBOX-GESTURE",
+  "kind": "step",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "completed",
+  "tags": [],
+  "title": "Accept unequal Home down-up strokes for notification Inbox"
+}

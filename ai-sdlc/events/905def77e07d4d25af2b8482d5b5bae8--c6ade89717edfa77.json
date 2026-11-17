@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "a87633c660344fd1b911f969bb076114"
+  },
+  "id": "905def77e07d4d25af2b8482d5b5bae8",
+  "reason": "Verify grouped fix and prior icon behavior on current candidate",
+  "seq": 634,
+  "time": "2026-11-16T14:35:28.729462+00:00"
+}

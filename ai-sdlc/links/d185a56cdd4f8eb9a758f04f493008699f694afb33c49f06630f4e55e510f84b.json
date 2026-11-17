@@ -1,0 +1,6 @@
+{
+  "rationale": "Unequal notification return acceptance",
+  "relation": "verifies",
+  "source": "INBOX-GESTURE-TEST",
+  "target": "INBOX-GESTURE"
+}

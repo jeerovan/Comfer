@@ -1,0 +1,17 @@
+{
+  "action": "unlink",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Prepared artifact enables internal testing; internal testing does not claim all readiness gates complete.",
+      "relation": "depends_on",
+      "source": "R59-INTERNAL-TEST",
+      "target": "R59-PREPARE"
+    },
+    "reopened": []
+  },
+  "id": "2f1891d73835419b854cb28c33c47d21",
+  "reason": "Owner explicitly authorizes delivered testing now; full release readiness remains separate.",
+  "seq": 492,
+  "time": "2026-11-11T02:40:01.402757+00:00"
+}

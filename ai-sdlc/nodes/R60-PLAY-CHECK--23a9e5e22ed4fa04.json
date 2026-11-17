@@ -1,0 +1,34 @@
+{
+  "criteria": [],
+  "description": "Protected backup baseline and after comparison; installed identity/signing/mapping/resource validation; actual offline picker, restart, affected locale geometry and Home navigation. Regular apps, no clearing or injected startup prerequisites.",
+  "id": "R60-PLAY-CHECK",
+  "kind": "test",
+  "phase": "verification",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "",
+      "path": "validation-artifacts/release60-play-testing-20261111/ui_helper.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/prepare_manual_check.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "",
+      "path": "scripts/verify_bundle_languages.py",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Play UI update and focused regular-app language/data verification"
+}

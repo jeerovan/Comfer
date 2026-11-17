@@ -6,7 +6,7 @@
   "phase": "verification",
   "refs": [],
   "revision": 1,
-  "status": "blocked",
+  "status": "pending",
   "tags": [],
   "title": "Run autonomous release regression and locale testing on Redmi"
 }

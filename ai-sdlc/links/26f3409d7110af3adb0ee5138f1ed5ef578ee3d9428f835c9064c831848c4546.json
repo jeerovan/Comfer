@@ -1,0 +1,6 @@
+{
+  "rationale": "Concrete regression findings require correction and verification before completion",
+  "relation": "affects",
+  "source": "HOME-GESTURES-REVIEW-20261117",
+  "target": "HOME-GESTURES"
+}

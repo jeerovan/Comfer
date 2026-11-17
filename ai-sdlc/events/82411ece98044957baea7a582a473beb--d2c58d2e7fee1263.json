@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "06d28ebdb43a4c8294c7249d5dc06151"
+  },
+  "id": "82411ece98044957baea7a582a473beb",
+  "reason": "Run fixed candidate on confirmed Redmi7 after successful component checks.",
+  "seq": 713,
+  "time": "2026-11-17T02:14:15.199982+00:00"
+}

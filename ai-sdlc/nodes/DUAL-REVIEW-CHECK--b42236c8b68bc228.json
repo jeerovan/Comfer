@@ -1,0 +1,27 @@
+{
+  "criteria": [],
+  "description": "ADB normal settings and regular Play60 launcher observation; source/reference review supplements runtime. No synthetic profile injection presented as clone discovery proof.",
+  "id": "DUAL-REVIEW-CHECK",
+  "kind": "test",
+  "phase": "discovery",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "ADB UI helper reads hierarchies in memory; no state injection.",
+      "path": "validation-artifacts/release60-play-testing-20261111/ui_helper.py",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "Historical injected profile test bypasses production inventory; limited component evidence.",
+      "path": "app/src/androidTest/java/com/jeerovan/comfer/AppSelectionIdentityTest.kt",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Redmi native Dual Apps feasibility inspection"
+}

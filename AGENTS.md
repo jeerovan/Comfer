@@ -4,10 +4,10 @@
   `/Volumes/JS/Repos/Comfer`, for active requirements and delivery state.
   Current priority is release-58 issue investigation (`R58-REFRESH-01`,
   `R58-FETCH`), scoped remediation (`R58-FIX-01`–`R58-FIX-09`) and version-59
-  release testing (`R59-LOCAL-TESTS`, `R59-PREPARE`) and the unresolved Redmi
-  visible lock-wallpaper mismatch (`R59-WALLPAPER-REVIEW`). Android wallpaper
-  IDs/readback do not verify MIUI's visible keyguard; retain the actual device
-  failure in `record:release59-redmi-lock-wallpaper` and do not treat it as fixed.
+  release testing (`R59-LOCAL-TESTS`, `R59-PREPARE`).
+  The language-delivery follow-up now targets60: `R60-AAB` tracks the verified
+  local bundle and `R60-INTERNAL-TEST` tracks focused Play59-to60 checks on both
+  phones after owner upload. Preserve `R59-LANGUAGE-PACKAGING` and prior IDs.
   The owner-requested modular Settings enhancement (`R59-SETTINGS`) is also a
   prerequisite for the version-59 release build. Preserve every existing setting
   while validating bottom-reachable categories, Back/recreation and locale layouts.
@@ -48,6 +48,15 @@
 
 # Issue and release history
 
+- Current investigation: `R60-INVESTIGATE-01` covers the version-60 Honor Gallery
+  click crash and bitmap/clock ANR leads. Preserve `58-R05` and its original
+  allocation-cleanup acceptance; a sampled ANR in that path is not proof the
+  earlier fix failed. Production causal verification remains separate.
+- Firebase MCP event responses may be lossy summaries. Before concluding that
+  thread evidence is unavailable, inspect the formatter and retrieve the raw
+  selected events through the authenticated API client as described in the
+  reporting guide. Preserve all returned threads/frames and link immutable
+  evidence IDs; do not replace full-window imports with partial investigations.
 - Keep issue evidence, fix attempts, recurrence reviews, validation and production
   follow-ups in `play_reporting.db`; use `scripts/issue_history.py` and the reporting
   guide in `scripts/README-play-reporting.md`. Append history rather than replacing
@@ -58,7 +67,7 @@
   import-snapshot and issue-state revision tables; do not create full database
   copies for routine updates. Preserve unique historical rows before removing
   duplicate copies. Do not infer production resolution from local test passes.
-- Current release target: **59**. Keep the fix register in `play_reporting.db`
+- Current release target: **60**. Keep the fix register in `play_reporting.db`
   (`record:release59-fix-register`), appending revisions with target version,
   stable attempt IDs, issue links, source/test references and validation state.
   Preserve existing `58-Rxx` IDs and historical evidence. Planned validation is
@@ -66,16 +75,36 @@
   testing on Redmi, including in-place 58-to-59 upgrade and affected journeys.
   Track local checks, delivered-build validation and production follow-up
   separately; do not mark production resolution from local/internal-test passes.
+- Version 60 follows the supported-language delivery defect found in Play59.
+  Preserve the existing register and stable IDs; append target-version60 revisions.
+  Owner direction: verify the language fix before building60 for owner upload.
+  Use focused language packaging, offline picker, fallback and affected navigation
+  regressions; retain unchanged earlier release evidence with its original scope.
+  After owner upload, test the Play-delivered59-to60 update on both Redmi and
+  Samsung, preserving data and running only relevant language/upgrade journeys.
+  Local bundle checks do not complete this separate Play-delivery gate.
 - Finish the evidence-backed issue fixes/review and required release testing
   before building or uploading the version 59 internal-testing candidate.
   Keep unresolved evidence gaps explicit; development test APKs are separate.
 
 # Project regression testing
 
+- Owner authorization (2026-11-11): Redmi is a dedicated test device. Any
+  task related to testing on Redmi is authorized, including ADB interaction
+  and changes to test settings or the app language, without renewed approval.
+  Record the final state and preserve useful test data; this does not expand
+  Samsung permissions or authorize release promotion.
+
 - Current owner direction (2026-11-10): use only the Xiaomi Redmi for device
   testing while fixing release-58 issues; do not test on Samsung or emulators.
   Reconfirm its ADB identity each session (observed Redmi 7, API 29, `71a3063`).
   Preserve regular app data and use the isolated `notificationTest` variant.
+  For version-59 Play Internal release testing, the owner explicitly authorized
+  both Redmi and Samsung on 2026-11-11. Use Samsung's existing Play version58
+  for the in-place upgrade and Redmi for Play installation/restore after its
+  debug data is protected. Reconfirm both device identities; regular delivered
+  builds are required for these journeys. Preserve data and distinguish upgrade
+  evidence from fresh-install/restore evidence.
 
 - Before choosing tests for an individual change, assess whether it can affect
   layout, geometry, visibility, text direction/alignment, touch targets, or
@@ -97,6 +126,14 @@
 - During release preparation, run the full layout/localization checks below
   **before building any release candidate**, even when individual changes did
   not require layout testing. Include portrait and landscape where supported.
+- Verify language delivery with an English-only bundle-generated split APK set.
+  When following an unsupported device language, English is the default.
+  Supported languages selected through the app picker must use their translations.
+  Run `scripts/verify_bundle_languages.py` against its base/master APK and
+  exercise a different language through the real app picker while offline.
+  A universal/debug APK or a phone with that language split already installed
+  does not cover this boundary: Play59 testing exposed missing picker languages.
+  Keep this check separate from verification of the actual Play-delivered build.
 - When layout testing is required, test the affected screens and interactions
   in **both LTR and RTL layouts** on an emulator or device. Explicitly exercise
   both layout directions in automated UI regressions; do not rely on the host's

@@ -1,0 +1,50 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "INBOX with independent >=80dp down and >=40dp up; endpoint may be above or below start; small reversal/noise and invalid shapes do not open Inbox; ordinary swipe/circle/corner mappings preserved.",
+          "id": "classifier",
+          "initial_state": "Home gesture path in physical coordinates at supported screen densities",
+          "invariants": "One action per released path; no fallback for a recognized-but-incomplete return; finite input checks remain.",
+          "required_level": "component",
+          "trigger": "Release deliberate down then up gesture, with shorter/longer return and rounded turn"
+        },
+        {
+          "expected": "Exactly one Inbox callback only on release; child/tap/scroll ownership and following gesture recovery preserved.",
+          "id": "input",
+          "initial_state": "Production detectGestures modifier with clickable and scrollable children, LTR/RTL",
+          "invariants": "Physical direction independent of layout direction; no new layout rules.",
+          "required_level": "integration",
+          "trigger": "Unequal stroke then release, cancellation, second pointer or child scroll"
+        },
+        {
+          "expected": "Actual NotificationInboxActivity opens through default launcher callback and Back returns Home, including after recreation.",
+          "id": "home",
+          "initial_state": "Default isolated MainActivity and existing preferences on Redmi7",
+          "invariants": "No direct Inbox callback invocation or seeded gesture result. Regular app data preserved. Synthetic paths do not establish owner thumb comfort.",
+          "required_level": "journey",
+          "trigger": "Perform unequal down-up from Home; Back; recreate Home and retry"
+        }
+      ],
+      "description": "No endpoint/start matching or stroke ratio requirement. Existing 80dp downward intent threshold retained; accept upward return >=40dp within existing 32dp lateral corridor. Ignore small turn jitter, reject repeated substantial reversals, initial upward strokes, cancelled/multi-touch/child-consumed gestures. No layout or localized text change.",
+      "id": "INBOX-GESTURE-REQ",
+      "kind": "requirement",
+      "phase": "implementation",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Open Inbox with deliberate unequal down-up strokes"
+    },
+    "before": null,
+    "node": "INBOX-GESTURE-REQ",
+    "reopened": []
+  },
+  "id": "bd74111c4a4e48e7a466c37b9780f6cd",
+  "reason": "Track owner-requested unequal notification return with bounded acceptance and current production/test references.",
+  "seq": 694,
+  "time": "2026-11-17T02:09:18.368914+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Disable language splits, inspect generated device APKs and validate real picker. Do not claim current Play59 is changed. No version bump/upload until connected release gaps consolidated.",
+  "id": "R59-LANGUAGE-PACKAGING",
+  "kind": "step",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "in_progress",
+  "tags": [],
+  "title": "Fix bundle language delivery found during Play59 tests"
+}

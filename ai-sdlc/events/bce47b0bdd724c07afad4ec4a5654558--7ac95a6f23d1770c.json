@@ -1,0 +1,47 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Existing debug variant and prepare_manual_check.py; no implementation edits.",
+      "id": "REDMI-DEBUG-20261117-IMPL",
+      "kind": "implementation",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/build.gradle.kts",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/AndroidManifest.xml",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/prepare_manual_check.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Regular debug build and device handoff helper"
+    },
+    "before": null,
+    "node": "REDMI-DEBUG-20261117-IMPL",
+    "reopened": []
+  },
+  "id": "bce47b0bdd724c07afad4ec4a5654558",
+  "reason": "Track explicitly authorized clean debug installation",
+  "seq": 684,
+  "time": "2026-11-17T01:40:43.445456+00:00"
+}

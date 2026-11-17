@@ -1,0 +1,34 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Record observed OEM capability, actual current behavior, connected implementation gaps and bounded future acceptance; state any untested clone boundary.",
+          "id": "feasibility",
+          "initial_state": "Redmi7 API29 MIUI11 running Play60; only Owner profile initially present.",
+          "invariants": "Preserve original app data and current release candidate; no production promotion or full implementation claim.",
+          "required_level": "journey",
+          "trigger": "Inspect native Dual Apps settings, use a safe test clone if available, and trace actual Comfer discovery/persistence/launch."
+        }
+      ],
+      "description": "Owner offers dedicated Redmi for possible tests and asks to look into duplicate app support. Working interpretation: native Xiaomi Dual Apps; clarification remains optional. Investigate capability and current behavior without claiming feature implementation or changing the uploaded60 candidate. Preserve original apps/data and historical R58-FIX-01 picker de-duplication evidence; that injected-profile test is component UI evidence, not actual clone support.",
+      "id": "DUAL-REVIEW",
+      "kind": "step",
+      "phase": "discovery",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Assess Redmi Dual Apps support through actual inventory and launch paths"
+    },
+    "before": null,
+    "node": "DUAL-REVIEW",
+    "reopened": []
+  },
+  "id": "060ecd4e347b4f1f8801d8751d27e840",
+  "reason": "Track owner-requested duplicate-app feasibility separately from Play60 release acceptance.",
+  "seq": 566,
+  "time": "2026-11-11T06:14:23.530904+00:00"
+}

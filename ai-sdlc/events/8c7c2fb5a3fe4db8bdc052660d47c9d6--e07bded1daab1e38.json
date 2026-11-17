@@ -1,0 +1,42 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [
+        {
+          "expected": "Every supported in-app language is available in the base/master APK without downloading language splits",
+          "id": "packaging",
+          "initial_state": "English-only device specification",
+          "invariants": "ABI/density optimization retained; no new runtime permissions or data migration",
+          "required_level": "integration",
+          "trigger": "Generate APKs from configured bundle"
+        },
+        {
+          "expected": "Correct translated labels and direction immediately after selection and restart",
+          "id": "picker",
+          "initial_state": "Delivered app installed for English, no selected secondary language split",
+          "invariants": "Preserve data and original settings",
+          "required_level": "journey",
+          "trigger": "Choose French/Arabic in normal App language UI while offline, restart, return to English/system default"
+        }
+      ],
+      "description": "Existing language picker must immediately show selected supported translations regardless of install/system languages, preserving data and layout direction. Play59 Redmi lacked French; Arabic arrived only after system locale caused later Play download. All-language debug APK and Samsung with preinstalled Arabic masked delivery gap.",
+      "id": "R59-LANGUAGE-REQ",
+      "kind": "requirement",
+      "phase": "release",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Language selection works with delivered resources offline"
+    },
+    "before": null,
+    "node": "R59-LANGUAGE-REQ",
+    "reopened": []
+  },
+  "id": "8c7c2fb5a3fe4db8bdc052660d47c9d6",
+  "reason": "Play Internal59 exposed a language split gap masked by all-language APK tests.",
+  "seq": 498,
+  "time": "2026-11-11T03:30:08.341085+00:00"
+}

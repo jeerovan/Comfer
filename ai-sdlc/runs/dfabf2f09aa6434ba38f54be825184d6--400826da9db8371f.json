@@ -1,0 +1,32 @@
+{
+  "adaptations": [],
+  "bypasses": [],
+  "criteria": [
+    "R59-AAB-REQ#artifact"
+  ],
+  "entrypoint": ":app:bundleRelease and offline artifact inspection",
+  "environment": "local-JDK21-Gradle-release-upload-signing",
+  "finished_at": "2026-11-11T02:18:02.461797+00:00",
+  "id": "dfabf2f09aa6434ba38f54be825184d6",
+  "level": "component",
+  "observation": "Release build succeeded after replacing unavailable testReleaseUnitTest task with supported testDebugUnitTest;272 tests/lint reports to inspect. Actual configured JBR is JDK25.0.3, not JDK21 label supplied at begin. Bundletool validate succeeds; first manifest harness combined stderr diagnostics with XML and failed parsing. Retain logs; begin accurately labelled artifact recheck, without treating harness parse issue as product failure.",
+  "order": 63,
+  "proof": {},
+  "proof_path": "",
+  "result": "blocked",
+  "snapshot": {
+    "files": {
+      "app/build.gradle.kts": "0938dd3a9d87c91a59d0c62316499bf79fee9835fac89b3b26bb163c1ce0cb8b",
+      "app/proguard-rules.pro": "54de8e2a116a27445420cff93312c993f7d7ac43779379c3b969e9775e1669e8",
+      "app/src/main/AndroidManifest.xml": "1213ca12f6609f5c3c922e274887ef138c9034f1ce3d641a17b09498e54bc0c1"
+    },
+    "graph": "94ae019a41101ad7459e5a3284d56d2808521cc5f12f595035d6016a547e09b0",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-11T02:14:16.762403+00:00",
+  "step": "R59-AAB",
+  "test": "R59-AAB-CHECK"
+}

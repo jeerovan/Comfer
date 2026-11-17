@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "ab5ce635e5bc458f90ccca16bd601d17"
+  },
+  "id": "ea4355a2bbe9439d835b65819597e77c",
+  "reason": "Retain observed offline picker regression results with installed split identity.",
+  "seq": 510,
+  "time": "2026-11-11T03:39:09.472082+00:00"
+}

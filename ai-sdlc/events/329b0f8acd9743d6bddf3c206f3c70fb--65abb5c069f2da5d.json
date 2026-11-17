@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "68a147eb99bc48a5bde7021686edeb7c"
+  },
+  "id": "329b0f8acd9743d6bddf3c206f3c70fb",
+  "reason": "Reproduce strict recognition and partial swipe fallback before fix",
+  "seq": 648,
+  "time": "2026-11-16T16:44:43.858724+00:00"
+}

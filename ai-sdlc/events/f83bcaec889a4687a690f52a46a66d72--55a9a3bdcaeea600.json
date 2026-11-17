@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "5845fac44fb4484a8eb38320fb746f33"
+  },
+  "id": "f83bcaec889a4687a690f52a46a66d72",
+  "reason": "Classify failure at confirmed test-owned inventory boundary.",
+  "seq": 613,
+  "time": "2026-11-16T14:14:13.384055+00:00"
+}
