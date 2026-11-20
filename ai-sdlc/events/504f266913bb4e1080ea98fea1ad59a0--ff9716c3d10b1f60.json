@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "5f60952602224a4682d4a56d0799996d"
+  },
+  "id": "504f266913bb4e1080ea98fea1ad59a0",
+  "reason": "Signed62artifact andactualisolatedlanguagechecks passed",
+  "seq": 849,
+  "time": "2026-11-17T07:19:49.460635+00:00"
+}

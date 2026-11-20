@@ -1,0 +1,61 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Existing releasechecks adaptedto62; actualisolatedpicker. Prior9clocktests retainprebumpcomponentboundary.",
+      "id": "R62-AAB-CHECK",
+      "kind": "test",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release62-aab-20261117/verify_release.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release62-aab-20261117/prepare_isolated.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release62-aab-20261117/offline_picker.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/verify_bundle_languages.py",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "scripts/verify_apk_components.py",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Signed62artifact andofflinepicker validation"
+    },
+    "before": null,
+    "node": "R62-AAB-CHECK",
+    "reopened": []
+  },
+  "id": "3cd91fd49ce24258a53f0b195c79bcfc",
+  "reason": "Owner requests62including60-R11forInternaltesting",
+  "seq": 839,
+  "time": "2026-11-17T07:15:25.904893+00:00"
+}

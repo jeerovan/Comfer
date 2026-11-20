@@ -67,9 +67,11 @@
   import-snapshot and issue-state revision tables; do not create full database
   copies for routine updates. Preserve unique historical rows before removing
   duplicate copies. Do not infer production resolution from local test passes.
-- Current release target: **61**. `R61-AAB` tracks the owner-requested signed
-  internal-testing bundle; `R61-INTERNAL-TEST` remains a separate Play-delivered
-  verification step after owner upload. Preserve version60 and earlier evidence
+- Current release target: **62**. `R62-AAB` tracks the signed internal-testing
+  bundle including clock-cache mitigation `60-R11`; `R62-INTERNAL-TEST` tracks
+  owner testing after upload. `ANR-CLOCK-PRODUCTION` remains open for production
+  effectiveness. Preserve `R61-AAB` and its original artifact without this fix.
+  Preserve version60 and earlier evidence
   with its original artifact scope; a metadata bump does not rerun those tests.
   Keep the fix register in `play_reporting.db`
   (`record:release59-fix-register`), appending revisions with target version,

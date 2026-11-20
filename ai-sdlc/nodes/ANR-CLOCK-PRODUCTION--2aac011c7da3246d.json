@@ -1,0 +1,41 @@
+{
+  "criteria": [],
+  "description": "Owner reports rollout increased from 25% to 50% on 20 Nov 2026; report received at 04:02 UTC (09:32 IST), exact Console change/uptake time unverified. Review after 24h actual uptake, extending if sparse. Latest review 19–20 Nov 2026, 01:53 UTC: 22 ANRs, 15 of 4,887 users affected (0.30694%), 17 of 44,732 sessions affected (0.03800%); 1 fatal, no nonfatal. Current60 rates are 0.4070% users and 0.04754% sessions. Lower62 rates are observational, not proof of mitigation effectiveness. 11/14 groups recur; three newly reported single-event ANRs involve SensitivityDialog Compose subcomposition (vivo V2149), MediaTek measure debug work (Infinix X6531) and GPU draw (vivo V2149). Sensitivity path investigation remains open; new grouping alone does not prove regression. Fatal on Samsung SM-G935W8 is Google measurement certificate rejection, historically observed in57; no signing cause or safe repair established. 11 ANRs unknown-root. No direct ClockText/measureClockLine frame; all23 raw events retained, import25. Build stamp8a4f1c4 is not signed-artifact attestation. Preceding-day62 aggregate is inconsistent (15events,17users,20sessions), confirmed on recheck; do not use for rate trend. Yesterday archived window overlaps current by3h17m. Earlier recommendation to hold25% is superseded by the owner's rollout decision. Hold further expansion pending the next review; production effectiveness stays open. Preserve local and owner-test evidence at their original boundaries. No rollout action or code changes performed by agent; this update records the owner's action without new telemetry.",
+  "id": "ANR-CLOCK-PRODUCTION",
+  "kind": "step",
+  "phase": "verification",
+  "refs": [
+    {
+      "locator": "",
+      "notes": "Owner report archived as record:release62-production-rollout in canonical play_reporting.db; no telemetry fetched or rollout changes made by agent.",
+      "path": "validation-artifacts/release62-aab-20261117/production-rollout.json",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "Canonical DB record release62-firebase-review-20261119, import23, all12raw events and comparison limits.",
+      "path": "validation-artifacts/firebase-v62-review-20261119/review.json",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "Import25 and new-group observations; preceding metrics anomaly retained.",
+      "path": "validation-artifacts/firebase-v62-review-20261120/review.json",
+      "symbol": "",
+      "tool": "source"
+    },
+    {
+      "locator": "",
+      "notes": "Owner-reported50% rollout; appended revision in canonical DB. No validation closure.",
+      "path": "validation-artifacts/firebase-v62-review-20261120/rollout50-owner-update.json",
+      "symbol": "",
+      "tool": "source"
+    }
+  ],
+  "revision": 6,
+  "status": "pending",
+  "tags": [],
+  "title": "Validate 60-R11 in delivered build and production"
+}

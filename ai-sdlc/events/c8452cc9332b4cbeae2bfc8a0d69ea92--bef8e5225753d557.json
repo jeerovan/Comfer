@@ -1,0 +1,36 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Version62 includes60-R11 by ownerrequest. Pending signedcandidateidentity, ownerPlayInternal upload/testing and laterproductionobservations. Compare clock/text-relatedANRvariants, affectedusers/exposure and memory/OOM signals over48–72h then7days. Localcachepasses do notproveproductioneffectiveness. Prior61AAB excludesmitigation and is preserved separately.",
+      "id": "ANR-CLOCK-PRODUCTION",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Validate60-R11 in delivered build and production"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Pending new signed candidate identity and distribution. Track clock/text-related ANRs, allANRs and active exposure for comparable48–72h windows; exact-ID absence alone is insufficient.61AAB already prepared excludes60-R11.",
+      "id": "ANR-CLOCK-PRODUCTION",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Validate60-R11 in delivered build and production"
+    },
+    "node": "ANR-CLOCK-PRODUCTION",
+    "reopened": []
+  },
+  "id": "c8452cc9332b4cbeae2bfc8a0d69ea92",
+  "reason": "Assign accepted version62 target without marking delivery orproductionverified",
+  "seq": 847,
+  "time": "2026-11-17T07:17:21.482332+00:00"
+}

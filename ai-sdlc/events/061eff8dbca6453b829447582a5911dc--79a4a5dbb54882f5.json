@@ -1,0 +1,47 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Home TextClock and Pro preview use shared ClockText; bound cache to fit numeral working set.",
+      "id": "ANR-CLOCK-CACHE-IMPL",
+      "kind": "implementation",
+      "phase": "implementation",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ClockText.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/MainActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "app/src/main/java/com/jeerovan/comfer/ProSettingsActivity.kt",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Per-clock paragraph cache"
+    },
+    "before": null,
+    "node": "ANR-CLOCK-CACHE-IMPL",
+    "reopened": []
+  },
+  "id": "061eff8dbca6453b829447582a5911dc",
+  "reason": "Track scoped ANR hypothesis and distinct local/production validation",
+  "seq": 818,
+  "time": "2026-11-17T06:17:27.936221+00:00"
+}

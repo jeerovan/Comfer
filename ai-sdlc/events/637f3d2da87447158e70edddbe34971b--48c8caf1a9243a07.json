@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "5f60952602224a4682d4a56d0799996d"
+  },
+  "id": "637f3d2da87447158e70edddbe34971b",
+  "reason": "Begin62artifact andisolatedofflinepackagingchecks",
+  "seq": 848,
+  "time": "2026-11-17T07:17:25.514434+00:00"
+}

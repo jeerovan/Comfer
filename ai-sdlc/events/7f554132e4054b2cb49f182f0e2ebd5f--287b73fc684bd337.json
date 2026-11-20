@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Pending new signed candidate identity and distribution. Track clock/text-related ANRs, allANRs and active exposure for comparable48–72h windows; exact-ID absence alone is insufficient.61AAB already prepared excludes60-R11.",
+      "id": "ANR-CLOCK-PRODUCTION",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Validate60-R11 in delivered build and production"
+    },
+    "before": null,
+    "node": "ANR-CLOCK-PRODUCTION",
+    "reopened": []
+  },
+  "id": "7f554132e4054b2cb49f182f0e2ebd5f",
+  "reason": "Track scoped ANR hypothesis and distinct local/production validation",
+  "seq": 820,
+  "time": "2026-11-17T06:17:31.875756+00:00"
+}

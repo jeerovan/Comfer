@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "d172bc0dee8446c4bbef2736112d4849"
+  },
+  "id": "4aa017a2e3a143b78277ced7cd6c1e2b",
+  "reason": "Verify32entrycache reuse and originalclockappearance after minimalmitigation",
+  "seq": 828,
+  "time": "2026-11-17T06:19:25.275386+00:00"
+}

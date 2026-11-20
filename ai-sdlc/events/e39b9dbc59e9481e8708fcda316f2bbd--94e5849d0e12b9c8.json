@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "passed",
+    "run": "1bab2cdf266841a1adff13aa0c01087e"
+  },
+  "id": "e39b9dbc59e9481e8708fcda316f2bbd",
+  "reason": "Final9component regressions passed; production boundary remains separately pending",
+  "seq": 833,
+  "time": "2026-11-17T06:26:20.916650+00:00"
+}

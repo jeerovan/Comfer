@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "2c3e9d726c304573ba672d5c6d85c23e"
+  },
+  "id": "bf480eb61bec43f79a5fb348185b5a99",
+  "reason": "Rerun after adding bounded commit wait to fontscale fixture; production APK unchanged",
+  "seq": 830,
+  "time": "2026-11-17T06:22:00.238299+00:00"
+}

@@ -1,0 +1,6 @@
+{
+  "rationale": "Local cache correctness precedes delivered-build and production follow-up",
+  "relation": "depends_on",
+  "source": "ANR-CLOCK-PRODUCTION",
+  "target": "ANR-CLOCK-CACHE"
+}

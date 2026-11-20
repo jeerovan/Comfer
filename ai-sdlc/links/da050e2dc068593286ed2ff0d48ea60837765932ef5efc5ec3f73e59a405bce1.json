@@ -1,0 +1,6 @@
+{
+  "rationale": "Artifact preparation precedes ownerdeliverytesting;productioneffectivenessfollows",
+  "relation": "depends_on",
+  "source": "R62-INTERNAL-TEST",
+  "target": "R62-AAB"
+}

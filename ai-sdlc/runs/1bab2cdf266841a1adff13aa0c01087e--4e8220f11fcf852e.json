@@ -1,0 +1,40 @@
+{
+  "adaptations": [
+    "Compose fixture with config commit wait; no productionANR or timing reproduction; uncachedSDK reference preserves geometry expectation"
+  ],
+  "bypasses": [],
+  "criteria": [
+    "ANR-CLOCK-CACHE-REQ#appearance",
+    "ANR-CLOCK-CACHE-REQ#reuse"
+  ],
+  "entrypoint": "Production clock helper and renderer; fresh SDK reference for config",
+  "environment": "Redmi7 71a3063 API29 notificationTest",
+  "finished_at": "2026-11-17T06:26:20.916517+00:00",
+  "id": "1bab2cdf266841a1adff13aa0c01087e",
+  "level": "component",
+  "observation": "Redmi API29:22paragraphs reuse acrossEnglish/Arabic+two sizes, font changes fresh, fontscale1.5 getsnewparagraph matching uncachedSDK (80spgeometry legitimatelysame asSDKreference).8existingLTR/RTLclockappearance tests pass. Twofailedheightgrowthprobesretained; finalacceptance comparescorrectSDKgeometry. Not productionANR ornormalHomejourneyverification.",
+  "order": 144,
+  "proof": {
+    "validation-artifacts/anr-app-paths-20261117/proof.json": "c863b7090fc1775ef878fe93630df80d4851bcbae473f1b6b8bff6a8e62f50eb"
+  },
+  "proof_path": "validation-artifacts/anr-app-paths-20261117/proof.json",
+  "result": "passed",
+  "snapshot": {
+    "files": {
+      "app/src/androidTest/java/com/jeerovan/comfer/ClockSpacingTest.kt": "ff3454d4dbe62d8737a63417b7cd6f812af49924fd802336ba7d0441307c278c",
+      "app/src/androidTest/java/com/jeerovan/comfer/ClockTextCacheTest.kt": "99880ea63955e73073b09e4bda0711f9c38d8689418f4d60cb3eead4da04c527",
+      "app/src/main/java/com/jeerovan/comfer/ClockText.kt": "10d52e8da72fd06eabf78ddb361a9c164f098014a481e9f97d325df7c127675b",
+      "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "3570452257156d80dc21e68e1ced133a3d9b1556b552e25ac09f2ae47f850526",
+      "app/src/main/java/com/jeerovan/comfer/ProSettingsActivity.kt": "92bfc52a0171a8db1dae1207c39c82003bb9606fb22fb0bec3c5641dd45b42ad",
+      "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216"
+    },
+    "graph": "870d4a437c8258ea872aa56f1486fe2a02498571597e0ddd75d72694bc358cd2",
+    "origin": {
+      "branch": "refs/heads/main",
+      "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+    }
+  },
+  "started_at": "2026-11-17T06:24:12.275210+00:00",
+  "step": "ANR-CLOCK-CACHE",
+  "test": "ANR-CLOCK-CACHE-TEST"
+}

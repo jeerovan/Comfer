@@ -1,0 +1,29 @@
+{
+  "criteria": [
+    {
+      "expected": "Warm paragraphs remain reusable across the working set; font/density changes produce correct new layouts",
+      "id": "reuse",
+      "initial_state": "Glass-clock paragraph measurer across two numeral sizes",
+      "invariants": "Bounded per-composition cache; no global retention, custom stale-font cache or off-main UI mutations",
+      "required_level": "component",
+      "trigger": "Cycle English/Arabic numerals and revisit previously shaped glyphs"
+    },
+    {
+      "expected": "Existing spacing, clipping, proportional minutes, lighting and semantics unchanged",
+      "id": "appearance",
+      "initial_state": "Current ClockText with actual Android fonts",
+      "invariants": "No new UI layout rules or locale policy changes",
+      "required_level": "component",
+      "trigger": "Run existing LTR/RTL geometry/glass/variant regressions"
+    }
+  ],
+  "description": "Owner requests safe ANR-led mitigation. Seven current events have main/blamed first-party frames; clock TextMeasurer path is a hypothesis, not proven production cause. Preserve existing glyph geometry and all font/config invalidation.",
+  "id": "ANR-CLOCK-CACHE-REQ",
+  "kind": "requirement",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Reduce avoidable glass-clock text shaping without visual changes"
+}

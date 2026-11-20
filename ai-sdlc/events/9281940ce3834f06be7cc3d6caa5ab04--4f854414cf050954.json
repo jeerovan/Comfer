@@ -1,0 +1,17 @@
+{
+  "action": "link",
+  "actor": "codex",
+  "details": {
+    "link": {
+      "rationale": "Local cache correctness precedes delivered-build and production follow-up",
+      "relation": "verifies",
+      "source": "ANR-CLOCK-CACHE-TEST",
+      "target": "ANR-CLOCK-CACHE"
+    },
+    "reopened": []
+  },
+  "id": "9281940ce3834f06be7cc3d6caa5ab04",
+  "reason": "Separate component mitigation from observed production effectiveness",
+  "seq": 823,
+  "time": "2026-11-17T06:17:37.503958+00:00"
+}

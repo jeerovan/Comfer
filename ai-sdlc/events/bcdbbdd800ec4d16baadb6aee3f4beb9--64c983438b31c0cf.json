@@ -1,0 +1,46 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "2026-11-17: Owner reports tested build 62 works without issues. This supersedes waiting for owner testing; devices, individual upgrade/data, clock/font/restart and Pro Back/gesture checks were not specified. Retain detailed delivery coverage as unverified. Local artifact gate fingerprints pass. Recommend 10% production rollout with 48–72h and adequate-exposure review; no rollout performed. Production ANR effectiveness remains open under ANR-CLOCK-PRODUCTION.",
+      "id": "R62-INTERNAL-TEST",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "Owner report, local gate boundary, Firebase report absence and rollout recommendation; canonical DB record release62-owner-test-promotion-review-20261117.",
+          "path": "validation-artifacts/release62-aab-20261117/promotion-review.json",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Owner validates Play-delivered 62"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Pendingownerupload/testing; checkupgrade,data,glassclockbothlayouts/fontchanges,restarts,ProBack/gestures. Local62AABisnot deliveredacceptance.",
+      "id": "R62-INTERNAL-TEST",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Owner validates Play-delivered62"
+    },
+    "node": "R62-INTERNAL-TEST",
+    "reopened": [
+      "R62-AAB"
+    ]
+  },
+  "id": "bcdbbdd800ec4d16baadb6aee3f4beb9",
+  "reason": "Record owner-reported successful build 62 testing without claiming detailed delivered-artifact or production verification.",
+  "seq": 852,
+  "time": "2026-11-17T10:08:50.489776+00:00"
+}

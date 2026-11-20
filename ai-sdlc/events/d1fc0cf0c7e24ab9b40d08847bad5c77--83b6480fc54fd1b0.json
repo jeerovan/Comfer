@@ -1,0 +1,199 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Review window18–19Nov2026 05:10UTC (10:40IST), canonical DB import22 and record:release60-firebase-review-20261119.188ANRs/72groups,2fatal/2groups,0nonfatal;30,189active users,117ANR-affected,293,373sessions. ANR user share0.3876%,session share0.04943%. Preceding24h192ANRs/133affected and10fatal.101ANRs unknown-root;16events lack stacks.190full events archived with11,027threads/95,811frames;47/74groups have earlier-version exact-ID history. Model counts from allraw events cover107labels:top report silentlycaps100labels/181of188events. RMX3938leads10events/1reporteduser;BG6m4events despite prior exclusion, notproof exclusionfailure. Bitmap drawing group924bc3dc9282b7095e0068042ee00fbd recurs2times;clockbounds/composition andwidgetBinderleads remain. Twofatal lifecycleDeadSystemExceptions onTECNO CN6c/vivoV2346. EightoriginaltrackedfixIDs absent;noresolutioninferred. This is telemetry-only;no newsource/runtimeverification orremotestatechanges. Historicalreviews retainedinprior revisions/DBrefs.",
+      "id": "R60-TELEMETRY-REVIEW",
+      "kind": "decision",
+      "phase": "release",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/promotion-telemetry-hour-recheck.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/telemetry-redmi-runtime-diagnostic.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/gate-check.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Nonsecret aggregate review and canonical DB references; source/event limitations explicit.",
+          "path": "validation-artifacts/release60-firebase-20261113/review.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Current observational review; DB record and retained source-event limitations. Not runtime verification.",
+          "path": "validation-artifacts/release60-firebase-20261114/review.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Owner-announced rollout change and observation plan; Console completion not independently verified.",
+          "path": "validation-artifacts/release60-firebase-20261114/rollout50-owner-update.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Observational review; no runtime fix or production-resolution claim.",
+          "path": "validation-artifacts/release60-firebase-20261115/review.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Owner-announced100% rollout and24h observation; not independently verified.",
+          "path": "validation-artifacts/release60-firebase-20261115/rollout100-owner-update.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Current observational review/import20 and related fix-path concerns;no runtime readiness or production-resolution attestation.",
+          "path": "validation-artifacts/release60-firebase-20261116/review.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Current source review and full raw API evidence91–95;21Redmi baseline passes;production causal acceptance open.",
+          "path": "validation-artifacts/release60-investigation-20261116/investigation.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Import21;137fullraw events archived; latest observational review, not runtime acceptance.",
+          "path": "validation-artifacts/firebase-v60-review-20261117/review.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Import22 and full raw-event evidence links; observation not causal validation.",
+          "path": "validation-artifacts/firebase-v60-review-20261119/review.json",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 13,
+      "status": "pending",
+      "tags": [],
+      "title": "Version 60 Firebase 19 Nov: 188 ANRs and 2 crashes"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Latest review17Nov2026: record:release60-firebase-review-20261117; canonical play_reporting.db import21. Window16Nov05:03:10Z–17Nov05:03:10Z(10:33IST daily).134ANRs/49groups,3fatal/2groups,0nonfatal;24,585active users,78ANR-affected,3fatal-affected,238,823sessions. Adjacent preceding24h refetched:87ANRs/80affected,4fatal,20,635users. ANR events+54%;affected-user share0.388%→0.317%;events/1000users4.22→5.45. Mixed indicators and changing cohorts/ingestion maturity: no sustained-improvement claim. Firebase metrics are not Play user-perceived rates.\n\nFull137events archived:7,536threads/66,139frames;14events lack thread/exception stacks.70ANRs explicitly unknown-root.41/51groups recur in earlier versions;10firstSeen60.84model labels;RealmeRMX3938leads11/134(8.2%),including9GooglemeasurementBinder events for1reportedaffecteduser;itelA665L7,InfinixX6531six,TECNOKL5four. X6531 differs from excludedX6531B. NoBG6m/X6531Bexactlabel;absence does not establish exclusion effectiveness.\n\nFatal:2OPPOCPH2083OEMProcess.getProcessGroup/LooperMessageSuperviser recurrences and1RealmeRMX3231Googledynamite provider acquisition DeadSystemException. Leads:widgetproviderlabel/resource worker versusMainlongpresscoresettings;refresh flow;clock composition. Bounded current source confirms providerinventory/refreshIO;widgetstartMain/serializedstopIO. Preserve51-02/53-08threading and58-R05bitmap ownership constraints;no safe new correction established.8trackedfixIDs and priorHonor/bitmap/PaintclockIDs absent,not resolved. Related clock/widgetgroupsremain. No remote state,rollout,exclusion,appcodeorversion61artifactchanges.\n\nHistorical reviews and full details remain in immutable AI SDLC revisions, retained refs and DB records release60-firebase-review-20261113/14/15/16,release60-investigation-20261116,release59-fix-register. Prior21Redmibaselinepasses had controlled scope,not causalproductionverification. R60-INVESTIGATE-01 remains open. Version61internaldeliveryverification remains separate.",
+      "id": "R60-TELEMETRY-REVIEW",
+      "kind": "decision",
+      "phase": "release",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/promotion-telemetry-hour-recheck.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/telemetry-redmi-runtime-diagnostic.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "",
+          "path": "validation-artifacts/release60-play-testing-20261111/gate-check.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Nonsecret aggregate review and canonical DB references; source/event limitations explicit.",
+          "path": "validation-artifacts/release60-firebase-20261113/review.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Current observational review; DB record and retained source-event limitations. Not runtime verification.",
+          "path": "validation-artifacts/release60-firebase-20261114/review.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Owner-announced rollout change and observation plan; Console completion not independently verified.",
+          "path": "validation-artifacts/release60-firebase-20261114/rollout50-owner-update.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Observational review; no runtime fix or production-resolution claim.",
+          "path": "validation-artifacts/release60-firebase-20261115/review.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Owner-announced100% rollout and24h observation; not independently verified.",
+          "path": "validation-artifacts/release60-firebase-20261115/rollout100-owner-update.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Current observational review/import20 and related fix-path concerns;no runtime readiness or production-resolution attestation.",
+          "path": "validation-artifacts/release60-firebase-20261116/review.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Current source review and full raw API evidence91–95;21Redmi baseline passes;production causal acceptance open.",
+          "path": "validation-artifacts/release60-investigation-20261116/investigation.json",
+          "symbol": "",
+          "tool": "source"
+        },
+        {
+          "locator": "",
+          "notes": "Import21;137fullraw events archived; latest observational review, not runtime acceptance.",
+          "path": "validation-artifacts/firebase-v60-review-20261117/review.json",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 12,
+      "status": "pending",
+      "tags": [],
+      "title": "Version60 Firebase17Nov:134ANRs and3crashes; causes remain open"
+    },
+    "node": "R60-TELEMETRY-REVIEW",
+    "reopened": []
+  },
+  "id": "d1fc0cf0c7e24ab9b40d08847bad5c77",
+  "reason": "Record complete comparable version60 telemetry window, recurrence and evidence limits.",
+  "seq": 854,
+  "time": "2026-11-19T05:15:16.918705+00:00"
+}

@@ -1,0 +1,43 @@
+{
+  "action": "impact_review",
+  "actor": "codex",
+  "details": {
+    "review": {
+      "at": "2026-11-17T06:18:04.719237+00:00",
+      "code_discovery": "Serena exact ClockText/VerticalTextScale bodies, current source HomeTextClock and Pro preview plus existing ClockSpacingTest. No graph claims; impact_from_paths broad partial page, not exhaustive. Current ClockText uses default TextMeasurer and repeats duplicate glyph lookup; proposed32-entry percompositioncache vs8. No layout algorithm change; existing explicitLTR/RTL renderingregressions proportionate, full release locale matrix remains separate.",
+      "entrypoints": "MainActivity→LauncherScreen→digital TextClock→rememberClockTime→ClockText→straightGlass paragraph painter. ProTime layout previews share ClockText but plain bydefault. Tests use actualAndroidtext measurer via shared helper, not a fake; componentboundary.",
+      "id": "2d962a8a355844d78d2df295115af592",
+      "order": 81,
+      "recovery_paths": "Compose-owned cache dies on disposal; standard TextMeasurer invalidates font/density/direction inputs. Test bothdigitsets/fonts/fontscale; existing visualtests cover sizes/variants. No persistedstate or migration changes.",
+      "reviewed_ids": [
+        "ANR-CLOCK-CACHE",
+        "ANR-CLOCK-CACHE-IMPL",
+        "ANR-CLOCK-CACHE-REQ",
+        "ANR-CLOCK-CACHE-TEST",
+        "ANR-CLOCK-PRODUCTION"
+      ],
+      "snapshot": {
+        "files": {
+          "app/src/androidTest/java/com/jeerovan/comfer/ClockSpacingTest.kt": "ff3454d4dbe62d8737a63417b7cd6f812af49924fd802336ba7d0441307c278c",
+          "app/src/androidTest/java/com/jeerovan/comfer/ClockTextCacheTest.kt": "c8442c8d1670ad0668769c3409a29f4c87dff987cd22f72ea0a5339c964c2d43",
+          "app/src/main/java/com/jeerovan/comfer/ClockText.kt": "d1748b8da4f59e746d5094157206888fbc9993c8e59f4153a4e8016015877beb",
+          "app/src/main/java/com/jeerovan/comfer/MainActivity.kt": "3570452257156d80dc21e68e1ced133a3d9b1556b552e25ac09f2ae47f850526",
+          "app/src/main/java/com/jeerovan/comfer/ProSettingsActivity.kt": "92bfc52a0171a8db1dae1207c39c82003bb9606fb22fb0bec3c5641dd45b42ad",
+          "app/src/notificationTest/AndroidManifest.xml": "9360b2e03992241d5dc4039f6a3ee21bcf9116bd3cb9019996484fc7a6c05216"
+        },
+        "graph": "870d4a437c8258ea872aa56f1486fe2a02498571597e0ddd75d72694bc358cd2",
+        "origin": {
+          "branch": "refs/heads/main",
+          "workspace": "b003218cb901327caa3469007045800594a40fa8c24b8881d0ceca85ccf2c1d4"
+        }
+      },
+      "step": "ANR-CLOCK-CACHE",
+      "unresolved": []
+    },
+    "step": "ANR-CLOCK-CACHE"
+  },
+  "id": "9a174274520c468f81f51f2da4db79c1",
+  "reason": "Baseline helper preserves existing cache behavior; reviewed before capacity change",
+  "seq": 825,
+  "time": "2026-11-17T06:18:04.719372+00:00"
+}

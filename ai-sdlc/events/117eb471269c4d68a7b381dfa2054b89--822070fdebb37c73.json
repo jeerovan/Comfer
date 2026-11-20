@@ -1,0 +1,44 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Version 62 includes 60-R11; local signed artifact verified and owner reports successful build testing. On 2026-11-17 owner reports production rollout started at 25%. Exact exposure start and Play delivery not independently checked here. Production effectiveness remains pending. Initial review after 24–48h actual exposure; assess 48–72h then 7-day trends with adequate usage, comparing affected users/sessions, clock/text ANR variants, new signatures, memory/OOM and device mix against version 60. Local cache passes do not prove production effectiveness. Preserve prior 61 AAB, which excludes mitigation.",
+      "id": "ANR-CLOCK-PRODUCTION",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [
+        {
+          "locator": "",
+          "notes": "Owner report archived as record:release62-production-rollout in canonical play_reporting.db; no telemetry fetched or rollout changes made by agent.",
+          "path": "validation-artifacts/release62-aab-20261117/production-rollout.json",
+          "symbol": "",
+          "tool": "source"
+        }
+      ],
+      "revision": 3,
+      "status": "pending",
+      "tags": [],
+      "title": "Validate 60-R11 in delivered build and production"
+    },
+    "before": {
+      "criteria": [],
+      "description": "Version62 includes60-R11 by ownerrequest. Pending signedcandidateidentity, ownerPlayInternal upload/testing and laterproductionobservations. Compare clock/text-relatedANRvariants, affectedusers/exposure and memory/OOM signals over48–72h then7days. Localcachepasses do notproveproductioneffectiveness. Prior61AAB excludesmitigation and is preserved separately.",
+      "id": "ANR-CLOCK-PRODUCTION",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [],
+      "revision": 2,
+      "status": "pending",
+      "tags": [],
+      "title": "Validate60-R11 in delivered build and production"
+    },
+    "node": "ANR-CLOCK-PRODUCTION",
+    "reopened": []
+  },
+  "id": "117eb471269c4d68a7b381dfa2054b89",
+  "reason": "Record owner's version 62 production rollout at 25%; preserve unverified production effectiveness.",
+  "seq": 853,
+  "time": "2026-11-17T10:15:31.319082+00:00"
+}

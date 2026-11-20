@@ -20,6 +20,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,6 +43,13 @@ internal data class ClockLinePlan(
 ) {
     val stretchHeight get() = (inkBottom - inkTop).coerceAtLeast(0f)
 }
+
+@Composable
+internal fun rememberClockTextMeasurer(): TextMeasurer =
+    // Two clock rows can use ten localized numerals at different sizes, plus a colon.
+    // The default eight-entry cache evicts still-useful paragraphs between minute ticks.
+    // Keep this bounded and composition-owned; TextMeasurer handles font/config changes.
+    rememberTextMeasurer(cacheSize = 32)
 
 /** Numerals use stable slots sized from actual ink, not a font's kerning or space glyph. */
 internal fun measureClockLine(text: String, paint: Paint, density: Float, radius: Float, angle: Float): ClockLinePlan {
@@ -146,12 +154,12 @@ internal fun ClockText(
     val fixedHeight = baseFixedHeight + colonInsets.sumOf { (it.first + it.second).toDouble() }.toFloat()
     val shadow = widgetShadowColor(color, shadowColor).let { it.copy(alpha = it.alpha * color.alpha) }
     val straightGlass = glass && angle == 0f && radius == 0f
-    val textMeasurer = rememberTextMeasurer()
+    val textMeasurer = rememberClockTextMeasurer()
     // Keep the original Compose paragraph painter, including its font padding, gradient
     // coordinates and shadows. Only glyph placement comes from the spacing geometry.
     val paragraphs = remember(lines, straightGlass, textMeasurer, fontFamily, fontWeight, typeface) {
         if (!straightGlass) emptyList() else lines.map { line ->
-            line.geometry.glyphs.associate { glyph ->
+            line.geometry.glyphs.distinctBy { it.cell.text }.associate { glyph ->
                 glyph.cell.text to textMeasurer.measure(
                     glyph.cell.text,
                     style = TextStyle(

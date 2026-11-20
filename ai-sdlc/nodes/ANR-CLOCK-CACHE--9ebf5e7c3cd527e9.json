@@ -1,0 +1,12 @@
+{
+  "criteria": [],
+  "description": "Attempt60-R11; local cache mitigation only. Record production follow-up separately. Already-built61AAB predates this change.",
+  "id": "ANR-CLOCK-CACHE",
+  "kind": "step",
+  "phase": "implementation",
+  "refs": [],
+  "revision": 1,
+  "status": "pending",
+  "tags": [],
+  "title": "Validate and mitigate clock paragraph cache churn"
+}

@@ -1,0 +1,12 @@
+{
+  "action": "begin_verification",
+  "actor": "codex",
+  "details": {
+    "reopened": [],
+    "run": "1bab2cdf266841a1adff13aa0c01087e"
+  },
+  "id": "3ad30fc3b68d4fda9b2813400005432a",
+  "reason": "Validate cache against uncached SDK output after config commit; app unchanged",
+  "seq": 832,
+  "time": "2026-11-17T06:24:12.278023+00:00"
+}

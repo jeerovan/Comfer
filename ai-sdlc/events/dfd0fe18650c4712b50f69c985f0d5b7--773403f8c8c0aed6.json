@@ -1,0 +1,12 @@
+{
+  "action": "finish_verification",
+  "actor": "codex",
+  "details": {
+    "result": "failed",
+    "run": "e83e3fdbaf454307aba1516611bc9942"
+  },
+  "id": "dfd0fe18650c4712b50f69c985f0d5b7",
+  "reason": "Retain pre-mitigation cache churn reproduction",
+  "seq": 827,
+  "time": "2026-11-17T06:18:50.285208+00:00"
+}

@@ -1,0 +1,25 @@
+{
+  "action": "put_node",
+  "actor": "codex",
+  "details": {
+    "after": {
+      "criteria": [],
+      "description": "Pendingownerupload/testing; checkupgrade,data,glassclockbothlayouts/fontchanges,restarts,ProBack/gestures. Local62AABisnot deliveredacceptance.",
+      "id": "R62-INTERNAL-TEST",
+      "kind": "step",
+      "phase": "verification",
+      "refs": [],
+      "revision": 1,
+      "status": "pending",
+      "tags": [],
+      "title": "Owner validates Play-delivered62"
+    },
+    "before": null,
+    "node": "R62-INTERNAL-TEST",
+    "reopened": []
+  },
+  "id": "d446ffb9092e4789b517078d7dafe6cd",
+  "reason": "Owner requests62including60-R11forInternaltesting",
+  "seq": 840,
+  "time": "2026-11-17T07:15:27.828589+00:00"
+}
