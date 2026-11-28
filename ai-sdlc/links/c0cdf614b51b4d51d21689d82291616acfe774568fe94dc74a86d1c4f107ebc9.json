@@ -1,6 +1,0 @@
-{
-  "rationale": "Owner-authorized60 flow: pre-bump tests passed; artifact verification precedes owner upload and actual Play update.",
-  "relation": "implements",
-  "source": "R60-AAB",
-  "target": "R60-AAB-REQ"
-}

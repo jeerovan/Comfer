@@ -1,0 +1,199 @@
+{
+  "status": "Local sample for owner review",
+  "app": "com.jeerovan.comfer",
+  "build": "62.0 debug",
+  "commit": "62631e3575d79bf1f07cbf7473437c492b1a0e2a",
+  "apk_sha256": "eb56663f0b5880bd070f3d51f875f4fe2dcda9c72ff11f240e1dfc759ba0c70e",
+  "capture": "Pixel_10 temporary read-only Android phone emulator, 1080 × 1920, 360 dpi. Each image captures the regular running launcher. Settings and shortcut lists were staged in a disposable profile. The phone PNGs are opaque RGB screencaptures. No UI, device frame or caption was composited.",
+  "wallpapers": "Seven original AI-generated wallpaper artworks staged as user-supplied backgrounds and included for recreating the looks. Paper White uses Comfer monochrome mode. These names identify sample screenshots.",
+  "research": [
+    {
+      "source": "Archived Comfer Play reviews",
+      "location": "play_reviews.db historical_reviews",
+      "finding": "English reviews praise the monochrome option, wallpaper personalization and icon shapes. Selected comments are qualitative and do not measure listing conversion."
+    },
+    {
+      "source": "Android homescreen setup discussion",
+      "url": "https://www.reddit.com/r/AndroidHomescreen/comments/1xih8at/show_me_your_prettiest_setup_even_if_its_totally/",
+      "finding": "Participants describe uncluttered layouts, sparse shortcuts and changing wallpaper while keeping navigation familiar."
+    },
+    {
+      "source": "Gadgets India setup discussion",
+      "url": "https://www.reddit.com/r/GadgetsIndia/comments/1u0q6kk/share_your_homescreen_setup_everyone/",
+      "finding": "Participants reacted to warm wallpaper color and disagreed on how sparse a practical Home can be."
+    },
+    {
+      "source": "Niagara community themes",
+      "url": "https://help.niagaralauncher.app/article/188-theming",
+      "finding": "A peer launcher presents nature-inspired, minimalist and cozy setups coordinated around wallpaper, clock and icons. This is design precedent."
+    },
+    {
+      "source": "Google Play phone screenshot dimensions",
+      "url": "https://support.google.com/googleplay/android-developer/answer/9866151?hl=en",
+      "finding": "Eight 1080 by 1920 portrait phone PNGs."
+    }
+  ],
+  "screenshots": [
+    {
+      "order": 1,
+      "title": "Forest Fog",
+      "file": "phone/01-forest-fog.png",
+      "sha256": "a169941a545121797edbad5b9f1110326ecab5e8ae026dc111229b6ffa970da6",
+      "alt": "Misty pine ridges, a centered digital clock and four wallpaper-tinted favorites in a single row.",
+      "wallpaper": "wallpaper-sources/01-forest-fog.jpg",
+      "quick_app_layout": "linear",
+      "themed_icons": true,
+      "favorite_count": 4,
+      "clock": "digital",
+      "clock_position_px": [
+        540,
+        275
+      ],
+      "date_position_px": [
+        540,
+        459
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Cobalt Still Life",
+      "file": "phone/02-cobalt-still-life.png",
+      "sha256": "978f06f24f6188ffc9dee627aca49d582a861fbb874708d78460a96e382719a0",
+      "alt": "A cobalt analog clock echoes the illustrated pitcher. Four full-color favorites occupy the lower row.",
+      "wallpaper": "wallpaper-sources/02-cobalt-still-life.jpg",
+      "quick_app_layout": "linear",
+      "themed_icons": false,
+      "favorite_count": 4,
+      "clock": "analog",
+      "clock_position_px": [
+        241,
+        241
+      ],
+      "date_position_px": [
+        240,
+        432
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Midnight Drift",
+      "file": "phone/03-midnight-drift.png",
+      "sha256": "809f6080a85867ad69972e6242b607c865d3a6eafa37205a149eac2a6083d78b",
+      "alt": "A peach stacked clock sits above a ring of favorites, to the left of the coral jellyfish.",
+      "wallpaper": "wallpaper-sources/03-midnight-drift.jpg",
+      "quick_app_layout": "circular",
+      "themed_icons": false,
+      "favorite_count": 6,
+      "clock": "digital",
+      "clock_position_px": [
+        256,
+        269
+      ],
+      "date_position_px": [
+        254,
+        474
+      ]
+    },
+    {
+      "order": 4,
+      "title": "Paper White",
+      "file": "phone/04-paper-white.png",
+      "sha256": "c7ae50e6ffcddaf04e1b1b156b74b1cee5053eded74f2b02b0c55172c843d565",
+      "alt": "Daytime monochrome, oversized bold four-digit time, a small date and a single row of monochrome favorites.",
+      "wallpaper": "Built-in daytime monochrome",
+      "quick_app_layout": "linear",
+      "themed_icons": true,
+      "favorite_count": 4,
+      "clock": "digital",
+      "clock_position_px": [
+        540,
+        400
+      ],
+      "date_position_px": [
+        539,
+        680
+      ]
+    },
+    {
+      "order": 5,
+      "title": "Sunlit Dunes",
+      "file": "phone/05-sunlit-dunes.png",
+      "sha256": "ffe2fedeed26243bdeee801e4d128f4d0661a611a7a60cfe00082956144f0635",
+      "alt": "Warm brown time, date and battery percentage over apricot dunes, with eight full-color favorites in a ring.",
+      "wallpaper": "wallpaper-sources/05-sunlit-dunes.jpg",
+      "quick_app_layout": "circular",
+      "themed_icons": false,
+      "favorite_count": 8,
+      "clock": "digital",
+      "clock_position_px": [
+        539,
+        282
+      ],
+      "date_position_px": [
+        539,
+        470
+      ]
+    },
+    {
+      "order": 6,
+      "title": "Indigo Tide",
+      "file": "phone/06-indigo-tide.png",
+      "sha256": "4ddaf7d479947bb75fba13a1ccbed2019ea92d3bdfe2519fa609265b00b848b7",
+      "alt": "A navy wave print and a serif clock share the upper half with a vermilion sun. Full-color shortcuts sit below.",
+      "wallpaper": "wallpaper-sources/06-indigo-tide.jpg",
+      "quick_app_layout": "linear",
+      "themed_icons": false,
+      "favorite_count": 4,
+      "clock": "digital",
+      "clock_position_px": [
+        365,
+        233
+      ],
+      "date_position_px": [
+        367,
+        398
+      ]
+    },
+    {
+      "order": 7,
+      "title": "Jade Garden",
+      "file": "phone/07-jade-garden.png",
+      "sha256": "c7b859f819fa3186aa48207746400be594515ff5abef165be713846313124c2b",
+      "alt": "A dark green clock and vertically stacked date leave space for a leafy print. Six favorites use the linear layout.",
+      "wallpaper": "wallpaper-sources/07-jade-garden.jpg",
+      "quick_app_layout": "linear",
+      "themed_icons": false,
+      "favorite_count": 6,
+      "clock": "digital",
+      "clock_position_px": [
+        345,
+        249
+      ],
+      "date_position_px": [
+        269,
+        440
+      ]
+    },
+    {
+      "order": 8,
+      "title": "Afterglow",
+      "file": "phone/08-afterglow.png",
+      "sha256": "3b8cad62bdacc59fd61508a44714e5e97f0200f177bed26dc68a1158b721031d",
+      "alt": "A white clock sits to the right above a lavender lake. Eight wallpaper-tinted favorites echo the lake at the bottom.",
+      "wallpaper": "wallpaper-sources/08-afterglow.jpg",
+      "quick_app_layout": "circular",
+      "themed_icons": true,
+      "favorite_count": 8,
+      "clock": "digital",
+      "clock_position_px": [
+        720,
+        555
+      ],
+      "date_position_px": [
+        731,
+        702
+      ]
+    }
+  ],
+  "zip_sha256": "d53b5cbbb1c597a3796719ccfe2060149eaff4bf17c13c1ff6f4df73895c0021"
+}

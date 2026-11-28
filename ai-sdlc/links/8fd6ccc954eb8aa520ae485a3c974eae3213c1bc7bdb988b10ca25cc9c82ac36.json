@@ -1,6 +1,0 @@
-{
-  "rationale": "Artifact preparation precedes ownerdeliverytesting;productioneffectivenessfollows",
-  "relation": "depends_on",
-  "source": "ANR-CLOCK-PRODUCTION",
-  "target": "R62-INTERNAL-TEST"
-}

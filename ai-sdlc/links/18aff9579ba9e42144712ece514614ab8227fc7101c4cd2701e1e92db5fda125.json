@@ -1,6 +1,0 @@
-{
-  "rationale": "Artifact preparation precedes ownerdeliverytesting;productioneffectivenessfollows",
-  "relation": "implements",
-  "source": "R62-AAB",
-  "target": "R62-AAB-REQ"
-}

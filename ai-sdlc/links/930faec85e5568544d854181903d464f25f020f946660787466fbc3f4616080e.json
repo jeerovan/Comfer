@@ -1,6 +1,0 @@
-{
-  "rationale": "Local preparation and verification precede owner upload and Play-delivered checks",
-  "relation": "depends_on",
-  "source": "R61-INTERNAL-TEST",
-  "target": "R61-AAB"
-}

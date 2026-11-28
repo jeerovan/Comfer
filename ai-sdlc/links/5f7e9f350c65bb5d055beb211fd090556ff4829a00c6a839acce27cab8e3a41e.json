@@ -1,6 +1,0 @@
-{
-  "rationale": "Prepared artifact enables internal testing; internal testing does not claim all readiness gates complete.",
-  "relation": "depends_on",
-  "source": "R59-INTERNAL-TEST",
-  "target": "R59-AAB"
-}

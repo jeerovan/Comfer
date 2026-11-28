@@ -1,6 +1,0 @@
-{
-  "rationale": "Artifact production does not close R59-PREPARE/Play-delivery or known defect gates.",
-  "relation": "implements",
-  "source": "R59-AAB",
-  "target": "R59-AAB-REQ"
-}

@@ -1,6 +1,0 @@
-{
-  "rationale": "Local cache correctness precedes delivered-build and production follow-up",
-  "relation": "realizes",
-  "source": "ANR-CLOCK-CACHE-IMPL",
-  "target": "ANR-CLOCK-CACHE"
-}

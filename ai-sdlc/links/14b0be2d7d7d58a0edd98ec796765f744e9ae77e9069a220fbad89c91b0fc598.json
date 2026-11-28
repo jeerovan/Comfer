@@ -1,6 +1,0 @@
-{
-  "rationale": "Natural shortcut recognition and exclusive routing",
-  "relation": "implements",
-  "source": "HOME-GESTURES",
-  "target": "HOME-GESTURES-REQ"
-}

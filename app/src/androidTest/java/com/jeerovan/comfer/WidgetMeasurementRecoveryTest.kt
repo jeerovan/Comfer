@@ -154,6 +154,18 @@ class WidgetMeasurementRecoveryTest {
                     scenario.onActivity { found = view?.findViewById<ListView>(android.R.id.list) != null }
                     found
                 }
+                // Home started before the saved widget was inflated. Verify live delivery
+                // through Android without another onStart or a direct update to the view.
+                manager.appWidgetManager.updateAppWidget(id, RemoteViews(context.packageName, fixture).apply {
+                    setContentDescription(android.R.id.list, "Updated on first Home")
+                })
+                compose.waitUntil(15_000) {
+                    var updated = false
+                    scenario.onActivity {
+                        updated = view?.findViewById<ListView>(android.R.id.list)?.contentDescription == "Updated on first Home"
+                    }
+                    updated
+                }
                 scenario.onActivity {
                     view!!.findViewById<ListView>(android.R.id.list).adapter = brokenAdapter()
                     // Normal attached-view traversal supplies measure/layout, not the test.

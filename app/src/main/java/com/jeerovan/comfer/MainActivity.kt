@@ -5886,13 +5886,15 @@ class WidgetHostManager(private val context: Context) {
     )
     private val startedHosts = mutableSetOf<AppWidgetHost>()
     private val hostsNeedingStop = mutableSetOf<AppWidgetHost>()
+    private val hostsAwaitingFirstView = mutableSetOf<AppWidgetHost>()
+    private var listeningRequested = false
 
     init {
         scope.launch {
             for (listening in listeningRequests) {
                 if (listening) {
                     for (host in listOf(mainHost, leftHost, rightHost)) {
-                        if (host in startedHosts) continue
+                        if (host in hostsAwaitingFirstView || host in startedHosts) continue
                         // A start can register remotely before throwing while
                         // applying pending views. It still needs a matching stop.
                         hostsNeedingStop.add(host)
@@ -5924,17 +5926,37 @@ class WidgetHostManager(private val context: Context) {
         }
     }
 
-    fun initHosts() {
-        mainHost = RecoverableWidgetHost(context, MAIN_WIDGET_HOST_ID)
-        leftHost = RecoverableWidgetHost(context, LEFT_SIDE_WIDGET_HOST_ID)
-        rightHost = RecoverableWidgetHost(context, RIGHT_SIDE_WIDGET_HOST_ID)
+    internal fun initHosts(
+        mainId: Int = MAIN_WIDGET_HOST_ID,
+        leftId: Int = LEFT_SIDE_WIDGET_HOST_ID,
+        rightId: Int = RIGHT_SIDE_WIDGET_HOST_ID
+    ) {
+        mainHost = createHost(mainId)
+        leftHost = createHost(leftId)
+        rightHost = createHost(rightId)
+    }
+
+    private fun createHost(hostId: Int): AppWidgetHost {
+        val host = RecoverableWidgetHost(context, hostId) { requestedHost ->
+            if (hostsAwaitingFirstView.remove(requestedHost)) {
+                // Android installs the view's listener after onCreateView returns.
+                // Dispatch once it can receive pending updates, even on an already-visible Home.
+                scope.launch(Dispatchers.Main) {
+                    if (listeningRequested) listeningRequests.trySend(true)
+                }
+            }
+        }
+        hostsAwaitingFirstView.add(host)
+        return host
     }
 
     fun startListening() {
+        listeningRequested = true
         listeningRequests.trySend(true)
     }
 
     fun stopListening() {
+        listeningRequested = false
         listeningRequests.trySend(false)
     }
 

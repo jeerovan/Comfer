@@ -1,6 +1,0 @@
-{
-  "rationale": "Actual Home Back hierarchy and regression verification",
-  "relation": "verifies",
-  "source": "PRO-SETTINGS-BACK-TEST",
-  "target": "PRO-SETTINGS-BACK"
-}

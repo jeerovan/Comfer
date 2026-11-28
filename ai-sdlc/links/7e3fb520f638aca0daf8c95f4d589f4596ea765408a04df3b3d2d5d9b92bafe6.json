@@ -1,6 +1,0 @@
-{
-  "rationale": "Grouped notification exact-key artwork regression",
-  "relation": "implements",
-  "source": "R60-NOTIF-ROW",
-  "target": "R60-NOTIF-ROW-REQ"
-}

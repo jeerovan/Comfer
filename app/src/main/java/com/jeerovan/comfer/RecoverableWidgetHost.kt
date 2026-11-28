@@ -8,9 +8,16 @@ import android.util.Log
 import android.widget.RemoteViews
 
 /** Keep a provider's broken collection from taking down Home during measurement. */
-internal class RecoverableWidgetHost(context: Context, hostId: Int) : AppWidgetHost(context, hostId) {
-    override fun onCreateView(context: Context, appWidgetId: Int, appWidget: AppWidgetProviderInfo): AppWidgetHostView =
-        RecoverableWidgetHostView(context)
+internal class RecoverableWidgetHost(
+    context: Context,
+    hostId: Int,
+    private val onViewRequested: (AppWidgetHost) -> Unit
+) : AppWidgetHost(context, hostId) {
+    override fun onCreateView(context: Context, appWidgetId: Int, appWidget: AppWidgetProviderInfo): AppWidgetHostView {
+        val view = RecoverableWidgetHostView(context)
+        onViewRequested(this)
+        return view
+    }
 }
 
 private class RecoverableWidgetHostView(context: Context) : AppWidgetHostView(context) {

@@ -1,6 +1,0 @@
-{
-  "rationale": "Assessment of existing implementation; full clone-support implementation remains unrequested/unverified.",
-  "relation": "realizes",
-  "source": "DUAL-REVIEW-IMPL",
-  "target": "DUAL-REVIEW"
-}

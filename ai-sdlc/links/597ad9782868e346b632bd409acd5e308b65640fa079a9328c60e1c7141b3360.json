@@ -1,6 +1,0 @@
-{
-  "rationale": "Actual Play update and regular-app acceptance; delivery remains distinct from local artifact checks.",
-  "relation": "implements",
-  "source": "R60-INTERNAL-TEST",
-  "target": "R60-PLAY-REQ"
-}

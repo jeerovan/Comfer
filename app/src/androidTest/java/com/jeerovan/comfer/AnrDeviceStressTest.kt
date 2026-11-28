@@ -1,6 +1,5 @@
 package com.jeerovan.comfer
 
-import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
 import android.content.ComponentName
 import android.content.Intent
@@ -95,31 +94,59 @@ class AnrDeviceStressTest {
     fun realWidgetServiceAppliesPendingUpdatesAcrossStopStartBursts() {
         isolated()
         val manager = WidgetHostManager(context)
-        val hosts = listOf(20101, 20102, 20103).map { AppWidgetHost(context, it) }
+        val hostIds = listOf(20101, 20102, 20103)
+        instrumentation.runOnMainSync { manager.initHosts(hostIds[0], hostIds[1], hostIds[2]) }
+        val hosts = listOf(manager.mainHost, manager.leftHost, manager.rightHost)
         val ids = mutableListOf<Int>()
         val views = mutableListOf<AppWidgetHostView>()
         val provider = ComponentName(context.packageName, "com.jeerovan.comfer.AnrFixtureWidgetProvider")
         val user = android.os.Process.myUserHandle().hashCode()
         shell("appwidget grantbind --package ${context.packageName} --user $user")
         try {
-            instrumentation.runOnMainSync {
-                manager.mainHost = hosts[0]; manager.leftHost = hosts[1]; manager.rightHost = hosts[2]
-            }
             hosts.forEach { host ->
                 val id = host.allocateAppWidgetId().also(ids::add)
                 assertTrue("Fixture widget binding must succeed (not silently skipped)",
                     manager.appWidgetManager.bindAppWidgetIdIfAllowed(id, provider))
             }
             ActivityScenario.launch(GuideActivity::class.java).use { scenario ->
+                lateinit var container: LinearLayout
                 scenario.onActivity { activity ->
-                    val container = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
-                    hosts.zip(ids).forEach { (host, id) ->
+                    container = LinearLayout(activity).apply { orientation = LinearLayout.VERTICAL }
+                    activity.setContentView(container)
+                    manager.startListening()
+                }
+                instrumentation.waitForIdleSync()
+                fun listeningHosts(): Set<Int> {
+                    val dump = shell("dumpsys appwidget").substringAfter("Hosts:").substringBefore("Grants:")
+                    // All three allocated IDs have service records, even before a view exists.
+                    return hostIds.filter { hostId ->
+                        val marker = "hostId:$hostId, pkg:${context.packageName}}"
+                        assertTrue("Missing fixture host $hostId", dump.contains(marker))
+                        val callbacks = dump.substringAfter(marker).trimStart().lineSequence().first()
+                        assertTrue("Missing callbacks field for $hostId", callbacks.startsWith("callbacks="))
+                        callbacks != "callbacks=null"
+                    }.toSet()
+                }
+                assertEquals("Home registered widget hosts before any view existed", emptySet<Int>(), listeningHosts())
+                hosts.zip(ids).forEachIndexed { index, (host, id) ->
+                    val createWhileStopped = index == hosts.lastIndex
+                    if (createWhileStopped) {
+                        scenario.onActivity { manager.stopListening() }
+                        await("widget service detached before creating the last view") { listeningHosts().isEmpty() }
+                    }
+                    scenario.onActivity { activity ->
                         val view = host.createView(activity, id, manager.appWidgetManager.getAppWidgetInfo(id))
                         views += view
                         container.addView(view, LinearLayout.LayoutParams(-1, 160))
                     }
-                    activity.setContentView(container)
-                    manager.startListening()
+                    if (createWhileStopped) {
+                        instrumentation.waitForIdleSync()
+                        assertTrue("Creating a view while stopped registered a listener", listeningHosts().isEmpty())
+                        scenario.onActivity { manager.startListening() }
+                    }
+                    await("only hosts with a view listen after bind $index") {
+                        listeningHosts() == hostIds.take(index + 1).toSet()
+                    }
                 }
                 MainThreadProbe("real-widget-service").use { probe ->
                     repeat(30) { iteration ->
